@@ -31,10 +31,27 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// fl_chart's ScatterChart is deliberately not used: it cannot carry the
 /// overlay line series alongside the points.
+/// A named series drawn beside the primary points on the same axes, in its
+/// own colour (condition phase 4a: one line per cell slot, the dives with
+/// an issue on a temperature trend).
+class TrendSeries {
+  final String label;
+  final List<TrendDataPoint> points;
+  final Color color;
+
+  const TrendSeries({
+    required this.label,
+    required this.points,
+    required this.color,
+  });
+}
+
 class DiveTrendChart extends StatefulWidget {
   const DiveTrendChart({
     super.key,
     required this.points,
+    this.secondarySeries = const [],
+    this.highlightRange,
     this.aggregation = TrendAggregation.none,
     this.showRollingMean = false,
     this.showLinearFit = false,
@@ -51,7 +68,16 @@ class DiveTrendChart extends StatefulWidget {
   });
 
   /// Raw per-dive points, in any order. Never pre-aggregated by the caller.
+  /// May be empty when [secondarySeries] carries the data.
   final List<TrendDataPoint> points;
+
+  /// Extra series on the same axes, aggregated and drawn like [points] and
+  /// named in the tooltip. Index 0 of the drawn bars stays the primary so
+  /// tap and tooltip indices are stable.
+  final List<TrendSeries> secondarySeries;
+
+  /// A time span shaded behind the series, for a finding's evidence window.
+  final ({DateTime start, DateTime end})? highlightRange;
 
   /// The diver's date order, threaded in by the caller rather than read from
   /// the ambient locale, so the axis and the tooltip match Manage - Units
@@ -92,6 +118,12 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// Buckets as last drawn, so a tap on the data series can resolve which
   /// dive it landed on.
   List<TrendBucket> _drawnBuckets = const [];
+
+  /// Secondary buckets as last drawn, parallel to [_secondaryBarStart].
+  List<List<TrendBucket>> _drawnSecondary = const [];
+
+  /// Index of the first secondary bar in the drawn bars, or -1.
+  int _secondaryBarStart = -1;
   PointerDeviceKind _activePointerKind = PointerDeviceKind.mouse;
   int _activePointerCount = 0;
   Offset? _lastPointerLocal;
@@ -165,7 +197,8 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.points.isEmpty) {
+    if (widget.points.isEmpty &&
+        widget.secondarySeries.every((s) => s.points.isEmpty)) {
       return _EmptyChart(height: widget.height);
     }
     return LayoutBuilder(
@@ -327,12 +360,20 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
     final buckets = aggregate(points, aggregation);
     _drawnBuckets = buckets;
+    final secondary = [
+      for (final s in widget.secondarySeries) aggregate(s.points, aggregation),
+    ];
+    _drawnSecondary = secondary;
+    // The x range spans every drawn bucket; the primary may be empty when
+    // the secondaries carry the data.
+    final allBuckets = [...buckets, ...secondary.expand((b) => b)];
+    allBuckets.sort((a, b) => a.date.compareTo(b.date));
 
     // The window the viewport exposes, not the whole series. Ticks are chosen
     // from the visible span so a chart zoomed into a few weeks stops being
     // labelled by year.
-    final fullMin = _x(buckets.first.date);
-    final fullMax = _x(buckets.last.date);
+    final fullMin = _x(allBuckets.first.date);
+    final fullMax = _x(allBuckets.last.date);
     final fullSpan = (fullMax - fullMin).clamp(1.0, double.infinity);
     final visibleMin = fullMin + _viewport.offsetX * fullSpan;
     final visibleMax = visibleMin + fullSpan * _viewport.visibleWidth;
@@ -350,19 +391,30 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final smoothed = widget.showRollingMean
         ? rollingMean(points)
         : const <TrendDataPoint>[];
-    final fit = widget.showLinearFit ? linearFit(points) : null;
+    final fit = widget.showLinearFit && points.isNotEmpty
+        ? linearFit(points)
+        : null;
     final yAxis = ChartAxis.forTrend(<double>[
-      ...buckets.expand((b) => [b.min, b.max]),
+      ...allBuckets.expand((b) => [b.min, b.max]),
       ...smoothed.map((p) => p.value),
       if (fit != null) ...[
-        fit.valueAt(buckets.first.date),
-        fit.valueAt(buckets.last.date),
+        fit.valueAt(allBuckets.first.date),
+        fit.valueAt(allBuckets.last.date),
       ],
     ]);
 
     final isRaw = aggregation == TrendAggregation.none;
-    final bars = _bars(context, buckets, color, isRaw, smoothed, fit);
+    final bars = _bars(
+      context,
+      buckets,
+      color,
+      isRaw,
+      smoothed,
+      fit,
+      secondary,
+    );
     final seriesLabels = _seriesLabels(context, isRaw, smoothed, fit);
+    final highlight = widget.highlightRange;
 
     return Semantics(
       label: yAxisLabel != null
@@ -400,6 +452,16 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
             ),
             lineBarsData: bars,
             betweenBarsData: _bands(context, isRaw),
+            rangeAnnotations: RangeAnnotations(
+              verticalRangeAnnotations: [
+                if (highlight != null)
+                  VerticalRangeAnnotation(
+                    x1: _x(highlight.start),
+                    x2: _x(highlight.end),
+                    color: theme.colorScheme.tertiary.withValues(alpha: 0.18),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -428,6 +490,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       ],
       if (smoothed.isNotEmpty) l10n.statistics_trend_legend_rollingAverage,
       if (fit != null) l10n.statistics_trend_legend_rate,
+      for (final s in widget.secondarySeries) s.label,
     ];
   }
 
@@ -440,31 +503,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     bool isRaw,
     List<TrendDataPoint> smoothed,
     LinearFit? fit,
+    List<List<TrendBucket>> secondary,
   ) {
-    final bars = <LineChartBarData>[
-      LineChartBarData(
-        spots: buckets
-            .map((b) => FlSpot(_x(b.date), b.mean))
-            .toList(growable: false),
-        isCurved: false,
-        color: color,
-        // Raw mode draws dots only: a stroke between two dives eight months
-        // apart would assert something happened in between.
-        barWidth: isRaw ? 0 : 2,
-        isStrokeCapRound: true,
-        // Dotted in both modes. An aggregated series drawn as a bare line
-        // hides where the buckets actually are, leaving hovering as the only
-        // way to find one.
-        dotData: FlDotData(
-          show: true,
-          getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-            radius: isRaw ? 2.2 : 3,
-            color: color.withValues(alpha: isRaw ? 0.7 : 1),
-            strokeWidth: 0,
-          ),
-        ),
-      ),
-    ];
+    final bars = <LineChartBarData>[_dataBar(buckets, color, isRaw)];
 
     if (!isRaw) {
       for (final selector in <double Function(TrendBucket)>[
@@ -506,7 +547,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       }
     }
 
-    if (fit != null) {
+    if (fit != null && buckets.isNotEmpty) {
       {
         final first = buckets.first.date;
         final last = buckets.last.date;
@@ -526,7 +567,40 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       }
     }
 
+    // Secondaries come last so every index above is unchanged by them.
+    _secondaryBarStart = secondary.isEmpty ? -1 : bars.length;
+    for (var i = 0; i < secondary.length; i++) {
+      bars.add(_dataBar(secondary[i], widget.secondarySeries[i].color, isRaw));
+    }
+
     return bars;
+  }
+
+  /// A per-dive series: dots only in raw mode (a stroke between two dives
+  /// eight months apart would assert something happened in between), dotted
+  /// line when aggregated so the buckets stay findable without hovering.
+  LineChartBarData _dataBar(
+    List<TrendBucket> buckets,
+    Color color,
+    bool isRaw,
+  ) {
+    return LineChartBarData(
+      spots: buckets
+          .map((b) => FlSpot(_x(b.date), b.mean))
+          .toList(growable: false),
+      isCurved: false,
+      color: color,
+      barWidth: isRaw ? 0 : 2,
+      isStrokeCapRound: true,
+      dotData: FlDotData(
+        show: true,
+        getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+          radius: isRaw ? 2.2 : 3,
+          color: color.withValues(alpha: isRaw ? 0.7 : 1),
+          strokeWidth: 0,
+        ),
+      ),
+    );
   }
 
   /// Fills between the min and max series so an aggregated chart still shows
@@ -550,6 +624,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final dataBar = bars.first;
+    final secondaryBars = _secondaryBarStart < 0
+        ? const <LineChartBarData>[]
+        : bars.sublist(_secondaryBarStart);
     return LineTouchData(
       // Generous, so the readout follows the pointer anywhere over the plot
       // rather than only within a few pixels of a dot.
@@ -563,7 +640,8 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       // and the fitted overlays would each contribute their own dot and line,
       // stacking several markers on one touch.
       getTouchedSpotIndicator: (barData, spotIndexes) {
-        if (!identical(barData, dataBar)) {
+        if (!identical(barData, dataBar) &&
+            !secondaryBars.any((b) => identical(b, barData))) {
           return List<TouchedSpotIndicatorData?>.filled(
             spotIndexes.length,
             null,
@@ -576,13 +654,21 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
         final onDiveSelected = widget.onDiveSelected;
         if (onDiveSelected == null) return;
         final spot = response?.lineBarSpots?.firstOrNull;
-        if (spot == null || spot.barIndex != 0) return;
-        if (spot.spotIndex < 0 || spot.spotIndex >= _drawnBuckets.length) {
+        if (spot == null) return;
+        final List<TrendBucket> drawn;
+        if (spot.barIndex == 0) {
+          drawn = _drawnBuckets;
+        } else if (_secondaryBarStart >= 0 &&
+            spot.barIndex >= _secondaryBarStart &&
+            spot.barIndex - _secondaryBarStart < _drawnSecondary.length) {
+          drawn = _drawnSecondary[spot.barIndex - _secondaryBarStart];
+        } else {
           return;
         }
+        if (spot.spotIndex < 0 || spot.spotIndex >= drawn.length) return;
         // Only a bucket standing for exactly one dive can be opened; an
         // aggregated bucket has no single dive behind it.
-        final diveId = _drawnBuckets[spot.spotIndex].diveId;
+        final diveId = drawn[spot.spotIndex].diveId;
         if (diveId != null) onDiveSelected(diveId);
       },
       touchTooltipData: LineTouchTooltipData(

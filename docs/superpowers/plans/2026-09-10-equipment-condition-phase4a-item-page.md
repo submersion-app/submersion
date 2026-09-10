@@ -46,8 +46,7 @@ Create:
 
 Modify:
 
-- `lib/features/statistics/domain/trend_aggregation.dart`: `TrendSeries`.
-- `lib/features/statistics/presentation/widgets/dive_trend_chart.dart`: `secondarySeries`, `highlightRange`.
+- `lib/features/statistics/presentation/widgets/dive_trend_chart.dart`: `TrendSeries` (lives here, not in `trend_aggregation.dart`, which imports no Flutter), `secondarySeries`, `highlightRange`.
 - `lib/features/equipment/data/repositories/equipment_repository_impl.dart`: `replaceChild`.
 - `lib/features/equipment/presentation/pages/equipment_detail_page.dart`: the four cards.
 - The 11 ARB files and their generated Dart.
@@ -159,7 +158,7 @@ ARB keys (anchor after `equipmentCondition_finding_window`): `equipmentCondition
 ### Task 3: DiveTrendChart secondary series and highlight range
 
 **Files:**
-- Modify: `lib/features/statistics/domain/trend_aggregation.dart`, `lib/features/statistics/presentation/widgets/dive_trend_chart.dart`
+- Modify: `lib/features/statistics/presentation/widgets/dive_trend_chart.dart`
 - Test: `test/features/statistics/presentation/widgets/dive_trend_chart_series_test.dart`
 
 **Interfaces:**
