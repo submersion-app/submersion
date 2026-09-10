@@ -486,11 +486,17 @@ class UddfFullExportService {
   Future<String> generateAllDataXmlForTest({
     required List<Dive> dives,
     Diver? owner,
+    List<EquipmentItem>? equipment,
+    List<EquipmentSet>? equipmentSets,
+    List<EquipmentComponent>? components,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
     owner: owner,
+    equipment: equipment,
+    equipmentSets: equipmentSets,
+    components: components,
     dataSources: dataSources,
     options: options,
   );
