@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -19,6 +20,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Order: likely duplicates (score >= 0.7), then possible duplicates
 /// (score >= 0.5), then non-duplicates. Duplicates appear first so rows
 /// needing a user decision aren't buried beneath clean imports.
+int? _lastToggledIndex;
+
 class EntityReviewList extends StatelessWidget {
   /// The entity group containing items, duplicate indices, and match results.
   final EntityGroup group;
@@ -45,6 +48,9 @@ class EntityReviewList extends StatelessWidget {
   /// Called when the user changes the action for a duplicate item.
   final void Function(int index, DuplicateAction action)
   onDuplicateActionChanged;
+
+  /// Called when the user Shift-clicks to select a range.
+  final void Function(Set<int> indices, bool select)? onSetSelections;
 
   /// Called when the user taps a bulk action button.
   final void Function(DuplicateAction action) onBulkAction;
@@ -86,6 +92,7 @@ class EntityReviewList extends StatelessWidget {
     this.pendingIndices = const {},
     required this.onToggleSelection,
     required this.onDuplicateActionChanged,
+    this.onSetSelections,
     this.onBulkAction = _noopBulkAction,
     required this.onSelectAll,
     required this.onDeselectAll,
@@ -221,7 +228,28 @@ class EntityReviewList extends StatelessWidget {
               item: group.items[index],
               index: index,
               isSelected: selectedIndices.contains(index),
-              onToggle: () => onToggleSelection(index),
+              onToggle: () {
+                final isShiftPressed = HardwareKeyboard.instance.logicalKeysPressed.any(
+                  (k) => k == LogicalKeyboardKey.shiftLeft || k == LogicalKeyboardKey.shiftRight
+                );
+                final isSelecting = !selectedIndices.contains(index);
+
+                if (isShiftPressed && _lastToggledIndex != null && onSetSelections != null) {
+                  final startIndex = nonDuplicateIndices.indexOf(_lastToggledIndex!);
+                  final endIndex = nonDuplicateIndices.indexOf(index);
+                  if (startIndex != -1 && endIndex != -1) {
+                    final start = startIndex < endIndex ? startIndex : endIndex;
+                    final end = startIndex < endIndex ? endIndex : startIndex;
+                    final range = nonDuplicateIndices.sublist(start, end + 1).toSet();
+                    onSetSelections!(range, isSelecting);
+                  } else {
+                    onToggleSelection(index);
+                  }
+                } else {
+                  onToggleSelection(index);
+                }
+                _lastToggledIndex = index;
+              },
               projectedDiveNumber: projectedDiveNumbers?[index],
             ),
         ],

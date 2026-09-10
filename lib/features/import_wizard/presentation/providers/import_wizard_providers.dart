@@ -369,6 +369,26 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// duplicate rows never reach this path with a meaningful action — their
   /// action is set via [setDuplicateAction] from `DuplicateActionCard` — so
   /// this can't clobber a user's duplicate-resolution choice.
+  void setSelections(ImportEntityType type, Set<int> indices, bool select) {
+    final current = state.selections[type] ?? const <int>{};
+    final updated = Set<int>.from(current);
+    
+    if (select) {
+      updated.addAll(indices);
+    } else {
+      updated.removeAll(indices);
+    }
+
+    final updatedPending = _drainPending(type, indices);
+    final updatedActions = _clearSeededSkip(type, indices, select);
+
+    state = state.copyWith(
+      selections: {...state.selections, type: updated},
+      duplicateActions: updatedActions,
+      pendingDuplicateReview: updatedPending,
+    );
+  }
+
   void toggleSelection(ImportEntityType type, int index) {
     final current = state.selections[type] ?? const <int>{};
     final updated = Set<int>.from(current);
