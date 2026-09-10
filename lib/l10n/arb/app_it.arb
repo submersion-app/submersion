@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Solo immersioni senza bombola esistente",
   "diveLog_bulkEdit_confirmTitle": "Applicare le modifiche?",
   "diveLog_bulkEdit_confirmApply": "Applica",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Aggiunta a 1 immersione} other{Aggiunta a tutte le {count} immersioni}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Rimozione da 1 immersione} other{Rimozione da tutte le {count} immersioni}}",
   "diveLog_bulkEdit_nothingSelected": "Attiva almeno un campo per applicare le modifiche.",
   "diveLog_bulkEdit_applied": "{count} immersioni aggiornate",
   "settings_cloudSync_error_icloudSignedOut": "iCloud non è disponibile. Accedi a iCloud nelle impostazioni del dispositivo.",

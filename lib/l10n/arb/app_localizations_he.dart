@@ -593,6 +593,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'החל';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מוסיף לכל $count הצלילות',
+      one: 'מוסיף לצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מסיר מכל $count הצלילות',
+      one: 'מסיר מצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'הפעל לפחות שדה אחד כדי להחיל שינויים.';
 

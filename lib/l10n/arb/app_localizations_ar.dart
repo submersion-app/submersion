@@ -597,6 +597,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'تطبيق';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة إلى كل الـ $count غطسة',
+      one: 'إضافة إلى غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة من كل الـ $count غطسة',
+      one: 'إزالة من غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'فعّل حقلاً واحداً على الأقل لتطبيق التغييرات.';
 

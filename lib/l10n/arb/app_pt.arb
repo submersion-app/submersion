@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Apenas mergulhos sem cilindro existente",
   "diveLog_bulkEdit_confirmTitle": "Aplicar alterações?",
   "diveLog_bulkEdit_confirmApply": "Aplicar",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Adicionando a 1 mergulho} other{Adicionando a todos os {count} mergulhos}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Removendo de 1 mergulho} other{Removendo de todos os {count} mergulhos}}",
   "diveLog_bulkEdit_nothingSelected": "Ative pelo menos um campo para aplicar alterações.",
   "diveLog_bulkEdit_applied": "{count} mergulhos atualizados",
   "settings_cloudSync_error_icloudSignedOut": "O iCloud não está disponível. Inicie sessão no iCloud nas definições do seu dispositivo.",

@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "الغطسات التي لا تحتوي على أسطوانة فقط",
   "diveLog_bulkEdit_confirmTitle": "تطبيق التغييرات؟",
   "diveLog_bulkEdit_confirmApply": "تطبيق",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{إضافة إلى غطسة واحدة} other{إضافة إلى كل الـ {count} غطسة}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{إزالة من غطسة واحدة} other{إزالة من كل الـ {count} غطسة}}",
   "diveLog_bulkEdit_nothingSelected": "فعّل حقلاً واحداً على الأقل لتطبيق التغييرات.",
   "diveLog_bulkEdit_applied": "تم تحديث {count} غطسة",
   "settings_cloudSync_error_icloudSignedOut": "iCloud غير متوفر. يُرجى تسجيل الدخول إلى iCloud من إعدادات جهازك.",

@@ -600,6 +600,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'Alkalmaz';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hozzáadás mind a $count merüléshez',
+      one: 'Hozzáadás 1 merüléshez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítás mind a $count merülésből',
+      one: 'Eltávolítás 1 merülésből',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'Engedélyezzen legalább egy mezőt a módosítások alkalmazásához.';
 

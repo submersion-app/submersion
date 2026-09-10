@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Nur Tauchgänge ohne vorhandene Flasche",
   "diveLog_bulkEdit_confirmTitle": "Änderungen anwenden?",
   "diveLog_bulkEdit_confirmApply": "Anwenden",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Wird zu 1 Tauchgang hinzugefügt} other{Wird zu allen {count} Tauchgängen hinzugefügt}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Wird von 1 Tauchgang entfernt} other{Wird von allen {count} Tauchgängen entfernt}}",
   "diveLog_bulkEdit_nothingSelected": "Aktiviere mindestens ein Feld, um Änderungen anzuwenden.",
   "diveLog_bulkEdit_applied": "{count} Tauchgänge aktualisiert",
   "settings_cloudSync_error_icloudSignedOut": "iCloud ist nicht verfügbar. Bitte melde dich in den Geräteeinstellungen bei iCloud an.",

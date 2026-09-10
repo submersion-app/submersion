@@ -991,6 +991,18 @@ abstract class AppLocalizations {
   /// **'Apply'**
   String get diveLog_bulkEdit_confirmApply;
 
+  /// No description provided for @diveLog_bulkEdit_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Adding to 1 dive} other{Adding to all {count} dives}}'**
+  String diveLog_bulkEdit_confirmAdding(int count);
+
+  /// No description provided for @diveLog_bulkEdit_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removing from 1 dive} other{Removing from all {count} dives}}'**
+  String diveLog_bulkEdit_confirmRemoving(int count);
+
   /// No description provided for @diveLog_bulkEdit_nothingSelected.
   ///
   /// In en, this message translates to:

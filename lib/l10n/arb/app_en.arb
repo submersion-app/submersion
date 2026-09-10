@@ -390,6 +390,22 @@
   },
   "diveLog_bulkEdit_confirmTitle": "Apply changes?",
   "diveLog_bulkEdit_confirmApply": "Apply",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Adding to 1 dive} other{Adding to all {count} dives}}",
+  "@diveLog_bulkEdit_confirmAdding": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Removing from 1 dive} other{Removing from all {count} dives}}",
+  "@diveLog_bulkEdit_confirmRemoving": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_nothingSelected": "Turn on at least one field to apply changes.",
   "diveLog_bulkEdit_applied": "Updated {count} dives",
   "@diveLog_bulkEdit_applied": {

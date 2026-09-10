@@ -604,6 +604,28 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'Applica';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiunta a tutte le $count immersioni',
+      one: 'Aggiunta a 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimozione da tutte le $count immersioni',
+      one: 'Rimozione da 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'Attiva almeno un campo per applicare le modifiche.';
 

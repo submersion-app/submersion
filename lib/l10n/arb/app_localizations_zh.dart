@@ -577,6 +577,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => '应用';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加到全部 $count 次潜水',
+      one: '添加到 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '从全部 $count 次潜水移除',
+      one: '从 1 次潜水移除',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected => '至少启用一个字段以应用更改。';
 
   @override

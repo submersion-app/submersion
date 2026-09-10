@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "רק צלילות ללא מכל קיים",
   "diveLog_bulkEdit_confirmTitle": "להחיל שינויים?",
   "diveLog_bulkEdit_confirmApply": "החל",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{מוסיף לצלילה אחת} other{מוסיף לכל {count} הצלילות}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{מסיר מצלילה אחת} other{מסיר מכל {count} הצלילות}}",
   "diveLog_bulkEdit_nothingSelected": "הפעל לפחות שדה אחד כדי להחיל שינויים.",
   "diveLog_bulkEdit_applied": "{count} צלילות עודכנו",
   "settings_cloudSync_error_icloudSignedOut": "iCloud אינו זמין. היכנס ל-iCloud דרך הגדרות המכשיר.",

@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Alleen duiken zonder bestaande fles",
   "diveLog_bulkEdit_confirmTitle": "Wijzigingen toepassen?",
   "diveLog_bulkEdit_confirmApply": "Toepassen",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Toevoegen aan 1 duik} other{Toevoegen aan alle {count} duiken}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Verwijderen van 1 duik} other{Verwijderen van alle {count} duiken}}",
   "diveLog_bulkEdit_nothingSelected": "Schakel minstens één veld in om wijzigingen toe te passen.",
   "diveLog_bulkEdit_applied": "{count} duiken bijgewerkt",
   "settings_cloudSync_error_icloudSignedOut": "iCloud is niet beschikbaar. Log in bij iCloud in de instellingen van je apparaat.",

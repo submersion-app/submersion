@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Seulement les plongées sans bloc existant",
   "diveLog_bulkEdit_confirmTitle": "Appliquer les modifications ?",
   "diveLog_bulkEdit_confirmApply": "Appliquer",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Ajout à 1 plongée} other{Ajout à toutes les {count} plongées}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Retrait de 1 plongée} other{Retrait de toutes les {count} plongées}}",
   "diveLog_bulkEdit_nothingSelected": "Activez au moins un champ pour appliquer les modifications.",
   "diveLog_bulkEdit_applied": "{count} plongées mises à jour",
   "settings_cloudSync_error_icloudSignedOut": "iCloud n'est pas disponible. Connectez-vous à iCloud dans les réglages de votre appareil.",

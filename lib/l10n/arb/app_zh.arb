@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "仅没有气瓶的潜水",
   "diveLog_bulkEdit_confirmTitle": "应用更改？",
   "diveLog_bulkEdit_confirmApply": "应用",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{添加到 1 次潜水} other{添加到全部 {count} 次潜水}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{从 1 次潜水移除} other{从全部 {count} 次潜水移除}}",
   "diveLog_bulkEdit_nothingSelected": "至少启用一个字段以应用更改。",
   "diveLog_bulkEdit_applied": "已更新 {count} 次潜水",
   "settings_cloudSync_error_icloudSignedOut": "iCloud 不可用。请在设备设置中登录 iCloud。",
