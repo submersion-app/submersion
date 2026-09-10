@@ -59,6 +59,11 @@ class DiveSensorSummaryService {
   /// An interval longer than this many cadences is a transmitter gap.
   static const int gapCadenceFactor = 3;
 
+  /// Slack for threshold comparisons: 1.1 minus 1.0 is a hair above 0.1 in
+  /// binary floating point, and a reading exactly on a line must not
+  /// count as beyond it.
+  static const double _epsilon = 1e-9;
+
   const DiveSensorSummaryService();
 
   DiveSensorSummary summarize({
@@ -122,8 +127,128 @@ class DiveSensorSummaryService {
     return null;
   }
 
-  /// Task 3 fills this in.
-  static List<CellMetrics> cellMetrics(List<ProfileSample> samples) => const [];
+  /// One [CellMetrics] per slot that carried ppO2 on the dive, in slot
+  /// order. See the class constants for every threshold.
+  static List<CellMetrics> cellMetrics(List<ProfileSample> samples) {
+    // Per-sample median over the slots with data, or null when fewer than
+    // two slots reported, so a single-cell profile yields gain only.
+    final medians = List<double?>.filled(samples.length, null);
+    for (var i = 0; i < samples.length; i++) {
+      final values = <double>[
+        for (var slot = 1; slot <= slotCount; slot++) ?_ppO2(samples[i], slot),
+      ];
+      if (values.length >= 2) medians[i] = median(values);
+    }
+
+    final result = <CellMetrics>[];
+    for (var slot = 1; slot <= slotCount; slot++) {
+      var used = 0;
+      final gains = <double>[];
+      final magnitudes = <double>[];
+      final lowMagnitudes = <double>[];
+      var highSamples = 0;
+      var lowAtHigh = 0;
+      final ranges = <DivergenceRange>[];
+      int? runStart;
+      int? runEnd;
+      var runPeak = 0.0;
+
+      void closeRun() {
+        if (runStart != null &&
+            runEnd! - runStart! >= divergenceRangeMinSeconds) {
+          ranges.add(
+            DivergenceRange(
+              startSeconds: runStart!,
+              endSeconds: runEnd!,
+              peakBar: runPeak,
+            ),
+          );
+        }
+        runStart = null;
+        runEnd = null;
+        runPeak = 0.0;
+      }
+
+      for (var i = 0; i < samples.length; i++) {
+        final sample = samples[i];
+        final ppO2 = _ppO2(sample, slot);
+        if (ppO2 == null) {
+          closeRun();
+          continue;
+        }
+        used++;
+        final mv = _mv(sample, slot);
+        if (mv != null && ppO2 >= minGainPpO2Bar) gains.add(mv / ppO2);
+
+        final medianPpO2 = medians[i];
+        if (medianPpO2 == null) {
+          closeRun();
+          continue;
+        }
+        final divergence = ppO2 - medianPpO2;
+        final magnitude = divergence.abs();
+        magnitudes.add(magnitude);
+
+        if (magnitude > divergenceRangeThresholdBar + _epsilon) {
+          runStart ??= sample.timestamp;
+          runEnd = sample.timestamp;
+          if (magnitude > runPeak) runPeak = magnitude;
+        } else {
+          closeRun();
+        }
+
+        if (medianPpO2 <= currentLimitAgreementMaxPpO2Bar) {
+          lowMagnitudes.add(magnitude);
+        }
+        if (medianPpO2 > currentLimitHighPpO2Bar) {
+          highSamples++;
+          if (divergence < -currentLimitLowByBar - _epsilon) lowAtHigh++;
+        }
+      }
+      closeRun();
+      if (used == 0) continue;
+
+      final agreedAtLow =
+          lowMagnitudes.isNotEmpty &&
+          median(lowMagnitudes) <= currentLimitAgreementBar + _epsilon;
+      result.add(
+        CellMetrics(
+          slot: slot,
+          samples: used,
+          gainMvPerBar: gains.isEmpty ? null : median(gains),
+          p95DivergenceBar: magnitudes.isEmpty
+              ? null
+              : percentile(magnitudes, 0.95),
+          highPpO2Samples: highSamples,
+          lowAtHighFraction: agreedAtLow && highSamples > 0
+              ? lowAtHigh / highSamples
+              : null,
+          divergenceRanges: ranges,
+        ),
+      );
+    }
+    return result;
+  }
+
+  static double? _ppO2(ProfileSample s, int slot) => switch (slot) {
+    1 => s.o2Sensor1,
+    2 => s.o2Sensor2,
+    3 => s.o2Sensor3,
+    4 => s.o2Sensor4,
+    5 => s.o2Sensor5,
+    6 => s.o2Sensor6,
+    _ => null,
+  };
+
+  static int? _mv(ProfileSample s, int slot) => switch (slot) {
+    1 => s.o2SensorMv1,
+    2 => s.o2SensorMv2,
+    3 => s.o2SensorMv3,
+    4 => s.o2SensorMv4,
+    5 => s.o2SensorMv5,
+    6 => s.o2SensorMv6,
+    _ => null,
+  };
 
   /// Task 4 fills this in.
   static List<TransmitterGap> transmitterGaps(

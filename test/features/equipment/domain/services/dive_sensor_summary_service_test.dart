@@ -142,4 +142,178 @@ void main() {
       expect(summary.scrubberConsumedMinutes, 60);
     });
   });
+
+  group('cellMetrics', () {
+    /// Three cells reading [c1, c2, c3] bar with optional millivolts.
+    ProfileSample cells(
+      int t,
+      List<double?> ppO2, {
+      List<int?> mv = const [null, null, null],
+    }) => ProfileSample(
+      timestamp: t,
+      depth: 20.0,
+      o2Sensor1: ppO2[0],
+      o2Sensor2: ppO2[1],
+      o2Sensor3: ppO2[2],
+      o2SensorMv1: mv[0],
+      o2SensorMv2: mv[1],
+      o2SensorMv3: mv[2],
+    );
+
+    test('gain is the median of mV over ppO2, skipping low ppO2', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        cells(0, [1.0, null, null], mv: [50, null, null]),
+        cells(10, [1.2, null, null], mv: [66, null, null]),
+        cells(20, [0.7, null, null], mv: [42, null, null]),
+        // Below the 0.2 bar floor: skipped even though it would read 500.
+        cells(30, [0.1, null, null], mv: [50, null, null]),
+        // No millivolts: counts as a sample, contributes no gain.
+        cells(40, [1.0, null, null]),
+      ]);
+      expect(metrics, hasLength(1));
+      final slot1 = metrics.single;
+      expect(slot1.slot, 1);
+      expect(slot1.samples, 5);
+      // 50, 55, 60 -> median 55.
+      expect(slot1.gainMvPerBar, closeTo(55.0, 1e-9));
+      // A single slot never diverges from anything.
+      expect(slot1.p95DivergenceBar, isNull);
+      expect(slot1.divergenceRanges, isEmpty);
+      expect(slot1.lowAtHighFraction, isNull);
+    });
+
+    test('a slot with no millivolts has a null gain but keeps its count', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        cells(0, [1.0, 1.0, null]),
+        cells(10, [1.0, 1.0, null]),
+      ]);
+      expect(metrics.map((m) => m.slot), [1, 2]);
+      expect(metrics.first.gainMvPerBar, isNull);
+      expect(metrics.first.samples, 2);
+    });
+
+    test('divergence is against the median of the slots with data', () {
+      // Slot 3 reads 0.3 bar high on every sample; the median of three is
+      // the middle value, so slots 1 and 2 diverge by 0 and slot 3 by 0.3.
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        for (var t = 0; t < 100; t += 10) cells(t, [1.0, 1.0, 1.3]),
+      ]);
+      final bySlot = {for (final m in metrics) m.slot: m};
+      expect(bySlot[1]!.p95DivergenceBar, closeTo(0.0, 1e-9));
+      expect(bySlot[2]!.p95DivergenceBar, closeTo(0.0, 1e-9));
+      expect(bySlot[3]!.p95DivergenceBar, closeTo(0.3, 1e-9));
+    });
+
+    test('p95 is the nearest-rank 95th percentile of |divergence|', () {
+      // Slot 3 diverges by 0.02 on 19 samples and by 0.5 on one.
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        for (var t = 0; t < 190; t += 10) cells(t, [1.0, 1.0, 1.02]),
+        cells(190, [1.0, 1.0, 1.5]),
+      ]);
+      final slot3 = metrics.firstWhere((m) => m.slot == 3);
+      // round(0.95 * 19) = 18 -> the 19th sorted value, still 0.02.
+      expect(slot3.p95DivergenceBar, closeTo(0.02, 1e-9));
+    });
+
+    test('a divergence run of exactly 30 seconds is stored', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        cells(0, [1.0, 1.0, 1.0]),
+        cells(100, [1.0, 1.0, 1.15]),
+        cells(110, [1.0, 1.0, 1.2]),
+        cells(120, [1.0, 1.0, 1.18]),
+        cells(130, [1.0, 1.0, 1.12]),
+        cells(140, [1.0, 1.0, 1.0]),
+      ]);
+      final slot3 = metrics.firstWhere((m) => m.slot == 3);
+      expect(slot3.divergenceRanges, hasLength(1));
+      final range = slot3.divergenceRanges.single;
+      expect(range.startSeconds, 100);
+      expect(range.endSeconds, 130);
+      expect(range.peakBar, closeTo(0.2, 1e-9));
+    });
+
+    test('a divergence run shorter than 30 seconds is not stored', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        cells(0, [1.0, 1.0, 1.0]),
+        cells(100, [1.0, 1.0, 1.15]),
+        cells(110, [1.0, 1.0, 1.2]),
+        cells(120, [1.0, 1.0, 1.18]),
+        cells(130, [1.0, 1.0, 1.0]),
+      ]);
+      final slot3 = metrics.firstWhere((m) => m.slot == 3);
+      expect(slot3.divergenceRanges, isEmpty);
+    });
+
+    test('a run is broken by a sample where the slot has no data', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        cells(0, [1.0, 1.0, 1.2]),
+        cells(10, [1.0, 1.0, 1.2]),
+        cells(20, [1.0, 1.0, null]),
+        cells(30, [1.0, 1.0, 1.2]),
+        cells(40, [1.0, 1.0, 1.2]),
+      ]);
+      final slot3 = metrics.firstWhere((m) => m.slot == 3);
+      // Two runs of 10 seconds each, neither long enough.
+      expect(slot3.divergenceRanges, isEmpty);
+    });
+
+    test('divergence at exactly 0.1 bar is not a range', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        for (var t = 0; t < 100; t += 10) cells(t, [1.0, 1.0, 1.1]),
+      ]);
+      final slot3 = metrics.firstWhere((m) => m.slot == 3);
+      expect(slot3.divergenceRanges, isEmpty);
+    });
+
+    test('current limiting is computed only after low-ppO2 agreement', () {
+      // Slot 3 agrees at 0.7 bar, then reads 0.2 low once the loop is
+      // above 1.2 bar. Median of [1.3, 1.3, 1.1] is 1.3.
+      final agreed = DiveSensorSummaryService.cellMetrics([
+        for (var t = 0; t < 50; t += 10) cells(t, [0.7, 0.7, 0.72]),
+        for (var t = 100; t < 140; t += 10) cells(t, [1.3, 1.3, 1.1]),
+        cells(140, [1.3, 1.3, 1.3]),
+      ]);
+      final slot3 = agreed.firstWhere((m) => m.slot == 3);
+      expect(slot3.highPpO2Samples, 5);
+      expect(slot3.lowAtHighFraction, closeTo(0.8, 1e-9));
+      // Slots 1 and 2 sat on the median at high ppO2.
+      expect(agreed.firstWhere((m) => m.slot == 1).lowAtHighFraction, 0);
+
+      // Same high-ppO2 behaviour, but slot 3 was already 0.1 off at low
+      // ppO2: the limiting figure is withheld.
+      final disagreed = DiveSensorSummaryService.cellMetrics([
+        for (var t = 0; t < 50; t += 10) cells(t, [0.7, 0.7, 0.8]),
+        for (var t = 100; t < 140; t += 10) cells(t, [1.3, 1.3, 1.1]),
+        cells(140, [1.3, 1.3, 1.3]),
+      ]);
+      expect(
+        disagreed.firstWhere((m) => m.slot == 3).lowAtHighFraction,
+        isNull,
+      );
+      expect(disagreed.firstWhere((m) => m.slot == 3).highPpO2Samples, 5);
+    });
+
+    test('no high-ppO2 samples yields a null fraction', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        for (var t = 0; t < 50; t += 10) cells(t, [0.7, 0.7, 0.7]),
+      ]);
+      expect(metrics.first.highPpO2Samples, 0);
+      expect(metrics.first.lowAtHighFraction, isNull);
+    });
+
+    test('reading exactly 0.1 below the median is not limited', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        for (var t = 0; t < 50; t += 10) cells(t, [0.7, 0.7, 0.7]),
+        for (var t = 100; t < 150; t += 10) cells(t, [1.3, 1.3, 1.2]),
+      ]);
+      expect(metrics.firstWhere((m) => m.slot == 3).lowAtHighFraction, 0);
+    });
+
+    test('slots the computer never reported are absent', () {
+      final metrics = DiveSensorSummaryService.cellMetrics([
+        cells(0, [1.0, null, 1.0]),
+      ]);
+      expect(metrics.map((m) => m.slot), [1, 3]);
+    });
+  });
 }
