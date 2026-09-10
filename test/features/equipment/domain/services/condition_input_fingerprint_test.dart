@@ -65,6 +65,7 @@ void main() {
     List<EquipmentItem>? c,
     ExposureThresholds? t,
     int version = 1,
+    int summaryVersion = 1,
   }) => conditionInputFingerprint(
     samples: s ?? samples,
     observations: o ?? [observation],
@@ -72,6 +73,7 @@ void main() {
     children: c ?? [child],
     thresholds: t ?? ExposureThresholds.defaults,
     engineVersion: version,
+    summaryVersion: summaryVersion,
   );
 
   test('is stable for equal input', () {
@@ -107,5 +109,13 @@ void main() {
     expect(fp(c: const []), isNot(base));
     expect(fp(t: const ExposureThresholds(coldWaterC: 5)), isNot(base));
     expect(fp(version: 2), isNot(base));
+  });
+
+  test('a new sensor summary version restales every item', () {
+    // Summaries are recomputed when their own algorithm version rises,
+    // even though no dive changed. Without that version here the marker
+    // still matches, the engine never re-runs, and every finding stays
+    // frozen against readings that have since been recomputed.
+    expect(fp(summaryVersion: 2), isNot(fp()));
   });
 }

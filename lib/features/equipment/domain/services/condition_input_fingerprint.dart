@@ -12,8 +12,14 @@ import 'package:submersion/features/safety/domain/entities/incident.dart';
 /// review marker can tell "nothing changed, serve the stored findings"
 /// from "recompute": the exposure samples (count and newest stamp), the
 /// observations and incidents (count and newest stamp), the children (ids
-/// and install dates), the thresholds and the engine version. Two devices
-/// with the same data hash the same.
+/// and install dates), the thresholds and both versions. Two devices with
+/// the same data hash the same.
+///
+/// [summaryVersion] is the sensor summary algorithm's own version. The
+/// summaries are not hashed row by row (they are derived from the same
+/// dives the samples carry), but they ARE recomputed when that version
+/// rises without any dive changing, and the engine reads them. Leaving it
+/// out froze every finding against readings that had since moved.
 String conditionInputFingerprint({
   required List<EquipmentExposureSample> samples,
   required List<EquipmentObservation> observations,
@@ -21,6 +27,7 @@ String conditionInputFingerprint({
   required List<EquipmentItem> children,
   required ExposureThresholds thresholds,
   required int engineVersion,
+  required int summaryVersion,
 }) {
   var newestSample = 0;
   for (final s in samples) {
@@ -42,6 +49,7 @@ String conditionInputFingerprint({
   ]..sort();
   final canonical = [
     'v$engineVersion',
+    'sv$summaryVersion',
     's${samples.length}:$newestSample',
     'o${observations.length}:$newestObservation',
     'i${incidents.length}:$newestIncident',
