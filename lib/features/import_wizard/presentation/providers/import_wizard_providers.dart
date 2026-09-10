@@ -372,7 +372,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   void setSelections(ImportEntityType type, Set<int> indices, bool select) {
     final current = state.selections[type] ?? const <int>{};
     final updated = Set<int>.from(current);
-    
+
     if (select) {
       updated.addAll(indices);
     } else {
