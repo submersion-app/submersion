@@ -133,32 +133,21 @@ Future<void> _switchToUsbTab(WidgetTester tester) async {
 
 void main() {
   group('USB tab search UI', () {
-    testWidgets('shows a search icon button in the USB tab', (tester) async {
+    testWidgets('shows a persistent search text field and brand dropdown', (tester) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
-
-      expect(
-        find.byIcon(Icons.search),
-        findsOneWidget,
-        reason: 'USB tab should display a search icon button',
-      );
-    });
-
-    testWidgets('tapping search icon shows a search text field', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
-
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
 
       expect(
         find.byType(TextField),
         findsOneWidget,
-        reason: 'Tapping search should reveal a text field',
+        reason: 'USB tab should display a persistent search field',
+      );
+      
+      expect(
+        find.byType(DropdownMenu<String?>),
+        findsOneWidget,
+        reason: 'USB tab should display a manufacturer dropdown',
       );
     });
 
@@ -173,13 +162,11 @@ void main() {
       expect(find.text('Mares'), findsOneWidget);
 
       // Activate search and type a manufacturer name.
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Suunto');
       await tester.pumpAndSettle();
 
       // Only Suunto devices should remain; the manufacturer header text
-      // appears once in the list (the TextField also contains "Suunto").
+      // appears once in the list (the TextField also contains "Suunto", so it's 2 widgets total if we count the TextField).
       expect(find.text('D5'), findsOneWidget);
       expect(find.text('Shearwater'), findsNothing);
       expect(find.text('Mares'), findsNothing);
@@ -190,8 +177,6 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Perdix');
       await tester.pumpAndSettle();
 
@@ -209,8 +194,6 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'mares');
       await tester.pumpAndSettle();
 
@@ -224,8 +207,6 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Suunto');
       await tester.pumpAndSettle();
 
@@ -241,33 +222,11 @@ void main() {
       expect(find.text('Mares'), findsOneWidget);
     });
 
-    testWidgets('close button exits search mode', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
-
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      expect(find.byType(TextField), findsOneWidget);
-
-      // Tap the close button to exit search.
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-
-      // Search field should be gone, all devices visible.
-      expect(find.byType(TextField), findsNothing);
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Suunto'), findsOneWidget);
-      expect(find.text('Mares'), findsOneWidget);
-    });
-
     testWidgets('search with no matches shows empty state', (tester) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'NonExistentBrand');
       await tester.pumpAndSettle();
 
@@ -284,13 +243,31 @@ void main() {
       );
     });
 
+    testWidgets('brand dropdown filters devices by manufacturer', (tester) async {
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+      await _switchToUsbTab(tester);
+
+      // Tap the dropdown to open menu
+      await tester.tap(find.byType(DropdownMenu<String?>));
+      await tester.pumpAndSettle();
+      
+      // Tap on 'Suunto'
+      // We use .last to find the menu item rather than the text inside the closed dropdown.
+      await tester.tap(find.text('Suunto').last);
+      await tester.pumpAndSettle();
+      
+      // Only Suunto devices should remain
+      expect(find.text('D5'), findsOneWidget);
+      expect(find.text('Shearwater'), findsNothing);
+      expect(find.text('Mares'), findsNothing);
+    });
+
     testWidgets('search matches partial text', (tester) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Per');
       await tester.pumpAndSettle();
 
