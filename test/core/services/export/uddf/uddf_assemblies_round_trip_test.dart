@@ -141,6 +141,50 @@ void main() {
     expect(gear['Hose']!.viaSetId, setId);
   });
 
+  test('a cyclic pair of component rows is skipped, not thrown', () async {
+    // Untrusted input again: a file claiming reg contains hose and hose
+    // contains reg cannot both be true. The second edge is refused and
+    // logged, and the rest of the logbook still lands.
+    final diverId = await createTestDiver();
+    const parsed = UddfImportResult(
+      equipment: [
+        {
+          'uddfId': 'equip_reg',
+          'name': 'Reg',
+          'type': EquipmentType.regulator,
+          'components': [
+            {'componentRef': 'equip_hose', 'role': 'Primary', 'sortOrder': 0},
+          ],
+        },
+        {
+          'uddfId': 'equip_hose',
+          'name': 'Hose',
+          'type': EquipmentType.hose,
+          'components': [
+            {'componentRef': 'equip_reg', 'role': 'Loop', 'sortOrder': 0},
+          ],
+        },
+      ],
+    );
+
+    await UddfEntityImporter().import(
+      data: parsed,
+      selections: UddfImportSelections.selectAll(parsed),
+      repositories: buildRepositories(),
+      diverId: diverId,
+    );
+
+    final byName = {
+      for (final e in await EquipmentRepository().getAllEquipment())
+        e.name: e.id,
+    };
+    expect(byName.keys, containsAll(['Reg', 'Hose']));
+    final rows = await EquipmentComponentRepository().getAllComponents();
+    expect(rows, hasLength(1), reason: 'only the first edge is legal');
+    expect(rows.single.parentEquipmentId, byName['Reg']);
+    expect(rows.single.componentEquipmentId, byName['Hose']);
+  });
+
   test('a component row with a non-string role still imports', () async {
     // Import input is untrusted: a role that is not a string must cost
     // that row its role, not the whole logbook.
