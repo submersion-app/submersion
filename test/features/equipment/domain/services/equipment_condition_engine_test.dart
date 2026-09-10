@@ -266,6 +266,24 @@ void main() {
       expect(found.severity, ConditionSeverity.significant);
       expect(found.value, 0.8);
       expect(found.evidence.values['count'], 2);
+      // Four qualifying dives are not "the last 5": the window exists to
+      // keep two noisy readings on a barely used cell from raising a
+      // significant finding, so it has to be full before the rule speaks.
+      final fourGains = List<num?>.filled(4, 50);
+      expect(
+        of(
+          engine.evaluate(
+            cellInput(
+              fourGains,
+              lowAtHigh: [0.6, 0.8, 0.1, 0.1],
+              highSamples: [10, 10, 10, 10],
+            ),
+          ),
+          ConditionRuleId.cellCurrentLimited,
+        ),
+        isEmpty,
+      );
+
       // Dives that never reached 1.2 bar are not in the window.
       final noHigh = [0, 0, 0, 0, 0];
       expect(
