@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
@@ -75,7 +76,7 @@ final tripScrubberMarginsProvider =
 
       final margins = <ScrubberMargin>[];
       for (final item in rebreathers) {
-        final rated = await _ratedMinutes(ref, item, repackKind, schedules);
+        final rated = await _ratedMinutes(item, repackKind, schedules);
         final itemRecords = await records.getRecordsForEquipment(item.id);
         final repack = itemRecords
             .where(
@@ -132,10 +133,9 @@ final tripScrubberMarginsProvider =
 /// `scrubber_duration_h` times 60, else the repack schedule's hours
 /// interval times 60, else null.
 Future<double?> _ratedMinutes(
-  Ref ref,
   EquipmentItem item,
   ServiceKind? repackKind,
-  dynamic schedules,
+  ServiceScheduleRepository schedules,
 ) async {
   final hours = item.attrNum(scrubberDurationHoursKey);
   if (hours != null && hours > 0) return hours * 60;

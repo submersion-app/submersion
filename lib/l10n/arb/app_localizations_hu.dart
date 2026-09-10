@@ -18920,6 +18920,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'bejelentés';
 
   @override
+  String get statistics_equipment_exposureUnit_days => 'Nap';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'Merülés';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'nap';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'merülés';
+
+  @override
   String get statistics_equipment_countLabel_hours => 'óra';
 
   @override

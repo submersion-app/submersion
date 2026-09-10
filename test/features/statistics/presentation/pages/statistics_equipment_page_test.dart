@@ -41,7 +41,9 @@ void main() {
                       name: 'Apeks XTX',
                       count: 12,
                       value: 12.4,
-                      subtitle: '12 dives',
+                      // Distinct from the badge so a test can tell the
+                      // count label from the dive count beneath it.
+                      subtitle: '9 dives',
                     ),
                   ],
           ),
@@ -148,5 +150,25 @@ void main() {
     await pumpPage(tester, locale: const Locale('de'));
     expect(find.text('12 Stunden'), findsOneWidget);
     expect(find.text('12 stunden'), findsNothing);
+  });
+
+  testWidgets('every offered unit has its own label', (tester) async {
+    // The switch used to map days and dives to the hours label, so a unit
+    // set programmatically would have shown the wrong word. Each has its
+    // own string now, and dives is offered since items genuinely rank by
+    // dive count; days is not, because a date trigger accrues no usage.
+    await pumpPage(tester);
+    await tester.tap(find.byKey(const ValueKey('exposure-unit')));
+    await tester.pumpAndSettle();
+    expect(find.text('Dives').hitTestable(), findsOneWidget);
+    expect(find.text('Days'), findsNothing);
+
+    await tester.tap(find.text('Dives').hitTestable());
+    await tester.pumpAndSettle();
+    final scope = ProviderScope.containerOf(
+      tester.element(find.byType(StatisticsEquipmentPage)),
+    );
+    expect(scope.read(exposureRankingUnitProvider), ExposureUnit.dives);
+    expect(find.text('12 dives'), findsOneWidget);
   });
 }

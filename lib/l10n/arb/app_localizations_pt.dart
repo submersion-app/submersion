@@ -18984,6 +18984,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'registos';
 
   @override
+  String get statistics_equipment_exposureUnit_days => 'Dias';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'Mergulhos';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'dias';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'mergulhos';
+
+  @override
   String get statistics_equipment_countLabel_hours => 'horas';
 
   @override

@@ -18636,6 +18636,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'بلاغات';
 
   @override
+  String get statistics_equipment_exposureUnit_days => 'أيام';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'غطسات';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'أيام';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'غطسات';
+
+  @override
   String get statistics_equipment_countLabel_hours => 'ساعات';
 
   @override

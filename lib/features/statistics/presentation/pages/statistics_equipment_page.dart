@@ -34,7 +34,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
         children: [
           _buildMostUsedGearSection(context, ref),
           const SizedBox(height: 16),
-          _buildExposureSection(context, ref, units),
+          _buildExposureSection(context, ref),
           const SizedBox(height: 16),
           _buildFindingsSection(context, ref),
           const SizedBox(height: 16),
@@ -93,11 +93,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
   /// Exposure per active item in the unit the dropdown selects; the row
   /// count is the rounded total and the subtitle the dive count behind
   /// it, since a total means little without the n it was gathered over.
-  Widget _buildExposureSection(
-    BuildContext context,
-    WidgetRef ref,
-    UnitFormatter units,
-  ) {
+  Widget _buildExposureSection(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final unit = ref.watch(exposureRankingUnitProvider);
     final rankingAsync = ref.watch(exposureRankingProvider);
@@ -204,7 +200,11 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     );
   }
 
+  /// The units an item can actually rank by. [ExposureUnit.days] is
+  /// absent on purpose: a date trigger accrues no usage, so every item
+  /// would total zero and drop out of the ranking.
   static const _rankingUnits = [
+    ExposureUnit.dives,
     ExposureUnit.hours,
     ExposureUnit.saltHours,
     ExposureUnit.coldDives,
@@ -221,8 +221,8 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     ExposureUnit.deepCycles =>
       l10n.statistics_equipment_exposureUnit_deepCycles,
     ExposureUnit.cycles => l10n.statistics_equipment_exposureUnit_cycles,
-    ExposureUnit.days ||
-    ExposureUnit.dives => l10n.statistics_equipment_exposureUnit_hours,
+    ExposureUnit.days => l10n.statistics_equipment_exposureUnit_days,
+    ExposureUnit.dives => l10n.statistics_equipment_exposureUnit_dives,
   };
 
   /// The row's unit word as it reads after a number. Translated per
@@ -239,8 +239,8 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     ExposureUnit.o2Hours => l10n.statistics_equipment_countLabel_o2Hours,
     ExposureUnit.deepCycles => l10n.statistics_equipment_countLabel_deepCycles,
     ExposureUnit.cycles => l10n.statistics_equipment_countLabel_cycles,
-    ExposureUnit.days ||
-    ExposureUnit.dives => l10n.statistics_equipment_countLabel_hours,
+    ExposureUnit.days => l10n.statistics_equipment_countLabel_days,
+    ExposureUnit.dives => l10n.statistics_equipment_countLabel_dives,
   };
 
   Widget _buildWeightTrendSection(

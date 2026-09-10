@@ -18002,6 +18002,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => '条';
 
   @override
+  String get statistics_equipment_exposureUnit_days => '天';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => '潜水';
+
+  @override
+  String get statistics_equipment_countLabel_days => '天';
+
+  @override
+  String get statistics_equipment_countLabel_dives => '潜水';
+
+  @override
   String get statistics_equipment_countLabel_hours => '小时';
 
   @override

@@ -31386,6 +31386,30 @@ abstract class AppLocalizations {
   /// **'reports'**
   String get statistics_equipment_countLabel_reports;
 
+  /// No description provided for @statistics_equipment_exposureUnit_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get statistics_equipment_exposureUnit_days;
+
+  /// No description provided for @statistics_equipment_exposureUnit_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get statistics_equipment_exposureUnit_dives;
+
+  /// No description provided for @statistics_equipment_countLabel_days.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get statistics_equipment_countLabel_days;
+
+  /// No description provided for @statistics_equipment_countLabel_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'dives'**
+  String get statistics_equipment_countLabel_dives;
+
   /// No description provided for @statistics_equipment_countLabel_hours.
   ///
   /// In en, this message translates to:

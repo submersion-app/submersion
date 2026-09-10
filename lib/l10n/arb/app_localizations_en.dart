@@ -18653,6 +18653,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'reports';
 
   @override
+  String get statistics_equipment_exposureUnit_days => 'Days';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'Dives';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'days';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'dives';
+
+  @override
   String get statistics_equipment_countLabel_hours => 'hours';
 
   @override
