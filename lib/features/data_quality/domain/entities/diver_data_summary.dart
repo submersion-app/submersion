@@ -64,6 +64,4 @@ class DiverDataSummary {
       !hasTrip &&
       !hasDiveCenter &&
       !hasCourse;
-
-  bool get isNotEmpty => !isEmpty;
 }
