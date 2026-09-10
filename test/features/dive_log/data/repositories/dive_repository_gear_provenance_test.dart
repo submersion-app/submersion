@@ -5,6 +5,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
+    as weight;
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -86,6 +88,61 @@ void main() {
     for (final r in await db.select(db.syncRecords).get())
       if (r.entityType == 'diveEquipment') r.recordId,
   };
+
+  // Issue #1720. updateDive rewrites a dive's children in sequence: weights
+  // are deleted and re-inserted, then the gear diff deletes the rows that are
+  // no longer wanted and inserts the new ones. With no transaction around it,
+  // a throw partway through committed everything before the throw, so a dive
+  // was left holding a strict PREFIX of the diver's gear -- and the next read
+  // reported that truncation as the truth.
+  test(
+    'a failed update leaves the dive\'s gear and weights untouched',
+    () async {
+      await repo.createDive(
+        domain.Dive(
+          id: 'dv',
+          dateTime: DateTime(2026, 1, 1),
+          gear: looseGear([item('fins'), item('mask')]),
+          weights: const [
+            weight.DiveWeight(
+              id: 'w1',
+              diveId: 'dv',
+              weightType: WeightType.belt,
+              amountKg: 4,
+            ),
+          ],
+        ),
+      );
+      expect((await rowsOf('dv')).keys, unorderedEquals(['fins', 'mask']));
+
+      // 'ghost' is not in the equipment table, so its junction insert violates
+      // the foreign key -- the same shape as a link whose gear item has gone.
+      // The delete of 'fins' and the weight rewrite both run before it.
+      await expectLater(
+        repo.updateDive(
+          domain.Dive(
+            id: 'dv',
+            dateTime: DateTime(2026, 1, 1),
+            gear: looseGear([item('mask'), item('ghost')]),
+            weights: const [],
+          ),
+        ),
+        throwsA(anything),
+      );
+
+      expect(
+        (await rowsOf('dv')).keys,
+        unorderedEquals(['fins', 'mask']),
+        reason: 'the rolled-back update must not cost the diver their gear',
+      );
+      final weights = await (db.select(
+        db.diveWeights,
+      )..where((t) => t.diveId.equals('dv'))).get();
+      expect(weights.map((w) => w.id), [
+        'w1',
+      ], reason: 'every child the update touched rolls back together');
+    },
+  );
 
   test('createDive writes provenance and marks each link pending', () async {
     await repo.createDive(
