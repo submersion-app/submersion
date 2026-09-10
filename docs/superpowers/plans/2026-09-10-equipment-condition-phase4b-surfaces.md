@@ -219,4 +219,456 @@ final issueTagRankingProvider = FutureProvider<List<RankingItem>>(...);
 
 ## Translation Appendix
 
-Filled in at Task 7 from the ARB files, like the phase 4a plan.
+Generated at Task 7 from the ARB files: every key this phase added (trip planning fields, scrubber margin, pre-dive warning, statistics rankings), per locale.
+
+### en
+
+- `preDive_runner_conditionFindings`: Condition findings
+- `statistics_equipment_exposure_title`: Exposure
+- `statistics_equipment_exposure_subtitle`: Totals per item with your thresholds
+- `statistics_equipment_exposure_empty`: No dives with gear yet
+- `statistics_equipment_findings_title`: Condition findings
+- `statistics_equipment_findings_subtitle`: Open findings by rule
+- `statistics_equipment_findings_empty`: No open findings
+- `statistics_equipment_issues_title`: Reported issues
+- `statistics_equipment_issues_subtitle`: Most frequent check-in tags
+- `statistics_equipment_issues_empty`: No issues reported
+- `statistics_equipment_countLabel_items`: items
+- `statistics_equipment_countLabel_findings`: findings
+- `statistics_equipment_countLabel_reports`: reports
+- `statistics_equipment_exposureUnit_hours`: Hours
+- `statistics_equipment_exposureUnit_saltHours`: Salt-water hours
+- `statistics_equipment_exposureUnit_coldDives`: Cold dives
+- `statistics_equipment_exposureUnit_o2Hours`: High-O2 hours
+- `statistics_equipment_exposureUnit_deepCycles`: Deep dives
+- `statistics_equipment_exposureUnit_cycles`: Battery cycles
+- `trips_edit_sectionTitle_planning`: Planning
+- `trips_edit_label_expectedDives`: Expected dives
+- `trips_edit_hint_expectedDives`: Leave empty to estimate from your recent trips
+- `trips_edit_label_expectedRuntime`: Expected runtime per dive (minutes)
+- `trips_edit_hint_expectedRuntime`: Leave empty to estimate from your recent CCR dives
+- `trips_scrubber_title`: Scrubber margin
+- `trips_scrubber_asOfStart`: as of {date}
+- `trips_scrubber_remaining`: {minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)
+- `trips_scrubber_expectedDives`: {dives} expected dives
+- `trips_scrubber_fromTrips`: (from your last {n} trips)
+- `trips_scrubber_fromOverride`: (set on this trip)
+- `trips_scrubber_perDive`: {minutes} min per dive
+- `trips_scrubber_fromDives`: (from your last {n} CCR dives)
+- `trips_scrubber_expectedUse`: {minutes} min expected use
+- `trips_scrubber_margin`: {minutes} min margin after the trip
+- `trips_scrubber_caution`: Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.
+- `trips_scrubber_noRating`: No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.
+- `trips_scrubber_bannerMargin`: {minutes} min scrubber margin
+- `trips_scrubber_bannerCount`: {count} rebreathers, lowest {minutes} min scrubber margin
+
+### es
+
+- `preDive_runner_conditionFindings`: Hallazgos de estado
+- `statistics_equipment_exposure_title`: Exposición
+- `statistics_equipment_exposure_subtitle`: Totales por artículo con tus umbrales
+- `statistics_equipment_exposure_empty`: Aún no hay inmersiones con equipo
+- `statistics_equipment_findings_title`: Hallazgos de estado
+- `statistics_equipment_findings_subtitle`: Hallazgos abiertos por regla
+- `statistics_equipment_findings_empty`: No hay hallazgos abiertos
+- `statistics_equipment_issues_title`: Problemas registrados
+- `statistics_equipment_issues_subtitle`: Etiquetas de revisión más frecuentes
+- `statistics_equipment_issues_empty`: No hay problemas registrados
+- `statistics_equipment_countLabel_items`: artículos
+- `statistics_equipment_countLabel_findings`: hallazgos
+- `statistics_equipment_countLabel_reports`: registros
+- `statistics_equipment_exposureUnit_hours`: Horas
+- `statistics_equipment_exposureUnit_saltHours`: Horas en agua salada
+- `statistics_equipment_exposureUnit_coldDives`: Inmersiones frías
+- `statistics_equipment_exposureUnit_o2Hours`: Horas con O2 alto
+- `statistics_equipment_exposureUnit_deepCycles`: Inmersiones profundas
+- `statistics_equipment_exposureUnit_cycles`: Ciclos de batería
+- `trips_edit_sectionTitle_planning`: Planificación
+- `trips_edit_label_expectedDives`: Inmersiones previstas
+- `trips_edit_hint_expectedDives`: Déjalo vacío para estimar a partir de tus viajes recientes
+- `trips_edit_label_expectedRuntime`: Duración prevista por inmersión (minutos)
+- `trips_edit_hint_expectedRuntime`: Déjalo vacío para estimar a partir de tus inmersiones CCR recientes
+- `trips_scrubber_title`: Margen del absorbente
+- `trips_scrubber_asOfStart`: a fecha de {date}
+- `trips_scrubber_remaining`: {minutes} min restantes antes del viaje (nominal {rated} min, {consumed} min usados desde el último cambio)
+- `trips_scrubber_expectedDives`: {dives} inmersiones previstas
+- `trips_scrubber_fromTrips`: (según tus últimos {n} viajes)
+- `trips_scrubber_fromOverride`: (fijado en este viaje)
+- `trips_scrubber_perDive`: {minutes} min por inmersión
+- `trips_scrubber_fromDives`: (según tus últimas {n} inmersiones CCR)
+- `trips_scrubber_expectedUse`: {minutes} min de uso previsto
+- `trips_scrubber_margin`: {minutes} min de margen tras el viaje
+- `trips_scrubber_caution`: Menos del 20 por ciento de la duración nominal. Planifica un cambio o lleva absorbente de repuesto.
+- `trips_scrubber_noRating`: Este rebreather no tiene duración nominal; añade la duración del absorbente a sus atributos o un programa de cambio.
+- `trips_scrubber_bannerMargin`: {minutes} min de margen de absorbente
+- `trips_scrubber_bannerCount`: {count} rebreathers, el menor con {minutes} min de margen de absorbente
+
+### de
+
+- `preDive_runner_conditionFindings`: Zustandsbefunde
+- `statistics_equipment_exposure_title`: Belastung
+- `statistics_equipment_exposure_subtitle`: Summen je Teil mit deinen Schwellen
+- `statistics_equipment_exposure_empty`: Noch keine Tauchgänge mit Ausrüstung
+- `statistics_equipment_findings_title`: Zustandsbefunde
+- `statistics_equipment_findings_subtitle`: Offene Befunde je Regel
+- `statistics_equipment_findings_empty`: Keine offenen Befunde
+- `statistics_equipment_issues_title`: Gemeldete Probleme
+- `statistics_equipment_issues_subtitle`: Häufigste Check-in-Tags
+- `statistics_equipment_issues_empty`: Keine Probleme gemeldet
+- `statistics_equipment_countLabel_items`: Teile
+- `statistics_equipment_countLabel_findings`: Befunde
+- `statistics_equipment_countLabel_reports`: Meldungen
+- `statistics_equipment_exposureUnit_hours`: Stunden
+- `statistics_equipment_exposureUnit_saltHours`: Salzwasserstunden
+- `statistics_equipment_exposureUnit_coldDives`: Kalte Tauchgänge
+- `statistics_equipment_exposureUnit_o2Hours`: Stunden mit hohem O2
+- `statistics_equipment_exposureUnit_deepCycles`: Tiefe Tauchgänge
+- `statistics_equipment_exposureUnit_cycles`: Akkuzyklen
+- `trips_edit_sectionTitle_planning`: Planung
+- `trips_edit_label_expectedDives`: Erwartete Tauchgänge
+- `trips_edit_hint_expectedDives`: Leer lassen, um aus deinen letzten Reisen zu schätzen
+- `trips_edit_label_expectedRuntime`: Erwartete Laufzeit je Tauchgang (Minuten)
+- `trips_edit_hint_expectedRuntime`: Leer lassen, um aus deinen letzten CCR-Tauchgängen zu schätzen
+- `trips_scrubber_title`: Atemkalkreserve
+- `trips_scrubber_asOfStart`: Stand {date}
+- `trips_scrubber_remaining`: {minutes} min übrig vor der Reise (nominell {rated} min, {consumed} min seit dem letzten Wechsel verbraucht)
+- `trips_scrubber_expectedDives`: {dives} erwartete Tauchgänge
+- `trips_scrubber_fromTrips`: (aus deinen letzten {n} Reisen)
+- `trips_scrubber_fromOverride`: (auf dieser Reise festgelegt)
+- `trips_scrubber_perDive`: {minutes} min je Tauchgang
+- `trips_scrubber_fromDives`: (aus deinen letzten {n} CCR-Tauchgängen)
+- `trips_scrubber_expectedUse`: {minutes} min erwarteter Verbrauch
+- `trips_scrubber_margin`: {minutes} min Reserve nach der Reise
+- `trips_scrubber_caution`: Unter 20 Prozent der nominellen Dauer. Plane einen Wechsel oder nimm Ersatzkalk mit.
+- `trips_scrubber_noRating`: Für diesen Rebreather ist keine nominelle Dauer hinterlegt; trage die Atemkalkdauer in den Attributen ein oder lege einen Wechselplan an.
+- `trips_scrubber_bannerMargin`: {minutes} min Atemkalkreserve
+- `trips_scrubber_bannerCount`: {count} Rebreather, niedrigste Atemkalkreserve {minutes} min
+
+### fr
+
+- `preDive_runner_conditionFindings`: Constats d'état
+- `statistics_equipment_exposure_title`: Exposition
+- `statistics_equipment_exposure_subtitle`: Totaux par équipement avec vos seuils
+- `statistics_equipment_exposure_empty`: Aucune plongée avec équipement pour l'instant
+- `statistics_equipment_findings_title`: Constats d'état
+- `statistics_equipment_findings_subtitle`: Constats ouverts par règle
+- `statistics_equipment_findings_empty`: Aucun constat ouvert
+- `statistics_equipment_issues_title`: Problèmes signalés
+- `statistics_equipment_issues_subtitle`: Étiquettes de contrôle les plus fréquentes
+- `statistics_equipment_issues_empty`: Aucun problème signalé
+- `statistics_equipment_countLabel_items`: équipements
+- `statistics_equipment_countLabel_findings`: constats
+- `statistics_equipment_countLabel_reports`: signalements
+- `statistics_equipment_exposureUnit_hours`: Heures
+- `statistics_equipment_exposureUnit_saltHours`: Heures en eau salée
+- `statistics_equipment_exposureUnit_coldDives`: Plongées froides
+- `statistics_equipment_exposureUnit_o2Hours`: Heures à O2 élevé
+- `statistics_equipment_exposureUnit_deepCycles`: Plongées profondes
+- `statistics_equipment_exposureUnit_cycles`: Cycles de batterie
+- `trips_edit_sectionTitle_planning`: Planification
+- `trips_edit_label_expectedDives`: Plongées prévues
+- `trips_edit_hint_expectedDives`: Laisser vide pour estimer d'après vos voyages récents
+- `trips_edit_label_expectedRuntime`: Durée prévue par plongée (minutes)
+- `trips_edit_hint_expectedRuntime`: Laisser vide pour estimer d'après vos plongées CCR récentes
+- `trips_scrubber_title`: Marge de chaux
+- `trips_scrubber_asOfStart`: au {date}
+- `trips_scrubber_remaining`: {minutes} min restantes avant le voyage (nominal {rated} min, {consumed} min utilisées depuis le dernier remplissage)
+- `trips_scrubber_expectedDives`: {dives} plongées prévues
+- `trips_scrubber_fromTrips`: (d'après vos {n} derniers voyages)
+- `trips_scrubber_fromOverride`: (défini sur ce voyage)
+- `trips_scrubber_perDive`: {minutes} min par plongée
+- `trips_scrubber_fromDives`: (d'après vos {n} dernières plongées CCR)
+- `trips_scrubber_expectedUse`: {minutes} min d'usage prévu
+- `trips_scrubber_margin`: {minutes} min de marge après le voyage
+- `trips_scrubber_caution`: Moins de 20 pour cent de la durée nominale. Prévoyez un remplissage ou emportez de la chaux de rechange.
+- `trips_scrubber_noRating`: Aucune durée nominale sur ce recycleur ; ajoutez la durée de la chaux à ses attributs ou un calendrier de remplissage.
+- `trips_scrubber_bannerMargin`: {minutes} min de marge de chaux
+- `trips_scrubber_bannerCount`: {count} recycleurs, la plus faible marge de chaux est de {minutes} min
+
+### it
+
+- `preDive_runner_conditionFindings`: Rilievi sullo stato
+- `statistics_equipment_exposure_title`: Esposizione
+- `statistics_equipment_exposure_subtitle`: Totali per articolo con le tue soglie
+- `statistics_equipment_exposure_empty`: Ancora nessuna immersione con attrezzatura
+- `statistics_equipment_findings_title`: Rilievi sullo stato
+- `statistics_equipment_findings_subtitle`: Rilievi aperti per regola
+- `statistics_equipment_findings_empty`: Nessun rilievo aperto
+- `statistics_equipment_issues_title`: Problemi segnalati
+- `statistics_equipment_issues_subtitle`: Tag di controllo più frequenti
+- `statistics_equipment_issues_empty`: Nessun problema segnalato
+- `statistics_equipment_countLabel_items`: articoli
+- `statistics_equipment_countLabel_findings`: rilievi
+- `statistics_equipment_countLabel_reports`: segnalazioni
+- `statistics_equipment_exposureUnit_hours`: Ore
+- `statistics_equipment_exposureUnit_saltHours`: Ore in acqua salata
+- `statistics_equipment_exposureUnit_coldDives`: Immersioni fredde
+- `statistics_equipment_exposureUnit_o2Hours`: Ore ad alto O2
+- `statistics_equipment_exposureUnit_deepCycles`: Immersioni profonde
+- `statistics_equipment_exposureUnit_cycles`: Cicli batteria
+- `trips_edit_sectionTitle_planning`: Pianificazione
+- `trips_edit_label_expectedDives`: Immersioni previste
+- `trips_edit_hint_expectedDives`: Lascia vuoto per stimare dai tuoi viaggi recenti
+- `trips_edit_label_expectedRuntime`: Durata prevista per immersione (minuti)
+- `trips_edit_hint_expectedRuntime`: Lascia vuoto per stimare dalle tue immersioni CCR recenti
+- `trips_scrubber_title`: Margine della calce
+- `trips_scrubber_asOfStart`: al {date}
+- `trips_scrubber_remaining`: {minutes} min rimasti prima del viaggio (nominale {rated} min, {consumed} min usati dall'ultimo ricambio)
+- `trips_scrubber_expectedDives`: {dives} immersioni previste
+- `trips_scrubber_fromTrips`: (dai tuoi ultimi {n} viaggi)
+- `trips_scrubber_fromOverride`: (impostato su questo viaggio)
+- `trips_scrubber_perDive`: {minutes} min per immersione
+- `trips_scrubber_fromDives`: (dalle tue ultime {n} immersioni CCR)
+- `trips_scrubber_expectedUse`: {minutes} min di uso previsto
+- `trips_scrubber_margin`: {minutes} min di margine dopo il viaggio
+- `trips_scrubber_caution`: Sotto il 20 per cento della durata nominale. Pianifica un ricambio o porta calce di scorta.
+- `trips_scrubber_noRating`: Nessuna durata nominale su questo rebreather; aggiungi la durata della calce ai suoi attributi o una pianificazione di ricambio.
+- `trips_scrubber_bannerMargin`: {minutes} min di margine della calce
+- `trips_scrubber_bannerCount`: {count} rebreather, il margine più basso è {minutes} min
+
+### pt
+
+- `preDive_runner_conditionFindings`: Constatações de estado
+- `statistics_equipment_exposure_title`: Exposição
+- `statistics_equipment_exposure_subtitle`: Totais por item com os seus limites
+- `statistics_equipment_exposure_empty`: Ainda não há mergulhos com equipamento
+- `statistics_equipment_findings_title`: Constatações de estado
+- `statistics_equipment_findings_subtitle`: Constatações abertas por regra
+- `statistics_equipment_findings_empty`: Sem constatações abertas
+- `statistics_equipment_issues_title`: Problemas registados
+- `statistics_equipment_issues_subtitle`: Etiquetas de verificação mais frequentes
+- `statistics_equipment_issues_empty`: Sem problemas registados
+- `statistics_equipment_countLabel_items`: itens
+- `statistics_equipment_countLabel_findings`: constatações
+- `statistics_equipment_countLabel_reports`: registos
+- `statistics_equipment_exposureUnit_hours`: Horas
+- `statistics_equipment_exposureUnit_saltHours`: Horas em água salgada
+- `statistics_equipment_exposureUnit_coldDives`: Mergulhos frios
+- `statistics_equipment_exposureUnit_o2Hours`: Horas com O2 elevado
+- `statistics_equipment_exposureUnit_deepCycles`: Mergulhos profundos
+- `statistics_equipment_exposureUnit_cycles`: Ciclos de bateria
+- `trips_edit_sectionTitle_planning`: Planeamento
+- `trips_edit_label_expectedDives`: Mergulhos previstos
+- `trips_edit_hint_expectedDives`: Deixe vazio para estimar a partir das suas viagens recentes
+- `trips_edit_label_expectedRuntime`: Duração prevista por mergulho (minutos)
+- `trips_edit_hint_expectedRuntime`: Deixe vazio para estimar a partir dos seus mergulhos CCR recentes
+- `trips_scrubber_title`: Margem do absorvente
+- `trips_scrubber_asOfStart`: à data de {date}
+- `trips_scrubber_remaining`: {minutes} min restantes antes da viagem (nominal {rated} min, {consumed} min usados desde a última troca)
+- `trips_scrubber_expectedDives`: {dives} mergulhos previstos
+- `trips_scrubber_fromTrips`: (das suas últimas {n} viagens)
+- `trips_scrubber_fromOverride`: (definido nesta viagem)
+- `trips_scrubber_perDive`: {minutes} min por mergulho
+- `trips_scrubber_fromDives`: (dos seus últimos {n} mergulhos CCR)
+- `trips_scrubber_expectedUse`: {minutes} min de uso previsto
+- `trips_scrubber_margin`: {minutes} min de margem após a viagem
+- `trips_scrubber_caution`: Abaixo de 20 por cento da duração nominal. Planeie uma troca ou leve absorvente de reserva.
+- `trips_scrubber_noRating`: Sem duração nominal neste rebreather; adicione a duração do absorvente aos atributos ou um plano de troca.
+- `trips_scrubber_bannerMargin`: {minutes} min de margem de absorvente
+- `trips_scrubber_bannerCount`: {count} rebreathers, a menor margem de absorvente é de {minutes} min
+
+### nl
+
+- `preDive_runner_conditionFindings`: Conditiebevindingen
+- `statistics_equipment_exposure_title`: Blootstelling
+- `statistics_equipment_exposure_subtitle`: Totalen per item met jouw drempels
+- `statistics_equipment_exposure_empty`: Nog geen duiken met uitrusting
+- `statistics_equipment_findings_title`: Conditiebevindingen
+- `statistics_equipment_findings_subtitle`: Open bevindingen per regel
+- `statistics_equipment_findings_empty`: Geen open bevindingen
+- `statistics_equipment_issues_title`: Gemelde problemen
+- `statistics_equipment_issues_subtitle`: Meest voorkomende check-in-tags
+- `statistics_equipment_issues_empty`: Geen problemen gemeld
+- `statistics_equipment_countLabel_items`: items
+- `statistics_equipment_countLabel_findings`: bevindingen
+- `statistics_equipment_countLabel_reports`: meldingen
+- `statistics_equipment_exposureUnit_hours`: Uur
+- `statistics_equipment_exposureUnit_saltHours`: Uur in zout water
+- `statistics_equipment_exposureUnit_coldDives`: Koude duiken
+- `statistics_equipment_exposureUnit_o2Hours`: Uur met hoog O2
+- `statistics_equipment_exposureUnit_deepCycles`: Diepe duiken
+- `statistics_equipment_exposureUnit_cycles`: Batterijcycli
+- `trips_edit_sectionTitle_planning`: Planning
+- `trips_edit_label_expectedDives`: Verwachte duiken
+- `trips_edit_hint_expectedDives`: Laat leeg om te schatten op basis van je recente reizen
+- `trips_edit_label_expectedRuntime`: Verwachte looptijd per duik (minuten)
+- `trips_edit_hint_expectedRuntime`: Laat leeg om te schatten op basis van je recente CCR-duiken
+- `trips_scrubber_title`: Scrubbermarge
+- `trips_scrubber_asOfStart`: per {date}
+- `trips_scrubber_remaining`: {minutes} min over voor de reis (nominaal {rated} min, {consumed} min gebruikt sinds de laatste vulling)
+- `trips_scrubber_expectedDives`: {dives} verwachte duiken
+- `trips_scrubber_fromTrips`: (uit je laatste {n} reizen)
+- `trips_scrubber_fromOverride`: (ingesteld op deze reis)
+- `trips_scrubber_perDive`: {minutes} min per duik
+- `trips_scrubber_fromDives`: (uit je laatste {n} CCR-duiken)
+- `trips_scrubber_expectedUse`: {minutes} min verwacht gebruik
+- `trips_scrubber_margin`: {minutes} min marge na de reis
+- `trips_scrubber_caution`: Onder 20 procent van de nominale duur. Plan een vulling of neem reservekalk mee.
+- `trips_scrubber_noRating`: Geen nominale duur op deze rebreather; voeg de scrubberduur toe aan de attributen of maak een vulschema.
+- `trips_scrubber_bannerMargin`: {minutes} min scrubbermarge
+- `trips_scrubber_bannerCount`: {count} rebreathers, laagste scrubbermarge {minutes} min
+
+### hu
+
+- `preDive_runner_conditionFindings`: Állapotmegállapítások
+- `statistics_equipment_exposure_title`: Igénybevétel
+- `statistics_equipment_exposure_subtitle`: Összegek eszközönként a küszöbeiddel
+- `statistics_equipment_exposure_empty`: Még nincs merülés felszereléssel
+- `statistics_equipment_findings_title`: Állapotmegállapítások
+- `statistics_equipment_findings_subtitle`: Nyitott megállapítások szabályonként
+- `statistics_equipment_findings_empty`: Nincs nyitott megállapítás
+- `statistics_equipment_issues_title`: Bejelentett problémák
+- `statistics_equipment_issues_subtitle`: Leggyakoribb ellenőrzési címkék
+- `statistics_equipment_issues_empty`: Nincs bejelentett probléma
+- `statistics_equipment_countLabel_items`: eszköz
+- `statistics_equipment_countLabel_findings`: megállapítás
+- `statistics_equipment_countLabel_reports`: bejelentés
+- `statistics_equipment_exposureUnit_hours`: Óra
+- `statistics_equipment_exposureUnit_saltHours`: Sósvízi óra
+- `statistics_equipment_exposureUnit_coldDives`: Hideg merülés
+- `statistics_equipment_exposureUnit_o2Hours`: Óra magas O2-vel
+- `statistics_equipment_exposureUnit_deepCycles`: Mély merülés
+- `statistics_equipment_exposureUnit_cycles`: Akkumulátorciklus
+- `trips_edit_sectionTitle_planning`: Tervezés
+- `trips_edit_label_expectedDives`: Várható merülések
+- `trips_edit_hint_expectedDives`: Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük
+- `trips_edit_label_expectedRuntime`: Várható futásidő merülésenként (perc)
+- `trips_edit_hint_expectedRuntime`: Hagyd üresen, hogy a legutóbbi CCR-merüléseidből becsüljük
+- `trips_scrubber_title`: Szűrőtartalék
+- `trips_scrubber_asOfStart`: {date} állapot szerint
+- `trips_scrubber_remaining`: {minutes} perc maradt az utazás előtt (névleges {rated} perc, {consumed} perc elhasználva a legutóbbi csere óta)
+- `trips_scrubber_expectedDives`: {dives} várható merülés
+- `trips_scrubber_fromTrips`: (a legutóbbi {n} utazásod alapján)
+- `trips_scrubber_fromOverride`: (ezen az utazáson beállítva)
+- `trips_scrubber_perDive`: {minutes} perc merülésenként
+- `trips_scrubber_fromDives`: (a legutóbbi {n} CCR-merülésed alapján)
+- `trips_scrubber_expectedUse`: {minutes} perc várható használat
+- `trips_scrubber_margin`: {minutes} perc tartalék az utazás után
+- `trips_scrubber_caution`: A névleges időtartam 20 százaléka alatt. Tervezz cserét, vagy vigyél tartalék szűrőanyagot.
+- `trips_scrubber_noRating`: Ehhez a rebreatherhez nincs névleges időtartam; add meg a szűrő időtartamát az attribútumoknál, vagy hozz létre csereütemezést.
+- `trips_scrubber_bannerMargin`: {minutes} perc szűrőtartalék
+- `trips_scrubber_bannerCount`: {count} rebreather, a legkisebb szűrőtartalék {minutes} perc
+
+### ar
+
+- `preDive_runner_conditionFindings`: نتائج الحالة
+- `statistics_equipment_exposure_title`: التعرّض
+- `statistics_equipment_exposure_subtitle`: الإجماليات لكل قطعة وفق حدودك
+- `statistics_equipment_exposure_empty`: لا توجد غطسات بمعدات بعد
+- `statistics_equipment_findings_title`: نتائج الحالة
+- `statistics_equipment_findings_subtitle`: النتائج المفتوحة حسب القاعدة
+- `statistics_equipment_findings_empty`: لا توجد نتائج مفتوحة
+- `statistics_equipment_issues_title`: المشكلات المبلّغ عنها
+- `statistics_equipment_issues_subtitle`: أكثر وسوم الفحص تكرارًا
+- `statistics_equipment_issues_empty`: لم يُبلَّغ عن مشكلات
+- `statistics_equipment_countLabel_items`: قطع
+- `statistics_equipment_countLabel_findings`: نتائج
+- `statistics_equipment_countLabel_reports`: بلاغات
+- `statistics_equipment_exposureUnit_hours`: ساعات
+- `statistics_equipment_exposureUnit_saltHours`: ساعات في المياه المالحة
+- `statistics_equipment_exposureUnit_coldDives`: غطسات باردة
+- `statistics_equipment_exposureUnit_o2Hours`: ساعات بأكسجين مرتفع
+- `statistics_equipment_exposureUnit_deepCycles`: غطسات عميقة
+- `statistics_equipment_exposureUnit_cycles`: دورات بطارية
+- `trips_edit_sectionTitle_planning`: التخطيط
+- `trips_edit_label_expectedDives`: الغطسات المتوقعة
+- `trips_edit_hint_expectedDives`: اتركه فارغًا للتقدير من رحلاتك الأخيرة
+- `trips_edit_label_expectedRuntime`: مدة التشغيل المتوقعة لكل غطسة (بالدقائق)
+- `trips_edit_hint_expectedRuntime`: اتركه فارغًا للتقدير من غطسات الدائرة المغلقة الأخيرة
+- `trips_scrubber_title`: هامش المنظّف
+- `trips_scrubber_asOfStart`: حتى {date}
+- `trips_scrubber_remaining`: {minutes} دقيقة متبقية قبل الرحلة (المقدّر {rated} دقيقة، استُهلك {consumed} دقيقة منذ آخر إعادة تعبئة)
+- `trips_scrubber_expectedDives`: {dives} غطسة متوقعة
+- `trips_scrubber_fromTrips`: (من آخر {n} رحلات لك)
+- `trips_scrubber_fromOverride`: (محدد في هذه الرحلة)
+- `trips_scrubber_perDive`: {minutes} دقيقة لكل غطسة
+- `trips_scrubber_fromDives`: (من آخر {n} غطسات دائرة مغلقة لك)
+- `trips_scrubber_expectedUse`: {minutes} دقيقة استخدام متوقع
+- `trips_scrubber_margin`: {minutes} دقيقة هامش بعد الرحلة
+- `trips_scrubber_caution`: أقل من 20 بالمئة من المدة المقدّرة. خطّط لإعادة تعبئة أو احمل مادة ماصّة احتياطية.
+- `trips_scrubber_noRating`: لا توجد مدة مقدّرة لهذا الجهاز؛ أضف مدة المنظّف إلى سماته أو جدول إعادة تعبئة.
+- `trips_scrubber_bannerMargin`: {minutes} دقيقة هامش المنظّف
+- `trips_scrubber_bannerCount`: {count} أجهزة، أدنى هامش منظّف {minutes} دقيقة
+
+### he
+
+- `preDive_runner_conditionFindings`: ממצאי מצב
+- `statistics_equipment_exposure_title`: חשיפה
+- `statistics_equipment_exposure_subtitle`: סיכומים לכל פריט לפי הספים שלך
+- `statistics_equipment_exposure_empty`: אין עדיין צלילות עם ציוד
+- `statistics_equipment_findings_title`: ממצאי מצב
+- `statistics_equipment_findings_subtitle`: ממצאים פתוחים לפי כלל
+- `statistics_equipment_findings_empty`: אין ממצאים פתוחים
+- `statistics_equipment_issues_title`: תקלות שדווחו
+- `statistics_equipment_issues_subtitle`: תגיות הבדיקה הנפוצות ביותר
+- `statistics_equipment_issues_empty`: לא דווחו תקלות
+- `statistics_equipment_countLabel_items`: פריטים
+- `statistics_equipment_countLabel_findings`: ממצאים
+- `statistics_equipment_countLabel_reports`: דיווחים
+- `statistics_equipment_exposureUnit_hours`: שעות
+- `statistics_equipment_exposureUnit_saltHours`: שעות במים מלוחים
+- `statistics_equipment_exposureUnit_coldDives`: צלילות קרות
+- `statistics_equipment_exposureUnit_o2Hours`: שעות ב-O2 גבוה
+- `statistics_equipment_exposureUnit_deepCycles`: צלילות עמוקות
+- `statistics_equipment_exposureUnit_cycles`: מחזורי סוללה
+- `trips_edit_sectionTitle_planning`: תכנון
+- `trips_edit_label_expectedDives`: צלילות צפויות
+- `trips_edit_hint_expectedDives`: השאר ריק כדי להעריך מהטיולים האחרונים שלך
+- `trips_edit_label_expectedRuntime`: זמן ריצה צפוי לכל צלילה (דקות)
+- `trips_edit_hint_expectedRuntime`: השאר ריק כדי להעריך מצלילות ה-CCR האחרונות שלך
+- `trips_scrubber_title`: מרווח הסופג
+- `trips_scrubber_asOfStart`: נכון ל-{date}
+- `trips_scrubber_remaining`: {minutes} דק' נותרו לפני הטיול (נקוב {rated} דק', {consumed} דק' נוצלו מאז המילוי האחרון)
+- `trips_scrubber_expectedDives`: {dives} צלילות צפויות
+- `trips_scrubber_fromTrips`: (לפי {n} הטיולים האחרונים שלך)
+- `trips_scrubber_fromOverride`: (הוגדר בטיול זה)
+- `trips_scrubber_perDive`: {minutes} דק' לכל צלילה
+- `trips_scrubber_fromDives`: (לפי {n} צלילות ה-CCR האחרונות שלך)
+- `trips_scrubber_expectedUse`: {minutes} דק' שימוש צפוי
+- `trips_scrubber_margin`: {minutes} דק' מרווח אחרי הטיול
+- `trips_scrubber_caution`: מתחת ל-20 אחוז מהמשך הנקוב. תכננו מילוי או קחו סופג רזרבי.
+- `trips_scrubber_noRating`: אין משך נקוב לריברידר זה; הוסיפו את משך הסופג למאפיינים או לוח זמנים למילוי.
+- `trips_scrubber_bannerMargin`: {minutes} דק' מרווח סופג
+- `trips_scrubber_bannerCount`: {count} ריברידרים, מרווח הסופג הנמוך ביותר {minutes} דק'
+
+### zh
+
+- `preDive_runner_conditionFindings`: 状态发现
+- `statistics_equipment_exposure_title`: 使用暴露
+- `statistics_equipment_exposure_subtitle`: 按您的阈值统计每件装备的总量
+- `statistics_equipment_exposure_empty`: 尚无使用装备的潜水
+- `statistics_equipment_findings_title`: 状态发现
+- `statistics_equipment_findings_subtitle`: 按规则统计的未处理发现
+- `statistics_equipment_findings_empty`: 没有未处理的发现
+- `statistics_equipment_issues_title`: 已报告的问题
+- `statistics_equipment_issues_subtitle`: 最常见的检查标签
+- `statistics_equipment_issues_empty`: 未报告问题
+- `statistics_equipment_countLabel_items`: 件
+- `statistics_equipment_countLabel_findings`: 项
+- `statistics_equipment_countLabel_reports`: 条
+- `statistics_equipment_exposureUnit_hours`: 小时
+- `statistics_equipment_exposureUnit_saltHours`: 盐水小时
+- `statistics_equipment_exposureUnit_coldDives`: 冷水潜水
+- `statistics_equipment_exposureUnit_o2Hours`: 高氧小时
+- `statistics_equipment_exposureUnit_deepCycles`: 深潜
+- `statistics_equipment_exposureUnit_cycles`: 电池循环
+- `trips_edit_sectionTitle_planning`: 计划
+- `trips_edit_label_expectedDives`: 预计潜水次数
+- `trips_edit_hint_expectedDives`: 留空则根据近期行程估算
+- `trips_edit_label_expectedRuntime`: 每次潜水预计运行时间（分钟）
+- `trips_edit_hint_expectedRuntime`: 留空则根据近期 CCR 潜水估算
+- `trips_scrubber_title`: 吸收剂余量
+- `trips_scrubber_asOfStart`: 截至 {date}
+- `trips_scrubber_remaining`: 行程前剩余 {minutes} 分钟（额定 {rated} 分钟，自上次更换以来已使用 {consumed} 分钟）
+- `trips_scrubber_expectedDives`: 预计 {dives} 次潜水
+- `trips_scrubber_fromTrips`: （根据您最近 {n} 次行程）
+- `trips_scrubber_fromOverride`: （在本行程中设置）
+- `trips_scrubber_perDive`: 每次潜水 {minutes} 分钟
+- `trips_scrubber_fromDives`: （根据您最近 {n} 次 CCR 潜水）
+- `trips_scrubber_expectedUse`: 预计使用 {minutes} 分钟
+- `trips_scrubber_margin`: 行程后余量 {minutes} 分钟
+- `trips_scrubber_caution`: 低于额定时长的 20%。请安排更换或携带备用吸收剂。
+- `trips_scrubber_noRating`: 此呼吸器没有额定时长；请在属性中添加吸收剂时长或添加更换计划。
+- `trips_scrubber_bannerMargin`: 吸收剂余量 {minutes} 分钟
+- `trips_scrubber_bannerCount`: {count} 台呼吸器，最低吸收剂余量 {minutes} 分钟
+
