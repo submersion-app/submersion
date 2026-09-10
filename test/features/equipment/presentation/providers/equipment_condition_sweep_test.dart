@@ -1,12 +1,15 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_sensor_summary_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_worker.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_sweep.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -14,6 +17,7 @@ void main() {
 
   late AppDatabase db;
   late ProviderContainer container;
+  late MockSettingsNotifier settings;
   final visited = <String>[];
   var failOn = <String>{};
 
@@ -21,8 +25,10 @@ void main() {
     db = await setUpTestDatabase();
     visited.clear();
     failOn = {};
+    settings = MockSettingsNotifier();
     container = ProviderContainer(
       overrides: [
+        settingsProvider.overrideWith((ref) => settings),
         diveSensorSummaryRepositoryProvider.overrideWithValue(
           DiveSensorSummaryRepository(
             db: db,
@@ -56,6 +62,20 @@ void main() {
 
   EquipmentConditionSweep sweep() =>
       container.read(equipmentConditionSweepProvider);
+
+  Future<void> addEquipment(String id, {bool active = true}) => db
+      .into(db.equipment)
+      .insert(
+        EquipmentCompanion.insert(
+          id: id,
+          name: id,
+          type: 'regulator',
+          createdAt: 1,
+          updatedAt: 1,
+        ).copyWith(isActive: Value(active)),
+      );
+
+  EquipmentFindingsRepository findings() => EquipmentFindingsRepository(db: db);
 
   test('visits stale dives oldest first and reports progress', () async {
     final progress = <(int, int)>[];
@@ -124,5 +144,49 @@ void main() {
     final result = await sweep().run(diverId: 'a');
     expect(visited, ['d2']);
     expect(result.swept, 1);
+  });
+
+  test('the findings pass writes a marker for every active item', () async {
+    await addEquipment('reg');
+    await addEquipment('old', active: false);
+    final progress = <(int, int)>[];
+    final result = await sweep().run(
+      onProgress: (done, total) => progress.add((done, total)),
+    );
+    expect(await findings().getReview('reg'), isNotNull);
+    expect(await findings().getReview('old'), isNull);
+    expect(result.swept, 3);
+    expect(result.items, 1);
+    expect(result.itemsFailed, 0);
+    // Items count after dives in one progress bar.
+    expect(progress.first, (0, 4));
+    expect(progress.last, (4, 4));
+  });
+
+  test('findings: false skips the pass', () async {
+    await addEquipment('reg');
+    final result = await sweep().run(findings: false);
+    expect(await findings().getReview('reg'), isNull);
+    expect(result.items, 0);
+  });
+
+  test('the master toggle off skips the pass', () async {
+    await addEquipment('reg');
+    await settings.setConditionEngineEnabled(false);
+    final result = await sweep().run();
+    expect(await findings().getReview('reg'), isNull);
+    expect(result.items, 0);
+  });
+
+  test('cancel is polled before each item too', () async {
+    await addEquipment('reg');
+    await addEquipment('reg2');
+    var calls = 0;
+    // Three dives pass, the first item runs, the second is cut off.
+    final result = await sweep().run(isCancelled: () => ++calls > 4);
+    expect(result.swept, 3);
+    expect(result.items, 1);
+    expect(result.cancelled, isTrue);
+    expect(await findings().getReview('reg2'), isNull);
   });
 }

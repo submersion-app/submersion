@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_sensor_summary_repository.dart';
+import 'package:submersion/features/equipment/data/services/equipment_findings_pass.dart';
 
 /// Fire-and-forget entry point for the hooks that change a dive's profile
 /// or tanks: downloads, re-parses, saves, splits and consolidations.
 /// Serialises work (single-flight) and merges bursts of requests, like
-/// `QualityScanScheduler`, which it is called beside.
+/// `QualityScanScheduler`, which it is called beside. Every batch ends
+/// with a findings pass over the active diver's gear, so a downloaded
+/// dive reaches its condition findings without a page visit.
 class SensorSummaryScheduler {
   SensorSummaryScheduler._();
   static final SensorSummaryScheduler instance = SensorSummaryScheduler._();
@@ -24,6 +27,12 @@ class SensorSummaryScheduler {
   @visibleForTesting
   DiveSensorSummaryRepository Function() repositoryFactory =
       defaultRepositoryFactory;
+
+  /// Tests pin the diver, thresholds and master toggle the findings pass
+  /// runs with; the default reads the active diver's settings.
+  @visibleForTesting
+  Future<ConditionPassInputs> Function() conditionInputsLoader =
+      EquipmentFindingsPass.loadActiveDiverInputs;
 
   Future<void> _tail = Future.value();
   final Set<String> _pending = {};
@@ -77,7 +86,25 @@ class SensorSummaryScheduler {
           );
         }
       }
+      await _refreshFindings();
     });
+  }
+
+  /// Runs the engine over active gear through the review marker. The
+  /// pass swallows per-item failures; this guards the settings read and
+  /// the gear query so a broken batch never poisons the queue.
+  Future<void> _refreshFindings() async {
+    try {
+      final inputs = await conditionInputsLoader();
+      if (!inputs.engineEnabled) return;
+      final pass = EquipmentFindingsPass();
+      await pass.run(
+        items: await pass.activeItems(diverId: inputs.diverId),
+        thresholds: inputs.thresholds,
+      );
+    } catch (e, st) {
+      _log.error('Scheduled findings pass failed', error: e, stackTrace: st);
+    }
   }
 }
 
