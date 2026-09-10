@@ -101,8 +101,10 @@ void main() {
   /// of iterations even on an idle machine: regenerating the recovery code
   /// needs 15 of settle's 20. On a contended CI runner some windows see no
   /// I/O complete, and a fixed count then runs out before the result
-  /// mounts. The cap is far beyond any flow here (15 at most), so only a
-  /// result that never arrives can reach it.
+  /// mounts. The cap bounds iterations, not hops: no flow here needs more
+  /// than 15 hops, and the rest of the 400 is headroom for those empty
+  /// windows, so do not lower it toward the hop count. Only a result that
+  /// never arrives should reach it.
   Future<void> settleUntil(
     WidgetTester tester,
     bool Function() condition, {
