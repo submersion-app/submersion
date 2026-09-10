@@ -232,13 +232,11 @@ final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
   return repository.getEquipmentById(id);
 });
 
-/// Dive count for equipment provider.
-///
-/// Backs the "Used on N dives" figure. A junction read over `dive_equipment`,
-/// whose rows vanish by cascade when a dive is deleted, so it over-counted
-/// after a merge until it took the dives tick as well (issue #974).
-/// The active children installed in a parent (cells sorted by slot, then
-/// batteries by name), for the children card (condition phase 4a).
+/// The active children installed in a parent, for the children card
+/// (condition phase 4a): cells by slot, then batteries, then any other part
+/// by type name, each group by name after that. The order is spelled out
+/// rather than read from `EquipmentType.index`, which only records when each
+/// type was added.
 final childEquipmentProvider =
     FutureProvider.family<List<EquipmentItem>, String>((ref, parentId) async {
       final repository = ref.watch(equipmentRepositoryProvider);
@@ -246,8 +244,15 @@ final childEquipmentProvider =
       final children = await repository.getChildEquipment(parentId);
       int slotOf(EquipmentItem e) =>
           e.attrNum(EquipmentAttrKeys.cellSlot)?.round() ?? 1 << 20;
+      int rankOf(EquipmentType t) => switch (t) {
+        EquipmentType.o2Cell => 0,
+        EquipmentType.battery => 1,
+        _ => 2,
+      };
       return children.where((c) => c.isActive).toList()..sort((a, b) {
-        final byType = a.type.index.compareTo(b.type.index);
+        final byRank = rankOf(a.type).compareTo(rankOf(b.type));
+        if (byRank != 0) return byRank;
+        final byType = a.type.name.compareTo(b.type.name);
         if (byType != 0) return byType;
         final bySlot = slotOf(a).compareTo(slotOf(b));
         if (bySlot != 0) return bySlot;
@@ -255,6 +260,11 @@ final childEquipmentProvider =
       });
     });
 
+/// Dive count for equipment provider.
+///
+/// Backs the "Used on N dives" figure. A junction read over `dive_equipment`,
+/// whose rows vanish by cascade when a dive is deleted, so it over-counted
+/// after a merge until it took the dives tick as well (issue #974).
 final equipmentDiveCountProvider = FutureProvider.family<int, String>((
   ref,
   equipmentId,

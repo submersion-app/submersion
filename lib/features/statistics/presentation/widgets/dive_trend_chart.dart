@@ -366,14 +366,21 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     _drawnSecondary = secondary;
     // The x range spans every drawn bucket; the primary may be empty when
     // the secondaries carry the data.
+    // One pass for the ends: sorting every bucket of every series just to
+    // read its first and last would cost n log n on each pan and zoom.
     final allBuckets = [...buckets, ...secondary.expand((b) => b)];
-    allBuckets.sort((a, b) => a.date.compareTo(b.date));
+    var firstDate = allBuckets.first.date;
+    var lastDate = firstDate;
+    for (final b in allBuckets) {
+      if (b.date.isBefore(firstDate)) firstDate = b.date;
+      if (b.date.isAfter(lastDate)) lastDate = b.date;
+    }
 
     // The window the viewport exposes, not the whole series. Ticks are chosen
     // from the visible span so a chart zoomed into a few weeks stops being
     // labelled by year.
-    final fullMin = _x(allBuckets.first.date);
-    final fullMax = _x(allBuckets.last.date);
+    final fullMin = _x(firstDate);
+    final fullMax = _x(lastDate);
     final fullSpan = (fullMax - fullMin).clamp(1.0, double.infinity);
     final visibleMin = fullMin + _viewport.offsetX * fullSpan;
     final visibleMax = visibleMin + fullSpan * _viewport.visibleWidth;
@@ -397,10 +404,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final yAxis = ChartAxis.forTrend(<double>[
       ...allBuckets.expand((b) => [b.min, b.max]),
       ...smoothed.map((p) => p.value),
-      if (fit != null) ...[
-        fit.valueAt(allBuckets.first.date),
-        fit.valueAt(allBuckets.last.date),
-      ],
+      if (fit != null) ...[fit.valueAt(firstDate), fit.valueAt(lastDate)],
     ]);
 
     final isRaw = aggregation == TrendAggregation.none;

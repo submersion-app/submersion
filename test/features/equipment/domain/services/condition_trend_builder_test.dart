@@ -200,4 +200,23 @@ void main() {
       isNull,
     );
   });
+  test('a mask asked for minimum temperature still has no trend', () {
+    // An explicit kind cannot reach a type the default would not give it.
+    expect(
+      buildConditionTrend(
+        item: const EquipmentItem(
+          id: 'm',
+          name: 'Mask',
+          type: EquipmentType.mask,
+        ),
+        parent: null,
+        samples: [sample('d1', 1, temp: 8)],
+        summariesByDive: const {},
+        observations: const [],
+        transmitterSerials: const {},
+        kind: ConditionTrendKind.minTemperature,
+      ),
+      isNull,
+    );
+  });
 }

@@ -7,8 +7,11 @@ import 'package:submersion/features/equipment/domain/entities/exposure_threshold
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// A value the evidence did not carry renders as this, never as a
-/// fabricated 0 that would read as "output fell 0 percent".
+/// A percentage, median or decline the evidence did not carry renders as
+/// this, never as a fabricated 0 that would read as "output fell 0
+/// percent". Counts and the cell slot are not covered: they fill integer
+/// plural placeholders, and the engine writes them for every rule that
+/// names them, so their 0 fallback only guards a malformed row.
 const _unknown = '--';
 
 /// The sentence for a finding, composed at render time from its evidence
