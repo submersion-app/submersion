@@ -179,6 +179,25 @@ void main() {
       );
     });
 
+    test('the decline baseline stays anchored at install', () {
+      // The baseline is deliberately the FIRST five dives since install,
+      // not a rolling window: a cell wears out gradually, and a baseline
+      // that drifted along with it would subtract the very decline the
+      // rule exists to catch. Output here falls 0.6 percent per dive, so
+      // the last five sit 15.2 percent below the first five and the rule
+      // fires, while against the five dives just before them the gap is
+      // only 3.5 percent and a rolling window would say nothing at all.
+      final fading = [for (var i = 0; i < 30; i++) 60.0 * (1 - 0.006 * i)];
+      final found = of(
+        engine.evaluate(cellInput(fading)),
+        ConditionRuleId.cellOutputDeclining,
+      ).single;
+      expect(found.value, greaterThan(15));
+      // Every dive since install is the evidence, which is what the
+      // sentence claims: "fell N percent across 30 dives since <date>".
+      expect(found.evidence.n, 30);
+    });
+
     test('cellOutputLow needs 3 dives with a median under 40', () {
       expect(
         of(engine.evaluate(cellInput([39, 39])), ConditionRuleId.cellOutputLow),
