@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -179,6 +180,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
               serviceKindId: status.kind.id,
             ),
           ),
+          const SizedBox(height: 24),
+          ObservationsCard(equipment: equipment),
           const SizedBox(height: 24),
           ComponentsCard(equipmentId: equipmentId),
           // Only rebreathers own configurations; every other type would show

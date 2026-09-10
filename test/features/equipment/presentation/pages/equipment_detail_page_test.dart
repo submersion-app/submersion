@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
@@ -75,6 +76,9 @@ void main() {
               equipmentComponentsProvider(
                 equipment.id,
               ).overrideWith((ref) async => const []),
+              observationsForEquipmentProvider(
+                equipment.id,
+              ).overrideWith((ref) async => const []),
               equipmentWorstClockProvider.overrideWith((ref) async => {}),
               serviceRecordNotifierProvider(
                 equipment.id,
@@ -137,6 +141,9 @@ void main() {
               equipment.id,
             ).overrideWith((ref) async => 0),
             equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            observationsForEquipmentProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
             equipmentWorstClockProvider.overrideWith((ref) async => {}),
@@ -210,6 +217,9 @@ void main() {
             equipmentComponentsProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
+            observationsForEquipmentProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
             equipmentWorstClockProvider.overrideWith((ref) async => {}),
             serviceRecordNotifierProvider(
               equipment.id,
@@ -264,6 +274,9 @@ void main() {
               equipment.id,
             ).overrideWith((ref) async => 0),
             equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            observationsForEquipmentProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
             equipmentWorstClockProvider.overrideWith((ref) async => {}),
@@ -443,6 +456,9 @@ void main() {
               equipment.id,
             ).overrideWith((ref) async => 0),
             equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            observationsForEquipmentProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
             equipmentWorstClockProvider.overrideWith((ref) async => {}),
