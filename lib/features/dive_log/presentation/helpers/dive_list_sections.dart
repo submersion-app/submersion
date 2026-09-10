@@ -145,3 +145,27 @@ List<DiveSummary> visibleDivesOf(List<DiveListSection> sections) {
         for (final entry in section.entries) entry.dive,
   ];
 }
+
+/// Whether a scroll to [targetId] should be retried after forcing its trip
+/// open.
+///
+/// A programmatic scroll measures the layout of the build it runs after. If
+/// the target is loaded but folded inside a collapsed trip in that build, the
+/// measurement finds nothing to scroll to. The list can force the trip open on
+/// the next build and try once more, so the answer here is "is that worth
+/// doing", kept pure so the awkward cases are testable without a widget tree.
+///
+/// False when the dive is already visible (nothing to fix), when it is not
+/// loaded at all (opening a trip will not conjure it), when it belongs to no
+/// trip (there is nothing to open, so a retry would repeat the same failure),
+/// and when a retry has already been spent on it.
+bool shouldRetryScrollAfterExpanding({
+  required String targetId,
+  required List<DiveSummary> loadedDives,
+  required List<DiveSummary> visibleDives,
+  required String? alreadyRetriedFor,
+}) {
+  if (alreadyRetriedFor == targetId) return false;
+  if (visibleDives.any((d) => d.id == targetId)) return false;
+  return loadedDives.any((d) => d.id == targetId && d.tripId != null);
+}

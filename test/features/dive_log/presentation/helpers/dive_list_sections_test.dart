@@ -4,6 +4,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
 
 void main() {
+  _retryDecisionTests();
+
   DiveSummary dive(String id, {String? tripId, String? tripName}) {
     return DiveSummary(
       id: id,
@@ -218,6 +220,97 @@ void main() {
       );
 
       expect(visibleDivesOf(sections).map((d) => d.id), ['d1', 'd2', 'd3']);
+    });
+  });
+}
+
+/// Covers the retry decision behind the programmatic scroll (#1193). The
+/// widget's frame plumbing is not reachable from a settled test tree, so the
+/// judgement it depends on lives here as a pure function.
+void _retryDecisionTests() {
+  DiveSummary dive(String id, {String? tripId}) => DiveSummary(
+    id: id,
+    dateTime: DateTime(2026, 6, 8),
+    sortTimestamp: 0,
+    tripId: tripId,
+    tripName: tripId == null ? null : 'Trip',
+  );
+
+  group('shouldRetryScrollAfterExpanding', () {
+    final loaded = [dive('d1'), dive('d2', tripId: 't1'), dive('d3')];
+
+    test('retries a loaded dive folded inside a collapsed trip', () {
+      expect(
+        shouldRetryScrollAfterExpanding(
+          targetId: 'd2',
+          loadedDives: loaded,
+          visibleDives: [dive('d1'), dive('d3')],
+          alreadyRetriedFor: null,
+        ),
+        isTrue,
+      );
+    });
+
+    test('does not retry a dive that is already visible', () {
+      expect(
+        shouldRetryScrollAfterExpanding(
+          targetId: 'd2',
+          loadedDives: loaded,
+          visibleDives: loaded,
+          alreadyRetriedFor: null,
+        ),
+        isFalse,
+      );
+    });
+
+    test('does not retry a dive that is not loaded at all', () {
+      // Opening a trip cannot conjure a dive the page has not fetched.
+      expect(
+        shouldRetryScrollAfterExpanding(
+          targetId: 'd99',
+          loadedDives: loaded,
+          visibleDives: const [],
+          alreadyRetriedFor: null,
+        ),
+        isFalse,
+      );
+    });
+
+    test('does not retry a loose dive, which no trip can reveal', () {
+      expect(
+        shouldRetryScrollAfterExpanding(
+          targetId: 'd1',
+          loadedDives: loaded,
+          visibleDives: const [],
+          alreadyRetriedFor: null,
+        ),
+        isFalse,
+      );
+    });
+
+    test('spends at most one retry per target', () {
+      expect(
+        shouldRetryScrollAfterExpanding(
+          targetId: 'd2',
+          loadedDives: loaded,
+          visibleDives: const [],
+          alreadyRetriedFor: 'd2',
+        ),
+        isFalse,
+        reason: 'an unbounded retry would ping-pong build to frame forever',
+      );
+    });
+
+    test('a retry spent on another dive does not block this one', () {
+      expect(
+        shouldRetryScrollAfterExpanding(
+          targetId: 'd2',
+          loadedDives: loaded,
+          visibleDives: const [],
+          alreadyRetriedFor: 'd7',
+        ),
+        isTrue,
+      );
     });
   });
 }
