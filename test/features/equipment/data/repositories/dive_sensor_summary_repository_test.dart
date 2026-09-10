@@ -3,7 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_field_table.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_sensor_summary_repository.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_worker.dart';
@@ -180,6 +183,47 @@ void main() {
     await (db.delete(db.dives)..where((t) => t.id.equals('d1'))).go();
     expect(await repo.getSummary('d1'), isNull);
   });
+
+  test(
+    'a dive with a forward-version blob stores nothing and stays stale',
+    () async {
+      // The samples are readable by a newer build, so persisting a summary
+      // computed without them would mark the dive done for its updated_at
+      // and it would never be recomputed after upgrading back.
+      await insertDive('future');
+      await db
+          .into(db.diveProfileSeries)
+          .insert(
+            DiveProfileSeriesCompanion.insert(
+              id: 'ps1',
+              diveId: 'future',
+              startTimestamp: 0,
+              endTimestamp: 60,
+              sampleCount: 2,
+              maxDepth: 9.0,
+              firstDepth: 1.0,
+              lastDepth: 9.0,
+              codecVersion: 2,
+              createdAt: 1000,
+              updatedAt: 1000,
+              samples:
+                  const ProfileSeriesCodec(
+                    fieldTables: {2: kProfileFieldTableV1},
+                  ).encode(const [
+                    ProfileSample(timestamp: 0, depth: 1.0),
+                    ProfileSample(timestamp: 60, depth: 9.0),
+                  ], version: 2).bytes,
+            ).copyWith(isPrimary: const Value(true)),
+          );
+
+      await expectLater(
+        repo.ensureCurrent('future'),
+        throwsA(isA<UnknownSeriesVersionException>()),
+      );
+      expect(await repo.getSummary('future'), isNull);
+      expect(await repo.staleDiveIds(), contains('future'));
+    },
+  );
 
   group('staleDiveIds', () {
     test(
