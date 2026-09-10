@@ -1153,20 +1153,32 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ],
               ),
               const PopupMenuDivider(),
-              CheckedPopupMenuItem(
+              PopupMenuItem(
                 value: 'group_trips',
-                checked: ref.watch(diveListGroupTripsProvider),
-                child: Text(context.l10n.diveLog_listPage_menuGroupTrips),
+                child: _groupingMenuRow(
+                  context,
+                  icon: Icons.card_travel,
+                  label: context.l10n.diveLog_listPage_menuGroupTrips,
+                  // The active state reads as a tinted icon and label, matching the
+                  // view-mode entries directly above rather than a checkbox.
+                  isActive: ref.watch(diveListGroupTripsProvider),
+                ),
               ),
               if (ref.watch(diveListGroupingEnabledProvider)) ...[
                 PopupMenuItem(
                   value: 'expand_all_trips',
-                  child: Text(context.l10n.diveLog_listPage_menuExpandAllTrips),
+                  child: _groupingMenuRow(
+                    context,
+                    icon: Icons.unfold_more,
+                    label: context.l10n.diveLog_listPage_menuExpandAllTrips,
+                  ),
                 ),
                 PopupMenuItem(
                   value: 'collapse_all_trips',
-                  child: Text(
-                    context.l10n.diveLog_listPage_menuCollapseAllTrips,
+                  child: _groupingMenuRow(
+                    context,
+                    icon: Icons.unfold_less,
+                    label: context.l10n.diveLog_listPage_menuCollapseAllTrips,
                   ),
                 ),
               ],
@@ -1351,22 +1363,32 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   ],
                 ),
                 const PopupMenuDivider(),
-                CheckedPopupMenuItem(
+                PopupMenuItem(
                   value: 'group_trips',
-                  checked: ref.watch(diveListGroupTripsProvider),
-                  child: Text(context.l10n.diveLog_listPage_menuGroupTrips),
+                  child: _groupingMenuRow(
+                    context,
+                    icon: Icons.card_travel,
+                    label: context.l10n.diveLog_listPage_menuGroupTrips,
+                    // The active state reads as a tinted icon and label, matching the
+                    // view-mode entries directly above rather than a checkbox.
+                    isActive: ref.watch(diveListGroupTripsProvider),
+                  ),
                 ),
                 if (ref.watch(diveListGroupingEnabledProvider)) ...[
                   PopupMenuItem(
                     value: 'expand_all_trips',
-                    child: Text(
-                      context.l10n.diveLog_listPage_menuExpandAllTrips,
+                    child: _groupingMenuRow(
+                      context,
+                      icon: Icons.unfold_more,
+                      label: context.l10n.diveLog_listPage_menuExpandAllTrips,
                     ),
                   ),
                   PopupMenuItem(
                     value: 'collapse_all_trips',
-                    child: Text(
-                      context.l10n.diveLog_listPage_menuCollapseAllTrips,
+                    child: _groupingMenuRow(
+                      context,
+                      icon: Icons.unfold_less,
+                      label: context.l10n.diveLog_listPage_menuCollapseAllTrips,
                     ),
                   ),
                 ],
@@ -1789,6 +1811,40 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
         ],
       ),
+    );
+  }
+
+  /// One row of the trip-grouping menu entries.
+  ///
+  /// Mirrors [ListViewModeToggle.menuItems]: a 20px leading icon, a 12px gap,
+  /// then the label, with the active entry tinted to the primary colour
+  /// rather than marked with a checkbox. Keeping the two identical is what
+  /// stops the grouping entries reading as a different kind of control from
+  /// the view modes they sit under.
+  Widget _groupingMenuRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    bool isActive = false,
+  }) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: isActive ? primary : null),
+        const SizedBox(width: 12),
+        // Flexible, unlike the shorter entries above: an icon plus a label
+        // like "Collapse all trips" already overruns the popup's default
+        // width, and the longer locales are longer still.
+        Flexible(
+          child: Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: isActive
+                ? TextStyle(color: primary, fontWeight: FontWeight.w600)
+                : null,
+          ),
+        ),
+      ],
     );
   }
 

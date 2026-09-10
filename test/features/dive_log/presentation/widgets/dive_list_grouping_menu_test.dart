@@ -65,6 +65,64 @@ void main() {
       expect(find.text('Collapse all trips'), findsNothing);
     });
 
+    testWidgets('the grouping entries carry icons, not a checkbox', (
+      tester,
+    ) async {
+      await pumpList(tester);
+      await openMenu(tester);
+
+      // Scoped to the menu entries: the trip glyph also appears on the group
+      // header in the list behind the open menu.
+      Finder iconIn(String label, IconData icon) => find.descendant(
+        of: find.widgetWithText(PopupMenuItem<String>, label),
+        matching: find.byIcon(icon),
+      );
+
+      expect(iconIn('Group trips', Icons.card_travel), findsOneWidget);
+      expect(iconIn('Expand all trips', Icons.unfold_more), findsOneWidget);
+      expect(iconIn('Collapse all trips', Icons.unfold_less), findsOneWidget);
+      expect(
+        find.byType(CheckedPopupMenuItem<String>),
+        findsNothing,
+        reason: 'the active state is a colour, not a checkbox',
+      );
+    });
+
+    testWidgets('Group trips is tinted while grouping is on', (tester) async {
+      await pumpList(tester);
+      await openMenu(tester);
+
+      final label = find.descendant(
+        of: find.widgetWithText(PopupMenuItem<String>, 'Group trips'),
+        matching: find.text('Group trips'),
+      );
+      final primary = Theme.of(tester.element(label)).colorScheme.primary;
+
+      expect(
+        tester.widget<Text>(label).style?.color,
+        primary,
+        reason: 'an active toggle reads as tinted, like the current view mode',
+      );
+    });
+
+    testWidgets('Group trips is untinted while grouping is off', (
+      tester,
+    ) async {
+      await pumpList(tester, grouping: false);
+      await openMenu(tester);
+
+      final label = find.descendant(
+        of: find.widgetWithText(PopupMenuItem<String>, 'Group trips'),
+        matching: find.text('Group trips'),
+      );
+
+      expect(
+        tester.widget<Text>(label).style?.color,
+        isNull,
+        reason: 'an inactive toggle takes the default menu text colour',
+      );
+    });
+
     testWidgets('choosing Group trips turns grouping on', (tester) async {
       await pumpList(tester, grouping: false);
       expect(find.byType(TripGroupHeader), findsNothing);
