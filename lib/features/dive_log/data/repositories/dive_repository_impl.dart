@@ -1867,39 +1867,9 @@ class DiveRepository {
           );
         }
 
-        // Update weights: delete and re-insert
-        final existingWeights = await (_db.select(
-          _db.diveWeights,
-        )..where((t) => t.diveId.equals(dive.id))).get();
-        await (_db.delete(
-          _db.diveWeights,
-        )..where((t) => t.diveId.equals(dive.id))).go();
-        for (final weight in existingWeights) {
-          await _syncRepository.logDeletion(
-            entityType: 'diveWeights',
-            recordId: weight.id,
-          );
-        }
-        for (final weight in dive.weights) {
-          final weightId = weight.id.isNotEmpty ? weight.id : _uuid.v4();
-          await _db
-              .into(_db.diveWeights)
-              .insert(
-                DiveWeightsCompanion(
-                  id: Value(weightId),
-                  diveId: Value(dive.id),
-                  weightType: Value(weight.weightType.name),
-                  amountKg: Value(weight.amountKg),
-                  notes: Value(weight.notes),
-                  createdAt: Value(DateTime.now().millisecondsSinceEpoch),
-                ),
-              );
-          await _syncRepository.markRecordPending(
-            entityType: 'diveWeights',
-            recordId: weightId,
-            localUpdatedAt: now,
-          );
-        }
+        // Weights: a diff keyed by row id, so an unchanged row is neither
+        // tombstoned nor re-marked pending (issue #1727).
+        await _writeWeightDiff(dive.id, dive.weights, now);
 
         // Equipment: a diff keyed by equipment id, shared with the bulk
         // operations, so an unchanged row is neither tombstoned nor
@@ -1907,39 +1877,8 @@ class DiveRepository {
         final desiredGear = [for (final g in dive.gear) g.provenance];
         await _writeGearDiff(dive.id, desiredGear, now);
 
-        // Update custom fields: delete and re-insert
-        final existingCustomFields = await (_db.select(
-          _db.diveCustomFields,
-        )..where((cf) => cf.diveId.equals(dive.id))).get();
-        await (_db.delete(
-          _db.diveCustomFields,
-        )..where((cf) => cf.diveId.equals(dive.id))).go();
-        for (final cf in existingCustomFields) {
-          await _syncRepository.logDeletion(
-            entityType: 'diveCustomFields',
-            recordId: cf.id,
-          );
-        }
-        for (final field in dive.customFields) {
-          final fieldId = field.id.isNotEmpty ? field.id : _uuid.v4();
-          await _db
-              .into(_db.diveCustomFields)
-              .insert(
-                DiveCustomFieldsCompanion(
-                  id: Value(fieldId),
-                  diveId: Value(dive.id),
-                  fieldKey: Value(field.key),
-                  fieldValue: Value(field.value),
-                  sortOrder: Value(field.sortOrder),
-                  createdAt: Value(DateTime.now().millisecondsSinceEpoch),
-                ),
-              );
-          await _syncRepository.markRecordPending(
-            entityType: 'diveCustomFields',
-            recordId: fieldId,
-            localUpdatedAt: now,
-          );
-        }
+        // Custom fields: the same id-keyed diff, for the same reason.
+        await _writeCustomFieldDiff(dive.id, dive.customFields, now);
 
         // Update tags
         await _tagRepository.setTagsForDive(dive.id, dive.tags);
@@ -5954,6 +5893,147 @@ class DiveRepository {
       await _syncRepository.markRecordPending(
         entityType: 'diveEquipment',
         recordId: '$diveId|${p.equipmentId}',
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Makes the dive's weight rows equal to [desired]: rows whose values
+  /// changed are updated in place, added rows inserted, removed rows deleted
+  /// with a tombstone, and every written row marked pending.
+  ///
+  /// Delete-all-then-reinsert published a deletion and a pending mark for the
+  /// same key in one sync round, and `dive_weights` carries no `updatedAt` for
+  /// the merge to order them by, so whichever a peer applied last decided
+  /// whether the row lived. It also re-stamped `createdAt` on rows the diver
+  /// never touched (issue #1727).
+  Future<void> _writeWeightDiff(
+    String diveId,
+    List<domain.DiveWeight> desired,
+    int now,
+  ) async {
+    final existing = await (_db.select(
+      _db.diveWeights,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final existingById = {for (final r in existing) r.id: r};
+    final desiredIds = {
+      for (final w in desired)
+        if (w.id.isNotEmpty) w.id,
+    };
+    for (final row in existing) {
+      if (desiredIds.contains(row.id)) continue;
+      await (_db.delete(
+        _db.diveWeights,
+      )..where((t) => t.id.equals(row.id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'diveWeights',
+        recordId: row.id,
+      );
+    }
+    for (final weight in desired) {
+      final current = weight.id.isNotEmpty ? existingById[weight.id] : null;
+      if (current != null &&
+          current.weightType == weight.weightType.name &&
+          current.amountKg == weight.amountKg &&
+          current.notes == weight.notes) {
+        continue;
+      }
+      final rowId = weight.id.isNotEmpty ? weight.id : _uuid.v4();
+      if (current != null) {
+        await (_db.update(
+          _db.diveWeights,
+        )..where((t) => t.id.equals(rowId))).write(
+          DiveWeightsCompanion(
+            weightType: Value(weight.weightType.name),
+            amountKg: Value(weight.amountKg),
+            notes: Value(weight.notes),
+          ),
+        );
+      } else {
+        await _db
+            .into(_db.diveWeights)
+            .insert(
+              DiveWeightsCompanion(
+                id: Value(rowId),
+                diveId: Value(diveId),
+                weightType: Value(weight.weightType.name),
+                amountKg: Value(weight.amountKg),
+                notes: Value(weight.notes),
+                createdAt: Value(now),
+              ),
+            );
+      }
+      await _syncRepository.markRecordPending(
+        entityType: 'diveWeights',
+        recordId: rowId,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Makes the dive's custom fields equal to [desired], on the same id-keyed
+  /// diff as [_writeWeightDiff] and for the same reason: `dive_custom_fields`
+  /// has no `updatedAt` either, so a tombstone racing its own re-insert was
+  /// resolved by apply order (issue #1727).
+  Future<void> _writeCustomFieldDiff(
+    String diveId,
+    List<domain.DiveCustomField> desired,
+    int now,
+  ) async {
+    final existing = await (_db.select(
+      _db.diveCustomFields,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final existingById = {for (final r in existing) r.id: r};
+    final desiredIds = {
+      for (final f in desired)
+        if (f.id.isNotEmpty) f.id,
+    };
+    for (final row in existing) {
+      if (desiredIds.contains(row.id)) continue;
+      await (_db.delete(
+        _db.diveCustomFields,
+      )..where((t) => t.id.equals(row.id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'diveCustomFields',
+        recordId: row.id,
+      );
+    }
+    for (final field in desired) {
+      final current = field.id.isNotEmpty ? existingById[field.id] : null;
+      if (current != null &&
+          current.fieldKey == field.key &&
+          current.fieldValue == field.value &&
+          current.sortOrder == field.sortOrder) {
+        continue;
+      }
+      final rowId = field.id.isNotEmpty ? field.id : _uuid.v4();
+      if (current != null) {
+        await (_db.update(
+          _db.diveCustomFields,
+        )..where((t) => t.id.equals(rowId))).write(
+          DiveCustomFieldsCompanion(
+            fieldKey: Value(field.key),
+            fieldValue: Value(field.value),
+            sortOrder: Value(field.sortOrder),
+          ),
+        );
+      } else {
+        await _db
+            .into(_db.diveCustomFields)
+            .insert(
+              DiveCustomFieldsCompanion(
+                id: Value(rowId),
+                diveId: Value(diveId),
+                fieldKey: Value(field.key),
+                fieldValue: Value(field.value),
+                sortOrder: Value(field.sortOrder),
+                createdAt: Value(now),
+              ),
+            );
+      }
+      await _syncRepository.markRecordPending(
+        entityType: 'diveCustomFields',
+        recordId: rowId,
         localUpdatedAt: now,
       );
     }
