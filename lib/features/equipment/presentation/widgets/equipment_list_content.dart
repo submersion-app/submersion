@@ -27,7 +27,10 @@ import 'package:submersion/features/equipment/domain/constants/equipment_field.d
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
@@ -958,8 +961,16 @@ class EquipmentListTile extends ConsumerWidget {
         rollup == null || rollup.status.severity == ServiceClockSeverity.ok
         ? null
         : rollup;
-    final isOverdue =
-        worstClock?.status.severity == ServiceClockSeverity.overdue;
+    // A condition finding competes with the clock for the one badge slot
+    // (condition phase 4b); a significant finding lights the avatar too.
+    final finding = ref.watch(conditionBadgeProvider).value?[item.id];
+    final source = pickBadgeSource(
+      clockSeverity: worstClock?.status.severity,
+      finding: finding,
+    );
+    final isOverdue = source == BadgeSource.finding
+        ? finding!.severity == ConditionSeverity.significant
+        : worstClock?.status.severity == ServiceClockSeverity.overdue;
     // A non-null subtitle forces the two-line tile layout, so only build one
     // when there is something to show: a differing full name, or chips.
     final index = ref.watch(equipmentComponentsIndexProvider).value;
@@ -1012,12 +1023,20 @@ class EquipmentListTile extends ConsumerWidget {
                 ],
               )
             : null,
-        trailing: _buildTrailing(context, worstClock),
+        trailing: _buildTrailing(
+          context,
+          source == BadgeSource.finding ? null : worstClock,
+          source == BadgeSource.finding ? finding : null,
+        ),
       ),
     );
   }
 
-  Widget _buildTrailing(BuildContext context, RollupClock? worstClock) {
+  Widget _buildTrailing(
+    BuildContext context,
+    RollupClock? worstClock,
+    ConditionBadge? finding,
+  ) {
     final theme = Theme.of(context);
 
     final typeLabel = Text(
@@ -1026,6 +1045,27 @@ class EquipmentListTile extends ConsumerWidget {
         color: theme.colorScheme.onSurfaceVariant,
       ),
     );
+
+    if (finding != null) {
+      final significant = finding.severity == ConditionSeverity.significant;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          typeLabel,
+          const SizedBox(height: 2),
+          Text(
+            conditionFindingShortLabel(finding.rule, context.l10n),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: significant
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.tertiary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
 
     if (worstClock != null) {
       final overdue =
