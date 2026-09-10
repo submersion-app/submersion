@@ -150,4 +150,63 @@ void main() {
     expect(survived, isNotNull);
     expect(survived!.diveId, isNull);
   });
+
+  group('equipment link (condition phase 3a)', () {
+    Future<void> insertEquipment(String id) => db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: id,
+            name: id,
+            type: 'regulator',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+
+    test('create stores the item, reads back and lists by item', () async {
+      await insertEquipment('reg');
+      final created = await repo.createIncident(
+        occurredAt: when,
+        category: IncidentCategory.equipment,
+        severity: IncidentSeverity.moderate,
+        narrative: 'Free flow',
+        equipmentId: 'reg',
+      );
+      expect(created.equipmentId, 'reg');
+      expect((await repo.getIncidentById(created.id))!.equipmentId, 'reg');
+      expect((await repo.getIncidentsForEquipment('reg')).map((i) => i.id), [
+        created.id,
+      ]);
+      expect(await repo.getIncidentsForEquipment('other'), isEmpty);
+    });
+
+    test('update can clear the item', () async {
+      await insertEquipment('reg');
+      final created = await repo.createIncident(
+        occurredAt: when,
+        category: IncidentCategory.equipment,
+        severity: IncidentSeverity.minor,
+        narrative: 'n',
+        equipmentId: 'reg',
+      );
+      await repo.updateIncident(created.copyWith(clearEquipmentId: true));
+      expect((await repo.getIncidentById(created.id))!.equipmentId, isNull);
+    });
+
+    test('deleting the item leaves the incident with no item', () async {
+      await insertEquipment('reg');
+      final created = await repo.createIncident(
+        occurredAt: when,
+        category: IncidentCategory.equipment,
+        severity: IncidentSeverity.minor,
+        narrative: 'n',
+        equipmentId: 'reg',
+      );
+      await (db.delete(db.equipment)..where((t) => t.id.equals('reg'))).go();
+      final stored = await repo.getIncidentById(created.id);
+      expect(stored, isNotNull);
+      expect(stored!.equipmentId, isNull);
+    });
+  });
 }

@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
@@ -35,6 +38,12 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   Incident? _existing;
   var _category = IncidentCategory.other;
   var _severity = IncidentSeverity.minor;
+
+  /// The item involved, when the diver names one. Choosing an item while the
+  /// category is still the untouched default flips it to `equipment`; a
+  /// category picked by hand is never overridden, hence the flag.
+  String? _equipmentId;
+  var _categoryTouched = false;
   // A timezone-stable wall-clock date (stored as UTC), so the chosen day does
   // not shift when the synced incident is viewed in another timezone.
   DateTime _occurredAt = _todayWallClockUtc();
@@ -64,6 +73,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               if (incident != null) {
                 _category = incident.category;
                 _severity = incident.severity;
+                _equipmentId = incident.equipmentId;
                 _occurredAt = incident.occurredAt;
                 _narrative.text = incident.narrative;
                 _factors.text = incident.contributingFactors ?? '';
@@ -145,7 +155,10 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
                   ChoiceChip(
                     label: Text(incidentCategoryLabel(l10n, category)),
                     selected: _category == category,
-                    onSelected: (_) => setState(() => _category = category),
+                    onSelected: (_) => setState(() {
+                      _category = category;
+                      _categoryTouched = true;
+                    }),
                   ),
               ],
             ),
@@ -176,6 +189,16 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               // the shown day is identical on every synced device.
               subtitle: Text(units.formatDate(_occurredAt)),
               onTap: _pickDate,
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.backpack_outlined),
+              title: Text(l10n.incidentEdit_equipment),
+              subtitle: _EquipmentName(
+                equipmentId: _equipmentId,
+                none: l10n.incidentEdit_equipment_none,
+              ),
+              onTap: _pickEquipment,
             ),
             TextFormField(
               controller: _narrative,
@@ -220,6 +243,57 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     );
   }
 
+  /// The dive's own gear first (when the incident has a dive), then every
+  /// active item, so the item that was in the water is one tap away.
+  Future<void> _pickEquipment() async {
+    final l10n = context.l10n;
+    final diveId = widget.diveId ?? _existing?.diveId;
+    final dive = diveId == null
+        ? null
+        : await ref.read(diveProvider(diveId).future);
+    final active = await ref.read(activeEquipmentProvider.future);
+    if (!mounted) return;
+    final onDive = dive?.equipment ?? const <EquipmentItem>[];
+    final chosen = await showDialog<_EquipmentChoice>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(l10n.incidentEdit_equipment),
+        children: [
+          SimpleDialogOption(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(const _EquipmentChoice(null)),
+            child: Text(l10n.incidentEdit_equipment_none),
+          ),
+          if (onDive.isNotEmpty) ...[
+            _PickerHeader(l10n.incidentEdit_equipment_onThisDive),
+            for (final item in onDive)
+              SimpleDialogOption(
+                onPressed: () =>
+                    Navigator.of(dialogContext).pop(_EquipmentChoice(item.id)),
+                child: Text(item.name),
+              ),
+          ],
+          if (active.isNotEmpty) ...[
+            _PickerHeader(l10n.incidentEdit_equipment_allGear),
+            for (final item in active)
+              SimpleDialogOption(
+                onPressed: () =>
+                    Navigator.of(dialogContext).pop(_EquipmentChoice(item.id)),
+                child: Text(item.name),
+              ),
+          ],
+        ],
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    setState(() {
+      _equipmentId = chosen.equipmentId;
+      if (chosen.equipmentId != null && !_categoryTouched) {
+        _category = IncidentCategory.equipment;
+      }
+    });
+  }
+
   Future<void> _pickDate() async {
     // Drive the picker in local calendar days (its native mode), seeding it
     // from _occurredAt's wall-clock Y/M/D, then normalize the chosen day back
@@ -259,6 +333,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
         lessonsLearned: lessons.isEmpty ? null : lessons,
         diveId: widget.diveId,
         diverId: ref.read(currentDiverIdProvider),
+        equipmentId: _equipmentId,
       );
     } else {
       await repo.updateIncident(
@@ -269,6 +344,8 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
           narrative: narrative,
           contributingFactors: factors.isEmpty ? null : factors,
           lessonsLearned: lessons.isEmpty ? null : lessons,
+          equipmentId: _equipmentId,
+          clearEquipmentId: _equipmentId == null,
         ),
       );
     }
@@ -296,5 +373,44 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     if (confirmed != true || !mounted) return;
     await ref.read(incidentRepositoryProvider).deleteIncident(_existing!.id);
     if (mounted) context.pop();
+  }
+}
+
+/// A dialog result that can carry "none" (null id) as a real choice, which
+/// a bare nullable String could not tell apart from a dismissed dialog.
+class _EquipmentChoice {
+  final String? equipmentId;
+  const _EquipmentChoice(this.equipmentId);
+}
+
+class _PickerHeader extends StatelessWidget {
+  final String text;
+  const _PickerHeader(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    ),
+  );
+}
+
+/// The chosen item's name, or [none]; resolves the name through the item
+/// provider so the form never blocks on it.
+class _EquipmentName extends ConsumerWidget {
+  final String? equipmentId;
+  final String none;
+  const _EquipmentName({required this.equipmentId, required this.none});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = equipmentId;
+    if (id == null) return Text(none);
+    final item = ref.watch(equipmentItemProvider(id)).value;
+    return Text(item?.name ?? id);
   }
 }

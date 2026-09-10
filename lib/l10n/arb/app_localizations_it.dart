@@ -26793,6 +26793,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'I rapporti di quasi incidente si sincronizzano tra i tuoi dispositivi e sono inclusi nei backup, ma mai nelle esportazioni o nelle pagine condivise del logbook.';
 
   @override
+  String get incidentEdit_equipment => 'Attrezzatura coinvolta';
+
+  @override
+  String get incidentEdit_equipment_none => 'Nessuna';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'In questa immersione';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Tutta l\'attrezzatura';
+
+  @override
   String get incidentCategory_buoyancy => 'Assetto';
 
   @override

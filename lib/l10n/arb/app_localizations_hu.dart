@@ -26687,6 +26687,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kvázibaleset-jelentések szinkronizálódnak az eszközeid között és a mentésekben is szerepelnek, de exportokba vagy megosztott naplóoldalakra soha nem kerülnek.';
 
   @override
+  String get incidentEdit_equipment => 'Érintett felszerelés';
+
+  @override
+  String get incidentEdit_equipment_none => 'Nincs';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'Ezen a merülésen';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Minden felszerelés';
+
+  @override
   String get incidentCategory_buoyancy => 'Lebegés';
 
   @override

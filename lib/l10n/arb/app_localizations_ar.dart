@@ -26319,6 +26319,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.';
 
   @override
+  String get incidentEdit_equipment => 'المعدات المعنية';
+
+  @override
+  String get incidentEdit_equipment_none => 'لا شيء';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'في هذه الغطسة';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'كل المعدات';
+
+  @override
   String get incidentCategory_buoyancy => 'الطفو';
 
   @override

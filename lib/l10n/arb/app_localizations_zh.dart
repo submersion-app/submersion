@@ -25418,6 +25418,18 @@ class AppLocalizationsZh extends AppLocalizations {
       '未遂事件报告在你的设备之间同步并包含在备份中,但绝不会包含在导出或共享的日志页面中。';
 
   @override
+  String get incidentEdit_equipment => '涉及的装备';
+
+  @override
+  String get incidentEdit_equipment_none => '无';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => '本次潜水';
+
+  @override
+  String get incidentEdit_equipment_allGear => '全部装备';
+
+  @override
   String get incidentCategory_buoyancy => '浮力';
 
   @override

@@ -26133,6 +26133,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'דוחות כמעט-תאונה מסתנכרנים בין המכשירים שלך ונכללים בגיבויים, אך לעולם לא בייצוא או בדפי יומן משותפים.';
 
   @override
+  String get incidentEdit_equipment => 'ציוד מעורב';
+
+  @override
+  String get incidentEdit_equipment_none => 'ללא';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'בצלילה זו';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'כל הציוד';
+
+  @override
   String get incidentCategory_buoyancy => 'ציפה';
 
   @override

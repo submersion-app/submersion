@@ -26744,6 +26744,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.';
 
   @override
+  String get incidentEdit_equipment => 'Beteiligte Ausrüstung';
+
+  @override
+  String get incidentEdit_equipment_none => 'Keine';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'Bei diesem Tauchgang';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Gesamte Ausrüstung';
+
+  @override
   String get incidentCategory_buoyancy => 'Tarierung';
 
   @override

@@ -44199,6 +44199,30 @@ abstract class AppLocalizations {
   /// **'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.'**
   String get incidentEdit_privacyNote;
 
+  /// No description provided for @incidentEdit_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment involved'**
+  String get incidentEdit_equipment;
+
+  /// No description provided for @incidentEdit_equipment_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get incidentEdit_equipment_none;
+
+  /// No description provided for @incidentEdit_equipment_onThisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'On this dive'**
+  String get incidentEdit_equipment_onThisDive;
+
+  /// No description provided for @incidentEdit_equipment_allGear.
+  ///
+  /// In en, this message translates to:
+  /// **'All gear'**
+  String get incidentEdit_equipment_allGear;
+
   /// No description provided for @incidentCategory_buoyancy.
   ///
   /// In en, this message translates to:

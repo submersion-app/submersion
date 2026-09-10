@@ -26812,6 +26812,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los informes de casi incidentes se sincronizan entre tus dispositivos y se incluyen en las copias de seguridad, pero nunca en exportaciones ni páginas compartidas del diario.';
 
   @override
+  String get incidentEdit_equipment => 'Equipo implicado';
+
+  @override
+  String get incidentEdit_equipment_none => 'Ninguno';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'En esta inmersión';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Todo el equipo';
+
+  @override
   String get incidentCategory_buoyancy => 'Flotabilidad';
 
   @override

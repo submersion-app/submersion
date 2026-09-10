@@ -26788,6 +26788,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Relatos de quase acidentes sincronizam entre seus dispositivos e entram nos backups, mas nunca em exportações ou páginas compartilhadas do logbook.';
 
   @override
+  String get incidentEdit_equipment => 'Equipamento envolvido';
+
+  @override
+  String get incidentEdit_equipment_none => 'Nenhum';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'Neste mergulho';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Todo o equipamento';
+
+  @override
   String get incidentCategory_buoyancy => 'Flutuabilidade';
 
   @override

@@ -26348,6 +26348,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.';
 
   @override
+  String get incidentEdit_equipment => 'Equipment involved';
+
+  @override
+  String get incidentEdit_equipment_none => 'None';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'On this dive';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'All gear';
+
+  @override
   String get incidentCategory_buoyancy => 'Buoyancy';
 
   @override

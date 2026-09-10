@@ -26591,6 +26591,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Bijna-ongevalrapporten synchroniseren tussen je apparaten en zitten in je back-ups, maar nooit in exports of gedeelde logboekpagina\'s.';
 
   @override
+  String get incidentEdit_equipment => 'Betrokken uitrusting';
+
+  @override
+  String get incidentEdit_equipment_none => 'Geen';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'Bij deze duik';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Alle uitrusting';
+
+  @override
   String get incidentCategory_buoyancy => 'Trim/drijfvermogen';
 
   @override

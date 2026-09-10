@@ -52,6 +52,7 @@ class IncidentRepository {
     String? lessonsLearned,
     String? diveId,
     String? diverId,
+    String? equipmentId,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
@@ -59,6 +60,7 @@ class IncidentRepository {
       id: id,
       diverId: diverId,
       diveId: diveId,
+      equipmentId: equipmentId,
       occurredAt: occurredAt,
       category: category,
       severity: severity,
@@ -90,6 +92,17 @@ class IncidentRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Every incident that names [equipmentId], newest first (condition
+  /// phase 3a; the condition engine's incidentLinked rule reads this).
+  Future<List<Incident>> getIncidentsForEquipment(String equipmentId) async {
+    final rows =
+        await (_db.select(_db.incidents)
+              ..where((t) => t.equipmentId.equals(equipmentId))
+              ..orderBy([(t) => OrderingTerm.desc(t.occurredAt)]))
+            .get();
+    return rows.map(_toDomain).toList();
+  }
+
   Future<void> deleteIncident(String id) async {
     await (_db.delete(_db.incidents)..where((t) => t.id.equals(id))).go();
     await _syncRepository.logDeletion(entityType: 'incidents', recordId: id);
@@ -101,6 +114,7 @@ class IncidentRepository {
       id: incident.id,
       diverId: Value(incident.diverId),
       diveId: Value(incident.diveId),
+      equipmentId: Value(incident.equipmentId),
       occurredAt: incident.occurredAt.millisecondsSinceEpoch,
       category: incident.category.dbValue,
       severity: incident.severity.dbValue,
@@ -117,6 +131,7 @@ class IncidentRepository {
       id: row.id,
       diverId: row.diverId,
       diveId: row.diveId,
+      equipmentId: row.equipmentId,
       // occurredAt is a timezone-stable wall-clock date (stored as UTC), so it
       // shows the same calendar day on every synced device. Mirror the dive
       // log, which reads its wall-clock timestamps with isUtc: true.

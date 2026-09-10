@@ -26891,6 +26891,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les rapports de presque-accidents se synchronisent entre vos appareils et figurent dans vos sauvegardes, mais jamais dans les exports ni les pages de carnet partagées.';
 
   @override
+  String get incidentEdit_equipment => 'Équipement impliqué';
+
+  @override
+  String get incidentEdit_equipment_none => 'Aucun';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'Sur cette plongée';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Tout l\'équipement';
+
+  @override
   String get incidentCategory_buoyancy => 'Flottabilité';
 
   @override

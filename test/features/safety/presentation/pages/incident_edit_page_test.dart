@@ -3,7 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
@@ -42,11 +47,13 @@ class _FakeIncidentRepository extends IncidentRepository {
     String? lessonsLearned,
     String? diveId,
     String? diverId,
+    String? equipmentId,
   }) async {
     final incident = Incident(
       id: 'created-id',
       diverId: diverId,
       diveId: diveId,
+      equipmentId: equipmentId,
       occurredAt: occurredAt,
       category: category,
       severity: severity,
@@ -351,5 +358,112 @@ void main() {
 
     expect(repo.deletedId, isNull);
     expect(find.text('Edit near-miss'), findsOneWidget);
+  });
+
+  testWidgets(
+    'the equipment picker lists the dive gear first and preselects the category',
+    (tester) async {
+      useTallSurface(tester);
+      final repo = _FakeIncidentRepository();
+      final reg = EquipmentItem(
+        id: 'reg',
+        name: 'Apeks XTX',
+        type: EquipmentType.regulator,
+        createdAt: DateTime.utc(2026),
+      );
+      final fins = EquipmentItem(
+        id: 'fins',
+        name: 'Jet Fins',
+        type: EquipmentType.fins,
+        createdAt: DateTime.utc(2026),
+      );
+      final dive = Dive(
+        id: 'd1',
+        dateTime: DateTime.utc(2026, 7, 10),
+        equipment: [reg],
+      );
+
+      await tester.pumpWidget(
+        testAppRouter(
+          locale: const Locale('en'),
+          overrides: [
+            incidentRepositoryProvider.overrideWithValue(repo),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            diveProvider('d1').overrideWith((ref) async => dive),
+            activeEquipmentProvider.overrideWith((ref) async => [reg, fins]),
+            equipmentItemProvider('reg').overrideWith((ref) async => reg),
+          ],
+          router: routerFor(const IncidentEditPage(diveId: 'd1')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Equipment involved'), findsOneWidget);
+      expect(find.text('None'), findsOneWidget);
+      await tester.tap(find.text('Equipment involved'));
+      await tester.pumpAndSettle();
+      expect(find.text('On this dive'), findsOneWidget);
+      expect(find.text('All gear'), findsOneWidget);
+      // The dive's regulator is listed under the dive header, and again in
+      // the full list, so the full list is where the fins appear.
+      expect(find.text('Apeks XTX'), findsNWidgets(2));
+      expect(find.text('Jet Fins'), findsOneWidget);
+
+      await tester.tap(find.text('Apeks XTX').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Apeks XTX'), findsOneWidget);
+      final chip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Equipment'),
+      );
+      expect(chip.selected, isTrue);
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'Second stage free-flowed at depth.',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(repo.created!.equipmentId, 'reg');
+      expect(repo.created!.category, IncidentCategory.equipment);
+    },
+  );
+
+  testWidgets('a category chosen by hand survives picking an item', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository();
+    final fins = EquipmentItem(
+      id: 'fins',
+      name: 'Jet Fins',
+      type: EquipmentType.fins,
+      createdAt: DateTime.utc(2026),
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          activeEquipmentProvider.overrideWith((ref) async => [fins]),
+        ],
+        router: routerFor(const IncidentEditPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Buoyancy'));
+    await tester.pump();
+    await tester.tap(find.text('Equipment involved'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Jet Fins'));
+    await tester.pumpAndSettle();
+    final chip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'Buoyancy'),
+    );
+    expect(chip.selected, isTrue);
   });
 }
