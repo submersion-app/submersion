@@ -560,34 +560,58 @@ class EquipmentRepository {
   /// `cell_slot` attribute when present, `installed_date` set to [now];
   /// serial, notes and purchase details start empty because it is a new
   /// part. Both rows are staged for sync. Returns the new item.
+  ///
+  /// The stored row decides, not the caller's copy: an item that no longer
+  /// exists or has no parent throws [ArgumentError], one already retired
+  /// throws [StateError], and nothing is written. The create and the retire
+  /// share one transaction, so a failure in either leaves neither behind
+  /// and watchers see the swap as one change, never two active parts in
+  /// the slot.
+  ///
+  /// [now] is only the successor's install date, which the diver may
+  /// backdate. The rows' own timestamps stay on the real clock, since the
+  /// sync clock must never move backwards.
   Future<EquipmentItem> replaceChild(EquipmentItem old, {DateTime? now}) async {
     final stamp = now ?? DateTime.now();
-    final slot = old.attrNum(EquipmentAttrKeys.cellSlot);
-    final successor = EquipmentItem(
-      id: '',
-      diverId: old.diverId,
-      name: old.name,
-      type: old.type,
-      brand: old.brand,
-      model: old.model,
-      parentEquipmentId: old.parentEquipmentId,
-      attributes: [
-        if (slot != null)
+    return _db.transaction(() async {
+      final current = await getEquipmentById(old.id);
+      if (current == null) {
+        throw ArgumentError.value(old.id, 'old', 'No such equipment');
+      }
+      final parentId = current.parentEquipmentId;
+      if (parentId == null) {
+        throw ArgumentError.value(old.id, 'old', 'Not a child part');
+      }
+      if (!current.isActive) {
+        throw StateError('Equipment ${old.id} is already retired');
+      }
+      final slot = current.attrNum(EquipmentAttrKeys.cellSlot);
+      final successor = EquipmentItem(
+        id: '',
+        diverId: current.diverId,
+        name: current.name,
+        type: current.type,
+        brand: current.brand,
+        model: current.model,
+        parentEquipmentId: parentId,
+        attributes: [
+          if (slot != null)
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: EquipmentAttrKeys.cellSlot,
+              valueNum: slot,
+            ),
           EquipmentAttribute.curated(
             equipmentId: '',
-            key: EquipmentAttrKeys.cellSlot,
-            valueNum: slot,
+            key: EquipmentAttrKeys.installedDate,
+            valueNum: stamp.millisecondsSinceEpoch.toDouble(),
           ),
-        EquipmentAttribute.curated(
-          equipmentId: '',
-          key: EquipmentAttrKeys.installedDate,
-          valueNum: stamp.millisecondsSinceEpoch.toDouble(),
-        ),
-      ],
-    );
-    final created = await createEquipment(successor);
-    await retireEquipment(old.id);
-    return created;
+        ],
+      );
+      final created = await createEquipment(successor);
+      await retireEquipment(current.id);
+      return created;
+    });
   }
 
   /// Reactivate equipment

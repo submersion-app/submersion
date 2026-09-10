@@ -8,6 +8,15 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 import '../../../../helpers/test_database.dart';
 
+/// Fails the retire half of a replacement, to prove the create half is
+/// undone with it.
+class _RetireFails extends EquipmentRepository {
+  @override
+  Future<void> retireEquipment(String id) async {
+    throw StateError('retire failed');
+  }
+}
+
 /// Replacing a child (condition phase 4a): the old one retires today and a
 /// successor takes its slot with today's install date.
 void main() {
@@ -86,4 +95,74 @@ void main() {
     final active = await repo.getChildEquipment(ccr.id);
     expect(active.map((c) => c.id), [fresh.id]);
   });
+
+  Future<(EquipmentItem, EquipmentItem)> ccrWithCell() async {
+    final ccr = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),
+    );
+    final cell = await repo.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Cell 1',
+        type: EquipmentType.o2Cell,
+        parentEquipmentId: ccr.id,
+      ),
+    );
+    return (ccr, cell);
+  }
+
+  Future<int> equipmentRows() async =>
+      (await db.select(db.equipment).get()).length;
+
+  test('a failed retire leaves no successor behind', () async {
+    final (ccr, cell) = await ccrWithCell();
+    final rowsBefore = await equipmentRows();
+    await db.delete(db.syncRecords).go();
+
+    await expectLater(_RetireFails().replaceChild(cell), throwsStateError);
+
+    // Both halves roll back together: one active part in the slot, and
+    // nothing new staged for sync.
+    final active = await repo.getChildEquipment(ccr.id);
+    expect(active.map((c) => c.id), [cell.id]);
+    expect(await equipmentRows(), rowsBefore);
+    expect(await db.select(db.syncRecords).get(), isEmpty);
+  });
+
+  test('an item with no parent is refused and nothing is written', () async {
+    final loose = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Cell', type: EquipmentType.o2Cell),
+    );
+    final rowsBefore = await equipmentRows();
+
+    await expectLater(repo.replaceChild(loose), throwsArgumentError);
+    expect(await equipmentRows(), rowsBefore);
+    expect((await repo.getEquipmentById(loose.id))!.isActive, isTrue);
+  });
+
+  test('a child already retired is refused and nothing is written', () async {
+    final (_, cell) = await ccrWithCell();
+    await repo.retireEquipment(cell.id);
+    final rowsBefore = await equipmentRows();
+
+    // The caller's copy still says active; the stored row decides.
+    await expectLater(repo.replaceChild(cell), throwsStateError);
+    expect(await equipmentRows(), rowsBefore);
+  });
+
+  test(
+    'the retired row keeps the real clock when install is backdated',
+    () async {
+      // installed_date is a date the diver may backdate; updated_at is the
+      // sync clock and must never move backwards, so the two are allowed
+      // to disagree.
+      final (_, cell) = await ccrWithCell();
+      final before = DateTime.now().millisecondsSinceEpoch;
+      await repo.replaceChild(cell, now: DateTime(2020, 1, 1));
+      final row = await (db.select(
+        db.equipment,
+      )..where((t) => t.id.equals(cell.id))).getSingle();
+      expect(row.updatedAt, greaterThanOrEqualTo(before));
+    },
+  );
 }
