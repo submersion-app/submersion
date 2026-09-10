@@ -60,20 +60,30 @@ class EquipmentFindingsPass {
   final EquipmentRepository _equipment;
   final EquipmentConditionRefresher _refresher;
 
-  EquipmentFindingsPass({
+  /// The default refresher is built from the SAME repository this pass
+  /// visits gear with. Defaulting each field on its own made two of them
+  /// whenever neither was passed, which is two sets of watch streams and
+  /// two things to reason about for no gain.
+  factory EquipmentFindingsPass({
     EquipmentRepository? equipment,
     EquipmentConditionRefresher? refresher,
-  }) : _equipment = equipment ?? EquipmentRepository(),
-       _refresher =
-           refresher ??
-           EquipmentConditionRefresher(
-             equipment: equipment ?? EquipmentRepository(),
-             observations: EquipmentObservationRepository(),
-             incidents: IncidentRepository(),
-             transmitters: TransmitterRepository(),
-             summaries: DiveSensorSummaryRepository(),
-             findings: EquipmentFindingsRepository(),
-           );
+  }) {
+    final repository = equipment ?? EquipmentRepository();
+    return EquipmentFindingsPass._(
+      repository,
+      refresher ??
+          EquipmentConditionRefresher(
+            equipment: repository,
+            observations: EquipmentObservationRepository(),
+            incidents: IncidentRepository(),
+            transmitters: TransmitterRepository(),
+            summaries: DiveSensorSummaryRepository(),
+            findings: EquipmentFindingsRepository(),
+          ),
+    );
+  }
+
+  EquipmentFindingsPass._(this._equipment, this._refresher);
 
   /// The gear a pass visits: active, not retired, scoped to [diverId] when
   /// given. Loaded separately from [run] so a caller can size a progress
