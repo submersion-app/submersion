@@ -44,7 +44,10 @@ class _GooglePhotosSettingsPageState
           ),
         ),
       );
-      setState(() => _busy = false);
+    } finally {
+      // A finally, not two ad-hoc resets: a throw outside the catch or a
+      // later early return can't leave the button stuck spinning.
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -70,7 +73,6 @@ class _GooglePhotosSettingsPageState
 
     ref.invalidate(googlePhotosAccountProvider);
     ref.invalidate(googlePhotosDeviceStatusProvider);
-    if (mounted) setState(() => _busy = false);
   }
 
   Future<void> _disconnect(domain.ConnectedAccount account) async {
