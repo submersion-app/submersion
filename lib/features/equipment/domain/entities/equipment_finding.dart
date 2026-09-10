@@ -150,7 +150,7 @@ class FindingEvidence extends Equatable {
                   e.key as String: (e.value as num).toDouble(),
             }
           : const {},
-      tag: raw['tag'] as String?,
+      tag: raw['tag'] is String ? raw['tag'] as String : null,
       slot: slot is num ? slot.toInt() : null,
     );
   }
