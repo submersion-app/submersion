@@ -7119,6 +7119,57 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Merulesek keresese...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Az utak szerinti csoportositas ki van kapcsolva $sortName szerinti rendezeskor';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Rendezes datum szerint';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Utak csoportositasa';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Minden ut kibontasa';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Minden ut osszecsukasa';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'UT';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merules',
+      one: '1 merules',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded / $total merules';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return '$tripName merulesei megjelenitese';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return '$tripName merulesei elrejtese';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return '$tripName ut megnyitasa';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'Az első $limit találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.';
   }

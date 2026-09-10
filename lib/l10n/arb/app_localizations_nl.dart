@@ -7082,6 +7082,57 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Duiken zoeken...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Groeperen op reis staat uit bij sorteren op $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Sorteren op datum';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Reizen groeperen';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Alle reizen uitklappen';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Alle reizen inklappen';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'REIS';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded van $total duiken';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'Duiken van $tripName tonen';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'Duiken van $tripName verbergen';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'Reis $tripName openen';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'De eerste $limit resultaten worden getoond. Verfijn je zoekopdracht om de resultaten te beperken.';
   }

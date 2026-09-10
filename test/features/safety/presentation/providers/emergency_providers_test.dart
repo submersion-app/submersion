@@ -27,6 +27,9 @@ class _FakeDiveRepository extends Fake implements DiveRepository {
   Stream<void> watchDivesChanges() => const Stream.empty();
 
   @override
+  Stream<void> watchDiveListChanges() => const Stream.empty();
+
+  @override
   Future<List<DiveSummary>> getDiveSummaries({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),

@@ -7140,6 +7140,57 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Cerca immersioni...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Il raggruppamento per viaggio è disattivato con l\'ordinamento per $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Ordina per data';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Raggruppa i viaggi';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Espandi tutti i viaggi';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Comprimi tutti i viaggi';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'VIAGGIO';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded di $total immersioni';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'Mostra le immersioni di $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'Nascondi le immersioni di $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'Apri il viaggio $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'Vengono mostrate le prime $limit corrispondenze. Affina la ricerca per restringere i risultati.';
   }

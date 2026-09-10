@@ -7139,6 +7139,57 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Tauchgänge suchen...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Reisegruppierung ist bei Sortierung nach $sortName deaktiviert';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Nach Datum sortieren';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Reisen gruppieren';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Alle Reisen aufklappen';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Alle Reisen zuklappen';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'REISE';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded von $total Tauchgängen';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'Tauchgänge von $tripName anzeigen';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'Tauchgänge von $tripName ausblenden';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'Reise $tripName öffnen';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'Die ersten $limit Treffer werden angezeigt. Verfeinern Sie die Suche, um die Ergebnisse einzugrenzen.';
   }

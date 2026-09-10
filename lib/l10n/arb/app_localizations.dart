@@ -11775,6 +11775,72 @@ abstract class AppLocalizations {
   /// **'Search dives...'**
   String get diveLog_listPage_searchFieldLabel;
 
+  /// Shown above the dive list when the Group trips toggle is on but the active sort scatters a trip's dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip grouping is off while sorted by {sortName}'**
+  String diveLog_listPage_groupingPausedBySort(String sortName);
+
+  /// No description provided for @diveLog_listPage_groupingPausedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by date'**
+  String get diveLog_listPage_groupingPausedAction;
+
+  /// No description provided for @diveLog_listPage_menuGroupTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Group trips'**
+  String get diveLog_listPage_menuGroupTrips;
+
+  /// No description provided for @diveLog_listPage_menuExpandAllTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all trips'**
+  String get diveLog_listPage_menuExpandAllTrips;
+
+  /// No description provided for @diveLog_listPage_menuCollapseAllTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all trips'**
+  String get diveLog_listPage_menuCollapseAllTrips;
+
+  /// No description provided for @diveLog_listPage_tripGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIP'**
+  String get diveLog_listPage_tripGroupLabel;
+
+  /// Dive count on a dive list trip header when the whole trip is in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String diveLog_listPage_tripGroupDiveCount(int count);
+
+  /// Dive count on a dive list trip header when only some of the trip's dives are in the list, because of paging or a filter.
+  ///
+  /// In en, this message translates to:
+  /// **'{loaded} of {total} dives'**
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total);
+
+  /// Screen-reader label for a collapsed trip header in the dive list.
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives on {tripName}'**
+  String diveLog_listPage_tripGroupExpand(String tripName);
+
+  /// Screen-reader label for an expanded trip header in the dive list.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide dives on {tripName}'**
+  String diveLog_listPage_tripGroupCollapse(String tripName);
+
+  /// Tooltip for the button that opens the trip from its dive list header.
+  ///
+  /// In en, this message translates to:
+  /// **'Open trip {tripName}'**
+  String diveLog_listPage_tripGroupOpenTrip(String tripName);
+
   /// No description provided for @diveLog_listPage_searchLimitNotice.
   ///
   /// In en, this message translates to:

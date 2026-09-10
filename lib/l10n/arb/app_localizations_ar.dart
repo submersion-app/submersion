@@ -6990,6 +6990,57 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'البحث في الغوصات...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'تجميع الرحلات متوقف أثناء الترتيب حسب $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'الترتيب حسب التاريخ';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'تجميع الرحلات';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'توسيع كل الرحلات';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'طي كل الرحلات';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'رحلة';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded من $total غوصات';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'إظهار غوصات $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'إخفاء غوصات $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'فتح رحلة $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'عرض أول $limit نتيجة مطابقة. حسّن البحث لتضييق النتائج.';
   }
