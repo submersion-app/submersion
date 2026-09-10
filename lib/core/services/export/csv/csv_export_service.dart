@@ -76,19 +76,23 @@ class CsvExportService {
 
   /// Generate CSV content for gear check-ins (without sharing). Same
   /// columns as the workbook's Observations sheet; tag names are the stored
-  /// values, joined by "; ".
+  /// values, joined by "; ". The diver's own text is sanitised against
+  /// formula injection, and a note's line breaks are flattened to spaces as
+  /// the trips export does, so each check-in stays on one row.
   String generateObservationsCsvContent(List<ObservationExportRow> rows) {
     final table = <List<dynamic>>[
       ObservationsExcelExportService.headers,
       for (final row in rows)
         [
-          row.equipmentName,
+          sanitizeCsvField(row.equipmentName),
           row.equipmentType,
           _dateFormat.format(row.observation.observedAt),
           row.diveNumber ?? '',
           row.observation.status.dbValue,
           row.observation.issueTags.map((t) => t.dbValue).join('; '),
-          row.observation.note,
+          sanitizeCsvField(
+            row.observation.note.replaceAll(RegExp(r'\s*[\r\n]+\s*'), ' '),
+          ),
         ],
     ];
     return const ListToCsvConverter().convert(table);
