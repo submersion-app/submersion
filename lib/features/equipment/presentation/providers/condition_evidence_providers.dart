@@ -14,12 +14,14 @@ final conditionEvidenceDivesProvider =
       ref,
       key,
     ) async {
+      final dives = ref.watch(diveRepositoryProvider);
+      // The summaries read the dives table; a deleted evidence dive must
+      // drop out of the sheet without a page visit.
+      ref.invalidateSelfWhen(dives.watchDiveDetailChanges());
       final findings = await ref.watch(
         equipmentConditionProvider(key.equipmentId).future,
       );
       final finding = findings?.where((f) => f.id == key.findingId).firstOrNull;
       if (finding == null) return const [];
-      return ref
-          .watch(diveRepositoryProvider)
-          .getSummariesByIds(finding.evidence.diveIds);
+      return dives.getSummariesByIds(finding.evidence.diveIds);
     });

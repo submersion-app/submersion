@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/services/condition_trend_builder.dart';
@@ -20,6 +21,12 @@ typedef ConditionTrendKey = ({String equipmentId, ConditionTrendKind? kind});
 /// observations provider.
 final conditionTrendProvider =
     FutureProvider.family<ConditionTrend?, ConditionTrendKey>((ref, key) async {
+      // The sensor summaries are part of the dive detail stream; the
+      // exposure inputs provider ticks on it too, but the subscription
+      // belongs where the summaries are read.
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
       final inputs = await ref.watch(
         equipmentExposureInputsProvider(key.equipmentId).future,
       );
