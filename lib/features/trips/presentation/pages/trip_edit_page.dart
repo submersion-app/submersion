@@ -870,6 +870,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     );
   }
 
+  static int? _positiveOrNull(String text) {
+    final parsed = int.tryParse(text.trim());
+    return parsed != null && parsed > 0 ? parsed : null;
+  }
+
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -900,9 +905,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         notes: _notesController.text.trim(),
         isShared: _isShared,
         returnFlightAt: _returnFlightAt,
-        expectedDives: int.tryParse(_expectedDivesController.text.trim()),
-        expectedRuntimeMinutes: int.tryParse(
-          _expectedRuntimeController.text.trim(),
+        // Non-positive is not a plan, it is an empty field said twice:
+        // the scrubber margin multiplies both of these, and a zero or a
+        // negative would make the arithmetic meaningless rather than
+        // conservative. Unset falls back to the history estimate.
+        expectedDives: _positiveOrNull(_expectedDivesController.text),
+        expectedRuntimeMinutes: _positiveOrNull(
+          _expectedRuntimeController.text,
         ),
         createdAt: _originalTrip?.createdAt ?? now,
         updatedAt: now,

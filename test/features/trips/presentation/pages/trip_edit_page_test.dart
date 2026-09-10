@@ -1113,6 +1113,34 @@ void main() {
       expect(notifier.lastAdded?.expectedRuntimeMinutes, 70);
     });
 
+    testWidgets('zero or negative planning fields save as null', (
+      tester,
+    ) async {
+      // The scrubber margin multiplies these; a zero or negative one makes
+      // the arithmetic meaningless, and "unset" is what the diver meant.
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Expected dives'),
+        '0',
+      );
+      await tester.enterText(
+        find.widgetWithText(
+          TextFormField,
+          'Expected runtime per dive (minutes)',
+        ),
+        '-5',
+      );
+      await _saveNewTrip(tester, 'Red Sea 2026');
+      expect(notifier.lastAdded?.expectedDives, isNull);
+      expect(notifier.lastAdded?.expectedRuntimeMinutes, isNull);
+    });
+
     testWidgets('empty planning fields save as null', (tester) async {
       final notifier = _MockTripListNotifier([]);
       await _pumpNewTripPage(

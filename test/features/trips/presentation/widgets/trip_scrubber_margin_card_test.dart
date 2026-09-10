@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -69,6 +70,19 @@ Widget host(List<ScrubberMargin> margins, {bool past = false}) => ProviderScope(
 );
 
 void main() {
+  // formatDate resolves DateFormat against Intl.defaultLocale, a process
+  // global the app assigns from the diver's locale and a widget test never
+  // sets. Left alone, the "as of Mar 1, 2025" assertion below would rest on
+  // whatever the machine's default happens to be.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   testWidgets('states the four figures with their n and the caution', (
     tester,
   ) async {
@@ -104,6 +118,23 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Under 20 percent'), findsNothing);
+  });
+
+  testWidgets('a margin just under zero keeps its sign', (tester) async {
+    // Rounding a shortfall to "0 min" would read as breaking even. A
+    // margin below zero is always shown as a shortfall.
+    await tester.pumpWidget(host([margin(marginAfter: -0.4)]));
+    await tester.pumpAndSettle();
+    expect(find.text('0 min margin after the trip'), findsNothing);
+    expect(find.text('-1 min margin after the trip'), findsOneWidget);
+  });
+
+  test('the banner summary keeps a small shortfall negative', () {
+    final l10n = AppLocalizationsEn();
+    expect(
+      tripScrubberMarginSummary(l10n, [margin(marginAfter: -0.4)]),
+      '-1 min scrubber margin',
+    );
   });
 
   testWidgets('a past trip says as of its start', (tester) async {

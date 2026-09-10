@@ -9,7 +9,11 @@ import 'package:submersion/features/trips/presentation/providers/scrubber_margin
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-String _minutes(double value) => value.round().toString();
+/// Minutes for display. A shortfall rounds away from zero so a margin
+/// below zero is never shown as "0 min", which would read as breaking
+/// even; every other figure here is non-negative and rounds normally.
+String _minutes(double value) =>
+    (value < 0 ? value.floor() : value.round()).toString();
 
 /// The banner's one-line summary: the lowest margin, or the count when
 /// the diver has several rebreathers. Null when nothing has a rating.
