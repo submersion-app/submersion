@@ -167,6 +167,8 @@ Future<void> _seedDive(
   DateTime? entryTime,
   double? maxDepth,
   Duration? runtime,
+  String notes = '',
+  int? rating,
 }) {
   final entry = entryTime ?? DateTime.utc(2026, 6, 14, 9, 12);
   return DiveRepository().createDive(
@@ -177,6 +179,8 @@ Future<void> _seedDive(
       entryTime: entry,
       maxDepth: maxDepth,
       runtime: runtime,
+      notes: notes,
+      rating: rating,
     ),
   );
 }
@@ -1135,7 +1139,10 @@ void main() {
     // computer, where the second copy is a fragment. Consolidation is
     // refused for that pair, so the card offers to delete the fragment,
     // and names both dives before anything is written.
-    Future<QualityFinding> seedPair() async {
+    Future<QualityFinding> seedPair({
+      String doomedNotes = '',
+      int? doomedRating,
+    }) async {
       await _seedDive(
         'd1',
         name: 'Blue Hole',
@@ -1148,6 +1155,8 @@ void main() {
         entryTime: DateTime.utc(2026, 6, 14, 9, 13),
         maxDepth: 1.7,
         runtime: const Duration(seconds: 13),
+        notes: doomedNotes,
+        rating: doomedRating,
       );
       return _f(
         id: 'r-dup-same',
@@ -1202,6 +1211,33 @@ void main() {
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle(const Duration(seconds: 6));
       expect(await DiveRepository().getDiveById('d2'), isNotNull);
+    });
+
+    // The detector will not name a copy carrying the diver's work as the
+    // redundant one (#1720), so this pair should never reach the dialog. It
+    // is written by hand precisely because the dialog is what stands between
+    // the diver and the delete if that rule is ever loosened, or if another
+    // caller reaches the repair by a different route (#1729).
+    testWidgets('the confirmation says what the doomed copy carries', (
+      tester,
+    ) async {
+      final finding = await seedPair(
+        doomedNotes: 'viz was poor',
+        doomedRating: 4,
+      );
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [finding]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete duplicate'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('This copy also has: notes \u00b7 a rating'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('cancelling the confirmation deletes nothing', (tester) async {
