@@ -229,4 +229,18 @@ void main() {
     // a multi-line statement over line by line, so count the prefix.
     expect(logged.where((l) => l.startsWith('Drift: Sent')), hasLength(1));
   });
+
+  test('every sample names its dive and carries the dive stamp', () async {
+    final reg = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    );
+    await insertDive('d1', dateMs: 1000);
+    await insertDive('d2', dateMs: 2000);
+    await link('d1', reg.id);
+    await link('d2', reg.id);
+    final samples = await repo.getExposureSamplesForEquipment(reg.id);
+    expect(samples.map((s) => s.diveId), ['d1', 'd2']);
+    // insertDive stamps updated_at with the dive date.
+    expect(samples.map((s) => s.updatedAt), [1000, 2000]);
+  });
 }

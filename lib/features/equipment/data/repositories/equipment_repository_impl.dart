@@ -761,7 +761,9 @@ class EquipmentRepository {
       final rows = await _db
           .customSelect(
             '''
-        SELECT d.dive_date_time AS date_ms,
+        SELECT d.id AS dive_id,
+               d.updated_at AS updated_at,
+               d.dive_date_time AS date_ms,
                COALESCE(d.runtime, d.bottom_time, 0) AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
@@ -824,6 +826,8 @@ class EquipmentRepository {
             ? o2Percent / 100.0
             : (rebreatherContact && mode == DiveMode.ccr ? 1.0 : null);
         return EquipmentExposureSample(
+          diveId: r.data['dive_id'] as String,
+          updatedAt: (r.data['updated_at'] as num).toInt(),
           // dives.dive_date_time is epoch millis with wall-clock-as-UTC
           // semantics (see dive_filter_sql.dart); decode with isUtc: true
           // like the other dive-date mappers so the engine's
