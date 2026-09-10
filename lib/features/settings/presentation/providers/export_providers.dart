@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -528,6 +529,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
         serviceRecords: allServiceRecords,
+        observations: await _ref
+            .read(equipmentObservationRepositoryProvider)
+            .getAll(),
         courses: courses,
         diveWeights: diveWeights,
         diveGasSwitches: diveGasSwitches,
@@ -1139,6 +1143,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
         serviceRecords: allServiceRecords,
+        observations: await _ref
+            .read(equipmentObservationRepositoryProvider)
+            .getAll(),
         courses: courses,
         diveWeights: diveWeights,
         diveGasSwitches: diveGasSwitches,

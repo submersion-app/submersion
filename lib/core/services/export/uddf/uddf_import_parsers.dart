@@ -827,6 +827,31 @@ class UddfImportParsers {
 
     item['notes'] = getElementText(itemElement, 'notes') ?? '';
 
+    // Condition phase 3a: the parent link and the check-ins. Kept raw
+    // (uddf ids and tag names) for the entity importer to resolve.
+    item['parentRef'] = getElementText(itemElement, 'parentref');
+    final observationsElement = itemElement
+        .findElements('observations')
+        .firstOrNull;
+    if (observationsElement != null) {
+      item['observations'] = [
+        for (final o in observationsElement.findElements('observation'))
+          {
+            'observedAt': DateTime.tryParse(getElementText(o, 'date') ?? ''),
+            'diveRef': getElementText(o, 'diveref'),
+            'status': getElementText(o, 'status'),
+            'tags': [
+              for (final t
+                  in o
+                      .findElements('tags')
+                      .expand((e) => e.findElements('tag')))
+                t.innerText.trim(),
+            ],
+            'note': getElementText(o, 'note') ?? '',
+          },
+      ];
+    }
+
     return item;
   }
 
