@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -634,6 +635,30 @@ void main() {
         container.read(settingsProvider).safetyReviewDisabledRules,
         isEmpty,
       );
+    });
+
+    test('condition engine toggles persist through the notifier', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).conditionEngineEnabled, isTrue);
+      await notifier.setConditionEngineEnabled(false);
+      expect(container.read(settingsProvider).conditionEngineEnabled, isFalse);
+
+      expect(container.read(settingsProvider).conditionDisabledRules, isEmpty);
+      await notifier.setConditionRuleEnabled(
+        ConditionRuleId.cellDivergent,
+        false,
+      );
+      expect(
+        container.read(settingsProvider).conditionDisabledRules,
+        contains('cellDivergent'),
+      );
+      await notifier.setConditionRuleEnabled(
+        ConditionRuleId.cellDivergent,
+        true,
+      );
+      expect(container.read(settingsProvider).conditionDisabledRules, isEmpty);
     });
   });
 

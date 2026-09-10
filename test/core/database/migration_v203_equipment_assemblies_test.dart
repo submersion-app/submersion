@@ -36,7 +36,9 @@ void main() {
   test('v203 is the current schema version and is in the ladder', () {
     // Renumbered twice: the cell linearity link took 201 and condition
     // intelligence took 202 while this branch was open.
-    expect(AppDatabase.currentSchemaVersion, 203);
+    // Relaxed once v206 (condition engine toggles) landed on top; the
+    // newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(203));
     expect(AppDatabase.migrationVersions, contains(203));
   });
 

@@ -57,6 +57,26 @@ void main() {
       });
     });
 
+    test('round-trips the condition engine toggles (v206)', () async {
+      await repository.createSettingsForDiver('d1');
+      final fresh = await repository.getSettingsForDiver('d1');
+      expect(fresh!.conditionEngineEnabled, isTrue);
+      expect(fresh.conditionDisabledRules, isEmpty);
+      await repository.updateSettingsForDiver(
+        'd1',
+        const AppSettings(
+          conditionEngineEnabled: false,
+          conditionDisabledRules: {'cellDivergent', 'issueRecurring'},
+        ),
+      );
+      final loaded = await repository.getSettingsForDiver('d1');
+      expect(loaded!.conditionEngineEnabled, isFalse);
+      expect(loaded.conditionDisabledRules, {
+        'cellDivergent',
+        'issueRecurring',
+      });
+    });
+
     test('corrupted disabled-rules column falls back to empty set', () async {
       await repository.createSettingsForDiver('d1');
 

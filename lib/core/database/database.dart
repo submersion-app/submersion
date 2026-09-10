@@ -1988,6 +1988,11 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(30.0))();
   RealColumn get highO2ThresholdPercent =>
       real().withDefault(const Constant(40.0))();
+  // v206: condition engine master toggle and the disabled rule ids (JSON
+  // list of ConditionRuleId.dbValue); null or absent = none disabled.
+  BoolColumn get conditionEngineEnabled =>
+      boolean().withDefault(const Constant(true))();
+  TextColumn get conditionDisabledRules => text().nullable()();
   // Emergency card (v126): hidden bundled chamber ids (JSON list) and a
   // manual region override (ISO country code).
   TextColumn get hiddenChamberIds => text().nullable()();
@@ -3840,7 +3845,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 203;
+  static const int currentSchemaVersion = 206;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4367,6 +4372,9 @@ class AppDatabase extends _$AppDatabase {
     // 203: equipment assemblies (issue #1487). Renumbered from 202, which
     // condition intelligence took while this branch was open.
     203,
+    // 206: condition engine toggles on diver_settings (condition phase 3b).
+    // 204 and 205 were claimed by sibling branches when this rung was cut.
+    206,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4493,6 +4501,22 @@ class AppDatabase extends _$AppDatabase {
       'service_schedules',
       'exposure_intervals',
       "TEXT NOT NULL DEFAULT '{}'",
+    );
+  }
+
+  /// v206: the condition engine's master and per-rule toggles on
+  /// diver_settings (condition phase 3b). Idempotent; called from the v206
+  /// onUpgrade block and the beforeOpen backstop.
+  Future<void> _assertConditionEngineSettingsColumns() async {
+    await _addColumnIfMissing(
+      'diver_settings',
+      'condition_engine_enabled',
+      'INTEGER NOT NULL DEFAULT 1',
+    );
+    await _addColumnIfMissing(
+      'diver_settings',
+      'condition_disabled_rules',
+      'TEXT',
     );
   }
 
@@ -11227,6 +11251,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertGearProvenanceColumns();
         }
         if (from < 203) await reportProgress();
+        // v206: condition engine toggles (condition phase 3b). Column-only
+        // rung on diver_settings, no backfill: the defaults (engine on, no
+        // rules disabled) are what every existing diver wants.
+        if (from < 206) {
+          await _assertConditionEngineSettingsColumns();
+        }
+        if (from < 206) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -11436,6 +11467,8 @@ class AppDatabase extends _$AppDatabase {
 
         // v202 backstop: re-assert the condition columns and tables.
         await _assertEquipmentConditionSchema();
+        // v206 backstop: the condition engine toggle columns.
+        await _assertConditionEngineSettingsColumns();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).
