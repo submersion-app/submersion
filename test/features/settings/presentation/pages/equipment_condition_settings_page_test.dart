@@ -103,14 +103,16 @@ void main() {
   });
 
   group('rebuild sensor summaries', () {
-    Widget buildWithSweep(EquipmentConditionSweep sweep) => ProviderScope(
+    Widget buildWithSweep(
+      EquipmentConditionSweep sweep, {
+      String? diverId = 'diver-1',
+    }) => ProviderScope(
       overrides: [
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-        // The rebuild scopes to the active diver; override the provider so
-        // it does not build the real notifier (SharedPreferences and DB).
-        currentDiverIdProvider.overrideWith(
-          (ref) => MockCurrentDiverIdNotifier(),
-        ),
+        // The rebuild scopes to the active diver. Overridden so the page
+        // does not build the real notifier (SharedPreferences and DB), and
+        // so the resolved id is the one the sweep is asserted against.
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
         equipmentConditionSweepProvider.overrideWithValue(sweep),
       ],
       child: const MaterialApp(
@@ -148,8 +150,40 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(forced, isTrue);
-      expect(diverSeen, isNull);
+      // The resolved active diver, not the raw notifier's starting null:
+      // reading that unvalidated would sweep every diver's dives on a
+      // shared device whenever the tap beat the async load.
+      expect(diverSeen, 'diver-1');
       expect(find.text('Sensor summaries rebuilt'), findsOneWidget);
+    });
+
+    testWidgets('a library with no diver still rebuilds, unscoped', (
+      tester,
+    ) async {
+      String? diverSeen = 'unset';
+      var ran = false;
+      await tester.pumpWidget(
+        buildWithSweep(
+          _FakeSweep((diverId, force, onProgress) async {
+            ran = true;
+            diverSeen = diverId;
+            return const EquipmentConditionSweepResult(
+              swept: 0,
+              failed: 0,
+              cancelled: false,
+            );
+          }),
+          diverId: null,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rebuild sensor summaries'));
+      await tester.pumpAndSettle();
+
+      // Dives in a single-diver library carry no diver id, so refusing to
+      // run here would leave the action dead for exactly those libraries.
+      expect(ran, isTrue);
+      expect(diverSeen, isNull);
     });
 
     testWidgets('a failing sweep shows the failure text', (tester) async {

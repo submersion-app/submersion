@@ -123,6 +123,7 @@ class EquipmentConditionRefresher {
       equipmentId: item.id,
       inputFingerprint: fingerprint,
       findings: findings,
+      engineVersion: EquipmentConditionEngine.engineVersion,
       now: stamp,
     );
     return _findings.getFindings(item.id);
