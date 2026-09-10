@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "Felszerelés állapota",
   "settings_section_equipmentCondition_subtitle": "Terhelési küszöbök a szervizórákhoz",
   "equipmentConditionSettings_title": "Felszerelés állapota",
+  "equipmentCondition_exposure_title": "Igénybevétel",
+  "equipmentCondition_exposure_empty": "Még nincs merülés ezzel az eszközzel",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 merülés} other{{n} merülés}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 merülés} other{{n} merülés}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} óra",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} sósvízi óra",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 hideg merülés} other{{n} hideg merülés}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} óra magas O2-vel",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 mély merülés} other{{n} mély merülés}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 akkumulátorciklus} other{{n} akkumulátorciklus}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_finding_cellOutputDeclining": "A(z) {slot}. cella kimenete {percent} százalékkal csökkent {n} merülés alatt {since} óta",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {

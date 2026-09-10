@@ -44355,6 +44355,66 @@ abstract class AppLocalizations {
   /// **'Equipment condition'**
   String get equipmentConditionSettings_title;
 
+  /// No description provided for @equipmentCondition_exposure_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure'**
+  String get equipmentCondition_exposure_title;
+
+  /// No description provided for @equipmentCondition_exposure_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with this item yet'**
+  String get equipmentCondition_exposure_empty;
+
+  /// No description provided for @equipmentCondition_exposure_footer.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 dive} other{{n} dives}}, {range}'**
+  String equipmentCondition_exposure_footer(int n, String range);
+
+  /// No description provided for @equipmentCondition_exposure_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 dive} other{{n} dives}}'**
+  String equipmentCondition_exposure_dives(int n);
+
+  /// No description provided for @equipmentCondition_exposure_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} hours'**
+  String equipmentCondition_exposure_hours(String n);
+
+  /// No description provided for @equipmentCondition_exposure_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} salt-water hours'**
+  String equipmentCondition_exposure_saltHours(String n);
+
+  /// No description provided for @equipmentCondition_exposure_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 cold dive} other{{n} cold dives}}'**
+  String equipmentCondition_exposure_coldDives(int n);
+
+  /// No description provided for @equipmentCondition_exposure_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} high-O2 hours'**
+  String equipmentCondition_exposure_o2Hours(String n);
+
+  /// No description provided for @equipmentCondition_exposure_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 deep dive} other{{n} deep dives}}'**
+  String equipmentCondition_exposure_deepCycles(int n);
+
+  /// No description provided for @equipmentCondition_exposure_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 battery cycle} other{{n} battery cycles}}'**
+  String equipmentCondition_exposure_cycles(int n);
+
   /// No description provided for @equipmentCondition_finding_cellOutputDeclining.
   ///
   /// In en, this message translates to:

@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "Estado del equipo",
   "settings_section_equipmentCondition_subtitle": "Umbrales de exposición para los relojes de mantenimiento",
   "equipmentConditionSettings_title": "Estado del equipo",
+  "equipmentCondition_exposure_title": "Exposición",
+  "equipmentCondition_exposure_empty": "Aún no hay inmersiones con este artículo",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 inmersión} other{{n} inmersiones}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 inmersión} other{{n} inmersiones}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} horas",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} horas en agua salada",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 inmersión fría} other{{n} inmersiones frías}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} horas con O2 alto",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 inmersión profunda} other{{n} inmersiones profundas}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 ciclo de batería} other{{n} ciclos de batería}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_finding_cellOutputDeclining": "La salida de la celda {slot} cayó un {percent} por ciento en {n} inmersiones desde el {since}",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {

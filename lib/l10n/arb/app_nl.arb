@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "Staat van uitrusting",
   "settings_section_equipmentCondition_subtitle": "Blootstellingsdrempels voor onderhoudsklokken",
   "equipmentConditionSettings_title": "Staat van uitrusting",
+  "equipmentCondition_exposure_title": "Blootstelling",
+  "equipmentCondition_exposure_empty": "Nog geen duiken met dit item",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 duik} other{{n} duiken}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 duik} other{{n} duiken}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} uur",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} uur in zout water",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 koude duik} other{{n} koude duiken}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} uur met hoog O2",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 diepe duik} other{{n} diepe duiken}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 batterijcyclus} other{{n} batterijcycli}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_finding_cellOutputDeclining": "De uitvoer van cel {slot} daalde {percent} procent over {n} duiken sinds {since}",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {
