@@ -124,6 +124,9 @@ class EquipmentConditionRefresher {
       inputFingerprint: fingerprint,
       findings: findings,
       engineVersion: EquipmentConditionEngine.engineVersion,
+      // Dates for the dismissal carry-over: only a dive that happened
+      // after the dismissal counts towards re-raising a finding.
+      diveDates: {for (final s in samples) s.diveId: s.date},
       now: stamp,
     );
     return _findings.getFindings(item.id);
