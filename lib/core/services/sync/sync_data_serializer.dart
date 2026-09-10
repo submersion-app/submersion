@@ -4572,8 +4572,11 @@ class SyncDataSerializer {
   /// untouched, while a genuinely new row still gets the `clientDefault`
   /// stamp on insert.
   ///
-  /// The provenance pointers are overwritten either way, including with null:
-  /// a peer that deleted the parent clears them on purpose.
+  /// On `diveEquipment` and `divePlanEquipment` the provenance pointers
+  /// (`viaEquipmentId`, `viaSetId`) are overwritten either way, including with
+  /// null: a peer that deleted the parent clears them on purpose.
+  /// `equipmentSetItems` has no provenance columns; its whole payload is the
+  /// key, so a clockless row that already exists is simply ignored.
   Future<void> _upsertGearJunction(
     String entityType,
     List<Map<String, dynamic>> records,
