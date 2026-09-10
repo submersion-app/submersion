@@ -58,17 +58,21 @@ void main() {
       expect(uri.queryParameters['prompt'], 'consent');
     });
 
-    test('rejects an unconfigured build (empty client id)', () {
-      final m = GooglePhotosAuthManager(
-        store: GooglePhotosAuthStore(storage: InMemoryKeychain()),
-        httpClient: MockClient((_) async => http.Response('', 500)),
-        clientId: '',
-        clientSecret: '',
-      );
-      expect(
-        () => m.beginAuthorization(redirectUri: _redirect),
-        throwsA(isA<GooglePhotosAuthException>()),
-      );
+    test('rejects an unconfigured build (missing client id or secret)', () {
+      GooglePhotosAuthManager m(String id, String secret) =>
+          GooglePhotosAuthManager(
+            store: GooglePhotosAuthStore(storage: InMemoryKeychain()),
+            httpClient: MockClient((_) async => http.Response('', 500)),
+            clientId: id,
+            clientSecret: secret,
+          );
+      for (final (id, secret) in [('', ''), ('cid', ''), ('', 'secret')]) {
+        expect(
+          () => m(id, secret).beginAuthorization(redirectUri: _redirect),
+          throwsA(isA<GooglePhotosAuthException>()),
+          reason: 'id="$id" secret="$secret"',
+        );
+      }
     });
   });
 

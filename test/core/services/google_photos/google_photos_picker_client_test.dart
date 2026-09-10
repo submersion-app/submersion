@@ -13,9 +13,8 @@ import '../../../support/fake_keychain_storage.dart';
 
 void main() {
   Future<GooglePhotosPickerClient> client(
-    Future<http.Response> Function(http.Request) handler, {
-    int Function()? accessTokenCalls,
-  }) async {
+    Future<http.Response> Function(http.Request) handler,
+  ) async {
     final store = GooglePhotosAuthStore(storage: InMemoryKeychain());
     await store.save(const GooglePhotosAuthData(refreshToken: 'rt'));
     final auth = GooglePhotosAuthManager(
