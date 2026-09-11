@@ -130,63 +130,50 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
     _settleFirstLoad();
   }
 
-  /// The newest arrangement asked for whose write has not landed yet, or
-  /// null when every requested write has settled.
+  /// Runs arrangement changes one at a time, in the order they were asked
+  /// for.
   ///
-  /// State only moves once a write succeeds, so while one is in flight the
-  /// state still shows the arrangement before it. A change derived from
-  /// state in that window would drop the in-flight one.
-  EquipmentArrangement? _requested;
-
-  /// Queues writes so they reach storage in the order they were asked for.
+  /// Each change is computed when its turn comes, not when it is asked for:
+  /// by then the stored arrangement has loaded and every earlier change has
+  /// either published or failed, so `state` is exactly what storage holds.
   Future<void> _writes = Future<void>.value();
-
-  /// Numbers each update, so an older write whose completion is delivered
-  /// late cannot publish over a newer one. Microtask order between two
-  /// completions is not something to rely on.
-  int _updateSeq = 0;
-  int _publishedSeq = 0;
 
   /// Persists [arrangement] and updates state.
   Future<void> setArrangement(EquipmentArrangement arrangement) =>
       updateArrangement((_) => arrangement);
 
-  /// Applies [change] to the newest requested arrangement, persists the
-  /// result and updates state.
+  /// Applies [change] to the stored arrangement, persists the result and
+  /// updates state.
   ///
   /// The sort sheet stays open for several changes, so a second one can be
-  /// made before the first write lands. Deriving each change from the newest
-  /// REQUESTED arrangement rather than from state is what keeps both.
+  /// asked for before the first write lands, and the sheet can even open
+  /// before the launch read has loaded the stored arrangement. Both are why
+  /// [change] is a function applied at its turn in the queue, after the
+  /// first load and after every earlier change has settled:
+  ///
+  /// - it builds on the stored arrangement, never on the launch defaults, so
+  ///   one edit cannot write the defaults over every axis it did not touch;
+  /// - it builds on the previous change once that has landed, so quick
+  ///   successive edits all survive;
+  /// - a change whose write failed never published, so the next one builds
+  ///   on what storage actually holds and the failure cannot ride along.
   ///
   /// State moves only after the write succeeds, so a failed save does not
   /// leave the diver looking at an order that will be gone on next launch.
-  /// A failed change is also dropped from what later changes build on, so it
-  /// cannot reach storage on the back of the next write. Rethrows so the
-  /// caller can surface the failure.
+  /// Rethrows so the caller can surface the failure.
   Future<void> updateArrangement(
     EquipmentArrangement Function(EquipmentArrangement current) change,
   ) {
-    final next = change(_requested ?? state);
-    final seq = ++_updateSeq;
-    _requested = next;
-    final write = _writes.then(
-      (_) => _repository.setEquipmentArrangement(next),
-    );
+    final step = _writes.then((_) async {
+      await loaded;
+      if (!mounted) return;
+      final next = change(state);
+      await _repository.setEquipmentArrangement(next);
+      if (mounted) state = next;
+    });
     // The queue must keep moving after a failure; the caller still sees it
     // through the returned future.
-    _writes = write.then((_) {}, onError: (Object _) {});
-    return write.then(
-      (_) {
-        if (seq > _publishedSeq) {
-          _publishedSeq = seq;
-          if (mounted) state = next;
-        }
-        if (identical(_requested, next)) _requested = null;
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        if (identical(_requested, next)) _requested = null;
-        Error.throwWithStackTrace(error, stackTrace);
-      },
-    );
+    _writes = step.then((_) {}, onError: (Object _) {});
+    return step;
   }
 }

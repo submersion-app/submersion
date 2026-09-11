@@ -69,6 +69,42 @@ class _OrderedFakeRepository extends AppSettingsRepository {
   Stream<void> watchSettingsChanges() => settingsTicks.stream;
 }
 
+/// Holds every read and write until the test settles it, so edits can be
+/// made before the launch read lands and while earlier writes are in flight.
+class _GatedFakeRepository extends AppSettingsRepository {
+  _GatedFakeRepository() {
+    addTearDown(settingsTicks.close);
+  }
+
+  final List<Completer<EquipmentArrangement?>> reads = [];
+  final List<({EquipmentArrangement value, Completer<void> gate})> writes = [];
+
+  /// Only the writes that succeeded, in the order they landed.
+  final List<EquipmentArrangement> stored = [];
+  final StreamController<void> settingsTicks = StreamController<void>();
+
+  @override
+  Future<EquipmentArrangement?> getEquipmentArrangement() {
+    final completer = Completer<EquipmentArrangement?>();
+    reads.add(completer);
+    return completer.future;
+  }
+
+  @override
+  Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {
+    final gate = Completer<void>();
+    writes.add((value: arrangement, gate: gate));
+    await gate.future;
+    stored.add(arrangement);
+  }
+
+  @override
+  Stream<void> watchSettingsChanges() => settingsTicks.stream;
+}
+
+/// Lets queued microtasks and chained futures run.
+Future<void> _settle() => Future<void>.delayed(Duration.zero);
+
 void main() {
   ProviderContainer containerWith(_FakeSettingsRepository fake) {
     final container = ProviderContainer(
@@ -203,6 +239,80 @@ void main() {
 
     expect(fake.written.single.groupByType, isTrue);
     expect(fake.written.single.typeOrder, EquipmentTypeOrder.headToToe);
+  });
+
+  test(
+    'an edit made before the stored arrangement loads builds on it',
+    () async {
+      // The notifier starts at the defaults and adopts storage when the launch
+      // read lands. A sheet opened in that window must not turn one edit into
+      // a write of the defaults for every axis the diver did not touch.
+      final gated = _GatedFakeRepository();
+      final container = ProviderContainer(
+        overrides: [appSettingsRepositoryProvider.overrideWithValue(gated)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(
+        equipmentArrangementNotifierProvider.notifier,
+      );
+      const headToToe = EquipmentArrangement(
+        typeOrder: EquipmentTypeOrder.headToToe,
+        groupByType: true,
+        itemSortField: EquipmentItemSortField.purchaseDate,
+        itemSortDirection: SortDirection.descending,
+      );
+
+      final edit = notifier.updateArrangement(
+        (current) => current.copyWith(groupByType: false),
+      );
+      await _settle();
+      gated.reads.single.complete(headToToe);
+      await _settle();
+      gated.writes.single.gate.complete();
+      await edit;
+
+      expect(gated.stored.single, headToToe.copyWith(groupByType: false));
+    },
+  );
+
+  test('a change that fails while a later one is queued does not ride along '
+      'on it', () async {
+    // B is asked for while A is still saving. When A then fails, B must be
+    // written on top of what storage actually holds, not on top of A.
+    final gated = _GatedFakeRepository();
+    final container = ProviderContainer(
+      overrides: [appSettingsRepositoryProvider.overrideWithValue(gated)],
+    );
+    addTearDown(container.dispose);
+    final notifier = container.read(
+      equipmentArrangementNotifierProvider.notifier,
+    );
+    gated.reads.single.complete(null);
+    await notifier.loaded;
+
+    final a = notifier.updateArrangement(
+      (current) => current.copyWith(groupByType: false),
+    );
+    final b = notifier.updateArrangement(
+      (current) => current.copyWith(typeOrder: EquipmentTypeOrder.headToToe),
+    );
+    await _settle();
+    gated.writes.first.gate.completeError(StateError('write failed'));
+    await expectLater(a, throwsA(isA<StateError>()));
+    await _settle();
+    gated.writes.last.gate.complete();
+    await b;
+
+    expect(
+      gated.stored.single,
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+      ),
+    );
+    expect(
+      container.read(equipmentArrangementNotifierProvider),
+      gated.stored.single,
+    );
   });
 
   test(
