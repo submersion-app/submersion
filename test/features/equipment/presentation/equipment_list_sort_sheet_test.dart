@@ -149,6 +149,27 @@ void main() {
     expect(fake.written, isEmpty, reason: 'the type axis was not touched');
   });
 
+  testWidgets('a direction and a field picked in one frame both survive', (
+    tester,
+  ) async {
+    // The sheet stays open, and its callbacks outlive the build they came
+    // from. Two taps before the next frame must each build on the sort as
+    // it is now, not on the one the sheet last rendered.
+    await pumpSheet(tester);
+
+    await tester.tap(find.byIcon(SortDirection.descending.icon).first);
+    await tester.tap(find.text('Service Due'));
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(equipmentSortProvider),
+      const SortState(
+        field: EquipmentSortField.serviceDue,
+        direction: SortDirection.descending,
+      ),
+    );
+  });
+
   testWidgets('the grouping switch writes the shared arrangement', (
     tester,
   ) async {

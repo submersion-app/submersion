@@ -51,13 +51,21 @@ class EquipmentListSortSheet extends ConsumerWidget {
     final typesOrderFirst =
         showGrouping && arrangement.typeOrder != EquipmentTypeOrder.none;
 
-    void setSort(SortState<EquipmentSortField> next) =>
-        ref.read(equipmentSortProvider.notifier).state = next;
+    // Reads the sort as it is NOW rather than the `sort` this build saw: the
+    // sheet stays open, and two taps before the next frame would otherwise
+    // both start from the same snapshot, the second undoing the first.
+    void updateSort({EquipmentSortField? field, SortDirection? direction}) {
+      final notifier = ref.read(equipmentSortProvider.notifier);
+      final current = notifier.state;
+      notifier.state = SortState(
+        field: field ?? current.field,
+        direction: direction ?? current.direction,
+      );
+    }
 
     return EquipmentSortSheetLayout<EquipmentSortField>(
       direction: sort.direction,
-      onDirectionChanged: (direction) =>
-          setSort(SortState(field: sort.field, direction: direction)),
+      onDirectionChanged: (direction) => updateSort(direction: direction),
       fieldsLabel: typesOrderFirst
           ? l10n.equipment_arrange_itemOrderLabel
           : l10n.equipment_arrange_itemOrderLabelFlat,
@@ -65,8 +73,7 @@ class EquipmentListSortSheet extends ConsumerWidget {
       selectedField: sort.field,
       fieldLabel: (field) => field.localizedName(l10n),
       fieldIcon: (field) => field.icon,
-      onFieldSelected: (field) =>
-          setSort(SortState(field: field, direction: sort.direction)),
+      onFieldSelected: (field) => updateSort(field: field),
       showGrouping: showGrouping,
     );
   }

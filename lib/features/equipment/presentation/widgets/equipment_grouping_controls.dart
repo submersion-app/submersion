@@ -121,8 +121,9 @@ class EquipmentGroupingControls extends ConsumerWidget {
 ///
 /// Takes a change rather than a finished arrangement: the sheet stays open,
 /// and the arrangement it last rendered can be a write behind, so building
-/// on it would undo a change still in flight. The notifier applies [change]
-/// to the newest requested arrangement instead.
+/// on it would undo a change still in flight. The notifier queues [change]
+/// and applies it to the stored arrangement when its turn comes, after the
+/// first load and after every earlier change has saved or failed.
 ///
 /// The notifier leaves state untouched on a failed write, so the sheet keeps
 /// showing what is actually stored. Without a message the control would just

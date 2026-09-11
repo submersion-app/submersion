@@ -219,23 +219,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       sort,
       serviceUrgency: serviceUrgency,
     );
-    List<EquipmentGroup> arrange(List<EquipmentItem> equipment) =>
-        arrangeEquipment(
-          filter.applyType(equipment),
-          arrangement,
-          typeLabel: (t) => t.localizedName(context.l10n),
-          compareItems: compareItems,
-        );
-
     // The visible list depends on which status filter is active, so derive
     // selectable ids from the same branch the list renders, in the order it
     // renders them.
-    final sortedVisible = [
-      for (final group in arrange(
-        equipmentAsync.value ?? const <EquipmentItem>[],
-      ))
-        ...group.items,
-    ];
+    //
+    // Arranged once per build, here, and reused by the list below: that list
+    // is rebuilt inside the selection listener on every check toggle, and
+    // re-sorting the whole inventory there made bulk selection cost a full
+    // sort per tap.
+    final visibleGroups = arrangeEquipment(
+      filter.applyType(equipmentAsync.value ?? const <EquipmentItem>[]),
+      arrangement,
+      typeLabel: (t) => t.localizedName(context.l10n),
+      compareItems: compareItems,
+    );
+    final sortedVisible = [for (final group in visibleGroups) ...group.items];
     final visibleIds = sortedVisible.map((e) => e.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -246,16 +244,15 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // change; computing it here would leave the list frozen mid-selection.
     Widget buildContent() {
       return equipmentAsync.when(
-        data: (equipment) {
-          final groups = arrange(equipment);
-          return groups.isEmpty
-              ? _buildEmptyState(
-                  context,
-                  ref,
-                  hadItemsBeforeTypeFilter: equipment.isNotEmpty,
-                )
-              : _buildEquipmentList(context, ref, groups, arrangement);
-        },
+        // `equipment` is `equipmentAsync.value`, which visibleGroups was
+        // arranged from.
+        data: (equipment) => visibleGroups.isEmpty
+            ? _buildEmptyState(
+                context,
+                ref,
+                hadItemsBeforeTypeFilter: equipment.isNotEmpty,
+              )
+            : _buildEquipmentList(context, ref, visibleGroups, arrangement),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(context, error),
       );
