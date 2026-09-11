@@ -352,6 +352,37 @@ void main() {
         isEmpty,
       );
 
+      // A high dive whose fraction could not be assessed still takes its
+      // place in "the last 5 that reached 1.2 bar": two old limited dives
+      // must not fire the rule once five newer high dives have passed.
+      final stale = [0.6, 0.8, null, null, null, null, null];
+      expect(
+        of(
+          engine.evaluate(
+            cellInput(
+              List<num?>.filled(7, 50),
+              lowAtHigh: stale,
+              highSamples: List.filled(7, 10),
+            ),
+          ),
+          ConditionRuleId.cellCurrentLimited,
+        ),
+        isEmpty,
+      );
+      // Unassessable dives in the window count for nothing either way: two
+      // limited among the last five still fire it.
+      final mixed = of(
+        engine.evaluate(
+          cellInput(
+            List<num?>.filled(7, 50),
+            lowAtHigh: [0.1, 0.1, 0.9, null, 0.7, null, null],
+            highSamples: List.filled(7, 10),
+          ),
+        ),
+        ConditionRuleId.cellCurrentLimited,
+      ).single;
+      expect(mixed.evidence.values['count'], 2);
+
       // Dives that never reached 1.2 bar are not in the window.
       final noHigh = [0, 0, 0, 0, 0];
       expect(
