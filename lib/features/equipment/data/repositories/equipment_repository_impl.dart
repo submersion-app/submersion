@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 
 class EquipmentRepository {
   /// Injectable seams mirror [SiteRepository]: tests hand in a coordinator
@@ -477,6 +478,9 @@ class EquipmentRepository {
         final observations = await (_db.select(
           _db.equipmentObservations,
         )..where((t) => t.equipmentId.equals(id))).get();
+        // Incidents naming the item stay; their gear link is staged, not
+        // just nulled by SQLite.
+        await IncidentRepository().unlinkFromDeletedEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
