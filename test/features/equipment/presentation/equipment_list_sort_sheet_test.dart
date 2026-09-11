@@ -15,10 +15,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _FakeSettingsRepository extends AppSettingsRepository {
   _FakeSettingsRepository() {
-    addTearDown(settingsTicks.close);
+    // Not awaited: closing a single-subscription controller that never had a
+    // listener returns a future that never completes, and the table-mode
+    // sheet rightly never starts the notifier that would listen.
+    addTearDown(() => unawaited(settingsTicks.close()));
   }
 
   EquipmentArrangement? stored;
+  int reads = 0;
   final List<EquipmentArrangement> written = [];
   final StreamController<void> settingsTicks = StreamController<void>();
 
@@ -28,7 +32,10 @@ class _FakeSettingsRepository extends AppSettingsRepository {
   final List<Completer<void>> heldWrites = [];
 
   @override
-  Future<EquipmentArrangement?> getEquipmentArrangement() async => stored;
+  Future<EquipmentArrangement?> getEquipmentArrangement() async {
+    reads++;
+    return stored;
+  }
 
   @override
   Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {
@@ -283,5 +290,8 @@ void main() {
     expect(find.text('Order types by'), findsNothing);
     expect(find.text('Sort by'), findsOneWidget);
     expect(find.text('Service Due'), findsOneWidget);
+    // The table never uses the arrangement, so its sheet must not start
+    // the arrangement notifier's settings read and subscription either.
+    expect(fake.reads, 0);
   });
 }

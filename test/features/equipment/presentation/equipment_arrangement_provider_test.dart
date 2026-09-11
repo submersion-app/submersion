@@ -686,6 +686,71 @@ void main() {
     },
   );
 
+  test(
+    'after a failed launch read, an edit re-reads before building',
+    () async {
+      // A failed read leaves the stored arrangement unknown, not "the
+      // defaults". An edit built on the defaults would save them over every
+      // axis the diver did not touch, so it reads again first.
+      final fake = _FakeSettingsRepository(
+        stored: EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.headToToe,
+        ),
+      )..failRead = true;
+      final container = containerWith(fake);
+      final notifier = container.read(
+        equipmentArrangementNotifierProvider.notifier,
+      );
+      await notifier.loaded;
+
+      fake.failRead = false;
+      await notifier.updateArrangement(
+        (current) => current.copyWith(groupByType: false),
+      );
+
+      expect(
+        fake.written.single,
+        EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.headToToe,
+          groupByType: false,
+        ),
+      );
+    },
+  );
+
+  test(
+    'an edit is refused while the stored arrangement stays unknown',
+    () async {
+      final fake = _FakeSettingsRepository(
+        stored: EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.headToToe,
+        ),
+      )..failRead = true;
+      final container = containerWith(fake);
+      final notifier = container.read(
+        equipmentArrangementNotifierProvider.notifier,
+      );
+      await notifier.loaded;
+
+      await expectLater(
+        notifier.updateArrangement(
+          (current) => current.copyWith(groupByType: false),
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(
+        fake.written,
+        isEmpty,
+        reason: 'nothing saved over the real value',
+      );
+      expect(
+        container.read(equipmentArrangementNotifierProvider),
+        EquipmentArrangement.defaults,
+      );
+    },
+  );
+
   test('loaded settles when the read fails, so a caller cannot hang', () async {
     final fake = _FakeSettingsRepository()..failRead = true;
     final container = containerWith(fake);

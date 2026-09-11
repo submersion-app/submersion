@@ -221,7 +221,9 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   /// - it builds on the previous change once that has landed, so quick
   ///   successive edits all survive;
   /// - a change whose write failed never published, so the next one builds
-  ///   on what storage actually holds and the failure cannot ride along.
+  ///   on what storage actually holds and the failure cannot ride along;
+  /// - if no read has ever succeeded, the stored arrangement is unknown, so
+  ///   it reads again and refuses the change rather than build on defaults.
   ///
   /// State moves only after the write succeeds, so a failed save does not
   /// leave the diver looking at an order that will be gone on next launch.
@@ -232,6 +234,22 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
     final step = _writes.then((_) async {
       await _readsSettled();
       if (!mounted) return;
+      // A failed read leaves the stored arrangement unknown rather than "the
+      // defaults" (state only shows them because nothing better arrived).
+      // Building on them would save the defaults over every axis this
+      // change does not touch, so read again first, and refuse the change
+      // if storage still cannot say what it holds.
+      if (_publishedLoadSeq == 0) {
+        await _load();
+        await _readsSettled();
+        if (!mounted) return;
+        if (_publishedLoadSeq == 0) {
+          throw StateError(
+            'The stored gear arrangement could not be read, so a change '
+            'cannot be applied to it',
+          );
+        }
+      }
       final next = change(state);
       await _repository.setEquipmentArrangement(next);
       if (mounted) state = next;

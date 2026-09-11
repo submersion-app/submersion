@@ -43,13 +43,18 @@ class EquipmentListSortSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final sort = ref.watch(equipmentSortProvider);
-    final arrangement = ref.watch(equipmentArrangementProvider);
     // The type order is the first key whether or not headings are drawn: a
     // flat list is still ordered by type before this sort. Without the
     // grouping controls (the table) this sort is the only key, so "Then by"
     // would name a first key that is not there.
+    //
+    // The table's sheet never touches the arrangement, so it is only watched
+    // when the grouping is shown: watching it would otherwise start the
+    // arrangement notifier's settings read and subscription for nothing.
     final typesOrderFirst =
-        showGrouping && arrangement.typeOrder != EquipmentTypeOrder.none;
+        showGrouping &&
+        ref.watch(equipmentArrangementProvider).typeOrder !=
+            EquipmentTypeOrder.none;
 
     // Reads the sort as it is NOW rather than the `sort` this build saw: the
     // sheet stays open, and two taps before the next frame would otherwise
