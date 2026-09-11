@@ -70,6 +70,10 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   /// dropped.
   int _publishedLoadSeq = 0;
 
+  /// Completes when the reads in flight drain, for a queued edit waiting on
+  /// them; null while none is waiting.
+  Completer<void>? _readsDrained;
+
   /// A successful read that stood aside for a newer one still in flight.
   ///
   /// Kept because the newer one can still FAIL, and a failed read decides
@@ -101,6 +105,9 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   @override
   void dispose() {
     _settingsSubscription?.cancel();
+    // Release a queued edit waiting on reads that will no longer publish.
+    _readsDrained?.complete();
+    _readsDrained = null;
     // Nothing further will publish, so release anyone still awaiting rather
     // than leaving them hanging on a notifier that is gone.
     _settleFirstLoad();
@@ -110,6 +117,32 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   Future<void> _load() async {
     final seq = ++_loadSeq;
     _readsInFlight.add(seq);
+    try {
+      await _read(seq);
+    } finally {
+      // Every path out of a read, published, deferred or failed, lets a
+      // queued edit re-check whether storage has finished speaking.
+      if (_readsInFlight.isEmpty) {
+        _readsDrained?.complete();
+        _readsDrained = null;
+      }
+    }
+  }
+
+  /// Waits until the launch read has decided and no re-read is still out.
+  ///
+  /// A queued edit builds on `state`, so it must not run while a read that
+  /// may replace `state` is in flight: after launch that is a change synced
+  /// from another device, and building on the pre-sync state would write
+  /// the old axes back over the synced ones.
+  Future<void> _readsSettled() async {
+    await loaded;
+    while (_readsInFlight.isNotEmpty && mounted) {
+      await (_readsDrained ??= Completer<void>()).future;
+    }
+  }
+
+  Future<void> _read(int seq) async {
     EquipmentArrangement? stored;
     try {
       stored = await _repository.getEquipmentArrangement();
@@ -208,7 +241,7 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
     EquipmentArrangement Function(EquipmentArrangement current) change,
   ) {
     final step = _writes.then((_) async {
-      await loaded;
+      await _readsSettled();
       if (!mounted) return;
       final next = change(state);
       await _repository.setEquipmentArrangement(next);

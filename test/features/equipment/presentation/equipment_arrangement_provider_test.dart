@@ -529,6 +529,48 @@ void main() {
     );
   });
 
+  test(
+    'an edit made while a synced change is being read builds on it',
+    () async {
+      // After launch, a change synced from another device ticks the settings
+      // table and starts a re-read. An edit made in that window must wait for
+      // the read, or it writes the pre-sync axes back over the synced ones.
+      final fake = _OrderedFakeRepository();
+      final container = ProviderContainer(
+        overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(
+        equipmentArrangementNotifierProvider.notifier,
+      );
+      fake.pending.single.complete(null);
+      await notifier.loaded;
+
+      fake.settingsTicks.add(null);
+      await pumpEventQueue();
+      expect(fake.pending, hasLength(2), reason: 'the sync re-read is out');
+      final edit = notifier.updateArrangement(
+        (current) => current.copyWith(groupByType: false),
+      );
+      await pumpEventQueue();
+
+      fake.pending[1].complete(
+        EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.dressingOrder,
+        ),
+      );
+      await edit;
+
+      expect(
+        container.read(equipmentArrangementNotifierProvider),
+        EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.dressingOrder,
+          groupByType: false,
+        ),
+      );
+    },
+  );
+
   test('a newer read that fails defers to the read still in flight', () async {
     // "Could not read" decides nothing. If a tick's read fails while the
     // launch read is still out, the launch read must still get to publish,
