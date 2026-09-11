@@ -62,9 +62,11 @@ class ConditionTrendCard extends ConsumerWidget {
           TrendSeries(
             label: _seriesLabel(l10n, trend.kind, s),
             points: s.points,
+            // A cell's colour follows its slot, so a lone slot-2 cell does
+            // not borrow slot 1's and the legend holds as series come and go.
             color: s.key == 'issues'
                 ? theme.colorScheme.error
-                : palette[i % palette.length],
+                : palette[((s.slot ?? i + 1) - 1) % palette.length],
           ),
     ];
 
