@@ -71,9 +71,12 @@ class DiveTrendChart extends StatefulWidget {
   /// May be empty when [secondarySeries] carries the data.
   final List<TrendDataPoint> points;
 
-  /// Extra series on the same axes, aggregated and drawn like [points] and
-  /// named in the tooltip. Index 0 of the drawn bars stays the primary so
-  /// tap and tooltip indices are stable.
+  /// Extra series on the same axes, bucketed like [points] and named in
+  /// the tooltip. Each draws as dots (raw) or a mean line (aggregated);
+  /// the min/max bars and the spread band belong to the primary alone,
+  /// so a series whose range matters should be the primary. Index 0 of
+  /// the drawn bars stays the primary so tap and tooltip indices are
+  /// stable.
   final List<TrendSeries> secondarySeries;
 
   /// A time span shaded behind the series, for a finding's evidence window.
@@ -662,7 +665,16 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
         if (event is! FlTapUpEvent) return;
         final onDiveSelected = widget.onDiveSelected;
         if (onDiveSelected == null) return;
-        final spot = response?.lineBarSpots?.firstOrNull;
+        // Every series reports its own nearest spot, so the first one
+        // listed need not be the touched one: take the nearest of all.
+        final spot = nearestTouchedDataSpot(
+          response?.lineBarSpots ?? const [],
+          (barIndex) =>
+              barIndex == 0 ||
+              (_secondaryBarStart >= 0 &&
+                  barIndex >= _secondaryBarStart &&
+                  barIndex - _secondaryBarStart < _drawnSecondary.length),
+        );
         if (spot == null) return;
         final List<TrendBucket> drawn;
         if (spot.barIndex == 0) {
@@ -817,4 +829,20 @@ class _EmptyChart extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The spot nearest the tap among [spots] on a data series ([isData] by
+/// bar index), or null. fl_chart reports one nearest spot per series,
+/// band bounds and overlays included, in bar order.
+@visibleForTesting
+TouchLineBarSpot? nearestTouchedDataSpot(
+  List<TouchLineBarSpot> spots,
+  bool Function(int barIndex) isData,
+) {
+  TouchLineBarSpot? nearest;
+  for (final s in spots) {
+    if (!isData(s.barIndex)) continue;
+    if (nearest == null || s.distance < nearest.distance) nearest = s;
+  }
+  return nearest;
 }

@@ -159,7 +159,7 @@ class SensorSummaryScheduler {
       await pass.run(
         items: only == null
             ? await pass.activeItems(diverId: inputs.diverId)
-            : await pass.itemsById(only),
+            : await pass.itemsById(only, diverId: inputs.diverId),
         thresholds: inputs.thresholds,
       );
     } catch (e, st) {

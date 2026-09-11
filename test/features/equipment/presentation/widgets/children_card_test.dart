@@ -225,6 +225,23 @@ void main() {
     expect(find.textContaining('12 months'), findsOneWidget);
   });
 
+  testWidgets('a part with no install date dates from its creation', (
+    tester,
+  ) async {
+    // Its exposure counts from createdAt (parentDivesFrom), so the card
+    // states that date rather than only the type.
+    final bare = EquipmentItem(
+      id: 'b1',
+      name: 'Spare cell',
+      type: EquipmentType.o2Cell,
+      parentEquipmentId: 'r1',
+      createdAt: now.subtract(const Duration(days: 12)),
+    );
+    await tester.pumpWidget(host(equipment: ccr, children: [bare]));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('12 days ago'), findsOneWidget);
+  });
+
   testWidgets('a failed replace tells the diver', (tester) async {
     await tester.pumpWidget(
       host(equipment: ccr, children: [cell], repo: _FailingRepo()),

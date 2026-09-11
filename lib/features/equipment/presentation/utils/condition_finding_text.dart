@@ -32,12 +32,20 @@ String conditionFindingTitle(
   // Through the display helper, so a comma locale reads "41,2".
   String one(double? x) => x == null ? _unknown : formatFixedForDisplay(x, 1);
   final slot = e.slot ?? 0;
+  // The drop the engine measured, rebuilt from its evidence medians rather
+  // than the stored value, which a stale or partial row could misstate.
+  String decline() {
+    final recent = v('recentMedian');
+    final baseline = v('baselineMedian');
+    if (recent == null || baseline == null || baseline <= 0) return _unknown;
+    return (100 * (1 - recent / baseline)).round().toString();
+  }
 
   return switch (finding.ruleId) {
     ConditionRuleId.cellOutputDeclining =>
       l10n.equipmentCondition_finding_cellOutputDeclining(
         slot,
-        finding.value == null ? _unknown : finding.value!.round().toString(),
+        decline(),
         e.n,
         units.formatDate(e.windowStart),
       ),

@@ -228,4 +228,26 @@ void main() {
     ].whereType<String>();
     expect(labels, contains('Trend line chart showing 5 data points'));
   });
+
+  test('a tap opens the data spot nearest it, across every series', () {
+    // Each series reports its own nearest spot. The first one listed is
+    // not the touched one: with Cell 1 missing a dive, its nearest spot
+    // is another dive, and the tap meant Cell 2's.
+    TouchLineBarSpot spot(int barIndex, double distance) => TouchLineBarSpot(
+      LineChartBarData(spots: const [FlSpot(0, 0)]),
+      barIndex,
+      const FlSpot(0, 0),
+      distance,
+    );
+    bool isData(int barIndex) => barIndex >= 1 && barIndex <= 2;
+    final picked = nearestTouchedDataSpot([
+      spot(0, 1),
+      spot(1, 30),
+      spot(2, 4),
+      spot(3, 0),
+    ], isData);
+    expect(picked?.barIndex, 2);
+    expect(nearestTouchedDataSpot([spot(3, 0)], isData), isNull);
+    expect(nearestTouchedDataSpot(const [], isData), isNull);
+  });
 }

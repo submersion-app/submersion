@@ -385,4 +385,47 @@ void main() {
       expect(row.placeNameLanguage, 'en');
     },
   );
+
+  test(
+    'applies a pre-v206 diver_settings payload missing the condition toggles',
+    () async {
+      // A peer on v205 or older sends no conditionEngineEnabled (a NOT NULL
+      // bool) and no conditionDisabledRules. The engine is on by default,
+      // so that is what the row must hydrate to.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds-206',
+              diverId: 'diver-1',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-206');
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('conditionEngineEnabled')
+        ..remove('conditionDisabledRules');
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds-206'))).go();
+
+      await serializer.upsertRecord('diverSettings', legacy);
+      // The batch path seeds the same defaults.
+      await serializer.upsertRecords('diverSettings', [
+        {...legacy, 'id': 'ds-206b'},
+      ]);
+
+      for (final id in ['ds-206', 'ds-206b']) {
+        final row = await (db.select(
+          db.diverSettings,
+        )..where((t) => t.id.equals(id))).getSingle();
+        expect(row.conditionEngineEnabled, isTrue, reason: id);
+        expect(row.conditionDisabledRules, isNull, reason: id);
+      }
+    },
+  );
 }

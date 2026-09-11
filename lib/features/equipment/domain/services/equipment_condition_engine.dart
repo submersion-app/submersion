@@ -217,7 +217,9 @@ class EquipmentConditionEngine {
   }) {
     final gains = <_Point<double>>[];
     final p95s = <_Point<double>>[];
-    final limited = <_Point<double>>[];
+    // Every dive that reached 1.2 bar, with its fraction or null when the
+    // summary could not assess one (no low-ppO2 peer agreement).
+    final high = <_Point<double?>>[];
     for (final s in samples) {
       final m = _metricsFor(input, s.diveId, slot);
       if (m == null) continue;
@@ -227,9 +229,8 @@ class EquipmentConditionEngine {
       }
       final p95 = m.p95DivergenceBar;
       if (p95 != null) p95s.add((diveId: s.diveId, date: s.date, value: p95));
-      final low = m.lowAtHighFraction;
-      if (m.highPpO2Samples > 0 && low != null) {
-        limited.add((diveId: s.diveId, date: s.date, value: low));
+      if (m.highPpO2Samples > 0) {
+        high.add((diveId: s.diveId, date: s.date, value: m.lowAtHighFraction));
       }
     }
     final findings = <EquipmentFinding>[];
@@ -297,12 +298,18 @@ class EquipmentConditionEngine {
         );
       }
     }
-    // From n = 2, over the last 5 qualifying dives or as many as there are.
-    // Unlike cellDivergent this does not wait for a full window: a
+    // The last 5 dives that reached 1.2 bar, or as many as there are. A
+    // dive whose fraction could not be assessed keeps its place (it is one
+    // of the last five) but counts for nothing, so two old readings cannot
+    // speak for a window of newer dives. From n = 2 assessed: unlike
+    // cellDivergent this does not wait for a full window, since a
     // current-limited cell under-reads high ppO2, the one reading a diver
-    // must be able to trust, so two limited dives are enough to warn.
-    if (limited.length >= limitedMinCount) {
-      final window = _lastN(limited, limitedWindow);
+    // must be able to trust.
+    final window = [
+      for (final p in _lastN(high, limitedWindow))
+        if (p.value case final v?) (diveId: p.diveId, date: p.date, value: v),
+    ];
+    if (window.length >= limitedMinCount) {
       final above = [
         for (final p in window)
           if (p.value > limitedFraction + _epsilon) p,
