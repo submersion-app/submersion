@@ -211,6 +211,70 @@ void main() {
     },
   );
 
+  test('a replaced cell\'s clock stops at its successor', () async {
+    // The exposure card stops a replaced part's history when the next part
+    // of its type went into the same slot; its clocks (and the findings and
+    // reminders built on the same samples) must stop there too.
+    final repo = EquipmentRepository();
+    final ccr = await repo.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'CCR',
+        type: EquipmentType.rebreather,
+        purchaseDate: DateTime(2025, 1, 1),
+      ),
+    );
+    Future<EquipmentItem> cell(String name, DateTime installed, bool fitted) =>
+        repo.createEquipment(
+          EquipmentItem(
+            id: '',
+            name: name,
+            type: EquipmentType.o2Cell,
+            parentEquipmentId: ccr.id,
+            purchaseDate: DateTime(2025, 1, 1),
+            status: fitted ? EquipmentStatus.active : EquipmentStatus.retired,
+            isActive: fitted,
+            attributes: [
+              EquipmentAttribute.curated(
+                equipmentId: '',
+                key: EquipmentAttrKeys.installedDate,
+                valueNum: installed.millisecondsSinceEpoch.toDouble(),
+              ),
+              EquipmentAttribute.curated(
+                equipmentId: '',
+                key: EquipmentAttrKeys.cellSlot,
+                valueNum: 1,
+              ),
+            ],
+          ),
+        );
+    final old = await cell('Old cell', DateTime.utc(2025, 6), false);
+    await cell('New cell', DateTime.utc(2026, 1, 3), true);
+    final schedule = await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: old.id,
+        serviceKindId: 'o2-cell-replacement',
+        intervalDives: 50,
+        createdAt: DateTime(2025),
+        updatedAt: DateTime(2025),
+      ),
+    );
+    // coldDive dates the dives 1, 2, 3 January 2026 from a counter shared
+    // across this file; reset it so the first two are the old cell's and
+    // the third its successor's whatever ran before.
+    diveIndex = 0;
+    await coldDive('d1', ccr.id, 20);
+    await coldDive('d2', ccr.id, 20);
+    await coldDive('d3', ccr.id, 20);
+
+    final statuses = await container.read(
+      serviceClockStatusesProvider(old.id).future,
+    );
+    final status = statuses.firstWhere((s) => s.schedule.id == schedule.id);
+    expect(status.usageByUnit[ExposureUnit.dives]!.since, 2);
+  });
+
   test(
     'changing the cold threshold changes the count on the next read',
     () async {

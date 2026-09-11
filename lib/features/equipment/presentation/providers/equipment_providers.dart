@@ -731,35 +731,19 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final records = await ref
       .watch(serviceRecordRepositoryProvider)
       .getRecordsForEquipment(item.id);
-  final repository = ref.watch(equipmentRepositoryProvider);
-  final parentId = item.parentEquipmentId;
-  final parent = parentId == null
-      ? null
-      : siblings?.where((s) => s.id == parentId).firstOrNull ??
-            await repository.getEquipmentById(parentId);
-  // Fitted parts only, as the exposure card reads them: a legacy row can be
-  // retired or sold with isActive left true, and must not switch the
-  // parent's battery cycles off as if it were still fitted.
-  final children = [
-    for (final c
-        in siblings != null
-            ? siblings.where((s) => s.parentEquipmentId == item.id)
-            : await repository.getChildEquipment(item.id))
-      if (c.isFitted) c,
-  ];
-  final isRebreather =
-      item.type == EquipmentType.rebreather ||
-      parent?.type == EquipmentType.rebreather;
-  final usage = await repository.getExposureSamplesForEquipment(
-    item.id,
-    parentEquipmentId: parentId,
-    installedSince: item.parentDivesFrom,
-    rebreatherContact: isRebreather,
-  );
+  // The repository's one wiring, shared with the exposure card, the
+  // reminders and the condition engine: fitted parts only, and a replaced
+  // part's dives stop at its successor.
+  final exposure = await ref
+      .watch(equipmentRepositoryProvider)
+      .getItemExposure(item, siblings: siblings);
+  final usage = exposure.samples;
   final classifier = ExposureClassifier(
     thresholds: ref.watch(exposureThresholdsProvider),
-    loopTimeOnly: isRebreather,
-    hasBatteryChild: children.any((c) => c.type == EquipmentType.battery),
+    loopTimeOnly: exposure.isRebreather,
+    hasBatteryChild: exposure.fittedChildren.any(
+      (c) => c.type == EquipmentType.battery,
+    ),
   );
   final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
   return const ServiceDueEngine().evaluate(
