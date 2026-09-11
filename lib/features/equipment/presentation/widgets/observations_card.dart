@@ -14,7 +14,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The item page's check-in list: every observation on the item, newest
 /// first, with the dive it was made on (or "Bench"). Adding and editing go
 /// through the same sheet the dive page uses, in its no-dive mode so a new
-/// row may pick a dive or stay a bench note.
+/// row may pick a dive or stay a bench note; deleting asks first, as the
+/// sheet does.
 class ObservationsCard extends ConsumerWidget {
   final EquipmentItem equipment;
 
@@ -133,14 +134,25 @@ class _ObservationRow extends ConsumerWidget {
               ],
             ),
       isThreeLine: note.isNotEmpty,
-      trailing: IconButton(
-        icon: const Icon(Icons.edit_outlined),
-        tooltip: l10n.equipmentObservation_sheet_edit,
-        onPressed: () => showEquipmentObservationSheet(
-          context,
-          equipment: equipment,
-          editing: observation,
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: l10n.equipmentObservation_sheet_edit,
+            onPressed: () => showEquipmentObservationSheet(
+              context,
+              equipment: equipment,
+              editing: observation,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: l10n.equipmentObservation_sheet_delete,
+            onPressed: () =>
+                confirmDeleteObservation(context, ref, observation),
+          ),
+        ],
       ),
     );
   }

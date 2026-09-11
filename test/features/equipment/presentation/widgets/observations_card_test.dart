@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -21,6 +22,10 @@ void main() {
     createdAt: DateTime.utc(2026),
   );
 
+  late _FakeRepo repo;
+
+  setUp(() => repo = _FakeRepo());
+
   Future<void> pump(
     WidgetTester tester,
     List<EquipmentObservation> observations,
@@ -29,6 +34,7 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          equipmentObservationRepositoryProvider.overrideWithValue(repo),
           observationsForEquipmentProvider(
             'reg',
           ).overrideWith((ref) async => observations),
@@ -139,4 +145,35 @@ void main() {
     expect(find.text('Save'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Cold water'), findsOneWidget);
   });
+
+  testWidgets('the delete button asks first and then deletes that row', (
+    tester,
+  ) async {
+    await pump(tester, [observation(diveId: 'd1')]);
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete this check-in?'), findsOneWidget);
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(repo.deleted, ['o1']);
+  });
+
+  testWidgets('cancelling the delete keeps the row', (tester) async {
+    await pump(tester, [observation(diveId: 'd1')]);
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(repo.deleted, isEmpty);
+  });
+}
+
+class _FakeRepo implements EquipmentObservationRepository {
+  final deleted = <String>[];
+
+  @override
+  Future<void> delete(String id) async => deleted.add(id);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
 }

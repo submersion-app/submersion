@@ -292,7 +292,24 @@ class ExportNotifier extends StateNotifier<ExportState> {
   ) async {
     final observations = await _diverObservations();
     final itemsById = {for (final e in equipment) e.id: e};
-    final numberByDive = {for (final d in dives) d.id: d.diveNumber};
+    final numberByDive = <String, int?>{
+      for (final d in dives) d.id: d.diveNumber,
+    };
+    // [dives] follows the raw diver id and the check-ins the validated one,
+    // so a stale raw id leaves the check-ins' dives out of the list. Look
+    // those up by id so each row keeps its dive number.
+    final missing = {
+      for (final o in observations)
+        if (o.diveId case final id? when !numberByDive.containsKey(id)) id,
+    };
+    if (missing.isNotEmpty) {
+      final found = await _ref
+          .read(diveRepositoryProvider)
+          .getSummariesByIds(missing.toList());
+      for (final s in found) {
+        numberByDive[s.id] = s.diveNumber;
+      }
+    }
     return [
       for (final o in observations)
         if (itemsById[o.equipmentId] case final item?)
