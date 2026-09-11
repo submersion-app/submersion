@@ -60,7 +60,9 @@ class ConditionTrendCard extends ConsumerWidget {
       for (final (i, s) in trend.series.indexed)
         if (s.points.isNotEmpty)
           TrendSeries(
-            label: _seriesLabel(l10n, trend.kind, s),
+            // A series without a slot (legacy) is named and coloured by its
+            // position, never as a "Cell 0".
+            label: _seriesLabel(l10n, trend.kind, s, s.slot ?? i + 1),
             points: s.points,
             // A cell's colour follows its slot, so a lone slot-2 cell does
             // not borrow slot 1's and the legend holds as series come and go.
@@ -157,12 +159,11 @@ class ConditionTrendCard extends ConsumerWidget {
     AppLocalizations l10n,
     ConditionTrendKind kind,
     ConditionTrendSeries s,
+    int slot,
   ) {
     if (s.key == 'issues') return l10n.equipmentCondition_trend_issues;
     return switch (kind) {
-      ConditionTrendKind.cellGain => l10n.equipmentCondition_trend_cell(
-        s.slot ?? 0,
-      ),
+      ConditionTrendKind.cellGain => l10n.equipmentCondition_trend_cell(slot),
       ConditionTrendKind.transmitterGapFraction =>
         l10n.equipmentCondition_trend_gap,
       ConditionTrendKind.scrubberMinutes =>

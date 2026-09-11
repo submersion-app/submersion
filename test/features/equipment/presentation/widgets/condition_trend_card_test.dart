@@ -105,6 +105,23 @@ void main() {
     expect(slot2Only['Cell 2'], isNot(both['Cell 1']));
   });
 
+  testWidgets('a cell series with no slot is named by its position', (
+    tester,
+  ) async {
+    // A legacy series without a slot must not read "Cell 0".
+    await tester.pumpWidget(
+      host(
+        ConditionTrend(
+          kind: ConditionTrendKind.cellGain,
+          series: [ConditionTrendSeries(key: 'legacy', points: slotPoints(50))],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Cell 1'), findsOneWidget);
+    expect(find.text('Cell 0'), findsNothing);
+  });
+
   EquipmentFinding declining({required int fromDay}) {
     final evidence = FindingEvidence(
       n: 2,

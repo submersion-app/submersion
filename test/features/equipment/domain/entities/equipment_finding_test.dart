@@ -132,6 +132,13 @@ void main() {
       ]) {
         expect(FindingEvidence.decode(json), isNull, reason: json);
       }
+      // A slot of 1e400 is infinity too: the finding decodes without one.
+      expect(
+        FindingEvidence.decode(
+          '{"n":3,"windowStart":0,"windowEnd":1000,"slot":1e400}',
+        )?.slot,
+        isNull,
+      );
       // The far edges DateTime can hold still decode.
       expect(
         FindingEvidence.decode(
