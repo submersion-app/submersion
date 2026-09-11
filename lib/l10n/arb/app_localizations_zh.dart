@@ -34911,6 +34911,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_saveBackupDialogTitle => '保存备份';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle => '保存潜水记录 CSV';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle => '保存潜水点 CSV';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle => '保存装备 CSV';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle => '保存装备检查记录 CSV';
+
+  @override
   String backup_operation_created(String size) {
     return '已创建备份：$size';
   }

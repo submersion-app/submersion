@@ -36338,6 +36338,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_saveBackupDialogTitle => 'שמירת גיבוי';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle => 'שמירת CSV של הצלילות';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle => 'שמירת CSV של האתרים';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'שמירת CSV של הציוד';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'שמירת קובץ ה-CSV של בדיקות הציוד';
+
+  @override
   String backup_operation_created(String size) {
     return 'נוצר גיבוי: $size';
   }

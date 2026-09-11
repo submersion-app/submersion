@@ -24,7 +24,10 @@ class _StubExportService implements ExportService {
   }
 
   @override
-  Future<String?> saveDivesCsvToFile(List<Dive> dives) async {
+  Future<String?> saveDivesCsvToFile(
+    List<Dive> dives, {
+    required String dialogTitle,
+  }) async {
     calls.add('save:csv');
     return '/tmp/saved_csv';
   }

@@ -92,19 +92,25 @@ void main() {
 
     test('saveDivesCsvToFile returns null when user cancels', () async {
       mockPicker.saveFileResult = null;
-      final result = await service.saveDivesCsvToFile([]);
+      final result = await service.saveDivesCsvToFile([], dialogTitle: 'Save');
       expect(result, isNull);
     });
 
     test('saveSitesCsvToFile returns null when user cancels', () async {
       mockPicker.saveFileResult = null;
-      final result = await service.saveSitesCsvToFile(<DiveSite>[]);
+      final result = await service.saveSitesCsvToFile(
+        <DiveSite>[],
+        dialogTitle: 'Save',
+      );
       expect(result, isNull);
     });
 
     test('saveEquipmentCsvToFile returns null when user cancels', () async {
       mockPicker.saveFileResult = null;
-      final result = await service.saveEquipmentCsvToFile(<EquipmentItem>[]);
+      final result = await service.saveEquipmentCsvToFile(
+        <EquipmentItem>[],
+        dialogTitle: 'Save',
+      );
       expect(result, isNull);
     });
   });

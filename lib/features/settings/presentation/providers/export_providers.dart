@@ -283,6 +283,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
         .getAll(diverId: diverId);
   }
 
+  /// The active diver's dives for a full UDDF export, through the validated
+  /// diver id like its gear and check-ins. [divesProvider] follows the raw
+  /// id, so a stale one (a restore, or a sync that removed the diver) found
+  /// no dives and aborted the export as empty, and any dive list scoped
+  /// apart from the check-ins could leave a check-in's dive out of the file.
+  Future<List<Dive>> _validatedDiverDives() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    return _ref.read(diveRepositoryProvider).getAllDives(diverId: diverId);
+  }
+
   /// Every gear check-in flattened for the Excel sheet and the CSV file:
   /// the item name and type, the dive number when the check-in is on a
   /// dive the export knows, and the observation itself (condition 3a).
@@ -373,7 +383,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveObservationsCsvToFile(rows);
+      final path = await _exportService.saveObservationsCsvToFile(
+        rows,
+        dialogTitle: _l10n.settings_export_saveObservationsCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -552,7 +565,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_uddf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -1060,7 +1073,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveDivesCsvToFile(dives);
+      final path = await _exportService.saveDivesCsvToFile(
+        dives,
+        dialogTitle: _l10n.settings_export_saveDivesCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1102,7 +1118,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveSitesCsvToFile(sites);
+      final path = await _exportService.saveSitesCsvToFile(
+        sites,
+        dialogTitle: _l10n.settings_export_saveSitesCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1147,6 +1166,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveEquipmentCsvToFile(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
       );
 
       if (path == null) {
@@ -1181,7 +1201,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingUddf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,

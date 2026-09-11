@@ -36923,6 +36923,22 @@ class AppLocalizationsHu extends AppLocalizations {
       'Biztonsági mentés mentése';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle =>
+      'Merülések CSV-fájljának mentése';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle =>
+      'Merülőhelyek CSV-fájljának mentése';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Felszerelés CSV-fájljának mentése';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'Felszerelés-ellenőrzések CSV-fájljának mentése';
+
+  @override
   String backup_operation_created(String size) {
     return 'Biztonsági mentés elkészült: $size';
   }
