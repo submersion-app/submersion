@@ -156,7 +156,9 @@ class ChildrenCard extends ConsumerWidget {
     UnitFormatter units,
     EquipmentItem child,
   ) {
-    final installed = child.installedDate;
+    // The date its exposure counts from: the install date, else when the
+    // part was created, as parentDivesFrom reads it.
+    final installed = child.parentDivesFrom;
     if (installed == null) return child.type.localizedName(l10n);
     final now = DateTime.now();
     final days = now.difference(installed).inDays;
