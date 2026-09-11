@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 
 class EquipmentRepository {
   /// Injectable seams mirror [SiteRepository]: tests hand in a coordinator
@@ -473,35 +474,11 @@ class EquipmentRepository {
                       t.componentEquipmentId.equals(id),
                 ))
                 .get();
-        // Cylinders the transmitter registry linked to this item. The schema
-        // sets the link null on delete (v210), but that write reaches no
-        // peer, so the tanks are cleared here and staged like any other
-        // tank edit. Tanks export only through their parent dive's HLC, so
-        // each parent dive is staged too. Before v210 the link had no action
-        // and the delete failed outright.
-        final linkedTanks = await (_db.select(
-          _db.diveTanks,
-        )..where((t) => t.equipmentId.equals(id))).get();
-        if (linkedTanks.isNotEmpty) {
-          await (_db.update(_db.diveTanks)
-                ..where((t) => t.equipmentId.equals(id)))
-              .write(const DiveTanksCompanion(equipmentId: Value(null)));
-          final now = DateTime.now().millisecondsSinceEpoch;
-          for (final tank in linkedTanks) {
-            await _syncRepository.markRecordPending(
-              entityType: 'diveTanks',
-              recordId: tank.id,
-              localUpdatedAt: now,
-            );
-          }
-          for (final diveId in {for (final t in linkedTanks) t.diveId}) {
-            await _syncRepository.markRecordPending(
-              entityType: 'dives',
-              recordId: diveId,
-              localUpdatedAt: now,
-            );
-          }
-        }
+        // Cylinders linked to this item, as their own gear or the regulator
+        // they were breathed from: cleared and staged with their dives.
+        await clearCylinderGearLinks(_db, _syncRepository, [
+          id,
+        ], now: DateTime.now().millisecondsSinceEpoch);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(

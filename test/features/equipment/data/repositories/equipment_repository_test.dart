@@ -528,6 +528,45 @@ void main() {
       });
     });
 
+    test('deleting a regulator a cylinder breathed from stages that tank '
+        'and its dive', () async {
+      // The regulator link already set null on delete (v202); the cleared
+      // tank still has to reach peers through its parent dive.
+      final reg = await repository.createEquipment(
+        createTestEquipment(name: 'Apeks XTX'),
+      );
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+        "VALUES ('d2', 1000, 1000, 1000)",
+      );
+      await db.customStatement(
+        'INSERT INTO dive_tanks (id, dive_id, regulator_equipment_id) '
+        "VALUES ('t3', 'd2', ?)",
+        [reg.id],
+      );
+
+      await repository.deleteEquipment(reg.id);
+
+      final tank = await db
+          .customSelect(
+            "SELECT regulator_equipment_id FROM dive_tanks WHERE id = 't3'",
+          )
+          .getSingle();
+      expect(tank.read<String?>('regulator_equipment_id'), isNull);
+      final pending = await db.select(db.syncRecords).get();
+      expect(
+        pending
+            .where((r) => r.entityType == 'diveTanks')
+            .map((r) => r.recordId),
+        ['t3'],
+      );
+      expect(
+        pending.where((r) => r.entityType == 'dives').map((r) => r.recordId),
+        ['d2'],
+      );
+    });
+
     group('retireEquipment', () {
       test('should mark equipment as inactive', () async {
         final equipment = await repository.createEquipment(
