@@ -783,6 +783,13 @@ final serviceClockStatusesProvider =
     ) async {
       final repository = ref.watch(equipmentRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // The same inputs as the item page's exposure card, so the two never
+      // disagree: install dates and slots live in the attribute table, and
+      // a dive link or profile edit writes no equipment row.
+      ref.invalidateSelfWhen(repository.watchAttributeChanges());
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
       final item = await repository.getEquipmentById(equipmentId);
       if (item == null) return const [];
       return _evaluateClocksFor(ref, item);
@@ -808,6 +815,10 @@ final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Install dates and slots decide which dives a part owns. Rare writes,
+  // unlike the dive detail stream (media ticks it), which would re-evaluate
+  // every item's clocks far too often for a list-wide provider.
+  ref.invalidateSelfWhen(repository.watchAttributeChanges());
 
   final items = await repository.getActiveEquipment(diverId: validatedDiverId);
   final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();

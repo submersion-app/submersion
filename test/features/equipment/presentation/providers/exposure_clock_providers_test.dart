@@ -6,6 +6,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -128,6 +131,85 @@ void main() {
     final status = statuses.firstWhere((s) => s.schedule.id == schedule.id);
     expect(status.usageByUnit[ExposureUnit.cycles]!.since, 1);
   });
+
+  test(
+    'an open clock follows a new dive link and an install-date edit',
+    () async {
+      // The exposure card refreshes on dive detail and attribute writes; the
+      // clocks it explains must too, or the two cards disagree until some
+      // unrelated equipment row changes.
+      final ccr = await EquipmentRepository().createEquipment(
+        EquipmentItem(
+          id: '',
+          name: 'CCR',
+          type: EquipmentType.rebreather,
+          purchaseDate: DateTime(2025, 1, 1),
+        ),
+      );
+      final cell = await EquipmentRepository().createEquipment(
+        EquipmentItem(
+          id: '',
+          name: 'Cell 1',
+          type: EquipmentType.o2Cell,
+          parentEquipmentId: ccr.id,
+          purchaseDate: DateTime(2025, 1, 1),
+        ),
+      );
+      await EquipmentRepository().saveAttributes(cell.id, [
+        EquipmentAttribute.curated(
+          equipmentId: cell.id,
+          key: EquipmentAttrKeys.installedDate,
+          valueNum: DateTime.utc(2026, 6).millisecondsSinceEpoch.toDouble(),
+        ),
+      ]);
+      final scheduleRepo = ServiceScheduleRepository();
+      final schedule = await scheduleRepo.createSchedule(
+        ServiceSchedule(
+          id: '',
+          equipmentId: cell.id,
+          serviceKindId: 'o2-cell-replacement',
+          intervalDives: 50,
+          createdAt: DateTime(2025),
+          updatedAt: DateTime(2025),
+        ),
+      );
+      await coldDive('d1', ccr.id, 20);
+
+      final sub = container.listen(
+        serviceClockStatusesProvider(cell.id),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      Future<double> dives() async =>
+          (await container.read(serviceClockStatusesProvider(cell.id).future))
+              .firstWhere((s) => s.schedule.id == schedule.id)
+              .usageByUnit[ExposureUnit.dives]!
+              .since;
+      Future<double> settle(double want) async {
+        var got = await dives();
+        for (var i = 0; i < 100 && got != want; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          got = await dives();
+        }
+        return got;
+      }
+
+      // Installed in June: the January dive is not the cell's yet.
+      expect(await dives(), 0);
+      await EquipmentRepository().saveAttributes(cell.id, [
+        EquipmentAttribute.curated(
+          equipmentId: cell.id,
+          key: EquipmentAttrKeys.installedDate,
+          valueNum: DateTime.utc(2025, 6).millisecondsSinceEpoch.toDouble(),
+        ),
+      ]);
+      expect(await settle(1), 1);
+
+      // A second dive linked to the unit writes no equipment row.
+      await coldDive('d2', ccr.id, 20);
+      expect(await settle(2), 2);
+    },
+  );
 
   test(
     'changing the cold threshold changes the count on the next read',
