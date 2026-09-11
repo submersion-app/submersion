@@ -11,8 +11,9 @@ class ScrubberMarginInputs extends Equatable {
   /// hours interval times 60, else null (no rating known).
   final double? ratedMinutes;
 
-  /// Loop minutes since [consumedSince] (or ever), CCR and SCR dives
-  /// before the trip start only.
+  /// Loop minutes since [consumedSince], else since the unit's purchase
+  /// or creation date as the clocks engine anchors it (or ever), CCR and
+  /// SCR dives before the trip start only.
   final double consumedMinutes;
 
   /// Where [consumedMinutes] starts: the newest scrubber-repack record on

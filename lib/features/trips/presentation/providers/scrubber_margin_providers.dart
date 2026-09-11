@@ -107,9 +107,19 @@ final tripScrubberMarginsProvider =
         // By calendar day: dives are wall clock in UTC, the trip and
         // service dates local midnights.
         final diveStart = asDiveWallClockDate(start);
-        final repackFrom = baseline == null
+        // Counting starts where the clocks engine anchors the same clock:
+        // the repack baseline, else the purchase date, else when the unit
+        // was added, each only when it is on or before the trip start.
+        // Only a repack baseline changes the card's wording.
+        DateTime? asOfStart(DateTime? d) =>
+            d != null && !d.isAfter(start) ? d : null;
+        final countFrom =
+            baseline ??
+            asOfStart(item.purchaseDate) ??
+            asOfStart(item.createdAt);
+        final repackFrom = countFrom == null
             ? null
-            : asDiveWallClockDate(baseline);
+            : asDiveWallClockDate(countFrom);
         final loopDives = [
           for (final s in inputs?.samples ?? const [])
             if ((s.diveMode == DiveMode.ccr || s.diveMode == DiveMode.scr) &&

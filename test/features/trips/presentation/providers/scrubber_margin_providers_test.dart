@@ -386,6 +386,39 @@ void main() {
     expect(early.consumedSince, isNull);
   });
 
+  test('with no repack or anchor the purchase date is the baseline', () async {
+    // The clocks engine anchors an unrecorded clock on the purchase date
+    // (then the creation date); the margin must count from the same
+    // point, not charge every loop dive before the unit was bought. No
+    // repack is known, so the card still says so.
+    final ccr = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'CCR',
+        type: EquipmentType.rebreather,
+        purchaseDate: DateTime(2026, 3, 1),
+        attributes: const [
+          EquipmentAttribute(
+            id: '',
+            equipmentId: '',
+            key: 'scrubber_duration_h',
+            valueNum: 5,
+          ),
+        ],
+      ),
+    );
+    await db.delete(db.serviceSchedules).go();
+    await ccrDive('feb', DateTime(2026, 2, 10), ccr.id);
+    await ccrDive('mar', DateTime(2026, 3, 10), ccr.id, runtime: 3000);
+
+    final june = await trip('June', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    final m = (await container.read(
+      tripScrubberMarginsProvider(june.id).future,
+    )).single;
+    expect(m.consumedMinutes, 50);
+    expect(m.consumedSince, isNull);
+  });
+
   test('a paused repack clock supplies no rating', () async {
     // With no rated duration on the unit, the rating falls back to its
     // scrubber-repack clock. A paused clock is off for the clocks engine,
