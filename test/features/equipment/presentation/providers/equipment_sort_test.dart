@@ -62,6 +62,37 @@ void main() {
     },
   );
 
+  test(
+    'serviceDue descending reverses urgency: no clock first, overdue last',
+    () {
+      // The service-due branch ranks urgency and due dates before the shared
+      // direction flip, so pin the descending order separately.
+      const overdue = EquipmentItem(
+        id: 'a',
+        name: 'A',
+        type: EquipmentType.tank,
+      );
+      const soon = EquipmentItem(id: 'b', name: 'B', type: EquipmentType.tank);
+      const later = EquipmentItem(id: 'c', name: 'C', type: EquipmentType.tank);
+      const none = EquipmentItem(id: 'd', name: 'D', type: EquipmentType.tank);
+
+      final sorted = applyEquipmentSorting(
+        [soon, overdue, none, later],
+        const SortState(
+          field: EquipmentSortField.serviceDue,
+          direction: SortDirection.descending,
+        ),
+        serviceUrgency: {
+          'a': status('a', ServiceClockSeverity.overdue, DateTime(2025, 6, 1)),
+          'b': status('b', ServiceClockSeverity.dueSoon, DateTime(2026, 2, 1)),
+          'c': status('c', ServiceClockSeverity.dueSoon, DateTime(2026, 3, 1)),
+        },
+      );
+
+      expect(sorted.map((e) => e.id).toList(), ['d', 'c', 'b', 'a']);
+    },
+  );
+
   test('serviceDue breaks ties deterministically by name (empty urgency)', () {
     // No urgency data: every item has equal rank/dueDate, so the comparator
     // must fall back to a stable key or a non-stable List.sort could reorder

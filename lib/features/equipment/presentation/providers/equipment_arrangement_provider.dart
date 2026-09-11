@@ -152,10 +152,9 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
       // caller on a value that is about to be replaced.
       if (seq > (_bestRead?.seq ?? 0)) _bestRead = (seq: seq, stored: stored);
     } catch (e, stackTrace) {
-      // The repository logs and swallows its own read errors, so this only
-      // fires when the read could not be attempted at all. Keep the defaults
-      // rather than failing: the diver falls back to the default arrangement,
-      // which is a far better outcome than a gear list that will not render.
+      // The repository rethrows a read that fails (and logs it), as distinct
+      // from returning null for "nothing usable stored". Keep what is loaded
+      // rather than failing: a gear list that will not render is far worse.
       // "Could not read" decides nothing, so a failed read leaves no
       // candidate and never supersedes another read.
       _log.error(

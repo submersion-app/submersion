@@ -164,31 +164,49 @@ class AppSettingsRepository {
 
   /// How gear lists on a dive are grouped and ordered (#1486, #1576).
   ///
-  /// Returns null when the key has never been written, when the stored value
-  /// is not a JSON object, or on read error. All three mean the same thing to
-  /// the caller: use `EquipmentArrangement.defaults`. Read errors are
-  /// swallowed here rather than thrown, matching every other read in this
-  /// class, which is what keeps the preference resolvable during the
-  /// null-database window of a restore.
+  /// Returns null when no usable value is stored: the key has never been
+  /// written, or the stored value is not a JSON object. Both mean the same
+  /// thing to the caller, use `EquipmentArrangement.defaults`, which is what
+  /// a fresh launch would show.
+  ///
+  /// A read that FAILS (the database is unavailable, as in the null-database
+  /// window of a restore, or the query errors) is different and rethrows,
+  /// unlike the other reads in this class. Reporting it as null would tell
+  /// the arrangement notifier "nothing is stored", so one transient error
+  /// would reset a diver's customized arrangement to the defaults, and the
+  /// next edit would save the defaults over the real value. The notifier
+  /// treats a throw as "could not read" and keeps what it has; the PDF
+  /// export falls back to the defaults itself.
   Future<EquipmentArrangement?> getEquipmentArrangement() async {
+    final String? raw;
     try {
       final row =
           await (_db.select(_db.settings)
                 ..where((t) => t.key.equals(_equipmentArrangementKey)))
               .getSingleOrNull();
-      final raw = row?.value;
-      if (raw == null) return null;
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic>) return null;
-      return EquipmentArrangement.fromJson(decoded);
+      raw = row?.value;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to read $_equipmentArrangementKey',
         error: e,
         stackTrace: stackTrace,
       );
+      rethrow;
+    }
+    if (raw == null) return null;
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(raw);
+    } on FormatException catch (e, stackTrace) {
+      _log.error(
+        'Stored $_equipmentArrangementKey is not valid JSON',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
+    if (decoded is! Map<String, dynamic>) return null;
+    return EquipmentArrangement.fromJson(decoded);
   }
 
   /// Persist the gear arrangement. Rethrows so a failed save is visible,
