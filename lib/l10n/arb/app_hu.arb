@@ -6409,7 +6409,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(a legutóbbi {n} CCR-merülésed alapján)",
+  "trips_scrubber_fromDives": "(a legutóbbi {n} visszalélegeztetős merülésed alapján)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

@@ -6409,7 +6409,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(d'après vos {n} dernières plongées CCR)",
+  "trips_scrubber_fromDives": "(d'après vos {n} dernières plongées en recycleur)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

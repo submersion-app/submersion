@@ -6405,7 +6405,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(dalle tue ultime {n} immersioni CCR)",
+  "trips_scrubber_fromDives": "(dalle tue ultime {n} immersioni in rebreather)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

@@ -6493,7 +6493,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(aus deinen letzten {n} CCR-Tauchgängen)",
+  "trips_scrubber_fromDives": "(aus deinen letzten {n} Rebreather-Tauchgängen)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

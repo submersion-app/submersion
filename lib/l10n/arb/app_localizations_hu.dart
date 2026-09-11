@@ -21671,7 +21671,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(a legutóbbi $n CCR-merülésed alapján)';
+    return '(a legutóbbi $n visszalélegeztetős merülésed alapján)';
   }
 
   @override

@@ -16,7 +16,9 @@ String _minutes(double value) =>
     (value < 0 ? value.floor() : value.round()).toString();
 
 /// The banner's one-line summary: the lowest margin, or the count when
-/// the diver has several rebreathers. Null when nothing has a rating.
+/// the diver has several rebreathers. The lowest comes from the rated
+/// units; the count names them all, as the card shows a block for each.
+/// Null when nothing has a rating.
 String? tripScrubberMarginSummary(
   AppLocalizations l10n,
   List<ScrubberMargin> margins,
@@ -25,9 +27,9 @@ String? tripScrubberMarginSummary(
   if (rated.isEmpty) return null;
   rated.sort((a, b) => a.marginAfter!.compareTo(b.marginAfter!));
   final lowest = _minutes(rated.first.marginAfter!);
-  return rated.length == 1
+  return margins.length == 1
       ? l10n.trips_scrubber_bannerMargin(lowest)
-      : l10n.trips_scrubber_bannerCount(rated.length, lowest);
+      : l10n.trips_scrubber_bannerCount(margins.length, lowest);
 }
 
 /// The scrubber margin card on a trip: one block per active rebreather

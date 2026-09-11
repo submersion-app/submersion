@@ -21553,7 +21553,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(uit je laatste $n CCR-duiken)';
+    return '(uit je laatste $n rebreatherduiken)';
   }
 
   @override

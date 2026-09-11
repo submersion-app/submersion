@@ -12941,7 +12941,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(from your last {n} CCR dives)",
+  "trips_scrubber_fromDives": "(from your last {n} rebreather dives)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

@@ -21179,7 +21179,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(לפי $n צלילות ה-CCR האחרונות שלך)';
+    return '(לפי $n צלילות הריברידר האחרונות שלך)';
   }
 
   @override

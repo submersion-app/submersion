@@ -35735,7 +35735,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_scrubber_fromDives.
   ///
   /// In en, this message translates to:
-  /// **'(from your last {n} CCR dives)'**
+  /// **'(from your last {n} rebreather dives)'**
   String trips_scrubber_fromDives(int n);
 
   /// No description provided for @trips_scrubber_expectedUse.

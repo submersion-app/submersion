@@ -102,7 +102,8 @@ void main() {
     );
     expect(find.text('10 expected dives (set on this trip)'), findsOneWidget);
     expect(
-      find.text('35 min per dive (from your last 2 CCR dives)'),
+      // Loop history includes SCR dives, so the source says rebreather.
+      find.text('35 min per dive (from your last 2 rebreather dives)'),
       findsOneWidget,
     );
     expect(find.text('350 min expected use'), findsOneWidget);
@@ -249,5 +250,15 @@ void main() {
     expect(find.text('10 expected dives'), findsOneWidget);
     expect(find.textContaining('set on this trip'), findsNothing);
     expect(find.textContaining('from your last'), findsNothing);
+  });
+
+  test('the banner counts every rebreather, rated or not', () {
+    // The lowest margin comes from the rated units, but the count names
+    // all of them: the card beneath shows a block for each.
+    final summary = tripScrubberMarginSummary(AppLocalizationsEn(), [
+      margin(marginAfter: 40, caution: false),
+      margin(rated: null, marginAfter: null, caution: false),
+    ]);
+    expect(summary, '2 rebreathers, lowest 40 min scrubber margin');
   });
 }

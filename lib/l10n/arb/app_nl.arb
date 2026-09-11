@@ -6493,7 +6493,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(uit je laatste {n} CCR-duiken)",
+  "trips_scrubber_fromDives": "(uit je laatste {n} rebreatherduiken)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

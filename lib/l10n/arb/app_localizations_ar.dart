@@ -21337,7 +21337,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(من آخر $n غطسات دائرة مغلقة لك)';
+    return '(من آخر $n غطسات بجهاز إعادة التنفس لك)';
   }
 
   @override

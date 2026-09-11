@@ -20605,7 +20605,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '（根据您最近 $n 次 CCR 潜水）';
+    return '（根据您最近 $n 次循环呼吸器潜水）';
   }
 
   @override

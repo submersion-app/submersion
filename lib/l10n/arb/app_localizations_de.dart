@@ -21684,7 +21684,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(aus deinen letzten $n CCR-Tauchgängen)';
+    return '(aus deinen letzten $n Rebreather-Tauchgängen)';
   }
 
   @override

@@ -6679,7 +6679,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "（根据您最近 {n} 次 CCR 潜水）",
+  "trips_scrubber_fromDives": "（根据您最近 {n} 次循环呼吸器潜水）",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

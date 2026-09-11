@@ -6493,7 +6493,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(לפי {n} צלילות ה-CCR האחרונות שלך)",
+  "trips_scrubber_fromDives": "(לפי {n} צלילות הריברידר האחרונות שלך)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

@@ -6493,7 +6493,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(من آخر {n} غطسات دائرة مغلقة لك)",
+  "trips_scrubber_fromDives": "(من آخر {n} غطسات بجهاز إعادة التنفس لك)",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {
