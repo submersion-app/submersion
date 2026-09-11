@@ -90,10 +90,13 @@ String conditionInputFingerprint({
   return sha1.convert(utf8.encode(canonical)).toString();
 }
 
-/// What the engine reads off an item beyond its id: the type, the cell
-/// slot, and the install date with the creation date it falls back to.
+/// What the engine reads off an item beyond its id: the type, whether it
+/// is still fitted (a retired cell's slot ends at its successor), the
+/// cell slot, and the install date with the creation date it falls back
+/// to.
 String _configOf(EquipmentItem e) => [
   e.type.name,
+  e.isActive,
   e.attrNum(EquipmentAttrKeys.cellSlot),
   e.installedDate?.millisecondsSinceEpoch,
   e.createdAt?.millisecondsSinceEpoch,

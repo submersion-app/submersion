@@ -171,6 +171,8 @@ void main() {
 
     test('a child: type and slot', () {
       final base = fp();
+      // Retiring a cell changes who occupies its slot.
+      expect(fp(c: [child.copyWith(isActive: false)]), isNot(base));
       expect(fp(c: [withSlot(child, 2)]), isNot(base));
       expect(fp(c: [child.copyWith(type: EquipmentType.battery)]), isNot(base));
     });
