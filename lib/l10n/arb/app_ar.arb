@@ -5765,6 +5765,7 @@
   "statistics_equipment_exposure_empty": "لا توجد غطسات بمعدات بعد",
   "statistics_equipment_findings_title": "نتائج الحالة",
   "statistics_equipment_findings_subtitle": "النتائج المفتوحة حسب القاعدة",
+  "statistics_equipment_findings_subtitleAllDives": "النتائج المفتوحة حسب القاعدة، عبر جميع الغطسات",
   "statistics_equipment_findings_empty": "لا توجد نتائج مفتوحة",
   "statistics_equipment_issues_title": "المشكلات المبلّغ عنها",
   "statistics_equipment_issues_subtitle": "أكثر وسوم الفحص تكرارًا",
@@ -6444,7 +6445,7 @@
   "trips_edit_label_expectedDives": "الغطسات المتوقعة",
   "trips_edit_hint_expectedDives": "اتركه فارغًا للتقدير من رحلاتك الأخيرة",
   "trips_edit_label_expectedRuntime": "مدة التشغيل المتوقعة لكل غطسة (بالدقائق)",
-  "trips_edit_hint_expectedRuntime": "اتركه فارغًا للتقدير من غطسات الدائرة المغلقة الأخيرة",
+  "trips_edit_hint_expectedRuntime": "اتركه فارغًا للتقدير من غطساتك الأخيرة بجهاز إعادة التنفس",
   "trips_scrubber_title": "هامش المنظّف",
   "trips_scrubber_asOfStart": "حتى {date}",
   "@trips_scrubber_asOfStart": {

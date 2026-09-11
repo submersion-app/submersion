@@ -14,7 +14,21 @@ import 'package:submersion/features/equipment/presentation/utils/condition_findi
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// The ids of the dives the statistics filter keeps, or null when no
+/// filter is on. The exposure and reported-issue rankings narrow to it;
+/// the findings ranking cannot, since a finding is the gear's state now
+/// rather than a set of dives, and the page says so under the filter.
+final statisticsFilteredDiveIdsProvider = FutureProvider<Set<String>?>((
+  ref,
+) async {
+  final filter = ref.watch(statisticsFilterProvider);
+  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
+  return ref.watch(statisticsRepositoryProvider).filteredDiveIds(filter);
+});
 
 /// The unit the exposure ranking card is showing.
 final exposureRankingUnitProvider = StateProvider<ExposureUnit>(
@@ -52,12 +66,21 @@ final exposureRankingProvider =
           ref.watch(equipmentExposureInputsProvider(item.id).future),
       ];
       final loaded = await Future.wait(pending);
+      final keep = await ref.watch(statisticsFilteredDiveIdsProvider.future);
       final out = <RankingItem>[];
       for (final (index, item) in items.indexed) {
         final inputs = loaded[index];
-        if (inputs == null || inputs.samples.isEmpty) continue;
+        if (inputs == null) continue;
+        // The page's filter narrows this card like every other one on it.
+        final samples = keep == null
+            ? inputs.samples
+            : [
+                for (final sample in inputs.samples)
+                  if (keep.contains(sample.diveId)) sample,
+              ];
+        if (samples.isEmpty) continue;
         var total = 0.0;
-        for (final sample in inputs.samples) {
+        for (final sample in samples) {
           total += inputs.classifier.contribution(sample, unit);
         }
         // Filter on what the row will SHOW, not on the raw total: a tenth of
@@ -72,9 +95,7 @@ final exposureRankingProvider =
             name: item.name,
             count: count,
             value: total,
-            subtitle: l10n.equipmentCondition_exposure_dives(
-              inputs.samples.length,
-            ),
+            subtitle: l10n.equipmentCondition_exposure_dives(samples.length),
           ),
         );
       }
@@ -133,9 +154,13 @@ final issueTagRankingProvider =
       ref.invalidateSelfWhen(observations.watchChanges());
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final l10n = lookupAppLocalizations(locale);
+      final keep = await ref.watch(statisticsFilteredDiveIdsProvider.future);
       final counts = <ObservationTag, int>{};
       for (final o in await observations.getAll(diverId: diverId)) {
         if (o.status != ObservationStatus.issue) continue;
+        // Under the page filter only check-ins on the dives it keeps
+        // count; a bench check-in belongs to no dive, so none keeps it.
+        if (keep != null && !keep.contains(o.diveId)) continue;
         for (final tag in o.issueTags) {
           counts[tag] = (counts[tag] ?? 0) + 1;
         }

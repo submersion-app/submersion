@@ -18131,6 +18131,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_equipment_findings_subtitle => '按规则统计的未处理发现';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      '按规则统计的未处理发现（涵盖所有潜水）';
+
+  @override
   String get statistics_equipment_findings_empty => '没有未处理的发现';
 
   @override
@@ -20566,7 +20570,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_label_expectedRuntime => '每次潜水预计运行时间（分钟）';
 
   @override
-  String get trips_edit_hint_expectedRuntime => '留空则根据近期 CCR 潜水估算';
+  String get trips_edit_hint_expectedRuntime => '留空则根据近期循环呼吸器潜水估算';
 
   @override
   String get trips_scrubber_title => '吸收剂余量';

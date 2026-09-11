@@ -31536,6 +31536,12 @@ abstract class AppLocalizations {
   /// **'Open findings by rule'**
   String get statistics_equipment_findings_subtitle;
 
+  /// No description provided for @statistics_equipment_findings_subtitleAllDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Open findings by rule, across all dives'**
+  String get statistics_equipment_findings_subtitleAllDives;
+
   /// No description provided for @statistics_equipment_findings_empty.
   ///
   /// In en, this message translates to:
@@ -35683,7 +35689,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_edit_hint_expectedRuntime.
   ///
   /// In en, this message translates to:
-  /// **'Leave empty to estimate from your recent CCR dives'**
+  /// **'Leave empty to estimate from your recent rebreather dives'**
   String get trips_edit_hint_expectedRuntime;
 
   /// No description provided for @trips_scrubber_title.

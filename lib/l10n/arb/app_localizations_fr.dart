@@ -19191,6 +19191,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Constats ouverts par règle';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Constats ouverts par règle, sur toutes les plongées';
+
+  @override
   String get statistics_equipment_findings_empty => 'Aucun constat ouvert';
 
   @override
@@ -21789,7 +21793,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'Laisser vide pour estimer d\'après vos plongées CCR récentes';
+      'Laisser vide pour estimer d\'après vos plongées en recycleur récentes';
 
   @override
   String get trips_scrubber_title => 'Marge de chaux';

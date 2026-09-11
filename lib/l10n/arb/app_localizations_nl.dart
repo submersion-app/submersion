@@ -18952,6 +18952,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Open bevindingen per regel';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Open bevindingen per regel, over alle duiken';
+
+  @override
   String get statistics_equipment_findings_empty => 'Geen open bevindingen';
 
   @override
@@ -21514,7 +21518,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'Laat leeg om te schatten op basis van je recente CCR-duiken';
+      'Laat leeg om te schatten op basis van je recente rebreatherduiken';
 
   @override
   String get trips_scrubber_title => 'Scrubbermarge';

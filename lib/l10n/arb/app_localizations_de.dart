@@ -19077,6 +19077,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Offene Befunde je Regel';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Offene Befunde je Regel, über alle Tauchgänge';
+
+  @override
   String get statistics_equipment_findings_empty => 'Keine offenen Befunde';
 
   @override
@@ -21645,7 +21649,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'Leer lassen, um aus deinen letzten CCR-Tauchgängen zu schätzen';
+      'Leer lassen, um aus deinen letzten Rebreather-Tauchgängen zu schätzen';
 
   @override
   String get trips_scrubber_title => 'Atemkalkreserve';

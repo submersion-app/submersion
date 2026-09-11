@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
 import 'package:submersion/features/statistics/presentation/providers/equipment_condition_statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -28,6 +30,7 @@ void main() {
     WidgetTester tester, {
     bool failRankings = false,
     Locale locale = const Locale('en'),
+    DiveFilterState? filter,
   }) async {
     askedLocales.clear();
     final overrides = await getBaseOverrides();
@@ -35,6 +38,8 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
+          if (filter != null)
+            statisticsFilterProvider.overrideWith((ref) => filter),
           exposureRankingProvider.overrideWith(
             (ref, locale) async => failRankings
                 ? throw StateError('no db')
@@ -114,6 +119,31 @@ void main() {
     await pumpPage(tester, locale: const Locale('de'));
     expect(askedLocales, isNotEmpty);
     expect(askedLocales.toSet(), {const Locale('de')});
+  });
+
+  testWidgets('under a filter the findings card says it spans all dives', (
+    tester,
+  ) async {
+    // Exposure and reported issues narrow to the filter; findings are the
+    // gear's state now, so the card says plainly that the filter does not
+    // narrow it.
+    await pumpPage(
+      tester,
+      filter: DiveFilterState(startDate: DateTime(2026, 1, 1)),
+    );
+    expect(
+      find.text('Open findings by rule, across all dives'),
+      findsOneWidget,
+    );
+    expect(find.text('Open findings by rule'), findsNothing);
+  });
+
+  testWidgets('with no filter the findings card keeps its plain subtitle', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    expect(find.text('Open findings by rule'), findsOneWidget);
+    expect(find.text('Open findings by rule, across all dives'), findsNothing);
   });
 
   testWidgets('shows the three condition rankings', (tester) async {

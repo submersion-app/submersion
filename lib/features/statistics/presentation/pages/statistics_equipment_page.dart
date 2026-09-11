@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/providers/equipment_condition_statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
@@ -150,7 +151,11 @@ class StatisticsEquipmentPage extends ConsumerWidget {
       context,
       ref.watch(findingsByRuleProvider(Localizations.localeOf(context))),
       title: l10n.statistics_equipment_findings_title,
-      subtitle: l10n.statistics_equipment_findings_subtitle,
+      // A finding is the gear's state now, not a set of dives, so the
+      // filter that narrows the other cards cannot narrow this one.
+      subtitle: ref.watch(statisticsFilterProvider).hasActiveFilters
+          ? l10n.statistics_equipment_findings_subtitleAllDives
+          : l10n.statistics_equipment_findings_subtitle,
       countLabel: l10n.statistics_equipment_countLabel_findings,
       empty: l10n.statistics_equipment_findings_empty,
       error: l10n.statistics_equipment_findings_error,

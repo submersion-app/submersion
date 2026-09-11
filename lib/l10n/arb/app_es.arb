@@ -5765,6 +5765,7 @@
   "statistics_equipment_exposure_empty": "Aún no hay inmersiones con equipo",
   "statistics_equipment_findings_title": "Hallazgos de estado",
   "statistics_equipment_findings_subtitle": "Hallazgos abiertos por regla",
+  "statistics_equipment_findings_subtitleAllDives": "Hallazgos abiertos por regla, en todas las inmersiones",
   "statistics_equipment_findings_empty": "No hay hallazgos abiertos",
   "statistics_equipment_issues_title": "Problemas registrados",
   "statistics_equipment_issues_subtitle": "Etiquetas de revisión más frecuentes",
@@ -6444,7 +6445,7 @@
   "trips_edit_label_expectedDives": "Inmersiones previstas",
   "trips_edit_hint_expectedDives": "Déjalo vacío para estimar a partir de tus viajes recientes",
   "trips_edit_label_expectedRuntime": "Duración prevista por inmersión (minutos)",
-  "trips_edit_hint_expectedRuntime": "Déjalo vacío para estimar a partir de tus inmersiones CCR recientes",
+  "trips_edit_hint_expectedRuntime": "Déjalo vacío para estimar a partir de tus inmersiones con rebreather recientes",
   "trips_scrubber_title": "Margen del absorbente",
   "trips_scrubber_asOfStart": "a fecha de {date}",
   "@trips_scrubber_asOfStart": {

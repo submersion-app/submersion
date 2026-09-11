@@ -18768,6 +18768,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'النتائج المفتوحة حسب القاعدة';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'النتائج المفتوحة حسب القاعدة، عبر جميع الغطسات';
+
+  @override
   String get statistics_equipment_findings_empty => 'لا توجد نتائج مفتوحة';
 
   @override
@@ -21298,7 +21302,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'اتركه فارغًا للتقدير من غطسات الدائرة المغلقة الأخيرة';
+      'اتركه فارغًا للتقدير من غطساتك الأخيرة بجهاز إعادة التنفس';
 
   @override
   String get trips_scrubber_title => 'هامش المنظّف';

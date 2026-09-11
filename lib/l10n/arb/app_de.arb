@@ -5765,6 +5765,7 @@
   "statistics_equipment_exposure_empty": "Noch keine Tauchgänge mit Ausrüstung",
   "statistics_equipment_findings_title": "Zustandsbefunde",
   "statistics_equipment_findings_subtitle": "Offene Befunde je Regel",
+  "statistics_equipment_findings_subtitleAllDives": "Offene Befunde je Regel, über alle Tauchgänge",
   "statistics_equipment_findings_empty": "Keine offenen Befunde",
   "statistics_equipment_issues_title": "Gemeldete Probleme",
   "statistics_equipment_issues_subtitle": "Häufigste Check-in-Tags",
@@ -6444,7 +6445,7 @@
   "trips_edit_label_expectedDives": "Erwartete Tauchgänge",
   "trips_edit_hint_expectedDives": "Leer lassen, um aus deinen letzten Reisen zu schätzen",
   "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
-  "trips_edit_hint_expectedRuntime": "Leer lassen, um aus deinen letzten CCR-Tauchgängen zu schätzen",
+  "trips_edit_hint_expectedRuntime": "Leer lassen, um aus deinen letzten Rebreather-Tauchgängen zu schätzen",
   "trips_scrubber_title": "Atemkalkreserve",
   "trips_scrubber_asOfStart": "Stand {date}",
   "@trips_scrubber_asOfStart": {

@@ -19053,6 +19053,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nyitott megállapítások szabályonként';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Nyitott megállapítások szabályonként, az összes merülésre';
+
+  @override
   String get statistics_equipment_findings_empty =>
       'Nincs nyitott megállapítás';
 
@@ -21632,7 +21636,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'Hagyd üresen, hogy a legutóbbi CCR-merüléseidből becsüljük';
+      'Hagyd üresen, hogy a legutóbbi visszalélegeztetős merüléseidből becsüljük';
 
   @override
   String get trips_scrubber_title => 'Szűrőtartalék';

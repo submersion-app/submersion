@@ -14,7 +14,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/presentation/providers/equipment_condition_statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -259,5 +261,53 @@ void main() {
       ).equipmentObservation_tag_freeFlow,
     );
     expect(german.first.name, isNot('Free flow'));
+  });
+
+  group('with the statistics filter on', () {
+    // The page's filter bar scopes every other card; the exposure and
+    // reported-issue rankings follow it, so the page never mixes totals
+    // over different dives.
+    setUp(() {
+      container.read(statisticsFilterProvider.notifier).state = DiveFilterState(
+        startDate: DateTime(2026, 1, 2),
+        endDate: DateTime(2026, 1, 4),
+      );
+    });
+
+    test('exposure counts only the dives the filter keeps', () async {
+      final ranking = await container.read(exposureRankingProvider(en).future);
+      // Reg keeps r2 and r3 (two hours); BCD keeps b1 (one hour).
+      expect(ranking.map((r) => '${r.id}:${r.count}'), [
+        '${reg.id}:2',
+        '${bcd.id}:1',
+      ]);
+    });
+
+    test('reported issues count only check-ins on those dives', () async {
+      final observations = EquipmentObservationRepository();
+      await observations.create(
+        equipmentId: reg.id,
+        diveId: 'r1',
+        observedAt: DateTime(2026, 1, 1),
+        status: ObservationStatus.issue,
+        issueTags: const [ObservationTag.freeFlow],
+      );
+      await observations.create(
+        equipmentId: reg.id,
+        diveId: 'r2',
+        observedAt: DateTime(2026, 1, 2),
+        status: ObservationStatus.issue,
+        issueTags: const [ObservationTag.leak],
+      );
+      // A bench check-in belongs to no dive, so no dive filter keeps it.
+      await observations.create(
+        equipmentId: reg.id,
+        observedAt: DateTime(2026, 1, 3),
+        status: ObservationStatus.issue,
+        issueTags: const [ObservationTag.hoseDamage],
+      );
+      final ranking = await container.read(issueTagRankingProvider(en).future);
+      expect(ranking.map((r) => r.id), ['leak']);
+    });
   });
 }

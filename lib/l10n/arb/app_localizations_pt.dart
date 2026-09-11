@@ -19118,6 +19118,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Constatações abertas por regra';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Constatações abertas por regra, em todos os mergulhos';
+
+  @override
   String get statistics_equipment_findings_empty => 'Sem constatações abertas';
 
   @override
@@ -21703,7 +21707,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'Deixe vazio para estimar a partir dos seus mergulhos CCR recentes';
+      'Deixe vazio para estimar a partir dos seus mergulhos com rebreather recentes';
 
   @override
   String get trips_scrubber_title => 'Margem do absorvente';

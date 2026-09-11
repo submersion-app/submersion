@@ -5677,6 +5677,7 @@
   "statistics_equipment_exposure_empty": "Ancora nessuna immersione con attrezzatura",
   "statistics_equipment_findings_title": "Rilievi sullo stato",
   "statistics_equipment_findings_subtitle": "Rilievi aperti per regola",
+  "statistics_equipment_findings_subtitleAllDives": "Rilievi aperti per regola, su tutte le immersioni",
   "statistics_equipment_findings_empty": "Nessun rilievo aperto",
   "statistics_equipment_issues_title": "Problemi segnalati",
   "statistics_equipment_issues_subtitle": "Tag di controllo più frequenti",
@@ -6356,7 +6357,7 @@
   "trips_edit_label_expectedDives": "Immersioni previste",
   "trips_edit_hint_expectedDives": "Lascia vuoto per stimare dai tuoi viaggi recenti",
   "trips_edit_label_expectedRuntime": "Durata prevista per immersione (minuti)",
-  "trips_edit_hint_expectedRuntime": "Lascia vuoto per stimare dalle tue immersioni CCR recenti",
+  "trips_edit_hint_expectedRuntime": "Lascia vuoto per stimare dalle tue immersioni in rebreather recenti",
   "trips_scrubber_title": "Margine della calce",
   "trips_scrubber_asOfStart": "al {date}",
   "@trips_scrubber_asOfStart": {

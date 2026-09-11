@@ -18625,6 +18625,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get statistics_equipment_findings_subtitle => 'ממצאים פתוחים לפי כלל';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'ממצאים פתוחים לפי כלל, בכל הצלילות';
+
+  @override
   String get statistics_equipment_findings_empty => 'אין ממצאים פתוחים';
 
   @override
@@ -21140,7 +21144,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'השאר ריק כדי להעריך מצלילות ה-CCR האחרונות שלך';
+      'השאר ריק כדי להעריך מצלילות הריברידר האחרונות שלך';
 
   @override
   String get trips_scrubber_title => 'מרווח הסופג';

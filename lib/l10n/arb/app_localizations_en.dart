@@ -18784,6 +18784,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statistics_equipment_findings_subtitle => 'Open findings by rule';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Open findings by rule, across all dives';
+
+  @override
   String get statistics_equipment_findings_empty => 'No open findings';
 
   @override
@@ -21318,7 +21322,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'Leave empty to estimate from your recent CCR dives';
+      'Leave empty to estimate from your recent rebreather dives';
 
   @override
   String get trips_scrubber_title => 'Scrubber margin';

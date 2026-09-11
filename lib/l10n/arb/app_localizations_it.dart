@@ -19107,6 +19107,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rilievi aperti per regola';
 
   @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Rilievi aperti per regola, su tutte le immersioni';
+
+  @override
   String get statistics_equipment_findings_empty => 'Nessun rilievo aperto';
 
   @override
@@ -21695,7 +21699,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trips_edit_hint_expectedRuntime =>
-      'Lascia vuoto per stimare dalle tue immersioni CCR recenti';
+      'Lascia vuoto per stimare dalle tue immersioni in rebreather recenti';
 
   @override
   String get trips_scrubber_title => 'Margine della calce';

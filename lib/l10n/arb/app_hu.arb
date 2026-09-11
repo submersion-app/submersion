@@ -5681,6 +5681,7 @@
   "statistics_equipment_exposure_empty": "Még nincs merülés felszereléssel",
   "statistics_equipment_findings_title": "Állapotmegállapítások",
   "statistics_equipment_findings_subtitle": "Nyitott megállapítások szabályonként",
+  "statistics_equipment_findings_subtitleAllDives": "Nyitott megállapítások szabályonként, az összes merülésre",
   "statistics_equipment_findings_empty": "Nincs nyitott megállapítás",
   "statistics_equipment_issues_title": "Bejelentett problémák",
   "statistics_equipment_issues_subtitle": "Leggyakoribb ellenőrzési címkék",
@@ -6360,7 +6361,7 @@
   "trips_edit_label_expectedDives": "Várható merülések",
   "trips_edit_hint_expectedDives": "Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük",
   "trips_edit_label_expectedRuntime": "Várható futásidő merülésenként (perc)",
-  "trips_edit_hint_expectedRuntime": "Hagyd üresen, hogy a legutóbbi CCR-merüléseidből becsüljük",
+  "trips_edit_hint_expectedRuntime": "Hagyd üresen, hogy a legutóbbi visszalélegeztetős merüléseidből becsüljük",
   "trips_scrubber_title": "Szűrőtartalék",
   "trips_scrubber_asOfStart": "{date} állapot szerint",
   "@trips_scrubber_asOfStart": {

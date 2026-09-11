@@ -216,6 +216,23 @@ class StatisticsRepository {
     );
   }
 
+  /// The ids of the dives [filter] keeps, or null when it keeps them all.
+  /// For the cards that aggregate from their own sources (the condition
+  /// rankings) and narrow them to the filter afterwards. The view filter
+  /// only: DiveStatsScope is left to the caller, since gear exposure counts
+  /// every dive the gear made.
+  Future<Set<String>?> filteredDiveIds(DiveFilterState filter) async {
+    final f = buildFilteredDiveIdSubquery(filter);
+    if (f.subquery.isEmpty) return null;
+    final rows = await _db
+        .customSelect(
+          f.subquery,
+          variables: f.params.map((p) => Variable(p)).toList(),
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('id')};
+  }
+
   // ============================================================================
   // Gas Statistics
   // ============================================================================

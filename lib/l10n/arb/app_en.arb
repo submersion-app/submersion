@@ -11377,6 +11377,7 @@
   "statistics_equipment_exposure_empty": "No dives with gear yet",
   "statistics_equipment_findings_title": "Condition findings",
   "statistics_equipment_findings_subtitle": "Open findings by rule",
+  "statistics_equipment_findings_subtitleAllDives": "Open findings by rule, across all dives",
   "statistics_equipment_findings_empty": "No open findings",
   "statistics_equipment_issues_title": "Reported issues",
   "statistics_equipment_issues_subtitle": "Most frequent check-in tags",
@@ -12892,7 +12893,7 @@
   "trips_edit_label_expectedDives": "Expected dives",
   "trips_edit_hint_expectedDives": "Leave empty to estimate from your recent trips",
   "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
-  "trips_edit_hint_expectedRuntime": "Leave empty to estimate from your recent CCR dives",
+  "trips_edit_hint_expectedRuntime": "Leave empty to estimate from your recent rebreather dives",
   "trips_scrubber_title": "Scrubber margin",
   "trips_scrubber_asOfStart": "as of {date}",
   "@trips_scrubber_asOfStart": {
