@@ -162,7 +162,8 @@ class FindingEvidence extends Equatable {
             }
           : const {},
       tag: raw['tag'] is String ? raw['tag'] as String : null,
-      slot: slot is num ? slot.toInt() : null,
+      // Finite only: 1e400 parses as infinity, which toInt() refuses.
+      slot: slot is num && slot.isFinite ? slot.toInt() : null,
     );
   }
 
