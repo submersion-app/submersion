@@ -81,6 +81,11 @@ class EquipmentObservation extends Equatable {
   final DateTime observedAt;
   final ObservationStatus status;
   final List<ObservationTag> issueTags;
+
+  /// Stored tag names this build does not know, written by a newer peer.
+  /// They cannot be shown, but an edit here writes them back: dropping
+  /// them would delete them on every device, the newer one included.
+  final List<String> unrecognizedTags;
   final String note;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -93,6 +98,7 @@ class EquipmentObservation extends Equatable {
     required this.observedAt,
     required this.status,
     this.issueTags = const [],
+    this.unrecognizedTags = const [],
     this.note = '',
     required this.createdAt,
     required this.updatedAt,
@@ -109,6 +115,7 @@ class EquipmentObservation extends Equatable {
     DateTime? observedAt,
     ObservationStatus? status,
     List<ObservationTag>? issueTags,
+    List<String>? unrecognizedTags,
     String? note,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -120,6 +127,7 @@ class EquipmentObservation extends Equatable {
     observedAt: observedAt ?? this.observedAt,
     status: status ?? this.status,
     issueTags: issueTags ?? this.issueTags,
+    unrecognizedTags: unrecognizedTags ?? this.unrecognizedTags,
     note: note ?? this.note,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -134,18 +142,34 @@ class EquipmentObservation extends Equatable {
     observedAt,
     status,
     issueTags,
+    unrecognizedTags,
     note,
     createdAt,
     updatedAt,
   ];
 }
 
-String encodeObservationTags(List<ObservationTag> tags) =>
-    jsonEncode([for (final t in tags) t.dbValue]);
+/// [tags] then [unrecognized], the names a newer peer wrote that this
+/// build carries through unread.
+String encodeObservationTags(
+  List<ObservationTag> tags, {
+  List<String> unrecognized = const [],
+}) => jsonEncode([for (final t in tags) t.dbValue, ...unrecognized]);
 
 /// Lenient: the column defaults to `[]`, and a tag a newer build added must
-/// not make the row unreadable. Unknown names are dropped.
-List<ObservationTag> decodeObservationTags(String json) {
+/// not make the row unreadable. Unknown names are dropped here; read them
+/// with [decodeUnrecognizedObservationTags].
+List<ObservationTag> decodeObservationTags(String json) => [
+  for (final name in _tagNames(json)) ?ObservationTag.fromDbValue(name),
+];
+
+/// The stored names [decodeObservationTags] drops, in stored order.
+List<String> decodeUnrecognizedObservationTags(String json) => [
+  for (final name in _tagNames(json))
+    if (ObservationTag.fromDbValue(name) == null) name,
+];
+
+List<String> _tagNames(String json) {
   if (json.isEmpty) return const [];
   final Object? raw;
   try {
@@ -156,6 +180,6 @@ List<ObservationTag> decodeObservationTags(String json) {
   if (raw is! List) return const [];
   return [
     for (final entry in raw)
-      if (entry is String) ?ObservationTag.fromDbValue(entry),
+      if (entry is String) entry,
   ];
 }

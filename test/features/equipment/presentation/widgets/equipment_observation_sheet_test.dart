@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -185,6 +186,35 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect((await repo.getForDive('d1')).single.note, 'All good');
+  });
+
+  testWidgets('an issue with only unknown tags can still be edited', (
+    tester,
+  ) async {
+    // A newer peer's tags are not shown here. Requiring a tag before the
+    // save would strand the row; the unknown ones still count as its tags.
+    final created = await repo.create(
+      equipmentId: 'reg',
+      diveId: 'd1',
+      observedAt: DateTime.utc(2026),
+      status: ObservationStatus.issue,
+    );
+    await (db.update(
+      db.equipmentObservations,
+    )..where((t) => t.id.equals(created.id))).write(
+      const EquipmentObservationsCompanion(issueTags: Value('["futureTag"]')),
+    );
+    await pumpAndOpen(tester, withDive: dive);
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Checked again');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pick at least one tag for an issue'), findsNothing);
+    final saved = (await repo.getForDive('d1')).single;
+    expect(saved.note, 'Checked again');
+    expect(saved.unrecognizedTags, ['futureTag']);
   });
 
   testWidgets('delete asks first and then removes the row', (tester) async {
