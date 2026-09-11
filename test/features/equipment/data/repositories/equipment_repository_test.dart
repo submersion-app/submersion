@@ -483,6 +483,38 @@ void main() {
           completes,
         );
       });
+
+      test('deletes an item a cylinder is linked to, staging the tank for '
+          'sync', () async {
+        // The transmitter registry writes dive_tanks.equipment_id. Deleting
+        // the item must clear that link rather than fail on it, and the
+        // cleared tank must reach peers like any other tank edit.
+        final cylinder = await repository.createEquipment(
+          createTestEquipment(name: 'Blue AL80', type: EquipmentType.tank),
+        );
+        final db = DatabaseService.instance.database;
+        await db.customStatement(
+          'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+          "VALUES ('d1', 1000, 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO dive_tanks (id, dive_id, equipment_id) '
+          "VALUES ('t1', 'd1', ?), ('t2', 'd1', NULL)",
+          [cylinder.id],
+        );
+
+        await repository.deleteEquipment(cylinder.id);
+
+        expect(await repository.getEquipmentById(cylinder.id), isNull);
+        final tank = await db
+            .customSelect("SELECT equipment_id FROM dive_tanks WHERE id = 't1'")
+            .getSingle();
+        expect(tank.read<String?>('equipment_id'), isNull);
+        final pendingTanks = (await db.select(db.syncRecords).get())
+            .where((r) => r.entityType == 'diveTanks')
+            .map((r) => r.recordId);
+        expect(pendingTanks, ['t1'], reason: 'an unlinked tank is untouched');
+      });
     });
 
     group('retireEquipment', () {

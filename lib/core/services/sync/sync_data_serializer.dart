@@ -4904,6 +4904,12 @@ class SyncDataSerializer {
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipment':
+        // A cylinder linked to the item (dive_tanks.equipment_id) keeps the
+        // tombstone from applying on a database whose link predates v210's
+        // ON DELETE SET NULL, so clear it first either way.
+        await (_db.update(_db.diveTanks)
+              ..where((t) => t.equipmentId.equals(recordId)))
+            .write(const DiveTanksCompanion(equipmentId: Value(null)));
         await (_db.delete(
           _db.equipment,
         )..where((t) => t.id.equals(recordId))).go();

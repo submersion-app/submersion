@@ -448,6 +448,7 @@ class EquipmentRepository {
   /// component rows are first-class synced children cascade-deleted by
   /// SQLite, but cascades emit no deletion-log entries, so each is
   /// tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
+  /// Cylinders linked to the item are cleared and staged for sync.
   Future<void> deleteEquipment(String id) async {
     try {
       _log.info('Deleting equipment: $id');
@@ -472,6 +473,27 @@ class EquipmentRepository {
                       t.componentEquipmentId.equals(id),
                 ))
                 .get();
+        // Cylinders the transmitter registry linked to this item. The schema
+        // sets the link null on delete (v210), but that write reaches no
+        // peer, so the tanks are cleared here and staged like any other
+        // tank edit. Before v210 the link had no action and the delete
+        // failed outright.
+        final linkedTanks = await (_db.select(
+          _db.diveTanks,
+        )..where((t) => t.equipmentId.equals(id))).get();
+        if (linkedTanks.isNotEmpty) {
+          await (_db.update(_db.diveTanks)
+                ..where((t) => t.equipmentId.equals(id)))
+              .write(const DiveTanksCompanion(equipmentId: Value(null)));
+          final now = DateTime.now().millisecondsSinceEpoch;
+          for (final tank in linkedTanks) {
+            await _syncRepository.markRecordPending(
+              entityType: 'diveTanks',
+              recordId: tank.id,
+              localUpdatedAt: now,
+            );
+          }
+        }
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
