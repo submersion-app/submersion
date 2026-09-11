@@ -58,7 +58,8 @@ class TripHistoryRepository {
   }
 
   /// The most recent [limit] CCR or SCR dives before [before], newest
-  /// first: the summary's scrubber minutes when the dive has one, and the
+  /// first: the summary's scrubber minutes when the dive has a positive
+  /// figure (a zero would become the median and hide the runtime), and the
   /// dive's length in minutes, read as the rest of the app reads it
   /// (runtime, else bottom time), the first that is positive: a zero from
   /// a manual entry is no figure. Only a summary current for the dive
@@ -81,7 +82,10 @@ class TripHistoryRepository {
         .customSelect(
           '''
           SELECT
-            s.scrubber_consumed_minutes AS scrubber,
+            CASE
+              WHEN s.scrubber_consumed_minutes > 0
+                THEN s.scrubber_consumed_minutes
+            END AS scrubber,
             CASE
               WHEN d.runtime > 0 THEN d.runtime
               WHEN d.bottom_time > 0 THEN d.bottom_time

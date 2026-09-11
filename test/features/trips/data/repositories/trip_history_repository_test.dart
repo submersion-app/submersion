@@ -188,6 +188,19 @@ void main() {
     expect(figures.map((f) => f.runtimeMinutes), [null, 40, null]);
   });
 
+  test('a zero or negative scrubber figure is no figure at all', () async {
+    // A stored zero would become the scrubber median and suppress the
+    // runtime fallback, understating expected use.
+    await dive('zero', DateTime(2026, 1, 2), mode: 'ccr', scrubber: 0);
+    await dive('negative', DateTime(2026, 1, 3), mode: 'ccr', scrubber: -5);
+    await dive('real', DateTime(2026, 1, 4), mode: 'ccr', scrubber: 42);
+    final figures = await repo.recentRebreatherFigures(
+      before: DateTime(2026, 6, 1),
+    );
+    expect(figures.map((f) => f.scrubberMinutes), [42, null, null]);
+    expect(figures.map((f) => f.runtimeMinutes), [60, 60, 60]);
+  });
+
   test('the cut-off is the calendar day, in any zone', () async {
     // Dives are stored as wall clock in UTC, the trip start as a local
     // midnight. The evening before counts as history; the first morning
