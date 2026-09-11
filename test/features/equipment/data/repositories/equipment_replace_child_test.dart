@@ -97,6 +97,53 @@ void main() {
     expect(active.map((c) => c.id), [fresh.id]);
   });
 
+  test('a replaced battery keeps its chemistry, not its receipt', () async {
+    // The successor is the same kind of part: its physical spec carries
+    // over. Its purchase record and install date are its own.
+    final light = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Light', type: EquipmentType.light),
+    );
+    final old = await repo.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: '21700',
+        type: EquipmentType.battery,
+        parentEquipmentId: light.id,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: 'battery_type',
+            valueText: 'lithium_ion',
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.rechargeable,
+            valueNum: 1,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.retailer,
+            valueText: 'Dive shop',
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.installedDate,
+            valueNum: DateTime(2025, 1, 1).millisecondsSinceEpoch.toDouble(),
+          ),
+        ],
+      ),
+    );
+    final now = DateTime(2026, 9, 10);
+    final fresh = await repo.replaceChild(old, now: now);
+    final stored = (await repo.getEquipmentById(fresh.id))!;
+    String? text(String key) =>
+        stored.attributes.where((a) => a.key == key).firstOrNull?.valueText;
+    expect(text('battery_type'), 'lithium_ion');
+    expect(stored.attrNum(EquipmentAttrKeys.rechargeable), 1);
+    expect(text(EquipmentAttrKeys.retailer), isNull);
+    expect(stored.installedDate, now);
+  });
+
   Future<(EquipmentItem, EquipmentItem)> ccrWithCell() async {
     final ccr = await repo.createEquipment(
       const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),

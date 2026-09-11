@@ -618,7 +618,15 @@ class EquipmentRepository {
       if (!current.isFitted) {
         throw StateError('Equipment ${old.id} is already retired');
       }
-      final slot = current.attrNum(EquipmentAttrKeys.cellSlot);
+      // The successor is the same kind of part, so its physical spec carries
+      // over (a cell's slot, a battery's chemistry and rechargeability).
+      // Its install date and purchase record are its own.
+      final specKeys = {
+        for (final def in EquipmentAttributeCatalog.attributesFor(current.type))
+          if (def.group == AttributeGroup.spec &&
+              def.key != EquipmentAttrKeys.installedDate)
+            def.key,
+      };
       final successor = EquipmentItem(
         id: '',
         diverId: current.diverId,
@@ -628,12 +636,14 @@ class EquipmentRepository {
         model: current.model,
         parentEquipmentId: parentId,
         attributes: [
-          if (slot != null)
-            EquipmentAttribute.curated(
-              equipmentId: '',
-              key: EquipmentAttrKeys.cellSlot,
-              valueNum: slot,
-            ),
+          for (final a in current.attributes)
+            if (!a.isCustom && specKeys.contains(a.key))
+              EquipmentAttribute.curated(
+                equipmentId: '',
+                key: a.key,
+                valueText: a.valueText,
+                valueNum: a.valueNum,
+              ),
           EquipmentAttribute.curated(
             equipmentId: '',
             key: EquipmentAttrKeys.installedDate,
