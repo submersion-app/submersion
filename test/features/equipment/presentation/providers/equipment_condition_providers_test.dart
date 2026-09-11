@@ -28,10 +28,12 @@ import '../../../../helpers/test_database.dart';
 
 class _CountingEngine extends EquipmentConditionEngine {
   int calls = 0;
+  ConditionEngineInput? last;
 
   @override
   List<EquipmentFinding> evaluate(ConditionEngineInput input) {
     calls++;
+    last = input;
     return super.evaluate(input);
   }
 }
@@ -281,6 +283,59 @@ void main() {
         );
     await untilCalls(2);
     expect(engine.calls, 2);
+  });
+
+  test('the engine sees retired cells and a creation-date cut-off', () async {
+    // A retired cell tells the engine who occupied its slot, and a part
+    // with no install date inherits its parent's dives only from its
+    // creation, so the dive before it existed is not its evidence.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'ccr',
+            name: 'CCR',
+            type: 'rebreather',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'early',
+            diveDateTime: DateTime.utc(2026, 1, 1).millisecondsSinceEpoch,
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'early', equipmentId: 'ccr'),
+        );
+    for (final (id, active) in [('old', false), ('new', true)]) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'o2Cell',
+              createdAt: DateTime.utc(2026, 2, 1).millisecondsSinceEpoch,
+              updatedAt: 1,
+            ).copyWith(
+              parentEquipmentId: const Value('ccr'),
+              isActive: Value(active),
+            ),
+          );
+    }
+    await container.read(equipmentConditionProvider('ccr').future);
+    expect(engine.last!.children.map((c) => c.id).toSet(), {'old', 'new'});
+
+    await container.read(equipmentConditionProvider('new').future);
+    expect(engine.last!.samples, isEmpty);
   });
 
   test('a threshold change recomputes', () async {

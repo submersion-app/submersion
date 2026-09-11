@@ -354,6 +354,42 @@ void main() {
     });
   });
 
+  test('a cell with no install date owns dives from its creation', () {
+    // Every dive reads low, but the cell was created on the seventh: it
+    // owns two dives, under the three the low-output rule needs.
+    final samples = [for (var i = 0; i < 8; i++) sample(i)];
+    final summaries = {
+      for (var i = 0; i < 8; i++)
+        'd$i': summary(
+          'd$i',
+          cells: const [CellMetrics(slot: 2, samples: 10, gainMvPerBar: 30)],
+        ),
+    };
+    final uninstalled = EquipmentItem(
+      id: 'c2',
+      name: 'c2',
+      type: EquipmentType.o2Cell,
+      parentEquipmentId: 'ccr',
+      createdAt: DateTime.utc(2026, 1, 7),
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: 'c2',
+          key: EquipmentAttrKeys.cellSlot,
+          valueNum: 2,
+        ),
+      ],
+    );
+    expect(
+      of(
+        engine.evaluate(
+          input(item: uninstalled, samples: samples, summaries: summaries),
+        ),
+        ConditionRuleId.cellOutputLow,
+      ),
+      isEmpty,
+    );
+  });
+
   group('cell rules on a rebreather without a child in the slot', () {
     test('the finding attaches to the rebreather with the slot in the id', () {
       final samples = [for (var i = 0; i < 3; i++) sample(i)];
@@ -421,6 +457,56 @@ void main() {
         of(findings, ConditionRuleId.cellOutputLow).single.id,
         'cf_ccr_cellOutputLow_1',
       );
+    });
+
+    group('a retired cell', () {
+      // Replacing a part retires it and installs a successor in the slot.
+      // The retired cell occupied the slot until the successor's install
+      // date; with no successor there is no way to tell when it left.
+      final lowOnSlotOne = {
+        for (var i = 0; i < 3; i++)
+          'd$i': summary(
+            'd$i',
+            cells: const [CellMetrics(slot: 1, samples: 10, gainMvPerBar: 30)],
+          ),
+      };
+      final samples = [for (var i = 0; i < 3; i++) sample(i)];
+      EquipmentItem retired(EquipmentItem c) =>
+          c.copyWith(isActive: false, status: EquipmentStatus.retired);
+
+      test('keeps its dives while its successor has none yet', () {
+        final findings = engine.evaluate(
+          input(
+            item: item('ccr', EquipmentType.rebreather),
+            children: [
+              retired(cell('old', 1, installed: DateTime.utc(2025))),
+              cell('new', 1, installed: DateTime.utc(2027)),
+            ],
+            samples: samples,
+            summaries: lowOnSlotOne,
+          ),
+        );
+        // The dives were the retired cell's, not the rebreather's to
+        // report about a cell that has already been replaced.
+        expect(of(findings, ConditionRuleId.cellOutputLow), isEmpty);
+      });
+
+      test('with no successor leaves the slot to the rebreather', () {
+        // Claiming forever would silence the slot for good once cells
+        // are retired without being replaced.
+        final findings = engine.evaluate(
+          input(
+            item: item('ccr', EquipmentType.rebreather),
+            children: [retired(cell('old', 1, installed: DateTime.utc(2025)))],
+            samples: samples,
+            summaries: lowOnSlotOne,
+          ),
+        );
+        expect(
+          of(findings, ConditionRuleId.cellOutputLow).single.id,
+          'cf_ccr_cellOutputLow_1',
+        );
+      });
     });
   });
 

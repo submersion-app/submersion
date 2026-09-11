@@ -106,7 +106,7 @@ class EquipmentConditionEngine {
     if (item.type == EquipmentType.o2Cell) {
       final slot = item.attrNum(EquipmentAttrKeys.cellSlot)?.round();
       if (slot == null) return const [];
-      final installed = item.installedDate;
+      final installed = item.parentDivesFrom;
       final own = installed == null
           ? samples
           : [
@@ -128,22 +128,46 @@ class EquipmentConditionEngine {
     final findings = <EquipmentFinding>[];
     for (final slot in slots.toList()..sort()) {
       final newest = _newestDateWithSlot(input, samples, slot);
-      final claimed = input.children.any((c) {
-        if (c.type != EquipmentType.o2Cell) return false;
-        if (c.attrNum(EquipmentAttrKeys.cellSlot)?.round() != slot) {
-          return false;
-        }
-        final installed = c.installedDate ?? c.createdAt;
-        return newest != null &&
-            installed != null &&
-            !installed.isAfter(newest);
-      });
+      final claimed =
+          newest != null && _slotOccupied(input.children, slot, newest);
       if (claimed) continue;
       findings.addAll(
         _slotRules(input, samples, slot, ownerId: item.id, idSlot: slot),
       );
     }
     return findings;
+  }
+
+  /// Whether a cell child occupied [slot] on [when]. A fitted cell does
+  /// from its install date on. A retired one did from its install date
+  /// until the next cell in the slot went in; with no successor there is
+  /// no telling when it left, so it claims nothing rather than silencing
+  /// the slot on the rebreather for good.
+  static bool _slotOccupied(
+    List<EquipmentItem> children,
+    int slot,
+    DateTime when,
+  ) {
+    final cells = [
+      for (final c in children)
+        if (c.type == EquipmentType.o2Cell &&
+            c.attrNum(EquipmentAttrKeys.cellSlot)?.round() == slot &&
+            c.parentDivesFrom != null)
+          c,
+    ];
+    for (final c in cells) {
+      final from = c.parentDivesFrom!;
+      if (when.isBefore(from)) continue;
+      if (c.isActive) return true;
+      DateTime? until;
+      for (final other in cells) {
+        final start = other.parentDivesFrom!;
+        if (identical(other, c) || !start.isAfter(from)) continue;
+        if (until == null || start.isBefore(until)) until = start;
+      }
+      if (until != null && when.isBefore(until)) return true;
+    }
+    return false;
   }
 
   DateTime? _newestDateWithSlot(

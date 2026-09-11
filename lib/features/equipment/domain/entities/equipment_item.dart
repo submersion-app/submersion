@@ -89,6 +89,12 @@ class EquipmentItem extends Equatable {
     return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms.round());
   }
 
+  /// From when a child inherits its parent's dives: its install date, or
+  /// its creation when none is set (the design's attribute catalog). Every
+  /// exposure read for a child goes through this, so the clocks, the
+  /// condition engine and the charts all count the same dives.
+  DateTime? get parentDivesFrom => installedDate ?? createdAt;
+
   /// Wing/BCD rated lift capacity in kg (curated attribute; see the BCD entry
   /// in [EquipmentAttributeCatalog]). Feeds the buoyancy twin's peak-lift
   /// demand comparison; null when unspecified.
