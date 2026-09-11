@@ -82,6 +82,53 @@ void main() {
     expect(status.severity, ServiceClockSeverity.overdue);
   });
 
+  test('a battery retired by status alone does not stop the parent cycles '
+      'clock', () async {
+    // A legacy row can be retired with isActive left true. The exposure
+    // card already ignores it; the clock must too, or the card counts
+    // cycles the clock it explains has switched off.
+    final ccr = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'CCR',
+        type: EquipmentType.rebreather,
+        purchaseDate: DateTime(2025, 1, 1),
+      ),
+    );
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'old-battery',
+            name: 'Old battery',
+            type: 'battery',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(
+            parentEquipmentId: Value(ccr.id),
+            status: const Value('retired'),
+            isActive: const Value(true),
+          ),
+        );
+    final scheduleRepo = ServiceScheduleRepository();
+    final schedule = (await scheduleRepo.getSchedulesForEquipment(
+      ccr.id,
+    )).first;
+    await scheduleRepo.updateSchedule(
+      schedule.copyWith(exposureIntervals: const {ExposureUnit.cycles: 5}),
+    );
+    await coldDive('d1', ccr.id, 20);
+    await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+      const DivesCompanion(diveMode: Value('ccr')),
+    );
+
+    final statuses = await container.read(
+      serviceClockStatusesProvider(ccr.id).future,
+    );
+    final status = statuses.firstWhere((s) => s.schedule.id == schedule.id);
+    expect(status.usageByUnit[ExposureUnit.cycles]!.since, 1);
+  });
+
   test(
     'changing the cold threshold changes the count on the next read',
     () async {
