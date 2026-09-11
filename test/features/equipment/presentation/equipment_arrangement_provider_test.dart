@@ -153,6 +153,58 @@ void main() {
     },
   );
 
+  test('updates issued back to back apply cumulatively, in order', () async {
+    // The sort sheet stays open, so a second change can be made before the
+    // first write lands. Each change must build on the one before it.
+    final fake = _FakeSettingsRepository();
+    final container = containerWith(fake);
+    final notifier = container.read(
+      equipmentArrangementNotifierProvider.notifier,
+    );
+
+    final first = notifier.updateArrangement(
+      (current) => current.copyWith(groupByType: false),
+    );
+    final second = notifier.updateArrangement(
+      (current) => current.copyWith(typeOrder: EquipmentTypeOrder.headToToe),
+    );
+    await Future.wait([first, second]);
+
+    expect(fake.written.map((a) => a.groupByType).toList(), [false, false]);
+    expect(fake.written.last.typeOrder, EquipmentTypeOrder.headToToe);
+    expect(
+      container.read(equipmentArrangementNotifierProvider),
+      EquipmentArrangement.defaults.copyWith(
+        groupByType: false,
+        typeOrder: EquipmentTypeOrder.headToToe,
+      ),
+    );
+  });
+
+  test('after a failed update the next one builds on what is stored', () async {
+    // A change that never reached storage must not ride along on the next
+    // write, or it would appear after the diver was told it failed.
+    final fake = _FakeSettingsRepository(failWrite: true);
+    final container = containerWith(fake);
+    final notifier = container.read(
+      equipmentArrangementNotifierProvider.notifier,
+    );
+
+    await expectLater(
+      notifier.updateArrangement(
+        (current) => current.copyWith(groupByType: false),
+      ),
+      throwsA(isA<StateError>()),
+    );
+    fake.failWrite = false;
+    await notifier.updateArrangement(
+      (current) => current.copyWith(typeOrder: EquipmentTypeOrder.headToToe),
+    );
+
+    expect(fake.written.single.groupByType, isTrue);
+    expect(fake.written.single.typeOrder, EquipmentTypeOrder.headToToe);
+  });
+
   test(
     'a settings tick re-reads, so a synced change lands without a restart',
     () async {

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
@@ -21,11 +22,21 @@ class _FakeSettingsRepository extends AppSettingsRepository {
   final List<EquipmentArrangement> written = [];
   final StreamController<void> settingsTicks = StreamController<void>();
 
+  /// When set, writes wait until the test completes them, so several taps
+  /// can land while an earlier write is still in flight.
+  bool holdWrites = false;
+  final List<Completer<void>> heldWrites = [];
+
   @override
   Future<EquipmentArrangement?> getEquipmentArrangement() async => stored;
 
   @override
   Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {
+    if (holdWrites) {
+      final gate = Completer<void>();
+      heldWrites.add(gate);
+      await gate.future;
+    }
     written.add(arrangement);
     stored = arrangement;
   }
@@ -41,6 +52,7 @@ void main() {
   Future<void> pumpSheet(
     WidgetTester tester, {
     bool showGrouping = true,
+    EquipmentArrangement? stored,
   }) async {
     // Tall enough that the grouping controls and every sort field fit, so
     // the tests read what the sheet offers rather than how it scrolls.
@@ -48,7 +60,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    fake = _FakeSettingsRepository();
+    fake = _FakeSettingsRepository()..stored = stored;
     container = ProviderContainer(
       overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
     );
@@ -148,6 +160,28 @@ void main() {
     expect(fake.written.single.groupByType, isFalse);
   });
 
+  testWidgets('quick changes to the grouping all survive', (tester) async {
+    // The sheet stays open for several changes, but the arrangement only
+    // publishes once its write lands. A second tap made while the first
+    // write is in flight must build on the first change, not on the
+    // arrangement the sheet last rendered, or the later write silently
+    // undoes the earlier one.
+    await pumpSheet(tester);
+    fake.holdWrites = true;
+
+    await tester.tap(find.text('Group by type'));
+    await tester.pump();
+    await tester.tap(find.text('Head to toe'));
+    await tester.pump();
+    while (fake.heldWrites.isNotEmpty) {
+      fake.heldWrites.removeAt(0).complete();
+      await tester.pumpAndSettle();
+    }
+
+    expect(fake.stored?.groupByType, isFalse);
+    expect(fake.stored?.typeOrder, EquipmentTypeOrder.headToToe);
+  });
+
   testWidgets('the current field carries the check mark', (tester) async {
     await pumpSheet(tester);
 
@@ -170,6 +204,32 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sort Equipment'), findsNothing);
+  });
+
+  testWidgets('the fields read "Then by" while types order first, even flat', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      stored: EquipmentArrangement.defaults.copyWith(groupByType: false),
+    );
+
+    expect(find.text('Then by'), findsOneWidget);
+    expect(find.text('Sort by'), findsNothing);
+  });
+
+  testWidgets('the fields read "Sort by" when nothing orders the types', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      stored: EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.none,
+      ),
+    );
+
+    expect(find.text('Sort by'), findsOneWidget);
+    expect(find.text('Then by'), findsNothing);
   });
 
   testWidgets('the table-mode sheet leaves the grouping out', (tester) async {

@@ -138,14 +138,30 @@ void main() {
     expect(fake.written.single.itemSortField.name, 'purchaseDate');
   });
 
-  testWidgets('the item order label reads "Sort by" when not grouping', (
+  testWidgets('the item order label reads "Then by" while types order first', (
     tester,
   ) async {
+    // With the headings off, the arranger still orders by type first, so
+    // the item field is the second key, not the only one.
     final fake = _FakeSettingsRepository(
       stored: EquipmentArrangement.defaults.copyWith(groupByType: false),
     );
     await pumpSheet(tester, fake);
 
+    expect(find.text('Then by'), findsOneWidget);
+    expect(find.text('Sort by'), findsNothing);
+  });
+
+  testWidgets('the item order label reads "Sort by" when nothing orders '
+      'the types', (tester) async {
+    final fake = _FakeSettingsRepository(
+      stored: EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.none,
+      ),
+    );
+    await pumpSheet(tester, fake);
+
+    await tester.ensureVisible(find.text('Sort by'));
     expect(find.text('Sort by'), findsOneWidget);
     expect(find.text('Then by'), findsNothing);
   });

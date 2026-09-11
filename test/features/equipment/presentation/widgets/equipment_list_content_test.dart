@@ -996,6 +996,61 @@ void main() {
       },
     );
 
+    testWidgets('the selected gear is scrolled to again once the stored '
+        'arrangement loads', (tester) async {
+      // The arrangement starts at the defaults and adopts the stored one when
+      // its read lands. Scrolling on the first frame therefore positions the
+      // row for the DEFAULT order; if that counted as done, a stored order
+      // that moves the row would leave it off screen.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      // Near the top in the default order, near the bottom once the stored
+      // arrangement reverses the headings.
+      final target = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults,
+        typeLabel: (t) => t.displayName,
+      )[3].items.single;
+      final repository = _FakeArrangementRepository()
+        ..heldRead = Completer<EquipmentArrangement?>();
+
+      final overrides = await _buildPhoneOverrides(items: gear);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            appSettingsRepositoryProvider.overrideWithValue(repository),
+          ],
+          child: EquipmentListContent(showAppBar: false, selectedId: target.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(target.name), findsOneWidget);
+
+      repository.heldRead!.complete(
+        EquipmentArrangement.defaults.copyWith(typeOrderDescending: true),
+      );
+      await tester.pumpAndSettle();
+
+      final row = find.text(target.name);
+      expect(row, findsOneWidget);
+      final list = tester.getRect(find.byType(ListView));
+      final rect = tester.getRect(row);
+      expect(
+        rect.top,
+        greaterThanOrEqualTo(list.top),
+        reason: '$rect in $list',
+      );
+      expect(rect.bottom, lessThanOrEqualTo(list.bottom), reason: '$rect');
+    });
+
     testWidgets('scrolling to the selected gear allows for the headings', (
       tester,
     ) async {
@@ -1604,8 +1659,13 @@ class _FakeArrangementRepository extends AppSettingsRepository {
   final StreamController<void> _ticks = StreamController<void>();
   EquipmentArrangement? _stored;
 
+  /// When set, the read waits on this, so a test can land the stored
+  /// arrangement after the first frame, as a slow launch read would.
+  Completer<EquipmentArrangement?>? heldRead;
+
   @override
-  Future<EquipmentArrangement?> getEquipmentArrangement() async => _stored;
+  Future<EquipmentArrangement?> getEquipmentArrangement() async =>
+      heldRead != null ? heldRead!.future : _stored;
 
   @override
   Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {

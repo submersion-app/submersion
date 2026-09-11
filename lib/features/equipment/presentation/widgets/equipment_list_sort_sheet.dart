@@ -44,12 +44,12 @@ class EquipmentListSortSheet extends ConsumerWidget {
     final l10n = context.l10n;
     final sort = ref.watch(equipmentSortProvider);
     final arrangement = ref.watch(equipmentArrangementProvider);
-    // Without the grouping controls the table is ordered by this sort alone,
-    // so "Then by" would name a first key that is not there.
-    final grouped =
-        showGrouping &&
-        arrangement.groupByType &&
-        arrangement.typeOrder != EquipmentTypeOrder.none;
+    // The type order is the first key whether or not headings are drawn: a
+    // flat list is still ordered by type before this sort. Without the
+    // grouping controls (the table) this sort is the only key, so "Then by"
+    // would name a first key that is not there.
+    final typesOrderFirst =
+        showGrouping && arrangement.typeOrder != EquipmentTypeOrder.none;
 
     void setSort(SortState<EquipmentSortField> next) =>
         ref.read(equipmentSortProvider.notifier).state = next;
@@ -58,7 +58,7 @@ class EquipmentListSortSheet extends ConsumerWidget {
       direction: sort.direction,
       onDirectionChanged: (direction) =>
           setSort(SortState(field: sort.field, direction: direction)),
-      fieldsLabel: grouped
+      fieldsLabel: typesOrderFirst
           ? l10n.equipment_arrange_itemOrderLabel
           : l10n.equipment_arrange_itemOrderLabelFlat,
       fields: EquipmentSortField.values,

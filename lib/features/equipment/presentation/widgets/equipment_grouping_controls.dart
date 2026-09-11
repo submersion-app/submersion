@@ -40,7 +40,7 @@ class EquipmentGroupingControls extends ConsumerWidget {
               ? (value) => applyEquipmentArrangement(
                   context,
                   ref,
-                  arrangement.copyWith(groupByType: value),
+                  (current) => current.copyWith(groupByType: value),
                 )
               : null,
           title: Text(l10n.equipment_arrange_groupByType),
@@ -79,7 +79,7 @@ class EquipmentGroupingControls extends ConsumerWidget {
                     ? (selected) => applyEquipmentArrangement(
                         context,
                         ref,
-                        arrangement.copyWith(
+                        (current) => current.copyWith(
                           typeOrderDescending: selected.first,
                         ),
                       )
@@ -97,7 +97,7 @@ class EquipmentGroupingControls extends ConsumerWidget {
             applyEquipmentArrangement(
               context,
               ref,
-              arrangement.copyWith(typeOrder: value),
+              (current) => current.copyWith(typeOrder: value),
             );
           },
           child: Column(
@@ -116,7 +116,13 @@ class EquipmentGroupingControls extends ConsumerWidget {
   }
 }
 
-/// Persists [next], telling the diver when the write did not take.
+/// Applies [change] to the diver's arrangement and persists it, telling the
+/// diver when the write did not take.
+///
+/// Takes a change rather than a finished arrangement: the sheet stays open,
+/// and the arrangement it last rendered can be a write behind, so building
+/// on it would undo a change still in flight. The notifier applies [change]
+/// to the newest requested arrangement instead.
 ///
 /// The notifier leaves state untouched on a failed write, so the sheet keeps
 /// showing what is actually stored. Without a message the control would just
@@ -124,14 +130,14 @@ class EquipmentGroupingControls extends ConsumerWidget {
 Future<void> applyEquipmentArrangement(
   BuildContext context,
   WidgetRef ref,
-  EquipmentArrangement next,
+  EquipmentArrangement Function(EquipmentArrangement current) change,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
   final message = context.l10n.equipment_arrange_saveFailed;
   try {
     await ref
         .read(equipmentArrangementNotifierProvider.notifier)
-        .setArrangement(next);
+        .updateArrangement(change);
   } catch (_) {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }

@@ -23,6 +23,7 @@ import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
@@ -69,6 +70,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
+
+  /// The arrangement the rows had when [_lastScrolledToId] was brought into
+  /// view. The arrangement starts at the defaults and adopts the stored one
+  /// a moment later, so the first scroll can be positioned for an order the
+  /// list is about to leave; a different arrangement here means the row has
+  /// moved and must be scrolled to again.
+  EquipmentArrangement? _scrolledArrangement;
   bool _selectionFromList = false;
 
   @override
@@ -87,6 +95,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       if (_selectionFromList) {
         _selectionFromList = false;
         _lastScrolledToId = widget.selectedId;
+        _scrolledArrangement = ref.read(equipmentArrangementProvider);
       }
       // External selection changes are handled by _buildEquipmentList
       // when the sorted data is available.
@@ -100,7 +109,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// Headings are sized separately because sizing them like items overshoots
   /// by the difference for every heading above the target, which in a
   /// grouped list is nearly one per item.
-  void _scrollToIndex(List<_EquipmentListRow> rows, int index) {
+  void _scrollToIndex(
+    List<_EquipmentListRow> rows,
+    int index,
+    EquipmentArrangement arrangement,
+  ) {
     if (!mounted || !_scrollController.hasClients) return;
 
     const estimatedItemHeight = 80.0;
@@ -122,6 +135,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       curve: Curves.easeInOut,
     );
     _lastScrolledToId = widget.selectedId;
+    _scrolledArrangement = arrangement;
   }
 
   void _handleItemTap(EquipmentItem equipment) {
@@ -240,7 +254,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                   ref,
                   hadItemsBeforeTypeFilter: equipment.isNotEmpty,
                 )
-              : _buildEquipmentList(context, ref, groups);
+              : _buildEquipmentList(context, ref, groups, arrangement);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(context, error),
@@ -791,6 +805,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     WidgetRef ref,
     List<EquipmentGroup> groups,
+    EquipmentArrangement arrangement,
   ) {
     // One flat run of rows for the lazy builder: a heading before each group
     // when the arrangement groups, then that group's gear.
@@ -802,17 +817,20 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     ];
 
     // Scroll to selected item when data is available but we haven't
-    // scrolled yet (e.g., navigated from dive detail or set detail). The
-    // index counts heading rows too, since they take space above the item.
+    // scrolled yet (e.g., navigated from dive detail or set detail), or when
+    // the arrangement has moved it since (the stored arrangement landing
+    // after the first frame, or the diver regrouping). The index counts
+    // heading rows too, since they take space above the item.
     if (widget.selectedId != null &&
-        widget.selectedId != _lastScrolledToId &&
+        (widget.selectedId != _lastScrolledToId ||
+            arrangement != _scrolledArrangement) &&
         !_selectionFromList) {
       final selectedIndex = rows.indexWhere(
         (row) => row is _EquipmentItemRow && row.item.id == widget.selectedId,
       );
       if (selectedIndex >= 0) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToIndex(rows, selectedIndex);
+          _scrollToIndex(rows, selectedIndex, arrangement);
         });
       }
     }

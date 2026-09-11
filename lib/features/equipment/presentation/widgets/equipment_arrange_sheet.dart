@@ -39,19 +39,19 @@ class EquipmentArrangeSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final arrangement = ref.watch(equipmentArrangementNotifierProvider);
-    final grouped =
-        arrangement.groupByType &&
-        arrangement.typeOrder != EquipmentTypeOrder.none;
+    // The type order is the first key whether or not headings are drawn: a
+    // flat list is still ordered by type before the item field.
+    final typesOrderFirst = arrangement.typeOrder != EquipmentTypeOrder.none;
 
     return EquipmentSortSheetLayout<EquipmentItemSortField>(
       direction: arrangement.itemSortDirection,
       onDirectionChanged: (direction) => applyEquipmentArrangement(
         context,
         ref,
-        arrangement.copyWith(itemSortDirection: direction),
+        (current) => current.copyWith(itemSortDirection: direction),
       ),
       // "Then by" only makes sense when something ordered the list first.
-      fieldsLabel: grouped
+      fieldsLabel: typesOrderFirst
           ? l10n.equipment_arrange_itemOrderLabel
           : l10n.equipment_arrange_itemOrderLabelFlat,
       fields: EquipmentItemSortField.values,
@@ -61,7 +61,7 @@ class EquipmentArrangeSheet extends ConsumerWidget {
       onFieldSelected: (field) => applyEquipmentArrangement(
         context,
         ref,
-        arrangement.copyWith(itemSortField: field),
+        (current) => current.copyWith(itemSortField: field),
       ),
       footer: Align(
         alignment: AlignmentDirectional.centerEnd,
@@ -71,7 +71,7 @@ class EquipmentArrangeSheet extends ConsumerWidget {
             onPressed: () => applyEquipmentArrangement(
               context,
               ref,
-              EquipmentArrangement.defaults,
+              (_) => EquipmentArrangement.defaults,
             ),
             child: Text(l10n.equipment_arrange_reset),
           ),
