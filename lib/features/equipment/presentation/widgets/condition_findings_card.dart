@@ -72,11 +72,15 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
       window: conditionFindingWindow(f, l10n, units),
       selected: selected?.id == f.id,
       onTap: () => _toggleSelected(f),
-      onEvidence: () => showConditionEvidenceSheet(
-        context,
-        equipment: widget.equipment,
-        finding: f,
-      ),
+      // A finding with no dives (an incident logged on the bench) has
+      // nothing to list, so it offers no evidence sheet.
+      onEvidence: f.evidence.diveIds.isEmpty
+          ? null
+          : () => showConditionEvidenceSheet(
+              context,
+              equipment: widget.equipment,
+              finding: f,
+            ),
       onDismissChanged: (dismissed) => _setDismissed(f, dismissed),
     );
 
@@ -159,7 +163,9 @@ class _FindingTile extends StatelessWidget {
   final String window;
   final bool selected;
   final VoidCallback onTap;
-  final VoidCallback onEvidence;
+
+  /// Null when the finding names no dive, which hides the action.
+  final VoidCallback? onEvidence;
   final ValueChanged<bool> onDismissChanged;
 
   const _FindingTile({
@@ -197,18 +203,19 @@ class _FindingTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(window),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
+          if (onEvidence case final open?)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+                onPressed: open,
+                icon: const Icon(Icons.scuba_diving, size: 16),
+                label: Text(l10n.equipmentCondition_findings_evidence),
               ),
-              onPressed: onEvidence,
-              icon: const Icon(Icons.scuba_diving, size: 16),
-              label: Text(l10n.equipmentCondition_findings_evidence),
             ),
-          ),
         ],
       ),
       trailing: IconButton(

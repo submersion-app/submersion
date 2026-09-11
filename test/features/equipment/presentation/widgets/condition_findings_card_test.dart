@@ -39,12 +39,13 @@ EquipmentFinding finding(
   int? slot,
   String? tag,
   bool dismissed = false,
+  List<String> diveIds = const ['d1', 'd2'],
 }) {
   final evidence = FindingEvidence(
     n: 5,
     windowStart: DateTime(2026, 3, 3),
     windowEnd: DateTime(2026, 6, 9),
-    diveIds: const ['d1', 'd2'],
+    diveIds: diveIds,
     values: values,
     slot: slot,
     tag: tag,
@@ -127,6 +128,29 @@ void main() {
     // The incident finding gives its range alone: its n counts incidents.
     expect(find.text('5 dives, Mar 3 - Jun 9, 2026'), findsNWidgets(2));
     expect(find.text('Mar 3 - Jun 9, 2026'), findsOneWidget);
+  });
+
+  testWidgets('a finding with no dives offers no evidence dives', (
+    tester,
+  ) async {
+    // An incident logged on the bench names no dive; the action would
+    // open an empty sheet.
+    await tester.pumpWidget(
+      host([
+        finding(
+          ConditionRuleId.incidentLinked,
+          values: {'count': 1},
+          diveIds: const [],
+        ),
+        finding(
+          ConditionRuleId.issueRecurring,
+          values: {'count': 3},
+          tag: 'freeFlow',
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Evidence dives'), findsOneWidget);
   });
 
   testWidgets('a disabled rule is hidden and the count follows', (
