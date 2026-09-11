@@ -65,6 +65,20 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
     final units = UnitFormatter(settings);
     final thresholds = ref.watch(exposureThresholdsProvider);
     final selected = ref.watch(selectedConditionFindingProvider(_id));
+    // The chart shades the selected finding's window, so the selection has
+    // to leave with the row: dismissed by a sync or a recompute rather than
+    // this card's button, or folded away with the dismissed rows. Cleared
+    // after the frame, since a provider cannot change during build.
+    final shown = [...active, if (_showDismissed) ...dismissed];
+    if (selected != null && !shown.any((f) => f.id == selected.id)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final notifier = ref.read(
+          selectedConditionFindingProvider(_id).notifier,
+        );
+        if (notifier.state?.id == selected.id) notifier.state = null;
+      });
+    }
 
     Widget tile(EquipmentFinding f) => _FindingTile(
       finding: f,

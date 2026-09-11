@@ -210,6 +210,69 @@ void main() {
     },
   );
 
+  testWidgets('folding a selected dismissed row away clears the selection', (
+    tester,
+  ) async {
+    // The chart shades the selected finding's window; once the card no
+    // longer shows the row, the chart must not keep shading it.
+    await tester.pumpWidget(host(three));
+    await tester.pumpAndSettle();
+    final scope = ProviderScope.containerOf(
+      tester.element(find.byType(ConditionFindingsCard)),
+    );
+    await tester.tap(find.text('Show 1 dismissed'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('Cell 1 output'));
+    await tester.pumpAndSettle();
+    expect(scope.read(selectedConditionFindingProvider('reg')), isNotNull);
+
+    await tester.tap(find.text('Show 1 dismissed'));
+    await tester.pumpAndSettle();
+    expect(scope.read(selectedConditionFindingProvider('reg')), isNull);
+  });
+
+  testWidgets('a finding dismissed elsewhere stops being selected', (
+    tester,
+  ) async {
+    // A sync or a recompute can dismiss the selected finding without the
+    // card's own button, which is the only path that cleared it.
+    final findings = StateProvider<List<EquipmentFinding>>((ref) => three);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          equipmentConditionProvider(
+            'reg',
+          ).overrideWith((ref) async => ref.watch(findings)),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: ConditionFindingsCard(equipment: reg)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final scope = ProviderScope.containerOf(
+      tester.element(find.byType(ConditionFindingsCard)),
+    );
+    await tester.tap(find.text('1 incident names this item'));
+    await tester.pumpAndSettle();
+    expect(scope.read(selectedConditionFindingProvider('reg')), isNotNull);
+
+    scope.read(findings.notifier).state = [
+      finding(
+        ConditionRuleId.incidentLinked,
+        values: {'count': 1},
+        dismissed: true,
+      ),
+      ...three.skip(1),
+    ];
+    await tester.pumpAndSettle();
+    expect(scope.read(selectedConditionFindingProvider('reg')), isNull);
+  });
+
   testWidgets('the dismiss button writes through the repository', (
     tester,
   ) async {
