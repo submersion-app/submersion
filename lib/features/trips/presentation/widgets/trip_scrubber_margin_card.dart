@@ -129,7 +129,11 @@ class _MarginBlock extends StatelessWidget {
           Text(l10n.trips_scrubber_noRating, style: body)
         else
           Text(
-            l10n.trips_scrubber_remaining(
+            // With no repack known the used minutes count every loop dive,
+            // which "since the last repack" would misstate.
+            (m.consumedSince == null
+                ? l10n.trips_scrubber_remainingNoRepack
+                : l10n.trips_scrubber_remaining)(
               _minutes(m.remainingBefore),
               _minutes(m.ratedMinutes!),
               _minutes(m.consumedMinutes),

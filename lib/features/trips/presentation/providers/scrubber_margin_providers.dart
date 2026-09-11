@@ -97,15 +97,19 @@ final tripScrubberMarginsProvider =
                   !r.serviceDate.isAfter(start),
             )
             .firstOrNull;
+        // With no record, the repack clock's anchor, as the clocks engine
+        // anchors it; only one on or before the start is a baseline then.
+        final baseline =
+            repack?.serviceDate ?? await _repackAnchor(item, start, schedules);
         final inputs = await ref.watch(
           equipmentExposureInputsProvider(item.id).future,
         );
         // By calendar day: dives are wall clock in UTC, the trip and
         // service dates local midnights.
         final diveStart = asDiveWallClockDate(start);
-        final repackFrom = repack == null
+        final repackFrom = baseline == null
             ? null
-            : asDiveWallClockDate(repack.serviceDate);
+            : asDiveWallClockDate(baseline);
         final loopDives = [
           for (final s in inputs?.samples ?? const [])
             if ((s.diveMode == DiveMode.ccr || s.diveMode == DiveMode.scr) &&
@@ -135,6 +139,7 @@ final tripScrubberMarginsProvider =
               item: item,
               ratedMinutes: rated,
               consumedMinutes: consumed,
+              consumedSince: baseline,
               expectedDivesOverride: trip.expectedDives,
               // Only a missing itinerary falls back to the calendar: one
               // with no dive days (a crossing, a port stay) expects none.
@@ -153,6 +158,21 @@ final tripScrubberMarginsProvider =
       }
       return margins;
     });
+
+/// The scrubber-repack clock's anchor date when it is on or before
+/// [start] (inclusive, as a repack record is), else null.
+Future<DateTime?> _repackAnchor(
+  EquipmentItem item,
+  DateTime start,
+  ServiceScheduleRepository schedules,
+) async {
+  for (final schedule in await schedules.getSchedulesForEquipment(item.id)) {
+    if (schedule.serviceKindId != scrubberRepackKindId) continue;
+    final anchor = schedule.anchorDate;
+    if (anchor != null && !anchor.isAfter(start)) return anchor;
+  }
+  return null;
+}
 
 /// `scrubber_duration_h` times 60, else the repack schedule's hours
 /// interval times 60, else null.

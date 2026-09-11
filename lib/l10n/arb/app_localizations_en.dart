@@ -21342,13 +21342,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min left before the trip (rated $rated min, $consumed min used, no repack recorded)';
+  }
+
+  @override
   String trips_scrubber_expectedDives(int dives) {
-    return '$dives expected dives';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives expected dives',
+      one: '$dives expected dive',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_scrubber_fromTrips(int n) {
-    return '(from your last $n trips)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(from your last $n trips)',
+      one: '(from your last trip)',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -21361,7 +21382,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(from your last $n rebreather dives)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(from your last $n rebreather dives)',
+      one: '(from your last rebreather dive)',
+    );
+    return '$_temp0';
   }
 
   @override

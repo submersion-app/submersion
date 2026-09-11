@@ -6469,7 +6469,22 @@
       }
     }
   },
-  "trips_scrubber_expectedDives": "{dives} verwachte duiken",
+  "trips_scrubber_remainingNoRepack": "{minutes} min over voor de reis (nominaal {rated} min, {consumed} min gebruikt, geen vulling vastgelegd)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} verwachte duik} other{{dives} verwachte duiken}}",
   "@trips_scrubber_expectedDives": {
     "placeholders": {
       "dives": {
@@ -6477,7 +6492,7 @@
       }
     }
   },
-  "trips_scrubber_fromTrips": "(uit je laatste {n} reizen)",
+  "trips_scrubber_fromTrips": "{n, plural, one{(uit je laatste reis)} other{(uit je laatste {n} reizen)}}",
   "@trips_scrubber_fromTrips": {
     "placeholders": {
       "n": {
@@ -6494,7 +6509,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(uit je laatste {n} rebreatherduiken)",
+  "trips_scrubber_fromDives": "{n, plural, one{(uit je laatste rebreatherduik)} other{(uit je laatste {n} rebreatherduiken)}}",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

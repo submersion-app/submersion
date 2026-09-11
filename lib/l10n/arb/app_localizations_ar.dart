@@ -21322,13 +21322,40 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes دقيقة متبقية قبل الرحلة (المقدّر $rated دقيقة، استُهلك $consumed دقيقة، ولا توجد إعادة تعبئة مسجلة)';
+  }
+
+  @override
   String trips_scrubber_expectedDives(int dives) {
-    return '$dives غطسة متوقعة';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة متوقعة',
+      many: '$dives غطسة متوقعة',
+      few: '$dives غطسات متوقعة',
+      two: 'غطستان متوقعتان',
+      one: 'غطسة واحدة متوقعة',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_scrubber_fromTrips(int n) {
-    return '(من آخر $n رحلات لك)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(من آخر $n رحلة لك)',
+      many: '(من آخر $n رحلة لك)',
+      few: '(من آخر $n رحلات لك)',
+      two: '(من آخر رحلتين لك)',
+      one: '(من رحلتك الأخيرة)',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -21341,7 +21368,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(من آخر $n غطسات بجهاز إعادة التنفس لك)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(من آخر $n غطسة بجهاز إعادة التنفس لك)',
+      many: '(من آخر $n غطسة بجهاز إعادة التنفس لك)',
+      few: '(من آخر $n غطسات بجهاز إعادة التنفس لك)',
+      two: '(من آخر غطستين لك بجهاز إعادة التنفس)',
+      one: '(من آخر غطسة لك بجهاز إعادة التنفس)',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -21164,13 +21164,34 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו, לא נרשם מילוי)';
+  }
+
+  @override
   String trips_scrubber_expectedDives(int dives) {
-    return '$dives צלילות צפויות';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות צפויות',
+      one: 'צלילה צפויה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_scrubber_fromTrips(int n) {
-    return '(לפי $n הטיולים האחרונים שלך)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(לפי $n הטיולים האחרונים שלך)',
+      one: '(לפי הטיול האחרון שלך)',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -21183,7 +21204,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(לפי $n צלילות הריברידר האחרונות שלך)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(לפי $n צלילות הריברידר האחרונות שלך)',
+      one: '(לפי צלילת הריברידר האחרונה שלך)',
+    );
+    return '$_temp0';
   }
 
   @override

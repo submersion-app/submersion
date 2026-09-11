@@ -11,9 +11,14 @@ class ScrubberMarginInputs extends Equatable {
   /// hours interval times 60, else null (no rating known).
   final double? ratedMinutes;
 
-  /// Loop minutes since the newest scrubber-repack record (or ever), CCR
-  /// and SCR dives before the trip start only.
+  /// Loop minutes since [consumedSince] (or ever), CCR and SCR dives
+  /// before the trip start only.
   final double consumedMinutes;
+
+  /// Where [consumedMinutes] starts: the newest scrubber-repack record on
+  /// or before the trip start, else the repack clock's anchor date when it
+  /// is. Null when neither is known and every loop dive counts.
+  final DateTime? consumedSince;
 
   /// `Trip.expectedDives`.
   final int? expectedDivesOverride;
@@ -38,6 +43,7 @@ class ScrubberMarginInputs extends Equatable {
     required this.item,
     required this.ratedMinutes,
     required this.consumedMinutes,
+    this.consumedSince,
     this.expectedDivesOverride,
     required this.itineraryDiveDays,
     required this.divesPerDiveDayHistory,
@@ -51,6 +57,7 @@ class ScrubberMarginInputs extends Equatable {
     item.id,
     ratedMinutes,
     consumedMinutes,
+    consumedSince,
     expectedDivesOverride,
     itineraryDiveDays,
     divesPerDiveDayHistory,
@@ -66,6 +73,10 @@ class ScrubberMargin extends Equatable {
   final EquipmentItem item;
   final double? ratedMinutes;
   final double consumedMinutes;
+
+  /// See [ScrubberMarginInputs.consumedSince]; null means no repack is
+  /// known, and the card says so rather than "since the last repack".
+  final DateTime? consumedSince;
 
   /// Rated minus consumed, floored at zero; zero when there is no rating.
   final double remainingBefore;
@@ -92,6 +103,7 @@ class ScrubberMargin extends Equatable {
     required this.item,
     required this.ratedMinutes,
     required this.consumedMinutes,
+    this.consumedSince,
     required this.remainingBefore,
     required this.expectedDives,
     required this.expectedDivesN,
@@ -109,6 +121,7 @@ class ScrubberMargin extends Equatable {
     item.id,
     ratedMinutes,
     consumedMinutes,
+    consumedSince,
     remainingBefore,
     expectedDives,
     expectedDivesN,

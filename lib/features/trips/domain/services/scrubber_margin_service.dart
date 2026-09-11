@@ -67,6 +67,7 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
     item: inputs.item,
     ratedMinutes: rated,
     consumedMinutes: inputs.consumedMinutes,
+    consumedSince: inputs.consumedSince,
     remainingBefore: remaining,
     expectedDives: expectedDives,
     expectedDivesN: expectedDivesN,

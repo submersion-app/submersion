@@ -42,12 +42,16 @@ ScrubberMargin margin({
   int minutesN = 2,
   bool divesFromOverride = true,
   bool minutesFromOverride = false,
+  int expectedDives = 10,
+  DateTime? consumedSince,
+  bool noRepack = false,
 }) => ScrubberMargin(
   item: ccr,
   ratedMinutes: rated,
   consumedMinutes: 90,
+  consumedSince: noRepack ? null : (consumedSince ?? DateTime(2025, 2, 1)),
   remainingBefore: rated == null ? 0 : 210,
-  expectedDives: 10,
+  expectedDives: expectedDives,
   expectedDivesN: divesN,
   divesFromOverride: divesFromOverride,
   minutesFromOverride: minutesFromOverride,
@@ -130,6 +134,39 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Under 20 percent'), findsNothing);
+  });
+
+  testWidgets('with no repack known the used minutes say so', (tester) async {
+    // The consumed minutes then count every loop dive on the unit, which
+    // "since the last repack" would misstate for a first-use scrubber.
+    await tester.pumpWidget(host([margin(noRepack: true)]));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        '210 min left before the trip (rated 300 min, 90 min used, no repack recorded)',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('since the last repack'), findsNothing);
+  });
+
+  testWidgets('a count of one reads in the singular', (tester) async {
+    await tester.pumpWidget(
+      host([
+        margin(
+          expectedDives: 1,
+          divesN: 1,
+          minutesN: 1,
+          divesFromOverride: false,
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('1 expected dive (from your last trip)'), findsOneWidget);
+    expect(
+      find.text('35 min per dive (from your last rebreather dive)'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a margin just under zero keeps its sign', (tester) async {

@@ -6469,7 +6469,22 @@
       }
     }
   },
-  "trips_scrubber_expectedDives": "{dives} غطسة متوقعة",
+  "trips_scrubber_remainingNoRepack": "{minutes} دقيقة متبقية قبل الرحلة (المقدّر {rated} دقيقة، استُهلك {consumed} دقيقة، ولا توجد إعادة تعبئة مسجلة)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{غطسة واحدة متوقعة} two{غطستان متوقعتان} few{{dives} غطسات متوقعة} many{{dives} غطسة متوقعة} other{{dives} غطسة متوقعة}}",
   "@trips_scrubber_expectedDives": {
     "placeholders": {
       "dives": {
@@ -6477,7 +6492,7 @@
       }
     }
   },
-  "trips_scrubber_fromTrips": "(من آخر {n} رحلات لك)",
+  "trips_scrubber_fromTrips": "{n, plural, one{(من رحلتك الأخيرة)} two{(من آخر رحلتين لك)} few{(من آخر {n} رحلات لك)} many{(من آخر {n} رحلة لك)} other{(من آخر {n} رحلة لك)}}",
   "@trips_scrubber_fromTrips": {
     "placeholders": {
       "n": {
@@ -6494,7 +6509,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(من آخر {n} غطسات بجهاز إعادة التنفس لك)",
+  "trips_scrubber_fromDives": "{n, plural, one{(من آخر غطسة لك بجهاز إعادة التنفس)} two{(من آخر غطستين لك بجهاز إعادة التنفس)} few{(من آخر {n} غطسات بجهاز إعادة التنفس لك)} many{(من آخر {n} غطسة بجهاز إعادة التنفس لك)} other{(من آخر {n} غطسة بجهاز إعادة التنفس لك)}}",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

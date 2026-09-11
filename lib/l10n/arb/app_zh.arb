@@ -6655,7 +6655,22 @@
       }
     }
   },
-  "trips_scrubber_expectedDives": "预计 {dives} 次潜水",
+  "trips_scrubber_remainingNoRepack": "行程前剩余 {minutes} 分钟（额定 {rated} 分钟，已使用 {consumed} 分钟，未记录更换）",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, other{预计 {dives} 次潜水}}",
   "@trips_scrubber_expectedDives": {
     "placeholders": {
       "dives": {
@@ -6663,7 +6678,7 @@
       }
     }
   },
-  "trips_scrubber_fromTrips": "（根据您最近 {n} 次行程）",
+  "trips_scrubber_fromTrips": "{n, plural, other{（根据您最近 {n} 次行程）}}",
   "@trips_scrubber_fromTrips": {
     "placeholders": {
       "n": {
@@ -6680,7 +6695,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "（根据您最近 {n} 次循环呼吸器潜水）",
+  "trips_scrubber_fromDives": "{n, plural, other{（根据您最近 {n} 次循环呼吸器潜水）}}",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

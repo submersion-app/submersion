@@ -337,6 +337,55 @@ void main() {
     expect(m.consumedMinutes, 60);
   });
 
+  test('the repack clock\'s anchor stands in for a missing record', () async {
+    // The clocks engine anchors a clock on its newest record, else the
+    // schedule's anchor date. With no repack logged, the margin must count
+    // from that anchor too, not charge every loop dive the unit ever made.
+    final ccr = await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'CCR',
+        type: EquipmentType.rebreather,
+        attributes: [
+          EquipmentAttribute(
+            id: '',
+            equipmentId: '',
+            key: 'scrubber_duration_h',
+            valueNum: 5,
+          ),
+        ],
+      ),
+    );
+    await db.delete(db.serviceSchedules).go();
+    await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: ccr.id,
+        serviceKindId: 'scrubber-repack',
+        anchorDate: DateTime(2026, 3, 1),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await ccrDive('feb', DateTime(2026, 2, 10), ccr.id);
+    await ccrDive('mar', DateTime(2026, 3, 10), ccr.id, runtime: 3000);
+
+    final june = await trip('June', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    final m = (await container.read(
+      tripScrubberMarginsProvider(june.id).future,
+    )).single;
+    expect(m.consumedMinutes, 50);
+    expect(m.consumedSince, DateTime(2026, 3, 1));
+
+    // An anchor after the trip start is not a baseline as of that start.
+    final feb = await trip('Feb', DateTime(2026, 2, 20), DateTime(2026, 2, 22));
+    final early = (await container.read(
+      tripScrubberMarginsProvider(feb.id).future,
+    )).single;
+    expect(early.consumedMinutes, 60);
+    expect(early.consumedSince, isNull);
+  });
+
   test('a paused repack clock supplies no rating', () async {
     // With no rated duration on the unit, the rating falls back to its
     // scrubber-repack clock. A paused clock is off for the clocks engine,

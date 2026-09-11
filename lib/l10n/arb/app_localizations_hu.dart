@@ -21656,13 +21656,34 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes perc maradt az utazás előtt (névleges $rated perc, $consumed perc elhasználva, nincs rögzített csere)';
+  }
+
+  @override
   String trips_scrubber_expectedDives(int dives) {
-    return '$dives várható merülés';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives várható merülés',
+      one: '$dives várható merülés',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_scrubber_fromTrips(int n) {
-    return '(a legutóbbi $n utazásod alapján)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(a legutóbbi $n utazásod alapján)',
+      one: '(a legutóbbi utazásod alapján)',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -21675,7 +21696,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '(a legutóbbi $n visszalélegeztetős merülésed alapján)';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(a legutóbbi $n visszalélegeztetős merülésed alapján)',
+      one: '(a legutóbbi visszalélegeztetős merülésed alapján)',
+    );
+    return '$_temp0';
   }
 
   @override

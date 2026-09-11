@@ -6385,7 +6385,22 @@
       }
     }
   },
-  "trips_scrubber_expectedDives": "{dives} várható merülés",
+  "trips_scrubber_remainingNoRepack": "{minutes} perc maradt az utazás előtt (névleges {rated} perc, {consumed} perc elhasználva, nincs rögzített csere)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} várható merülés} other{{dives} várható merülés}}",
   "@trips_scrubber_expectedDives": {
     "placeholders": {
       "dives": {
@@ -6393,7 +6408,7 @@
       }
     }
   },
-  "trips_scrubber_fromTrips": "(a legutóbbi {n} utazásod alapján)",
+  "trips_scrubber_fromTrips": "{n, plural, one{(a legutóbbi utazásod alapján)} other{(a legutóbbi {n} utazásod alapján)}}",
   "@trips_scrubber_fromTrips": {
     "placeholders": {
       "n": {
@@ -6410,7 +6425,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(a legutóbbi {n} visszalélegeztetős merülésed alapján)",
+  "trips_scrubber_fromDives": "{n, plural, one{(a legutóbbi visszalélegeztetős merülésed alapján)} other{(a legutóbbi {n} visszalélegeztetős merülésed alapján)}}",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

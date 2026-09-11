@@ -6385,7 +6385,22 @@
       }
     }
   },
-  "trips_scrubber_expectedDives": "{dives} plongées prévues",
+  "trips_scrubber_remainingNoRepack": "{minutes} min restantes avant le voyage (nominal {rated} min, {consumed} min utilisées, aucun remplissage enregistré)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} plongée prévue} other{{dives} plongées prévues}}",
   "@trips_scrubber_expectedDives": {
     "placeholders": {
       "dives": {
@@ -6393,7 +6408,7 @@
       }
     }
   },
-  "trips_scrubber_fromTrips": "(d'après vos {n} derniers voyages)",
+  "trips_scrubber_fromTrips": "{n, plural, one{(d'après votre dernier voyage)} other{(d'après vos {n} derniers voyages)}}",
   "@trips_scrubber_fromTrips": {
     "placeholders": {
       "n": {
@@ -6410,7 +6425,7 @@
       }
     }
   },
-  "trips_scrubber_fromDives": "(d'après vos {n} dernières plongées en recycleur)",
+  "trips_scrubber_fromDives": "{n, plural, one{(d'après votre dernière plongée en recycleur)} other{(d'après vos {n} dernières plongées en recycleur)}}",
   "@trips_scrubber_fromDives": {
     "placeholders": {
       "n": {

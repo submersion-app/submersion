@@ -20590,13 +20590,32 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '行程前剩余 $minutes 分钟（额定 $rated 分钟，已使用 $consumed 分钟，未记录更换）';
+  }
+
+  @override
   String trips_scrubber_expectedDives(int dives) {
-    return '预计 $dives 次潜水';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '预计 $dives 次潜水',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_scrubber_fromTrips(int n) {
-    return '（根据您最近 $n 次行程）';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '（根据您最近 $n 次行程）',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -20609,7 +20628,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String trips_scrubber_fromDives(int n) {
-    return '（根据您最近 $n 次循环呼吸器潜水）';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '（根据您最近 $n 次循环呼吸器潜水）',
+    );
+    return '$_temp0';
   }
 
   @override

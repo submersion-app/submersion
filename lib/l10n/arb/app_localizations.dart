@@ -35714,16 +35714,26 @@ abstract class AppLocalizations {
     String consumed,
   );
 
+  /// The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left before the trip (rated {rated} min, {consumed} min used, no repack recorded)'**
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  );
+
   /// No description provided for @trips_scrubber_expectedDives.
   ///
   /// In en, this message translates to:
-  /// **'{dives} expected dives'**
+  /// **'{dives, plural, one{{dives} expected dive} other{{dives} expected dives}}'**
   String trips_scrubber_expectedDives(int dives);
 
   /// No description provided for @trips_scrubber_fromTrips.
   ///
   /// In en, this message translates to:
-  /// **'(from your last {n} trips)'**
+  /// **'{n, plural, one{(from your last trip)} other{(from your last {n} trips)}}'**
   String trips_scrubber_fromTrips(int n);
 
   /// No description provided for @trips_scrubber_fromOverride.
@@ -35741,7 +35751,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_scrubber_fromDives.
   ///
   /// In en, this message translates to:
-  /// **'(from your last {n} rebreather dives)'**
+  /// **'{n, plural, one{(from your last rebreather dive)} other{(from your last {n} rebreather dives)}}'**
   String trips_scrubber_fromDives(int n);
 
   /// No description provided for @trips_scrubber_expectedUse.
