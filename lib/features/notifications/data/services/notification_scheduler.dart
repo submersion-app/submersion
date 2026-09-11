@@ -121,7 +121,7 @@ class NotificationScheduler {
     final usage = await _equipmentRepository.getExposureSamplesForEquipment(
       item.id,
       parentEquipmentId: parentId,
-      installedSince: item.installedDate,
+      installedSince: item.parentDivesFrom,
       rebreatherContact: isRebreather,
     );
     final classifier = ExposureClassifier(

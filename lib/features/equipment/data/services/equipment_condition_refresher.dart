@@ -72,7 +72,12 @@ class EquipmentConditionRefresher {
     final parent = parentId == null
         ? null
         : await _equipment.getEquipmentById(parentId);
-    final children = await _equipment.getChildEquipment(item.id);
+    // Retired parts too: a retired cell tells the engine who occupied its
+    // slot until its successor went in.
+    final children = await _equipment.getChildEquipment(
+      item.id,
+      includeRetired: true,
+    );
     // Same link semantics the service clocks use (equipment_providers).
     final isRebreather =
         item.type == EquipmentType.rebreather ||
@@ -80,7 +85,7 @@ class EquipmentConditionRefresher {
     final samples = await _equipment.getExposureSamplesForEquipment(
       item.id,
       parentEquipmentId: parentId,
-      installedSince: item.installedDate,
+      installedSince: item.parentDivesFrom,
       rebreatherContact: isRebreather,
     );
     final observations = await _observations.getForEquipment(item.id);
