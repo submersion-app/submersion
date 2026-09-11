@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
@@ -75,6 +76,23 @@ void main() {
     expect(chart.highlightRange, isNull);
     expect(find.text('Cell 1'), findsOneWidget);
     expect(find.text('Cell 2'), findsOneWidget);
+  });
+
+  testWidgets('the cell axis stays in mV/bar for a psi diver', (tester) async {
+    // Cell gain is read against oxygen partial pressure, which the app
+    // shows in bar whatever the tank pressure unit.
+    await tester.pumpWidget(
+      host(
+        cellTrend,
+        settings: MockSettingsNotifier(
+          const AppSettings(pressureUnit: PressureUnit.psi),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+    expect(chart.yAxisLabel, 'mV/bar');
+    expect(chart.secondarySeries.first.points.first.value, 50);
   });
 
   testWidgets('a cell keeps its slot colour whatever else is drawn', (

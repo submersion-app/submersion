@@ -157,7 +157,11 @@ class FindingEvidence extends Equatable {
       values: values is Map
           ? {
               for (final e in values.entries)
-                if (e.key is String && e.value is num)
+                // jsonDecode reads an overflowing literal as Infinity, which
+                // cannot be re-encoded; skip it as the timestamps and slot are.
+                if (e.key is String &&
+                    e.value is num &&
+                    (e.value as num).isFinite)
                   e.key as String: (e.value as num).toDouble(),
             }
           : const {},

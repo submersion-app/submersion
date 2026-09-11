@@ -19,6 +19,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
 class EquipmentRepository {
   /// Injectable seams mirror [SiteRepository]: tests hand in a coordinator
@@ -490,6 +492,17 @@ class EquipmentRepository {
         final observations = await (_db.select(
           _db.equipmentObservations,
         )..where((t) => t.equipmentId.equals(id))).get();
+        // Condition findings sync too and go by the same cascade (condition
+        // phase 3b); the device-local review marker needs no tombstone.
+        final findings = await (_db.select(
+          _db.equipmentFindings,
+        )..where((t) => t.equipmentId.equals(id))).get();
+        // Incidents naming the item stay; their gear link is staged, not
+        // just nulled by SQLite.
+        await IncidentRepository().unlinkFromDeletedEquipment(id);
+        // Registry rows naming the item (as a cylinder or a transmitter)
+        // stay; the link is staged, not just nulled.
+        await TransmitterRepository().unlinkFromDeletedEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -513,6 +526,12 @@ class EquipmentRepository {
           await _syncRepository.logDeletion(
             entityType: 'equipmentObservations',
             recordId: o.id,
+          );
+        }
+        for (final f in findings) {
+          await _syncRepository.logDeletion(
+            entityType: 'equipmentFindings',
+            recordId: f.id,
           );
         }
         await _syncRepository.logDeletion(
@@ -1039,14 +1058,14 @@ class EquipmentRepository {
   ) {
     final from = item.parentDivesFrom;
     if (from == null) return null;
-    final slot = item.attrNum(EquipmentAttrKeys.cellSlot)?.round();
+    final slot = item.cellSlot;
     // A slot is what says which later part took this one's place. Only
     // batteries succeed without one; a slotless cell has no successor.
     if (slot == null && item.type != EquipmentType.battery) return null;
     DateTime? earliest;
     for (final s in siblings) {
       if (s.id == item.id || s.type != item.type) continue;
-      if (s.attrNum(EquipmentAttrKeys.cellSlot)?.round() != slot) continue;
+      if (s.cellSlot != slot) continue;
       final start = s.parentDivesFrom;
       if (start == null || !start.isAfter(from)) continue;
       if (earliest == null || start.isBefore(earliest)) earliest = start;

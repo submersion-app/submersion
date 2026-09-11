@@ -107,6 +107,47 @@ class EquipmentObservationRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Clears the dive link on every check-in on [diveIds] and stages each.
+  /// Call it before the dives are deleted: ON DELETE SET NULL would clear
+  /// the link too, but moves no clock and stages nothing, so a peer would
+  /// keep the check-in on a dive that no longer exists. The check-in stays,
+  /// as a bench note.
+  Future<void> unlinkFromDeletedDives(
+    List<String> diveIds, {
+    DateTime? now,
+  }) async {
+    if (diveIds.isEmpty) return;
+    final stamp = (now ?? DateTime.now()).millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      // Chunked under SQLite's bound-variable limit for a bulk delete.
+      for (var i = 0; i < diveIds.length; i += 500) {
+        final chunk = diveIds.sublist(
+          i,
+          i + 500 < diveIds.length ? i + 500 : diveIds.length,
+        );
+        final rows = await (_db.select(
+          _db.equipmentObservations,
+        )..where((t) => t.diveId.isIn(chunk))).get();
+        if (rows.isEmpty) continue;
+        await (_db.update(
+          _db.equipmentObservations,
+        )..where((t) => t.diveId.isIn(chunk))).write(
+          EquipmentObservationsCompanion(
+            diveId: const Value(null),
+            updatedAt: Value(stamp),
+          ),
+        );
+        for (final row in rows) {
+          await _syncRepository.markRecordPending(
+            entityType: entityType,
+            recordId: row.id,
+            localUpdatedAt: stamp,
+          );
+        }
+      }
+    });
+  }
+
   Future<void> delete(String id) async {
     await _db.transaction(() async {
       await (_db.delete(
@@ -138,11 +179,12 @@ class EquipmentObservationRepository {
         diveId: Value(o.diveId),
         observedAt: o.observedAt.millisecondsSinceEpoch,
         status: o.status.dbValue,
-        // An OK check carries no tags, so a newer peer's names go with the
-        // rest when an issue is turned into one.
+        // An OK check carries no tags, known or a newer peer's: they go
+        // when an issue is turned into one, and an imported or synced OK row
+        // that arrives carrying some does not keep them.
         issueTags: Value(
           encodeObservationTags(
-            o.issueTags,
+            o.isIssue ? o.issueTags : const [],
             unrecognized: o.isIssue ? o.unrecognizedTags : const [],
           ),
         ),

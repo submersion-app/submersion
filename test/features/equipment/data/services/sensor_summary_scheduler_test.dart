@@ -180,6 +180,59 @@ void main() {
     expect(visited, isEmpty);
   });
 
+  /// Waits until the queue stops growing: a batch can queue another (a
+  /// findings pass asking for a summary), and [idle] is the tail at the
+  /// moment it is read. Bounded, so a queue that never settles fails here
+  /// rather than hanging the run (a timer does not fire while it spins).
+  Future<void> drain() async {
+    for (var batch = 0; batch < 20; batch++) {
+      final tail = SensorSummaryScheduler.instance.idle;
+      await tail;
+      if (identical(tail, SensorSummaryScheduler.instance.idle)) return;
+    }
+    fail('the scheduler kept queueing batches');
+  }
+
+  Future<void> linkRegToD1() => db
+      .into(db.diveEquipment)
+      .insert(DiveEquipmentCompanion.insert(diveId: 'd1', equipmentId: 'reg'));
+
+  test('a findings request queues the summaries its gear is missing', () async {
+    // A check-in on gear whose dive has no sensor summary yet: the refresh
+    // can only save the non-sensor findings and records no marker, so the
+    // queue has to build the summary, after which the batch's pass over
+    // active gear completes the review.
+    await linkRegToD1();
+    scheduleConditionFindingsRefresh(['reg']);
+    await drain();
+    expect(visited, ['d1']);
+    expect(
+      await EquipmentFindingsRepository(db: db).getReview('reg'),
+      isNotNull,
+    );
+  });
+
+  test(
+    'a summary that cannot be built is requested once, not forever',
+    () async {
+      // Each summary batch ends with a findings pass, which would ask for the
+      // same missing summary again, and so on without end.
+      SensorSummaryScheduler.instance.repositoryFactory = () =>
+          DiveSensorSummaryRepository(
+            db: db,
+            runner: (input) async {
+              visited.add(input.diveId);
+              throw StateError('corrupt profile');
+            },
+          );
+      await linkRegToD1();
+      scheduleConditionFindingsRefresh(['reg']);
+      // Returns at all only if the requests stop.
+      await drain();
+      expect(visited, ['d1']);
+    },
+  );
+
   test('a findings request reviews only the loaded diver\'s items', () async {
     // The pass runs with the active diver's thresholds. A queued write on
     // another diver's gear (or a diver switch before the queue runs) must

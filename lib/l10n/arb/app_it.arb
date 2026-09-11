@@ -11809,6 +11809,7 @@
   "transmitters_field_channel": "Canale",
   "transmitters_field_role": "Ruolo",
   "transmitters_field_gear": "Bombola dall'attrezzatura",
+  "transmitters_field_transmitterGear": "Trasmettitore dall’attrezzatura",
   "transmitters_field_material": "Materiale",
   "transmitters_gear_none": "Nessuna",
   "transmitters_validation_key": "Inserisci un numero di serie oppure scegli computer e canale",

@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -121,6 +122,82 @@ void main() {
             .where((r) => r.entityType == 'equipment')
             .map((r) => r.recordId),
         ['reg'],
+      );
+    },
+  );
+
+  test(
+    'a recurring finding on a tag this build does not know is kept',
+    () async {
+      // A newer peer can emit issueRecurring for an observation tag added
+      // after this build. This engine cannot re-emit it, so its absence here
+      // says nothing, and a tombstone would delete it on the peer that
+      // computed it (as phase 3a keeps unknown observation tags).
+      final evidence = FindingEvidence(
+        n: 20,
+        windowStart: t0,
+        windowEnd: t0.add(const Duration(days: 30)),
+        diveIds: const ['d1', 'd2', 'd3'],
+        values: const {'count': 3},
+        tag: 'tagFromTheFuture',
+      );
+      await db
+          .into(db.equipmentFindings)
+          .insert(
+            EquipmentFindingsCompanion.insert(
+              id: conditionFindingId(
+                'reg',
+                ConditionRuleId.issueRecurring,
+                tag: 'tagFromTheFuture',
+              ),
+              equipmentId: 'reg',
+              ruleId: ConditionRuleId.issueRecurring.dbValue,
+              severity: ConditionSeverity.caution.dbValue,
+              evidence: Value(evidence.encode()),
+              evidenceFingerprint: evidenceFingerprint(evidence),
+              engineVersion: 1,
+              createdAt: 1,
+            ),
+          );
+      // And one on a known tag, which this engine would re-emit if it fired.
+      await repo.saveReview(
+        equipmentId: 'reg',
+        inputFingerprint: 'fp1',
+        findings: [
+          recurring(const ['d1', 'd2', 'd3']),
+        ],
+        engineVersion: 1,
+        now: t0,
+      );
+
+      await repo.saveReview(
+        equipmentId: 'reg',
+        inputFingerprint: 'fp2',
+        findings: const [],
+        engineVersion: 1,
+        now: t0.add(const Duration(days: 1)),
+      );
+
+      final left = (await db.select(db.equipmentFindings).get())
+          .map((f) => f.id)
+          .toSet();
+      expect(left, {
+        conditionFindingId(
+          'reg',
+          ConditionRuleId.issueRecurring,
+          tag: 'tagFromTheFuture',
+        ),
+      });
+      expect(
+        await tombstones(),
+        {
+          conditionFindingId(
+            'reg',
+            ConditionRuleId.issueRecurring,
+            tag: 'freeFlow',
+          ),
+        },
+        reason: 'the known tag stopped firing and goes, the unknown one stays',
       );
     },
   );

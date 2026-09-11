@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -27,6 +29,14 @@ class _FailingRepo extends EquipmentRepository {
   @override
   Future<EquipmentItem> replaceChild(EquipmentItem old, {DateTime? now}) =>
       Future.error(StateError('db closed'));
+}
+
+class _SlowRepo extends EquipmentRepository {
+  final done = Completer<EquipmentItem>();
+
+  @override
+  Future<EquipmentItem> replaceChild(EquipmentItem old, {DateTime? now}) =>
+      done.future;
 }
 
 class _RecordingRepo extends EquipmentRepository {
@@ -288,6 +298,71 @@ void main() {
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
     expect(parents, ['r1']);
+  });
+
+  testWidgets('a slot no cell reading can match is not shown as one', (
+    tester,
+  ) async {
+    // Slots run 1 to 6 (o2Sensor1 to o2Sensor6); the form takes any number,
+    // and "Slot 0" would never match a trend or a slot finding.
+    final odd = child(
+      'c0',
+      'Spare cell',
+      EquipmentType.o2Cell,
+      slot: 0,
+      installed: now.subtract(const Duration(days: 40)),
+    );
+    await tester.pumpWidget(host(equipment: ccr, children: [odd]));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Slot 0'), findsNothing);
+    expect(find.text('Spare cell'), findsOneWidget);
+  });
+
+  testWidgets('a retired host offers no Add', (tester) async {
+    // A part added from here is fitted to this host, which a retired or
+    // sold host cannot take; the editor would drop the parent silently.
+    final retired = ccr.copyWith(
+      status: EquipmentStatus.retired,
+      isActive: false,
+    );
+    await tester.pumpWidget(host(equipment: retired, children: const []));
+    await tester.pumpAndSettle();
+    expect(find.text('Add'), findsNothing);
+  });
+
+  testWidgets('sixty days still reads in days', (tester) async {
+    // Days through day 60, calendar months after (the phase plan). The
+    // install day is a local calendar day, as the date picker stores it.
+    final today = DateTime(now.year, now.month, now.day);
+    final sixty = child(
+      'c6',
+      'Cell 6',
+      EquipmentType.o2Cell,
+      slot: 2,
+      installed: DateTime(today.year, today.month, today.day - 60),
+    );
+    await tester.pumpWidget(host(equipment: ccr, children: [sixty]));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('60 days ago'), findsOneWidget);
+  });
+
+  testWidgets('a replace that finishes after the page is gone does not throw', (
+    tester,
+  ) async {
+    final repo = _SlowRepo();
+    await tester.pumpWidget(host(equipment: ccr, children: [cell], repo: repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Replace'));
+    await tester.pump();
+    // The diver leaves the item page while the replacement is saving.
+    await tester.pumpWidget(const SizedBox());
+    repo.done.complete(cell.copyWith(id: 'new'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a host with no children shows the empty line', (tester) async {

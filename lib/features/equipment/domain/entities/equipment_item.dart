@@ -82,6 +82,15 @@ class EquipmentItem extends Equatable {
   double? get buoyancyKg => attrNum(EquipmentAttrKeys.buoyancyKg);
   double? get weightKg => attrNum(EquipmentAttrKeys.dryWeightKg);
 
+  /// The O2 cell slot this item sits in, 1 to 6 (the `o2Sensor1` to
+  /// `o2Sensor6` a dive computer reports), or null when unset or out of that
+  /// range. The form takes any number, and a slot no reading can match must
+  /// not be shown as one, claim a trend or a slot finding, or succeed a cell.
+  int? get cellSlot {
+    final slot = attrNum(EquipmentAttrKeys.cellSlot)?.round();
+    return slot != null && slot >= 1 && slot <= 6 ? slot : null;
+  }
+
   /// When a child item was installed in its parent; the parent's dives on or
   /// after this date count for the child.
   DateTime? get installedDate {
@@ -93,7 +102,33 @@ class EquipmentItem extends Equatable {
   /// its creation when none is set (the design's attribute catalog). Every
   /// exposure read for a child goes through this, so the clocks, the
   /// condition engine and the charts all count the same dives.
-  DateTime? get parentDivesFrom => installedDate ?? createdAt;
+  ///
+  /// In the dive-time frame, because the exposure SQL compares it with
+  /// `dive_date_time`, which holds wall-clock time as UTC. The install date
+  /// is a local calendar day (the date picker stores local midnight;
+  /// replacing a child stores the local moment), so it becomes that day's
+  /// midnight in UTC; the creation time is a local instant, so it becomes
+  /// its wall clock in UTC. Comparing the raw instants shifted the boundary
+  /// by the device's UTC offset, counting dives from the evening before east
+  /// of UTC and dropping the install day's early dives west of it.
+  DateTime? get parentDivesFrom {
+    final installed = installedDate;
+    if (installed != null) {
+      return DateTime.utc(installed.year, installed.month, installed.day);
+    }
+    final created = createdAt;
+    if (created == null || created.isUtc) return created;
+    return DateTime.utc(
+      created.year,
+      created.month,
+      created.day,
+      created.hour,
+      created.minute,
+      created.second,
+      created.millisecond,
+      created.microsecond,
+    );
+  }
 
   /// Still in service: active, and not carrying a terminal status. Older
   /// rows can be retired or sold with isActive left true, and the

@@ -36746,6 +36746,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transmitters_field_gear => '来自装备的气瓶';
 
   @override
+  String get transmitters_field_transmitterGear => '来自装备的无线发射器';
+
+  @override
   String get transmitters_field_material => '材质';
 
   @override

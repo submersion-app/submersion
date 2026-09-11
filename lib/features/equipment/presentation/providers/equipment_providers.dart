@@ -13,7 +13,6 @@ import 'package:submersion/features/equipment/data/repositories/service_kind_rep
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -245,8 +244,7 @@ final childEquipmentProvider =
       // the equipment row.
       ref.invalidateSelfWhen(repository.watchAttributeChanges());
       final children = await repository.getChildEquipment(parentId);
-      int slotOf(EquipmentItem e) =>
-          e.attrNum(EquipmentAttrKeys.cellSlot)?.round() ?? 1 << 20;
+      int slotOf(EquipmentItem e) => e.cellSlot ?? 1 << 20;
       int rankOf(EquipmentType t) => switch (t) {
         EquipmentType.o2Cell => 0,
         EquipmentType.battery => 1,

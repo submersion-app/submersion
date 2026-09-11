@@ -11809,6 +11809,7 @@
   "transmitters_field_channel": "Csatorna",
   "transmitters_field_role": "Szerep",
   "transmitters_field_gear": "Palack a felszerelésből",
+  "transmitters_field_transmitterGear": "Jeladó a felszerelésből",
   "transmitters_field_material": "Anyag",
   "transmitters_gear_none": "Nincs",
   "transmitters_validation_key": "Adj meg egy sorozatszámot, vagy válassz komputert és csatornát",

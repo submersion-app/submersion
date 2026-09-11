@@ -283,8 +283,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
         .getAll(diverId: diverId);
   }
 
-  /// The active diver's dives for a full UDDF export, through the validated
-  /// diver id like its gear and check-ins. [divesProvider] follows the raw
+  /// The active diver's dives for the full UDDF export and the workbook,
+  /// through the validated diver id like their gear and check-ins. [divesProvider] follows the raw
   /// id, so a stale one (a restore, or a sync that removed the diver) found
   /// no dives and aborted the export as empty, and any dive list scoped
   /// apart from the check-ins could leave a check-in's dive out of the file.
@@ -566,13 +566,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
     try {
       final dives = await _validatedDiverDives();
-      if (dives.isEmpty) {
-        state = state.copyWith(
-          status: ExportStatus.error,
-          message: _l10n.settings_export_empty_dives,
-        );
-        return;
-      }
 
       // Collect all data for comprehensive export
       state = state.copyWith(
@@ -580,6 +573,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
+      // A library can hold gear, sites and bench check-ins before any dive;
+      // the full export carries those too (the builder takes an empty dive
+      // list). Only a library with none of them is refused, as the workbook
+      // does.
+      if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_data,
+        );
+        return;
+      }
       final buddies = await _ref.read(allBuddiesProvider.future);
       final certifications = await _ref.read(allCertificationsProvider.future);
       final diveCenters = await _ref.read(allDiveCentersProvider.future);
@@ -725,7 +729,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_excel,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      // Validated, like its check-ins sheet (see _validatedDiverDives).
+      final dives = await _validatedDiverDives();
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
       // Checklist runs ride along in the workbook. Fetched in bulk: one query
@@ -833,7 +838,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingExcel,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      // Validated, like its check-ins sheet (see _validatedDiverDives).
+      final dives = await _validatedDiverDives();
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
       // Checklist runs ride along in the workbook. Fetched in bulk: one query
@@ -1202,13 +1208,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
     try {
       final dives = await _validatedDiverDives();
-      if (dives.isEmpty) {
-        state = state.copyWith(
-          status: ExportStatus.error,
-          message: _l10n.settings_export_empty_dives,
-        );
-        return;
-      }
 
       // Collect all data for comprehensive export
       state = state.copyWith(
@@ -1216,6 +1215,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
+      // A library can hold gear, sites and bench check-ins before any dive;
+      // the full export carries those too (the builder takes an empty dive
+      // list). Only a library with none of them is refused, as the workbook
+      // does.
+      if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_data,
+        );
+        return;
+      }
       final buddies = await _ref.read(allBuddiesProvider.future);
       final certifications = await _ref.read(allCertificationsProvider.future);
       final diveCenters = await _ref.read(allDiveCentersProvider.future);

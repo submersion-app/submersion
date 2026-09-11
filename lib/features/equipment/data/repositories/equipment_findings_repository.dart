@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 
 /// The device-local marker that the engine has run over an item's current
 /// inputs. Matching it is what lets a refresh skip the engine and the
@@ -225,6 +226,13 @@ class EquipmentFindingsRepository {
         // peer that computed it.
         final rule = ConditionRuleId.fromDbValue(old.ruleId);
         if (rule == null) continue;
+        // The same holds for a known rule about something this build does
+        // not know: a recurring issue on an observation tag added after it
+        // (unknown tags are kept on the check-ins too, phase 3a).
+        if (rule == ConditionRuleId.issueRecurring &&
+            _isUnknownTag(FindingEvidence.decode(old.evidence)?.tag)) {
+          continue;
+        }
         // A rule the caller could not evaluate this time (its inputs are
         // not on this device yet) has not stopped firing either.
         if (keepIfNotEmitted.contains(rule)) continue;
@@ -334,3 +342,7 @@ class EquipmentFindingsRepository {
     );
   }
 }
+
+/// Whether [tag] names an observation tag this build does not know.
+bool _isUnknownTag(String? tag) =>
+    tag != null && ObservationTag.fromDbValue(tag) == null;

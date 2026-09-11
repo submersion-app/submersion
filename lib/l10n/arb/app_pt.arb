@@ -11809,6 +11809,7 @@
   "transmitters_field_channel": "Canal",
   "transmitters_field_role": "Função",
   "transmitters_field_gear": "Cilindro do equipamento",
+  "transmitters_field_transmitterGear": "Transmissor do equipamento",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "Nenhum",
   "transmitters_validation_key": "Informe um número de série ou escolha um computador e um canal",

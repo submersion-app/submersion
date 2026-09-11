@@ -64,9 +64,14 @@ class EquipmentFindingsPass {
   /// visits gear with. Defaulting each field on its own made two of them
   /// whenever neither was passed, which is two sets of watch streams and
   /// two things to reason about for no gain.
+  ///
+  /// [requestSummaries] reaches the default refresher, which calls it with
+  /// the exposed dives that have no current sensor summary, so a pass run
+  /// off any item page can still get them built.
   factory EquipmentFindingsPass({
     EquipmentRepository? equipment,
     EquipmentConditionRefresher? refresher,
+    void Function(Set<String> diveIds)? requestSummaries,
   }) {
     final repository = equipment ?? EquipmentRepository();
     return EquipmentFindingsPass._(
@@ -79,6 +84,7 @@ class EquipmentFindingsPass {
             transmitters: TransmitterRepository(),
             summaries: DiveSensorSummaryRepository(),
             findings: EquipmentFindingsRepository(),
+            requestSummaries: requestSummaries,
           ),
     );
   }

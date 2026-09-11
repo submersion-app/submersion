@@ -169,4 +169,16 @@ void main() {
       expect(decoded.tag, isNull);
     });
   });
+
+  test('a non-finite evidence value is dropped, not kept', () {
+    // jsonDecode reads an overflowing literal as Infinity, which cannot be
+    // re-encoded and breaks formatting downstream; the decoder already
+    // guards timestamps and slots the same way.
+    final evidence = FindingEvidence.decode(
+      '{"n": 3, "windowStart": 0, "windowEnd": 0, '
+      '"values": {"count": 3, "worstP95": 1e400}}',
+    );
+    expect(evidence, isNotNull);
+    expect(evidence!.values, {'count': 3.0});
+  });
 }

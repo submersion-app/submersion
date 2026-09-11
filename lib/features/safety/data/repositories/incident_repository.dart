@@ -103,6 +103,38 @@ class IncidentRepository {
     return rows.map(_toDomain).toList();
   }
 
+  /// Clears the gear link on every incident naming [equipmentId] and stages
+  /// each. Call it before the item is deleted: ON DELETE SET NULL would clear
+  /// the link too, but moves no clock and stages nothing, so a peer would keep
+  /// the incident linked to gear that no longer exists. The incident stays.
+  Future<void> unlinkFromDeletedEquipment(
+    String equipmentId, {
+    DateTime? now,
+  }) async {
+    final stamp = (now ?? DateTime.now()).millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      final rows = await (_db.select(
+        _db.incidents,
+      )..where((t) => t.equipmentId.equals(equipmentId))).get();
+      if (rows.isEmpty) return;
+      await (_db.update(
+        _db.incidents,
+      )..where((t) => t.equipmentId.equals(equipmentId))).write(
+        db.IncidentsCompanion(
+          equipmentId: const Value(null),
+          updatedAt: Value(stamp),
+        ),
+      );
+      for (final row in rows) {
+        await _syncRepository.markRecordPending(
+          entityType: 'incidents',
+          recordId: row.id,
+          localUpdatedAt: stamp,
+        );
+      }
+    });
+  }
+
   Future<void> deleteIncident(String id) async {
     await (_db.delete(_db.incidents)..where((t) => t.id.equals(id))).go();
     await _syncRepository.logDeletion(entityType: 'incidents', recordId: id);

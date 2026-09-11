@@ -248,8 +248,10 @@ void main() {
             ],
           ),
         );
-    final old = await cell('Old cell', DateTime.utc(2025, 6), false);
-    await cell('New cell', DateTime.utc(2026, 1, 3), true);
+    // Install dates as the date picker stores them: local midnight of the
+    // chosen day (parentDivesFrom reads that day in the dive frame).
+    final old = await cell('Old cell', DateTime(2025, 6), false);
+    await cell('New cell', DateTime(2026, 1, 3), true);
     final schedule = await ServiceScheduleRepository().createSchedule(
       ServiceSchedule(
         id: '',

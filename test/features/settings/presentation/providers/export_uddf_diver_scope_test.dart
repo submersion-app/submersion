@@ -26,6 +26,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late String diveId;
+  late String regId;
 
   setUp(() async {
     await setUpTestDatabase();
@@ -51,6 +52,7 @@ void main() {
       Dive(id: '', diverId: 'me', diveNumber: 7, dateTime: now),
     );
     diveId = dive.id;
+    regId = reg.id;
     await EquipmentObservationRepository().create(
       equipmentId: reg.id,
       diverId: 'me',
@@ -99,6 +101,52 @@ void main() {
     expect(export.dives.map((d) => d.id), [diveId]);
     expect(export.observations.single.diveId, diveId);
   });
+
+  for (final save in [false, true]) {
+    final path = save ? 'saving' : 'sharing';
+
+    test('$path a library with gear and a bench check-in but no dives '
+        'exports them', () async {
+      // The builder takes an empty dive list; only a library with no dives,
+      // sites or gear at all is refused, as the workbook does.
+      await DiveRepository().deleteDive(diveId);
+      final export = _CapturingExportService();
+      final container = make(export);
+      final notifier = container.read(exportNotifierProvider.notifier);
+      await (save ? notifier.saveUddfToFile() : notifier.exportDivesToUddf());
+
+      final state = container.read(exportNotifierProvider);
+      expect(state.status, ExportStatus.success, reason: state.message);
+      expect(export.dives, isEmpty);
+      expect(export.observations.single.diveId, isNull);
+    });
+
+    test('$path an empty library is refused', () async {
+      await DiveRepository().deleteDive(diveId);
+      await EquipmentRepository().deleteEquipment(regId);
+      final export = _CapturingExportService();
+      final container = make(export);
+      final notifier = container.read(exportNotifierProvider.notifier);
+      await (save ? notifier.saveUddfToFile() : notifier.exportDivesToUddf());
+
+      final state = container.read(exportNotifierProvider);
+      expect(state.status, ExportStatus.error);
+      expect(state.message, 'No data to export');
+    });
+
+    test('$path the workbook uses the validated diver\'s dives', () async {
+      // Its check-ins sheet is scoped to the validated diver; the dives
+      // sheet must be too, or a stale raw id leaves it empty beside them.
+      final export = _CapturingExportService();
+      final container = make(export);
+      final notifier = container.read(exportNotifierProvider.notifier);
+      await (save ? notifier.saveExcelToFile() : notifier.exportToExcel());
+
+      final state = container.read(exportNotifierProvider);
+      expect(state.status, ExportStatus.success, reason: state.message);
+      expect(export.dives.map((d) => d.id), [diveId]);
+    });
+  }
 }
 
 class _CapturingExportService implements ExportService {
@@ -117,6 +165,12 @@ class _CapturingExportService implements ExportService {
       return name == #exportAllDataToUddf
           ? Future<String>.value('/tmp/export.uddf')
           : Future<String?>.value('/tmp/export.uddf');
+    }
+    if (name == #exportToExcel || name == #saveExcelToFile) {
+      dives = invocation.namedArguments[#dives] as List<Dive>;
+      return name == #exportToExcel
+          ? Future<String>.value('/tmp/export.xlsx')
+          : Future<String?>.value('/tmp/export.xlsx');
     }
     return null;
   }

@@ -156,6 +156,35 @@ void main() {
     );
   });
 
+  test('cell sentences stay in bar for a psi diver', () {
+    // A millivolt-per-bar gain and a ppO2 disagreement are sensor
+    // quantities read against oxygen partial pressure, which the app
+    // shows in bar everywhere; converting them to psi would name a figure
+    // no dive computer or cell datasheet uses.
+    const psi = UnitFormatter(AppSettings(pressureUnit: PressureUnit.psi));
+    final low = finding(
+      ConditionRuleId.cellOutputLow,
+      slot: 1,
+      values: {'recentMedian': 41.2},
+    );
+    final divergent = finding(
+      ConditionRuleId.cellDivergent,
+      slot: 3,
+      values: {'worstP95': 0.2, 'count': 4},
+    );
+    for (final units in [psi, metric]) {
+      expect(
+        conditionFindingTitle(low, l10n, units, thresholds: thresholds),
+        'Cell 1 output is 41.2 mV per bar over the last 14 dives',
+      );
+      expect(
+        conditionFindingTitle(divergent, l10n, units, thresholds: thresholds),
+        'Cell 3 disagreed with its peers by up to 0.2 bar on 4 of the '
+        'last 14 dives',
+      );
+    }
+  });
+
   test('the recurring sentence names the tag', () {
     final f = finding(
       ConditionRuleId.issueRecurring,

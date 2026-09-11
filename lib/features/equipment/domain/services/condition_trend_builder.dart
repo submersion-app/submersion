@@ -1,6 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/dive_sensor_summary.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -72,7 +71,7 @@ ConditionTrend? _cellGain(
 ) {
   final Iterable<int> slots;
   if (item.type == EquipmentType.o2Cell) {
-    final own = item.attrNum(EquipmentAttrKeys.cellSlot)?.round();
+    final own = item.cellSlot;
     if (own == null) return null;
     slots = [own];
   } else if (item.type == EquipmentType.rebreather) {
