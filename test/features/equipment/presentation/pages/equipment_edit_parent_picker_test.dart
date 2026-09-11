@@ -22,7 +22,11 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> pumpEditor(WidgetTester tester, String? equipmentId) async {
+  Future<void> pumpEditor(
+    WidgetTester tester,
+    String? equipmentId, {
+    String? initialParentId,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 4000);
     addTearDown(() {
@@ -41,7 +45,11 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: EquipmentEditPage(equipmentId: equipmentId, embedded: true),
+            body: EquipmentEditPage(
+              equipmentId: equipmentId,
+              embedded: true,
+              initialParentId: initialParentId,
+            ),
           ),
         ),
       ),
@@ -82,6 +90,32 @@ void main() {
       (await repository.getEquipmentById(cell.id))!.parentEquipmentId,
       unit.id,
     );
+  });
+
+  testWidgets('a part added from its host starts fitted to it', (tester) async {
+    // The children card opens the editor with its host as the parent. The
+    // form starts on a type that holds nothing, so the parent has to
+    // survive the switch to the cell the diver is adding.
+    final unit = await repository.createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'JJ-CCR',
+        type: EquipmentType.rebreather,
+      ),
+    );
+    await pumpEditor(tester, null, initialParentId: unit.id);
+    await tester.enterText(find.byType(TextFormField).first, 'Cell 3');
+    await tester.tap(find.byType(DropdownButtonFormField<EquipmentType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('O2 cell').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final cell = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.type == EquipmentType.o2Cell,
+    );
+    expect(cell.parentEquipmentId, unit.id);
   });
 
   testWidgets('switching child type drops a parent the new type cannot use', (

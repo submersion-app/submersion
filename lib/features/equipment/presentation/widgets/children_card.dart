@@ -66,7 +66,10 @@ class ChildrenCard extends ConsumerWidget {
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: () => context.push('/equipment/new'),
+                  // Already fitted to this host: without the parent the new
+                  // part saved loose, and the diver had to pick it again.
+                  onPressed: () =>
+                      context.push('/equipment/new?parent=${equipment.id}'),
                   icon: const Icon(Icons.add),
                   label: Text(l10n.equipmentCondition_children_add),
                 ),
@@ -75,8 +78,10 @@ class ChildrenCard extends ConsumerWidget {
             const Divider(),
             childrenAsync.when(
               loading: () => const SizedBox(height: 32),
-              error: (e, _) =>
-                  Padding(padding: const EdgeInsets.all(8), child: Text('$e')),
+              error: (_, _) => Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(l10n.common_error_tryAgain),
+              ),
               data: (children) {
                 if (children.isEmpty) {
                   return Padding(
@@ -153,10 +158,15 @@ class ChildrenCard extends ConsumerWidget {
   ) {
     final installed = child.installedDate;
     if (installed == null) return child.type.localizedName(l10n);
-    final days = DateTime.now().difference(installed).inDays;
+    final now = DateTime.now();
+    final days = now.difference(installed).inDays;
+    // Completed calendar months: an average month length undercounts, so
+    // a part installed a year ago read "11 months".
+    var months = (now.year - installed.year) * 12 + now.month - installed.month;
+    if (now.day < installed.day) months--;
     final age = days < 60
         ? l10n.equipmentCondition_children_ageDays(days < 0 ? 0 : days)
-        : l10n.equipmentCondition_children_ageMonths((days / 30.44).floor());
+        : l10n.equipmentCondition_children_ageMonths(months);
     return l10n.equipmentCondition_children_installed(
       units.formatDate(installed),
       age,
@@ -218,6 +228,12 @@ class ChildrenCard extends ConsumerWidget {
       await ref.read(equipmentRepositoryProvider).replaceChild(child);
     } catch (e, st) {
       _log.error('Replace child failed', error: e, stackTrace: st);
+      // The old part is still fitted; say the replacement did not happen.
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+      }
       return;
     }
     // The child list watches the equipment stream; the findings marker

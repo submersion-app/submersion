@@ -25,12 +25,17 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
   final void Function(String savedId)? onSaved;
   final VoidCallback? onCancel;
 
+  /// For a new item: the parent it starts fitted to (a host's "Add part").
+  /// Kept while the chosen type can live in that parent.
+  final String? initialParentId;
+
   const EquipmentEditPage({
     super.key,
     this.equipmentId,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
+    this.initialParentId,
   });
 
   bool get isEditing => equipmentId != null;
@@ -73,6 +78,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     if (widget.equipmentId == null) {
       _initialCurrencyCode = ref.read(defaultCurrencyProvider);
       _purchaseCurrencyController.text = _initialCurrencyCode;
+      _parentEquipmentId = widget.initialParentId;
     }
     _nameController.addListener(_onFieldChanged);
     _brandController.addListener(_onFieldChanged);
@@ -279,8 +285,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   // A parent chosen for the old type may not hold the new
                   // one (a computer holds a battery, never an O2 cell), and
                   // the picker would show "none" while the stale id was
-                  // still written on save. Start the choice over.
-                  _parentEquipmentId = null;
+                  // still written on save. Keep it only if it can: a host's
+                  // "Add part" starts on a type that holds nothing, and its
+                  // parent must survive the switch to a cell or battery.
+                  _parentEquipmentId = _validParentIdFor(value);
                   _hasChanges = true;
                 });
               }
