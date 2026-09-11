@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_his
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
 void main() {
@@ -21,7 +22,7 @@ void main() {
       Dive(
         id: 'x',
         dateTime: DateTime(2024, 1, 1),
-        equipment: equipment,
+        gear: looseGear(equipment),
         tanks: tank
             ? [
                 const DiveTank(

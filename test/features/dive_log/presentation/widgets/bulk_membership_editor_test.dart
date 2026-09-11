@@ -15,9 +15,13 @@ void main() {
   Future<void> pumpEditor(
     WidgetTester tester, {
     void Function(MembershipDelta)? onChanged,
+    ({int serial, Set<String> ids})? ensureOn,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        // Every assertion matches an English label, so pin the locale instead
+        // of inheriting the ambient platform one.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -28,6 +32,7 @@ void main() {
             counts: counts,
             onAdd: () {},
             onChanged: onChanged ?? (_) {},
+            ensureOn: ensureOn,
           ),
         ),
       ),
@@ -102,4 +107,68 @@ void main() {
       expect(last!.removeIds, isNot(contains('c')));
     },
   );
+
+  // Issue #1754: applying an equipment set must put every item in the set on
+  // all the selected dives, including rows that are already listed.
+  group('ensureOn request', () {
+    testWidgets('turns an unchecked on-all row back on', (tester) async {
+      MembershipDelta? last;
+      await pumpEditor(tester, onChanged: (d) => last = d);
+      await tester.tap(find.byKey(const ValueKey('membership-toggle-a')));
+      await tester.pump();
+      expect(last!.removeIds, contains('a'));
+
+      await pumpEditor(
+        tester,
+        onChanged: (d) => last = d,
+        ensureOn: (serial: 1, ids: {'a'}),
+      );
+      expect(last!.removeIds, isNot(contains('a')));
+      expect(find.text('removing from all'), findsNothing);
+      expect(find.text('on all 3'), findsOneWidget);
+    });
+
+    testWidgets('puts an on-some row on every dive', (tester) async {
+      MembershipDelta? last;
+      await pumpEditor(
+        tester,
+        onChanged: (d) => last = d,
+        ensureOn: (serial: 1, ids: {'b'}),
+      );
+      expect(last!.addIds, contains('b'));
+      expect(find.text('on 2 of 3'), findsNothing);
+    });
+
+    testWidgets('a rebuild with the same serial keeps a later uncheck', (
+      tester,
+    ) async {
+      MembershipDelta? last;
+      const request = (serial: 1, ids: {'a'});
+      await pumpEditor(tester, onChanged: (d) => last = d, ensureOn: request);
+      await tester.tap(find.byKey(const ValueKey('membership-toggle-a')));
+      await tester.pump();
+      expect(last!.removeIds, contains('a'));
+
+      await pumpEditor(tester, onChanged: (d) => last = d, ensureOn: request);
+      expect(last!.removeIds, contains('a'));
+    });
+
+    testWidgets('a new serial applies again after an uncheck', (tester) async {
+      MembershipDelta? last;
+      await pumpEditor(
+        tester,
+        onChanged: (d) => last = d,
+        ensureOn: (serial: 1, ids: {'a'}),
+      );
+      await tester.tap(find.byKey(const ValueKey('membership-toggle-a')));
+      await tester.pump();
+
+      await pumpEditor(
+        tester,
+        onChanged: (d) => last = d,
+        ensureOn: (serial: 2, ids: {'a'}),
+      );
+      expect(last!.removeIds, isNot(contains('a')));
+    });
+  });
 }

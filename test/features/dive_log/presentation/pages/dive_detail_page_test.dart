@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
@@ -183,7 +184,7 @@ void main() {
           const DiveProfilePoint(timestamp: 2400, depth: 18),
           const DiveProfilePoint(timestamp: 2700, depth: 0),
         ],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],
@@ -699,7 +700,7 @@ void main() {
           const DiveProfilePoint(timestamp: 2700, depth: 20),
           const DiveProfilePoint(timestamp: 3000, depth: 0),
         ],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],
@@ -784,7 +785,7 @@ void main() {
             ),
           ],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],
@@ -1781,7 +1782,7 @@ void main() {
       dateTime: DateTime(2026, 3, 28, 10),
       maxDepth: 20.0,
       bottomTime: const Duration(minutes: 40),
-      equipment: [reg],
+      gear: [GearLink(item: reg)],
       tanks: const [
         DiveTank(
           id: 't1',

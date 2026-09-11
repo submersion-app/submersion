@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_section_f
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -190,14 +191,14 @@ final _richDive = Dive(
       endPressure: 50.0,
     ),
   ],
-  equipment: [
+  gear: looseGear([
     const EquipmentItem(
       id: 'eq-1',
       name: 'BCD',
       type: EquipmentType.bcd,
       status: EquipmentStatus.active,
     ),
-  ],
+  ]),
 );
 
 /// A dive with a depth/time profile, so the chart section has something to

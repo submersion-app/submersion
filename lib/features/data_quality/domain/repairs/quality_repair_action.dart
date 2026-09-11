@@ -221,8 +221,17 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       // trusted when it names one side of THIS pair: a stale or foreign id
       // must never volunteer a dive.
       final redundant = p['redundantDiveId'] as String?;
+      // Detector 3 named the redundant copy on recording richness alone, so
+      // it could name the copy holding the diver's gear and notes (#1720).
+      // Detector 4 withholds the name in that case, but findings already on
+      // disk carry the old verdict: an unread key would be a guess, so the
+      // repair waits for the rescan the version bump offers. Unlike
+      // `sameComputer`, an absent fact CANNOT default to repairable here --
+      // this repair deletes a dive.
+      final checkedForDiverData = f.detectorVersion >= 4;
       final deletable =
           !consolidatable &&
+          checkedForDiverData &&
           related != null &&
           (redundant == diveId || redundant == related);
       return [

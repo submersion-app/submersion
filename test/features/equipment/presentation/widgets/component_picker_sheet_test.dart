@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
@@ -14,7 +18,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _FakeComponentRepository extends EquipmentComponentRepository {
   final added = <(String, String)>[];
+  final replaced = <(String, String)>[];
   bool throwCycle = false;
+
+  /// Refuse as a cycle once this many adds have landed.
+  int? throwCycleAfter;
   Object? throwOther;
 
   /// When set, every add waits on it, so a test can act mid-save.
@@ -26,7 +34,8 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
     required String componentId,
     String role = '',
   }) async {
-    if (throwCycle) {
+    if (throwCycle ||
+        (throwCycleAfter != null && added.length >= throwCycleAfter!)) {
       throw EquipmentComponentCycleException(parentId, componentId);
     }
     if (throwOther != null) throw throwOther!;
@@ -39,6 +48,48 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
       createdAt: DateTime(2026),
       updatedAt: DateTime(2026),
     );
+  }
+
+  @override
+  Future<EquipmentComponent> replaceComponent(
+    String id,
+    String newComponentId,
+  ) async {
+    replaced.add((id, newComponentId));
+    return EquipmentComponent(
+      id: id,
+      parentEquipmentId: 'reg',
+      componentEquipmentId: newComponentId,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+  }
+}
+
+/// How many logged dives carry the assembly, as the history dialog sees it.
+/// The real one logs and rethrows on a query failure.
+class _FakeEquipmentRepository extends EquipmentRepository {
+  int diveCount = 0;
+  Object? throwOnCount;
+
+  @override
+  Future<int> getDiveCountForEquipment(String equipmentId) async {
+    if (throwOnCount != null) throw throwOnCount!;
+    return diveCount;
+  }
+}
+
+/// DiveRepository only has a factory, so a Fake stands in for it.
+class _FakeDiveRepository extends Fake implements DiveRepository {
+  final rewrites = <(String, List<GearHistoryRewrite>)>[];
+
+  @override
+  Future<int> rewriteAssemblyOnPastDives(
+    String assemblyId,
+    List<GearHistoryRewrite> rewrites_,
+  ) async {
+    rewrites.add((assemblyId, rewrites_));
+    return 1;
   }
 }
 
@@ -70,9 +121,16 @@ void main() {
     _FakeComponentRepository repo, {
     Future<ComponentsIndex>? index,
     List<EquipmentItem>? gear,
+    EquipmentComponent? replacing,
+    _FakeEquipmentRepository? equipment,
+    _FakeDiveRepository? dives,
   }) => ProviderScope(
     overrides: [
       equipmentComponentRepositoryProvider.overrideWithValue(repo),
+      equipmentRepositoryProvider.overrideWithValue(
+        equipment ?? _FakeEquipmentRepository(),
+      ),
+      diveRepositoryProvider.overrideWithValue(dives ?? _FakeDiveRepository()),
       activeEquipmentProvider.overrideWith((ref) async => gear ?? active),
       equipmentComponentsIndexProvider.overrideWith(
         (ref) => index ?? Future.value(ComponentsIndex.fromRows(edges)),
@@ -86,6 +144,7 @@ void main() {
         body: ComponentPickerSheet(
           parentId: 'reg',
           scrollController: ScrollController(),
+          replacing: replacing,
         ),
       ),
     ),
@@ -116,6 +175,205 @@ void main() {
     await tester.tap(find.text('Add 2'));
     await tester.pumpAndSettle();
     expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
+  });
+
+  testWidgets('adding on an assembly with past dives asks once, then replays', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 3,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Name fins'));
+    await tester.pump();
+    await tester.tap(find.text('Add 2'));
+    await tester.pumpAndSettle();
+    expect(find.text('Update past dives?'), findsOneWidget);
+    expect(find.textContaining('Add the new part'), findsOneWidget);
+    await tester.tap(find.text('Also update 3 dives'));
+    await tester.pumpAndSettle();
+    expect(find.text('Update past dives?'), findsNothing);
+    expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
+    // One call carrying both parts, not one call per part: the replay
+    // makes a single pass over the dives.
+    expect(dives.rewrites, hasLength(1));
+    expect(dives.rewrites.single.$1, 'reg');
+    expect(
+      dives.rewrites.single.$2,
+      unorderedEquals([
+        const GearPartAdded('hose'),
+        const GearPartAdded('fins'),
+      ]),
+    );
+  });
+
+  testWidgets('a failed dive count is reported, and adds nothing', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    await tester.pumpWidget(
+      build(
+        repo,
+        equipment: _FakeEquipmentRepository()
+          ..throwOnCount = StateError('no database'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('Update past dives?'), findsNothing);
+    expect(find.textContaining('no database'), findsOneWidget);
+    expect(repo.added, isEmpty);
+    expect(tester.takeException(), isNull);
+    // The sheet is still usable: the selection and the button survive.
+    expect(find.text('Add 1'), findsOneWidget);
+    final button = tester.widget<FilledButton>(find.byType(FilledButton));
+    expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('a partial save drops the saved parts from the selection', (
+    tester,
+  ) async {
+    // The saved part stops being a candidate, so leaving it selected would
+    // count a row the diver can no longer see or untick.
+    final repo = _FakeComponentRepository()..throwCycleAfter = 1;
+    await tester.pumpWidget(
+      build(repo, equipment: _FakeEquipmentRepository()..diveCount = 0),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Name fins'));
+    await tester.pump();
+    expect(find.text('Add 2'), findsOneWidget);
+    await tester.tap(find.text('Add 2'));
+    await tester.pumpAndSettle();
+    expect(repo.added, hasLength(1));
+    // One saved, one refused: the count drops to the one still pending.
+    expect(find.text('Add 1'), findsOneWidget);
+    expect(find.text('Add 2'), findsNothing);
+  });
+
+  testWidgets('parts added before a refusal are still replayed', (
+    tester,
+  ) async {
+    // The second add is refused; the first already reached the template,
+    // so it has to reach the past dives too or the two drift apart.
+    final repo = _FakeComponentRepository()..throwCycleAfter = 1;
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Name fins'));
+    await tester.pump();
+    await tester.tap(find.text('Add 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Also update 2 dives'));
+    await tester.pumpAndSettle();
+    expect(repo.added, hasLength(1));
+    expect(dives.rewrites.single.$2, [GearPartAdded(repo.added.single.$2)]);
+    expect(
+      find.textContaining('cannot be added as a component'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('from now on adds without touching past dives', (tester) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 3,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('From now on'));
+    await tester.pumpAndSettle();
+    expect(repo.added, [('reg', 'hose')]);
+    expect(dives.rewrites, isEmpty);
+  });
+
+  testWidgets('cancelling the question keeps the sheet open, nothing added', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    await tester.pumpWidget(
+      build(repo, equipment: _FakeEquipmentRepository()..diveCount = 3),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(repo.added, isEmpty);
+    final button = tester.widget<FilledButton>(find.byType(FilledButton));
+    expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('replace mode selects one, swaps the row, and replays', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository();
+    final row = edges[1];
+    await tester.pumpWidget(
+      build(
+        repo,
+        replacing: row,
+        equipment: _FakeEquipmentRepository()..diveCount = 1,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Replace with'), findsOneWidget);
+    expect(find.text('Replace'), findsOneWidget);
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    // Single select: the second tap moves the selection.
+    await tester.tap(find.text('Name fins'));
+    await tester.pump();
+    final checked = tester
+        .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+        .where((t) => t.value == true)
+        .length;
+    expect(checked, 1);
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Swap the part'), findsOneWidget);
+    await tester.tap(find.text('Also update 1 dive'));
+    await tester.pumpAndSettle();
+    expect(repo.replaced, [(row.id, 'fins')]);
+    expect(repo.added, isEmpty);
+    expect(dives.rewrites, hasLength(1));
+    expect(dives.rewrites.single.$1, 'reg');
+    expect(dives.rewrites.single.$2, const [
+      GearPartReplaced(oldPartId: 'first', newPartId: 'fins'),
+    ]);
   });
 
   testWidgets('type groups follow the declared enum order', (tester) async {
@@ -198,6 +456,10 @@ void main() {
       ProviderScope(
         overrides: [
           equipmentComponentRepositoryProvider.overrideWithValue(repo),
+          equipmentRepositoryProvider.overrideWithValue(
+            _FakeEquipmentRepository(),
+          ),
+          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository()),
           activeEquipmentProvider.overrideWith((ref) async => active),
           equipmentComponentsIndexProvider.overrideWith(
             (ref) async => ComponentsIndex.fromRows(edges),

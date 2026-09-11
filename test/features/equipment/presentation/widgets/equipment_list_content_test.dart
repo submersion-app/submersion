@@ -146,6 +146,16 @@ Future<void> _openFilterPanel(WidgetTester tester) async {
 /// enough that the lower sections start off screen.
 Future<void> _tapPanelChip(WidgetTester tester, String key) async {
   final finder = find.byKey(ValueKey(key));
+  // The panel body is a lazy ListView; a chip past the cache extent is not
+  // built yet, so ensureVisible alone throws "No element". Scroll it in via
+  // the sheet's list (the last Scrollable mounted once the panel is open).
+  if (finder.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      finder,
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+  }
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
   await tester.tap(finder);
@@ -824,6 +834,13 @@ void main() {
     ) async {
       await pumpPhoneList(tester);
       await _openFilterPanel(tester);
+      // The category section starts below the fold; scroll it in so its
+      // chips are built before we count them.
+      await tester.scrollUntilVisible(
+        _typeChip(EquipmentType.bcd),
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
 
       expect(_typeChip(null), findsOneWidget);
       expect(_typeChip(EquipmentType.regulator), findsOneWidget);

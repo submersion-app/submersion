@@ -25,6 +25,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -691,7 +692,7 @@ class UddfTestImporter {
         site: linkedSite,
         tripId: linkedTripId,
         diveCenter: linkedDiveCenter,
-        equipment: linkedEquipment,
+        gear: looseGear(linkedEquipment),
         sightings: sightings,
         // Dive condition fields
         currentDirection: diveData['currentDirection'] as CurrentDirection?,

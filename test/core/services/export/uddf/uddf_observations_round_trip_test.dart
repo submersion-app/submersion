@@ -95,7 +95,7 @@ void main() {
     maxDepth: 30.0,
     tanks: const [],
     profile: const [],
-    equipment: const [],
+    gear: const [],
     notes: '',
     photoIds: const [],
     sightings: const [],

@@ -43,6 +43,7 @@ class ExcelExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
+    Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
   }) async {
     final bytes = await generateExcelBytes(
@@ -57,6 +58,7 @@ class ExcelExportService {
       preDiveSessions: preDiveSessions,
       preDiveItemsBySession: preDiveItemsBySession,
       maintenanceRows: maintenanceRows,
+      componentNames: componentNames,
       observationRows: observationRows,
     );
 
@@ -83,6 +85,7 @@ class ExcelExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
+    Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
   }) async {
     final excel = xl.Excel.createExcel();
@@ -97,7 +100,7 @@ class ExcelExportService {
       dateFormat,
     );
     _buildSitesSheet(excel, sites, depthUnit);
-    _buildEquipmentSheet(excel, equipment, dateFormat);
+    _buildEquipmentSheet(excel, equipment, dateFormat, componentNames);
     _preDive.buildSheets(
       excel,
       sessions: preDiveSessions,
@@ -158,6 +161,7 @@ class ExcelExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
+    Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
   }) async {
     final bytes = await generateExcelBytes(
@@ -172,6 +176,7 @@ class ExcelExportService {
       preDiveSessions: preDiveSessions,
       preDiveItemsBySession: preDiveItemsBySession,
       maintenanceRows: maintenanceRows,
+      componentNames: componentNames,
       observationRows: observationRows,
     );
 
@@ -376,6 +381,7 @@ class ExcelExportService {
     xl.Excel excel,
     List<EquipmentItem> equipment,
     DateFormatPreference dateFormat,
+    Map<String, List<String>> componentNames,
   ) {
     final sheet = excel['Equipment'];
 
@@ -387,6 +393,7 @@ class ExcelExportService {
       'Serial Number',
       'Size',
       'Status',
+      'Components',
       'Purchase Date',
       'Last Service',
       'Next Service Due',
@@ -413,6 +420,7 @@ class ExcelExportService {
         item.serialNumber ?? '',
         item.size ?? '',
         item.status.displayName,
+        componentNames[item.id]?.join('; ') ?? '',
         item.purchaseDate != null
             ? formatDateForExport(item.purchaseDate!, dateFormat)
             : '',

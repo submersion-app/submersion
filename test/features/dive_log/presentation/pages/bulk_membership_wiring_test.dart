@@ -2,7 +2,8 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/database/database.dart' hide Buddy, Dive;
+import 'package:submersion/core/database/database.dart'
+    hide Buddy, Dive, EquipmentSet;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
@@ -95,7 +98,11 @@ void main() {
     /// are the same object, so a sheet pushed onto the wrong navigator still
     /// lands on top and the test sees nothing wrong; under the app's real
     /// `ShellRoute` it opens *behind* the dialog instead (#1366).
-    Future<void> pump(WidgetTester tester, List<String> ids) async {
+    Future<void> pump(
+      WidgetTester tester,
+      List<String> ids, {
+      List<EquipmentSet> sets = const [],
+    }) async {
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
         testAppInShell(
@@ -109,6 +116,12 @@ void main() {
               (ref) => DiveListNotifier(repository, ref),
             ),
             customTankPresetsProvider.overrideWith((ref) async => []),
+            if (sets.isNotEmpty) ...[
+              equipmentSetsProvider.overrideWith((ref) async => sets),
+              equipmentSetWithItemsProvider.overrideWith(
+                (ref, id) async => sets.firstWhere((s) => s.id == id),
+              ),
+            ],
           ],
           child: DiveEditPage(bulkDiveIds: ids, embedded: true),
         ),
@@ -461,6 +474,128 @@ void main() {
       await tester.tap(useSet);
       await tester.pumpAndSettle();
       expect(find.byType(EquipmentSetPickerSheet), findsOneWidget);
+    });
+
+    // Issue #1754 (found in #1720): clearing the old gear and then applying a
+    // set must keep every set item, including the ones already on the dives.
+    testWidgets('use-set keeps set items the diver had unchecked', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      const camera = EquipmentItem(
+        id: 'e3',
+        name: 'Camera',
+        type: EquipmentType.camera,
+      );
+      const knife = EquipmentItem(
+        id: 'e4',
+        name: 'Knife',
+        type: EquipmentType.knife,
+      );
+      for (final item in [wing, dsmb, camera, knife]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      await repository.bulkAddEquipment(['d1', 'd2'], ['e1', 'e2', 'e3']);
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2', 'e4'],
+        items: const [wing, dsmb, knife],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(tester, ['d1', 'd2'], sets: [tripKit]);
+
+      // Clear the old gear, then apply the set.
+      for (final id in ['e1', 'e2', 'e3']) {
+        final f = find.byKey(ValueKey('membership-toggle-$id'));
+        await tester.ensureVisible(f);
+        await tester.tap(f);
+        await tester.pumpAndSettle();
+      }
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip kit'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(rows.map((r) => r.equipmentId).toSet(), {
+          'e1',
+          'e2',
+          'e4',
+        }, reason: 'dive $diveId keeps the set and drops only the camera');
+      }
+    });
+
+    // Issue #1754: the confirmation must say what the save is about to change,
+    // so a stray removal is caught before it lands on every dive.
+    testWidgets('the confirmation names what the save adds and removes', (
+      tester,
+    ) async {
+      await seedTag('t1', 'Nitrox');
+      await EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: 'e3',
+          name: 'Camera',
+          type: EquipmentType.camera,
+        ),
+      );
+      await EquipmentRepository().createEquipment(
+        const EquipmentItem(id: 'e5', name: 'Fins', type: EquipmentType.fins),
+      );
+      await seedDive('d1');
+      await seedDive('d2');
+      await repository.bulkAddTags(['d1', 'd2'], ['t1']);
+      await repository.bulkAddEquipment(['d1', 'd2'], ['e3']);
+      await repository.bulkAddEquipment(['d1'], ['e5']);
+
+      await pump(tester, ['d1', 'd2']);
+
+      // Remove the tag and the camera from both dives; put the fins on both.
+      for (final id in ['t1', 'e3', 'e5']) {
+        final f = find.byKey(ValueKey('membership-toggle-$id'));
+        await tester.ensureVisible(f);
+        await tester.tap(f);
+        await tester.pumpAndSettle();
+      }
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final dialog = find.byType(AlertDialog);
+      Finder inDialog(String text) =>
+          find.descendant(of: dialog, matching: find.text(text));
+      expect(inDialog('Adding to all 2 dives'), findsOneWidget);
+      expect(inDialog('Fins'), findsOneWidget);
+      expect(inDialog('Removing from all 2 dives'), findsNWidgets(2));
+      expect(inDialog('Nitrox'), findsOneWidget);
+      expect(inDialog('Camera'), findsOneWidget);
     });
 
     testWidgets('the bulk tag dialog can browse previously used tags', (

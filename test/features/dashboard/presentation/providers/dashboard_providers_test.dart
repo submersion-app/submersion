@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
@@ -16,7 +17,7 @@ Dive _diveWithEntryTime(DateTime entryTime) => Dive(
   entryTime: entryTime,
   tanks: const [],
   profile: const [],
-  equipment: const [],
+  gear: looseGear(const []),
   notes: '',
   photoIds: const [],
   sightings: const [],

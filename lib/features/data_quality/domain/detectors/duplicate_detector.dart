@@ -14,7 +14,7 @@ class DuplicateDetector extends QualityDetector {
   @override
   String get id => 'duplicate';
   @override
-  int get version => 3;
+  int get version => 4;
   @override
   QualityCategory get category => QualityCategory.duplicate;
 
@@ -61,12 +61,14 @@ class DuplicateDetector extends QualityDetector {
                 sampleCount: ctx.primarySampleCount,
                 durationSeconds: storedDuration,
                 maxDepth: maxDepth,
+                carriesDiverData: ctx.carriesDiverData,
               ),
               b: (
                 id: n.id,
                 sampleCount: n.sampleCount,
                 durationSeconds: nDuration,
                 maxDepth: nDepth,
+                carriesDiverData: n.carriesDiverData,
               ),
             )
           : null;
@@ -92,7 +94,8 @@ class DuplicateDetector extends QualityDetector {
             'sameComputer': sameComputer,
             // The copy a same-computer re-download can lose without losing
             // data. Absent when neither side clearly dominates (an exact
-            // tie, a mixed pair, or an unknown metric), so the card falls
+            // tie, a mixed pair, or an unknown metric) and when the dominated
+            // copy carries the diver's own entries (#1720), so the card falls
             // back to its no-automatic-fix row and the diver decides.
             'redundantDiveId': ?redundant,
           },
@@ -103,13 +106,15 @@ class DuplicateDetector extends QualityDetector {
   }
 }
 
-/// One side of a same-computer duplicate pair, reduced to the metrics that
-/// say how much of the dive it recorded.
+/// One side of a same-computer duplicate pair: the metrics that say how much
+/// of the dive it recorded, plus whether the diver has written anything of
+/// their own onto it.
 typedef DuplicateRecording = ({
   String id,
   int? sampleCount,
   int? durationSeconds,
   double? maxDepth,
+  bool? carriesDiverData,
 });
 
 /// The dive a same-computer re-download can delete without losing data, or
@@ -122,6 +127,16 @@ typedef DuplicateRecording = ({
 /// blocks the choice rather than volunteering a dive on a fact nobody
 /// recorded. Symmetric in its arguments, which matters because the pair has
 /// one canonical finding written by whichever side the scan reached last.
+///
+/// Recording richness is not the whole story, which is what issue #1720
+/// reported: a diver had logged gear onto an older download and the fresh
+/// re-download recorded more samples, so the poorer RECORDING was the richer
+/// LOG and deleting it threw the diver's work away. A copy the diver has
+/// written on is therefore never named, however little of the dive it
+/// recorded -- the same reasoning the exact tie already applies, which is
+/// that a copy holding the diver's own entries is theirs to judge. Unknown
+/// blocks the choice here too: this decision deletes a dive, so "nobody
+/// checked" must not read as "nothing to lose".
 String? redundantDuplicate({
   required DuplicateRecording a,
   required DuplicateRecording b,
@@ -146,10 +161,16 @@ String? redundantDuplicate({
     aDepth.compareTo(bDepth),
   ];
   if (comparisons.every((c) => c <= 0) && comparisons.any((c) => c < 0)) {
-    return a.id;
+    return _losslessToDelete(a);
   }
   if (comparisons.every((c) => c >= 0) && comparisons.any((c) => c > 0)) {
-    return b.id;
+    return _losslessToDelete(b);
   }
   return null;
 }
+
+/// [doomed]'s id when nothing of the diver's would go with it, else null.
+/// Applied to the dominated side only: the survivor keeps whatever it holds,
+/// so its own entries are never a reason to withhold the repair.
+String? _losslessToDelete(DuplicateRecording doomed) =>
+    doomed.carriesDiverData == false ? doomed.id : null;

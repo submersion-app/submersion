@@ -47,7 +47,15 @@ class DiveAltitudeEnricher {
       }
       final meters = resolution.altitudeMeters;
       if (meters == null) return false;
-      await _dives.updateDive(dive.copyWith(altitude: meters));
+      // Re-read rather than writing [dive] back: updateDive rewrites every
+      // child collection from the entity it is handed, and every import seam
+      // runs DiveEquipmentDefaulter (and the checklist linker) between
+      // persisting the dive and calling this, so the in-memory entity's gear
+      // list is already stale. Writing it back deleted the gear the defaulter
+      // had just applied (#1720). The resolver above still reads the passed
+      // entity, whose locations are what the caller parsed.
+      final stored = await _dives.getDiveById(dive.id) ?? dive;
+      await _dives.updateDive(stored.copyWith(altitude: meters));
       return true;
     } catch (_) {
       // Best-effort: never let altitude enrichment fail the dive operation.

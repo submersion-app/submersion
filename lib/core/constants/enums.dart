@@ -412,6 +412,7 @@ enum EquipmentStatus {
   needsService('Needs Service'),
   inService('In Service'),
   retired('Retired'),
+  sold('Sold'),
   loaned('Loaned Out'),
   lost('Lost');
 

@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -53,7 +54,7 @@ void main() {
         diveNumber: 1,
         dateTime: DateTime(2026, 3, 28, 10, 0),
         notes: '',
-        equipment: const [mask],
+        gear: looseGear(const [mask]),
       ),
     );
 

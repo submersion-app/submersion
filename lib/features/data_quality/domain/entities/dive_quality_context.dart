@@ -30,6 +30,7 @@ class QualityNeighbor {
     this.firstSampleDepth,
     this.lastSampleDepth,
     this.sampleCount,
+    this.carriesDiverData,
   });
 
   final String id;
@@ -45,6 +46,11 @@ class QualityNeighbor {
   /// column [DiveQualityContext.primarySampleCount] reads, so the two sides
   /// of a pair are compared on one measure. Null when unknown.
   final int? sampleCount;
+
+  /// Whether the diver has written anything of their own onto this dive, from
+  /// the same measure [DiveQualityContext.carriesDiverData] reads. Null when
+  /// unknown. See that field for what counts.
+  final bool? carriesDiverData;
 }
 
 /// Everything a detector may look at for one dive. Built once per dive per
@@ -57,6 +63,7 @@ class DiveQualityContext {
     this.sources = const [],
     this.primarySamples = const [],
     this.primarySampleCount,
+    this.carriesDiverData,
     this.tanks = const [],
     this.pressuresByTankId = const {},
     this.gasSwitches = const [],
@@ -76,6 +83,21 @@ class DiveQualityContext {
   /// column, so comparing the two would make a pair's richer side depend on
   /// which dive the scan happened to start from. Null when unknown.
   final int? primarySampleCount;
+
+  /// Whether the diver has written anything of their own onto this dive:
+  /// gear, buddies, tags, marine life, weights, media, custom fields, notes,
+  /// a rating, a favourite mark, or a link to a site, trip, dive centre or
+  /// course. Deliberately excludes everything a dive computer download
+  /// produces by itself (tanks, dive types, profile series and their events),
+  /// so it reads as "a human has been here" rather than "this row is
+  /// populated".
+  ///
+  /// A pair's two sides must be measured the same way or the verdict would
+  /// depend on which dive the scan reached first, so this comes from the same
+  /// query [QualityNeighbor.carriesDiverData] does rather than from the
+  /// hydrated entity. Null when unknown.
+  final bool? carriesDiverData;
+
   final List<domain.DiveTank> tanks;
   final Map<String, List<QualityPressureSample>> pressuresByTankId;
   final List<GasSwitch> gasSwitches;
