@@ -95,7 +95,9 @@ class CsvExportService {
           _dateFormat.format(row.observation.observedAt),
           row.diveNumber ?? '',
           row.observation.status.dbValue,
-          row.observation.issueTags.map((t) => t.dbValue).join('; '),
+          // A newer peer's names ride along, and came from another device,
+          // so the cell is neutralised like the free text around it.
+          sanitizeCsvField(row.observation.storedTagNames.join('; ')),
           sanitizeCsvField(
             row.observation.note.replaceAll(RegExp(r'\s*[\r\n]+\s*'), ' '),
           ),

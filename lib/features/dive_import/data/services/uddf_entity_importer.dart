@@ -721,6 +721,11 @@ class UddfEntityImporter {
         if (observedAt == null) continue;
         final diveRef = entry['diveRef'] as String?;
         final tags = entry['tags'];
+        final tagNames = [
+          if (tags is List)
+            for (final t in tags)
+              if (t is String) t,
+        ];
         try {
           await repository.create(
             equipmentId: equipmentId,
@@ -729,9 +734,14 @@ class UddfEntityImporter {
             observedAt: observedAt,
             status: ObservationStatus.fromDbValue(entry['status'] as String?),
             issueTags: [
-              if (tags is List)
-                for (final t in tags)
-                  if (t is String) ?ObservationTag.fromDbValue(t),
+              for (final t in tagNames) ?ObservationTag.fromDbValue(t),
+            ],
+            // A file from a newer build can name tags this one cannot;
+            // they are kept so the row writes them back rather than
+            // deleting them.
+            unrecognizedTags: [
+              for (final t in tagNames)
+                if (ObservationTag.fromDbValue(t) == null) t,
             ],
             note: entry['note'] as String? ?? '',
           );
