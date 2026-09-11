@@ -6300,6 +6300,10 @@ class DiveRepository {
     transmitterSerial: Value(t.transmitterSerial),
     regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
+    // The registry's cylinder link. A template tank carries none; a tank
+    // restored by undo carries the link it had, which the rebuild would
+    // otherwise drop along with the cylinder's check-in chips.
+    equipmentId: Value(t.equipmentId),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).

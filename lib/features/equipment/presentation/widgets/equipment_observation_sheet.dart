@@ -44,6 +44,35 @@ Future<void> showEquipmentObservationSheet(
   );
 }
 
+/// Asks before deleting [observation], then deletes it. Shared by the
+/// sheet's rows and the item page's check-in card.
+Future<void> confirmDeleteObservation(
+  BuildContext context,
+  WidgetRef ref,
+  EquipmentObservation observation,
+) async {
+  final l10n = context.l10n;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      content: Text(l10n.equipmentObservation_sheet_deleteConfirm),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.equipmentObservation_sheet_cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(l10n.common_action_delete),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+  await ref.read(equipmentObservationRepositoryProvider).delete(observation.id);
+  scheduleConditionFindingsRefresh([observation.equipmentId]);
+}
+
 class _ObservationSheet extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
   final Dive? dive;
@@ -58,6 +87,10 @@ class _ObservationSheet extends ConsumerStatefulWidget {
 class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
   /// Null while the list shows; a draft while the editor shows.
   _Draft? _draft;
+
+  /// True from the first Save tap until the write finishes, so a second
+  /// tap cannot write the check-in twice.
+  bool _saving = false;
 
   @override
   void initState() {
@@ -122,7 +155,7 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
                   equipment: widget.equipment,
                   hasDive: dive != null,
                   onCancel: _closeEditor,
-                  onSave: () => _save(draft),
+                  onSave: _saving ? null : () => _save(draft),
                 ),
               ),
             )
@@ -168,69 +201,55 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
   }
 
   Future<void> _save(_Draft draft) async {
+    if (_saving) return;
     final l10n = context.l10n;
     if (draft.status == ObservationStatus.issue && draft.tags.isEmpty) {
       setState(() => draft.error = l10n.equipmentObservation_sheet_tagRequired);
       return;
     }
-    final repo = ref.read(equipmentObservationRepositoryProvider);
-    final tags = draft.status == ObservationStatus.issue
-        ? draft.tags.toList()
-        : const <ObservationTag>[];
-    final note = draft.note.text.trim();
-    final existing = draft.existing;
-    if (existing == null) {
-      await repo.create(
-        equipmentId: widget.equipment.id,
-        diveId: draft.diveId,
-        diverId: ref.read(currentDiverIdProvider),
-        observedAt: draft.observedAt,
-        status: draft.status,
-        issueTags: tags,
-        note: note,
-      );
-    } else {
-      await repo.update(
-        existing.copyWith(
+    setState(() => _saving = true);
+    try {
+      final repo = ref.read(equipmentObservationRepositoryProvider);
+      final tags = draft.status == ObservationStatus.issue
+          ? draft.tags.toList()
+          : const <ObservationTag>[];
+      final note = draft.note.text.trim();
+      final existing = draft.existing;
+      if (existing == null) {
+        await repo.create(
+          equipmentId: widget.equipment.id,
           diveId: draft.diveId,
-          clearDiveId: draft.diveId == null,
+          // The validated id, as every diver-scoped read uses: a stale raw
+          // id would file the check-in under a diver nobody reads.
+          diverId: await ref.read(validatedCurrentDiverIdProvider.future),
           observedAt: draft.observedAt,
           status: draft.status,
           issueTags: tags,
           note: note,
-        ),
-      );
+        );
+      } else {
+        await repo.update(
+          existing.copyWith(
+            diveId: draft.diveId,
+            clearDiveId: draft.diveId == null,
+            observedAt: draft.observedAt,
+            status: draft.status,
+            issueTags: tags,
+            note: note,
+          ),
+        );
+      }
+      // Stored findings follow the write even with no item page open.
+      scheduleConditionFindingsRefresh([widget.equipment.id]);
+      if (!mounted) return;
+      _closeEditor();
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
-    // Stored findings follow the write even with no item page open.
-    scheduleConditionFindingsRefresh([widget.equipment.id]);
-    if (!mounted) return;
-    _closeEditor();
   }
 
-  Future<void> _delete(EquipmentObservation observation) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        content: Text(l10n.equipmentObservation_sheet_deleteConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.equipmentObservation_sheet_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.common_action_delete),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    await ref
-        .read(equipmentObservationRepositoryProvider)
-        .delete(observation.id);
-    scheduleConditionFindingsRefresh([observation.equipmentId]);
-  }
+  Future<void> _delete(EquipmentObservation observation) =>
+      confirmDeleteObservation(context, ref, observation);
 }
 
 /// The editor's working copy. Mutable on purpose: it lives only while the
@@ -277,7 +296,9 @@ class _Editor extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
   final bool hasDive;
   final VoidCallback onCancel;
-  final VoidCallback onSave;
+
+  /// Null while a save is in flight, which disables the button.
+  final VoidCallback? onSave;
 
   const _Editor({
     required this.draft,

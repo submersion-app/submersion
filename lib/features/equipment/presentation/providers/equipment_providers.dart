@@ -737,9 +737,16 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
       ? null
       : siblings?.where((s) => s.id == parentId).firstOrNull ??
             await repository.getEquipmentById(parentId);
-  final children = siblings != null
-      ? siblings.where((s) => s.parentEquipmentId == item.id).toList()
-      : await repository.getChildEquipment(item.id);
+  // Fitted parts only, as the exposure card reads them: a legacy row can be
+  // retired or sold with isActive left true, and must not switch the
+  // parent's battery cycles off as if it were still fitted.
+  final children = [
+    for (final c
+        in siblings != null
+            ? siblings.where((s) => s.parentEquipmentId == item.id)
+            : await repository.getChildEquipment(item.id))
+      if (c.isFitted) c,
+  ];
   final isRebreather =
       item.type == EquipmentType.rebreather ||
       parent?.type == EquipmentType.rebreather;

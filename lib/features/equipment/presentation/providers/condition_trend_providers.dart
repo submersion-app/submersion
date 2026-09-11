@@ -5,6 +5,7 @@ import 'package:submersion/features/equipment/domain/entities/dive_sensor_summar
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/services/condition_trend_builder.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -47,11 +48,24 @@ final conditionTrendProvider =
               observationsForEquipmentProvider(key.equipmentId).future,
             )
           : const <EquipmentObservation>[];
+      // Only summaries current for their dive, as the engine reads them: a
+      // row built before an edit (or by an older engine) describes a dive
+      // that no longer exists, and its rebuild is already queued.
+      final updatedAt = {for (final s in inputs.samples) s.diveId: s.updatedAt};
       final summaries = kind == ConditionTrendKind.minTemperature
           ? const <String, DiveSensorSummary>{}
-          : await ref.watch(diveSensorSummaryRepositoryProvider).getSummaries([
-              for (final s in inputs.samples) s.diveId,
-            ]);
+          : {
+              for (final e
+                  in (await ref
+                          .watch(diveSensorSummaryRepositoryProvider)
+                          .getSummaries(updatedAt.keys.toList()))
+                      .entries)
+                if (DiveSensorSummaryService.isCurrent(
+                  e.value,
+                  updatedAt[e.key]!,
+                ))
+                  e.key: e.value,
+            };
       final serials = kind == ConditionTrendKind.transmitterGapFraction
           ? await ref
                 .watch(transmitterRepositoryProvider)

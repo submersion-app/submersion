@@ -77,6 +77,34 @@ void main() {
     expect(find.text('Cell 2'), findsOneWidget);
   });
 
+  testWidgets('a cell keeps its slot colour whatever else is drawn', (
+    tester,
+  ) async {
+    // The colour follows the slot, not the list position: a standalone
+    // slot-2 cell, or a rebreather missing slot 1, must not borrow slot
+    // 1's colour, and the legend must not reshuffle as series come and go.
+    Future<Map<String, Color>> colours(ConditionTrend trend) async {
+      // Unmount first: a ProviderScope cannot change its overrides in place.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(host(trend));
+      await tester.pumpAndSettle();
+      final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+      return {for (final s in chart.secondarySeries) s.label: s.color};
+    }
+
+    final both = await colours(cellTrend);
+    final slot2Only = await colours(
+      ConditionTrend(
+        kind: ConditionTrendKind.cellGain,
+        series: [
+          ConditionTrendSeries(key: 'slot2', slot: 2, points: slotPoints(48)),
+        ],
+      ),
+    );
+    expect(slot2Only['Cell 2'], both['Cell 2']);
+    expect(slot2Only['Cell 2'], isNot(both['Cell 1']));
+  });
+
   EquipmentFinding declining({required int fromDay}) {
     final evidence = FindingEvidence(
       n: 2,

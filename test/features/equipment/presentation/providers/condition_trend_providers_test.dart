@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/dive_sensor_summar
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
@@ -28,6 +29,17 @@ class _CountingSummaries extends DiveSensorSummaryRepository {
     reads++;
     return const {};
   }
+}
+
+class _FixedSummaries extends DiveSensorSummaryRepository {
+  final Map<String, DiveSensorSummary> rows;
+
+  _FixedSummaries(this.rows);
+
+  @override
+  Future<Map<String, DiveSensorSummary>> getSummaries(
+    List<String> diveIds,
+  ) async => {for (final id in diveIds) id: ?rows[id]};
 }
 
 void main() {
@@ -115,6 +127,71 @@ void main() {
       )).future,
     );
     expect(trend?.kind, ConditionTrendKind.scrubberMinutes);
+  });
+
+  test('a stale summary is not plotted', () async {
+    // A dive edited after its summary was built (or a summary from an
+    // older engine) describes a dive that no longer exists; the engine
+    // drops it until the rebuild lands, and the chart must too.
+    DiveSensorSummary summary(
+      String diveId, {
+      required int sourceUpdatedAt,
+      int engineVersion = DiveSensorSummaryService.version,
+    }) => DiveSensorSummary(
+      diveId: diveId,
+      engineVersion: engineVersion,
+      sourceUpdatedAt: sourceUpdatedAt,
+      computedAt: DateTime.utc(2026),
+      scrubberConsumedMinutes: 40,
+    );
+    EquipmentExposureSample sample(String diveId, int day) =>
+        EquipmentExposureSample(
+          diveId: diveId,
+          date: DateTime.utc(2026, 1, day),
+          durationSeconds: 3000,
+          diveMode: DiveMode.ccr,
+          updatedAt: 7,
+        );
+    final container = ProviderContainer(
+      overrides: [
+        diveSensorSummaryRepositoryProvider.overrideWithValue(
+          _FixedSummaries({
+            'current': summary('current', sourceUpdatedAt: 7),
+            'edited': summary('edited', sourceUpdatedAt: 6),
+            'old-engine': summary(
+              'old-engine',
+              sourceUpdatedAt: 7,
+              engineVersion: DiveSensorSummaryService.version - 1,
+            ),
+          }),
+        ),
+        equipmentExposureInputsProvider('x').overrideWith(
+          (ref) async => (
+            item: const EquipmentItem(
+              id: 'x',
+              name: 'X',
+              type: EquipmentType.rebreather,
+            ),
+            parent: null,
+            children: const <EquipmentItem>[],
+            samples: [
+              sample('current', 1),
+              sample('edited', 2),
+              sample('old-engine', 3),
+            ],
+            classifier: const ExposureClassifier(),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final trend = await container.read(
+      conditionTrendProvider((
+        equipmentId: 'x',
+        kind: ConditionTrendKind.scrubberMinutes,
+      )).future,
+    );
+    expect(trend!.series.single.points.map((p) => p.diveId), ['current']);
   });
 
   test('a registry edit redraws an open transmitter chart', () async {
