@@ -127,7 +127,7 @@ final tripScrubberMarginsProvider =
                 for (final f in ccrFigures) ?f.scrubberMinutes,
               ],
               ccrRuntimeMinutesHistory: [
-                for (final f in ccrFigures) f.runtimeMinutes,
+                for (final f in ccrFigures) ?f.runtimeMinutes,
               ],
             ),
           ),

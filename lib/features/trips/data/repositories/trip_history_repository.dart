@@ -57,11 +57,13 @@ class TripHistoryRepository {
 
   /// The most recent [limit] CCR or SCR dives before [before], newest
   /// first: the summary's scrubber minutes when the dive has one, and the
-  /// runtime in minutes.
+  /// dive's length in minutes, read as the rest of the app reads it
+  /// (runtime, else bottom time). Null when the dive has neither: a zero
+  /// would drag the runtime median down and understate expected use.
   ///
   /// [diverId] scopes it to one diver; null applies no scoping and reads
   /// every diver's loop dives, as a library with no active diver wants.
-  Future<List<({double? scrubberMinutes, double runtimeMinutes})>>
+  Future<List<({double? scrubberMinutes, double? runtimeMinutes})>>
   recentCcrFigures({
     String? diverId,
     required DateTime before,
@@ -73,7 +75,7 @@ class TripHistoryRepository {
           '''
           SELECT
             s.scrubber_consumed_minutes AS scrubber,
-            d.runtime AS runtime
+            COALESCE(d.runtime, d.bottom_time) AS runtime
           FROM dives d
           LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
           WHERE d.dive_mode IN ('ccr', 'scr')
@@ -92,7 +94,10 @@ class TripHistoryRepository {
       for (final r in rows)
         (
           scrubberMinutes: r.read<double?>('scrubber'),
-          runtimeMinutes: (r.read<int?>('runtime') ?? 0) / 60.0,
+          runtimeMinutes: switch (r.read<int?>('runtime')) {
+            final seconds? => seconds / 60.0,
+            null => null,
+          },
         ),
     ];
   }

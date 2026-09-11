@@ -37,7 +37,8 @@ void main() {
     String? tripId,
     String? diverId,
     String mode = 'oc',
-    int runtime = 3600,
+    int? runtime = 3600,
+    int? bottomTime,
     double? scrubber,
   }) async {
     await db
@@ -53,6 +54,7 @@ void main() {
             diverId: Value(diverId),
             diveMode: Value(mode),
             runtime: Value(runtime),
+            bottomTime: Value(bottomTime),
           ),
         );
     if (scrubber != null) {
@@ -125,6 +127,23 @@ void main() {
       limit: 1,
     );
     expect(one.single.scrubberMinutes, 55);
+  });
+
+  test('a loop dive without a runtime falls back, and is never zero', () async {
+    // A hand-logged loop dive may carry only its bottom time; the rest of
+    // the app reads runtime ?? bottomTime as the dive's length. A dive
+    // with neither has no length to offer, and a zero would drag the
+    // median down and understate the expected scrubber use.
+    await dive(
+      'bt',
+      DateTime(2026, 1, 2),
+      mode: 'ccr',
+      runtime: null,
+      bottomTime: 2400,
+    );
+    await dive('none', DateTime(2026, 1, 3), mode: 'ccr', runtime: null);
+    final figures = await repo.recentCcrFigures(before: DateTime(2026, 6, 1));
+    expect(figures.map((f) => f.runtimeMinutes), [null, 40]);
   });
 
   group('shared trips', () {
