@@ -70,6 +70,35 @@ void main() {
     expect(find.byKey(const ValueKey('gps-site-marker')), findsNothing);
   });
 
+  // The dive header remounts this map on every dive selected in the
+  // master-detail pane. flutter_map's default fade animates each tile up from
+  // opacity 0 even when the image is already in memory, so the header's map
+  // background blinked on every selection.
+  testWidgets('the decorative map shows tiles instantly, without a fade', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const DiveLocationsMap(entry: GeoPoint(12.34567, 98.76543)),
+    );
+
+    final tileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
+    expect(tileLayer.tileDisplay, const TileDisplay.instantaneous());
+  });
+
+  testWidgets('an interactive map keeps the default tile fade', (tester) async {
+    await _pump(
+      tester,
+      const DiveLocationsMap(
+        entry: GeoPoint(12.34567, 98.76543),
+        interactive: true,
+      ),
+    );
+
+    final tileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
+    expect(tileLayer.tileDisplay, const TileDisplay.fadeIn());
+  });
+
   testWidgets('renders nothing when no points are provided', (tester) async {
     await _pump(tester, const DiveLocationsMap());
     expect(find.byType(FlutterMap), findsNothing);

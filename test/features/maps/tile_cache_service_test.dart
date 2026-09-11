@@ -91,6 +91,41 @@ void main() {
     });
   });
 
+  // Flutter's ImageCache keys an FMTC tile on (coordinates, provider), and
+  // FMTCTileProvider's equality includes its httpClient by identity. A map
+  // that remounts (every dive selected in the master-detail pane rebuilds its
+  // header map) builds a fresh provider, so unless two providers compare
+  // equal, every tile misses the in-memory cache and blinks back in through
+  // FMTC's async lookup even when it was on screen a moment ago.
+  group('tile provider identity', () {
+    test('two browse providers are equal, so remounted maps hit the cache', () {
+      final first = TileCacheService.browseTileProvider();
+      final second = TileCacheService.browseTileProvider();
+
+      expect(identical(first, second), isFalse);
+      expect(first, second);
+      expect(first.hashCode, second.hashCode);
+    });
+
+    test('a different loading strategy is a different cache key', () {
+      expect(
+        TileCacheService.browseTileProvider(),
+        isNot(
+          TileCacheService.browseTileProvider(
+            loadingStrategy: BrowseLoadingStrategy.cacheOnly,
+          ),
+        ),
+      );
+    });
+
+    test('two offline providers are equal', () {
+      expect(
+        TileCacheService.offlineTileProvider(),
+        TileCacheService.offlineTileProvider(),
+      );
+    });
+  });
+
   // Issue #1403: deleting a region used to free nothing, because FMTC can only
   // delete a whole store and every region shared one. Giving each downloaded
   // region its own store is what makes deletion expressible at all.
