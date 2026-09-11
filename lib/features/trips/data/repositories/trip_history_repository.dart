@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/trips/domain/services/scrubber_margin_service.dart';
 
 /// The two history reads behind the scrubber margin estimates. Both take
 /// [before] so a past trip reads the history the diver had at its start.
@@ -63,6 +64,8 @@ class TripHistoryRepository {
   ///
   /// [diverId] scopes it to one diver; null applies no scoping and reads
   /// every diver's loop dives, as a library with no active diver wants.
+  /// [before] is a calendar date (a trip start): dives on or after that
+  /// day are excluded, whatever the device's zone.
   Future<List<({double? scrubberMinutes, double? runtimeMinutes})>>
   recentCcrFigures({
     String? diverId,
@@ -84,7 +87,7 @@ class TripHistoryRepository {
           LIMIT ?
           ''',
           variables: [
-            Variable(before.millisecondsSinceEpoch),
+            Variable(asDiveWallClockDate(before).millisecondsSinceEpoch),
             if (diverId != null) Variable(diverId),
             Variable(limit),
           ],

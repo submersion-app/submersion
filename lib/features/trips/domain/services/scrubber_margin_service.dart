@@ -3,6 +3,13 @@ import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 /// Default when the diver has no trip history to read a rate from.
 const defaultDivesPerDiveDay = 2.0;
 
+/// [calendarDate]'s date as a dive timestamp. Dives are stored as their
+/// wall clock in UTC, while trip and service dates are local midnights,
+/// so comparing the two as instants puts a dive on the wrong side of the
+/// line whenever the device is not on UTC. Compare against this instead.
+DateTime asDiveWallClockDate(DateTime calendarDate) =>
+    DateTime.utc(calendarDate.year, calendarDate.month, calendarDate.day);
+
 /// The caution line: a margin under this share of the rated duration.
 const scrubberCautionFraction = 0.2;
 

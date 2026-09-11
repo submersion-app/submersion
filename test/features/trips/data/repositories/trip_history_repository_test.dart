@@ -46,7 +46,14 @@ void main() {
         .insert(
           DivesCompanion.insert(
             id: id,
-            diveDateTime: at.millisecondsSinceEpoch,
+            // Stored as the app stores dives: the wall clock, in UTC.
+            diveDateTime: DateTime.utc(
+              at.year,
+              at.month,
+              at.day,
+              at.hour,
+              at.minute,
+            ).millisecondsSinceEpoch,
             createdAt: 1,
             updatedAt: 1,
           ).copyWith(
@@ -127,6 +134,16 @@ void main() {
       limit: 1,
     );
     expect(one.single.scrubberMinutes, 55);
+  });
+
+  test('the cut-off is the calendar day, in any zone', () async {
+    // Dives are stored as wall clock in UTC, the trip start as a local
+    // midnight. The evening before counts as history; the first morning
+    // does not. CI runs in UTC; run under another TZ to discriminate.
+    await dive('eve', DateTime.utc(2026, 5, 31, 22), mode: 'ccr');
+    await dive('dawn', DateTime.utc(2026, 6, 1, 1), mode: 'ccr');
+    final figures = await repo.recentCcrFigures(before: DateTime(2026, 6, 1));
+    expect(figures, hasLength(1));
   });
 
   test('a loop dive without a runtime falls back, and is never zero', () async {

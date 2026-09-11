@@ -38,6 +38,8 @@ final tripScrubberMarginsProvider =
       final trips = ref.watch(tripRepositoryProvider);
       final itinerary = ref.watch(itineraryDayRepositoryProvider);
       ref.invalidateSelfWhen(equipment.watchEquipmentChanges());
+      // The rated duration is an attribute (scrubber_duration_h).
+      ref.invalidateSelfWhen(equipment.watchAttributeChanges());
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
       );
@@ -97,11 +99,17 @@ final tripScrubberMarginsProvider =
         final inputs = await ref.watch(
           equipmentExposureInputsProvider(item.id).future,
         );
+        // By calendar day: dives are wall clock in UTC, the trip and
+        // service dates local midnights.
+        final diveStart = asDiveWallClockDate(start);
+        final repackFrom = repack == null
+            ? null
+            : asDiveWallClockDate(repack.serviceDate);
         final loopDives = [
           for (final s in inputs?.samples ?? const [])
             if ((s.diveMode == DiveMode.ccr || s.diveMode == DiveMode.scr) &&
-                s.date.isBefore(start) &&
-                (repack == null || !s.date.isBefore(repack.serviceDate)))
+                s.date.isBefore(diveStart) &&
+                (repackFrom == null || !s.date.isBefore(repackFrom)))
               s,
         ];
         final byDive = await summaries.getSummaries([
@@ -120,7 +128,9 @@ final tripScrubberMarginsProvider =
               ratedMinutes: rated,
               consumedMinutes: consumed,
               expectedDivesOverride: trip.expectedDives,
-              itineraryDiveDays: diveDays > 0 ? diveDays : trip.durationDays,
+              // Only a missing itinerary falls back to the calendar: one
+              // with no dive days (a crossing, a port stay) expects none.
+              itineraryDiveDays: days.isEmpty ? trip.durationDays : diveDays,
               divesPerDiveDayHistory: divesPerDay,
               runtimeMinutesOverride: trip.expectedRuntimeMinutes,
               scrubberMinutesHistory: [

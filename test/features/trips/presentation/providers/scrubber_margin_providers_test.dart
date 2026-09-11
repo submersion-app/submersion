@@ -11,7 +11,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 
@@ -48,7 +50,14 @@ void main() {
         .insert(
           DivesCompanion.insert(
             id: id,
-            diveDateTime: at.millisecondsSinceEpoch,
+            // Stored as the app stores dives: the wall clock, in UTC.
+            diveDateTime: DateTime.utc(
+              at.year,
+              at.month,
+              at.day,
+              at.hour,
+              at.minute,
+            ).millisecondsSinceEpoch,
             createdAt: 1,
             updatedAt: 1,
           ).copyWith(diveMode: const Value('ccr'), runtime: Value(runtime)),
@@ -202,6 +211,92 @@ void main() {
     // The January dive predates the repack, so nothing is consumed.
     expect(margins.single.consumedMinutes, 0);
     expect(margins.single.remainingBefore, 300);
+  });
+
+  Future<EquipmentItem> rebreather() => EquipmentRepository().createEquipment(
+    const EquipmentItem(
+      id: '',
+      name: 'CCR',
+      type: EquipmentType.rebreather,
+      attributes: [
+        EquipmentAttribute(
+          id: '',
+          equipmentId: '',
+          key: 'scrubber_duration_h',
+          valueNum: 5,
+        ),
+      ],
+    ),
+  );
+
+  test('an itinerary with no dive days expects no dives', () async {
+    // A crossing or a port stay is a real itinerary. Only an EMPTY one
+    // falls back to the calendar days; this one says no dives.
+    await rebreather();
+    final t = await trip(
+      'Crossing',
+      DateTime(2026, 6, 1),
+      DateTime(2026, 6, 3),
+    );
+    await ItineraryDayRepository().saveAll([
+      for (var i = 0; i < 3; i++)
+        ItineraryDay(
+          id: '',
+          tripId: t.id,
+          dayNumber: i + 1,
+          date: DateTime(2026, 6, 1 + i),
+          dayType: DayType.seaDay,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+    ]);
+    final m = (await container.read(
+      tripScrubberMarginsProvider(t.id).future,
+    )).single;
+    expect(m.expectedDives, 0);
+  });
+
+  test('a rating edit reaches an open trip', () async {
+    // The rated duration is an attribute; its write reaches
+    // equipment_attributes alone.
+    final ccr = await rebreather();
+    final t = await trip('T', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    final sub = container.listen(tripScrubberMarginsProvider(t.id), (_, _) {});
+    addTearDown(sub.close);
+    Future<double?> rated() async => (await container.read(
+      tripScrubberMarginsProvider(t.id).future,
+    )).single.ratedMinutes;
+    expect(await rated(), 300);
+    await EquipmentRepository().saveAttributes(ccr.id, [
+      EquipmentAttribute(
+        id: '',
+        equipmentId: ccr.id,
+        key: 'scrubber_duration_h',
+        valueNum: 6,
+      ),
+    ]);
+    var now = await rated();
+    for (var i = 0; i < 50 && now != 360; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = await rated();
+    }
+    expect(now, 360);
+  });
+
+  test('a loop dive counts by the trip calendar day, in any zone', () async {
+    // Dives are stored as their wall clock in UTC; the trip start is a
+    // local midnight. Compared as instants, a dive the evening before
+    // drops out east of UTC and an early one on the first day counts
+    // as pre-trip west of it. CI runs in UTC, where both agree; run this
+    // under another TZ to see it discriminate.
+    final ccr = await rebreather();
+    await ccrDive('eve', DateTime.utc(2026, 5, 31, 22), ccr.id);
+    await ccrDive('dawn', DateTime.utc(2026, 6, 1, 1), ccr.id);
+    final t = await trip('June', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    final m = (await container.read(
+      tripScrubberMarginsProvider(t.id).future,
+    )).single;
+    expect(m.consumedMinutes, 60);
   });
 
   test('a diver with no active rebreather gets an empty list', () async {
