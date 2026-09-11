@@ -62,6 +62,16 @@ void main() {
             updatedAt: 1000,
           ),
         );
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'kept',
+            name: 'Kept',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
   });
 
   tearDown(tearDownTestDatabase);
@@ -74,6 +84,9 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          // The raw id above is null; the validated one falls back to the
+          // default diver, as the real provider does for a stale id.
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'kept'),
           equipmentObservationRepositoryProvider.overrideWithValue(repo),
         ],
         child: MaterialApp(
@@ -131,6 +144,31 @@ void main() {
     expect(stored.single.observedAt, DateTime.utc(2026, 9, 9, 11));
     // Back on the list, the new row shows.
     expect(find.text('Free flow'), findsOneWidget);
+  });
+
+  testWidgets('a new check-in is saved under the validated diver', (
+    tester,
+  ) async {
+    // The raw diver id can be stale (a deleted diver) or unset; the
+    // validated one is what every diver-scoped read uses, so a check-in
+    // saved under the raw id would drop out of this diver's list and export.
+    await pumpAndOpen(tester, withDive: dive);
+    await tester.tap(find.text('Add check-in'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect((await repo.getForDive('d1')).single.diverId, 'kept');
+  });
+
+  testWidgets('a double-tapped Save writes one check-in', (tester) async {
+    await pumpAndOpen(tester, withDive: dive);
+    await tester.tap(find.text('Add check-in'));
+    await tester.pumpAndSettle();
+    // Both taps land before the first save completes and closes the editor.
+    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(await repo.getForDive('d1'), hasLength(1));
   });
 
   testWidgets('an OK check needs no tag and edits in place', (tester) async {
