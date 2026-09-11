@@ -8591,6 +8591,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 merülést nem sikerült összegezni} other{{dives} merülést nem sikerült összegezni}}; {items, plural, =1{1 felszerelés} other{{items} felszerelés}} állapotmegállapításait nem sikerült frissíteni",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Szenzor-összegzések újraépítve; {count, plural, =1{1 felszerelés} other{{count} felszerelés}} állapotmegállapításait nem sikerült frissíteni",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "A szenzor-összegzéseket nem sikerült újraépíteni.",
   "equipmentConditionSettings_masterToggle": "Állapotmegállapítások",
   "equipmentConditionSettings_masterToggle_subtitle": "Jelzi a cellakimenet, az adókimaradások és a bejelentett problémák trendjeit, a mögöttük álló számokkal",

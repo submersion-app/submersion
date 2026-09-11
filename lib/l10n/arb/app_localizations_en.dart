@@ -26977,6 +26977,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sensor summaries rebuilt';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives could not be summarised',
+      one: '1 dive could not be summarised',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items items',
+      one: '1 item',
+    );
+    return '$_temp0; condition findings could not be refreshed for $_temp1';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26985,6 +27005,17 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 dive could not be summarised',
     );
     return 'Sensor summaries rebuilt; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return 'Sensor summaries rebuilt; condition findings could not be refreshed for $_temp0';
   }
 
   @override

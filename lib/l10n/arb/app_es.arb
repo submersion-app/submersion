@@ -8591,6 +8591,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 inmersión no se pudo resumir} other{{dives} inmersiones no se pudieron resumir}}; no se pudieron actualizar los hallazgos de estado de {items, plural, =1{1 equipo} other{{items} equipos}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Resúmenes de sensores reconstruidos; no se pudieron actualizar los hallazgos de estado de {count, plural, =1{1 equipo} other{{count} equipos}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "No se pudieron reconstruir los resúmenes de sensores.",
   "equipmentConditionSettings_masterToggle": "Hallazgos de estado",
   "equipmentConditionSettings_masterToggle_subtitle": "Informa de tendencias en la salida de las celdas, pérdidas de señal del transmisor y problemas registrados, con las cifras que las respaldan",

@@ -27431,6 +27431,26 @@ class AppLocalizationsIt extends AppLocalizations {
       'Riepiloghi dei sensori ricostruiti';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives immersioni non sono state riepilogate',
+      one: '1 immersione non è stata riepilogata',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items elementi dell\'attrezzatura',
+      one: '1 elemento dell\'attrezzatura',
+    );
+    return '$_temp0; non è stato possibile aggiornare i rilievi sullo stato di $_temp1';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27439,6 +27459,17 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 immersione non è stata riepilogata',
     );
     return 'Riepiloghi dei sensori ricostruiti; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi dell\'attrezzatura',
+      one: '1 elemento dell\'attrezzatura',
+    );
+    return 'Riepiloghi dei sensori ricostruiti; non è stato possibile aggiornare i rilievi sullo stato di $_temp0';
   }
 
   @override

@@ -250,17 +250,25 @@ class _EquipmentConditionSettingsPageState
     if (!mounted) return;
     setState(() => _rebuilding = false);
     if (result.cancelled) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.failed == 0
-              ? context.l10n.equipmentConditionSettings_rebuild_done
-              : context.l10n.equipmentConditionSettings_rebuild_doneWithErrors(
-                  result.failed,
-                ),
+    // Both counts reach the diver: a findings refresh that threw leaves
+    // that item's condition findings stale, and "rebuilt" alone would
+    // hide it.
+    final l10n = context.l10n;
+    final message = switch ((result.failed, result.itemsFailed)) {
+      (0, 0) => l10n.equipmentConditionSettings_rebuild_done,
+      (final dives, 0) =>
+        l10n.equipmentConditionSettings_rebuild_doneWithErrors(dives),
+      (0, final items) =>
+        l10n.equipmentConditionSettings_rebuild_doneWithFindingErrors(items),
+      (final dives, final items) =>
+        l10n.equipmentConditionSettings_rebuild_doneWithBothErrors(
+          dives,
+          items,
         ),
-      ),
-    );
+    };
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 

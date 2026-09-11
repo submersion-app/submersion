@@ -8591,6 +8591,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 mergulho não pôde ser resumido} other{{dives} mergulhos não puderam ser resumidos}}; não foi possível atualizar as constatações de estado de {items, plural, =1{1 equipamento} other{{items} equipamentos}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Resumos de sensores reconstruídos; não foi possível atualizar as constatações de estado de {count, plural, =1{1 equipamento} other{{count} equipamentos}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "Não foi possível reconstruir os resumos de sensores.",
   "equipmentConditionSettings_masterToggle": "Constatações de estado",
   "equipmentConditionSettings_masterToggle_subtitle": "Relata tendências na saída das células, falhas de sinal do transmissor e problemas registados, com os números por trás",

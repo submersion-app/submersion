@@ -27381,6 +27381,26 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sensorzusammenfassungen neu erstellt';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge konnten nicht zusammengefasst werden',
+      one: '1 Tauchgang konnte nicht zusammengefasst werden',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items Ausrüstungsteile',
+      one: '1 Ausrüstungsteil',
+    );
+    return '$_temp0; Zustandsbefunde für $_temp1 konnten nicht aktualisiert werden';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27389,6 +27409,17 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '1 Tauchgang konnte nicht zusammengefasst werden',
     );
     return 'Sensorzusammenfassungen neu erstellt; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungsteile',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Sensorzusammenfassungen neu erstellt; Zustandsbefunde für $_temp0 konnten nicht aktualisiert werden';
   }
 
   @override

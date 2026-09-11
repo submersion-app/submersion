@@ -8591,6 +8591,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{צלילה אחת לא ניתן היה לסכם} other{{dives} צלילות לא ניתן היה לסכם}}; {items, plural, =1{לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד} other{לא ניתן היה לרענן את ממצאי המצב של {items} פריטי ציוד}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "סיכומי החיישנים נבנו מחדש; {count, plural, =1{לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד} other{לא ניתן היה לרענן את ממצאי המצב של {count} פריטי ציוד}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "לא ניתן היה לבנות מחדש את סיכומי החיישנים.",
   "equipmentConditionSettings_masterToggle": "ממצאי מצב",
   "equipmentConditionSettings_masterToggle_subtitle": "מדווח על מגמות בפלט התאים, בנפילות המשדר ובתקלות שדווחו, עם המספרים שמאחוריהן",

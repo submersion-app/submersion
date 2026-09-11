@@ -8591,6 +8591,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 次潜水无法汇总} other{{dives} 次潜水无法汇总}}；{items, plural, =1{1 件装备的状态发现无法刷新} other{{items} 件装备的状态发现无法刷新}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "传感器摘要已重建；{count, plural, =1{1 件装备的状态发现无法刷新} other{{count} 件装备的状态发现无法刷新}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "无法重建传感器摘要。",
   "equipmentConditionSettings_masterToggle": "状态发现",
   "equipmentConditionSettings_masterToggle_subtitle": "报告电池输出、发射器断连和已记录问题的趋势，并附上背后的数据",

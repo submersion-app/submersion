@@ -27326,6 +27326,26 @@ class AppLocalizationsHu extends AppLocalizations {
       'Szenzor-összegzések újraépítve';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülést nem sikerült összegezni',
+      one: '1 merülést nem sikerült összegezni',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items felszerelés',
+      one: '1 felszerelés',
+    );
+    return '$_temp0; $_temp1 állapotmegállapításait nem sikerült frissíteni';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27334,6 +27354,17 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 merülést nem sikerült összegezni',
     );
     return 'Szenzor-összegzések újraépítve; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés',
+      one: '1 felszerelés',
+    );
+    return 'Szenzor-összegzések újraépítve; $_temp0 állapotmegállapításait nem sikerült frissíteni';
   }
 
   @override

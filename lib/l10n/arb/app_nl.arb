@@ -8591,6 +8591,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 duik kon niet worden samengevat} other{{dives} duiken konden niet worden samengevat}}; conditiebevindingen voor {items, plural, =1{1 uitrustingsstuk} other{{items} uitrustingsstukken}} konden niet worden bijgewerkt",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Sensorsamenvattingen opnieuw opgebouwd; conditiebevindingen voor {count, plural, =1{1 uitrustingsstuk} other{{count} uitrustingsstukken}} konden niet worden bijgewerkt",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "De sensorsamenvattingen konden niet opnieuw worden opgebouwd.",
   "equipmentConditionSettings_masterToggle": "Conditiebevindingen",
   "equipmentConditionSettings_masterToggle_subtitle": "Meldt trends in celuitvoer, zenderuitval en gemelde problemen, met de cijfers erachter",

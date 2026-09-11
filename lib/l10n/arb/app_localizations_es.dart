@@ -27450,6 +27450,26 @@ class AppLocalizationsEs extends AppLocalizations {
       'Resúmenes de sensores reconstruidos';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives inmersiones no se pudieron resumir',
+      one: '1 inmersión no se pudo resumir',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items equipos',
+      one: '1 equipo',
+    );
+    return '$_temp0; no se pudieron actualizar los hallazgos de estado de $_temp1';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27458,6 +27478,17 @@ class AppLocalizationsEs extends AppLocalizations {
       one: '1 inmersión no se pudo resumir',
     );
     return 'Resúmenes de sensores reconstruidos; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos',
+      one: '1 equipo',
+    );
+    return 'Resúmenes de sensores reconstruidos; no se pudieron actualizar los hallazgos de estado de $_temp0';
   }
 
   @override
