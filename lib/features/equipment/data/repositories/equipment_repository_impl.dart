@@ -889,7 +889,14 @@ class EquipmentRepository {
         SELECT d.id AS dive_id,
                d.updated_at AS updated_at,
                d.dive_date_time AS date_ms,
-               COALESCE(d.runtime, d.bottom_time, 0) AS duration_sec,
+               -- The first positive length: a manual zero runtime beside
+               -- a real bottom time is no figure, and must not count the
+               -- dive as zero hours (or subtract any).
+               CASE
+                 WHEN d.runtime > 0 THEN d.runtime
+                 WHEN d.bottom_time > 0 THEN d.bottom_time
+                 ELSE 0
+               END AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,

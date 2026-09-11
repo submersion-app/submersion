@@ -46,6 +46,7 @@ void main() {
     DateTime at,
     String equipmentId, {
     int runtime = 3600,
+    int? bottomTime,
     double? scrubber,
     int summaryStamp = 1,
   }) async {
@@ -64,7 +65,11 @@ void main() {
             ).millisecondsSinceEpoch,
             createdAt: 1,
             updatedAt: 1,
-          ).copyWith(diveMode: const Value('ccr'), runtime: Value(runtime)),
+          ).copyWith(
+            diveMode: const Value('ccr'),
+            runtime: Value(runtime),
+            bottomTime: Value(bottomTime),
+          ),
         );
     await db
         .into(db.diveEquipment)
@@ -387,6 +392,24 @@ void main() {
       now = await rated();
     }
     expect(now, 360);
+  });
+
+  test('a hand-logged zero runtime counts its bottom time', () async {
+    // With no summary, a loop dive's runtime stands in for its scrubber
+    // minutes; a zero runtime beside a real bottom time is no figure.
+    final ccr = await rebreather();
+    await ccrDive(
+      'manual',
+      DateTime(2026, 3, 10),
+      ccr.id,
+      runtime: 0,
+      bottomTime: 2400,
+    );
+    final t = await trip('June', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    final m = (await container.read(
+      tripScrubberMarginsProvider(t.id).future,
+    )).single;
+    expect(m.consumedMinutes, 40);
   });
 
   test('a loop dive counts by the trip calendar day, in any zone', () async {
