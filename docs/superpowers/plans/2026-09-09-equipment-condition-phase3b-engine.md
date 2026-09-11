@@ -15,7 +15,7 @@
 ## Global Constraints
 
 - No em-dashes anywhere (code, comments, commit messages, ARB strings). Rewrite the sentence instead.
-- No mention of Claude, Claude Code or Anthropic in any commit, comment, file or PR body.
+- No tool or vendor attribution in any commit, comment, file or PR body.
 - Run `dart format .` before every commit. The pre-push hook runs format, analyze, l10n staleness and tests; push with `SKIP_TESTS=1` after a local full run because the hook cannot see a worktree's new test files.
 - TDD: write the failing test first, run it, watch it fail, then implement.
 - Every user-facing string goes through `context.l10n` and is added to all 11 ARB files; only `app_en.arb` is alphabetical, the other ten anchor on the same neighbour. Regenerate with `flutter gen-l10n`; the generated `lib/l10n/arb/app_localizations*.dart` files are tracked and are staged with the ARB edits.

@@ -27139,12 +27139,43 @@ class AppLocalizationsAr extends AppLocalizations {
       'أُعيد بناء ملخصات المستشعرات';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: 'تعذّر تلخيص $dives غطسات',
+      one: 'تعذّر تلخيص غطسة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: 'تعذّر تحديث نتائج الحالة لـ $items قطع معدات',
+      one: 'تعذّر تحديث نتائج الحالة لقطعة معدات واحدة',
+    );
+    return '$_temp0؛ $_temp1';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
       other: 'تعذّر تلخيص $count غطسات',
       one: 'تعذّر تلخيص غطسة واحدة',
+    );
+    return 'أُعيد بناء ملخصات المستشعرات؛ $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تحديث نتائج الحالة لـ $count قطع معدات',
+      one: 'تعذّر تحديث نتائج الحالة لقطعة معدات واحدة',
     );
     return 'أُعيد بناء ملخصات المستشعرات؛ $_temp0';
   }

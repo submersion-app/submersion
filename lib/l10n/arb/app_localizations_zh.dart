@@ -26210,12 +26210,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_rebuild_done => '传感器摘要已重建';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives 次潜水无法汇总',
+      one: '1 次潜水无法汇总',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items 件装备的状态发现无法刷新',
+      one: '1 件装备的状态发现无法刷新',
+    );
+    return '$_temp0；$_temp1';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
       other: '$count 次潜水无法汇总',
       one: '1 次潜水无法汇总',
+    );
+    return '传感器摘要已重建；$_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备的状态发现无法刷新',
+      one: '1 件装备的状态发现无法刷新',
     );
     return '传感器摘要已重建；$_temp0';
   }

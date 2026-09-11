@@ -8721,6 +8721,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 plongée n'a pas pu être synthétisée} other{{dives} plongées n'ont pas pu être synthétisées}} ; les constats d'état de {items, plural, =1{1 équipement} other{{items} équipements}} n'ont pas pu être actualisés",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Synthèses des capteurs reconstruites ; les constats d'état de {count, plural, =1{1 équipement} other{{count} équipements}} n'ont pas pu être actualisés",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "Impossible de reconstruire les synthèses des capteurs.",
   "equipmentConditionSettings_masterToggle": "Constats d'état",
   "equipmentConditionSettings_masterToggle_subtitle": "Signale les tendances de la sortie des cellules, des pertes de signal de l'émetteur et des problèmes signalés, avec les chiffres à l'appui",

@@ -8721,6 +8721,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 immersione non è stata riepilogata} other{{dives} immersioni non sono state riepilogate}}; non è stato possibile aggiornare i rilievi sullo stato di {items, plural, =1{1 elemento dell'attrezzatura} other{{items} elementi dell'attrezzatura}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Riepiloghi dei sensori ricostruiti; non è stato possibile aggiornare i rilievi sullo stato di {count, plural, =1{1 elemento dell'attrezzatura} other{{count} elementi dell'attrezzatura}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "Impossibile ricostruire i riepiloghi dei sensori.",
   "equipmentConditionSettings_masterToggle": "Rilievi sullo stato",
   "equipmentConditionSettings_masterToggle_subtitle": "Segnala le tendenze dell'uscita delle celle, delle perdite di segnale del trasmettitore e dei problemi registrati, con i numeri a supporto",

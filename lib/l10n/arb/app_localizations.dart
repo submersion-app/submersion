@@ -45302,11 +45302,26 @@ abstract class AppLocalizations {
   /// **'Sensor summaries rebuilt'**
   String get equipmentConditionSettings_rebuild_done;
 
+  /// No description provided for @equipmentConditionSettings_rebuild_doneWithBothErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives, plural, =1{1 dive could not be summarised} other{{dives} dives could not be summarised}}; condition findings could not be refreshed for {items, plural, =1{1 item} other{{items} items}}'**
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  );
+
   /// No description provided for @equipmentConditionSettings_rebuild_doneWithErrors.
   ///
   /// In en, this message translates to:
   /// **'Sensor summaries rebuilt; {count, plural, =1{1 dive could not be summarised} other{{count} dives could not be summarised}}'**
   String equipmentConditionSettings_rebuild_doneWithErrors(int count);
+
+  /// No description provided for @equipmentConditionSettings_rebuild_doneWithFindingErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries rebuilt; condition findings could not be refreshed for {count, plural, =1{1 item} other{{count} items}}'**
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count);
 
   /// No description provided for @equipmentConditionSettings_rebuild_failed.
   ///
