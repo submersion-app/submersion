@@ -85,8 +85,12 @@ class _EvidenceSheet extends ConsumerWidget {
                 padding: EdgeInsets.all(24),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) =>
-                  Padding(padding: const EdgeInsets.all(16), child: Text('$e')),
+              // A localized retry line: the raw exception is neither
+              // translated nor something a diver can act on.
+              error: (_, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(context.l10n.common_error_tryAgain),
+              ),
               data: (dives) => ListView(
                 shrinkWrap: true,
                 children: [

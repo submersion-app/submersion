@@ -26894,7 +26894,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue of $totalIssue issue reports were on dives colder than $threshold, over $n dives with this item';
+    return '$insideIssue of $totalIssue dives with an issue were colder than $threshold, over $n dives with this item';
   }
 
   @override
@@ -26904,7 +26904,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue of $totalIssue issue reports were on dives beyond $threshold, over $n dives with this item';
+    return '$insideIssue of $totalIssue dives with an issue went beyond $threshold, over $n dives with this item';
   }
 
   @override

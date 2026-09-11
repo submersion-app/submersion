@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
@@ -24,6 +25,15 @@ Widget host(EquipmentExposureTotals totals) => ProviderScope(
 );
 
 void main() {
+  // The date range and the decimal separator read the process-global
+  // Intl.defaultLocale, which MaterialApp.locale does not set.
+  late String? savedLocale;
+  setUp(() {
+    savedLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = savedLocale);
+
   testWidgets('shows one chip per non-zero unit and the dive footer', (
     tester,
   ) async {
@@ -72,5 +82,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(Chip), findsOneWidget);
     expect(find.text('3 dives'), findsOneWidget);
+  });
+
+  testWidgets('hours use the locale decimal separator', (tester) async {
+    Intl.defaultLocale = 'de';
+    await tester.pumpWidget(
+      host(
+        EquipmentExposureTotals(
+          byUnit: const {ExposureUnit.hours: 3.25},
+          diveCount: 3,
+          firstDive: DateTime(2026, 1, 10),
+          lastDive: DateTime(2026, 3, 10),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('3,3'), findsOneWidget);
+  });
+
+  testWidgets('a failed load says so in words, never the raw error', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          equipmentExposureTotalsProvider(
+            'reg',
+          ).overrideWith((ref) async => throw StateError('db closed')),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: ExposureCard(equipmentId: 'reg')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('db closed'), findsNothing);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 }

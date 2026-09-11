@@ -25954,7 +25954,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$totalIssue 条问题记录中有 $insideIssue 条发生在低于 $threshold 的潜水中，基于使用此装备的 $n 次潜水';
+    return '$totalIssue 次出现问题的潜水中有 $insideIssue 次低于 $threshold，基于使用此装备的 $n 次潜水';
   }
 
   @override
@@ -25964,7 +25964,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$totalIssue 条问题记录中有 $insideIssue 条发生在超过 $threshold 的潜水中，基于使用此装备的 $n 次潜水';
+    return '$totalIssue 次出现问题的潜水中有 $insideIssue 次超过 $threshold，基于使用此装备的 $n 次潜水';
   }
 
   @override

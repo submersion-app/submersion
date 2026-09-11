@@ -8507,7 +8507,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} von {totalIssue} gemeldeten Problemen traten bei Tauchgängen kälter als {threshold} auf, über {n} Tauchgänge mit diesem Teil",
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} von {totalIssue} Tauchgängen mit Problemen waren kälter als {threshold}, über {n} Tauchgänge mit diesem Teil",
   "@equipmentCondition_finding_issueColdCorrelated": {
     "placeholders": {
       "insideIssue": {
@@ -8524,7 +8524,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} von {totalIssue} gemeldeten Problemen traten bei Tauchgängen tiefer als {threshold} auf, über {n} Tauchgänge mit diesem Teil",
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} von {totalIssue} Tauchgängen mit Problemen gingen tiefer als {threshold}, über {n} Tauchgänge mit diesem Teil",
   "@equipmentCondition_finding_issueDeepCorrelated": {
     "placeholders": {
       "insideIssue": {

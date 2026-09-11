@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -29,6 +30,16 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
+  // Dates format through the process-global Intl.defaultLocale, which
+  // MaterialApp.locale does not set; pin it so the English month names
+  // in these expectations hold on any host.
+  late String? savedIntlLocale;
+  setUp(() {
+    savedIntlLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = savedIntlLocale);
+
   group('EquipmentDetailPage desktop redirect', () {
     const equipment = EquipmentItem(
       id: 'equip-1',

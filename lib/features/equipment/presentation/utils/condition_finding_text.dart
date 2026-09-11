@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
@@ -28,7 +29,8 @@ String conditionFindingTitle(
   int count(String key) => v(key)?.round() ?? 0;
   String pct(double? fraction) =>
       fraction == null ? _unknown : (fraction * 100).round().toString();
-  String one(double? x) => x == null ? _unknown : x.toStringAsFixed(1);
+  // Through the display helper, so a comma locale reads "41,2".
+  String one(double? x) => x == null ? _unknown : formatFixedForDisplay(x, 1);
   final slot = e.slot ?? 0;
 
   return switch (finding.ruleId) {
@@ -96,17 +98,18 @@ String conditionFindingTitle(
   };
 }
 
-/// "{n} dives, {range}": the evidence window under the sentence.
+/// "{n} dives, {range}": the evidence window under the sentence. For an
+/// incident finding the range alone: its n counts incidents, which need not
+/// name a dive, and the sentence above already gives the count.
 String conditionFindingWindow(
   EquipmentFinding finding,
   AppLocalizations l10n,
   UnitFormatter units,
 ) {
   final e = finding.evidence;
-  return l10n.equipmentCondition_finding_window(
-    e.n,
-    units.formatDateRange(e.windowStart, e.windowEnd, l10n: l10n),
-  );
+  final range = units.formatDateRange(e.windowStart, e.windowEnd, l10n: l10n);
+  if (finding.ruleId == ConditionRuleId.incidentLinked) return range;
+  return l10n.equipmentCondition_finding_window(e.n, range);
 }
 
 /// Localized rule name only, the settings-page strings.

@@ -26676,7 +26676,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue מתוך $totalIssue דיווחי תקלה היו בצלילות קרות מ-$threshold, מתוך $n צלילות עם פריט זה';
+    return '$insideIssue מתוך $totalIssue צלילות עם תקלה היו קרות מ-$threshold, מתוך $n צלילות עם פריט זה';
   }
 
   @override
@@ -26686,7 +26686,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue מתוך $totalIssue דיווחי תקלה היו בצלילות עמוקות מ-$threshold, מתוך $n צלילות עם פריט זה';
+    return '$insideIssue מתוך $totalIssue צלילות עם תקלה היו עמוקות מ-$threshold, מתוך $n צלילות עם פריט זה';
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
@@ -43,8 +44,12 @@ class ExposureCard extends ConsumerWidget {
             const Divider(),
             totalsAsync.when(
               loading: () => const SizedBox(height: 32),
-              error: (e, _) =>
-                  Padding(padding: const EdgeInsets.all(8), child: Text('$e')),
+              // A localized retry line: the raw exception is neither
+              // translated nor something a diver can act on.
+              error: (_, _) => Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(l10n.common_error_tryAgain),
+              ),
               data: (totals) => _body(context, l10n, units, totals),
             ),
           ],
@@ -101,7 +106,7 @@ class ExposureCard extends ConsumerWidget {
   /// Hours keep one decimal; counts are whole. Null for days, which a date
   /// trigger owns and which has no usage total, so no chip is drawn.
   String? _chipText(AppLocalizations l10n, ExposureUnit unit, double total) {
-    final hours = total.toStringAsFixed(1);
+    final hours = formatFixedForDisplay(total, 1);
     final count = total.round();
     return switch (unit) {
       ExposureUnit.days => null,

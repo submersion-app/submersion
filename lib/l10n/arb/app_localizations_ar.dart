@@ -26867,7 +26867,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue من $totalIssue بلاغات مشكلات كانت في غطسات أبرد من $threshold، على مدى $n غطسة بهذه القطعة';
+    return '$insideIssue من $totalIssue غطسات فيها مشكلة كانت أبرد من $threshold، على مدى $n غطسة بهذه القطعة';
   }
 
   @override
@@ -26877,7 +26877,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue من $totalIssue بلاغات مشكلات كانت في غطسات أعمق من $threshold، على مدى $n غطسة بهذه القطعة';
+    return '$insideIssue من $totalIssue غطسات فيها مشكلة كانت أعمق من $threshold، على مدى $n غطسة بهذه القطعة';
   }
 
   @override

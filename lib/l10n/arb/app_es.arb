@@ -8507,7 +8507,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} de {totalIssue} problemas registrados fueron en inmersiones más frías que {threshold}, en {n} inmersiones con este artículo",
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} de {totalIssue} inmersiones con problemas fueron más frías que {threshold}, en {n} inmersiones con este artículo",
   "@equipmentCondition_finding_issueColdCorrelated": {
     "placeholders": {
       "insideIssue": {
@@ -8524,7 +8524,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} de {totalIssue} problemas registrados fueron en inmersiones más allá de {threshold}, en {n} inmersiones con este artículo",
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} de {totalIssue} inmersiones con problemas fueron más allá de {threshold}, en {n} inmersiones con este artículo",
   "@equipmentCondition_finding_issueDeepCorrelated": {
     "placeholders": {
       "insideIssue": {

@@ -44883,7 +44883,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipmentCondition_finding_issueColdCorrelated.
   ///
   /// In en, this message translates to:
-  /// **'{insideIssue} of {totalIssue} issue reports were on dives colder than {threshold}, over {n} dives with this item'**
+  /// **'{insideIssue} of {totalIssue} dives with an issue were colder than {threshold}, over {n} dives with this item'**
   String equipmentCondition_finding_issueColdCorrelated(
     int insideIssue,
     int totalIssue,
@@ -44894,7 +44894,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipmentCondition_finding_issueDeepCorrelated.
   ///
   /// In en, this message translates to:
-  /// **'{insideIssue} of {totalIssue} issue reports were on dives beyond {threshold}, over {n} dives with this item'**
+  /// **'{insideIssue} of {totalIssue} dives with an issue went beyond {threshold}, over {n} dives with this item'**
   String equipmentCondition_finding_issueDeepCorrelated(
     int insideIssue,
     int totalIssue,
