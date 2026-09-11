@@ -62,7 +62,16 @@ String conditionInputFingerprint({
     final ms = i.updatedAt.millisecondsSinceEpoch;
     if (ms > newestIncident) newestIncident = ms;
   }
-  final sampleKeys = [for (final s in samples) '${s.diveId}@${s.updatedAt}'];
+  // Every field the engine reads, not only the dive's stamp: a link change
+  // (the transmitter registry rewriting dive_tanks.equipment_id) can move
+  // the gas the item breathed or which readings reach it without touching
+  // dives.updated_at.
+  final sampleKeys = [
+    for (final s in samples)
+      '${s.diveId}@${s.updatedAt}/${s.date.millisecondsSinceEpoch}/'
+          '${s.durationSeconds}/${s.diveMode.name}/${s.maxDepth}/'
+          '${s.minTemperature}/${s.waterType?.name}/${s.contactO2Fraction}',
+  ];
   final observationKeys = [
     for (final o in observations)
       '${o.id}@${o.updatedAt.millisecondsSinceEpoch}',
