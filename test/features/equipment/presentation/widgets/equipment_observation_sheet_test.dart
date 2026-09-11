@@ -161,6 +161,32 @@ void main() {
     expect((await repo.getForDive('d1')).single.diverId, 'kept');
   });
 
+  testWidgets('a failed save says so and keeps the editor usable', (
+    tester,
+  ) async {
+    // A concurrent sync can delete the item or dive mid-save. The diver has
+    // to be told the check-in was not saved, and be able to try again.
+    repo = _FailingRepository(
+      db: db,
+      syncRepository: SyncRepository(database: db),
+    );
+    await pumpAndOpen(tester, withDive: dive);
+    await tester.tap(find.text('Add check-in'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull, reason: 'not an escaped error');
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    final save = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Save'),
+    );
+    expect(save.onPressed, isNotNull, reason: 'the editor is still open');
+  });
+
   testWidgets('a double-tapped Save writes one check-in', (tester) async {
     await pumpAndOpen(tester, withDive: dive);
     await tester.tap(find.text('Add check-in'));
@@ -283,4 +309,23 @@ void main() {
       DateTime.utc(2026, 9, 9, 10),
     );
   });
+}
+
+class _FailingRepository extends EquipmentObservationRepository {
+  _FailingRepository({super.db, super.syncRepository});
+
+  @override
+  Future<EquipmentObservation> create({
+    required String equipmentId,
+    String? diveId,
+    String? diverId,
+    required DateTime observedAt,
+    required ObservationStatus status,
+    List<ObservationTag> issueTags = const [],
+    List<String> unrecognizedTags = const [],
+    String note = '',
+    DateTime? now,
+  }) async {
+    throw StateError('FOREIGN KEY constraint failed');
+  }
 }
