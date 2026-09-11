@@ -255,6 +255,46 @@ void main() {
     },
   );
 
+  test('a bulk template never writes a cylinder link', () async {
+    // The link belongs to the transmitter registry, which knows which
+    // physical cylinder a tank was. A template copied from a linked tank
+    // must not stamp that cylinder onto every selected dive, whether the
+    // edit replaces the tanks or adds to them.
+    await seed('d1');
+    await seed('d2');
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'cyl1',
+            name: 'Cylinder',
+            type: 'tank',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    final linked = tank('Copied').copyWith(equipmentId: 'cyl1');
+    await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          TanksOp(mode: BulkCollectionMode.replace, tanks: [linked]),
+        ],
+      ),
+    );
+    await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d2'],
+        ops: [
+          TanksOp(mode: BulkCollectionMode.add, tanks: [linked]),
+        ],
+      ),
+    );
+    final rows = await db.select(db.diveTanks).get();
+    expect(rows.map((r) => r.tankName), everyElement('Copied'));
+    expect(rows.map((r) => r.equipmentId), everyElement(isNull));
+  });
+
   test('apply handles add and remove modes across collections', () async {
     await seed('d1');
     await service.apply(

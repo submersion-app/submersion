@@ -9,8 +9,15 @@ import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _FakeDiveRepo implements DiveRepository {
+  final askedFor = <String?>[];
+
   @override
-  Future<List<Dive>> getAllDives({String? diverId}) async => [
+  Future<List<Dive>> getAllDives({String? diverId}) async {
+    askedFor.add(diverId);
+    return _dives;
+  }
+
+  static final _dives = [
     Dive(
       id: 'dive-2',
       diveNumber: 2,
@@ -33,11 +40,17 @@ class _FixedDiverIdNotifier extends StateNotifier<String?>
 }
 
 void main() {
-  Widget host({required Future<void> Function(BuildContext) onPressed}) {
+  Widget host({
+    required Future<void> Function(BuildContext) onPressed,
+    _FakeDiveRepo? repo,
+  }) {
     return ProviderScope(
       overrides: [
-        diveRepositoryProvider.overrideWithValue(_FakeDiveRepo()),
+        diveRepositoryProvider.overrideWithValue(repo ?? _FakeDiveRepo()),
+        // The raw id names diver d1; the validated one (what every scoped
+        // read uses) has fallen back to the default diver.
         currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'default'),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -54,6 +67,19 @@ void main() {
       ),
     );
   }
+
+  testWidgets('lists the validated diver\'s dives', (tester) async {
+    // The raw id can name a deleted diver. The picker must list the dives
+    // of the diver every other scoped read uses, or a check-in saved under
+    // that diver could never pick one of them.
+    final repo = _FakeDiveRepo();
+    await tester.pumpWidget(
+      host(onPressed: (context) => showDivePickerSheet(context), repo: repo),
+    );
+    await tester.tap(find.text('OPEN'));
+    await tester.pumpAndSettle();
+    expect(repo.askedFor, ['default']);
+  });
 
   testWidgets('lists dives, filters by search, returns the tapped dive id', (
     tester,

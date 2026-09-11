@@ -164,4 +164,38 @@ void main() {
     );
     expect((await repo.getById(created.id))!.issueTags, [ObservationTag.leak]);
   });
+
+  test('an edit here keeps the tags this build does not know', () async {
+    // A newer peer's tag cannot be shown here, but writing the row back
+    // without it would delete it on every device, the newer one included.
+    final created = await repo.create(
+      equipmentId: 'reg',
+      observedAt: DateTime.utc(2026, 1, 1),
+      status: ObservationStatus.issue,
+      issueTags: const [ObservationTag.leak],
+    );
+    Future<String> storedTags() async => (await (db.select(
+      db.equipmentObservations,
+    )..where((t) => t.id.equals(created.id))).getSingle()).issueTags;
+    await (db.update(
+      db.equipmentObservations,
+    )..where((t) => t.id.equals(created.id))).write(
+      const EquipmentObservationsCompanion(
+        issueTags: Value('["leak","futureTag"]'),
+      ),
+    );
+
+    final read = (await repo.getById(created.id))!;
+    expect(read.unrecognizedTags, ['futureTag']);
+    await repo.update(read.copyWith(note: 'Serviced'));
+    expect(await storedTags(), '["leak","futureTag"]');
+
+    // An issue turned into an OK check keeps no tags at all.
+    await repo.update(
+      (await repo.getById(
+        created.id,
+      ))!.copyWith(status: ObservationStatus.ok, issueTags: const []),
+    );
+    expect(await storedTags(), '[]');
+  });
 }

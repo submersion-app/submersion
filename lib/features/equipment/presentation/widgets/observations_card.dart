@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -106,9 +105,12 @@ class _ObservationRow extends ConsumerWidget {
     final note = observation.noteSummary;
     final when = units.formatDate(observation.observedAt);
     final diveId = observation.diveId;
+    // From the card's one batched read, not a dive detail per row.
     final diveNumber = diveId == null
         ? null
-        : ref.watch(diveProvider(diveId)).value?.diveNumber;
+        : ref
+              .watch(observationDiveNumbersProvider(equipment.id))
+              .value?[diveId];
     final where = diveId == null
         ? l10n.equipmentObservation_card_bench
         // Until the dive resolves, a plain label: the id is internal.
