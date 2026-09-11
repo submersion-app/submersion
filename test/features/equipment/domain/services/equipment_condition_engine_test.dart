@@ -322,17 +322,29 @@ void main() {
       expect(found.severity, ConditionSeverity.significant);
       expect(found.value, 0.8);
       expect(found.evidence.values['count'], 2);
-      // Four qualifying dives are not "the last 5": the window exists to
-      // keep two noisy readings on a barely used cell from raising a
-      // significant finding, so it has to be full before the rule speaks.
-      final fourGains = List<num?>.filled(4, 50);
+      // The rule speaks from n = 2: a current-limited cell under-reads high
+      // ppO2, which is worth warning about before five such dives exist.
+      // Two qualifying dives, both limited, raise it over a window of two.
+      final early = of(
+        engine.evaluate(
+          cellInput(
+            List<num?>.filled(2, 50),
+            lowAtHigh: [0.6, 0.8],
+            highSamples: [10, 10],
+          ),
+        ),
+        ConditionRuleId.cellCurrentLimited,
+      ).single;
+      expect(early.evidence.n, 2);
+      expect(early.evidence.values['count'], 2);
+      // One qualifying dive is under the minimum, however bad it reads.
       expect(
         of(
           engine.evaluate(
             cellInput(
-              fourGains,
-              lowAtHigh: [0.6, 0.8, 0.1, 0.1],
-              highSamples: [10, 10, 10, 10],
+              List<num?>.filled(1, 50),
+              lowAtHigh: [0.9],
+              highSamples: [10],
             ),
           ),
           ConditionRuleId.cellCurrentLimited,

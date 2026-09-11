@@ -112,6 +112,12 @@ class FindingEvidence extends Equatable {
     if (slot != null) 'slot': slot,
   });
 
+  /// The widest span of milliseconds a [DateTime] can hold, either side
+  /// of the epoch.
+  static const int _maxEpochMs = 8640000000000000;
+
+  static bool _inDateRange(num ms) => ms.isFinite && ms.abs() <= _maxEpochMs;
+
   /// Lenient: a row written by a newer build with a shape this build does
   /// not know yields null, and the caller drops the finding.
   static FindingEvidence? decode(String json) {
@@ -127,6 +133,11 @@ class FindingEvidence extends Equatable {
     final start = raw['windowStart'];
     final end = raw['windowEnd'];
     if (n is! num || start is! num || end is! num) return null;
+    // Valid JSON can still hold a number no DateTime or int can: past the
+    // DateTime range, or 1e400, which parses as infinity.
+    if (!n.isFinite || !_inDateRange(start) || !_inDateRange(end)) {
+      return null;
+    }
     final ids = raw['diveIds'];
     final values = raw['values'];
     final slot = raw['slot'];

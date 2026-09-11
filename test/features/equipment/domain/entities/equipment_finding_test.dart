@@ -121,6 +121,27 @@ void main() {
     // decode() is documented to return null on anything it cannot read,
     // never to throw: it runs on the sync read path, where a TypeError
     // would take the whole batch down rather than dropping one row.
+    test('a timestamp or count out of range is dropped, not thrown', () {
+      // Valid JSON, but DateTime cannot hold the instant, and 1e400 parses
+      // as infinity, which toInt() refuses.
+      for (final json in [
+        '{"n":3,"windowStart":9e18,"windowEnd":1000}',
+        '{"n":3,"windowStart":0,"windowEnd":-9e18}',
+        '{"n":3,"windowStart":1e400,"windowEnd":1000}',
+        '{"n":1e400,"windowStart":0,"windowEnd":1000}',
+      ]) {
+        expect(FindingEvidence.decode(json), isNull, reason: json);
+      }
+      // The far edges DateTime can hold still decode.
+      expect(
+        FindingEvidence.decode(
+          '{"n":3,"windowStart":-8640000000000000,'
+          '"windowEnd":8640000000000000}',
+        ),
+        isNotNull,
+      );
+    });
+
     test('a non-string tag decodes as no tag', () {
       final decoded = FindingEvidence.decode(
         '{"n":3,"windowStart":0,"windowEnd":1000,"tag":42}',
