@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
@@ -67,6 +68,7 @@ Widget _buildList({
   Set<DuplicateAction>? availableActions,
   ValueChanged<int>? onToggleSelection,
   void Function(int, DuplicateAction)? onDuplicateActionChanged,
+  void Function(Set<int>, bool)? onSetSelections,
   VoidCallback? onSelectAll,
   VoidCallback? onDeselectAll,
   String Function(int)? existingDiveIdForIndex,
@@ -1121,6 +1123,106 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(picked, DiveReviewSortField.depth);
+    });
+  });
+
+  group('EntityReviewList - shift-click multi-selection', () {
+    final _item1 = EntityItem(title: 'Dive 1', subtitle: '');
+    final _item2 = EntityItem(title: 'Dive 2', subtitle: '');
+    final _item3 = EntityItem(title: 'Dive 3', subtitle: '');
+    final _item4 = EntityItem(title: 'Dive 4', subtitle: '');
+
+    testWidgets('shift-click triggers onSetSelections with correct range', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(items: [_item1, _item2, _item3, _item4]);
+
+      Set<int>? updatedIndices;
+      bool? wasSelecting;
+      int? singleToggledIndex;
+
+      await tester.pumpWidget(
+        _buildList(
+          group: group,
+          selectedIndices: {0}, // Initial selection
+          onToggleSelection: (i) => singleToggledIndex = i,
+          onSetSelections: (indices, select) {
+            updatedIndices = indices;
+            wasSelecting = select;
+          },
+        ),
+      );
+      await tester.pump();
+
+      // Normal click on item 1 (index 1) to set _lastToggledIndex
+      await tester.tap(find.text('Dive 2')); // Dive 2 is index 1
+      await tester.pump();
+
+      expect(singleToggledIndex, 1);
+      expect(updatedIndices, isNull);
+
+      singleToggledIndex = null;
+
+      // Simulate holding Shift down
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+
+      // Click on item 3 (index 3) while holding Shift
+      await tester.tap(find.text('Dive 4')); // Dive 4 is index 3
+      await tester.pump();
+
+      // Release Shift
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+
+      // It should NOT call single toggle, but should call bulk selection
+      // Range should be from lastToggledIndex (1) to current index (3), both inclusive -> {1, 2, 3}
+      expect(singleToggledIndex, isNull);
+      expect(updatedIndices, {1, 2, 3});
+      expect(
+        wasSelecting,
+        isTrue,
+      ); // Dive 4 was NOT selected previously, so we're selecting
+    });
+
+    testWidgets('shift-click deselects when target was already selected', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(items: [_item1, _item2, _item3, _item4]);
+
+      Set<int>? updatedIndices;
+      bool? wasSelecting;
+
+      await tester.pumpWidget(
+        _buildList(
+          group: group,
+          selectedIndices: {0, 1, 2, 3}, // All selected initially
+          onToggleSelection: (_) {},
+          onSetSelections: (indices, select) {
+            updatedIndices = indices;
+            wasSelecting = select;
+          },
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('Dive 1')); // Normal click on index 0
+      await tester.pump();
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.tap(find.text('Dive 3')); // Shift-click on index 2
+      await tester.pump();
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+
+      // Range should be {0, 1, 2}, it should be deselecting because Dive 3 was selected initially
+      expect(updatedIndices, {0, 1, 2});
+      expect(wasSelecting, isFalse);
     });
   });
 }
