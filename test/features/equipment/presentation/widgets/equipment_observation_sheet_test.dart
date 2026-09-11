@@ -207,6 +207,29 @@ void main() {
     expect((await repo.getForEquipment('reg')).single.diveId, isNull);
   });
 
+  testWidgets('a dive-linked check-in can go back to a bench note', (
+    tester,
+  ) async {
+    // Off a dive, the editor must offer a way back to "no dive": the dive
+    // picker's dismissal keeps the current dive, so it cannot clear one.
+    await repo.create(
+      equipmentId: 'reg',
+      diveId: 'd1',
+      observedAt: DateTime.utc(2026),
+      status: ObservationStatus.ok,
+    );
+    await pumpAndOpen(tester);
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('No dive (bench)'), findsNothing);
+    await tester.tap(find.byTooltip('No dive (bench)'));
+    await tester.pumpAndSettle();
+    expect(find.text('No dive (bench)'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect((await repo.getForEquipment('reg')).single.diveId, isNull);
+  });
+
   test('defaultObservedAt prefers exit time, then start plus runtime', () {
     expect(defaultObservedAt(dive), DateTime.utc(2026, 9, 9, 11));
     final noExit = domain.Dive(

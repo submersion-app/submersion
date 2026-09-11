@@ -143,9 +143,14 @@ class EquipmentConditionRefresher {
         if (!summarised(s)) s.diveId,
     };
     if (missing.isNotEmpty) _requestSummaries?.call(missing);
-    final summaries = await _summaries.getSummaries(diveIds);
+    // Only current summaries reach the engine: a stale one describes an
+    // older version of the dive, and its rebuild is already requested.
+    final summaries = {
+      for (final e in (await _summaries.getSummaries(diveIds)).entries)
+        if (!missing.contains(e.key)) e.key: e.value,
+    };
     final stamp = now ?? DateTime.now().toUtc();
-    final findings = _engine.evaluate(
+    final evaluated = _engine.evaluate(
       ConditionEngineInput(
         item: item,
         children: children,
@@ -158,14 +163,29 @@ class EquipmentConditionRefresher {
         now: stamp,
       ),
     );
+    // With any summary missing, the summary rules can say nothing either
+    // way: their findings are neither written nor deleted until every
+    // summary is current (keepIfNotEmitted below).
+    final findings = missing.isEmpty
+        ? evaluated
+        : [
+            for (final f in evaluated)
+              if (!EquipmentConditionEngine.summaryRules.contains(f.ruleId)) f,
+          ];
     await _findings.saveReview(
       equipmentId: item.id,
       inputFingerprint: fingerprint,
       findings: findings,
       engineVersion: EquipmentConditionEngine.engineVersion,
       // Dates for the dismissal carry-over: only a dive that happened
-      // after the dismissal counts towards re-raising a finding.
-      diveDates: {for (final s in samples) s.diveId: s.date},
+      // after the dismissal counts towards re-raising a finding. Incident
+      // dives too, which the item may never have been linked to: the
+      // incident rule names them, so a dismissed incident finding would
+      // otherwise never clear. A linked dive's own date wins.
+      diveDates: {
+        for (final i in incidents) ?i.diveId: i.occurredAt,
+        for (final s in samples) s.diveId: s.date,
+      },
       keepIfNotEmitted: missing.isEmpty
           ? const {}
           : EquipmentConditionEngine.summaryRules,

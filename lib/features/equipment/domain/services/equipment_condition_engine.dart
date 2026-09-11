@@ -170,7 +170,7 @@ class EquipmentConditionEngine {
     for (final c in cells) {
       final from = c.parentDivesFrom!;
       if (when.isBefore(from)) continue;
-      if (c.isActive) return true;
+      if (c.isFitted) return true;
       DateTime? until;
       for (final other in cells) {
         final start = other.parentDivesFrom!;

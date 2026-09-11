@@ -173,6 +173,11 @@ void main() {
       final base = fp();
       // Retiring a cell changes who occupies its slot.
       expect(fp(c: [child.copyWith(isActive: false)]), isNot(base));
+      // A legacy row can change status without touching isActive.
+      expect(
+        fp(c: [child.copyWith(status: EquipmentStatus.sold)]),
+        isNot(base),
+      );
       expect(fp(c: [withSlot(child, 2)]), isNot(base));
       expect(fp(c: [child.copyWith(type: EquipmentType.battery)]), isNot(base));
     });

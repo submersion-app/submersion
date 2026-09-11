@@ -190,6 +190,52 @@ void main() {
     expect(samples.map((s) => s.date.millisecondsSinceEpoch), [t2, t3]);
   });
 
+  test('only a current summary overrides the dive header', () async {
+    // A summary whose source stamp no longer matches the dive, or from an
+    // older algorithm, is stale: the sweep will rebuild it, and until
+    // then the header's depth and temperature are the truth.
+    final mask = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Mask', type: EquipmentType.mask),
+    );
+    Future<void> summarised(
+      String id, {
+      required int sourceUpdatedAt,
+      int engineVersion = 1,
+    }) => db
+        .into(db.diveSensorSummaries)
+        .insert(
+          DiveSensorSummariesCompanion.insert(
+            diveId: id,
+            engineVersion: engineVersion,
+            sourceUpdatedAt: sourceUpdatedAt,
+            computedAt: 1,
+          ).copyWith(
+            maxDepth: const Value(40.0),
+            minTemperature: const Value(5.0),
+          ),
+        );
+    await insertDive('current', dateMs: t1, maxDepth: 30, waterTemp: 12);
+    await insertDive('edited', dateMs: t1 + 1, maxDepth: 30, waterTemp: 12);
+    await insertDive('older', dateMs: t1 + 2, maxDepth: 30, waterTemp: 12);
+    for (final id in ['current', 'edited', 'older']) {
+      await link(id, mask.id);
+    }
+    await summarised('current', sourceUpdatedAt: t1);
+    // The dive changed after its summary was built.
+    await summarised('edited', sourceUpdatedAt: t1 - 5);
+    await summarised('older', sourceUpdatedAt: t1 + 2, engineVersion: 0);
+
+    final byDive = {
+      for (final s in await repo.getExposureSamplesForEquipment(mask.id))
+        s.diveId: s,
+    };
+    expect(byDive['current']!.maxDepth, 40.0);
+    expect(byDive['current']!.minTemperature, 5.0);
+    expect(byDive['edited']!.maxDepth, 30.0);
+    expect(byDive['edited']!.minTemperature, 12.0);
+    expect(byDive['older']!.maxDepth, 30.0);
+  });
+
   test('a dive linked three ways is one sample', () async {
     final cylinder = await repo.createEquipment(
       const EquipmentItem(id: '', name: 'AL80', type: EquipmentType.tank),
