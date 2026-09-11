@@ -21,12 +21,14 @@ typedef ExposureInputs = ({
   ExposureClassifier classifier,
 });
 
-/// Null for an unknown item. Refreshes when the equipment table or any
+/// Null for an unknown item. Refreshes when the equipment table, the
+/// attribute table (the install date decides which dives count) or any
 /// dive detail table (links, tanks, summaries) changes.
 final equipmentExposureInputsProvider =
     FutureProvider.family<ExposureInputs?, String>((ref, equipmentId) async {
       final repository = ref.watch(equipmentRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      ref.invalidateSelfWhen(repository.watchAttributeChanges());
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
       );
