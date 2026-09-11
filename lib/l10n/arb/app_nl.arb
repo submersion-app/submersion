@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Alleen duiken zonder bestaande fles",
   "diveLog_bulkEdit_confirmTitle": "Wijzigingen toepassen?",
   "diveLog_bulkEdit_confirmApply": "Toepassen",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Toevoegen aan 1 duik} other{Toevoegen aan alle {count} duiken}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Verwijderen van 1 duik} other{Verwijderen van alle {count} duiken}}",
   "diveLog_bulkEdit_nothingSelected": "Schakel minstens één veld in om wijzigingen toe te passen.",
   "diveLog_bulkEdit_applied": "{count} duiken bijgewerkt",
   "settings_cloudSync_error_icloudSignedOut": "iCloud is niet beschikbaar. Log in bij iCloud in de instellingen van je apparaat.",
@@ -8205,6 +8207,31 @@
   "equipmentConditionSettings_o2Label": "Mengsel met hoog O2 boven (% O2)",
   "equipmentConditionSettings_invalid": "Voer een getal in",
   "equipmentConditionSettings_saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+  "equipmentConditionSettings_sensorHeader": "Sensorsamenvattingen",
+  "equipmentConditionSettings_sensorHelp": "Het profiel van elke duik wordt eenmaal samengevat voor celuitvoer, zenderuitval en scrubbergebruik. Nieuwe en bewerkte duiken worden vanzelf samengevat.",
+  "equipmentConditionSettings_rebuild": "Sensorsamenvattingen opnieuw opbouwen",
+  "equipmentConditionSettings_rebuild_subtitle": "De samenvatting van elke duik opnieuw berekenen uit het profiel",
+  "equipmentConditionSettings_rebuild_progress": "{done} van {total} samengevat",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Sensorsamenvattingen opnieuw opgebouwd",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Sensorsamenvattingen opnieuw opgebouwd; {count, plural, =1{1 duik kon niet worden samengevat} other{{count} duiken konden niet worden samengevat}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "De sensorsamenvattingen konden niet opnieuw worden opgebouwd.",
   "dataQuality_inbox_title": "Datakwaliteit",
   "dataQuality_dive_unknown": "Duikgegevens niet beschikbaar",
   "dataQuality_dive_number": "#{number}",

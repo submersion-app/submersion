@@ -240,6 +240,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// instant ranges inflate to a minimum on-screen width.
   final ProfileHighlightRange? highlightRange;
 
+  /// Ranges drawn as plain bands behind [highlightRange], without edge
+  /// lines, and only while the O2 cell overlay is on: the cell divergence
+  /// runs from the dive's sensor summary (condition phase 2).
+  final List<ProfileHighlightRange> secondaryRanges;
+
   /// Safety findings shown as tappable chips in a lane below the plot.
   /// Pre-filtered by the caller (chartSafetyFindings): non-dismissed,
   /// rule-enabled, start-timestamped, sorted by start time. The lane renders
@@ -584,6 +589,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.playbackTimestamp,
     this.highlightedTimestamp,
     this.highlightRange,
+    this.secondaryRanges = const [],
     this.safetyFindings,
     this.selectedSafetyFindingId,
     this.onSafetyFindingTap,
@@ -3262,6 +3268,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             rangeAnnotations: RangeAnnotations(
               verticalRangeAnnotations: _buildHighlightRangeAnnotations(
                 highlightSpan,
+                visibleMinX: visibleMinX,
+                visibleMaxX: visibleMaxX,
               ),
             ),
             extraLinesData: ExtraLinesData(
@@ -6701,18 +6709,45 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// precomputed by [_buildChart] via [highlightBandSpan]: clamped to the
   /// visible window and inflated to the 12 px minimum, so instants and short
   /// ranges render the same visible band as wide ones.
+  ///
+  /// The secondary ranges (cell divergence runs) come first so the primary
+  /// band paints over them; they are clamped to the visible window and
+  /// drawn only while the O2 cell overlay is on, since that is the overlay
+  /// they explain.
   List<VerticalRangeAnnotation> _buildHighlightRangeAnnotations(
-    ({double x1, double x2})? span,
-  ) {
+    ({double x1, double x2})? span, {
+    required double visibleMinX,
+    required double visibleMaxX,
+  }) {
+    final annotations = <VerticalRangeAnnotation>[];
+    if (_showO2CellMv) {
+      for (final range in widget.secondaryRanges) {
+        final visible = visibleHighlightSpan(
+          range,
+          visibleMinX: visibleMinX,
+          visibleMaxX: visibleMaxX,
+        );
+        if (visible == null) continue;
+        annotations.add(
+          VerticalRangeAnnotation(
+            x1: visible.x1,
+            x2: visible.x2,
+            color: range.color.withValues(alpha: 0.10),
+          ),
+        );
+      }
+    }
     final range = widget.highlightRange;
-    if (range == null || span == null) return [];
-    return [
-      VerticalRangeAnnotation(
-        x1: span.x1,
-        x2: span.x2,
-        color: range.color.withValues(alpha: 0.12),
-      ),
-    ];
+    if (range != null && span != null) {
+      annotations.add(
+        VerticalRangeAnnotation(
+          x1: span.x1,
+          x2: span.x2,
+          color: range.color.withValues(alpha: 0.12),
+        ),
+      );
+    }
+    return annotations;
   }
 
   /// Edge lines at the highlight band's (possibly inflated) edges.

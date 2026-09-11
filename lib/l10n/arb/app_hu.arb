@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Csak a meglévő palack nélküli merülések",
   "diveLog_bulkEdit_confirmTitle": "Alkalmazza a módosításokat?",
   "diveLog_bulkEdit_confirmApply": "Alkalmaz",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Hozzáadás 1 merüléshez} other{Hozzáadás mind a {count} merüléshez}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Eltávolítás 1 merülésből} other{Eltávolítás mind a {count} merülésből}}",
   "diveLog_bulkEdit_nothingSelected": "Engedélyezzen legalább egy mezőt a módosítások alkalmazásához.",
   "diveLog_bulkEdit_applied": "{count} merülés frissítve",
   "settings_cloudSync_error_icloudSignedOut": "Az iCloud nem érhető el. Jelentkezz be az iCloudba a készülék beállításaiban.",
@@ -8205,6 +8207,31 @@
   "equipmentConditionSettings_o2Label": "Magas O2-tartalmú keverék e felett (% O2)",
   "equipmentConditionSettings_invalid": "Adjon meg egy számot",
   "equipmentConditionSettings_saveFailed": "A mentés nem sikerült. Próbálja újra.",
+  "equipmentConditionSettings_sensorHeader": "Szenzor-összegzések",
+  "equipmentConditionSettings_sensorHelp": "Minden merülés profilját egyszer összegezzük a cellakimenet, az adókimaradások és a szűrőfelhasználás szerint. Az új és a szerkesztett merülések maguktól összegződnek.",
+  "equipmentConditionSettings_rebuild": "Szenzor-összegzések újraépítése",
+  "equipmentConditionSettings_rebuild_subtitle": "Minden merülés összegzésének újraszámítása a profiljából",
+  "equipmentConditionSettings_rebuild_progress": "{done} / {total} összegezve",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Szenzor-összegzések újraépítve",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Szenzor-összegzések újraépítve; {count, plural, =1{1 merülést nem sikerült összegezni} other{{count} merülést nem sikerült összegezni}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "A szenzor-összegzéseket nem sikerült újraépíteni.",
   "dataQuality_inbox_title": "Adatminőség",
   "dataQuality_dive_unknown": "A merülés adatai nem érhetők el",
   "dataQuality_dive_number": "#{number}.",

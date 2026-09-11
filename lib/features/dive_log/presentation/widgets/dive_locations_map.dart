@@ -242,7 +242,16 @@ class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
                   : const InteractionOptions(flags: InteractiveFlag.none),
             ),
             children: [
-              submersionTileLayer(ref),
+              // The decorative header remounts on every dive selected in the
+              // master-detail pane, and the default fade restarts each tile at
+              // opacity 0 even when it is already in memory, which blinked
+              // the header's map background on every selection.
+              submersionTileLayer(
+                ref,
+                tileDisplay: interactive
+                    ? const TileDisplay.fadeIn()
+                    : const TileDisplay.instantaneous(),
+              ),
               // Drawn before the drift line and markers so the surface track
               // sits underneath both.
               if (hasTrack)

@@ -600,6 +600,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'Alkalmaz';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hozzáadás mind a $count merüléshez',
+      one: 'Hozzáadás 1 merüléshez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítás mind a $count merülésből',
+      one: 'Eltávolítás 1 merülésből',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'Engedélyezzen legalább egy mezőt a módosítások alkalmazásához.';
 
@@ -26914,6 +26936,45 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipmentConditionSettings_saveFailed =>
       'A mentés nem sikerült. Próbálja újra.';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader => 'Szenzor-összegzések';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Minden merülés profilját egyszer összegezzük a cellakimenet, az adókimaradások és a szűrőfelhasználás szerint. Az új és a szerkesztett merülések maguktól összegződnek.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Szenzor-összegzések újraépítése';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Minden merülés összegzésének újraszámítása a profiljából';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '$done / $total összegezve';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Szenzor-összegzések újraépítve';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülést nem sikerült összegezni',
+      one: '1 merülést nem sikerült összegezni',
+    );
+    return 'Szenzor-összegzések újraépítve; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'A szenzor-összegzéseket nem sikerült újraépíteni.';
 
   @override
   String get settings_section_security_title => 'Alkalmazásbiztonság';

@@ -311,6 +311,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Seulement les plongées sans bloc existant",
   "diveLog_bulkEdit_confirmTitle": "Appliquer les modifications ?",
   "diveLog_bulkEdit_confirmApply": "Appliquer",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Ajout à 1 plongée} other{Ajout à toutes les {count} plongées}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Retrait de 1 plongée} other{Retrait de toutes les {count} plongées}}",
   "diveLog_bulkEdit_nothingSelected": "Activez au moins un champ pour appliquer les modifications.",
   "diveLog_bulkEdit_applied": "{count} plongées mises à jour",
   "settings_cloudSync_error_icloudSignedOut": "iCloud n'est pas disponible. Connectez-vous à iCloud dans les réglages de votre appareil.",
@@ -8205,6 +8207,31 @@
   "equipmentConditionSettings_o2Label": "Mélange à haut O2 au-dessus de (% O2)",
   "equipmentConditionSettings_invalid": "Saisissez un nombre",
   "equipmentConditionSettings_saveFailed": "Enregistrement impossible. Réessayez.",
+  "equipmentConditionSettings_sensorHeader": "Synthèses des capteurs",
+  "equipmentConditionSettings_sensorHelp": "Le profil de chaque plongée est synthétisé une fois pour la sortie des cellules, les pertes de l'émetteur et l'usage de la chaux. Les plongées nouvelles ou modifiées sont synthétisées d'elles-mêmes.",
+  "equipmentConditionSettings_rebuild": "Reconstruire les synthèses des capteurs",
+  "equipmentConditionSettings_rebuild_subtitle": "Recalculer la synthèse de chaque plongée à partir de son profil",
+  "equipmentConditionSettings_rebuild_progress": "{done} sur {total} synthétisées",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Synthèses des capteurs reconstruites",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Synthèses des capteurs reconstruites ; {count, plural, =1{1 plongée n'a pas pu être synthétisée} other{{count} plongées n'ont pas pu être synthétisées}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "Impossible de reconstruire les synthèses des capteurs.",
   "dataQuality_inbox_title": "Qualité des données",
   "dataQuality_dive_unknown": "Détails de la plongée indisponibles",
   "dataQuality_dive_number": "n°{number}",

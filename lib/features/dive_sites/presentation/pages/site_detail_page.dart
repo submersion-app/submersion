@@ -539,9 +539,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                     urlTemplate: ref.watch(mapTileUrlProvider),
                     userAgentPackageName: 'app.submersion',
                     maxZoom: ref.watch(mapTileMaxZoomProvider),
-                    tileProvider: TileCacheService.instance.isInitialized
-                        ? TileCacheService.instance.getTileProvider()
-                        : null,
+                    tileProvider: TileCacheService.instance.tileProviderFor(
+                      urlTemplate: ref.watch(mapTileUrlProvider),
+                    ),
                   ),
                   BathymetryDepthOverlayLayer(location: site.location),
                   SiteFeatureMarkerLayer(siteId: site.id),
@@ -1825,9 +1825,9 @@ class _FullscreenSiteScapePageState
                     urlTemplate: ref.watch(mapTileUrlProvider),
                     userAgentPackageName: 'app.submersion',
                     maxZoom: ref.watch(mapTileMaxZoomProvider),
-                    tileProvider: TileCacheService.instance.isInitialized
-                        ? TileCacheService.instance.getTileProvider()
-                        : null,
+                    tileProvider: TileCacheService.instance.tileProviderFor(
+                      urlTemplate: ref.watch(mapTileUrlProvider),
+                    ),
                   ),
                   BathymetryDepthOverlayLayer(location: site.location),
                   SiteFeatureMarkerLayer(siteId: site.id),

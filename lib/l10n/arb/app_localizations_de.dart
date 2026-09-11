@@ -599,6 +599,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'Anwenden';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird zu allen $count Tauchgängen hinzugefügt',
+      one: 'Wird zu 1 Tauchgang hinzugefügt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird von allen $count Tauchgängen entfernt',
+      one: 'Wird von 1 Tauchgang entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'Aktiviere mindestens ein Feld, um Änderungen anzuwenden.';
 
@@ -26968,6 +26990,46 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipmentConditionSettings_saveFailed =>
       'Speichern fehlgeschlagen. Bitte erneut versuchen.';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader =>
+      'Sensorzusammenfassungen';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Das Profil jedes Tauchgangs wird einmal für Zellenausgang, Sender-Aussetzer und Scrubber-Verbrauch zusammengefasst. Neue und bearbeitete Tauchgänge werden automatisch erfasst.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Sensorzusammenfassungen neu erstellen';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Die Zusammenfassung jedes Tauchgangs aus seinem Profil neu berechnen';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '$done von $total zusammengefasst';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Sensorzusammenfassungen neu erstellt';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge konnten nicht zusammengefasst werden',
+      one: '1 Tauchgang konnte nicht zusammengefasst werden',
+    );
+    return 'Sensorzusammenfassungen neu erstellt; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'Die Sensorzusammenfassungen konnten nicht neu erstellt werden.';
 
   @override
   String get settings_section_security_title => 'App-Sicherheit';

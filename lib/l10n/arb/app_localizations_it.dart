@@ -604,6 +604,28 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'Applica';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiunta a tutte le $count immersioni',
+      one: 'Aggiunta a 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimozione da tutte le $count immersioni',
+      one: 'Rimozione da 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'Attiva almeno un campo per applicare le modifiche.';
 
@@ -27018,6 +27040,46 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get equipmentConditionSettings_saveFailed =>
       'Salvataggio non riuscito. Riprova.';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader =>
+      'Riepiloghi dei sensori';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Il profilo di ogni immersione viene riepilogato una volta per l\'uscita delle celle, le perdite del trasmettitore e l\'uso del filtro. Le immersioni nuove e modificate si riepilogano da sole.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Ricostruisci i riepiloghi dei sensori';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Ricalcola il riepilogo di ogni immersione dal suo profilo';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return 'Riepilogate $done di $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Riepiloghi dei sensori ricostruiti';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni non sono state riepilogate',
+      one: '1 immersione non è stata riepilogata',
+    );
+    return 'Riepiloghi dei sensori ricostruiti; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'Impossibile ricostruire i riepiloghi dei sensori.';
 
   @override
   String get settings_section_security_title => 'Sicurezza dell\'app';

@@ -577,6 +577,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => '应用';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加到全部 $count 次潜水',
+      one: '添加到 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '从全部 $count 次潜水移除',
+      one: '从 1 次潜水移除',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected => '至少启用一个字段以应用更改。';
 
   @override
@@ -25631,6 +25653,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipmentConditionSettings_saveFailed => '无法保存。请重试。';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader => '传感器摘要';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      '每次潜水的剖面只汇总一次，用于电池输出、发射器断连和吸收剂用量。新增和编辑的潜水会自动汇总。';
+
+  @override
+  String get equipmentConditionSettings_rebuild => '重建传感器摘要';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle => '根据每次潜水的剖面重新计算其摘要';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '已汇总 $done / $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done => '传感器摘要已重建';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水无法汇总',
+      one: '1 次潜水无法汇总',
+    );
+    return '传感器摘要已重建；$_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed => '无法重建传感器摘要。';
 
   @override
   String get settings_section_security_title => '应用安全';

@@ -597,6 +597,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'تطبيق';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة إلى كل الـ $count غطسة',
+      one: 'إضافة إلى غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة من كل الـ $count غطسة',
+      one: 'إزالة من غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'فعّل حقلاً واحداً على الأقل لتطبيق التغييرات.';
 
@@ -26540,6 +26562,45 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipmentConditionSettings_saveFailed =>
       'تعذر الحفظ. حاول مرة أخرى.';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader => 'ملخصات المستشعرات';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'يُلخَّص ملف كل غطسة مرة واحدة لقياس خرج الخلايا وانقطاعات جهاز الإرسال واستهلاك المنظّف. تُلخَّص الغطسات الجديدة والمعدّلة تلقائيًا.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'إعادة بناء ملخصات المستشعرات';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'إعادة حساب ملخص كل غطسة من ملفها';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return 'تم تلخيص $done من $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'أُعيد بناء ملخصات المستشعرات';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تلخيص $count غطسات',
+      one: 'تعذّر تلخيص غطسة واحدة',
+    );
+    return 'أُعيد بناء ملخصات المستشعرات؛ $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'تعذّرت إعادة بناء ملخصات المستشعرات.';
 
   @override
   String get settings_section_security_title => 'أمان التطبيق';

@@ -604,6 +604,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'Appliquer';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajout à toutes les $count plongées',
+      one: 'Ajout à 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retrait de toutes les $count plongées',
+      one: 'Retrait de 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'Activez au moins un champ pour appliquer les modifications.';
 
@@ -27118,6 +27140,46 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipmentConditionSettings_saveFailed =>
       'Enregistrement impossible. Réessayez.';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader =>
+      'Synthèses des capteurs';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Le profil de chaque plongée est synthétisé une fois pour la sortie des cellules, les pertes de l\'émetteur et l\'usage de la chaux. Les plongées nouvelles ou modifiées sont synthétisées d\'elles-mêmes.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Reconstruire les synthèses des capteurs';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Recalculer la synthèse de chaque plongée à partir de son profil';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '$done sur $total synthétisées';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Synthèses des capteurs reconstruites';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées n\'ont pas pu être synthétisées',
+      one: '1 plongée n\'a pas pu être synthétisée',
+    );
+    return 'Synthèses des capteurs reconstruites ; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'Impossible de reconstruire les synthèses des capteurs.';
 
   @override
   String get settings_section_security_title => 'Sécurité de l\'application';

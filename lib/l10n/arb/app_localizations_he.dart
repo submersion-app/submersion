@@ -593,6 +593,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_confirmApply => 'החל';
 
   @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מוסיף לכל $count הצלילות',
+      one: 'מוסיף לצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מסיר מכל $count הצלילות',
+      one: 'מסיר מצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_nothingSelected =>
       'הפעל לפחות שדה אחד כדי להחיל שינויים.';
 
@@ -26353,6 +26375,45 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader => 'סיכומי חיישנים';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'פרופיל כל צלילה מסוכם פעם אחת עבור פלט התאים, נפילות המשדר ושימוש בסופג. צלילות חדשות ונערכות מסוכמות מעצמן.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'בנייה מחדש של סיכומי חיישנים';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'חישוב מחדש של סיכום כל צלילה מהפרופיל שלה';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return 'סוכמו $done מתוך $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'סיכומי החיישנים נבנו מחדש';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות לא ניתן היה לסכם',
+      one: 'צלילה אחת לא ניתן היה לסכם',
+    );
+    return 'סיכומי החיישנים נבנו מחדש; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'לא ניתן היה לבנות מחדש את סיכומי החיישנים.';
 
   @override
   String get settings_section_security_title => 'אבטחת האפליקציה';

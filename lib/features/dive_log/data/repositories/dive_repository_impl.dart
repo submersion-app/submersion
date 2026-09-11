@@ -227,6 +227,9 @@ class DiveRepository {
   /// them with a raw insertOnConflictUpdate straight into the tables; the one-
   /// shot safetyReviewProvider self-invalidates on this stream so a freshly
   /// synced (or batch-analyzed) review becomes visible without an app restart.
+  ///
+  /// Also watches `dive_sensor_summaries`, which the condition sweep fills
+  /// outside any notifier.
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -253,6 +256,10 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.tideRecords),
           TableUpdateQuery.onTable(_db.diveSafetyReviews),
           TableUpdateQuery.onTable(_db.diveSafetyFindings),
+          // The sensor summary cache (condition phase 2): written by the
+          // sweep and the scheduler outside any notifier, read by the
+          // chart host through diveSensorSummaryProvider.
+          TableUpdateQuery.onTable(_db.diveSensorSummaries),
         ]),
       )
       .debounce(changeTickDebounce);
