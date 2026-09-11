@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show DiveTanksCompanion;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -230,6 +231,62 @@ void main() {
       expect(k3.volume, isNull, reason: 'another serial is untouched');
     },
   );
+
+  test('applyToExistingDives stages each touched dive so its tanks reach '
+      'peers in the next changeset', () async {
+    // Tanks export only through their parent dive's HLC, and diveTanks has
+    // no clock of its own, so a backfill that stages only the tanks never
+    // leaves this device in an incremental changeset.
+    await seedDiverAndDive();
+    await seedDiverAndDive(diveId: 'd2');
+    await seedTank(id: 'k1', diveId: 'd1', serial: '180777');
+    await seedTank(id: 'k2', diveId: 'd1', serial: '180777', order: 1);
+    await seedTank(id: 'k3', diveId: 'd2', serial: '109623');
+    final entry = await repo.create(_entry());
+    final db = DatabaseService.instance.database;
+    final serializer = SyncDataSerializer();
+    // Everything so far has been published: record the watermark a device
+    // keeps after a base export and clear the staged records.
+    final base = await serializer.exportChangeset(
+      deviceId: 'test-device',
+      hlcWatermark: null,
+      deletions: const [],
+    );
+    final watermark = base.toHlc;
+    expect(watermark, isNotNull);
+    await db.customStatement('DELETE FROM sync_records');
+    Future<String?> diveHlc(String id) async =>
+        (await db
+                .customSelect(
+                  'SELECT hlc FROM dives WHERE id = ?',
+                  variables: [Variable<String>(id)],
+                )
+                .getSingle())
+            .read<String?>('hlc');
+    final d2HlcBefore = await diveHlc('d2');
+
+    final result = await repo.applyToExistingDives(entry);
+
+    expect(result, (tanksUpdated: 2, divesUpdated: 1));
+    final pending = await db.select(db.syncRecords).get();
+    expect(
+      pending.where((r) => r.entityType == 'dives').map((r) => r.recordId),
+      ['d1'],
+      reason: 'one mark per touched dive, none for an untouched one',
+    );
+    expect((await diveHlc('d1'))!.compareTo(watermark!), greaterThan(0));
+    expect(await diveHlc('d2'), d2HlcBefore);
+
+    final changeset = await serializer.exportChangeset(
+      deviceId: 'test-device',
+      hlcWatermark: watermark,
+      deletions: const [],
+    );
+    final tanks = {for (final t in changeset.data.diveTanks) t['id']: t};
+    expect(tanks.keys.toSet(), {'k1', 'k2'});
+    expect(tanks['k1']!['volume'], 2.0);
+    expect(tanks['k1']!['tankRole'], 'oxygenSupply');
+  });
 
   test(
     'applyToExistingDives matches a channel entry on the source index',

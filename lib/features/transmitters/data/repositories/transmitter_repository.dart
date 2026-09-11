@@ -185,6 +185,7 @@ class TransmitterRepository {
   /// Retroactive fill for the tanks that carry [t]'s key: empty size,
   /// working pressure, material, preset, gear link and name are filled; the
   /// role is replaced only while it is still the uninformed backGas default.
+  /// Each updated tank and its parent dive are staged for sync.
   /// One transaction; a failure leaves no half-applied dive.
   Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
     final candidates = await _tanksForEntry(t);
@@ -235,6 +236,16 @@ class TransmitterRepository {
         );
         touchedDives.add(row.diveId);
         tanks++;
+      }
+      // Tanks export only through their parent dive's HLC (diveTanks has no
+      // clock of its own), so each touched dive is staged too or the filled
+      // fields never reach a peer.
+      for (final diveId in touchedDives) {
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
       }
     });
     if (tanks > 0) SyncEventBus.notifyLocalChange();
