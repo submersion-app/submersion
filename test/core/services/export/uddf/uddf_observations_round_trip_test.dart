@@ -207,4 +207,48 @@ void main() {
     expect(observations.last.status, 'ok');
     expect(observations.last.issueTags, '[]');
   });
+
+  test('a newer peer\'s tags survive the export and the import', () async {
+    // This build cannot name them, but the entity carries them so an edit
+    // or a backup never deletes them for the build that can.
+    final mixed = onDive.copyWith(
+      issueTags: const [ObservationTag.erratic],
+      unrecognizedTags: const ['futureTag'],
+    );
+    final unknownOnly = bench.copyWith(
+      status: ObservationStatus.issue,
+      unrecognizedTags: const ['otherFutureTag'],
+    );
+    final xml = await UddfFullExportService().generateAllDataXmlForTest(
+      dives: [dive],
+      equipment: [parent, child],
+      observations: [mixed, unknownOnly],
+    );
+    final tags = [
+      for (final o in XmlDocument.parse(xml).findAllElements('observation'))
+        [for (final t in o.findAllElements('tag')) t.innerText],
+    ];
+    expect(tags, [
+      ['erratic', 'futureTag'],
+      ['otherFutureTag'],
+    ]);
+
+    await tearDownTestDatabase();
+    db = await setUpTestDatabase();
+    final diverId = await createTestDiver();
+    final parsed = await ExportService().importAllDataFromUddf(xml);
+    await UddfEntityImporter().import(
+      data: parsed,
+      selections: const UddfImportSelections(equipment: {0, 1}, dives: {0}),
+      repositories: buildRepositories(),
+      diverId: diverId,
+    );
+    final stored = await (db.select(
+      db.equipmentObservations,
+    )..orderBy([(t) => OrderingTerm.asc(t.observedAt)])).get();
+    expect(stored.map((o) => o.issueTags), [
+      '["erratic","futureTag"]',
+      '["otherFutureTag"]',
+    ]);
+  });
 }

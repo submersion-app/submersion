@@ -251,8 +251,10 @@ void main() {
     (tester) async {
       useTallSurface(tester);
       final repo = _FakeIncidentRepository();
+      // The raw id names a diver that no longer exists; the validated one
+      // (what the gear picker and the incident list read) has fallen back.
       final diver = MockCurrentDiverIdNotifier();
-      await diver.setCurrentDiver('diver-1');
+      await diver.setCurrentDiver('deleted-diver');
 
       await tester.pumpWidget(
         testAppRouter(
@@ -260,6 +262,9 @@ void main() {
           overrides: [
             incidentRepositoryProvider.overrideWithValue(repo),
             currentDiverIdProvider.overrideWith((ref) => diver),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-1',
+            ),
           ],
           router: routerFor(const IncidentEditPage(diveId: 'dive-9')),
         ),
@@ -393,6 +398,7 @@ void main() {
             currentDiverIdProvider.overrideWith(
               (ref) => MockCurrentDiverIdNotifier(),
             ),
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             diveProvider('d1').overrideWith((ref) async => dive),
             activeEquipmentProvider.overrideWith((ref) async => [reg, fins]),
             equipmentItemProvider('reg').overrideWith((ref) async => reg),

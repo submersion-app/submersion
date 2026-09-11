@@ -106,6 +106,14 @@ class EquipmentObservation extends Equatable {
 
   bool get isIssue => status == ObservationStatus.issue;
 
+  /// Every tag name the row stores: the known tags, then (for an issue)
+  /// the names a newer peer wrote. What an export writes, so a file never
+  /// drops tags this build merely cannot read.
+  List<String> get storedTagNames => [
+    for (final t in issueTags) t.dbValue,
+    if (isIssue) ...unrecognizedTags,
+  ];
+
   EquipmentObservation copyWith({
     String? id,
     String? diverId,

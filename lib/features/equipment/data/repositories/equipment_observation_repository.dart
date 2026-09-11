@@ -59,6 +59,7 @@ class EquipmentObservationRepository {
     required DateTime observedAt,
     required ObservationStatus status,
     List<ObservationTag> issueTags = const [],
+    List<String> unrecognizedTags = const [],
     String note = '',
     DateTime? now,
   }) async {
@@ -71,6 +72,7 @@ class EquipmentObservationRepository {
       observedAt: observedAt,
       status: status,
       issueTags: issueTags,
+      unrecognizedTags: unrecognizedTags,
       note: note,
       createdAt: stamp,
       updatedAt: stamp,
