@@ -136,7 +136,14 @@ class EquipmentObservationRepository {
         diveId: Value(o.diveId),
         observedAt: o.observedAt.millisecondsSinceEpoch,
         status: o.status.dbValue,
-        issueTags: Value(encodeObservationTags(o.issueTags)),
+        // An OK check carries no tags, so a newer peer's names go with the
+        // rest when an issue is turned into one.
+        issueTags: Value(
+          encodeObservationTags(
+            o.issueTags,
+            unrecognized: o.isIssue ? o.unrecognizedTags : const [],
+          ),
+        ),
         note: Value(o.note),
         createdAt: o.createdAt.millisecondsSinceEpoch,
         updatedAt: o.updatedAt.millisecondsSinceEpoch,
@@ -155,6 +162,7 @@ class EquipmentObservationRepository {
     ),
     status: ObservationStatus.fromDbValue(row.status),
     issueTags: decodeObservationTags(row.issueTags),
+    unrecognizedTags: decodeUnrecognizedObservationTags(row.issueTags),
     note: row.note,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt, isUtc: true),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt, isUtc: true),

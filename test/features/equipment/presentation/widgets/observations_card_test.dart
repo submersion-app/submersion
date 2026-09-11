@@ -23,8 +23,12 @@ void main() {
   );
 
   late _FakeRepo repo;
+  late int detailReads;
 
-  setUp(() => repo = _FakeRepo());
+  setUp(() {
+    repo = _FakeRepo();
+    detailReads = 0;
+  });
 
   Future<void> pump(
     WidgetTester tester,
@@ -38,12 +42,16 @@ void main() {
           observationsForEquipmentProvider(
             'reg',
           ).overrideWith((ref) async => observations),
-          diveProvider('d1').overrideWith(
-            (ref) async =>
-                Dive(id: 'd1', diveNumber: 42, dateTime: DateTime.utc(2026)),
-          ),
-          // A dive that has not resolved: the row must not show its id.
-          diveProvider('d-unresolved').overrideWith((ref) async => null),
+          // One batch for the whole card. d-unresolved is absent: a dive
+          // that has not resolved, whose row must not show its id.
+          observationDiveNumbersProvider(
+            'reg',
+          ).overrideWith((ref) async => {'d1': 42}),
+          // Counts any per-row detail read, which the card must not make.
+          diveProvider.overrideWith((ref, id) async {
+            detailReads++;
+            return Dive(id: id, dateTime: DateTime.utc(2026));
+          }),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -134,6 +142,21 @@ void main() {
     await pump(tester, [observation(diveId: 'd-unresolved')]);
     expect(find.textContaining('d-unresolved'), findsNothing);
     expect(find.textContaining('Dive'), findsOneWidget);
+  });
+
+  testWidgets('rows take dive numbers from one batch, not a detail read', (
+    tester,
+  ) async {
+    // The dive detail provider hydrates tanks, profile and pressures; an
+    // item with check-ins on many dives must not load each one for a
+    // number.
+    await pump(tester, [
+      observation(id: 'o1', diveId: 'd1'),
+      observation(id: 'o2', diveId: 'd2'),
+      observation(id: 'o3', diveId: 'd3'),
+    ]);
+    expect(detailReads, 0);
+    expect(find.textContaining('Dive #42'), findsOneWidget);
   });
 
   testWidgets('the edit button opens that check-in in the editor', (

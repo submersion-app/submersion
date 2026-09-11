@@ -37,9 +37,12 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
   }
 
   Future<void> _load() async {
+    // The validated id, as every diver-scoped read uses: a stale raw id
+    // (a deleted diver) would list nothing, or none of this diver's dives.
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     final dives = await ref
         .read(diveRepositoryProvider)
-        .getAllDives(diverId: ref.read(currentDiverIdProvider));
+        .getAllDives(diverId: diverId);
     if (mounted) setState(() => _dives = dives);
   }
 
