@@ -15,7 +15,7 @@
 ## Global Constraints
 
 - No em-dashes anywhere (code, comments, commit messages, ARB strings, this plan).
-- No mention of Claude, Claude Code or Anthropic in any commit, comment, file or PR body.
+- No tool or vendor attribution in any commit, comment, file or PR body.
 - `dart format .` before every commit; push with `SKIP_TESTS=1` after a local full run.
 - TDD: failing test first, watch it fail for the right reason, then implement.
 - Every user-facing string goes through `context.l10n` in all 11 ARB files, anchored after `equipmentConditionSettings_title` (the condition block) with `@` metadata for every placeholder key; regenerate with `flutter gen-l10n` and stage the generated files. Record every shipped string in the appendix.
