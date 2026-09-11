@@ -1029,12 +1029,23 @@ class SyncRepository {
     return pending + await getUnpublishedDeletionCount(upToHlc: watermark);
   }
 
-  /// Clear all pending sync records
-  Future<void> clearPendingRecords() async {
+  /// Clear pending sync records; with [markedBefore], only those marked
+  /// before it.
+  ///
+  /// A publish passes the time its export snapshot was read. Pending marks
+  /// are an export source for clockless children (they travel on their own,
+  /// not through a parent's HLC), so a mark made after the snapshot is not in
+  /// what was sent, and clearing it would drop that edit.
+  Future<void> clearPendingRecords({int? markedBefore}) async {
     try {
-      await (_db.delete(
-        _db.syncRecords,
-      )..where((t) => t.syncStatus.equals('pending'))).go();
+      await (_db.delete(_db.syncRecords)..where(
+            (t) =>
+                t.syncStatus.equals('pending') &
+                (markedBefore == null
+                    ? const Constant(true)
+                    : t.updatedAt.isSmallerThanValue(markedBefore)),
+          ))
+          .go();
       _log.info('Cleared pending sync records');
     } catch (e, stackTrace) {
       _log.error(
@@ -1080,10 +1091,15 @@ class SyncRepository {
     }
   }
 
-  /// Clear all sync records (useful after full sync)
-  Future<void> clearAllSyncRecords() async {
+  /// Clear all sync records (useful after full sync); with [markedBefore],
+  /// only those marked before it (see [clearPendingRecords]).
+  Future<void> clearAllSyncRecords({int? markedBefore}) async {
     try {
-      await _db.delete(_db.syncRecords).go();
+      final delete = _db.delete(_db.syncRecords);
+      if (markedBefore != null) {
+        delete.where((t) => t.updatedAt.isSmallerThanValue(markedBefore));
+      }
+      await delete.go();
       _log.info('Cleared all sync records');
     } catch (e, stackTrace) {
       _log.error(

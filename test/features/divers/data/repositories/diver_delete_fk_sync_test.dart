@@ -135,7 +135,7 @@ void main() {
     // Bob's cylinder carries Alice's gear on both tank links. Removing Alice
     // deletes her gear in bulk; the links on Bob's surviving tank must be
     // cleared (the cylinder link had no action before v210 and failed the
-    // delete) and reach peers, which for a tank means its parent dive.
+    // delete) and reach peers as a pending tank.
     await insertDiver('diver-a');
     await insertDiver('diver-b');
     const stale = 1000;
@@ -186,8 +186,10 @@ void main() {
     expect(await pendingCountFor('diveTanks', 'tank-b'), 1);
     expect(
       await pendingCountFor('dives', 'dive-b'),
-      1,
-      reason: 'tanks export through their parent dive',
+      0,
+      reason:
+          'the pending tank is exported on its own; re-stamping Bob\'s '
+          'dive would let this copy overwrite his newer edits to it',
     );
   });
 

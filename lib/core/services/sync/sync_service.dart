@@ -688,6 +688,9 @@ class SyncService {
       );
       final deletions = await _syncRepository.getAllDeletions();
       var publishAttempted = false;
+      // When the publish read its export snapshot (see
+      // ChangesetWriteResult.snapshotAt); bounds the bookkeeping clear below.
+      int? publishSnapshotAt;
       if (await _shouldSkipPublishAfterAdopt(provider.providerId, deletions)) {
         // Just adopted a restored library and have nothing of our own yet: our
         // library == the adopted epoch the peers already published, so there
@@ -743,6 +746,7 @@ class SyncService {
           // live nonce is evicted, and the device reads its own manifest as
           // a foreign twin: a fresh identity plus a full base re-upload
           // every ring-length idle syncs (#733).
+          publishSnapshotAt = write.snapshotAt;
           if (write.kind == ChangesetWriteKind.noop ||
               write.kind == ChangesetWriteKind.heartbeat) {
             await _syncInitializer?.removeUploadNonce(
@@ -806,10 +810,19 @@ class SyncService {
       // the skip decision and this cleanup; wiping its pending row here would
       // make every following sync skip again and the edit would never publish
       // until some unrelated later edit re-tripped the gate.
-      if (publishAttempted) {
-        await _syncRepository.clearPendingRecords();
+      //
+      // And clear only what the published snapshot covered. Pending marks are
+      // an export source for clockless children (a cleared tank link travels
+      // on its own, not by re-stamping its dive), so a mark made after the
+      // snapshot was read, during the upload or the steps since, is not in
+      // what was sent; wiping it would drop that edit. A resumed base has no
+      // snapshot from this run, so nothing is cleared and the next publish
+      // carries every mark.
+      final snapshotAt = publishSnapshotAt;
+      if (publishAttempted && snapshotAt != null) {
+        await _syncRepository.clearPendingRecords(markedBefore: snapshotAt);
         if (conflictsFound == 0) {
-          await _syncRepository.clearAllSyncRecords();
+          await _syncRepository.clearAllSyncRecords(markedBefore: snapshotAt);
         }
       }
 
