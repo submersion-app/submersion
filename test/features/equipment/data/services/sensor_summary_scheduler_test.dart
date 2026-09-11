@@ -180,6 +180,28 @@ void main() {
     expect(visited, isEmpty);
   });
 
+  test('an all-gear findings request reviews every active item', () async {
+    // The import hook: check-ins arrive inside equipment items, with or
+    // without new dives, and none of them names a single item to refresh.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'bcd',
+            name: 'bcd',
+            type: 'bcd',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    scheduleAllConditionFindingsRefresh();
+    await SensorSummaryScheduler.instance.idle;
+    final findings = EquipmentFindingsRepository(db: db);
+    expect(await findings.getReview('reg'), isNotNull);
+    expect(await findings.getReview('bcd'), isNotNull);
+    expect(visited, isEmpty);
+  });
+
   test('a findings request does nothing while disabled', () async {
     SensorSummaryScheduler.enabled = false;
     scheduleConditionFindingsRefresh(['reg']);

@@ -47,6 +47,7 @@ class SensorSummaryScheduler {
   Future<void> _tail = Future.value();
   final Set<String> _pending = {};
   final Set<String> _pendingFindings = {};
+  bool _allFindingsPending = false;
   bool _staleSweepPending = false;
 
   @visibleForTesting
@@ -77,6 +78,15 @@ class SensorSummaryScheduler {
     _enqueue();
   }
 
+  /// Refreshes the condition findings of all active gear in the next
+  /// batch: the hook for an import, whose check-ins arrive inside
+  /// equipment items and name no single item to refresh.
+  void scheduleAllFindings() {
+    if (!enabled) return;
+    _allFindingsPending = true;
+    _enqueue();
+  }
+
   void _enqueue() {
     // The queue is one chained future, so the callback must always
     // complete normally: an error escaping it leaves _tail completed with
@@ -86,6 +96,8 @@ class SensorSummaryScheduler {
     _tail = _tail.then((_) async {
       final findingsOnly = Set.of(_pendingFindings);
       _pendingFindings.clear();
+      final allFindings = _allFindingsPending;
+      _allFindingsPending = false;
       var summaryBatch = false;
       try {
         final ids = Set.of(_pending);
@@ -93,7 +105,9 @@ class SensorSummaryScheduler {
         final sweep = _staleSweepPending;
         _staleSweepPending = false;
         if (ids.isEmpty && !sweep) {
-          if (findingsOnly.isNotEmpty) {
+          if (allFindings) {
+            await _refreshFindings();
+          } else if (findingsOnly.isNotEmpty) {
             await _refreshFindings(only: findingsOnly);
           }
           return;
@@ -156,6 +170,10 @@ class SensorSummaryScheduler {
 
 void scheduleSensorSummaryRefresh(Iterable<String> diveIds) =>
     SensorSummaryScheduler.instance.schedule(diveIds.toSet());
+
+/// The hook for an import: every active item's findings are refreshed.
+void scheduleAllConditionFindingsRefresh() =>
+    SensorSummaryScheduler.instance.scheduleAllFindings();
 
 /// The hook for writes that change an item's check-ins or incidents.
 void scheduleConditionFindingsRefresh(Iterable<String> equipmentIds) =>

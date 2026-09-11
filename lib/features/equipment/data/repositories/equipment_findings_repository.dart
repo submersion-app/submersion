@@ -102,6 +102,8 @@ class EquipmentFindingsRepository {
     required List<EquipmentFinding> findings,
     required int engineVersion,
     Map<String, DateTime> diveDates = const {},
+    Set<ConditionRuleId> keepIfNotEmitted = const {},
+    bool recordMarker = true,
     required DateTime now,
   }) async {
     final nowMs = now.millisecondsSinceEpoch;
@@ -211,7 +213,11 @@ class EquipmentFindingsRepository {
         // engine cannot emit it, so its absence here says nothing about
         // whether it still fires, and a tombstone would delete it on the
         // peer that computed it.
-        if (ConditionRuleId.fromDbValue(old.ruleId) == null) continue;
+        final rule = ConditionRuleId.fromDbValue(old.ruleId);
+        if (rule == null) continue;
+        // A rule the caller could not evaluate this time (its inputs are
+        // not on this device yet) has not stopped firing either.
+        if (keepIfNotEmitted.contains(rule)) continue;
         await (_db.delete(
           _db.equipmentFindings,
         )..where((t) => t.id.equals(old.id))).go();
@@ -222,21 +228,23 @@ class EquipmentFindingsRepository {
         syncedRowsChanged = true;
       }
 
-      await _db
-          .into(_db.equipmentConditionReviews)
-          .insertOnConflictUpdate(
-            EquipmentConditionReviewsCompanion.insert(
-              equipmentId: equipmentId,
-              // The version of the engine that produced this review, from
-              // the caller. Reading it off the findings breaks on the most
-              // common case of all: an item the engine cleared has no
-              // finding to read it from, and the marker then recorded a
-              // version older than any engine, so every read recomputed.
-              engineVersion: engineVersion,
-              inputFingerprint: inputFingerprint,
-              reviewedAt: nowMs,
-            ),
-          );
+      if (recordMarker) {
+        await _db
+            .into(_db.equipmentConditionReviews)
+            .insertOnConflictUpdate(
+              EquipmentConditionReviewsCompanion.insert(
+                equipmentId: equipmentId,
+                // The version of the engine that produced this review, from
+                // the caller. Reading it off the findings breaks on the most
+                // common case of all: an item the engine cleared has no
+                // finding to read it from, and the marker then recorded a
+                // version older than any engine, so every read recomputed.
+                engineVersion: engineVersion,
+                inputFingerprint: inputFingerprint,
+                reviewedAt: nowMs,
+              ),
+            );
+      }
 
       // The findings carry no HLC; the incremental exporter picks them up
       // for equipment whose clock advanced, so bump the parent (the safety

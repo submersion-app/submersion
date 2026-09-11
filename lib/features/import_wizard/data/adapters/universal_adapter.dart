@@ -795,6 +795,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(netImportedDiveIds);
     scheduleSensorSummaryRefresh(netImportedDiveIds);
+    // Check-ins ride inside imported equipment, with or without new dives;
+    // merged into the batch above when there is one, so no extra pass.
+    scheduleAllConditionFindingsRefresh();
 
     final notices = groupImportNotices(payload.warnings, netDives);
 

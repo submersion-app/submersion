@@ -46,7 +46,10 @@ void main() {
   late EquipmentObservationRepository observations;
   late IncidentRepository incidents;
 
+  final summariesRequested = <String>{};
+
   Future<void> setUpWith({bool logStatements = false}) async {
+    summariesRequested.clear();
     if (DatabaseService.instance.databaseOrNull != null) {
       await tearDownTestDatabase();
     }
@@ -69,6 +72,7 @@ void main() {
             summaries: DiveSensorSummaryRepository(db: db),
             findings: EquipmentFindingsRepository(db: db, syncRepository: sync),
             engine: engine,
+            requestSummaries: summariesRequested.addAll,
           ),
         ),
       ],
@@ -99,6 +103,16 @@ void main() {
 
   Future<List<EquipmentFinding>?> read() =>
       container.read(equipmentConditionProvider('reg').future);
+
+  /// Polls until the engine call count stops moving; returns it.
+  Future<int> untilSettled() async {
+    var last = -1;
+    for (var i = 0; i < 100 && last != engine.calls; i++) {
+      last = engine.calls;
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+    }
+    return engine.calls;
+  }
 
   /// Polls until the engine has been called [times] times.
   Future<void> untilCalls(int times) async {
@@ -270,7 +284,10 @@ void main() {
     final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});
     addTearDown(sub.close);
     await read();
-    expect(engine.calls, 1);
+    // Without the summary the first review is partial: no marker, so the
+    // finding it writes triggers one more pass, which writes nothing.
+    final settled = await untilSettled();
+    expect(summariesRequested, {'d1'});
     await db
         .into(db.diveSensorSummaries)
         .insert(
@@ -281,8 +298,8 @@ void main() {
             computedAt: 2000,
           ),
         );
-    await untilCalls(2);
-    expect(engine.calls, 2);
+    await untilCalls(settled + 1);
+    expect(engine.calls, greaterThan(settled));
   });
 
   test('the engine sees retired cells and a creation-date cut-off', () async {
@@ -337,6 +354,68 @@ void main() {
     await container.read(equipmentConditionProvider('new').future);
     expect(engine.last!.samples, isEmpty);
   });
+
+  test(
+    'without its summaries a device keeps a synced sensor finding',
+    () async {
+      // Summaries are device-local and a synced dive arrives without one.
+      // Recomputing then would find no cell readings, call the peer's
+      // finding "stopped firing", and tombstone it on every device.
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'ccr',
+              name: 'CCR',
+              type: 'rebreather',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'synced',
+              diveDateTime: DateTime.utc(2026, 1, 1).millisecondsSinceEpoch,
+              createdAt: 1,
+              updatedAt: 5,
+            ),
+          );
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: 'synced', equipmentId: 'ccr'),
+          );
+      await db
+          .into(db.equipmentFindings)
+          .insert(
+            EquipmentFindingsCompanion.insert(
+              id: 'cf_ccr_cellOutputLow_1',
+              equipmentId: 'ccr',
+              ruleId: 'cellOutputLow',
+              severity: 'significant',
+              evidenceFingerprint: 'peer',
+              engineVersion: 1,
+              createdAt: 1,
+            ),
+          );
+      await db.delete(db.deletionLog).go();
+
+      await container.read(equipmentConditionProvider('ccr').future);
+
+      final rows = await db.select(db.equipmentFindings).get();
+      expect(rows.map((r) => r.id), contains('cf_ccr_cellOutputLow_1'));
+      expect(await db.select(db.deletionLog).get(), isEmpty);
+      // No marker either: the review was partial, so the next read with the
+      // summaries in place must recompute rather than serve this one.
+      expect(
+        await EquipmentFindingsRepository(db: db).getReview('ccr'),
+        isNull,
+      );
+      expect(summariesRequested, {'synced'});
+    },
+  );
 
   test('a threshold change recomputes', () async {
     final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});
