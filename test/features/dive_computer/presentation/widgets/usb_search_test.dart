@@ -131,19 +131,28 @@ Future<void> _switchToUsbTab(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+Finder _findSearchField() {
+  // The search field has a search prefix icon, whereas the DropdownMenu's TextField does not.
+  return find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.decoration?.prefixIcon != null,
+  );
+}
+
 void main() {
   group('USB tab search UI', () {
-    testWidgets('shows a persistent search text field and brand dropdown', (tester) async {
+    testWidgets('shows a persistent search text field and brand dropdown', (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
       expect(
-        find.byType(TextField),
+        _findSearchField(),
         findsOneWidget,
         reason: 'USB tab should display a persistent search field',
       );
-      
+
       expect(
         find.byType(DropdownMenu<String?>),
         findsOneWidget,
@@ -162,11 +171,10 @@ void main() {
       expect(find.text('Mares'), findsOneWidget);
 
       // Activate search and type a manufacturer name.
-      await tester.enterText(find.byType(TextField), 'Suunto');
+      await tester.enterText(_findSearchField(), 'Suunto');
       await tester.pumpAndSettle();
 
-      // Only Suunto devices should remain; the manufacturer header text
-      // appears once in the list (the TextField also contains "Suunto", so it's 2 widgets total if we count the TextField).
+      // Only Suunto devices should remain.
       expect(find.text('D5'), findsOneWidget);
       expect(find.text('Shearwater'), findsNothing);
       expect(find.text('Mares'), findsNothing);
@@ -177,13 +185,12 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.enterText(find.byType(TextField), 'Perdix');
+      await tester.enterText(_findSearchField(), 'Perdix');
       await tester.pumpAndSettle();
 
-      // Shearwater header should still be visible (parent of matched model).
+      // Shearwater header should still be visible.
       expect(find.text('Shearwater'), findsOneWidget);
-      // Perdix appears in both the TextField and the list tile.
-      expect(find.text('Perdix'), findsNWidgets(2));
+      expect(find.text('Perdix'), findsWidgets);
       expect(find.text('Teric'), findsNothing);
       expect(find.text('Suunto'), findsNothing);
       expect(find.text('Mares'), findsNothing);
@@ -194,7 +201,7 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.enterText(find.byType(TextField), 'mares');
+      await tester.enterText(_findSearchField(), 'mares');
       await tester.pumpAndSettle();
 
       expect(find.text('Mares'), findsOneWidget);
@@ -207,13 +214,13 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.enterText(find.byType(TextField), 'Suunto');
+      await tester.enterText(_findSearchField(), 'Suunto');
       await tester.pumpAndSettle();
 
       expect(find.text('Shearwater'), findsNothing);
 
       // Clear the search field.
-      await tester.enterText(find.byType(TextField), '');
+      await tester.enterText(_findSearchField(), '');
       await tester.pumpAndSettle();
 
       // All manufacturers should be visible again.
@@ -227,7 +234,7 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.enterText(find.byType(TextField), 'NonExistentBrand');
+      await tester.enterText(_findSearchField(), 'NonExistentBrand');
       await tester.pumpAndSettle();
 
       // No manufacturer headers or model names should be visible.
@@ -243,7 +250,9 @@ void main() {
       );
     });
 
-    testWidgets('brand dropdown filters devices by manufacturer', (tester) async {
+    testWidgets('brand dropdown filters devices by manufacturer', (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
@@ -251,12 +260,11 @@ void main() {
       // Tap the dropdown to open menu
       await tester.tap(find.byType(DropdownMenu<String?>));
       await tester.pumpAndSettle();
-      
+
       // Tap on 'Suunto'
-      // We use .last to find the menu item rather than the text inside the closed dropdown.
       await tester.tap(find.text('Suunto').last);
       await tester.pumpAndSettle();
-      
+
       // Only Suunto devices should remain
       expect(find.text('D5'), findsOneWidget);
       expect(find.text('Shearwater'), findsNothing);
@@ -268,7 +276,7 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.enterText(find.byType(TextField), 'Per');
+      await tester.enterText(_findSearchField(), 'Per');
       await tester.pumpAndSettle();
 
       // "Per" should match "Perdix".
