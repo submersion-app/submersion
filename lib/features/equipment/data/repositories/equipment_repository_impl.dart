@@ -15,6 +15,7 @@ import 'package:submersion/features/media_store/data/media_deletion_coordinator.
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
@@ -829,6 +830,8 @@ class EquipmentRepository {
         ) je
         JOIN dives d ON d.id = je.dive_id
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
+          AND s.source_updated_at = d.updated_at
+          AND s.engine_version >= ?6
         WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
           AND (?4 IS NULL OR d.dive_date_time >= ?4)
         GROUP BY d.id
@@ -842,6 +845,10 @@ class EquipmentRepository {
               Variable(installedSince?.millisecondsSinceEpoch),
               Variable(since?.millisecondsSinceEpoch),
               Variable.withInt(rebreatherContact ? 1 : 0),
+              // Only a current summary: one built from an older version of
+              // the dive, or by an older algorithm, is stale until the
+              // sweep rebuilds it, and the header is the truth till then.
+              Variable.withInt(DiveSensorSummaryService.version),
             ],
           )
           .get();
