@@ -168,6 +168,26 @@ void main() {
     expect(figures.map((f) => f.runtimeMinutes), [60, 60, 60]);
   });
 
+  test('a zero or negative duration is no figure at all', () async {
+    // A zero runtime from a manual entry would drag the runtime median
+    // toward zero; the next positive figure (bottom time) stands in, and a
+    // dive with neither has no figure.
+    await dive('zero', DateTime(2026, 1, 2), mode: 'ccr', runtime: 0);
+    await dive(
+      'fallback',
+      DateTime(2026, 1, 3),
+      mode: 'ccr',
+      runtime: 0,
+      bottomTime: 2400,
+    );
+    await dive('negative', DateTime(2026, 1, 4), mode: 'ccr', runtime: -60);
+
+    final figures = await repo.recentRebreatherFigures(
+      before: DateTime(2026, 6, 1),
+    );
+    expect(figures.map((f) => f.runtimeMinutes), [null, 40, null]);
+  });
+
   test('the cut-off is the calendar day, in any zone', () async {
     // Dives are stored as wall clock in UTC, the trip start as a local
     // midnight. The evening before counts as history; the first morning

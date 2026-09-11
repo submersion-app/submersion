@@ -60,7 +60,8 @@ class TripHistoryRepository {
   /// The most recent [limit] CCR or SCR dives before [before], newest
   /// first: the summary's scrubber minutes when the dive has one, and the
   /// dive's length in minutes, read as the rest of the app reads it
-  /// (runtime, else bottom time). Only a summary current for the dive
+  /// (runtime, else bottom time), the first that is positive: a zero from
+  /// a manual entry is no figure. Only a summary current for the dive
   /// counts: one built before an edit, or by an older engine, gives way to
   /// the runtime until its rebuild lands. Null when the dive has neither: a zero
   /// would drag the runtime median down and understate expected use.
@@ -81,7 +82,10 @@ class TripHistoryRepository {
           '''
           SELECT
             s.scrubber_consumed_minutes AS scrubber,
-            COALESCE(d.runtime, d.bottom_time) AS runtime
+            CASE
+              WHEN d.runtime > 0 THEN d.runtime
+              WHEN d.bottom_time > 0 THEN d.bottom_time
+            END AS runtime
           FROM dives d
           LEFT JOIN dive_sensor_summaries s
             ON s.dive_id = d.id
