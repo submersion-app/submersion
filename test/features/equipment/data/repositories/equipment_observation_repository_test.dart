@@ -68,6 +68,25 @@ void main() {
     expect(row.hlc, isNotNull);
   });
 
+  test('an OK check stores and exports no tags, known or unknown', () async {
+    // An imported or synced OK row can arrive carrying tags; the invariant
+    // is that an OK check has none, so neither the row nor an export (which
+    // writes storedTagNames) may carry them.
+    final created = await repo.create(
+      equipmentId: 'reg',
+      observedAt: DateTime.utc(2026, 9, 9, 15),
+      status: ObservationStatus.ok,
+      issueTags: const [ObservationTag.freeFlow],
+      unrecognizedTags: const ['tagFromTheFuture'],
+      now: DateTime.utc(2026, 9, 9, 16),
+    );
+    final row = await (db.select(
+      db.equipmentObservations,
+    )..where((t) => t.id.equals(created.id))).getSingle();
+    expect(row.issueTags, '[]');
+    expect(created.storedTagNames, isEmpty);
+  });
+
   test('queries by item, by dive and by both, newest first', () async {
     await repo.create(
       equipmentId: 'reg',
