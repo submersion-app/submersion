@@ -36078,9 +36078,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => '上次保养';
 
   @override
-  String get equipment_arrange_title => '整理装备';
-
-  @override
   String get equipment_arrange_groupByType => '按类型分组';
 
   @override
@@ -36094,9 +36091,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => '排序方式';
-
-  @override
-  String get equipment_arrange_tooltip => '整理装备';
 
   @override
   String get equipment_arrange_reset => '恢复默认';

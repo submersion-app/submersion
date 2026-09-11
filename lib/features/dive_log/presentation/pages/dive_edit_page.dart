@@ -3350,7 +3350,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               onPressed: _showEquipmentPicker,
             ),
             FormOverlineAction(
-              label: context.l10n.equipment_arrange_title,
+              label: context.l10n.equipment_list_sortTooltip,
               icon: Icons.sort,
               onPressed: () => showEquipmentArrangeSheet(context),
             ),

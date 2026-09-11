@@ -37924,9 +37924,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'آخر صيانة';
 
   @override
-  String get equipment_arrange_title => 'ترتيب المعدات';
-
-  @override
   String get equipment_arrange_groupByType => 'التجميع حسب النوع';
 
   @override
@@ -37941,9 +37938,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'الترتيب حسب';
-
-  @override
-  String get equipment_arrange_tooltip => 'ترتيب المعدات';
 
   @override
   String get equipment_arrange_reset =>

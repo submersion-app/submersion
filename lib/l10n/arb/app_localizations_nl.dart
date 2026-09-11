@@ -38055,9 +38055,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'Laatste onderhoud';
 
   @override
-  String get equipment_arrange_title => 'Uitrusting ordenen';
-
-  @override
   String get equipment_arrange_groupByType => 'Groeperen op type';
 
   @override
@@ -38072,9 +38069,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'Sorteren op';
-
-  @override
-  String get equipment_arrange_tooltip => 'Uitrusting ordenen';
 
   @override
   String get equipment_arrange_reset => 'Standaardwaarden herstellen';

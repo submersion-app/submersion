@@ -133,11 +133,15 @@ final equipmentPickerFilterProvider =
       (ref) => EquipmentPickerFilter.none,
     );
 
-/// Equipment sort state provider
+/// Equipment sort state provider.
+///
+/// Ascending means A to Z and oldest first, the same as the dive surfaces'
+/// `EquipmentArrangement`, because both sheets now share one layout and the
+/// same arrow must mean the same thing on each.
 final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
   (ref) => const SortState(
     field: EquipmentSortField.name,
-    direction: SortDirection.descending,
+    direction: SortDirection.ascending,
   ),
 );
 
@@ -150,75 +154,78 @@ List<EquipmentItem> applyEquipmentSorting(
   List<EquipmentItem> equipment,
   SortState<EquipmentSortField> sort, {
   Map<String, ServiceClockStatus> serviceUrgency = const {},
-  // Sorting by type compared the hardcoded English displayName while the UI
-  // rendered the localized label, so on a non-English build the list ordered
-  // by names the diver could not see. Callers with localizations in scope
-  // pass the resolver; the default keeps the old behaviour for those without.
-  String Function(EquipmentType)? typeLabel,
 }) {
-  final sorted = List<EquipmentItem>.from(equipment);
+  return List<EquipmentItem>.from(equipment)
+    ..sort(equipmentSortComparator(sort, serviceUrgency: serviceUrgency));
+}
 
+/// The Equipment page's item order as a comparator.
+///
+/// Separate from [applyEquipmentSorting] so the grouped list can hand it to
+/// `arrangeEquipment`, which orders the type axis itself and needs only the
+/// order inside each group.
+///
+/// Matches the arranger's conventions: names compare case-insensitively,
+/// undated gear sorts last in both directions, and every field falls through
+/// to a name-then-id tie-break that is never inverted. List.sort is not
+/// stable, so without the tie-break equal items reorder between rebuilds.
+Comparator<EquipmentItem> equipmentSortComparator(
+  SortState<EquipmentSortField> sort, {
+  Map<String, ServiceClockStatus> serviceUrgency = const {},
+}) {
   // Rank for the service-due sort: overdue (2) > dueSoon (1) > ok (0); items
   // with no clock rank -1 so they sort last on ascending (most-urgent first).
   int urgencyRank(EquipmentItem e) =>
       serviceUrgency[e.id]?.severity.index ?? -1;
 
-  // Resolved once rather than inside the comparator: the fallback is a
-  // closure literal, so building it per comparison allocated one on every
-  // O(n log n) call for no benefit.
-  final resolveTypeLabel =
-      typeLabel ?? (EquipmentType type) => type.displayName;
+  // Lowercased once per item rather than per comparison, as the arranger does.
+  final lowerNames = <String, String>{};
+  String lowerName(EquipmentItem item) =>
+      lowerNames[item.id] ??= item.name.toLowerCase();
 
-  sorted.sort((a, b) {
-    int comparison;
-    // For text fields, invert direction (user expects descending = A→Z)
-    final invertForText =
-        sort.field == EquipmentSortField.name ||
-        sort.field == EquipmentSortField.type;
+  DateTime? dateOf(EquipmentItem item) => switch (sort.field) {
+    EquipmentSortField.purchaseDate => item.purchaseDate,
+    EquipmentSortField.lastServiceDate => item.lastServiceDate,
+    _ => null,
+  };
+  final byDate =
+      sort.field == EquipmentSortField.purchaseDate ||
+      sort.field == EquipmentSortField.lastServiceDate;
 
+  return (a, b) {
+    if (byDate) {
+      // Undated gear sorts last in BOTH directions, so flipping the direction
+      // never buries the dated items the diver was looking for.
+      final aMissing = dateOf(a) == null;
+      final bMissing = dateOf(b) == null;
+      if (aMissing != bMissing) return aMissing ? 1 : -1;
+    }
+
+    int primary;
     switch (sort.field) {
       case EquipmentSortField.name:
-        comparison = a.name.compareTo(b.name);
-      case EquipmentSortField.type:
-        comparison = resolveTypeLabel(
-          a.type,
-        ).compareTo(resolveTypeLabel(b.type));
+        primary = lowerName(a).compareTo(lowerName(b));
       case EquipmentSortField.purchaseDate:
-        comparison = (a.purchaseDate ?? DateTime(1900)).compareTo(
-          b.purchaseDate ?? DateTime(1900),
-        );
       case EquipmentSortField.lastServiceDate:
-        comparison = (a.lastServiceDate ?? DateTime(1900)).compareTo(
-          b.lastServiceDate ?? DateTime(1900),
-        );
+        final da = dateOf(a), db = dateOf(b);
+        primary = da == null || db == null ? 0 : da.compareTo(db);
       case EquipmentSortField.serviceDue:
         final ra = urgencyRank(a), rb = urgencyRank(b);
-        int cmp;
         if (ra != rb) {
           // Higher rank = more urgent; ascending lists most urgent first.
-          cmp = rb.compareTo(ra);
+          primary = rb.compareTo(ra);
         } else {
           final da = serviceUrgency[a.id]?.dueDate;
           final db = serviceUrgency[b.id]?.dueDate;
-          cmp = (da ?? DateTime(9999)).compareTo(db ?? DateTime(9999));
-          // Deterministic tie-break: List.sort is not stable, so equal-urgency
-          // items (common while the urgency map is empty/loading) could reorder
-          // between rebuilds and flicker. Fall back to name, then id.
-          if (cmp == 0) cmp = a.name.compareTo(b.name);
-          if (cmp == 0) cmp = a.id.compareTo(b.id);
+          primary = (da ?? DateTime(9999)).compareTo(db ?? DateTime(9999));
         }
-        return sort.direction == SortDirection.ascending ? cmp : -cmp;
     }
+    if (sort.direction == SortDirection.descending) primary = -primary;
+    if (primary != 0) return primary;
 
-    if (invertForText) {
-      return sort.direction == SortDirection.ascending
-          ? -comparison
-          : comparison;
-    }
-    return sort.direction == SortDirection.ascending ? comparison : -comparison;
-  });
-
-  return sorted;
+    final byName = lowerName(a).compareTo(lowerName(b));
+    return byName != 0 ? byName : a.id.compareTo(b.id);
+  };
 }
 
 /// Single equipment item provider

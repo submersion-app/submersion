@@ -4642,7 +4642,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       // section the diver was looking at.
       trailing: IconButton(
         icon: const Icon(Icons.sort, size: 20),
-        tooltip: context.l10n.equipment_arrange_tooltip,
+        tooltip: context.l10n.equipment_list_sortTooltip,
         onPressed: () => showEquipmentArrangeSheet(context),
       ),
       onToggle: (expanded) {

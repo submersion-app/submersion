@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
@@ -63,6 +64,55 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('uses the Equipment Sort sheet layout', (tester) async {
+    // Dive details and the Equipment page open sheets that look the same, so
+    // a diver reads them the same way on both surfaces.
+    final fake = _FakeSettingsRepository();
+    await pumpSheet(tester, fake);
+
+    expect(find.text('Sort Equipment'), findsOneWidget);
+    expect(find.text('Arrange gear'), findsNothing);
+    // Check-mark rows like every other Sort sheet, not radio buttons.
+    expect(find.byType(RadioListTile<EquipmentItemSortField>), findsNothing);
+  });
+
+  testWidgets('the close button dismisses the sheet', (tester) async {
+    final fake = _FakeSettingsRepository();
+    await pumpSheet(tester, fake);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sort Equipment'), findsNothing);
+  });
+
+  testWidgets('the current item field carries the check mark', (tester) async {
+    final fake = _FakeSettingsRepository();
+    await pumpSheet(tester, fake);
+
+    await tester.ensureVisible(find.text('Name'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.widgetWithText(ListTile, 'Name'),
+        matching: find.byIcon(Icons.check),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the header arrow sets the item direction', (tester) async {
+    final fake = _FakeSettingsRepository();
+    await pumpSheet(tester, fake);
+
+    // The header toggle comes first; the second belongs to the type order.
+    await tester.tap(find.byIcon(SortDirection.descending.icon).first);
+    await tester.pumpAndSettle();
+
+    expect(fake.written.single.itemSortDirection, SortDirection.descending);
+    expect(fake.written.single.typeOrderDescending, isFalse);
+  });
 
   testWidgets('changing the type order writes the preference', (tester) async {
     final fake = _FakeSettingsRepository();
@@ -155,8 +205,9 @@ void main() {
   testWidgets('the sheet header survives a narrow phone in Portuguese', (
     tester,
   ) async {
-    // The longest translation of the title is 23 characters, beside a close
-    // button, so an inflexible Text overflows a small phone.
+    // The title shares its row with the direction toggle and the close
+    // button, so an inflexible Text overflows a small phone in a long
+    // translation.
     tester.view.physicalSize = const Size(320, 640);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

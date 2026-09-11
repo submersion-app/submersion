@@ -37550,9 +37550,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'טיפול אחרון';
 
   @override
-  String get equipment_arrange_title => 'סידור הציוד';
-
-  @override
   String get equipment_arrange_groupByType => 'קיבוץ לפי סוג';
 
   @override
@@ -37566,9 +37563,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'מיון לפי';
-
-  @override
-  String get equipment_arrange_tooltip => 'סידור הציוד';
 
   @override
   String get equipment_arrange_reset => 'איפוס לברירת המחדל';
