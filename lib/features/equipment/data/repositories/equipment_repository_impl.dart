@@ -490,6 +490,11 @@ class EquipmentRepository {
         final observations = await (_db.select(
           _db.equipmentObservations,
         )..where((t) => t.equipmentId.equals(id))).get();
+        // Condition findings sync too and go by the same cascade (condition
+        // phase 3b); the device-local review marker needs no tombstone.
+        final findings = await (_db.select(
+          _db.equipmentFindings,
+        )..where((t) => t.equipmentId.equals(id))).get();
         // Incidents naming the item stay; their gear link is staged, not
         // just nulled by SQLite.
         await IncidentRepository().unlinkFromDeletedEquipment(id);
@@ -516,6 +521,12 @@ class EquipmentRepository {
           await _syncRepository.logDeletion(
             entityType: 'equipmentObservations',
             recordId: o.id,
+          );
+        }
+        for (final f in findings) {
+          await _syncRepository.logDeletion(
+            entityType: 'equipmentFindings',
+            recordId: f.id,
           );
         }
         await _syncRepository.logDeletion(

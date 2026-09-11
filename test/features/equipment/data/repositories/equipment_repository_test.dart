@@ -716,6 +716,31 @@ void main() {
     );
   });
 
+  test('deleting an item tombstones its condition findings', () async {
+    // equipment_findings syncs and goes by cascade like the check-ins; a
+    // peer that never hears of the delete keeps the finding.
+    final reg = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    );
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO equipment_findings (id, equipment_id, rule_id, severity, '
+      'evidence_fingerprint, engine_version, created_at) '
+      "VALUES ('f1', ?, 'issueRecurring', 'caution', 'fp', 1, 1)",
+      [reg.id],
+    );
+
+    await repository.deleteEquipment(reg.id);
+
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(
+      tombstones.any(
+        (t) => t.entityType == 'equipmentFindings' && t.recordId == 'f1',
+      ),
+      isTrue,
+    );
+  });
+
   test('deleting an item tombstones its check-ins', () async {
     // equipment_observations is a synced root whose rows go by cascade;
     // without a tombstone a peer keeps the check-in and it can reappear.
