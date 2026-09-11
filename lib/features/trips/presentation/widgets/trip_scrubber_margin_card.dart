@@ -39,6 +39,9 @@ class TripScrubberMarginCard extends ConsumerWidget {
 
   const TripScrubberMarginCard({super.key, required this.trip});
 
+  /// The most of the window the card may take before it scrolls.
+  static const maxHeightFraction = 0.4;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final margins =
@@ -53,27 +56,35 @@ class TripScrubberMarginCard extends ConsumerWidget {
               '(${l10n.trips_scrubber_asOfStart(units.formatDate(trip.startDate))})'
         : l10n.trips_scrubber_title;
 
-    return Card(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.air, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(title, style: theme.textTheme.titleMedium),
-                ),
+    // The card sits above the page's own scrolling content, so it is
+    // capped at a share of the window and scrolls inside: several units
+    // on a compact screen would otherwise push the page off the bottom.
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * maxHeightFraction,
+      ),
+      child: Card(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.air, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(title, style: theme.textTheme.titleMedium),
+                  ),
+                ],
+              ),
+              for (final m in margins) ...[
+                const Divider(),
+                _MarginBlock(margin: m),
               ],
-            ),
-            for (final m in margins) ...[
-              const Divider(),
-              _MarginBlock(margin: m),
             ],
-          ],
+          ),
         ),
       ),
     );

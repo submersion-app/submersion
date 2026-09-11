@@ -163,6 +163,49 @@ void main() {
     expect(find.textContaining('margin after'), findsNothing);
   });
 
+  testWidgets('many rebreathers on a short window leave room for the page', (
+    tester,
+  ) async {
+    // The card sits above the page's scrolling content, so it must never
+    // take the whole window: several units on a compact screen scroll
+    // inside the card instead of overflowing the page.
+    tester.view.physicalSize = const Size(400, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          tripScrubberMarginsProvider(
+            't1',
+          ).overrideWith((ref) async => [for (var i = 0; i < 6; i++) margin()]),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Column(
+              children: [
+                TripScrubberMarginCard(trip: trip()),
+                const Expanded(child: SizedBox(key: ValueKey('page-body'))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final card = tester.getSize(find.byType(TripScrubberMarginCard));
+    expect(card.height, lessThanOrEqualTo(600 * 0.4 + 1));
+    expect(
+      tester.getSize(find.byKey(const ValueKey('page-body'))).height,
+      greaterThan(0),
+    );
+  });
+
   testWidgets('no rebreather renders nothing', (tester) async {
     await tester.pumpWidget(host(const []));
     await tester.pumpAndSettle();
