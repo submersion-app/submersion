@@ -186,6 +186,54 @@ void main() {
       expect(diverSeen, isNull);
     });
 
+    Future<void> rebuildReporting(
+      WidgetTester tester, {
+      required int failedDives,
+      required int failedItems,
+    }) async {
+      await tester.pumpWidget(
+        buildWithSweep(
+          _FakeSweep(
+            (_, _, _) async => EquipmentConditionSweepResult(
+              swept: 5,
+              failed: failedDives,
+              items: 4,
+              itemsFailed: failedItems,
+              cancelled: false,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rebuild sensor summaries'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('findings that failed to refresh are reported', (tester) async {
+      // The sweep counts them; "rebuilt" alone would hide that the
+      // condition findings for those items are still stale.
+      await rebuildReporting(tester, failedDives: 0, failedItems: 2);
+      expect(find.text('Sensor summaries rebuilt'), findsNothing);
+      expect(
+        find.text(
+          'Sensor summaries rebuilt; condition findings could not be '
+          'refreshed for 2 items',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('dive and findings failures are both reported', (tester) async {
+      await rebuildReporting(tester, failedDives: 1, failedItems: 1);
+      expect(
+        find.text(
+          '1 dive could not be summarised; condition findings could not '
+          'be refreshed for 1 item',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a failing sweep shows the failure text', (tester) async {
       await tester.pumpWidget(
         buildWithSweep(

@@ -27190,6 +27190,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Synthèses des capteurs reconstruites';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées n\'ont pas pu être synthétisées',
+      one: '1 plongée n\'a pas pu être synthétisée',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items équipements',
+      one: '1 équipement',
+    );
+    return '$_temp0 ; les constats d\'état de $_temp1 n\'ont pas pu être actualisés';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27198,6 +27218,17 @@ class AppLocalizationsFr extends AppLocalizations {
       one: '1 plongée n\'a pas pu être synthétisée',
     );
     return 'Synthèses des capteurs reconstruites ; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count équipements',
+      one: '1 équipement',
+    );
+    return 'Synthèses des capteurs reconstruites ; les constats d\'état de $_temp0 n\'ont pas pu être actualisés';
   }
 
   @override

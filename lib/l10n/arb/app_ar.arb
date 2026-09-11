@@ -8238,6 +8238,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{تعذّر تلخيص غطسة واحدة} other{تعذّر تلخيص {dives} غطسات}}؛ {items, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} other{تعذّر تحديث نتائج الحالة لـ {items} قطع معدات}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} other{تعذّر تحديث نتائج الحالة لـ {count} قطع معدات}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "تعذّرت إعادة بناء ملخصات المستشعرات.",
   "equipmentConditionSettings_masterToggle": "نتائج الحالة",
   "equipmentConditionSettings_masterToggle_subtitle": "يُبلغ عن اتجاهات خرج الخلايا وانقطاعات جهاز الإرسال والمشكلات المسجّلة، مع الأرقام التي تدعمها",

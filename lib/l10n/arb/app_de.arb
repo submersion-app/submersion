@@ -8238,6 +8238,25 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 Tauchgang konnte nicht zusammengefasst werden} other{{dives} Tauchgänge konnten nicht zusammengefasst werden}}; Zustandsbefunde für {items, plural, =1{1 Ausrüstungsteil} other{{items} Ausrüstungsteile}} konnten nicht aktualisiert werden",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Sensorzusammenfassungen neu erstellt; Zustandsbefunde für {count, plural, =1{1 Ausrüstungsteil} other{{count} Ausrüstungsteile}} konnten nicht aktualisiert werden",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "Die Sensorzusammenfassungen konnten nicht neu erstellt werden.",
   "equipmentConditionSettings_masterToggle": "Zustandsbefunde",
   "equipmentConditionSettings_masterToggle_subtitle": "Meldet Trends bei Zellenausgang, Senderaussetzern und gemeldeten Problemen, mit den Zahlen dahinter",

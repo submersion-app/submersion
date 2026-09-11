@@ -26423,12 +26423,43 @@ class AppLocalizationsHe extends AppLocalizations {
       'סיכומי החיישנים נבנו מחדש';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות לא ניתן היה לסכם',
+      one: 'צלילה אחת לא ניתן היה לסכם',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: 'לא ניתן היה לרענן את ממצאי המצב של $items פריטי ציוד',
+      one: 'לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד',
+    );
+    return '$_temp0; $_temp1';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
       other: '$count צלילות לא ניתן היה לסכם',
       one: 'צלילה אחת לא ניתן היה לסכם',
+    );
+    return 'סיכומי החיישנים נבנו מחדש; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לרענן את ממצאי המצב של $count פריטי ציוד',
+      one: 'לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד',
     );
     return 'סיכומי החיישנים נבנו מחדש; $_temp0';
   }
