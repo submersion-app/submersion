@@ -138,11 +138,16 @@ Finder _findSearchField() {
   );
 }
 
+Finder _findListItem(String text) {
+  return find.descendant(
+    of: find.byType(ListView),
+    matching: find.text(text),
+  );
+}
+
 void main() {
   group('USB tab search UI', () {
-    testWidgets('shows a persistent search text field and brand dropdown', (
-      tester,
-    ) async {
+    testWidgets('shows a persistent search text field and brand dropdown', (tester) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
@@ -152,7 +157,7 @@ void main() {
         findsOneWidget,
         reason: 'USB tab should display a persistent search field',
       );
-
+      
       expect(
         find.byType(DropdownMenu<String?>),
         findsOneWidget,
@@ -166,18 +171,18 @@ void main() {
       await _switchToUsbTab(tester);
 
       // All manufacturers visible initially.
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Suunto'), findsOneWidget);
-      expect(find.text('Mares'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Suunto'), findsOneWidget);
+      expect(_findListItem('Mares'), findsOneWidget);
 
       // Activate search and type a manufacturer name.
       await tester.enterText(_findSearchField(), 'Suunto');
       await tester.pumpAndSettle();
 
       // Only Suunto devices should remain.
-      expect(find.text('D5'), findsOneWidget);
-      expect(find.text('Shearwater'), findsNothing);
-      expect(find.text('Mares'), findsNothing);
+      expect(_findListItem('D5'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
     });
 
     testWidgets('search filters devices by model name', (tester) async {
@@ -189,11 +194,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Shearwater header should still be visible.
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Perdix'), findsWidgets);
-      expect(find.text('Teric'), findsNothing);
-      expect(find.text('Suunto'), findsNothing);
-      expect(find.text('Mares'), findsNothing);
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Perdix'), findsOneWidget);
+      expect(_findListItem('Teric'), findsNothing);
+      expect(_findListItem('Suunto'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
     });
 
     testWidgets('search is case-insensitive', (tester) async {
@@ -204,9 +209,9 @@ void main() {
       await tester.enterText(_findSearchField(), 'mares');
       await tester.pumpAndSettle();
 
-      expect(find.text('Mares'), findsOneWidget);
-      expect(find.text('Genius'), findsOneWidget);
-      expect(find.text('Shearwater'), findsNothing);
+      expect(_findListItem('Mares'), findsOneWidget);
+      expect(_findListItem('Genius'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsNothing);
     });
 
     testWidgets('clearing search text restores all devices', (tester) async {
@@ -217,16 +222,16 @@ void main() {
       await tester.enterText(_findSearchField(), 'Suunto');
       await tester.pumpAndSettle();
 
-      expect(find.text('Shearwater'), findsNothing);
+      expect(_findListItem('Shearwater'), findsNothing);
 
       // Clear the search field.
       await tester.enterText(_findSearchField(), '');
       await tester.pumpAndSettle();
 
       // All manufacturers should be visible again.
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Suunto'), findsOneWidget);
-      expect(find.text('Mares'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Suunto'), findsOneWidget);
+      expect(_findListItem('Mares'), findsOneWidget);
     });
 
     testWidgets('search with no matches shows empty state', (tester) async {
@@ -238,9 +243,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // No manufacturer headers or model names should be visible.
-      expect(find.text('Shearwater'), findsNothing);
-      expect(find.text('Suunto'), findsNothing);
-      expect(find.text('Mares'), findsNothing);
+      expect(_findListItem('Shearwater'), findsNothing);
+      expect(_findListItem('Suunto'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
 
       // Should show some kind of "no results" indication.
       expect(
@@ -250,9 +255,7 @@ void main() {
       );
     });
 
-    testWidgets('brand dropdown filters devices by manufacturer', (
-      tester,
-    ) async {
+    testWidgets('brand dropdown filters devices by manufacturer', (tester) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
@@ -260,15 +263,15 @@ void main() {
       // Tap the dropdown to open menu
       await tester.tap(find.byType(DropdownMenu<String?>));
       await tester.pumpAndSettle();
-
+      
       // Tap on 'Suunto'
       await tester.tap(find.text('Suunto').last);
       await tester.pumpAndSettle();
-
+      
       // Only Suunto devices should remain
-      expect(find.text('D5'), findsOneWidget);
-      expect(find.text('Shearwater'), findsNothing);
-      expect(find.text('Mares'), findsNothing);
+      expect(_findListItem('D5'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
     });
 
     testWidgets('search matches partial text', (tester) async {
@@ -280,10 +283,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // "Per" should match "Perdix".
-      expect(find.text('Perdix'), findsOneWidget);
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Teric'), findsNothing);
-      expect(find.text('Suunto'), findsNothing);
+      expect(_findListItem('Perdix'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Teric'), findsNothing);
+      expect(_findListItem('Suunto'), findsNothing);
     });
   });
 }
