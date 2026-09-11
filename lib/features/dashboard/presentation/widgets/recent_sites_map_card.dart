@@ -89,7 +89,9 @@ class _RecentSitesMapCardState extends ConsumerState<RecentSitesMapCard> {
                         userAgentPackageName: 'app.submersion',
                         maxZoom: ref.watch(mapTileMaxZoomProvider),
                         tileProvider: TileCacheService.instance.isInitialized
-                            ? TileCacheService.instance.getTileProvider()
+                            ? TileCacheService.instance.getTileProvider(
+                                urlTemplate: ref.watch(mapTileUrlProvider),
+                              )
                             : null,
                       ),
                       MarkerLayer(

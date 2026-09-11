@@ -178,7 +178,9 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
                     userAgentPackageName: 'app.submersion',
                     maxZoom: ref.watch(mapTileMaxZoomProvider),
                     tileProvider: TileCacheService.instance.isInitialized
-                        ? TileCacheService.instance.getTileProvider()
+                        ? TileCacheService.instance.getTileProvider(
+                            urlTemplate: ref.watch(mapTileUrlProvider),
+                          )
                         : null,
                   ),
                   if (_selectedLocation != null)

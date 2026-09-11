@@ -624,7 +624,9 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                     userAgentPackageName: 'app.submersion',
                     maxZoom: ref.watch(mapTileMaxZoomProvider),
                     tileProvider: TileCacheService.instance.isInitialized
-                        ? TileCacheService.instance.getTileProvider()
+                        ? TileCacheService.instance.getTileProvider(
+                            urlTemplate: ref.watch(mapTileUrlProvider),
+                          )
                         : null,
                   ),
                   MarkerLayer(
@@ -723,7 +725,9 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                   userAgentPackageName: 'app.submersion',
                   maxZoom: ref.watch(mapTileMaxZoomProvider),
                   tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
+                      ? TileCacheService.instance.getTileProvider(
+                          urlTemplate: ref.watch(mapTileUrlProvider),
+                        )
                       : null,
                 ),
                 MarkerLayer(

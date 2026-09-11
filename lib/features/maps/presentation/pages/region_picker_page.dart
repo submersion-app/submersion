@@ -64,7 +64,9 @@ class _RegionPickerPageState extends ConsumerState<RegionPickerPage> {
                   userAgentPackageName: 'app.submersion',
                   maxZoom: ref.watch(mapTileMaxZoomProvider),
                   tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
+                      ? TileCacheService.instance.getTileProvider(
+                          urlTemplate: ref.watch(mapTileUrlProvider),
+                        )
                       : null,
                 ),
                 const MapAttribution(),

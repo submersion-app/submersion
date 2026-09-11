@@ -17,13 +17,14 @@ TileLayer submersionTileLayer(
   double? maxZoomOverride,
   TileDisplay tileDisplay = const TileDisplay.fadeIn(),
 }) {
+  final urlTemplate = ref.watch(mapTileUrlProvider);
   return TileLayer(
-    urlTemplate: ref.watch(mapTileUrlProvider),
+    urlTemplate: urlTemplate,
     userAgentPackageName: 'app.submersion',
     maxZoom: maxZoomOverride ?? ref.watch(mapTileMaxZoomProvider),
     tileDisplay: tileDisplay,
     tileProvider: TileCacheService.instance.isInitialized
-        ? TileCacheService.instance.getTileProvider()
+        ? TileCacheService.instance.getTileProvider(urlTemplate: urlTemplate)
         : null,
   );
 }
