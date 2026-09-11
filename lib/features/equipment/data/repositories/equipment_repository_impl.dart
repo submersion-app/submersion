@@ -125,6 +125,12 @@ class EquipmentRepository {
   Stream<void> watchEquipmentChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.equipment));
 
+  /// Ticks when any item's attributes change (a cell slot, an install
+  /// date). `saveAttributes` and a sync pull write only
+  /// `equipment_attributes`, which [watchEquipmentChanges] does not see.
+  Stream<void> watchAttributeChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.equipmentAttributes));
+
   /// Get all equipment
   Future<List<EquipmentItem>> getAllEquipment({String? diverId}) async {
     try {

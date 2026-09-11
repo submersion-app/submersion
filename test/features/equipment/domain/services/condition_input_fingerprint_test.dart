@@ -58,7 +58,34 @@ void main() {
     ],
   );
 
+  const rebreather = EquipmentItem(
+    id: 'ccr',
+    name: 'CCR',
+    type: EquipmentType.rebreather,
+  );
+  final regulator = EquipmentItem(
+    id: 'reg',
+    name: 'Reg',
+    type: EquipmentType.regulator,
+    createdAt: now,
+  );
+
+  EquipmentItem withSlot(EquipmentItem base, int slot) => base.copyWith(
+    attributes: [
+      EquipmentAttribute.curated(
+        equipmentId: base.id,
+        key: EquipmentAttrKeys.cellSlot,
+        valueNum: slot.toDouble(),
+      ),
+    ],
+  );
+
   String fp({
+    EquipmentItem? item,
+    EquipmentItem? parent,
+    bool noParent = false,
+    Map<String, String>? stamps,
+    Set<String>? serials,
     List<EquipmentExposureSample>? s,
     List<EquipmentObservation>? o,
     List<Incident>? i,
@@ -67,6 +94,10 @@ void main() {
     int version = 1,
     int summaryVersion = 1,
   }) => conditionInputFingerprint(
+    item: item ?? regulator,
+    parent: noParent ? null : (parent ?? rebreather),
+    summaryStamps: stamps ?? const {'d1': '1/10'},
+    transmitterSerials: serials ?? const {'ABC'},
     samples: s ?? samples,
     observations: o ?? [observation],
     incidents: i ?? [incident],
@@ -109,6 +140,57 @@ void main() {
     expect(fp(c: const []), isNot(base));
     expect(fp(t: const ExposureThresholds(coldWaterC: 5)), isNot(base));
     expect(fp(version: 2), isNot(base));
+  });
+
+  group('everything the engine branches on', () {
+    // The engine reads the item's type, its parent, its own slot, each
+    // child's type and slot, the transmitter serials and each dive's
+    // summary row. A marker that misses one serves findings built for a
+    // configuration the item no longer has.
+    test('the item: type, parent, parent type and slot', () {
+      final base = fp();
+      expect(
+        fp(item: regulator.copyWith(type: EquipmentType.bcd)),
+        isNot(base),
+      );
+      expect(fp(noParent: true), isNot(base));
+      expect(
+        fp(item: regulator.copyWith(parentEquipmentId: 'other')),
+        isNot(base),
+      );
+      expect(
+        fp(parent: rebreather.copyWith(type: EquipmentType.housing)),
+        isNot(base),
+      );
+      expect(fp(item: withSlot(regulator, 2)), isNot(base));
+      expect(
+        fp(item: withSlot(regulator, 2)),
+        isNot(fp(item: withSlot(regulator, 3))),
+      );
+    });
+
+    test('a child: type and slot', () {
+      final base = fp();
+      expect(fp(c: [withSlot(child, 2)]), isNot(base));
+      expect(fp(c: [child.copyWith(type: EquipmentType.battery)]), isNot(base));
+    });
+
+    test('the transmitter serials', () {
+      expect(fp(serials: const {'ABC', 'DEF'}), isNot(fp()));
+      expect(fp(serials: const {'DEF'}), isNot(fp()));
+      expect(fp(serials: const {'DEF', 'ABC'}), fp(serials: {'ABC', 'DEF'}));
+    });
+
+    test('a summary row arriving or being recomputed', () {
+      // The sweep can write a dive's summary after the item was first
+      // reviewed. The dive itself did not change, so without the summary
+      // rows here the old marker still matched and served findings built
+      // without those readings.
+      final base = fp();
+      expect(fp(stamps: const {'d1': '1/10', 'd2': '1/20'}), isNot(base));
+      expect(fp(stamps: const {'d1': '2/10'}), isNot(base));
+      expect(fp(stamps: const {'d1': '1/11'}), isNot(base));
+    });
   });
 
   test('a new sensor summary version restales every item', () {

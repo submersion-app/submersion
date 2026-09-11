@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/equipment/data/repositories/equipment_findin
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/equipment_condition_refresher.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_condition_engine.dart';
@@ -189,6 +192,93 @@ void main() {
       observedAt: DateTime.utc(2026, 2),
       status: ObservationStatus.ok,
     );
+    await untilCalls(2);
+    expect(engine.calls, 2);
+  });
+
+  test('an attribute write recomputes', () async {
+    // A cell slot or install date lives in equipment_attributes, which a
+    // write reaches without touching the equipment row.
+    final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});
+    addTearDown(sub.close);
+    await read();
+    expect(engine.calls, 1);
+    await EquipmentRepository().saveAttributes('reg', [
+      EquipmentAttribute.curated(
+        equipmentId: 'reg',
+        key: EquipmentAttrKeys.cellSlot,
+        valueNum: 2,
+      ),
+    ]);
+    await untilCalls(2);
+    expect(engine.calls, 2);
+  });
+
+  test('a transmitter assignment recomputes a transmitter item', () async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'tx',
+            name: 'Tx',
+            type: 'transmitter',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    final sub = container.listen(equipmentConditionProvider('tx'), (_, _) {});
+    addTearDown(sub.close);
+    await container.read(equipmentConditionProvider('tx').future);
+    expect(engine.calls, 1);
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 't1',
+            label: 'Back gas',
+            tankRole: 'backGas',
+            transmitterSerial: const Value('ABC123'),
+            equipmentId: const Value('tx'),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await untilCalls(2);
+    expect(engine.calls, 2);
+  });
+
+  test('a summary written after the first review recomputes', () async {
+    // The sweep can write a dive's summary after the item was reviewed;
+    // the dive does not change, so only the summary row can tell.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: 1000,
+            createdAt: 1000,
+            updatedAt: 1000,
+          ),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'd1', equipmentId: 'reg'),
+        );
+    final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});
+    addTearDown(sub.close);
+    await read();
+    expect(engine.calls, 1);
+    await db
+        .into(db.diveSensorSummaries)
+        .insert(
+          DiveSensorSummariesCompanion.insert(
+            diveId: 'd1',
+            engineVersion: 1,
+            sourceUpdatedAt: 1000,
+            computedAt: 2000,
+          ),
+        );
     await untilCalls(2);
     expect(engine.calls, 2);
   });
