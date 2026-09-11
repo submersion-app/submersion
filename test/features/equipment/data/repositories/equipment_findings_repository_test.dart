@@ -125,6 +125,38 @@ void main() {
     },
   );
 
+  test('a finding that fires again clears its old tombstone', () async {
+    // Ids are deterministic, so a rule that stops firing and later fires
+    // again writes the same id. The tombstone from the stop would ride the
+    // next changeset beside the new row and delete it on every peer.
+    final f = recurring(['d1', 'd2', 'd3']);
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [f],
+      engineVersion: 1,
+      now: t0,
+    );
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp2',
+      findings: const [],
+      engineVersion: 1,
+      now: t0,
+    );
+    expect(await tombstones(), {f.id});
+
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp3',
+      findings: [f],
+      engineVersion: 1,
+      now: t0,
+    );
+    expect(await tombstones(), isEmpty);
+    expect((await repo.getFindings('reg')).single.id, f.id);
+  });
+
   test('re-emitting an identical finding writes nothing', () async {
     // The sweep recomputes an item whenever anything about a dive moves,
     // and most of those recomputes land on the same finding. Rewriting an

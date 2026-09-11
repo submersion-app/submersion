@@ -199,6 +199,16 @@ class EquipmentFindingsRepository {
                 createdAt: createdAt,
               ),
             );
+        // Ids are deterministic, so a rule that stopped firing (and was
+        // tombstoned) writes the same id when it fires again. Left in
+        // place, that tombstone would ride the next changeset beside this
+        // row and delete it on every peer.
+        if (old == null) {
+          await _syncRepository.removeDeletion(
+            entityType: entityType,
+            recordId: finding.id,
+          );
+        }
         await _syncRepository.markRecordPending(
           entityType: entityType,
           recordId: finding.id,
