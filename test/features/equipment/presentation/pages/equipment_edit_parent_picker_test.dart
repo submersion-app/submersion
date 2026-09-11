@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
@@ -202,6 +205,75 @@ void main() {
       (await repository.getEquipmentById(cell.id))!.parentEquipmentId,
       unit.id,
     );
+  });
+
+  testWidgets('a deep-linked parent owned by another diver is not saved', (
+    tester,
+  ) async {
+    // `/equipment/new?parent=<id>` takes any id. While the active list is
+    // still loading the page cannot check it against the diver's gear, so
+    // the save looks the parent up itself instead of trusting the link.
+    final db = DatabaseService.instance.database;
+    for (final (id, isDefault) in [('me', true), ('other', false)]) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+            ).copyWith(isDefault: Value(isDefault)),
+          );
+    }
+    final theirs = await repository.createEquipment(
+      const EquipmentItem(
+        id: '',
+        diverId: 'other',
+        name: 'Their CCR',
+        type: EquipmentType.rebreather,
+      ),
+    );
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+          activeEquipmentProvider.overrideWith(
+            (ref) => Completer<List<EquipmentItem>>().future,
+          ),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentEditPage(embedded: true, initialParentId: theirs.id),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Cell 1');
+    await tester.tap(find.byType(DropdownButtonFormField<EquipmentType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('O2 cell').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final cell = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.type == EquipmentType.o2Cell,
+    );
+    expect(cell.diverId, 'me');
+    expect(cell.parentEquipmentId, isNull);
   });
 
   testWidgets('a regulator shows no parent picker', (tester) async {
