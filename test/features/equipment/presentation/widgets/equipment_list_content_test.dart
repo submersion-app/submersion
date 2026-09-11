@@ -1051,6 +1051,63 @@ void main() {
       expect(rect.bottom, lessThanOrEqualTo(list.bottom), reason: '$rect');
     });
 
+    testWidgets('a change to only the dive item sort does not jump the list', (
+      tester,
+    ) async {
+      // The page orders gear by its own sort, so the arrangement's item sort
+      // moves no row here. Re-scrolling to the selected row on such a change
+      // would yank the diver back from wherever they had scrolled.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final target = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults,
+        typeLabel: (t) => t.displayName,
+      )[8].items.single;
+      final source = StateProvider<EquipmentArrangement>(
+        (ref) => EquipmentArrangement.defaults,
+      );
+
+      final overrides = await _buildPhoneOverrides(items: gear);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            equipmentArrangementProvider.overrideWith(
+              (ref) => ref.watch(source),
+            ),
+          ],
+          child: EquipmentListContent(showAppBar: false, selectedId: target.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      expect(position.pixels, greaterThan(0), reason: 'scrolled to the row');
+
+      position.jumpTo(0);
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EquipmentListContent)),
+      );
+      container.read(source.notifier).state = EquipmentArrangement.defaults
+          .copyWith(
+            itemSortField: EquipmentItemSortField.purchaseDate,
+            itemSortDirection: SortDirection.descending,
+          );
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, 0);
+    });
+
     testWidgets('scrolling to the selected gear allows for the headings', (
       tester,
     ) async {

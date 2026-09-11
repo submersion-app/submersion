@@ -71,12 +71,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
 
-  /// The arrangement the rows had when [_lastScrolledToId] was brought into
+  /// The type axis the rows had when [_lastScrolledToId] was brought into
   /// view. The arrangement starts at the defaults and adopts the stored one
   /// a moment later, so the first scroll can be positioned for an order the
-  /// list is about to leave; a different arrangement here means the row has
+  /// list is about to leave; a different type axis here means the row has
   /// moved and must be scrolled to again.
-  EquipmentArrangement? _scrolledArrangement;
+  ///
+  /// Only the type axis: the page orders items by its own sort, so the
+  /// arrangement's item sort (a dive-surface setting) moves no row here, and
+  /// re-scrolling on it would yank the diver back to the selected row.
+  Object? _scrolledTypeAxis;
   bool _selectionFromList = false;
 
   @override
@@ -95,7 +99,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       if (_selectionFromList) {
         _selectionFromList = false;
         _lastScrolledToId = widget.selectedId;
-        _scrolledArrangement = ref.read(equipmentArrangementProvider);
+        _scrolledTypeAxis = _typeAxisOf(ref.read(equipmentArrangementProvider));
       }
       // External selection changes are handled by _buildEquipmentList
       // when the sorted data is available.
@@ -109,10 +113,18 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// Headings are sized separately because sizing them like items overshoots
   /// by the difference for every heading above the target, which in a
   /// grouped list is nearly one per item.
+  /// The parts of [arrangement] that move rows on this page.
+  static Object _typeAxisOf(EquipmentArrangement arrangement) => (
+    arrangement.groupByType,
+    arrangement.typeOrder,
+    arrangement.typeOrderDescending,
+  );
+
   void _scrollToIndex(
     List<_EquipmentListRow> rows,
     int index,
-    EquipmentArrangement arrangement,
+    String targetId,
+    Object typeAxis,
   ) {
     if (!mounted || !_scrollController.hasClients) return;
 
@@ -134,8 +146,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
-    _lastScrolledToId = widget.selectedId;
-    _scrolledArrangement = arrangement;
+    _lastScrolledToId = targetId;
+    _scrolledTypeAxis = typeAxis;
   }
 
   void _handleItemTap(EquipmentItem equipment) {
@@ -818,16 +830,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // the arrangement has moved it since (the stored arrangement landing
     // after the first frame, or the diver regrouping). The index counts
     // heading rows too, since they take space above the item.
-    if (widget.selectedId != null &&
-        (widget.selectedId != _lastScrolledToId ||
-            arrangement != _scrolledArrangement) &&
+    final selectedId = widget.selectedId;
+    final typeAxis = _typeAxisOf(arrangement);
+    if (selectedId != null &&
+        (selectedId != _lastScrolledToId || typeAxis != _scrolledTypeAxis) &&
         !_selectionFromList) {
       final selectedIndex = rows.indexWhere(
-        (row) => row is _EquipmentItemRow && row.item.id == widget.selectedId,
+        (row) => row is _EquipmentItemRow && row.item.id == selectedId,
       );
       if (selectedIndex >= 0) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToIndex(rows, selectedIndex, arrangement);
+          // These rows were laid out for this selection. If it changed before
+          // the callback ran, scrolling now would move to the old row and
+          // mark the new one as done; the newer build schedules its own.
+          if (widget.selectedId != selectedId) return;
+          _scrollToIndex(rows, selectedIndex, selectedId, typeAxis);
         });
       }
     }

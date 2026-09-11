@@ -571,6 +571,44 @@ void main() {
     },
   );
 
+  test('with three reads out of order, the newest success wins', () async {
+    // Read 2 succeeds and stands aside for read 3; read 3 fails; read 1, the
+    // oldest, lands last. Read 2 is the freshest thing storage gave, so it
+    // must be the one published, not read 1.
+    final fake = _OrderedFakeRepository();
+    final container = ProviderContainer(
+      overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+    container.read(equipmentArrangementNotifierProvider);
+    await pumpEventQueue();
+    fake.settingsTicks.add(null);
+    await pumpEventQueue();
+    fake.settingsTicks.add(null);
+    await pumpEventQueue();
+    expect(fake.pending, hasLength(3));
+
+    fake.pending[1].complete(
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.dressingOrder,
+      ),
+    );
+    await pumpEventQueue();
+    fake.pending[2].completeError(StateError('read failed'));
+    await pumpEventQueue();
+    fake.pending[0].complete(
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(
+      container.read(equipmentArrangementNotifierProvider).typeOrder,
+      EquipmentTypeOrder.dressingOrder,
+    );
+  });
+
   test('a newer read that fails defers to the read still in flight', () async {
     // "Could not read" decides nothing. If a tick's read fails while the
     // launch read is still out, the launch read must still get to publish,

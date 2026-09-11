@@ -203,6 +203,27 @@ void main() {
     expect(fake.stored?.typeOrder, EquipmentTypeOrder.headToToe);
   });
 
+  testWidgets('tapping the grouping switch twice quickly turns it back on', (
+    tester,
+  ) async {
+    // The switch shows the saved arrangement, which only moves once a write
+    // lands. Two taps before then must toggle twice, off and back on, not
+    // both ask for "off".
+    await pumpSheet(tester);
+    fake.holdWrites = true;
+
+    await tester.tap(find.text('Group by type'));
+    await tester.pump();
+    await tester.tap(find.text('Group by type'));
+    await tester.pump();
+    while (fake.heldWrites.isNotEmpty) {
+      fake.heldWrites.removeAt(0).complete();
+      await tester.pumpAndSettle();
+    }
+
+    expect(fake.written.map((a) => a.groupByType).toList(), [false, true]);
+  });
+
   testWidgets('the current field carries the check mark', (tester) async {
     await pumpSheet(tester);
 

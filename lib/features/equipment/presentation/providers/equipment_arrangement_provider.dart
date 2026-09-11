@@ -74,11 +74,12 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   /// them; null while none is waiting.
   Completer<void>? _readsDrained;
 
-  /// A successful read that stood aside for a newer one still in flight.
+  /// The newest successful read not yet published.
   ///
-  /// Kept because the newer one can still FAIL, and a failed read decides
-  /// nothing: this value is then the freshest thing storage gave.
-  ({int seq, EquipmentArrangement? stored})? _deferredRead;
+  /// It waits while a newer read is still in flight, and is kept because that
+  /// newer one can still FAIL: a failed read decides nothing, so this value
+  /// is then the freshest thing storage gave.
+  ({int seq, EquipmentArrangement? stored})? _bestRead;
 
   final Completer<void> _firstLoad = Completer<void>();
 
@@ -143,67 +144,56 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   }
 
   Future<void> _read(int seq) async {
-    EquipmentArrangement? stored;
     try {
-      stored = await _repository.getEquipmentArrangement();
+      final stored = await _repository.getEquipmentArrangement();
+      // Kept as the best candidate if it is the newest success so far. It
+      // publishes below only once no newer read is still out: that one owns
+      // the outcome, and settling [loaded] early would resume an awaiting
+      // caller on a value that is about to be replaced.
+      if (seq > (_bestRead?.seq ?? 0)) _bestRead = (seq: seq, stored: stored);
     } catch (e, stackTrace) {
-      _readsInFlight.remove(seq);
       // The repository logs and swallows its own read errors, so this only
       // fires when the read could not be attempted at all. Keep the defaults
       // rather than failing: the diver falls back to the default arrangement,
       // which is a far better outcome than a gear list that will not render.
+      // "Could not read" decides nothing, so a failed read leaves no
+      // candidate and never supersedes another read.
       _log.error(
         'Failed to load equipment arrangement',
         error: e,
         stackTrace: stackTrace,
       );
-      // "Could not read" decides nothing, so it must not supersede another
-      // read. While any read is still out, that one decides. Otherwise the
-      // freshest read that stood aside publishes now, and failing that,
-      // whatever is already published stands and [loaded] settles on it. An
-      // edit queued behind [loaded] would otherwise build on the defaults.
-      if (_readsInFlight.isNotEmpty) return;
-      final deferred = _deferredRead;
-      _deferredRead = null;
-      if (deferred != null) {
-        _publishLoad(deferred.seq, deferred.stored);
-      } else {
-        _settleFirstLoad();
-      }
-      return;
     }
     _readsInFlight.remove(seq);
-    // A newer read started while this one was in flight; that one owns the
-    // outcome, whether or not it has landed yet, and it is the one that will
-    // settle [loaded]. Settling here would resume an awaiting caller on a
-    // value this load is not allowed to publish. The value is kept, though,
-    // in case the newer read fails.
-    if (_readsInFlight.any((other) => other > seq)) {
-      if (seq > (_deferredRead?.seq ?? 0)) {
-        _deferredRead = (seq: seq, stored: stored);
-      }
-      return;
-    }
-    _publishLoad(seq, stored);
+    _decideLoad();
   }
 
-  /// Publishes the result of read [seq] unless a newer read already has.
-  void _publishLoad(int seq, EquipmentArrangement? stored) {
-    if (seq > _publishedLoadSeq) {
-      _publishedLoadSeq = seq;
-      if (_deferredRead != null && _deferredRead!.seq <= seq) {
-        _deferredRead = null;
+  /// Settles what the reads so far have told us, after any read finishes.
+  ///
+  /// The newest successful read publishes once no newer read is still in
+  /// flight, whichever order they landed in; an older success arriving later
+  /// is dropped. With no success to publish and nothing left in flight,
+  /// whatever is already published stands and [loaded] settles on it.
+  void _decideLoad() {
+    final best = _bestRead;
+    if (best != null) {
+      if (_readsInFlight.any((other) => other > best.seq)) return;
+      _bestRead = null;
+      if (best.seq > _publishedLoadSeq) {
+        _publishedLoadSeq = best.seq;
+        // A successful read of null means the key is absent or its blob was
+        // unreadable, which is exactly what a fresh launch would find, and a
+        // launch shows the defaults. Keeping the loaded value here would
+        // leave the session showing an arrangement storage no longer has,
+        // and the diver would get the defaults on next launch anyway. A read
+        // that THREW is different and never becomes a candidate: "could not
+        // read" is not "nothing stored", so it keeps what is already loaded.
+        if (mounted) state = best.stored ?? EquipmentArrangement.defaults;
       }
-      // A successful read of null means the key is absent or its blob was
-      // unreadable, which is exactly what a fresh launch would find, and a
-      // launch shows the defaults. Keeping the loaded value here would leave
-      // the session showing an arrangement storage no longer has, and the
-      // diver would get the defaults on next launch anyway. A read that
-      // THREW is different and never reaches here: "could not read" is not
-      // "nothing stored", so that path keeps what is already loaded.
-      if (mounted) state = stored ?? EquipmentArrangement.defaults;
+      _settleFirstLoad();
+      return;
     }
-    _settleFirstLoad();
+    if (_readsInFlight.isEmpty) _settleFirstLoad();
   }
 
   /// Runs arrangement changes one at a time, in the order they were asked

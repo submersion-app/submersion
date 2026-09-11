@@ -36,11 +36,16 @@ class EquipmentGroupingControls extends ConsumerWidget {
       children: [
         SwitchListTile(
           value: arrangement.groupByType && canGroup,
+          // A toggle of the arrangement as it is when the change runs, not a
+          // set to the switch's next value: the switch shows the SAVED state,
+          // so two taps before the first write lands would otherwise both
+          // ask for the same value and the second could not undo the first.
           onChanged: canGroup
-              ? (value) => applyEquipmentArrangement(
+              ? (_) => applyEquipmentArrangement(
                   context,
                   ref,
-                  (current) => current.copyWith(groupByType: value),
+                  (current) =>
+                      current.copyWith(groupByType: !current.groupByType),
                 )
               : null,
           title: Text(l10n.equipment_arrange_groupByType),
