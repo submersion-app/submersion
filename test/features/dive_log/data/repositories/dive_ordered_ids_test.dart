@@ -126,13 +126,13 @@ void main() {
     await db
         .into(db.diveTanks)
         .insert(
-          DiveTanksCompanion(
-            id: const Value('t1'),
-            diveId: const Value('with-cylinder'),
-            equipmentId: const Value('cyl1'),
-            o2Percent: const Value(21.0),
-            hePercent: const Value(0.0),
-            tankOrder: const Value(0),
+          const DiveTanksCompanion(
+            id: Value('t1'),
+            diveId: Value('with-cylinder'),
+            equipmentId: Value('cyl1'),
+            o2Percent: Value(21.0),
+            hePercent: Value(0.0),
+            tankOrder: Value(0),
           ),
         );
     final ids = await repository.getOrderedDiveIds(
