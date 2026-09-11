@@ -22,18 +22,21 @@ void main() {
     await tearDownTestDatabase();
   });
 
+  final askedLocales = <Locale>[];
+
   Future<void> pumpPage(
     WidgetTester tester, {
     bool failRankings = false,
     Locale locale = const Locale('en'),
   }) async {
+    askedLocales.clear();
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...overrides,
           exposureRankingProvider.overrideWith(
-            (ref) async => failRankings
+            (ref, locale) async => failRankings
                 ? throw StateError('no db')
                 : [
                     RankingItem(
@@ -48,7 +51,7 @@ void main() {
                   ],
           ),
           findingsByRuleProvider.overrideWith(
-            (ref) async => failRankings
+            (ref, locale) async => failRankings
                 ? throw StateError('no db')
                 : [
                     RankingItem(
@@ -58,11 +61,12 @@ void main() {
                     ),
                   ],
           ),
-          issueTagRankingProvider.overrideWith(
-            (ref) async => failRankings
+          issueTagRankingProvider.overrideWith((ref, locale) async {
+            askedLocales.add(locale);
+            return failRankings
                 ? throw StateError('no db')
-                : [RankingItem(id: 'freeFlow', name: 'Free flow', count: 3)],
-          ),
+                : [RankingItem(id: 'freeFlow', name: 'Free flow', count: 3)];
+          }),
           weightTrendProvider.overrideWith(
             (ref) async => List.generate(
               20,
@@ -99,6 +103,17 @@ void main() {
 
     final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
     expect(chart.aggregation, TrendAggregation.none);
+  });
+
+  testWidgets('asks for the rankings in the language it renders', (
+    tester,
+  ) async {
+    // The settings mock keeps its own locale; the page is German. On the
+    // "system" setting the platform language can change without the
+    // setting moving, so the labels must follow what the page shows.
+    await pumpPage(tester, locale: const Locale('de'));
+    expect(askedLocales, isNotEmpty);
+    expect(askedLocales.toSet(), {const Locale('de')});
   });
 
   testWidgets('shows the three condition rankings', (tester) async {

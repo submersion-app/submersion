@@ -96,7 +96,11 @@ class StatisticsEquipmentPage extends ConsumerWidget {
   Widget _buildExposureSection(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final unit = ref.watch(exposureRankingUnitProvider);
-    final rankingAsync = ref.watch(exposureRankingProvider);
+    // Keyed by the language this page renders in: the rows hold finished
+    // labels, and a system language change does not move the setting.
+    final rankingAsync = ref.watch(
+      exposureRankingProvider(Localizations.localeOf(context)),
+    );
     return StatSectionCard(
       title: l10n.statistics_equipment_exposure_title,
       subtitle: l10n.statistics_equipment_exposure_subtitle,
@@ -144,7 +148,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     final l10n = context.l10n;
     return _rankingSection(
       context,
-      ref.watch(findingsByRuleProvider),
+      ref.watch(findingsByRuleProvider(Localizations.localeOf(context))),
       title: l10n.statistics_equipment_findings_title,
       subtitle: l10n.statistics_equipment_findings_subtitle,
       countLabel: l10n.statistics_equipment_countLabel_findings,
@@ -158,7 +162,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     final l10n = context.l10n;
     return _rankingSection(
       context,
-      ref.watch(issueTagRankingProvider),
+      ref.watch(issueTagRankingProvider(Localizations.localeOf(context))),
       title: l10n.statistics_equipment_issues_title,
       subtitle: l10n.statistics_equipment_issues_subtitle,
       countLabel: l10n.statistics_equipment_countLabel_reports,

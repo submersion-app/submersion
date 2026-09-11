@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -19,6 +21,7 @@ import '../../../../helpers/test_database.dart';
 
 /// The three ranking cards on the equipment statistics page.
 void main() {
+  const en = Locale('en');
   late AppDatabase db;
   late MockSettingsNotifier settings;
   late ProviderContainer container;
@@ -94,7 +97,7 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   test('exposure ranking follows the chosen unit', () async {
-    final byHours = await container.read(exposureRankingProvider.future);
+    final byHours = await container.read(exposureRankingProvider(en).future);
     expect(byHours.map((r) => r.id), [reg.id, bcd.id]);
     expect(byHours.first.count, 3);
     expect(byHours.first.value, closeTo(3.0, 1e-9));
@@ -104,7 +107,7 @@ void main() {
 
     container.read(exposureRankingUnitProvider.notifier).state =
         ExposureUnit.coldDives;
-    final byCold = await container.read(exposureRankingProvider.future);
+    final byCold = await container.read(exposureRankingProvider(en).future);
     expect(byCold.map((r) => r.id), [bcd.id]);
     expect(byCold.single.count, 2);
   });
@@ -120,7 +123,7 @@ void main() {
     await dive('brief', 6, runtime: 100, temp: 22);
     await link('brief', trace.id);
 
-    final byHours = await container.read(exposureRankingProvider.future);
+    final byHours = await container.read(exposureRankingProvider(en).future);
     expect(byHours.map((r) => r.id), isNot(contains(trace.id)));
     expect(byHours.every((r) => r.count > 0), isTrue);
   });
@@ -146,7 +149,7 @@ void main() {
         engineVersion: 1,
         now: DateTime(2026, 2),
       );
-      final ranking = await container.read(findingsByRuleProvider.future);
+      final ranking = await container.read(findingsByRuleProvider(en).future);
       expect(ranking.map((r) => '${r.id}:${r.count}'), [
         'issueRecurring:2',
         'incidentLinked:1',
@@ -157,8 +160,8 @@ void main() {
         ConditionRuleId.issueRecurring,
         false,
       );
-      container.invalidate(findingsByRuleProvider);
-      final filtered = await container.read(findingsByRuleProvider.future);
+      container.invalidate(findingsByRuleProvider(en));
+      final filtered = await container.read(findingsByRuleProvider(en).future);
       expect(filtered.map((r) => r.id), ['incidentLinked']);
     },
   );
@@ -214,7 +217,7 @@ void main() {
       ],
     );
     addTearDown(scoped.dispose);
-    final ranking = await scoped.read(findingsByRuleProvider.future);
+    final ranking = await scoped.read(findingsByRuleProvider(en).future);
     expect(ranking.single.count, 1);
   });
 
@@ -237,11 +240,24 @@ void main() {
       observedAt: DateTime(2026, 1, 3),
       status: ObservationStatus.ok,
     );
-    final ranking = await container.read(issueTagRankingProvider.future);
+    final ranking = await container.read(issueTagRankingProvider(en).future);
     expect(ranking.map((r) => '${r.id}:${r.count}'), [
       'freeFlow:2',
       'hardBreathing:1',
     ]);
     expect(ranking.first.name, 'Free flow');
+
+    // Keyed by the locale the page renders in, not the stored setting:
+    // on "system" the platform language can change under the setting.
+    final german = await container.read(
+      issueTagRankingProvider(const Locale('de')).future,
+    );
+    expect(
+      german.first.name,
+      lookupAppLocalizations(
+        const Locale('de'),
+      ).equipmentObservation_tag_freeFlow,
+    );
+    expect(german.first.name, isNot('Free flow'));
   });
 }
