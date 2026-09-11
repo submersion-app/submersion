@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
+import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 
@@ -266,6 +267,73 @@ void main() {
       ],
     ),
   );
+
+  test('a repack saved with a time of day on the start date is the '
+      'anchor', () async {
+    // A new service record starts at DateTime.now() and saves unchanged
+    // unless the picker is opened, so a repack logged that morning carries
+    // a time after the trip's local midnight. It is still that day's
+    // repack.
+    final ccr = await rebreather();
+    await ServiceRecordRepository().createRecord(
+      ServiceRecord(
+        id: '',
+        equipmentId: ccr.id,
+        serviceCategory: ServiceCategory.values.first,
+        serviceKindId: 'scrubber-repack',
+        serviceDate: DateTime(2026, 2, 1, 10, 37),
+        currency: 'USD',
+        notes: '',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await ccrDive('older', DateTime(2026, 1, 15), ccr.id, scrubber: 30);
+    final t = await trip('Feb', DateTime(2026, 2, 1), DateTime(2026, 2, 5));
+    final m = (await container.read(
+      tripScrubberMarginsProvider(t.id).future,
+    )).single;
+    expect(m.consumedMinutes, 0);
+    expect(m.consumedSince, DateTime(2026, 2, 1, 10, 37));
+  });
+
+  test('a paused repack clock anchors nothing', () async {
+    // A paused clock is off for the clocks engine. Its anchor must not
+    // exclude the loop dives before it and inflate the margin.
+    final ccr = await rebreather();
+    Future<ScrubberMargin> margin(bool enabled) async {
+      await db.delete(db.serviceSchedules).go();
+      await ServiceScheduleRepository().createSchedule(
+        ServiceSchedule(
+          id: '',
+          equipmentId: ccr.id,
+          serviceKindId: 'scrubber-repack',
+          anchorDate: DateTime(2026, 3, 1, 9),
+          enabled: enabled,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      final t = await trip(
+        'T$enabled',
+        DateTime(2026, 3, 1),
+        DateTime(2026, 3, 5),
+      );
+      return (await container.read(
+        tripScrubberMarginsProvider(t.id).future,
+      )).single;
+    }
+
+    await ccrDive('jan', DateTime(2026, 1, 10), ccr.id);
+    await ccrDive('feb', DateTime(2026, 2, 10), ccr.id, runtime: 3000);
+    // An active clock anchored that morning excludes both dives.
+    final active = await margin(true);
+    expect(active.consumedMinutes, 0);
+    expect(active.consumedSince, DateTime(2026, 3, 1, 9));
+    final paused = await margin(false);
+    expect(paused.consumedMinutes, 110);
+    expect(paused.consumedSince, isNull);
+  });
 
   test('an itinerary with no dive days expects no dives', () async {
     // A crossing or a port stay is a real itinerary. Only an EMPTY one

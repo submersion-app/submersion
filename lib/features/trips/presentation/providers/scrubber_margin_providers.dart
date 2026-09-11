@@ -91,10 +91,10 @@ final tripScrubberMarginsProvider =
             .where(
               (r) =>
                   r.serviceKindId == scrubberRepackKindId &&
-                  // Inclusive: service dates come from a date picker, so
-                  // a repack logged on the day the trip starts is the last
-                  // one as of that start, not one that happened after it.
-                  !r.serviceDate.isAfter(start),
+                  // Inclusive, by calendar day: a repack logged on the day
+                  // the trip starts is the last one as of that start, even
+                  // when it was saved with the time it was entered.
+                  _onOrBeforeDay(r.serviceDate, start),
             )
             .firstOrNull;
         // With no record, the repack clock's anchor, as the clocks engine
@@ -112,7 +112,7 @@ final tripScrubberMarginsProvider =
         // was added, each only when it is on or before the trip start.
         // Only a repack baseline changes the card's wording.
         DateTime? asOfStart(DateTime? d) =>
-            d != null && !d.isAfter(start) ? d : null;
+            d != null && _onOrBeforeDay(d, start) ? d : null;
         final countFrom =
             baseline ??
             asOfStart(item.purchaseDate) ??
@@ -169,7 +169,16 @@ final tripScrubberMarginsProvider =
       return margins;
     });
 
-/// The scrubber-repack clock's anchor date when it is on or before
+/// Whether [date] falls on or before the calendar day of [start], a local
+/// midnight. Service, purchase and creation dates can carry the time they
+/// were entered, which must not push a same-day date past the start.
+bool _onOrBeforeDay(DateTime date, DateTime start) => !DateTime(
+  date.year,
+  date.month,
+  date.day,
+).isAfter(DateTime(start.year, start.month, start.day));
+
+/// The active scrubber-repack clock's anchor date when it is on or before
 /// [start] (inclusive, as a repack record is), else null.
 Future<DateTime?> _repackAnchor(
   EquipmentItem item,
@@ -178,8 +187,10 @@ Future<DateTime?> _repackAnchor(
 ) async {
   for (final schedule in await schedules.getSchedulesForEquipment(item.id)) {
     if (schedule.serviceKindId != scrubberRepackKindId) continue;
+    // A paused clock is off for the clocks engine; it anchors nothing here.
+    if (!schedule.enabled) continue;
     final anchor = schedule.anchorDate;
-    if (anchor != null && !anchor.isAfter(start)) return anchor;
+    if (anchor != null && _onOrBeforeDay(anchor, start)) return anchor;
   }
   return null;
 }
