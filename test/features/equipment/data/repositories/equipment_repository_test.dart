@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -677,5 +679,29 @@ void main() {
         },
       );
     });
+  });
+
+  test('deleting an item tombstones its check-ins', () async {
+    // equipment_observations is a synced root whose rows go by cascade;
+    // without a tombstone a peer keeps the check-in and it can reappear.
+    final reg = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    );
+    final observation = await EquipmentObservationRepository().create(
+      equipmentId: reg.id,
+      observedAt: DateTime.utc(2026, 1, 1),
+      status: ObservationStatus.ok,
+    );
+    await repository.deleteEquipment(reg.id);
+    final db = DatabaseService.instance.database;
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(
+      tombstones.any(
+        (t) =>
+            t.entityType == 'equipmentObservations' &&
+            t.recordId == observation.id,
+      ),
+      isTrue,
+    );
   });
 }

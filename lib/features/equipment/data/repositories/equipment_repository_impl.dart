@@ -472,6 +472,11 @@ class EquipmentRepository {
                       t.componentEquipmentId.equals(id),
                 ))
                 .get();
+        // Gear check-ins are a synced root of their own, also cascaded
+        // away by SQLite (condition phase 3a), so tombstoned here too.
+        final observations = await (_db.select(
+          _db.equipmentObservations,
+        )..where((t) => t.equipmentId.equals(id))).get();
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -489,6 +494,12 @@ class EquipmentRepository {
           await _syncRepository.logDeletion(
             entityType: 'equipmentComponents',
             recordId: c.id,
+          );
+        }
+        for (final o in observations) {
+          await _syncRepository.logDeletion(
+            entityType: 'equipmentObservations',
+            recordId: o.id,
           );
         }
         await _syncRepository.logDeletion(
