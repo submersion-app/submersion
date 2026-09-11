@@ -975,7 +975,15 @@ class DiveTanks extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
-  TextColumn get equipmentId => text().nullable().references(Equipment, #id)();
+
+  /// The cylinder's gear item, written by the transmitter registry. v210:
+  /// ON DELETE SET NULL, like every other nullable link to equipment, so
+  /// deleting the item clears the link instead of failing on it.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   RealColumn get volume => real().nullable()(); // liters
   RealColumn get workingPressure => real().nullable()(); // bar - rated pressure
   RealColumn get startPressure => real().nullable()(); // bar
@@ -3873,7 +3881,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 207;
+  static const int currentSchemaVersion = 210;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4413,6 +4421,11 @@ class AppDatabase extends _$AppDatabase {
     // rung takes 207; the list only counts remaining steps for progress
     // reporting and is non-contiguous by design.
     207,
+    // v210: dive_tanks.equipment_id ON DELETE SET NULL. The link was NO
+    // ACTION from the initial schema, so deleting a gear item a cylinder
+    // was linked to failed. Rebuilds the table from its stored definition.
+    // 208 is claimed by #1627 and #1753 and 209 by #1639, all still open.
+    210,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4797,6 +4810,113 @@ class AppDatabase extends _$AppDatabase {
         'SELECT p.updated_at FROM $parentTable p WHERE p.id = $table.$foreignKey'
         ') WHERE updated_at IS NULL',
       );
+    }
+  }
+
+  /// v210: gives `dive_tanks.equipment_id` the ON DELETE SET NULL action.
+  ///
+  /// The column carried a NO ACTION reference from the initial schema. It sat
+  /// unused until the transmitter registry began writing it, after which
+  /// deleting a linked gear item (locally, or from a peer's tombstone) failed
+  /// with a foreign key error. Every other nullable link to equipment already
+  /// sets null.
+  ///
+  /// SQLite cannot alter a constraint in place, so this rebuilds the table:
+  /// it rewrites only the equipment_id clause of the table's STORED
+  /// definition, which carries every column later rungs added, copies the
+  /// rows across, and recreates the table's indexes. No column list is
+  /// written out, so a column this code has never heard of survives too.
+  ///
+  /// Foreign keys must be off for the swap: with them on, the DROP deletes
+  /// every row first and cascades into the tables that hang off the tanks.
+  /// onUpgrade and the top of beforeOpen run before enforcement is switched
+  /// on, but this switches it off itself, and refuses rather than risk the
+  /// cascade if it cannot. The swap runs in one transaction so a crash can
+  /// never leave the table dropped.
+  ///
+  /// Idempotent: a table whose link already sets null, or that has no
+  /// equipment reference at all (minimal fixtures), is left untouched, so a
+  /// steady-state open costs one PRAGMA. Called from the v210 onUpgrade block
+  /// and the beforeOpen backstop.
+  Future<void> _assertDiveTankEquipmentSetNull() async {
+    final links = await customSelect(
+      "PRAGMA foreign_key_list('dive_tanks')",
+    ).get();
+    final equipmentLink = links.where(
+      (r) => r.read<String>('from') == 'equipment_id',
+    );
+    if (equipmentLink.isEmpty) return;
+    if (equipmentLink.first.read<String>('on_delete').toUpperCase() ==
+        'SET NULL') {
+      return;
+    }
+
+    final stored = await customSelect(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' "
+      "AND name = 'dive_tanks'",
+    ).getSingle();
+    final createSql = stored.read<String>('sql');
+    // The column's own clause only: the character before it must not be a
+    // name character, so regulator_equipment_id is never matched.
+    final clause = RegExp(
+      r'''(^|[\s,(])("?equipment_id"?\s+TEXT(?:\s+NULL)?\s+REFERENCES\s+'''
+      r'''"?equipment"?\s*\(\s*"?id"?\s*\))(\s+ON\s+DELETE\s+'''
+      r'''(?:NO\s+ACTION|RESTRICT))?''',
+      caseSensitive: false,
+    );
+    final header = RegExp(
+      r'^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?"?dive_tanks"?',
+      caseSensitive: false,
+    );
+    if (clause.allMatches(createSql).length != 1 ||
+        !header.hasMatch(createSql)) {
+      developer.log(
+        'dive_tanks.equipment_id: stored definition not in a recognised '
+        'shape, left as NO ACTION',
+        name: 'AppDatabase',
+      );
+      return;
+    }
+    const scratch = 'dive_tanks_v210';
+    final rebuiltSql = createSql
+        .replaceFirstMapped(clause, (m) => '${m[1]}${m[2]} ON DELETE SET NULL')
+        .replaceFirst(header, 'CREATE TABLE $scratch');
+    final dependents = await customSelect(
+      "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_tanks' "
+      "AND type IN ('index', 'trigger') AND sql IS NOT NULL",
+    ).get();
+
+    Future<bool> enforced() async =>
+        (await customSelect(
+          'PRAGMA foreign_keys',
+        ).getSingle()).read<int>('foreign_keys') ==
+        1;
+    final wasEnforced = await enforced();
+    if (wasEnforced) {
+      await customStatement('PRAGMA foreign_keys = OFF');
+      // A no-op inside a transaction. Refuse rather than cascade.
+      if (await enforced()) {
+        developer.log(
+          'dive_tanks.equipment_id: foreign keys could not be switched off, '
+          'rebuild deferred to a later open',
+          name: 'AppDatabase',
+        );
+        return;
+      }
+    }
+    try {
+      await transaction(() async {
+        await customStatement('DROP TABLE IF EXISTS $scratch');
+        await customStatement(rebuiltSql);
+        await customStatement('INSERT INTO $scratch SELECT * FROM dive_tanks');
+        await customStatement('DROP TABLE dive_tanks');
+        await customStatement('ALTER TABLE $scratch RENAME TO dive_tanks');
+        for (final row in dependents) {
+          await customStatement(row.read<String>('sql'));
+        }
+      });
+    } finally {
+      if (wasEnforced) await customStatement('PRAGMA foreign_keys = ON');
     }
   }
 
@@ -11365,8 +11485,22 @@ class AppDatabase extends _$AppDatabase {
           await _assertJunctionUpdatedAtColumns();
         }
         if (from < 207) await reportProgress();
+        // v210: dive_tanks.equipment_id ON DELETE SET NULL, a table rebuild
+        // (see _assertDiveTankEquipmentSetNull). 208 and 209 are claimed by
+        // open PRs. Re-asserted in the beforeOpen backstop, which runs it
+        // before foreign keys are switched on.
+        if (from < 210) {
+          await _assertDiveTankEquipmentSetNull();
+        }
+        if (from < 210) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v210 backstop: the dive_tanks equipment link sets null on delete.
+        // First, while foreign keys are still off: the rebuild it may do
+        // drops the table, which with enforcement on would cascade into the
+        // rows that hang off the tanks.
+        await _assertDiveTankEquipmentSetNull();
+
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
 
