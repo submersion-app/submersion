@@ -159,6 +159,8 @@ Future<double?> _ratedMinutes(
   final list = await schedules.getSchedulesForEquipment(item.id);
   for (final schedule in list) {
     if (schedule.serviceKindId != scrubberRepackKindId) continue;
+    // A paused clock is off for the clocks engine; it rates nothing here.
+    if (!schedule.enabled) continue;
     final interval = schedule.intervalFor(ExposureUnit.hours, repackKind);
     if (interval != null && interval > 0) return interval * 60;
   }

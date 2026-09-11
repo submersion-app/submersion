@@ -10,6 +10,8 @@ import 'package:submersion/features/equipment/data/repositories/service_record_r
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -297,6 +299,41 @@ void main() {
       tripScrubberMarginsProvider(t.id).future,
     )).single;
     expect(m.consumedMinutes, 60);
+  });
+
+  test('a paused repack clock supplies no rating', () async {
+    // With no rated duration on the unit, the rating falls back to its
+    // scrubber-repack clock. A paused clock is off for the clocks engine,
+    // so it must not rate the scrubber either.
+    final ccr = await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),
+    );
+    await db.delete(db.serviceSchedules).go();
+    Future<double?> rated(bool enabled) async {
+      await db.delete(db.serviceSchedules).go();
+      await ServiceScheduleRepository().createSchedule(
+        ServiceSchedule(
+          id: '',
+          equipmentId: ccr.id,
+          serviceKindId: 'scrubber-repack',
+          intervalHours: 4,
+          enabled: enabled,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      final t = await trip(
+        'T$enabled',
+        DateTime(2026, 6, 1),
+        DateTime(2026, 6, 5),
+      );
+      return (await container.read(
+        tripScrubberMarginsProvider(t.id).future,
+      )).single.ratedMinutes;
+    }
+
+    expect(await rated(true), 240);
+    expect(await rated(false), isNull);
   });
 
   test('a diver with no active rebreather gets an empty list', () async {
