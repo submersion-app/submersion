@@ -38640,6 +38640,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transmitters_field_gear => 'Palack a felszerelésből';
 
   @override
+  String get transmitters_field_transmitterGear => 'Jeladó a felszerelésből';
+
+  @override
   String get transmitters_field_material => 'Anyag';
 
   @override

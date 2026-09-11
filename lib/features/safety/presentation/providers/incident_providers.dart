@@ -10,7 +10,9 @@ final incidentRepositoryProvider = Provider<IncidentRepository>((ref) {
 final incidentsProvider = FutureProvider<List<Incident>>((ref) async {
   final repo = ref.watch(incidentRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchChanges());
-  final diverId = ref.watch(currentDiverIdProvider);
+  // The validated id, which new incidents are saved under: a stale raw id
+  // would hide the incident just saved.
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   return repo.getIncidents(diverId: diverId);
 });
 

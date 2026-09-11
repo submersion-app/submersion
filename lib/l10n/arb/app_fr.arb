@@ -11663,6 +11663,7 @@
   "transmitters_field_channel": "Canal",
   "transmitters_field_role": "Rôle",
   "transmitters_field_gear": "Bouteille de l'équipement",
+  "transmitters_field_transmitterGear": "Émetteur de l’équipement",
   "transmitters_field_material": "Matériau",
   "transmitters_gear_none": "Aucune",
   "transmitters_validation_key": "Saisissez un numéro de série, ou choisissez un ordinateur et un canal",

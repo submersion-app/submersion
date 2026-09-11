@@ -38806,6 +38806,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transmitters_field_gear => 'Cilindro do equipamento';
 
   @override
+  String get transmitters_field_transmitterGear => 'Transmissor do equipamento';
+
+  @override
   String get transmitters_field_material => 'Material';
 
   @override

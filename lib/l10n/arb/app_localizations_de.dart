@@ -38721,6 +38721,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transmitters_field_gear => 'Flasche aus der Ausrüstung';
 
   @override
+  String get transmitters_field_transmitterGear => 'Sender aus der Ausrüstung';
+
+  @override
   String get transmitters_field_material => 'Material';
 
   @override

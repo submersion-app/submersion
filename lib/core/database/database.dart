@@ -2917,6 +2917,15 @@ class Transmitters extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+
+  /// The transmitter gear item this entry is (condition phase 3b, v206),
+  /// beside [equipmentId], the cylinder it feeds. The dropout rules read an
+  /// item's serials through it.
+  TextColumn get transmitterEquipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -4553,8 +4562,10 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// v206: the condition engine's master and per-rule toggles on
-  /// diver_settings (condition phase 3b). Idempotent; called from the v206
-  /// onUpgrade block and the beforeOpen backstop.
+  /// diver_settings, and the transmitter registry's link to the transmitter
+  /// gear item an entry is (condition phase 3b). Idempotent; called from the
+  /// v206 onUpgrade block and the beforeOpen backstop, which is also how a
+  /// device already past 206 gets the registry link.
   Future<void> _assertConditionEngineSettingsColumns() async {
     await _addColumnIfMissing(
       'diver_settings',
@@ -4565,6 +4576,16 @@ class AppDatabase extends _$AppDatabase {
       'diver_settings',
       'condition_disabled_rules',
       'TEXT',
+    );
+    // A partial-schema fixture may lack the equipment table, and with
+    // foreign keys on SQLite then refuses every later insert into a table
+    // whose FK parent is missing; those get a plain column (as v202 does).
+    await _addColumnIfMissing(
+      'transmitters',
+      'transmitter_equipment_id',
+      await _tableExists('equipment')
+          ? 'TEXT REFERENCES equipment(id) ON DELETE SET NULL'
+          : 'TEXT',
     );
   }
 

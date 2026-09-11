@@ -11663,6 +11663,7 @@
   "transmitters_field_channel": "Canal",
   "transmitters_field_role": "Rol",
   "transmitters_field_gear": "Botella del equipo",
+  "transmitters_field_transmitterGear": "Transmisor del equipo",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "Ninguna",
   "transmitters_validation_key": "Introduce un número de serie o elige un ordenador y un canal",

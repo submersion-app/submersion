@@ -208,6 +208,32 @@ void main() {
     expect(fp(summaryVersion: 2), isNot(fp()));
   });
 
+  test('a link change that moves a reading without touching the dive', () {
+    // The transmitter registry rewrites dive_tanks.equipment_id without
+    // moving dives.updated_at, so a dive can keep its id and stamp while
+    // what it contributes changes (the gas the item breathed, the dive's
+    // readings through another link). Each engine-relevant field counts.
+    EquipmentExposureSample d2({
+      double? contactO2Fraction,
+      double? maxDepth,
+      double? minTemperature,
+      int durationSeconds = 100,
+    }) => EquipmentExposureSample(
+      diveId: 'd2',
+      date: DateTime.utc(2026, 1, 2),
+      durationSeconds: durationSeconds,
+      maxDepth: maxDepth,
+      minTemperature: minTemperature,
+      contactO2Fraction: contactO2Fraction,
+      updatedAt: 20,
+    );
+    final base = fp(s: [samples.first, d2()]);
+    expect(fp(s: [samples.first, d2(contactO2Fraction: 0.32)]), isNot(base));
+    expect(fp(s: [samples.first, d2(maxDepth: 40)]), isNot(base));
+    expect(fp(s: [samples.first, d2(minTemperature: 6)]), isNot(base));
+    expect(fp(s: [samples.first, d2(durationSeconds: 200)]), isNot(base));
+  });
+
   group('identity, not just counts', () {
     // Deleting one dive and importing another of the same vintage keeps
     // the count and the newest stamp exactly where they were. Hashing

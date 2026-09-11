@@ -12,24 +12,28 @@ void main() {
   setUp(() async {
     db = await setUpTestDatabase();
     repo = TransmitterRepository();
-    await db
-        .into(db.equipment)
-        .insert(
-          EquipmentCompanion.insert(
-            id: 'tx',
-            name: 'Tx',
-            type: 'transmitter',
-            createdAt: 1,
-            updatedAt: 1,
-          ),
-        );
+    for (final (id, type) in [('tx', 'transmitter'), ('tank', 'tank')]) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: type,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
     final now = DateTime.utc(2026);
     await repo.create(
       Transmitter(
         id: 't1',
         transmitterSerial: ' 180777 ',
         label: 'Left',
-        equipmentId: 'tx',
+        // The cylinder it feeds, and the transmitter gear item it is.
+        equipmentId: 'tank',
+        transmitterEquipmentId: 'tx',
         createdAt: now,
         updatedAt: now,
       ),
@@ -39,7 +43,7 @@ void main() {
         id: 't2',
         transmitterSerial: '180778',
         label: 'Right',
-        equipmentId: 'tx',
+        transmitterEquipmentId: 'tx',
         createdAt: now,
         updatedAt: now,
       ),
@@ -60,5 +64,11 @@ void main() {
   test('returns the normalised serials of the item\'s registry rows', () async {
     expect(await repo.getSerialsForEquipment('tx'), {'180777', '180778'});
     expect(await repo.getSerialsForEquipment('none'), isEmpty);
+  });
+
+  test('the cylinder a transmitter feeds is not the transmitter', () async {
+    // A registry row's equipmentId is the cylinder it feeds; keying the
+    // dropout rules on it meant a real transmitter item never matched.
+    expect(await repo.getSerialsForEquipment('tank'), isEmpty);
   });
 }

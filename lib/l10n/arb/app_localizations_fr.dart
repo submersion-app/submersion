@@ -38905,6 +38905,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transmitters_field_gear => 'Bouteille de l\'équipement';
 
   @override
+  String get transmitters_field_transmitterGear => 'Émetteur de l’équipement';
+
+  @override
   String get transmitters_field_material => 'Matériau';
 
   @override

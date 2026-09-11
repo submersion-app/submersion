@@ -38788,6 +38788,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transmitters_field_gear => 'Bombola dall\'attrezzatura';
 
   @override
+  String get transmitters_field_transmitterGear =>
+      'Trasmettitore dall’attrezzatura';
+
+  @override
   String get transmitters_field_material => 'Materiale';
 
   @override

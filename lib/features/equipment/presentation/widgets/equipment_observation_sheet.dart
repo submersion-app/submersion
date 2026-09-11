@@ -247,6 +247,10 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
       scheduleConditionFindingsRefresh([widget.equipment.id]);
       if (!mounted) return;
       _closeEditor();
+    } catch (_) {
+      // A concurrent sync can delete the item or dive mid-save. Say the
+      // check-in was not saved and keep the editor open to try again.
+      if (mounted) setState(() => draft.error = l10n.common_error_tryAgain);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

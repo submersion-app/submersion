@@ -11,6 +11,7 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -163,6 +164,42 @@ void main() {
 
     expect(find.text('O2'), findsNothing);
     expect(await TransmitterRepository().getById('e1'), isNull);
+  });
+
+  testWidgets('deleting an entry refreshes its transmitter item', (
+    tester,
+  ) async {
+    // The item loses these serials, and with them any stored dropout
+    // finding they raised; the findings are read without the engine.
+    final requested = <String>{};
+    SensorSummaryScheduler.instance.findingsRequestListener = requested.addAll;
+    addTearDown(
+      () => SensorSummaryScheduler.instance.findingsRequestListener = null,
+    );
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO equipment (id, name, type, created_at, updated_at) "
+      "VALUES ('tx', 'Tx', 'transmitter', 1, 1)",
+    );
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'e1',
+        diverId: 'diver-1',
+        transmitterSerial: '180777',
+        label: 'O2',
+        transmitterEquipmentId: 'tx',
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(requested, {'tx'});
   });
 
   testWidgets('apply to existing dives confirms with counts and updates', (

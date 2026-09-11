@@ -38531,6 +38531,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transmitters_field_gear => 'Fles uit uitrusting';
 
   @override
+  String get transmitters_field_transmitterGear => 'Zender uit uitrusting';
+
+  @override
   String get transmitters_field_material => 'Materiaal';
 
   @override

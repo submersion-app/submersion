@@ -38397,6 +38397,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_field_gear => 'أسطوانة من المعدات';
 
   @override
+  String get transmitters_field_transmitterGear => 'جهاز إرسال من المعدات';
+
+  @override
   String get transmitters_field_material => 'المادة';
 
   @override
