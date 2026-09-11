@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -246,17 +247,23 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     );
   }
 
-  /// The dive's own gear first (when the incident has a dive), then every
-  /// active item, so the item that was in the water is one tap away.
+  /// The dive's own gear first (when the incident has a dive), then the
+  /// rest of the active items, so the item that was in the water is one tap
+  /// away and each item is listed once.
   Future<void> _pickEquipment() async {
     final l10n = context.l10n;
     final diveId = widget.diveId ?? _existing?.diveId;
     final dive = diveId == null
         ? null
         : await ref.read(diveProvider(diveId).future);
+    final onDive = await _gearOnDive(dive);
     final active = await ref.read(activeEquipmentProvider.future);
     if (!mounted) return;
-    final onDive = dive?.equipment ?? const <EquipmentItem>[];
+    final onDiveIds = {for (final item in onDive) item.id};
+    final rest = [
+      for (final item in active)
+        if (!onDiveIds.contains(item.id)) item,
+    ];
     final chosen = await showDialog<_EquipmentChoice>(
       context: context,
       builder: (dialogContext) => SimpleDialog(
@@ -276,9 +283,9 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
                 child: Text(item.name),
               ),
           ],
-          if (active.isNotEmpty) ...[
+          if (rest.isNotEmpty) ...[
             _PickerHeader(l10n.incidentEdit_equipment_allGear),
-            for (final item in active)
+            for (final item in rest)
               SimpleDialogOption(
                 onPressed: () =>
                     Navigator.of(dialogContext).pop(_EquipmentChoice(item.id)),
@@ -295,6 +302,23 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
         _category = IncidentCategory.equipment;
       }
     });
+  }
+
+  /// The dive's gear junction, then the items its cylinders are linked to:
+  /// the transmitter registry writes that link on the tank, not in the
+  /// junction, and the item may be retired and so absent from the active
+  /// list. Each item once, in that order.
+  Future<List<EquipmentItem>> _gearOnDive(Dive? dive) async {
+    if (dive == null) return const [];
+    final items = [...dive.equipment];
+    final seen = {for (final item in items) item.id};
+    for (final tank in dive.tanks) {
+      final id = tank.equipmentId;
+      if (id == null || !seen.add(id)) continue;
+      final item = await ref.read(equipmentItemProvider(id).future);
+      if (item != null) items.add(item);
+    }
+    return items;
   }
 
   Future<void> _pickDate() async {

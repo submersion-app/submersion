@@ -413,12 +413,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('On this dive'), findsOneWidget);
       expect(find.text('All gear'), findsOneWidget);
-      // The dive's regulator is listed under the dive header, and again in
-      // the full list, so the full list is where the fins appear.
-      expect(find.text('Apeks XTX'), findsNWidgets(2));
+      // The dive's regulator is listed under the dive header only; the
+      // full list carries the rest of the active gear.
+      expect(find.text('Apeks XTX'), findsOneWidget);
       expect(find.text('Jet Fins'), findsOneWidget);
 
-      await tester.tap(find.text('Apeks XTX').first);
+      await tester.tap(find.text('Apeks XTX'));
       await tester.pumpAndSettle();
       expect(find.text('Apeks XTX'), findsOneWidget);
       final chip = tester.widget<ChoiceChip>(
@@ -436,6 +436,77 @@ void main() {
       expect(repo.created!.category, IncidentCategory.equipment);
     },
   );
+
+  testWidgets('a cylinder linked to a gear item is listed on the dive', (
+    tester,
+  ) async {
+    // The registry links a cylinder through the tank, not the dive's gear
+    // junction, and the item can be retired (so absent from the active
+    // list). It still belongs under the dive header, once.
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository();
+    final reg = EquipmentItem(
+      id: 'reg',
+      name: 'Apeks XTX',
+      type: EquipmentType.regulator,
+      createdAt: DateTime.utc(2026),
+    );
+    final cylinder = EquipmentItem(
+      id: 'cyl',
+      name: 'Blue AL80',
+      type: EquipmentType.tank,
+      isActive: false,
+      createdAt: DateTime.utc(2026),
+    );
+    final dive = Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 7, 10),
+      gear: [GearLink(item: reg)],
+      tanks: const [
+        DiveTank(id: 't1', equipmentId: 'cyl'),
+        DiveTank(id: 't2', equipmentId: 'cyl'),
+        // Also in the dive's gear: listed once, not twice.
+        DiveTank(id: 't3', equipmentId: 'reg'),
+      ],
+    );
+
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          diveProvider('d1').overrideWith((ref) async => dive),
+          activeEquipmentProvider.overrideWith((ref) async => [reg]),
+          equipmentItemProvider('cyl').overrideWith((ref) async => cylinder),
+          equipmentItemProvider('reg').overrideWith((ref) async => reg),
+        ],
+        router: routerFor(const IncidentEditPage(diveId: 'd1')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Equipment involved'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('On this dive'), findsOneWidget);
+    expect(find.text('Blue AL80'), findsOneWidget);
+    expect(find.text('Apeks XTX'), findsOneWidget);
+    // Everything active is already listed above, so no empty header.
+    expect(find.text('All gear'), findsNothing);
+
+    await tester.tap(find.text('Blue AL80'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'Tank valve stuck half open.',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(repo.created!.equipmentId, 'cyl');
+  });
 
   testWidgets('a category chosen by hand survives picking an item', (
     tester,
