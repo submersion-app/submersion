@@ -56,6 +56,18 @@ typedef _Point<T> = ({String diveId, DateTime date, T value});
 class EquipmentConditionEngine {
   static const int engineVersion = 1;
 
+  /// The rules that read the per-dive sensor summaries. Summaries are
+  /// device-local, so a device that has not built them yet cannot tell
+  /// whether these still fire.
+  static const summaryRules = {
+    ConditionRuleId.cellOutputDeclining,
+    ConditionRuleId.cellOutputLow,
+    ConditionRuleId.cellDivergent,
+    ConditionRuleId.cellCurrentLimited,
+    ConditionRuleId.transmitterDropoutRising,
+    ConditionRuleId.transmitterDropoutHigh,
+  };
+
   static const int declineMinDives = 10;
   static const double declineFraction = 0.15;
   static const int lowMinDives = 3;

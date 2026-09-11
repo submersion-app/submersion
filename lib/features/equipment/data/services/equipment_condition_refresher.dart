@@ -5,6 +5,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_observ
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/equipment/domain/services/condition_input_fingerprint.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
@@ -28,6 +29,7 @@ class EquipmentConditionRefresher {
   final DiveSensorSummaryRepository _summaries;
   final EquipmentFindingsRepository _findings;
   final EquipmentConditionEngine _engine;
+  final void Function(Set<String> diveIds)? _requestSummaries;
 
   EquipmentConditionRefresher({
     required EquipmentRepository equipment,
@@ -37,13 +39,15 @@ class EquipmentConditionRefresher {
     required DiveSensorSummaryRepository summaries,
     required EquipmentFindingsRepository findings,
     EquipmentConditionEngine engine = const EquipmentConditionEngine(),
+    void Function(Set<String> diveIds)? requestSummaries,
   }) : _equipment = equipment,
        _observations = observations,
        _incidents = incidents,
        _transmitters = transmitters,
        _summaries = summaries,
        _findings = findings,
-       _engine = engine;
+       _engine = engine,
+       _requestSummaries = requestSummaries;
 
   /// Null when [equipmentId] does not exist.
   Future<List<EquipmentFinding>?> ensureCurrent(
@@ -97,10 +101,14 @@ class EquipmentConditionRefresher {
         ? await _transmitters.getSerialsForEquipment(item.id)
         : const <String>{};
     final diveIds = [for (final s in samples) s.diveId];
+    final stamps = await _summaries.getSummaryStamps(diveIds);
     final fingerprint = conditionInputFingerprint(
       item: item,
       parent: parent,
-      summaryStamps: await _summaries.getSummaryStamps(diveIds),
+      summaryStamps: {
+        for (final e in stamps.entries)
+          e.key: '${e.value.engineVersion}/${e.value.sourceUpdatedAt}',
+      },
       transmitterSerials: serials,
       samples: samples,
       observations: observations,
@@ -117,6 +125,24 @@ class EquipmentConditionRefresher {
         review.inputFingerprint == fingerprint;
     if (current || !engineEnabled) return _findings.getFindings(item.id);
 
+    // Summaries are device-local: a dive that arrived by sync, or changed
+    // since, has none yet (or a stale one). The sensor rules cannot say
+    // whether they still fire without them, so a finding they made
+    // (perhaps on another device) is kept rather than tombstoned, no
+    // marker is saved, and the missing summaries are asked for; their
+    // arrival changes the fingerprint and the item recomputes in full.
+    bool summarised(EquipmentExposureSample s) {
+      final stamp = stamps[s.diveId];
+      return stamp != null &&
+          stamp.engineVersion >= DiveSensorSummaryService.version &&
+          stamp.sourceUpdatedAt == s.updatedAt;
+    }
+
+    final missing = {
+      for (final s in samples)
+        if (!summarised(s)) s.diveId,
+    };
+    if (missing.isNotEmpty) _requestSummaries?.call(missing);
     final summaries = await _summaries.getSummaries(diveIds);
     final stamp = now ?? DateTime.now().toUtc();
     final findings = _engine.evaluate(
@@ -140,6 +166,10 @@ class EquipmentConditionRefresher {
       // Dates for the dismissal carry-over: only a dive that happened
       // after the dismissal counts towards re-raising a finding.
       diveDates: {for (final s in samples) s.diveId: s.date},
+      keepIfNotEmitted: missing.isEmpty
+          ? const {}
+          : EquipmentConditionEngine.summaryRules,
+      recordMarker: missing.isEmpty,
       now: stamp,
     );
     return _findings.getFindings(item.id);
