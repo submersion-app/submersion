@@ -2447,12 +2447,18 @@ class DiveRepository {
         filter.equipmentIds.length,
         '?',
       ).join(', ');
+      // Directly linked, or through a tank the registry matched to a
+      // cylinder, in step with the statistics filter and apply().
       clauses.add(
-        'EXISTS (SELECT 1 FROM dive_equipment de '
-        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders))',
+        '(EXISTS (SELECT 1 FROM dive_equipment de '
+        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders)) '
+        'OR EXISTS (SELECT 1 FROM dive_tanks dt '
+        'WHERE dt.dive_id = d.id AND dt.equipment_id IN ($placeholders)))',
       );
-      for (final eqId in filter.equipmentIds) {
-        args.add(Variable(eqId));
+      for (var pass = 0; pass < 2; pass++) {
+        for (final eqId in filter.equipmentIds) {
+          args.add(Variable(eqId));
+        }
       }
     }
     if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
