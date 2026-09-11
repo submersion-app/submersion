@@ -6,7 +6,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_grouping_controls.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_grouping_controls.dart'
+    show applyEquipmentArrangement;
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sort_sheet_layout.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
