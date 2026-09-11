@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
@@ -41,6 +43,7 @@ void main() {
   ({ProviderContainer container, _FakeExportService export, _FakeRepo repo})
   make({
     List<EquipmentObservation>? observations,
+    List<Dive>? scopedDives,
     bool cancelSave = false,
     bool throwOnShare = false,
   }) {
@@ -56,10 +59,17 @@ void main() {
       overrides: [
         allEquipmentProvider.overrideWith((ref) async => const [reg]),
         divesProvider.overrideWith(
-          (ref) async => [
-            Dive(id: 'd1', diveNumber: 42, dateTime: DateTime.utc(2026, 3, 1)),
-          ],
+          (ref) async =>
+              scopedDives ??
+              [
+                Dive(
+                  id: 'd1',
+                  diveNumber: 42,
+                  dateTime: DateTime.utc(2026, 3, 1),
+                ),
+              ],
         ),
+        diveRepositoryProvider.overrideWithValue(_FakeDiveRepo()),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
         equipmentObservationRepositoryProvider.overrideWithValue(repo),
         settingsProvider.overrideWith((ref) => _FixedSettings()),
@@ -89,6 +99,18 @@ void main() {
       );
     },
   );
+
+  test('a check-in keeps its dive number when the dive list is scoped '
+      'to a stale diver id', () async {
+    // The dive list follows the raw diver id while the check-ins follow the
+    // validated one. A stale raw id empties the list, which used to leave
+    // every check-in row without its dive number.
+    final t = make(scopedDives: const []);
+    await t.container
+        .read(exportNotifierProvider.notifier)
+        .exportObservationsToCsv();
+    expect(t.export.shared.single.diveNumber, 42);
+  });
 
   test('nothing to export says so instead of writing an empty file', () async {
     final t = make(observations: const []);
@@ -152,6 +174,23 @@ class _FakeRepo implements EquipmentObservationRepository {
         if (diverId == null || o.diverId == diverId) o,
     ];
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _FakeDiveRepo implements DiveRepository {
+  @override
+  Future<List<DiveSummary>> getSummariesByIds(List<String> ids) async => [
+    for (final id in ids)
+      if (id == 'd1')
+        DiveSummary(
+          id: 'd1',
+          diveNumber: 42,
+          dateTime: DateTime.utc(2026, 3, 1),
+          sortTimestamp: DateTime.utc(2026, 3, 1).millisecondsSinceEpoch,
+        ),
+  ];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

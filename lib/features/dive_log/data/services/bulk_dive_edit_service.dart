@@ -371,6 +371,8 @@ class BulkDiveEditService {
         transmitterSerial: r.transmitterSerial,
         regulatorEquipmentId: r.regulatorEquipmentId,
         sourceTankIndex: r.sourceTankIndex,
+        // Undo restores the cylinder link the registry recorded.
+        equipmentId: r.equipmentId,
       ),
   ];
 
