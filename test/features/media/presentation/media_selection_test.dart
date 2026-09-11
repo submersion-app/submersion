@@ -203,6 +203,7 @@ void main() {
           mediaRepositoryProvider.overrideWithValue(mediaRepo),
           diveRepositoryProvider.overrideWithValue(_FakeDiveRepo()),
           currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
           mediaSourceResolverRegistryProvider.overrideWithValue(
             MediaSourceResolverRegistry({
               MediaSourceType.localFile: _UnavailableResolver(),
@@ -528,6 +529,7 @@ void main() {
         mediaRepositoryProvider.overrideWithValue(_RecordingMediaRepo()),
         diveRepositoryProvider.overrideWithValue(_FakeDiveRepo()),
         currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
         mediaSourceResolverRegistryProvider.overrideWithValue(
           MediaSourceResolverRegistry({
             MediaSourceType.localFile: _UnavailableResolver(),
@@ -611,6 +613,7 @@ void main() {
             currentDiverIdProvider.overrideWith(
               (ref) => _FixedDiverIdNotifier(),
             ),
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
                 MediaSourceType.localFile: _UnavailableResolver(),
