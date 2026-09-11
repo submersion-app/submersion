@@ -1030,8 +1030,9 @@ class EquipmentRepository {
   }
 
   /// When the next part of [item]'s type went into the same slot after it,
-  /// or null when none has. Batteries carry no slot, so the next battery
-  /// of the same parent is the successor.
+  /// or null when none has (or when a cell carries no slot to match).
+  /// Batteries carry no slot, so the next battery of the same parent is
+  /// the successor.
   static DateTime? successorStart(
     EquipmentItem item,
     List<EquipmentItem> siblings,
@@ -1039,6 +1040,9 @@ class EquipmentRepository {
     final from = item.parentDivesFrom;
     if (from == null) return null;
     final slot = item.attrNum(EquipmentAttrKeys.cellSlot)?.round();
+    // A slot is what says which later part took this one's place. Only
+    // batteries succeed without one; a slotless cell has no successor.
+    if (slot == null && item.type != EquipmentType.battery) return null;
     DateTime? earliest;
     for (final s in siblings) {
       if (s.id == item.id || s.type != item.type) continue;
