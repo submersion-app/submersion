@@ -2151,4 +2151,68 @@ void main() {
       expect(after.index, 0);
     });
   });
+
+  group('setSelections', () {
+    test('updates selectedIndices correctly for a range', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+
+      final bundle = ImportBundle(
+        dives: const EntityGroup(
+          items: [
+            EntityItem(title: 'Dive 1', subtitle: ''),
+            EntityItem(title: 'Dive 2', subtitle: ''),
+            EntityItem(title: 'Dive 3', subtitle: ''),
+            EntityItem(title: 'Dive 4', subtitle: ''),
+          ],
+        ),
+      );
+
+      notifier.setBundle(bundle);
+
+      // Verify nothing is selected yet
+      var state = container.read(importWizardNotifierProvider);
+      expect(state.selectedIndices[ImportEntityType.dives], isEmpty);
+
+      // Select indices {1, 2, 3}
+      notifier.setSelections(ImportEntityType.dives, {1, 2, 3}, true);
+      state = container.read(importWizardNotifierProvider);
+      expect(state.selectedIndices[ImportEntityType.dives], {1, 2, 3});
+
+      // Deselect index 2
+      notifier.setSelections(ImportEntityType.dives, {2}, false);
+      state = container.read(importWizardNotifierProvider);
+      expect(state.selectedIndices[ImportEntityType.dives], {1, 3});
+    });
+
+    test('ignores indices that are duplicates (which cannot be selected)', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+
+      final bundle = ImportBundle(
+        dives: const EntityGroup(
+          items: [
+            EntityItem(title: 'Dive 1', subtitle: ''),
+            EntityItem(title: 'Dive 2', subtitle: ''),
+            EntityItem(title: 'Dive 3', subtitle: ''),
+          ],
+          duplicateIndices: {1}, // Index 1 is a duplicate
+        ),
+      );
+
+      notifier.setBundle(bundle);
+
+      // Attempt to select {0, 1, 2}
+      notifier.setSelections(ImportEntityType.dives, {0, 1, 2}, true);
+
+      var state = container.read(importWizardNotifierProvider);
+
+      // Index 1 should NOT be selected because it's in duplicateIndices
+      expect(state.selectedIndices[ImportEntityType.dives], {0, 2});
+    });
+  });
 }
