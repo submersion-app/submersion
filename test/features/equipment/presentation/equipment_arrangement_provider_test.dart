@@ -529,6 +529,83 @@ void main() {
     );
   });
 
+  test('a newer read that fails defers to the read still in flight', () async {
+    // "Could not read" decides nothing. If a tick's read fails while the
+    // launch read is still out, the launch read must still get to publish,
+    // and `loaded` must wait for it: an edit queued behind `loaded` would
+    // otherwise build on the defaults and write them over the stored axes.
+    final fake = _OrderedFakeRepository();
+    final container = ProviderContainer(
+      overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+    final notifier = container.read(
+      equipmentArrangementNotifierProvider.notifier,
+    );
+    var settled = false;
+    unawaited(notifier.loaded.then((_) => settled = true));
+    await pumpEventQueue();
+
+    fake.settingsTicks.add(null);
+    await pumpEventQueue();
+    expect(fake.pending, hasLength(2));
+    final edit = notifier.updateArrangement(
+      (current) => current.copyWith(groupByType: false),
+    );
+
+    fake.pending[1].completeError(StateError('read failed'));
+    await pumpEventQueue();
+    expect(settled, isFalse, reason: 'the launch read is still out');
+
+    const stored = EquipmentArrangement(
+      typeOrder: EquipmentTypeOrder.headToToe,
+      groupByType: true,
+      itemSortField: EquipmentItemSortField.purchaseDate,
+      itemSortDirection: SortDirection.descending,
+    );
+    fake.pending[0].complete(stored);
+    await edit;
+
+    expect(settled, isTrue);
+    expect(
+      container.read(equipmentArrangementNotifierProvider),
+      stored.copyWith(groupByType: false),
+    );
+  });
+
+  test(
+    'a read that deferred to a newer one is used when that one fails',
+    () async {
+      // The older read landed first and stood aside for the newer one. The
+      // newer one then failed, so the older value is the best storage gave.
+      final fake = _OrderedFakeRepository();
+      final container = ProviderContainer(
+        overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(
+        equipmentArrangementNotifierProvider.notifier,
+      );
+      await pumpEventQueue();
+      fake.settingsTicks.add(null);
+      await pumpEventQueue();
+
+      fake.pending[0].complete(
+        EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.dressingOrder,
+        ),
+      );
+      await pumpEventQueue();
+      fake.pending[1].completeError(StateError('read failed'));
+      await notifier.loaded.timeout(const Duration(seconds: 5));
+
+      expect(
+        container.read(equipmentArrangementNotifierProvider).typeOrder,
+        EquipmentTypeOrder.dressingOrder,
+      );
+    },
+  );
+
   test('loaded settles when the read fails, so a caller cannot hang', () async {
     final fake = _FakeSettingsRepository()..failRead = true;
     final container = containerWith(fake);
