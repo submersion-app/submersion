@@ -140,7 +140,7 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    final key = (equipmentId: 'x', kind: null);
+    const key = (equipmentId: 'x', kind: null);
     final sub = container.listen(conditionTrendProvider(key), (_, _) {});
     addTearDown(sub.close);
     await container.read(conditionTrendProvider(key).future);

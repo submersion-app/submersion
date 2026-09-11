@@ -6,6 +6,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -36,7 +38,22 @@ class ConditionTrendCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final selected = ref.watch(selectedConditionFindingProvider(equipment.id));
+    // The selection is a snapshot. Shade the finding as it is now, and
+    // only while the findings card still shows it: the master switch and
+    // the rule toggles hide findings without clearing the selection.
+    final selectedId = ref
+        .watch(selectedConditionFindingProvider(equipment.id))
+        ?.id;
+    final selected = selectedId == null || !settings.conditionEngineEnabled
+        ? null
+        : (ref.watch(equipmentConditionProvider(equipment.id)).value ??
+                  const <EquipmentFinding>[])
+              .where(
+                (f) =>
+                    f.id == selectedId &&
+                    !settings.conditionDisabledRules.contains(f.ruleId.dbValue),
+              )
+              .firstOrNull;
     final palette = _palette(theme.colorScheme);
 
     final series = <TrendSeries>[
