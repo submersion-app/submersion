@@ -528,8 +528,9 @@ A provider, not a stored finding. For each active rebreather:
   times the median dives per dive day over the diver's last three trips
   (default 2 when there is no history);
 - expected use = expected dives times (`trips.expected_runtime_minutes`, else
-  the median `scrubber_consumed_minutes` over the last 30 CCR dives, default
-  the median CCR runtime when no dive carries scrubber figures);
+  the median `scrubber_consumed_minutes` over the last 30 CCR and SCR dives
+  (both pack a scrubber), default their median runtime when no dive carries
+  scrubber figures);
 - margin after = remaining minus expected use.
 
 The card states all four figures, the n behind each estimate, and a caution
