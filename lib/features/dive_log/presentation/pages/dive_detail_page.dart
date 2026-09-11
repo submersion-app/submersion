@@ -5424,6 +5424,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               title: Text(context.l10n.diveLog_export_csv),
               subtitle: Text(context.l10n.diveLog_export_csvDescription),
               onTap: () {
+                final saveTitle =
+                    context.l10n.settings_export_saveDivesCsvDialogTitle;
                 Navigator.of(sheetContext).pop();
                 _handleSingleDiveExport(
                   context,
@@ -5433,7 +5435,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       ref.read(exportServiceProvider).exportDivesToCsv([dive]),
                   saveFn: (_) => ref
                       .read(exportServiceProvider)
-                      .saveDivesCsvToFile([dive]),
+                      .saveDivesCsvToFile([dive], dialogTitle: saveTitle),
                 );
               },
             ),

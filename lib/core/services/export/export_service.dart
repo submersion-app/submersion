@@ -105,16 +105,27 @@ class ExportService {
     componentNames: componentNames,
   );
 
-  Future<String?> saveDivesCsvToFile(List<Dive> dives) =>
-      _csv.saveDivesCsvToFile(dives);
+  // Each CSV save takes its picker title from the caller, which has the
+  // diver's locale; the service has none.
+  Future<String?> saveDivesCsvToFile(
+    List<Dive> dives, {
+    required String dialogTitle,
+  }) => _csv.saveDivesCsvToFile(dives, dialogTitle: dialogTitle);
 
-  Future<String?> saveSitesCsvToFile(List<DiveSite> sites) =>
-      _csv.saveSitesCsvToFile(sites);
+  Future<String?> saveSitesCsvToFile(
+    List<DiveSite> sites, {
+    required String dialogTitle,
+  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle);
 
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
-  }) => _csv.saveEquipmentCsvToFile(equipment, componentNames: componentNames);
+    required String dialogTitle,
+  }) => _csv.saveEquipmentCsvToFile(
+    equipment,
+    componentNames: componentNames,
+    dialogTitle: dialogTitle,
+  );
 
   Future<String> exportObservationsToCsv(List<ObservationExportRow> rows) =>
       _csv.exportObservationsToCsv(rows);
@@ -122,8 +133,10 @@ class ExportService {
   String generateObservationsCsvContent(List<ObservationExportRow> rows) =>
       _csv.generateObservationsCsvContent(rows);
 
-  Future<String?> saveObservationsCsvToFile(List<ObservationExportRow> rows) =>
-      _csv.saveObservationsCsvToFile(rows);
+  Future<String?> saveObservationsCsvToFile(
+    List<ObservationExportRow> rows, {
+    required String dialogTitle,
+  }) => _csv.saveObservationsCsvToFile(rows, dialogTitle: dialogTitle);
 
   // ==================== PDF Export ====================
 

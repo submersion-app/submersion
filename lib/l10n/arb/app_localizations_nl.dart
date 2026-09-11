@@ -37383,6 +37383,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_export_saveBackupDialogTitle => 'Back-up opslaan';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle => 'Duiken-CSV opslaan';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle =>
+      'Duikstekken-CSV opslaan';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Uitrusting-CSV opslaan';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'CSV van uitrusting-check-ins opslaan';
+
+  @override
   String backup_operation_created(String size) {
     return 'Back-up gemaakt: $size';
   }
