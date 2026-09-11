@@ -297,10 +297,11 @@ class EquipmentConditionEngine {
         );
       }
     }
-    // The full window, like cellDivergent above: "2 of the last 5" needs
-    // five to have happened. Gating on the minimum count instead let two
-    // noisy readings on a barely used cell raise a significant finding.
-    if (limited.length >= limitedWindow) {
+    // From n = 2, over the last 5 qualifying dives or as many as there are.
+    // Unlike cellDivergent this does not wait for a full window: a
+    // current-limited cell under-reads high ppO2, the one reading a diver
+    // must be able to trust, so two limited dives are enough to warn.
+    if (limited.length >= limitedMinCount) {
       final window = _lastN(limited, limitedWindow);
       final above = [
         for (final p in window)

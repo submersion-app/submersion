@@ -72,26 +72,18 @@ class EquipmentConditionRefresher {
     required bool engineEnabled,
     DateTime? now,
   }) async {
-    final parentId = item.parentEquipmentId;
-    final parent = parentId == null
-        ? null
-        : await _equipment.getEquipmentById(parentId);
+    // The repository's one wiring, shared with the service clocks and the
+    // exposure card: the same parent dives from the install date, and a
+    // replaced part's dives stop at its successor.
+    final exposure = await _equipment.getItemExposure(item);
+    final parent = exposure.parent;
     // Retired parts too: a retired cell tells the engine who occupied its
     // slot until its successor went in.
     final children = await _equipment.getChildEquipment(
       item.id,
       includeRetired: true,
     );
-    // Same link semantics the service clocks use (equipment_providers).
-    final isRebreather =
-        item.type == EquipmentType.rebreather ||
-        parent?.type == EquipmentType.rebreather;
-    final samples = await _equipment.getExposureSamplesForEquipment(
-      item.id,
-      parentEquipmentId: parentId,
-      installedSince: item.parentDivesFrom,
-      rebreatherContact: isRebreather,
-    );
+    final samples = exposure.samples;
     final observations = await _observations.getForEquipment(item.id);
     final incidents = await _incidents.getIncidentsForEquipment(item.id);
     // Both read before the marker check: the fingerprint has to see the

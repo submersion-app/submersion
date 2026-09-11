@@ -183,6 +183,25 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     return items.any((e) => e.id == id && allowed.contains(e.type)) ? id : null;
   }
 
+  /// The parent to write on save: [_validParentIdFor] once the active list
+  /// has loaded. Before that, the id may have come from a deep link
+  /// (`/equipment/new?parent=`), so it is looked up directly and kept only
+  /// when it names a fitted item of [diverId]'s whose type can hold [type].
+  Future<String?> _parentIdToSave(EquipmentType type, String? diverId) async {
+    final id = _parentEquipmentId;
+    if (id == null) return null;
+    if (ref.read(activeEquipmentProvider).valueOrNull != null) {
+      return _validParentIdFor(type);
+    }
+    final parent = await ref
+        .read(equipmentRepositoryProvider)
+        .getEquipmentById(id);
+    if (parent == null || !parent.isFitted || parent.diverId != diverId) {
+      return null;
+    }
+    return _parentTypesFor(type).contains(parent.type) ? id : null;
+  }
+
   /// Which item types can hold a child of [type]. Empty means the type is
   /// not a child type and the picker is hidden.
   static Set<EquipmentType> _parentTypesFor(EquipmentType type) =>
@@ -954,7 +973,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         purchaseDate: _purchaseDate,
         parentEquipmentId: _parentTypesFor(_selectedType).isEmpty
             ? null
-            : _validParentIdFor(_selectedType),
+            : await _parentIdToSave(_selectedType, diverId),
         // Blank means "no price"; anything unreadable was already stopped by
         // the field validator, so null here can only mean blank.
         purchasePrice: parseUserDecimal(_purchasePriceController.text),

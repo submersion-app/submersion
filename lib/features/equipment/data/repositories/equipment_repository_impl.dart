@@ -957,6 +957,89 @@ class EquipmentRepository {
     }
   }
 
+  /// [item]'s exposure, wired one way for every surface that reads it: the
+  /// service clocks, the reminder scheduler, the condition engine and the
+  /// item page's exposure card and trend. Samples come from the item's own
+  /// dives plus, for a part, its parent's dives from its install date; a
+  /// part no longer fitted stops at the install date of the next part of
+  /// its type in the same slot, so a replaced cell's history does not keep
+  /// growing with its successor's dives. [fittedChildren] leaves out parts
+  /// retired or sold (even with isActive left true), which must not switch
+  /// the parent's battery cycles off.
+  ///
+  /// [siblings] is the active gear list when the caller already has it, so
+  /// the parent and children lookups cost no query per item.
+  Future<
+    ({
+      EquipmentItem? parent,
+      List<EquipmentItem> fittedChildren,
+      bool isRebreather,
+      List<EquipmentExposureSample> samples,
+    })
+  >
+  getItemExposure(EquipmentItem item, {List<EquipmentItem>? siblings}) async {
+    final parentId = item.parentEquipmentId;
+    final parent = parentId == null
+        ? null
+        : siblings?.where((s) => s.id == parentId).firstOrNull ??
+              await getEquipmentById(parentId);
+    final fittedChildren = [
+      for (final c
+          in siblings != null
+              ? siblings.where((s) => s.parentEquipmentId == item.id)
+              : await getChildEquipment(item.id))
+        if (c.isFitted) c,
+    ];
+    final isRebreather =
+        item.type == EquipmentType.rebreather ||
+        parent?.type == EquipmentType.rebreather;
+    final samples = await getExposureSamplesForEquipment(
+      item.id,
+      parentEquipmentId: parentId,
+      installedSince: item.parentDivesFrom,
+      rebreatherContact: isRebreather,
+    );
+    // Only a part no longer fitted can have a successor.
+    final until = parentId == null || item.isFitted
+        ? null
+        : successorStart(
+            item,
+            await getChildEquipment(parentId, includeRetired: true),
+          );
+    return (
+      parent: parent,
+      fittedChildren: fittedChildren,
+      isRebreather: isRebreather,
+      samples: until == null
+          ? samples
+          : [
+              for (final s in samples)
+                if (s.date.isBefore(until)) s,
+            ],
+    );
+  }
+
+  /// When the next part of [item]'s type went into the same slot after it,
+  /// or null when none has. Batteries carry no slot, so the next battery
+  /// of the same parent is the successor.
+  static DateTime? successorStart(
+    EquipmentItem item,
+    List<EquipmentItem> siblings,
+  ) {
+    final from = item.parentDivesFrom;
+    if (from == null) return null;
+    final slot = item.attrNum(EquipmentAttrKeys.cellSlot)?.round();
+    DateTime? earliest;
+    for (final s in siblings) {
+      if (s.id == item.id || s.type != item.type) continue;
+      if (s.attrNum(EquipmentAttrKeys.cellSlot)?.round() != slot) continue;
+      final start = s.parentDivesFrom;
+      if (start == null || !start.isAfter(from)) continue;
+      if (earliest == null || start.isBefore(earliest)) earliest = start;
+    }
+    return earliest;
+  }
+
   /// The regulator last paired with a cylinder preset, for prefilling the
   /// tank editor: the newest dive whose tank of that preset names one.
   /// Operational, not descriptive: an excluded dive still tells us which
