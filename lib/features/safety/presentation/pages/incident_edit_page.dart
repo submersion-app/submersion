@@ -335,7 +335,9 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
         contributingFactors: factors.isEmpty ? null : factors,
         lessonsLearned: lessons.isEmpty ? null : lessons,
         diveId: widget.diveId,
-        diverId: ref.read(currentDiverIdProvider),
+        // The validated id, as the gear picker and the incident list read
+        // it: a stale raw id would file the report where neither looks.
+        diverId: await ref.read(validatedCurrentDiverIdProvider.future),
         equipmentId: _equipmentId,
       );
     } else {
