@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/trips/data/repositories/trip_history_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -40,6 +41,8 @@ void main() {
     int? runtime = 3600,
     int? bottomTime,
     double? scrubber,
+    int summaryStamp = 1,
+    int summaryVersion = DiveSensorSummaryService.version,
   }) async {
     await db
         .into(db.dives)
@@ -70,8 +73,8 @@ void main() {
           .insert(
             DiveSensorSummariesCompanion.insert(
               diveId: id,
-              engineVersion: 1,
-              sourceUpdatedAt: 1,
+              engineVersion: summaryVersion,
+              sourceUpdatedAt: summaryStamp,
               computedAt: 1,
             ).copyWith(scrubberConsumedMinutes: Value(scrubber)),
           );
@@ -136,6 +139,33 @@ void main() {
       limit: 1,
     );
     expect(one.single.scrubberMinutes, 55);
+  });
+
+  test('a stale summary gives way to the runtime', () async {
+    // A summary built before the dive's last edit, or by an older engine,
+    // describes a dive that no longer exists. Its scrubber minutes must
+    // not reach the median while the rebuild is pending.
+    await dive(
+      'edited',
+      DateTime(2026, 1, 2),
+      mode: 'ccr',
+      scrubber: 40,
+      summaryStamp: 0,
+    );
+    await dive(
+      'old-engine',
+      DateTime(2026, 1, 3),
+      mode: 'ccr',
+      scrubber: 45,
+      summaryVersion: DiveSensorSummaryService.version - 1,
+    );
+    await dive('current', DateTime(2026, 1, 4), mode: 'ccr', scrubber: 50);
+
+    final figures = await repo.recentRebreatherFigures(
+      before: DateTime(2026, 6, 1),
+    );
+    expect(figures.map((f) => f.scrubberMinutes), [50, null, null]);
+    expect(figures.map((f) => f.runtimeMinutes), [60, 60, 60]);
   });
 
   test('the cut-off is the calendar day, in any zone', () async {

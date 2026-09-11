@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/trips/domain/services/scrubber_margin_service.dart';
 
 /// The two history reads behind the scrubber margin estimates. Both take
@@ -59,7 +60,9 @@ class TripHistoryRepository {
   /// The most recent [limit] CCR or SCR dives before [before], newest
   /// first: the summary's scrubber minutes when the dive has one, and the
   /// dive's length in minutes, read as the rest of the app reads it
-  /// (runtime, else bottom time). Null when the dive has neither: a zero
+  /// (runtime, else bottom time). Only a summary current for the dive
+  /// counts: one built before an edit, or by an older engine, gives way to
+  /// the runtime until its rebuild lands. Null when the dive has neither: a zero
   /// would drag the runtime median down and understate expected use.
   ///
   /// [diverId] scopes it to one diver; null applies no scoping and reads
@@ -80,13 +83,17 @@ class TripHistoryRepository {
             s.scrubber_consumed_minutes AS scrubber,
             COALESCE(d.runtime, d.bottom_time) AS runtime
           FROM dives d
-          LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
+          LEFT JOIN dive_sensor_summaries s
+            ON s.dive_id = d.id
+            AND s.source_updated_at = d.updated_at
+            AND s.engine_version >= ?
           WHERE d.dive_mode IN ('ccr', 'scr')
             AND d.dive_date_time < ? $diverFilter
           ORDER BY d.dive_date_time DESC
           LIMIT ?
           ''',
           variables: [
+            Variable.withInt(DiveSensorSummaryService.version),
             Variable(asDiveWallClockDate(before).millisecondsSinceEpoch),
             if (diverId != null) Variable(diverId),
             Variable(limit),

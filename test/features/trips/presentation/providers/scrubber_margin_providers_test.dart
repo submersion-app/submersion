@@ -46,6 +46,7 @@ void main() {
     String equipmentId, {
     int runtime = 3600,
     double? scrubber,
+    int summaryStamp = 1,
   }) async {
     await db
         .into(db.dives)
@@ -76,7 +77,7 @@ void main() {
             DiveSensorSummariesCompanion.insert(
               diveId: id,
               engineVersion: 1,
-              sourceUpdatedAt: 1,
+              sourceUpdatedAt: summaryStamp,
               computedAt: 1,
             ).copyWith(scrubberConsumedMinutes: Value(scrubber)),
           );
@@ -167,6 +168,41 @@ void main() {
       expect(past.single.minutesPerDiveN, 1);
     },
   );
+
+  test('a stale summary gives way to the runtime in the consumed '
+      'minutes', () async {
+    // A loop dive edited after its summary was built: the stored scrubber
+    // minutes describe the dive before the edit, so its runtime counts
+    // until the rebuild lands, as the exposure inputs already read it.
+    final ccr = await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'CCR',
+        type: EquipmentType.rebreather,
+        attributes: [
+          EquipmentAttribute(
+            id: '',
+            equipmentId: '',
+            key: 'scrubber_duration_h',
+            valueNum: 5,
+          ),
+        ],
+      ),
+    );
+    await ccrDive(
+      'edited',
+      DateTime(2026, 3, 10),
+      ccr.id,
+      scrubber: 40,
+      summaryStamp: 0,
+    );
+    final june = await trip('June', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+
+    final margins = await container.read(
+      tripScrubberMarginsProvider(june.id).future,
+    );
+    expect(margins.single.consumedMinutes, 60);
+  });
 
   test('a repack on the trip start date is the anchor', () async {
     // Service dates come from a date picker, so a repack logged on the

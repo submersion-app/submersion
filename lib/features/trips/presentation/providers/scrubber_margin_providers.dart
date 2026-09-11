@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -117,8 +118,15 @@ final tripScrubberMarginsProvider =
         ]);
         var consumed = 0.0;
         for (final s in loopDives) {
+          // Only a summary current for the dive: one built before an edit
+          // describes the dive as it was, so the runtime counts until the
+          // rebuild lands.
+          final summary = byDive[s.diveId];
+          final current =
+              summary != null &&
+              DiveSensorSummaryService.isCurrent(summary, s.updatedAt);
           consumed +=
-              byDive[s.diveId]?.scrubberConsumedMinutes ??
+              (current ? summary.scrubberConsumedMinutes : null) ??
               s.durationSeconds / 60.0;
         }
         margins.add(
