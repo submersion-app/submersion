@@ -712,7 +712,7 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final usage = await repository.getExposureSamplesForEquipment(
     item.id,
     parentEquipmentId: parentId,
-    installedSince: item.installedDate,
+    installedSince: item.parentDivesFrom,
     rebreatherContact: isRebreather,
   );
   final classifier = ExposureClassifier(

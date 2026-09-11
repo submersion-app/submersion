@@ -215,13 +215,18 @@ class EquipmentRepository {
   }
 
   /// Active items installed in [parentId] (O2 cells, batteries).
-  Future<List<EquipmentItem>> getChildEquipment(String parentId) async {
+  Future<List<EquipmentItem>> getChildEquipment(
+    String parentId, {
+    bool includeRetired = false,
+  }) async {
     final rows =
         await (_db.select(_db.equipment)
               ..where(
                 (t) =>
                     t.parentEquipmentId.equals(parentId) &
-                    t.isActive.equals(true),
+                    (includeRetired
+                        ? const Constant(true)
+                        : t.isActive.equals(true)),
               )
               ..orderBy([(t) => OrderingTerm.asc(t.name)]))
             .get();

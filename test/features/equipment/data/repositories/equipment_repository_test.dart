@@ -678,4 +678,39 @@ void main() {
       );
     });
   });
+
+  test('child parts: active by default, retired ones on request', () async {
+    // The condition engine needs retired cells to know who occupied a
+    // slot; the children card and the clocks want only what is fitted.
+    final ccr = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),
+    );
+    final fitted = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Fitted',
+        type: EquipmentType.o2Cell,
+        parentEquipmentId: ccr.id,
+      ),
+    );
+    final old = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Old',
+        type: EquipmentType.o2Cell,
+        parentEquipmentId: ccr.id,
+      ),
+    );
+    await repository.retireEquipment(old.id);
+    expect((await repository.getChildEquipment(ccr.id)).map((c) => c.id), [
+      fitted.id,
+    ]);
+    expect(
+      (await repository.getChildEquipment(
+        ccr.id,
+        includeRetired: true,
+      )).map((c) => c.id).toSet(),
+      {fitted.id, old.id},
+    );
+  });
 }
