@@ -239,4 +239,50 @@ void main() {
     }
     expect(summaries.reads, greaterThan(before));
   });
+
+  test('a registry edit leaves a cell chart alone', () async {
+    // Only the transmitter chart reads the serials; any other chart
+    // rebuilding on a registry write re-reads its summaries for nothing.
+    final summaries = _CountingSummaries();
+    final container = ProviderContainer(
+      overrides: [
+        diveSensorSummaryRepositoryProvider.overrideWithValue(summaries),
+        equipmentExposureInputsProvider('x').overrideWith(
+          (ref) async => (
+            item: const EquipmentItem(
+              id: 'x',
+              name: 'X',
+              type: EquipmentType.rebreather,
+            ),
+            parent: null,
+            children: const <EquipmentItem>[],
+            samples: const <EquipmentExposureSample>[],
+            classifier: const ExposureClassifier(),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    const key = (equipmentId: 'x', kind: null);
+    final sub = container.listen(conditionTrendProvider(key), (_, _) {});
+    addTearDown(sub.close);
+    await container.read(conditionTrendProvider(key).future);
+    final before = summaries.reads;
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 't1',
+            label: 'Back gas',
+            tankRole: 'backGas',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(transmitterSerial: const Value('ABC123')),
+        );
+    for (var i = 0; i < 50; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(summaries.reads, before);
+  });
 }

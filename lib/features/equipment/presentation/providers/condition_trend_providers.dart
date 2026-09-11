@@ -29,17 +29,19 @@ final conditionTrendProvider =
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
       );
-      // The registry serials decide which gaps belong to a transmitter;
-      // assigning one writes only the registry.
-      ref.invalidateSelfWhen(
-        ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
-      );
       final inputs = await ref.watch(
         equipmentExposureInputsProvider(key.equipmentId).future,
       );
       if (inputs == null) return null;
       final kind = key.kind ?? defaultConditionTrendKind(inputs.item.type);
       if (kind == null) return null;
+      // The registry serials decide which gaps belong to a transmitter;
+      // assigning one writes only the registry. No other chart reads them.
+      if (kind == ConditionTrendKind.transmitterGapFraction) {
+        ref.invalidateSelfWhen(
+          ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
+        );
+      }
       // Each input is loaded only for the kind that reads it: check-ins
       // mark the temperature chart's issue dives, the sensor summaries
       // feed the other three, and the serials only the transmitter's.
