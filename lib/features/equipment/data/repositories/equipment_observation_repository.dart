@@ -179,11 +179,12 @@ class EquipmentObservationRepository {
         diveId: Value(o.diveId),
         observedAt: o.observedAt.millisecondsSinceEpoch,
         status: o.status.dbValue,
-        // An OK check carries no tags, so a newer peer's names go with the
-        // rest when an issue is turned into one.
+        // An OK check carries no tags, known or a newer peer's: they go
+        // when an issue is turned into one, and an imported or synced OK row
+        // that arrives carrying some does not keep them.
         issueTags: Value(
           encodeObservationTags(
-            o.issueTags,
+            o.isIssue ? o.issueTags : const [],
             unrecognized: o.isIssue ? o.unrecognizedTags : const [],
           ),
         ),
