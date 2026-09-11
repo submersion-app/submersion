@@ -317,11 +317,9 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
                 urlTemplate: ref.watch(mapTileUrlProvider),
                 userAgentPackageName: 'app.submersion',
                 maxZoom: ref.watch(mapTileMaxZoomProvider),
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider(
-                        urlTemplate: ref.watch(mapTileUrlProvider),
-                      )
-                    : null,
+                tileProvider: TileCacheService.instance.tileProviderFor(
+                  urlTemplate: ref.watch(mapTileUrlProvider),
+                ),
               ),
               // Markers layer - shows sites with dives
               MarkerClusterLayerWidget(

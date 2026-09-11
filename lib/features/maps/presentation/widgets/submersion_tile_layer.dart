@@ -23,8 +23,8 @@ TileLayer submersionTileLayer(
     userAgentPackageName: 'app.submersion',
     maxZoom: maxZoomOverride ?? ref.watch(mapTileMaxZoomProvider),
     tileDisplay: tileDisplay,
-    tileProvider: TileCacheService.instance.isInitialized
-        ? TileCacheService.instance.getTileProvider(urlTemplate: urlTemplate)
-        : null,
+    tileProvider: TileCacheService.instance.tileProviderFor(
+      urlTemplate: urlTemplate,
+    ),
   );
 }

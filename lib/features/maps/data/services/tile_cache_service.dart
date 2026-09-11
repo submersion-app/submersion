@@ -360,12 +360,21 @@ class TileCacheService {
     BrowseLoadingStrategy loadingStrategy = BrowseLoadingStrategy.cacheFirst,
   }) {
     _ensureInitialized();
-    // coverage:ignore-end
     return browseTileProvider(
       urlTemplate: urlTemplate,
       loadingStrategy: loadingStrategy,
     );
+    // coverage:ignore-end
   }
+
+  /// The browse provider for [urlTemplate], or null until [initialize] has
+  /// succeeded.
+  ///
+  /// This is what a map hands to `TileLayer.tileProvider`: null there means
+  /// flutter_map's own network provider, so a cache that failed to start
+  /// leaves the maps working, just uncached.
+  FMTCTileProvider? tileProviderFor({required String urlTemplate}) =>
+      isInitialized ? getTileProvider(urlTemplate: urlTemplate) : null;
 
   /// One HTTP client per tile URL template, shared by every provider this
   /// service builds for that template.
@@ -454,16 +463,16 @@ class TileCacheService {
     }
   }
 
+  // coverage:ignore-start
   /// Get a tile provider configured for offline-only usage.
   ///
   /// This provider will only use cached tiles and will not make network
   /// requests.
   FMTCTileProvider getOfflineTileProvider({required String urlTemplate}) {
-    // coverage:ignore-start
     _ensureInitialized();
-    // coverage:ignore-end
     return offlineTileProvider(urlTemplate: urlTemplate);
   }
+  // coverage:ignore-end
 
   /// The provider [getOfflineTileProvider] hands out, without the
   /// initialization guard, so its identity can be asserted in tests.

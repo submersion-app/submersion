@@ -131,6 +131,16 @@ void main() {
       expect(cacheKey(before, osm), isNot(cacheKey(after, esri)));
     });
 
+    test('an uninitialized cache hands maps no provider', () {
+      // Every map passes this straight to TileLayer.tileProvider, where null
+      // means flutter_map's own network provider: a cache that failed to
+      // start must still leave the maps working.
+      expect(
+        TileCacheService.instance.tileProviderFor(urlTemplate: osm),
+        isNull,
+      );
+    });
+
     test('a different loading strategy is a different cache key', () {
       expect(
         TileCacheService.browseTileProvider(urlTemplate: osm),
