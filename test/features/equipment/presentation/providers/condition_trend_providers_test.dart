@@ -1,3 +1,6 @@
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -112,5 +115,51 @@ void main() {
       )).future,
     );
     expect(trend?.kind, ConditionTrendKind.scrubberMinutes);
+  });
+
+  test('a registry edit redraws an open transmitter chart', () async {
+    // The serials decide which gaps belong to the item; assigning one
+    // writes only the transmitter registry.
+    final summaries = _CountingSummaries();
+    final container = ProviderContainer(
+      overrides: [
+        diveSensorSummaryRepositoryProvider.overrideWithValue(summaries),
+        equipmentExposureInputsProvider('x').overrideWith(
+          (ref) async => (
+            item: const EquipmentItem(
+              id: 'x',
+              name: 'X',
+              type: EquipmentType.transmitter,
+            ),
+            parent: null,
+            children: const <EquipmentItem>[],
+            samples: const <EquipmentExposureSample>[],
+            classifier: const ExposureClassifier(),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final key = (equipmentId: 'x', kind: null);
+    final sub = container.listen(conditionTrendProvider(key), (_, _) {});
+    addTearDown(sub.close);
+    await container.read(conditionTrendProvider(key).future);
+    final before = summaries.reads;
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 't1',
+            label: 'Back gas',
+            tankRole: 'backGas',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(transmitterSerial: const Value('ABC123')),
+        );
+    for (var i = 0; i < 50 && summaries.reads == before; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(summaries.reads, greaterThan(before));
   });
 }

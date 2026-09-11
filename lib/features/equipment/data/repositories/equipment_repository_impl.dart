@@ -613,7 +613,9 @@ class EquipmentRepository {
       if (parentId == null) {
         throw ArgumentError.value(old.id, 'old', 'Not a child part');
       }
-      if (!current.isActive) {
+      // isFitted, not isActive: a legacy row can be retired or sold with
+      // isActive left true, and the repository treats both as gone.
+      if (!current.isFitted) {
         throw StateError('Equipment ${old.id} is already retired');
       }
       final slot = current.attrNum(EquipmentAttrKeys.cellSlot);
