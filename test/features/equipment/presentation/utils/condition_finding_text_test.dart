@@ -98,6 +98,38 @@ void main() {
     );
   });
 
+  test('a finding missing a count or its slot shows the rule name', () {
+    // Counts and the slot fill integer plural placeholders. A malformed
+    // row without them must not read "Cell 0" or "on 0 dives": the title
+    // falls back to the rule's own name rather than invent a number.
+    String title(EquipmentFinding f) =>
+        conditionFindingTitle(f, l10n, metric, thresholds: thresholds);
+    for (final f in [
+      finding(
+        ConditionRuleId.cellDivergent,
+        slot: 2,
+        values: {'worstP95': 0.2},
+      ),
+      finding(ConditionRuleId.cellOutputLow, values: {'recentMedian': 35}),
+      finding(ConditionRuleId.incidentLinked),
+      finding(
+        ConditionRuleId.issueColdCorrelated,
+        values: {'coldIssueDives': 3, 'coldDives': 8, 'warmDives': 33},
+      ),
+    ]) {
+      expect(
+        title(f),
+        conditionFindingShortLabel(f.ruleId, l10n),
+        reason: f.ruleId.name,
+      );
+    }
+    // A complete row still reads as a sentence.
+    expect(
+      title(finding(ConditionRuleId.incidentLinked, values: {'count': 2})),
+      isNot(conditionFindingShortLabel(ConditionRuleId.incidentLinked, l10n)),
+    );
+  });
+
   test('the cold correlation sentence shows the threshold in diver units', () {
     final f = finding(
       ConditionRuleId.issueColdCorrelated,
