@@ -126,10 +126,12 @@ void main() {
     );
     await dive('after', DateTime(2026, 9, 1), mode: 'ccr', scrubber: 10);
 
-    final figures = await repo.recentCcrFigures(before: DateTime(2026, 6, 1));
+    final figures = await repo.recentRebreatherFigures(
+      before: DateTime(2026, 6, 1),
+    );
     expect(figures.map((f) => f.scrubberMinutes), [55, null, 40]);
     expect(figures.map((f) => f.runtimeMinutes), [50, 70, 60]);
-    final one = await repo.recentCcrFigures(
+    final one = await repo.recentRebreatherFigures(
       before: DateTime(2026, 6, 1),
       limit: 1,
     );
@@ -142,7 +144,9 @@ void main() {
     // does not. CI runs in UTC; run under another TZ to discriminate.
     await dive('eve', DateTime.utc(2026, 5, 31, 22), mode: 'ccr');
     await dive('dawn', DateTime.utc(2026, 6, 1, 1), mode: 'ccr');
-    final figures = await repo.recentCcrFigures(before: DateTime(2026, 6, 1));
+    final figures = await repo.recentRebreatherFigures(
+      before: DateTime(2026, 6, 1),
+    );
     expect(figures, hasLength(1));
   });
 
@@ -159,7 +163,9 @@ void main() {
       bottomTime: 2400,
     );
     await dive('none', DateTime(2026, 1, 3), mode: 'ccr', runtime: null);
-    final figures = await repo.recentCcrFigures(before: DateTime(2026, 6, 1));
+    final figures = await repo.recentRebreatherFigures(
+      before: DateTime(2026, 6, 1),
+    );
     expect(figures.map((f) => f.runtimeMinutes), [null, 40]);
   });
 

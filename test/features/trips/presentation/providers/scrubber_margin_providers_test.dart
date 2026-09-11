@@ -153,7 +153,7 @@ void main() {
       // No earlier trips: 5 calendar days at the default 2 per day.
       expect(m.expectedDives, 10);
       expect(m.expectedDivesN, 0);
-      // Summary figures of every CCR dive before June: 40 and 30.
+      // Summary figures of every rebreather dive before June: 40 and 30.
       expect(m.minutesPerDive, 35);
       expect(m.minutesPerDiveN, 2);
       expect(m.caution, isTrue);

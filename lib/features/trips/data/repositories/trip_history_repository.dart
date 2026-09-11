@@ -67,7 +67,7 @@ class TripHistoryRepository {
   /// [before] is a calendar date (a trip start): dives on or after that
   /// day are excluded, whatever the device's zone.
   Future<List<({double? scrubberMinutes, double? runtimeMinutes})>>
-  recentCcrFigures({
+  recentRebreatherFigures({
     String? diverId,
     required DateTime before,
     int limit = 30,

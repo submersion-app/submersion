@@ -31,7 +31,7 @@ void main() {
     divesPerDiveDayHistory: divesPerDay,
     runtimeMinutesOverride: runtimeOverride,
     scrubberMinutesHistory: scrubber,
-    ccrRuntimeMinutesHistory: runtime,
+    rebreatherRuntimeMinutesHistory: runtime,
   );
 
   test('overrides win and carry n 0', () {

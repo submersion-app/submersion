@@ -15,7 +15,7 @@ const scrubberCautionFraction = 0.2;
 
 /// Pure. Expected dives = override, else dive days times the median dives
 /// per dive day over recent trips (default 2), rounded up. Minutes per
-/// dive = override, else the median summary figure over recent CCR dives,
+/// dive = override, else the median summary figure over recent rebreather dives,
 /// else the median CCR runtime, else 0. Margin = remaining minus expected
 /// use; null without a rating. A zero or negative override counts as
 /// unset, the same rule the trip form applies when it saves.
@@ -48,9 +48,9 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
   } else if (inputs.scrubberMinutesHistory.isNotEmpty) {
     minutesPerDive = _median(inputs.scrubberMinutesHistory);
     minutesPerDiveN = inputs.scrubberMinutesHistory.length;
-  } else if (inputs.ccrRuntimeMinutesHistory.isNotEmpty) {
-    minutesPerDive = _median(inputs.ccrRuntimeMinutesHistory);
-    minutesPerDiveN = inputs.ccrRuntimeMinutesHistory.length;
+  } else if (inputs.rebreatherRuntimeMinutesHistory.isNotEmpty) {
+    minutesPerDive = _median(inputs.rebreatherRuntimeMinutesHistory);
+    minutesPerDiveN = inputs.rebreatherRuntimeMinutesHistory.length;
   } else {
     minutesPerDive = 0;
     minutesPerDiveN = 0;

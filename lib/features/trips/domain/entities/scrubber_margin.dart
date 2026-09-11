@@ -27,12 +27,12 @@ class ScrubberMarginInputs extends Equatable {
   /// `Trip.expectedRuntimeMinutes`.
   final int? runtimeMinutesOverride;
 
-  /// Summary scrubber minutes of recent CCR dives that carry one.
+  /// Summary scrubber minutes of recent rebreather (CCR or SCR) dives that carry one.
   final List<double> scrubberMinutesHistory;
 
-  /// Runtime minutes of recent CCR dives, the fallback when no dive
+  /// Runtime minutes of recent rebreather (CCR or SCR) dives, the fallback when no dive
   /// carries a scrubber figure.
-  final List<double> ccrRuntimeMinutesHistory;
+  final List<double> rebreatherRuntimeMinutesHistory;
 
   const ScrubberMarginInputs({
     required this.item,
@@ -43,7 +43,7 @@ class ScrubberMarginInputs extends Equatable {
     required this.divesPerDiveDayHistory,
     this.runtimeMinutesOverride,
     required this.scrubberMinutesHistory,
-    required this.ccrRuntimeMinutesHistory,
+    required this.rebreatherRuntimeMinutesHistory,
   });
 
   @override
@@ -56,7 +56,7 @@ class ScrubberMarginInputs extends Equatable {
     divesPerDiveDayHistory,
     runtimeMinutesOverride,
     scrubberMinutesHistory,
-    ccrRuntimeMinutesHistory,
+    rebreatherRuntimeMinutesHistory,
   ];
 }
 

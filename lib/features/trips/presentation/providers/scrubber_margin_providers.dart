@@ -76,7 +76,7 @@ final tripScrubberMarginsProvider =
         diverId: diverId,
         before: start,
       );
-      final ccrFigures = await history.recentCcrFigures(
+      final loopFigures = await history.recentRebreatherFigures(
         diverId: diverId,
         before: start,
       );
@@ -134,10 +134,10 @@ final tripScrubberMarginsProvider =
               divesPerDiveDayHistory: divesPerDay,
               runtimeMinutesOverride: trip.expectedRuntimeMinutes,
               scrubberMinutesHistory: [
-                for (final f in ccrFigures) ?f.scrubberMinutes,
+                for (final f in loopFigures) ?f.scrubberMinutes,
               ],
-              ccrRuntimeMinutesHistory: [
-                for (final f in ccrFigures) ?f.runtimeMinutes,
+              rebreatherRuntimeMinutesHistory: [
+                for (final f in loopFigures) ?f.runtimeMinutes,
               ],
             ),
           ),
