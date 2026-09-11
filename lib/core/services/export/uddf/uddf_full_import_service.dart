@@ -414,6 +414,44 @@ class UddfFullImportService {
           }
         }
 
+        // Assembly templates (issue #1487) ride on the parent item's map
+        // as `components`, so the wizard's flattening keeps them. A row
+        // whose parent is not on file, or with a blank end, is dropped.
+        final componentsSection = submersionElement
+            .findElements('components')
+            .firstOrNull;
+        if (componentsSection != null) {
+          final byParent = <String, List<Map<String, dynamic>>>{};
+          for (final element in componentsSection.findElements('component')) {
+            final data = UddfImportParsers.parseComponent(element);
+            final parentRef = data['parentRef'] as String;
+            final componentRef = data['componentRef'] as String;
+            if (parentRef.isEmpty || componentRef.isEmpty) continue;
+            byParent.putIfAbsent(parentRef, () => []).add({
+              'componentRef': componentRef,
+              'role': data['role'],
+              'sortOrder': data['sortOrder'],
+            });
+          }
+          for (final item in equipment) {
+            final parts = byParent[item['uddfId']];
+            if (parts != null) item['components'] = parts;
+          }
+        }
+
+        // Gear provenance per dive rides on the dive's map as `gearLinks`,
+        // matched through the <dive id> already captured as sourceUuid.
+        final gearLinksSection = submersionElement
+            .findElements('gearlinks')
+            .firstOrNull;
+        if (gearLinksSection != null) {
+          final byDive = UddfImportParsers.parseGearLinks(gearLinksSection);
+          for (final dive in dives) {
+            final links = byDive[dive['sourceUuid']];
+            if (links != null && links.isNotEmpty) dive['gearLinks'] = links;
+          }
+        }
+
         // Parse courses
         final coursesSection = submersionElement
             .findElements('courses')

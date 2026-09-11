@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_state_store.dart';
@@ -121,13 +122,14 @@ QualityFinding _f({
   required QualityCategory category,
   Map<String, Object?> params = const {},
   QualitySeverity severity = QualitySeverity.warning,
+  int detectorVersion = 1,
 }) => QualityFinding(
   id: id,
   diveId: diveId,
   relatedDiveId: relatedDiveId,
   computerId: computerId,
   detectorId: detectorId,
-  detectorVersion: 1,
+  detectorVersion: detectorVersion,
   category: category,
   severity: severity,
   status: QualityStatus.open,
@@ -166,6 +168,8 @@ Future<void> _seedDive(
   DateTime? entryTime,
   double? maxDepth,
   Duration? runtime,
+  String notes = '',
+  int? rating,
 }) {
   final entry = entryTime ?? DateTime.utc(2026, 6, 14, 9, 12);
   return DiveRepository().createDive(
@@ -176,6 +180,8 @@ Future<void> _seedDive(
       entryTime: entry,
       maxDepth: maxDepth,
       runtime: runtime,
+      notes: notes,
+      rating: rating,
     ),
   );
 }
@@ -1134,7 +1140,10 @@ void main() {
     // computer, where the second copy is a fragment. Consolidation is
     // refused for that pair, so the card offers to delete the fragment,
     // and names both dives before anything is written.
-    Future<QualityFinding> seedPair() async {
+    Future<QualityFinding> seedPair({
+      String doomedNotes = '',
+      int? doomedRating,
+    }) async {
       await _seedDive(
         'd1',
         name: 'Blue Hole',
@@ -1147,6 +1156,8 @@ void main() {
         entryTime: DateTime.utc(2026, 6, 14, 9, 13),
         maxDepth: 1.7,
         runtime: const Duration(seconds: 13),
+        notes: doomedNotes,
+        rating: doomedRating,
       );
       return _f(
         id: 'r-dup-same',
@@ -1154,6 +1165,10 @@ void main() {
         relatedDiveId: 'd2',
         detectorId: 'duplicate',
         category: QualityCategory.duplicate,
+        // Only detector 4 checks whether the doomed copy carries the diver's
+        // own entries, and the repair mapping will not act on an older
+        // finding (#1720), so a fixture offering the repair must say 4.
+        detectorVersion: 4,
         params: const {
           'score': 0.9,
           'timeDiffMinutes': 1,
@@ -1197,6 +1212,62 @@ void main() {
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle(const Duration(seconds: 6));
       expect(await DiveRepository().getDiveById('d2'), isNotNull);
+    });
+
+    // The detector will not name a copy carrying the diver's work as the
+    // redundant one (#1720), so this pair should never reach the dialog. It
+    // is written by hand precisely because the dialog is what stands between
+    // the diver and the delete if that rule is ever loosened, or if another
+    // caller reaches the repair by a different route (#1729).
+    testWidgets('the confirmation says what the doomed copy carries', (
+      tester,
+    ) async {
+      final finding = await seedPair(
+        doomedNotes: 'viz was poor',
+        doomedRating: 4,
+      );
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [finding]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete duplicate'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('This copy also has: notes \u00b7 a rating'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    // The read that fills that line runs on the tap, before the dialog. The
+    // repair card drops the Future it returns, so an error there used to go
+    // nowhere: the tap did nothing and said nothing. It must not fall back to
+    // a dialog without the line either, because that is indistinguishable
+    // from "this copy holds nothing", the one reassurance a failed read
+    // cannot give.
+    testWidgets('a failed read reports it rather than confirming blind', (
+      tester,
+    ) async {
+      final finding = await seedPair();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [finding]));
+      await tester.pumpAndSettle();
+
+      final db = DatabaseService.instance.database;
+      await tester.runAsync(
+        () => db.customStatement('DROP TABLE dive_custom_fields'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete duplicate'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.textContaining('Repair failed'), findsOneWidget);
+      final survivors = await tester.runAsync(
+        () => db.customSelect("SELECT id FROM dives WHERE id = 'd2'").get(),
+      );
+      expect(survivors, hasLength(1));
     });
 
     testWidgets('cancelling the confirmation deletes nothing', (tester) async {

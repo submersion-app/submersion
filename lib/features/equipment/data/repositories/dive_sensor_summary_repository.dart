@@ -57,6 +57,29 @@ class DiveSensorSummaryRepository {
     return result;
   }
 
+  /// `engineVersion/sourceUpdatedAt` for each stored row among [diveIds],
+  /// keyed by dive, without decoding the summaries: the condition review
+  /// marker hashes these on every read, so it must stay cheap. Dives
+  /// without a row are absent.
+  Future<Map<String, String>> getSummaryStamps(List<String> diveIds) async {
+    if (diveIds.isEmpty) return const {};
+    final unique = diveIds.toSet().toList();
+    const chunk = 500;
+    final t = _db.diveSensorSummaries;
+    final result = <String, String>{};
+    for (var start = 0; start < unique.length; start += chunk) {
+      final end = start + chunk < unique.length ? start + chunk : unique.length;
+      final query = _db.selectOnly(t)
+        ..addColumns([t.diveId, t.engineVersion, t.sourceUpdatedAt])
+        ..where(t.diveId.isIn(unique.sublist(start, end)));
+      for (final row in await query.get()) {
+        result[row.read(t.diveId)!] =
+            '${row.read(t.engineVersion)}/${row.read(t.sourceUpdatedAt)}';
+      }
+    }
+    return result;
+  }
+
   /// The stored row when its engine version and source stamp match the
   /// dive, else a fresh computation, stored before it is returned. Null
   /// when [diveId] does not exist. [force] recomputes regardless.

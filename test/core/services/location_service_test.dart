@@ -133,6 +133,70 @@ void main() {
     );
 
     test(
+      'drops a country-restating pseudo-region (Metropolitan France)',
+      () async {
+        final server = FakeNominatim(
+          body: jsonEncode(<String, dynamic>{
+            'address': <String, dynamic>{
+              'country': 'France',
+              'state': 'Metropolitan France',
+              'city': 'Sanary-sur-Mer',
+            },
+          }),
+        );
+
+        final result = await server.run(
+          () => service.reverseGeocode(43.12, 5.8, languageCode: 'en'),
+        );
+
+        expect(result.country, 'France');
+        expect(
+          result.region,
+          isNull,
+          reason: '"Metropolitan France" only restates the country',
+        );
+        expect(result.locality, 'Sanary-sur-Mer');
+      },
+    );
+
+    test('drops a region that just repeats the country', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(<String, dynamic>{
+          'address': <String, dynamic>{
+            'country': 'Singapore',
+            'state': 'Singapore',
+            'city': 'Singapore',
+          },
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(1.29, 103.85, languageCode: 'en'),
+      );
+
+      expect(result.region, isNull);
+    });
+
+    test('a pseudo-region state falls through to a real province', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(<String, dynamic>{
+          'address': <String, dynamic>{
+            'country': 'France',
+            'state': 'Metropolitan France',
+            'province': 'Provence-Alpes-Côte d\'Azur',
+            'city': 'Sanary-sur-Mer',
+          },
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(43.12, 5.8, languageCode: 'en'),
+      );
+
+      expect(result.region, 'Provence-Alpes-Côte d\'Azur');
+    });
+
+    test(
       'sends the English pin in both the URI and the request headers',
       () async {
         final server = FakeNominatim(
@@ -880,6 +944,36 @@ void main() {
         expect(seenAt, [Duration.zero, const Duration(seconds: 1)]);
         expect(result?.bodyOfWater, 'L');
       });
+    });
+  });
+
+  group('normalizeGeocodedRegion', () {
+    test('passes a real region through, trimmed', () {
+      expect(normalizeGeocodedRegion('  Andalusia '), 'Andalusia');
+    });
+
+    test('nulls a known Nominatim pseudo-region, case-insensitively', () {
+      expect(normalizeGeocodedRegion('Metropolitan France'), isNull);
+      expect(normalizeGeocodedRegion('european netherlands'), isNull);
+    });
+
+    test('keeps a real region whose name contains the country', () {
+      expect(
+        normalizeGeocodedRegion('Île-de-France', country: 'France'),
+        'Île-de-France',
+      );
+    });
+
+    test('nulls a region equal to the country', () {
+      expect(
+        normalizeGeocodedRegion('Singapore', country: 'Singapore'),
+        isNull,
+      );
+    });
+
+    test('nulls empty and whitespace', () {
+      expect(normalizeGeocodedRegion(null), isNull);
+      expect(normalizeGeocodedRegion('   '), isNull);
     });
   });
 }

@@ -68,6 +68,9 @@ class _FailsOnCallRepository implements DiveRepository {
   Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
 
   @override
+  Stream<void> watchDiveListChanges() => _inner.watchDiveListChanges();
+
+  @override
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
     int maxSamples = 120,
@@ -122,6 +125,9 @@ class _GatedRepository implements DiveRepository {
 
   @override
   Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
+
+  @override
+  Stream<void> watchDiveListChanges() => _inner.watchDiveListChanges();
 
   /// Set to park the first batch-profile fetch, the fire-and-forget tail of
   /// every load, until [releaseProfiles] completes.
@@ -234,7 +240,8 @@ void main() {
       expect(loaded.hasMore, isFalse);
 
       // The user edits a dive on the detail pane and saves. The write ticks
-      // watchDivesChanges, which must not shrink the list back to page one.
+      // watchDiveListChanges, which must not shrink the list back to page
+      // one.
       final edited = dives.first.copyWith(name: 'Edited name');
       await container
           .read(paginatedDiveListProvider.notifier)

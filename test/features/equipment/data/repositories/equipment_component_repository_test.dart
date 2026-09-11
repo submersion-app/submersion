@@ -266,4 +266,37 @@ void main() {
     }
     expect(ticks, greaterThan(0));
   });
+
+  group('replaceComponent', () {
+    test(
+      'keeps role and order, swaps the component id, marks the row pending',
+      () async {
+        await repo.addComponent(parentId: 'reg', componentId: 'first');
+        final row = await repo.addComponent(
+          parentId: 'reg',
+          componentId: 'hose',
+          role: 'Primary',
+        );
+        final replaced = await repo.replaceComponent(row.id, 'second');
+        expect(replaced.id, row.id);
+        expect(replaced.componentEquipmentId, 'second');
+        final parts = await repo.getComponents('reg');
+        expect(parts.map((p) => p.componentEquipmentId), ['first', 'second']);
+        expect(parts[1].role, 'Primary');
+        expect(parts[1].sortOrder, row.sortOrder);
+        expect(await pendingIds(), contains(row.id));
+      },
+    );
+
+    test('refuses a replacement that would close a cycle', () async {
+      await repo.addComponent(parentId: 'kit', componentId: 'reg');
+      final row = await repo.addComponent(parentId: 'reg', componentId: 'hose');
+      await expectLater(
+        repo.replaceComponent(row.id, 'kit'),
+        throwsA(isA<EquipmentComponentCycleException>()),
+      );
+      final parts = await repo.getComponents('reg');
+      expect(parts.single.componentEquipmentId, 'hose');
+    });
+  });
 }

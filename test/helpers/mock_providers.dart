@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_sensit
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
@@ -356,6 +357,10 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowMapBackgroundOnDiveCards(bool value) async =>
       state = state.copyWith(showMapBackgroundOnDiveCards: value);
+
+  @override
+  Future<void> setGroupTripsInDiveList(bool value) async =>
+      state = state.copyWith(groupTripsInDiveList: value);
   @override
   Future<void> setShowMapBackgroundOnSiteCards(bool value) async =>
       state = state.copyWith(showMapBackgroundOnSiteCards: value);
@@ -596,7 +601,7 @@ Dive createTestDiveWithBottomTime({
     waterTemp: waterTemp,
     tanks: const [],
     profile: const [],
-    equipment: const [],
+    gear: looseGear(const []),
     notes: '',
     photoIds: const [],
     sightings: const [],

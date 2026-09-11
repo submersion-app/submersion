@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -51,7 +52,7 @@ void main() {
           id: '',
           diveNumber: 1,
           dateTime: DateTime(2026, 1, 1),
-          equipment: [suit],
+          gear: looseGear([suit]),
           tanks: const [
             DiveTank(
               id: 't1',
@@ -132,7 +133,7 @@ void main() {
         id: '',
         diveNumber: 2,
         dateTime: DateTime(2026, 1, 2),
-        equipment: [plate, suit],
+        gear: looseGear([plate, suit]),
         tanks: const [
           DiveTank(
             id: 't1',

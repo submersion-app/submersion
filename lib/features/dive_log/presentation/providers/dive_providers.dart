@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/dive_search.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
@@ -335,6 +336,60 @@ final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   return repository.getStatistics(diverId: currentDiverId);
 });
 
+/// Sort fields under which a trip's dives stay contiguous.
+///
+/// Both are chronological in practice, so a trip forms a single run whichever
+/// direction the sort runs in. Under any other sort a trip scatters, and
+/// grouping would fragment a 14-dive trip into a dozen one-dive headers, which
+/// is noisier than no grouping at all (issue #1193).
+const Set<DiveSortField> kChronologicalDiveSortFields = {
+  DiveSortField.date,
+  DiveSortField.diveNumber,
+};
+
+/// Whether the dive list should render trip group headers right now.
+///
+/// The toggle alone is not enough: grouping also needs a chronological sort
+/// and a card view mode. One place to reason about it, rather than the same
+/// three conditions repeated at every call site.
+final diveListGroupingEnabledProvider = Provider<bool>((ref) {
+  if (!ref.watch(diveListGroupTripsProvider)) return false;
+  final sort = ref.watch(diveSortProvider);
+  if (!kChronologicalDiveSortFields.contains(sort.field)) return false;
+  return ref.watch(diveListViewModeProvider) != ListViewMode.table;
+});
+
+/// Whether grouping is off *because of the sort*, rather than for any other
+/// reason.
+///
+/// Deliberately independent of the view mode. The paused notice blames the
+/// sort by name, so it must not appear when the real reason is something else:
+/// table mode ignores grouping by design, and saying "grouping is off while
+/// sorted by Date" there would be wrong twice over. Today the table never
+/// reaches the list body at all, but that is an early return in another
+/// method, which is too far away to rely on.
+final diveListGroupingPausedBySortProvider = Provider<bool>((ref) {
+  if (!ref.watch(diveListGroupTripsProvider)) return false;
+  final sort = ref.watch(diveSortProvider);
+  return !kChronologicalDiveSortFields.contains(sort.field);
+});
+
+/// Total dives per trip, keyed by trip id, for the dive list's group headers.
+///
+/// One query for the entire list rather than one per header. Takes the same
+/// dives tick as [diveStatisticsProvider] above, so assigning a dive to a
+/// trip, deleting one, or a sync pull corrects every header count without a
+/// manual invalidate.
+///
+/// Unfiltered on purpose: the header reads "6 of 14", and the 14 is the
+/// trip's real size, not its size under the current view filter (#1193).
+final tripDiveCountsProvider = FutureProvider<Map<String, int>>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  final diverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.getTripDiveCounts(diverId: diverId);
+});
+
 /// Dive records (superlatives) provider (filtered by current diver).
 ///
 /// Takes the same dives tick as [diveStatisticsProvider] directly above, for
@@ -662,13 +717,18 @@ class PaginatedDiveListNotifier
     });
     loadFirstPage();
 
-    // Reload silently when the `dives` table is written directly (e.g. a sync
-    // applies remote changes) without going through this notifier's mutation
-    // methods. Silent so a multi-write sync doesn't flash a loading spinner.
-    final divesChangeSub = _repository.watchDivesChanges().listen(
+    // Reload silently when a table the list renders from is written directly
+    // (e.g. a sync applies remote changes) without going through this
+    // notifier's mutation methods. Silent so a multi-write sync doesn't flash
+    // a loading spinner.
+    //
+    // The list tick, not the dives one: the summary query joins sites and
+    // trips, so a trip rename or a site rename changes what is on screen
+    // without touching the dives table (#1193).
+    final listChangeSub = _repository.watchDiveListChanges().listen(
       (_) => _silentReloadLoadedPages(),
     );
-    _ref.onDispose(divesChangeSub.cancel);
+    _ref.onDispose(listChangeSub.cancel);
   }
 
   bool get _isDateSort {

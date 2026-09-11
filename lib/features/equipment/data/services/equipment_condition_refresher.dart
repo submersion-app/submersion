@@ -85,7 +85,18 @@ class EquipmentConditionRefresher {
     );
     final observations = await _observations.getForEquipment(item.id);
     final incidents = await _incidents.getIncidentsForEquipment(item.id);
+    // Both read before the marker check: the fingerprint has to see the
+    // serials the dropout rules match against and which dives have a
+    // summary, or a change to either would leave the marker matching.
+    final serials = item.type == EquipmentType.transmitter
+        ? await _transmitters.getSerialsForEquipment(item.id)
+        : const <String>{};
+    final diveIds = [for (final s in samples) s.diveId];
     final fingerprint = conditionInputFingerprint(
+      item: item,
+      parent: parent,
+      summaryStamps: await _summaries.getSummaryStamps(diveIds),
+      transmitterSerials: serials,
       samples: samples,
       observations: observations,
       incidents: incidents,
@@ -101,12 +112,7 @@ class EquipmentConditionRefresher {
         review.inputFingerprint == fingerprint;
     if (current || !engineEnabled) return _findings.getFindings(item.id);
 
-    final serials = item.type == EquipmentType.transmitter
-        ? await _transmitters.getSerialsForEquipment(item.id)
-        : const <String>{};
-    final summaries = await _summaries.getSummaries([
-      for (final s in samples) s.diveId,
-    ]);
+    final summaries = await _summaries.getSummaries(diveIds);
     final stamp = now ?? DateTime.now().toUtc();
     final findings = _engine.evaluate(
       ConditionEngineInput(

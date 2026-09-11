@@ -141,10 +141,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _purchaseCurrencyController.text = _initialCurrencyCode;
     _notesController.text = equipment.notes;
     _selectedType = equipment.type;
-    // A legacy row can carry isActive=false with a non-retired status.
+    // A legacy row can carry isActive=false with a non-terminal status.
     // Show it as Retired so the form states the item's real condition --
-    // otherwise saving would silently reactivate it (#636).
-    _selectedStatus = !equipment.isActive
+    // otherwise saving would silently reactivate it (#636). "Sold" is the
+    // other status that means gone, so keep it rather than overwrite it.
+    _selectedStatus =
+        !equipment.isActive && equipment.status != EquipmentStatus.sold
         ? EquipmentStatus.retired
         : equipment.status;
     _purchaseDate = equipment.purchaseDate;
@@ -956,9 +958,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         lastServiceDate: existingEquipment?.lastServiceDate,
         serviceIntervalDays: existingEquipment?.serviceIntervalDays,
         notes: _notesController.text.trim(),
-        // Retiring via the status dropdown must deactivate the item, or it
-        // keeps appearing in active-gear pickers (#636).
-        isActive: _selectedStatus != EquipmentStatus.retired,
+        // Retiring or selling via the status dropdown must deactivate the
+        // item, or it keeps appearing in active-gear pickers (#636).
+        isActive:
+            _selectedStatus != EquipmentStatus.retired &&
+            _selectedStatus != EquipmentStatus.sold,
         // Only attributes in the SELECTED type's catalog are kept: switching
         // type drops out-of-catalog values at save time (form = source of
         // truth), plus non-empty custom fields with re-packed sort order.

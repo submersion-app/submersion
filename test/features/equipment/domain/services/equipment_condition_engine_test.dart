@@ -571,6 +571,29 @@ void main() {
       expect(found.evidence.n, 20);
     });
 
+    test('issueRecurring counts reports, and names each dive once', () {
+      // The spec counts observations, and the sentence reads "reported
+      // 3 times": three free-flow reports on one dive are three reports.
+      final samples = [for (var i = 0; i < 25; i++) sample(i)];
+      final found = of(
+        engine.evaluate(
+          input(
+            item: item('reg', EquipmentType.regulator),
+            samples: samples,
+            observations: [
+              issue('o1', 'reg', 'd20', ObservationTag.freeFlow),
+              issue('o2', 'reg', 'd20', ObservationTag.freeFlow),
+              issue('o3', 'reg', 'd20', ObservationTag.freeFlow),
+            ],
+          ),
+        ),
+        ConditionRuleId.issueRecurring,
+      ).single;
+      expect(found.value, 3);
+      expect(found.evidence.values['count'], 3);
+      expect(found.evidence.diveIds, ['d20']);
+    });
+
     test('a dive exactly on a threshold sides with the classifier', () {
       // These two comparisons are deliberately bare, unlike the rule
       // boundaries that carry _epsilon: those weigh a COMPUTED median,
