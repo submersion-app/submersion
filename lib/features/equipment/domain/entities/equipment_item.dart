@@ -95,6 +95,14 @@ class EquipmentItem extends Equatable {
   /// condition engine and the charts all count the same dives.
   DateTime? get parentDivesFrom => installedDate ?? createdAt;
 
+  /// Still in service: active, and not carrying a terminal status. Older
+  /// rows can be retired or sold with isActive left true, and the
+  /// repository's own active-gear queries treat both statuses as gone.
+  bool get isFitted =>
+      isActive &&
+      status != EquipmentStatus.retired &&
+      status != EquipmentStatus.sold;
+
   /// Wing/BCD rated lift capacity in kg (curated attribute; see the BCD entry
   /// in [EquipmentAttributeCatalog]). Feeds the buoyancy twin's peak-lift
   /// demand comparison; null when unspecified.

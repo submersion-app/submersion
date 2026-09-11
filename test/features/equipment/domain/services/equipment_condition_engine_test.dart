@@ -491,6 +491,29 @@ void main() {
         expect(of(findings, ConditionRuleId.cellOutputLow), isEmpty);
       });
 
+      test('a legacy retired row still flagged active is not fitted', () {
+        // Older rows can carry a retired or sold status with isActive
+        // left true; the repository treats both statuses as terminal.
+        final findings = engine.evaluate(
+          input(
+            item: item('ccr', EquipmentType.rebreather),
+            children: [
+              cell(
+                'old',
+                1,
+                installed: DateTime.utc(2025),
+              ).copyWith(status: EquipmentStatus.retired),
+            ],
+            samples: samples,
+            summaries: lowOnSlotOne,
+          ),
+        );
+        expect(
+          of(findings, ConditionRuleId.cellOutputLow).single.id,
+          'cf_ccr_cellOutputLow_1',
+        );
+      });
+
       test('with no successor leaves the slot to the rebreather', () {
         // Claiming forever would silence the slot for good once cells
         // are retired without being replaced.
