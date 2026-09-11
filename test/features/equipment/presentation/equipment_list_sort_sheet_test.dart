@@ -177,6 +177,23 @@ void main() {
     );
   });
 
+  testWidgets('the type-order arrow reverses the headings (toe to head)', (
+    tester,
+  ) async {
+    // The second descending segment belongs to "Order types by"; it reverses
+    // the headings without touching the item direction in the header.
+    await pumpSheet(tester);
+
+    await tester.tap(find.byIcon(SortDirection.descending.icon).last);
+    await tester.pumpAndSettle();
+
+    expect(fake.written.single.typeOrderDescending, isTrue);
+    expect(
+      container.read(equipmentSortProvider).direction,
+      SortDirection.ascending,
+    );
+  });
+
   testWidgets('the grouping switch writes the shared arrangement', (
     tester,
   ) async {

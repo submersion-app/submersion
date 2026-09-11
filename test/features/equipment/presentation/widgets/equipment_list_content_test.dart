@@ -1201,6 +1201,55 @@ void main() {
       expect(position().pixels, 0);
     });
 
+    testWidgets('tapping a row in the list does not scroll the list', (
+      tester,
+    ) async {
+      // In master-detail a row tap selects that row, which the list already
+      // shows; the list must stay where the diver scrolled it rather than
+      // treat the new selection as one to scroll to.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final selected = ValueNotifier<String?>(null);
+      addTearDown(selected.dispose);
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: EquipmentArrangement.defaults,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: ValueListenableBuilder<String?>(
+            valueListenable: selected,
+            builder: (context, id, _) => EquipmentListContent(
+              showAppBar: false,
+              selectedId: id,
+              onItemSelected: (next) => selected.value = next,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      position.jumpTo(600);
+      await tester.pumpAndSettle();
+
+      final visibleRow = find.byType(EquipmentListTile).first;
+      await tester.tap(visibleRow);
+      await tester.pumpAndSettle();
+
+      expect(selected.value, isNotNull, reason: 'the tap selected the row');
+      expect(position.pixels, 600);
+    });
+
     testWidgets('a change to only the dive item sort does not jump the list', (
       tester,
     ) async {
