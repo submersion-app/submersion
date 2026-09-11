@@ -13,6 +13,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de browser niet openen. Gebruik Link kopiëren en plak het adres in je browser.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Onderdeel toevoegen';
 
   @override
@@ -36,6 +41,46 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Geen onderdelen. Voeg de delen toe waaruit dit item is opgebouwd.';
+
+  @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ook $count duiken bijwerken',
+      one: 'Ook 1 duik bijwerken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Het nieuwe onderdeel ook aan die duiken toevoegen, of alleen vanaf nu?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'Het onderdeel ook van die duiken verwijderen, of alleen vanaf nu?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'Het onderdeel ook op die duiken vervangen, of alleen vanaf nu?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'Vanaf nu';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dit samenstel staat op $count gelogde duiken.',
+      one: 'Dit samenstel staat op 1 gelogde duik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => 'Eerdere duiken bijwerken?';
 
   @override
   String equipment_components_partOf(Object name) {
@@ -70,6 +115,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Er is geen andere actieve uitrusting die hier kan worden toegevoegd.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Vervangen';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Vervangen door';
+
+  @override
   String get equipment_components_pickerTitle => 'Onderdelen toevoegen';
 
   @override
@@ -77,6 +128,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Herschikken';
+
+  @override
+  String get equipment_components_replace => 'Onderdeel vervangen';
 
   @override
   String get equipment_components_role => 'Rol';
@@ -542,6 +596,28 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_bulkEdit_confirmApply => 'Toepassen';
+
+  @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Toevoegen aan alle $count duiken',
+      one: 'Toevoegen aan 1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Verwijderen van alle $count duiken',
+      one: 'Verwijderen van 1 duik',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_bulkEdit_nothingSelected =>
@@ -2766,6 +2842,25 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Beginnen';
+
+  @override
+  String get diveLog_gear_collapse => 'Onderdelen verbergen';
+
+  @override
+  String get diveLog_gear_expand => 'Onderdelen tonen';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Samenstel en onderdelen verwijderen';
+
+  @override
+  String get diveLog_gear_removePart => 'Onderdeel verwijderen';
+
+  @override
+  String get diveLog_gear_removeSet => 'Set van deze duik verwijderen';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Set';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7009,6 +7104,57 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Duiken zoeken...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Groeperen op reis staat uit bij sorteren op $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Sorteren op datum';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Reizen groeperen';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Alle reizen uitklappen';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Alle reizen inklappen';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'REIS';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded van $total duiken';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'Duiken van $tripName tonen';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'Duiken van $tripName verbergen';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'Reis $tripName openen';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'De eerste $limit resultaten worden getoond. Verfijn je zoekopdracht om de resultaten te beperken.';
   }
@@ -7719,13 +7865,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Instellen op automatische He%-berekening';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount gebruikt)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1,4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -10523,6 +10674,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_retired => 'Uit gebruik';
+
+  @override
+  String get enum_equipmentStatus_sold => 'Verkocht';
 
   @override
   String get enum_equipmentType_backplate => 'Backplate';
@@ -21200,7 +21354,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Aankomend';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Kust';
 
   @override
   String get trips_type_liveaboard => 'Liveaboard';
@@ -21209,7 +21363,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Dagtrip';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -27471,6 +27625,106 @@ class AppLocalizationsNl extends AppLocalizations {
   String dataQuality_deleteDuplicate_delete(String dive) {
     return 'Verwijderen: $dive';
   }
+
+  @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'Deze kopie bevat ook: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uitrustingsstukken',
+      one: '1 uitrustingsstuk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count loodgewichten',
+      one: '1 loodgewicht',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddy\'s',
+      one: '1 buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels',
+      one: '1 label',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s of video\'s',
+      one: '1 foto of video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bijlagen',
+      one: '1 bijlage',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eigen velden',
+      one: '1 eigen veld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'een beoordeling';
+
+  @override
+  String get dataQuality_carries_favorite => 'een favoriet';
+
+  @override
+  String get dataQuality_carries_site => 'een duikstek';
+
+  @override
+  String get dataQuality_carries_trip => 'een reis';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'een duikcentrum';
+
+  @override
+  String get dataQuality_carries_course => 'een cursus';
 
   @override
   String get dataQuality_repairLabel_combine => 'Samenvoegen tot één duik';

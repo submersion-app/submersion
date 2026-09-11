@@ -1,17 +1,28 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
+  "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Add component",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
   "equipment_components_editRole": "Edit role",
   "equipment_components_empty": "No components. Add the parts this item is assembled from.",
+  "equipment_components_historyAlsoPast": "{count, plural, =1{Also update 1 dive} other{Also update {count} dives}}",
+  "equipment_components_historyAskAdded": "Add the new part to those dives as well, or only from now on?",
+  "equipment_components_historyAskRemoved": "Remove the part from those dives as well, or only from now on?",
+  "equipment_components_historyAskReplaced": "Swap the part on those dives as well, or only from now on?",
+  "equipment_components_historyFutureOnly": "From now on",
+  "equipment_components_historyOnDives": "{count, plural, =1{This assembly is on 1 logged dive.} other{This assembly is on {count} logged dives.}}",
+  "equipment_components_historyTitle": "Update past dives?",
   "equipment_components_partOf": "Part of {name}",
   "equipment_components_partOfCount": "{count, plural, =1{Part of 1 assembly} other{Part of {count} assemblies}}",
   "equipment_components_pickerConfirm": "{count, plural, =0{Add} =1{Add 1} other{Add {count}}}",
   "equipment_components_pickerEmpty": "No other active gear can be added here.",
+  "equipment_components_pickerReplaceConfirm": "Replace",
+  "equipment_components_pickerReplaceTitle": "Replace with",
   "equipment_components_pickerTitle": "Add components",
   "equipment_components_remove": "Remove component",
   "equipment_components_reorder": "Reorder",
+  "equipment_components_replace": "Replace component",
   "equipment_components_role": "Role",
   "equipment_components_roleDialogTitle": "Component role",
   "equipment_components_roleHint": "e.g. Primary second stage",
@@ -379,6 +390,22 @@
   },
   "diveLog_bulkEdit_confirmTitle": "Apply changes?",
   "diveLog_bulkEdit_confirmApply": "Apply",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Adding to 1 dive} other{Adding to all {count} dives}}",
+  "@diveLog_bulkEdit_confirmAdding": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Removing from 1 dive} other{Removing from all {count} dives}}",
+  "@diveLog_bulkEdit_confirmRemoving": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_nothingSelected": "Turn on at least one field to apply changes.",
   "diveLog_bulkEdit_applied": "Updated {count} dives",
   "@diveLog_bulkEdit_applied": {
@@ -1706,6 +1733,12 @@
   "preDive_start_noEquipmentSet": "None",
   "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
+  "diveLog_gear_collapse": "Hide parts",
+  "diveLog_gear_expand": "Show parts",
+  "diveLog_gear_removeAssembly": "Remove assembly and its parts",
+  "diveLog_gear_removePart": "Remove part",
+  "diveLog_gear_removeSet": "Remove set from this dive",
+  "diveLog_gear_unknownSet": "Set",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
   "preDive_dashboard_title": "Pre-Dive Check",
   "preDive_dashboard_resume": "Resume - {done} of {total}",
@@ -3932,6 +3965,17 @@
     }
   },
   "diveLog_listPage_searchFieldLabel": "Search dives...",
+  "diveLog_listPage_groupingPausedBySort": "Trip grouping is off while sorted by {sortName}",
+  "diveLog_listPage_groupingPausedAction": "Sort by date",
+  "diveLog_listPage_menuGroupTrips": "Group trips",
+  "diveLog_listPage_menuExpandAllTrips": "Expand all trips",
+  "diveLog_listPage_menuCollapseAllTrips": "Collapse all trips",
+  "diveLog_listPage_tripGroupLabel": "TRIP",
+  "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} of {total} dives",
+  "diveLog_listPage_tripGroupExpand": "Show dives on {tripName}",
+  "diveLog_listPage_tripGroupCollapse": "Hide dives on {tripName}",
+  "diveLog_listPage_tripGroupOpenTrip": "Open trip {tripName}",
   "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
   "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
@@ -4142,8 +4186,9 @@
   "diveLog_tank_label_volume": "Volume",
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
-  "diveLog_tank_modInfo": "MOD: {depth} (ppO2 1.4)",
-  "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ 1.4) | MND: {mnd}",
+  "diveLog_tank_gasUsed": "({amount} used)",
+  "diveLog_tank_modInfo": "MOD: {depth} (ppO₂ {ppO2})",
+  "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
   "diveLog_tank_section_gasMix": "Gas Mix",
   "diveLog_tank_selectPreset": "Select Preset...",
   "diveLog_tank_saveAsPreset": "Save as preset",
@@ -4652,6 +4697,57 @@
       }
     }
   },
+  "@diveLog_listPage_groupingPausedBySort": {
+    "description": "Shown above the dive list when the Group trips toggle is on but the active sort scatters a trip's dives.",
+    "placeholders": {
+      "sortName": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupDiveCount": {
+    "description": "Dive count on a dive list trip header when the whole trip is in the list.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupDiveCountPartial": {
+    "description": "Dive count on a dive list trip header when only some of the trip's dives are in the list, because of paging or a filter.",
+    "placeholders": {
+      "loaded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupExpand": {
+    "description": "Screen-reader label for a collapsed trip header in the dive list.",
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupCollapse": {
+    "description": "Screen-reader label for an expanded trip header in the dive list.",
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupOpenTrip": {
+    "description": "Tooltip for the button that opens the trip from its dive list header.",
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
   "@diveLog_listPage_searchLimitNotice": {
     "placeholders": {
       "limit": {
@@ -4824,10 +4920,21 @@
       }
     }
   },
+  "@diveLog_tank_gasUsed": {
+    "description": "Trailing note on the tank pressure line: how much gas the dive consumed, e.g. \"(160 bar / 1920 L used)\"",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "@diveLog_tank_modInfo": {
     "placeholders": {
       "depth": {
         "type": "Object"
+      },
+      "ppO2": {
+        "type": "String"
       }
     }
   },
@@ -4835,6 +4942,9 @@
     "placeholders": {
       "mod": {
         "type": "Object"
+      },
+      "ppO2": {
+        "type": "String"
       },
       "mnd": {
         "type": "Object"
@@ -6176,6 +6286,7 @@
   "enum_equipmentStatus_lost": "Lost",
   "enum_equipmentStatus_needsService": "Needs Service",
   "enum_equipmentStatus_retired": "Retired",
+  "enum_equipmentStatus_sold": "Sold",
   "enum_equipmentType_backplate": "Backplate",
   "enum_equipmentType_bcd": "BCD",
   "enum_equipmentType_boots": "Boots",
@@ -17665,6 +17776,102 @@
         "type": "String"
       }
     }
+  },
+  "dataQuality_deleteDuplicate_carries": "This copy also has: {items}",
+  "@dataQuality_deleteDuplicate_carries": {
+    "description": "Introduces the list of things the copy about to be deleted carries, shown under the red delete line.",
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_carries_gear": "{count, plural, one{1 gear item} other{{count} gear items}}",
+  "@dataQuality_carries_gear": {
+    "description": "Summary fragment: how many gear links the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_weights": "{count, plural, one{1 weight} other{{count} weights}}",
+  "@dataQuality_carries_weights": {
+    "description": "Summary fragment: how many weight entries the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_buddies": "{count, plural, one{1 buddy} other{{count} buddies}}",
+  "@dataQuality_carries_buddies": {
+    "description": "Summary fragment: how many buddies the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_tags": "{count, plural, one{1 tag} other{{count} tags}}",
+  "@dataQuality_carries_tags": {
+    "description": "Summary fragment: how many tags the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_media": "{count, plural, one{1 photo or video} other{{count} photos or videos}}",
+  "@dataQuality_carries_media": {
+    "description": "Summary fragment: how many photos or videos the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_attachments": "{count, plural, one{1 attachment} other{{count} attachments}}",
+  "@dataQuality_carries_attachments": {
+    "description": "Summary fragment: how many signatures, documents, maps or other non-photo attachments the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_customFields": "{count, plural, one{1 custom field} other{{count} custom fields}}",
+  "@dataQuality_carries_customFields": {
+    "description": "Summary fragment: how many custom fields the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_rating": "a rating",
+  "@dataQuality_carries_rating": {
+    "description": "Summary fragment: the dive about to be deleted has a rating."
+  },
+  "dataQuality_carries_favorite": "a favorite",
+  "@dataQuality_carries_favorite": {
+    "description": "Summary fragment: the dive about to be deleted is marked as a favorite."
+  },
+  "dataQuality_carries_site": "a site",
+  "@dataQuality_carries_site": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a dive site."
+  },
+  "dataQuality_carries_trip": "a trip",
+  "@dataQuality_carries_trip": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a trip."
+  },
+  "dataQuality_carries_diveCenter": "a dive center",
+  "@dataQuality_carries_diveCenter": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a dive center."
+  },
+  "dataQuality_carries_course": "a course",
+  "@dataQuality_carries_course": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a course."
   },
   "dataQuality_repairLabel_combine": "Combine into one dive",
   "dataQuality_repairLabel_despike": "Remove spike",

@@ -23,10 +23,10 @@ void _createV203Fixture(dynamic rawDb) {
 }
 
 void main() {
-  test('v206 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; older rung tests relax to
-    // greaterThanOrEqualTo when a newer one lands.
-    expect(AppDatabase.currentSchemaVersion, 206);
+  test('v206 is in the ladder', () {
+    // Relaxed now that v207 (gear junction clocks) sits on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(206));
     expect(AppDatabase.migrationVersions, contains(206));
   });
 
@@ -59,8 +59,10 @@ void main() {
   test(
     'the backstop re-asserts the columns on an already-current file',
     () async {
-      // A database restored from a peer at the current version but missing
-      // the columns (the parallel-branch collision case) heals on open.
+      // A database already at the current version but missing the columns
+      // heals on open. That covers a device upgraded to the shipped v207
+      // before this rung existed, which never runs the v206 step, and a
+      // file restored from a peer on a parallel branch.
       final db = AppDatabase(
         NativeDatabase.memory(
           setup: (raw) {

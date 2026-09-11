@@ -6,12 +6,13 @@ QualityFinding f({
   required String detectorId,
   Map<String, Object?> params = const {},
   String? relatedDiveId,
+  int detectorVersion = 1,
 }) => QualityFinding(
   id: 'f1',
   diveId: 'd1',
   relatedDiveId: relatedDiveId,
   detectorId: detectorId,
-  detectorVersion: 1,
+  detectorVersion: detectorVersion,
   category: QualityCategory.profile,
   severity: QualitySeverity.warning,
   status: QualityStatus.open,
@@ -77,6 +78,7 @@ void main() {
           detectorId: 'duplicate',
           relatedDiveId: 'd2',
           params: {'sameComputer': true, 'redundantDiveId': 'd2'},
+          detectorVersion: 4,
         ),
       );
       final d = actions.whereType<DeleteDuplicateRepair>().single;
@@ -92,6 +94,7 @@ void main() {
           detectorId: 'duplicate',
           relatedDiveId: 'd2',
           params: {'sameComputer': true, 'redundantDiveId': 'd1'},
+          detectorVersion: 4,
         ),
       );
       final d = actions.whereType<DeleteDuplicateRepair>().single;
@@ -105,6 +108,7 @@ void main() {
           detectorId: 'duplicate',
           relatedDiveId: 'd2',
           params: {'sameComputer': true},
+          detectorVersion: 4,
         ),
       );
       expect(actions.whereType<DeleteDuplicateRepair>(), isEmpty);
@@ -117,6 +121,7 @@ void main() {
           detectorId: 'duplicate',
           relatedDiveId: 'd2',
           params: {'sameComputer': false, 'redundantDiveId': 'd2'},
+          detectorVersion: 4,
         ),
       );
       expect(actions.whereType<DeleteDuplicateRepair>(), isEmpty);
@@ -129,9 +134,29 @@ void main() {
           detectorId: 'duplicate',
           relatedDiveId: 'd2',
           params: {'sameComputer': true, 'redundantDiveId': 'd9'},
+          detectorVersion: 4,
         ),
       );
       expect(actions.whereType<DeleteDuplicateRepair>(), isEmpty);
+    });
+
+    // Detector 3 chose the redundant copy on recording richness alone, so it
+    // could name the copy holding the diver's gear (#1720). A finding it
+    // wrote is still on disk after the update; the repair must wait for the
+    // rescan rather than act on the old verdict.
+    test('withheld for a finding written before the diver-data check', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'duplicate',
+          relatedDiveId: 'd2',
+          params: {'sameComputer': true, 'redundantDiveId': 'd2'},
+          detectorVersion: 3,
+        ),
+      );
+      expect(actions.whereType<DeleteDuplicateRepair>(), isEmpty);
+      // Still no Consolidate either: a same-computer pair cannot be merged,
+      // so the card keeps its no-automatic-fix row.
+      expect(actions.whereType<ConsolidateDuplicateRepair>(), isEmpty);
     });
   });
 

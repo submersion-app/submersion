@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
@@ -380,7 +381,7 @@ void main() {
       final dive = Dive(
         id: 'd1',
         dateTime: DateTime.utc(2026, 7, 10),
-        equipment: [reg],
+        gear: [GearLink(item: reg)],
       );
 
       await tester.pumpWidget(

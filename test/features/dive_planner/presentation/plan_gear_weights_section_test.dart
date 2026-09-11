@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/domain/entities/diver_weight_entry.da
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -149,6 +150,105 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Tropical rig'));
     await tester.pumpAndSettle();
+    expect(find.byType(InputChip), findsOneWidget);
+  });
+
+  testWidgets('an assembly shows one chip carrying its part count', (
+    tester,
+  ) async {
+    const reg = EquipmentItem(
+      id: 'reg',
+      name: 'Reg',
+      type: EquipmentType.regulator,
+    );
+    const hose = EquipmentItem(
+      id: 'hose',
+      name: 'Hose',
+      type: EquipmentType.hose,
+    );
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          weightObservationsProvider.overrideWith((ref) async => const []),
+          allEquipmentProvider.overrideWith((ref) async => const [reg, hose]),
+          activeEquipmentProvider.overrideWith(
+            (ref) async => const [reg, hose],
+          ),
+          latestDiverWeightProvider.overrideWith((ref) async => null),
+          latestDiverHeightProvider.overrideWith((ref) async => null),
+        ],
+        child: const PlanGearWeightsSection(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGearWeightsSection)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .setGear(
+          const ['reg', 'hose'],
+          const [
+            GearProvenance(equipmentId: 'reg'),
+            GearProvenance(equipmentId: 'hose', viaEquipmentId: 'reg'),
+          ],
+        );
+    await tester.pumpAndSettle();
+
+    // The part sits inside the assembly's chip as a localized count
+    // (#1487), not as a chip of its own.
+    expect(find.text('Reg (+1)'), findsOneWidget);
+    expect(find.text('Hose'), findsNothing);
+    expect(find.byType(InputChip), findsOneWidget);
+
+    // Deleting the assembly takes its part with it.
+    await tester.tap(
+      find.descendant(of: find.byType(InputChip), matching: find.byType(Icon)),
+    );
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).equipmentIds, isEmpty);
+  });
+
+  testWidgets('an orphaned part still shows as its own chip', (tester) async {
+    const hose = EquipmentItem(
+      id: 'hose',
+      name: 'Hose',
+      type: EquipmentType.hose,
+    );
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          weightObservationsProvider.overrideWith((ref) async => const []),
+          allEquipmentProvider.overrideWith((ref) async => const [hose]),
+          activeEquipmentProvider.overrideWith((ref) async => const [hose]),
+          latestDiverWeightProvider.overrideWith((ref) async => null),
+          latestDiverHeightProvider.overrideWith((ref) async => null),
+        ],
+        child: const PlanGearWeightsSection(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The parent is not on the plan, so the part is a top-level row and
+    // must be visible and removable rather than hidden behind nothing.
+    ProviderScope.containerOf(
+          tester.element(find.byType(PlanGearWeightsSection)),
+        )
+        .read(divePlanNotifierProvider.notifier)
+        .setGear(
+          const ['hose'],
+          const [
+            GearProvenance(equipmentId: 'hose', viaEquipmentId: 'missing'),
+          ],
+        );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hose'), findsOneWidget);
     expect(find.byType(InputChip), findsOneWidget);
   });
 

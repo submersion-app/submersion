@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 void main() {
   group('DiveSummary', () {
@@ -58,7 +60,7 @@ void main() {
           diveTypeIds: ['recreational'],
           tanks: const [],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],
@@ -81,7 +83,7 @@ void main() {
           dateTime: now,
           tanks: const [],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],
@@ -92,6 +94,82 @@ void main() {
         final summary = DiveSummary.fromDive(dive);
         expect(summary.bottomTime, isNull);
         expect(summary.runtime, isNull);
+      });
+    });
+
+    group('trip identity', () {
+      final trip = Trip(
+        id: 't1',
+        name: 'Tassie',
+        startDate: DateTime(2026, 6, 8),
+        endDate: DateTime(2026, 6, 9),
+        createdAt: DateTime(2026, 6, 1),
+        updatedAt: DateTime(2026, 6, 1),
+      );
+
+      test('fromDive carries trip identity when the dive is on a trip', () {
+        final dive = Dive(
+          id: 'dive-3',
+          dateTime: now,
+          trip: trip,
+          tripId: 't1',
+          tanks: const [],
+          profile: const [],
+          gear: looseGear(const []),
+          notes: '',
+          photoIds: const [],
+          sightings: const [],
+          weights: const [],
+          tags: const [],
+        );
+
+        final summary = DiveSummary.fromDive(dive);
+
+        expect(summary.tripId, 't1');
+        expect(summary.tripName, 'Tassie');
+        expect(summary.tripStartDate, DateTime(2026, 6, 8));
+        expect(summary.tripEndDate, DateTime(2026, 6, 9));
+      });
+
+      test('fromDive leaves trip identity null for a loose dive', () {
+        final dive = Dive(
+          id: 'dive-4',
+          dateTime: now,
+          tanks: const [],
+          profile: const [],
+          gear: looseGear(const []),
+          notes: '',
+          photoIds: const [],
+          sightings: const [],
+          weights: const [],
+          tags: const [],
+        );
+
+        final summary = DiveSummary.fromDive(dive);
+
+        expect(summary.tripId, isNull);
+        expect(summary.tripName, isNull);
+        expect(summary.tripStartDate, isNull);
+        expect(summary.tripEndDate, isNull);
+      });
+
+      test('copyWith preserves trip identity', () {
+        final summary = DiveSummary(
+          id: 'dive-5',
+          dateTime: now,
+          sortTimestamp: now.millisecondsSinceEpoch,
+          tripId: 't1',
+          tripName: 'Tassie',
+          tripStartDate: DateTime(2026, 6, 8),
+          tripEndDate: DateTime(2026, 6, 9),
+        );
+
+        final copy = summary.copyWith(rating: 4);
+
+        expect(copy.tripId, 't1');
+        expect(copy.tripName, 'Tassie');
+        expect(copy.tripStartDate, DateTime(2026, 6, 8));
+        expect(copy.tripEndDate, DateTime(2026, 6, 9));
       });
     });
 

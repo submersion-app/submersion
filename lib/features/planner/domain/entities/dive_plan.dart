@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 
 /// Breathing mode of a saved dive plan.
 ///
@@ -96,6 +97,11 @@ class DivePlan extends Equatable {
   // Gear & Weights (v104): equipment attached to the plan plus the accepted
   // weight-prediction snapshot (placement keyed by WeightType.name -> kg).
   final List<String> equipmentIds;
+
+  /// Where each id in [equipmentIds] came from (issue #1487): the assembly
+  /// it was attached through and the set applied. An id with no entry is a
+  /// top-level row added by hand.
+  final List<GearProvenance> gearProvenance;
   final double? plannedWeightKg;
   final Map<String, double>? plannedWeightPlacement;
 
@@ -138,6 +144,7 @@ class DivePlan extends Equatable {
     this.segments = const [],
     this.tanks = const [],
     this.equipmentIds = const [],
+    this.gearProvenance = const [],
     this.plannedWeightKg,
     this.plannedWeightPlacement,
   });
@@ -220,6 +227,7 @@ class DivePlan extends Equatable {
     List<PlanSegment>? segments,
     List<DiveTank>? tanks,
     List<String>? equipmentIds,
+    List<GearProvenance>? gearProvenance,
     double? plannedWeightKg,
     bool clearPlannedWeight = false,
     Map<String, double>? plannedWeightPlacement,
@@ -280,6 +288,7 @@ class DivePlan extends Equatable {
       segments: segments ?? this.segments,
       tanks: tanks ?? this.tanks,
       equipmentIds: equipmentIds ?? this.equipmentIds,
+      gearProvenance: gearProvenance ?? this.gearProvenance,
       plannedWeightKg: clearPlannedWeight
           ? null
           : (plannedWeightKg ?? this.plannedWeightKg),
@@ -330,6 +339,7 @@ class DivePlan extends Equatable {
     segments,
     tanks,
     equipmentIds,
+    gearProvenance,
     plannedWeightKg,
     plannedWeightPlacement,
   ];

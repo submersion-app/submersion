@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
@@ -29,6 +33,35 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
   Future<List<String>> distinctRoles() async => const ['Necklace', 'Primary'];
 }
 
+/// How many logged dives carry the assembly, as the history dialog sees it.
+/// The real one logs and rethrows on a query failure.
+class _FakeEquipmentRepository extends EquipmentRepository {
+  int diveCount = 0;
+  Object? throwOnCount;
+
+  @override
+  Future<int> getDiveCountForEquipment(String equipmentId) async {
+    if (throwOnCount != null) throw throwOnCount!;
+    return diveCount;
+  }
+}
+
+/// DiveRepository only has a factory, so a Fake stands in for it.
+class _FakeDiveRepository extends Fake implements DiveRepository {
+  final rewrites = <(String, List<GearHistoryRewrite>)>[];
+  Object? throwOnRewrite;
+
+  @override
+  Future<int> rewriteAssemblyOnPastDives(
+    String assemblyId,
+    List<GearHistoryRewrite> rewrites_,
+  ) async {
+    if (throwOnRewrite != null) throw throwOnRewrite!;
+    rewrites.add((assemblyId, rewrites_));
+    return 1;
+  }
+}
+
 void main() {
   final t0 = DateTime(2026, 1, 1);
 
@@ -43,6 +76,11 @@ void main() {
     type: EquipmentType.hose,
     status: EquipmentStatus.retired,
     isActive: false,
+  );
+  const spare = EquipmentItem(
+    id: 'spare',
+    name: 'Spare first stage',
+    type: EquipmentType.firstStage,
   );
 
   EquipmentComponent part(
@@ -61,15 +99,29 @@ void main() {
     component: item,
   );
 
-  Widget build(List<EquipmentComponent> parts, _FakeComponentRepository repo) {
+  Widget build(
+    List<EquipmentComponent> parts,
+    _FakeComponentRepository repo, {
+    _FakeEquipmentRepository? equipment,
+    _FakeDiveRepository? dives,
+  }) {
     return ProviderScope(
       overrides: [
         equipmentComponentRepositoryProvider.overrideWithValue(repo),
+        equipmentRepositoryProvider.overrideWithValue(
+          equipment ?? _FakeEquipmentRepository(),
+        ),
+        diveRepositoryProvider.overrideWithValue(
+          dives ?? _FakeDiveRepository(),
+        ),
         equipmentComponentsProvider('reg').overrideWith((ref) async => parts),
         equipmentComponentsIndexProvider.overrideWith(
           (ref) async => ComponentsIndex.fromRows(parts),
         ),
         equipmentWorstClockProvider.overrideWith((ref) async => {}),
+        activeEquipmentProvider.overrideWith(
+          (ref) async => const [first, hose, spare],
+        ),
       ],
       child: const MaterialApp(
         locale: Locale('en'),
@@ -153,15 +205,152 @@ void main() {
     ]);
   });
 
-  testWidgets('the remove icon calls removeComponent with the row id', (
+  testWidgets('with no past dives the remove icon removes at once', (
     tester,
   ) async {
     final repo = _FakeComponentRepository();
-    await tester.pumpWidget(build([part('c1', first)], repo));
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(build([part('c1', first)], repo, dives: dives));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
+    expect(find.text('Update past dives?'), findsNothing);
     expect(repo.removed, ['c1']);
+    expect(dives.rewrites, isEmpty);
+  });
+
+  testWidgets(
+    'removing on an assembly with past dives asks, also past replays',
+    (tester) async {
+      final repo = _FakeComponentRepository();
+      final dives = _FakeDiveRepository();
+      await tester.pumpWidget(
+        build(
+          [part('c1', first)],
+          repo,
+          equipment: _FakeEquipmentRepository()..diveCount = 2,
+          dives: dives,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('Update past dives?'), findsOneWidget);
+      expect(find.textContaining('Remove the part'), findsOneWidget);
+      await tester.tap(find.text('Also update 2 dives'));
+      await tester.pumpAndSettle();
+      expect(repo.removed, ['c1']);
+      // Compared field by field: a record holding a List compares that
+      // field by identity, so two equal lists never match as one record.
+      expect(dives.rewrites, hasLength(1));
+      expect(dives.rewrites.single.$1, 'reg');
+      expect(dives.rewrites.single.$2, const [GearPartRemoved('first')]);
+    },
+  );
+
+  testWidgets('a failed dive count is reported, and removes nothing', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        [part('c1', first)],
+        repo,
+        equipment: _FakeEquipmentRepository()
+          ..throwOnCount = StateError('no database'),
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    expect(find.text('Update past dives?'), findsNothing);
+    expect(find.textContaining('no database'), findsOneWidget);
+    expect(repo.removed, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a failed replay is reported instead of going unhandled', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository()..throwOnRewrite = StateError('boom');
+    await tester.pumpWidget(
+      build(
+        [part('c1', first)],
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Also update 2 dives'));
+    await tester.pumpAndSettle();
+    expect(repo.removed, ['c1']);
+    expect(find.textContaining('boom'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('from now on removes the part and leaves past dives alone', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        [part('c1', first)],
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('From now on'));
+    await tester.pumpAndSettle();
+    expect(repo.removed, ['c1']);
+    expect(dives.rewrites, isEmpty);
+  });
+
+  testWidgets('cancelling the question changes nothing', (tester) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        [part('c1', first)],
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(repo.removed, isEmpty);
+    expect(dives.rewrites, isEmpty);
+  });
+
+  testWidgets('the replace icon opens the picker in single-select mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      build([part('c1', first)], _FakeComponentRepository()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Replace component'));
+    await tester.pumpAndSettle();
+    expect(find.text('Replace with'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Replace'), findsOneWidget);
+    // The row being replaced is a current part, so it is not a candidate,
+    // while the spare of the same type is.
+    expect(find.text('Spare first stage'), findsOneWidget);
+    expect(find.text('DGX first stage'), findsOneWidget);
   });
 
   testWidgets('the edit icon opens the role dialog and saves the new role', (

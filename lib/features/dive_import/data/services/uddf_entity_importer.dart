@@ -47,6 +47,9 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -90,6 +93,11 @@ class ImportRepositories {
   /// (#1288).
   final DiveComputerRepository? diveComputerRepository;
 
+  /// Optional so existing bundles keep compiling; when null the importer
+  /// builds the default, so assembly templates (issue #1487) are restored
+  /// on every path.
+  final EquipmentComponentRepository? equipmentComponentRepository;
+
   const ImportRepositories({
     required this.tripRepository,
     required this.equipmentRepository,
@@ -107,6 +115,7 @@ class ImportRepositories {
     required this.tankPressureRepository,
     required this.courseRepository,
     this.diveComputerRepository,
+    this.equipmentComponentRepository,
   });
 }
 
@@ -314,6 +323,7 @@ class UddfEntityImporter {
     final tagIdMapping = <String, String>{...preResolvedTagIds};
     final siteIdMapping = <String, DiveSite>{};
     final courseIdMapping = <String, String>{};
+    final setIdMapping = <String, String>{};
 
     // Import in dependency order
     final tripsCount = await _importTrips(
@@ -334,6 +344,15 @@ class UddfEntityImporter {
       equipmentIdMapping,
       now,
       onProgress,
+    );
+
+    // Assembly templates ride with their parent item the same way.
+    await _importComponents(
+      data.equipment,
+      selections.equipment,
+      repositories.equipmentComponentRepository ??
+          EquipmentComponentRepository(),
+      equipmentIdMapping,
     );
 
     // Service history belongs to the equipment it describes, so it rides
@@ -419,6 +438,7 @@ class UddfEntityImporter {
       repositories.equipmentSetRepository,
       diverId,
       equipmentIdMapping,
+      setIdMapping,
       now,
       onProgress,
     );
@@ -446,6 +466,7 @@ class UddfEntityImporter {
       tagIdMapping: tagIdMapping,
       siteIdMapping: siteIdMapping,
       courseIdMapping: courseIdMapping,
+      setIdMapping: setIdMapping,
       sourceFileName: data.sourceFileName,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       now: now,
@@ -1291,12 +1312,62 @@ class UddfEntityImporter {
 
   // -- Equipment Set import --
 
+  /// Assembly template rows (issue #1487), carried on each parent item's
+  /// map as `components`. The parent must have been selected and both
+  /// ends must be in [equipmentIdMapping]; a row that would close a cycle
+  /// is logged and skipped, never thrown, since one bad edge must not cost
+  /// the logbook. Rows go in exported order so the appended sort_order
+  /// matches.
+  Future<int> _importComponents(
+    List<Map<String, dynamic>> equipment,
+    Set<int> selected,
+    EquipmentComponentRepository repository,
+    Map<String, String> equipmentIdMapping,
+  ) async {
+    var count = 0;
+    for (final (index, item) in equipment.indexed) {
+      if (!selected.contains(index)) continue;
+      final parts = item['components'];
+      if (parts is! List) continue;
+      final parentId = equipmentIdMapping[item['uddfId']];
+      if (parentId == null) continue;
+      final sorted = [
+        for (final p in parts)
+          if (p is Map) p,
+      ]..sort((a, b) => _sortOrderOf(a).compareTo(_sortOrderOf(b)));
+      for (final part in sorted) {
+        final componentId = equipmentIdMapping[part['componentRef']];
+        if (componentId == null) continue;
+        try {
+          await repository.addComponent(
+            parentId: parentId,
+            componentId: componentId,
+            // Untrusted input: a role that is not a string is dropped
+            // rather than casting and aborting the whole import.
+            role: part['role'] is String ? part['role'] as String : '',
+          );
+          count++;
+        } on EquipmentComponentCycleException {
+          _log.warning(
+            'Skipped a component row under $parentId that would close a '
+            'cycle',
+          );
+        }
+      }
+    }
+    return count;
+  }
+
+  static int _sortOrderOf(Map<dynamic, dynamic> part) =>
+      part['sortOrder'] is int ? part['sortOrder'] as int : 0;
+
   Future<int> _importEquipmentSets(
     List<Map<String, dynamic>> items,
     Set<int> selected,
     EquipmentSetRepository repository,
     String diverId,
     Map<String, String> equipmentIdMapping,
+    Map<String, String> setIdMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
   ) async {
@@ -1334,6 +1405,10 @@ class UddfEntityImporter {
       );
 
       await repository.createSet(equipmentSet);
+      // Gear links on dives name the set they came from (issue #1487).
+      if (setData['uddfId'] case final String uddfId) {
+        setIdMapping[uddfId] = newId;
+      }
       count++;
       onProgress?.call(ImportPhase.equipmentSets, count, selected.length);
     }
@@ -1640,6 +1715,7 @@ class UddfEntityImporter {
     required Map<String, String> tagIdMapping,
     required Map<String, DiveSite> siteIdMapping,
     required Map<String, String> courseIdMapping,
+    Map<String, String> setIdMapping = const {},
     String? sourceFileName,
     bool retainSourceDiveNumbers = false,
     required DateTime now,
@@ -1782,6 +1858,21 @@ class UddfEntityImporter {
         equipmentIdMapping,
         repos.equipmentRepository,
       );
+      // Provenance for the rows that had it (issue #1487). A parent or set
+      // that was not imported resolves to null, so the row lands loose
+      // rather than dangling.
+      final gearLinks = diveData['gearLinks'];
+      final provenance = <GearProvenance>[
+        if (gearLinks is List)
+          for (final link in gearLinks)
+            if (link is Map)
+              if (equipmentIdMapping[link['itemRef']] case final String itemId)
+                GearProvenance(
+                  equipmentId: itemId,
+                  viaEquipmentId: equipmentIdMapping[link['viaRef']],
+                  viaSetId: setIdMapping[link['setRef']],
+                ),
+      ];
 
       final notes = diveData['notes'] as String? ?? '';
 
@@ -1943,7 +2034,7 @@ class UddfEntityImporter {
         site: linkedSite,
         tripId: linkedTripId,
         diveCenter: linkedDiveCenter,
-        equipment: linkedEquipment,
+        gear: gearLinksFor(linkedEquipment, provenance),
         sightings: sightings,
         currentDirection: _parseEnum(
           diveData['currentDirection'],

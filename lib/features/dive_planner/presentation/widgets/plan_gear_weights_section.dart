@@ -8,6 +8,10 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
@@ -20,6 +24,43 @@ import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 /// onto the plan.
 class PlanGearWeightsSection extends ConsumerWidget {
   const PlanGearWeightsSection({super.key});
+
+  /// Every add funnels here so an assembly expands into its parts the same
+  /// way it does on a dive (issue #1487).
+  Future<void> _addGear(
+    WidgetRef ref,
+    List<EquipmentItem> items, {
+    String? viaSetId,
+  }) async {
+    final state = ref.read(divePlanNotifierProvider);
+    final catalog = ref.read(allEquipmentProvider).valueOrNull ?? const [];
+    final byId = {for (final e in catalog) e.id: e};
+    final existingItems = [
+      for (final id in state.equipmentIds) ?byId[id],
+      for (final item in items)
+        if (!state.equipmentIds.contains(item.id)) item,
+    ];
+    final expansion = await expandGearOnPage(
+      ref,
+      additions: [
+        for (final i in items) (equipmentId: i.id, viaSetId: viaSetId),
+      ],
+      existing: state.fullGearProvenance,
+      existingItems: existingItems,
+    );
+    ref.read(divePlanNotifierProvider.notifier).setGear([
+      for (final p in expansion.provenance) p.equipmentId,
+    ], expansion.provenance);
+  }
+
+  /// Removes [id] and every part attached through it.
+  void _removeGear(WidgetRef ref, String id) {
+    final state = ref.read(divePlanNotifierProvider);
+    final kept = GearExpander.removeSubtree(state.fullGearProvenance, id);
+    ref.read(divePlanNotifierProvider.notifier).setGear([
+      for (final p in kept) p.equipmentId,
+    ], kept);
+  }
 
   void _showGearPicker(BuildContext context, WidgetRef ref) {
     final state = ref.read(divePlanNotifierProvider);
@@ -35,12 +76,8 @@ class PlanGearWeightsSection extends ConsumerWidget {
           scrollController: scrollController,
           selectedEquipmentIds: state.equipmentIds.toSet(),
           onEquipmentSelected: (equipment) {
-            final notifier = ref.read(divePlanNotifierProvider.notifier);
-            final current = ref.read(divePlanNotifierProvider).equipmentIds;
-            if (!current.contains(equipment.id)) {
-              notifier.setEquipmentIds([...current, equipment.id]);
-            }
             Navigator.of(context).pop();
+            _addGear(ref, [equipment]);
           },
         ),
       ),
@@ -59,11 +96,8 @@ class PlanGearWeightsSection extends ConsumerWidget {
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
           onSetSelected: (set, items) {
-            final notifier = ref.read(divePlanNotifierProvider.notifier);
-            final current = ref.read(divePlanNotifierProvider).equipmentIds;
-            final merged = {...current, for (final item in items) item.id};
-            notifier.setEquipmentIds(merged.toList());
             Navigator.of(context).pop();
+            _addGear(ref, items, viaSetId: set.id);
           },
         ),
       ),
@@ -80,6 +114,12 @@ class PlanGearWeightsSection extends ConsumerWidget {
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
     final itemsById = {for (final item in equipment) item.id: item};
     final buoyancy = ref.watch(planBuoyancyTwinProvider);
+    // Parts sit inside their assembly's chip as a count (issue #1487). The
+    // tree's placement decides what is a part, so an orphaned row whose
+    // parent is not on the plan stays visible as its own chip.
+    final rows = state.fullGearProvenance;
+    final partIds = GearTree.partIds(rows);
+    final partCounts = GearTree.partCounts(rows);
 
     return Card(
       child: Padding(
@@ -130,14 +170,18 @@ class PlanGearWeightsSection extends ConsumerWidget {
                 runSpacing: 4,
                 children: [
                   for (final id in state.equipmentIds)
-                    InputChip(
-                      label: Text(itemsById[id]?.name ?? id),
-                      onDeleted: () => ref
-                          .read(divePlanNotifierProvider.notifier)
-                          .setEquipmentIds(
-                            state.equipmentIds.where((e) => e != id).toList(),
-                          ),
-                    ),
+                    if (!partIds.contains(id))
+                      InputChip(
+                        label: Text(switch (partCounts[id]) {
+                          final n? when n > 0 =>
+                            context.l10n.equipment_assemblyChip_label(
+                              n,
+                              itemsById[id]?.name ?? id,
+                            ),
+                          _ => itemsById[id]?.name ?? id,
+                        }),
+                        onDeleted: () => _removeGear(ref, id),
+                      ),
                 ],
               ),
             if (prediction != null) ...[
