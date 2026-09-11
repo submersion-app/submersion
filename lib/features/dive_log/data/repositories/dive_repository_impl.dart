@@ -6277,12 +6277,15 @@ class DiveRepository {
     return {for (final r in rows) r.read(j.diveTypeId)!: r.read(countExpr)!};
   }
 
+  /// A whole new tank row. [withLink] writes [t]'s registry cylinder link;
+  /// only an undo restoring the rows it captured passes it.
   DiveTanksCompanion _tankCompanion(
     String id,
     String diveId,
     domain.DiveTank t,
-    int order,
-  ) => DiveTanksCompanion(
+    int order, {
+    bool withLink = false,
+  }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
     volume: Value(t.volume),
@@ -6300,10 +6303,10 @@ class DiveRepository {
     transmitterSerial: Value(t.transmitterSerial),
     regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
-    // The registry's cylinder link. A template tank carries none; a tank
-    // restored by undo carries the link it had, which the rebuild would
-    // otherwise drop along with the cylinder's check-in chips.
-    equipmentId: Value(t.equipmentId),
+    // The registry's cylinder link, owned by the transmitter registry. A
+    // template copied from a linked tank must not stamp that cylinder onto
+    // every dive it lands on, so only a restore writes it.
+    equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -6459,10 +6462,15 @@ class DiveRepository {
 
   /// Replace each dive's tank list with [tanks] (fresh ids, sequential order).
   /// No notify/txn. Cascades to delete tank_pressure_series/gas_switches.
+  ///
+  /// [restoreLinks] keeps each tank's registry cylinder link: set by undo,
+  /// which puts back the rows it captured. A bulk edit's template tanks
+  /// never write one.
   Future<void> bulkReplaceTanks(
     List<String> diveIds,
-    List<domain.DiveTank> tanks,
-  ) async {
+    List<domain.DiveTank> tanks, {
+    bool restoreLinks = false,
+  }) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
@@ -6482,7 +6490,15 @@ class DiveRepository {
         final tankId = _uuid.v4();
         await _db
             .into(_db.diveTanks)
-            .insert(_tankCompanion(tankId, diveId, tanks[i], i));
+            .insert(
+              _tankCompanion(
+                tankId,
+                diveId,
+                tanks[i],
+                i,
+                withLink: restoreLinks,
+              ),
+            );
         await _syncRepository.markRecordPending(
           entityType: 'diveTanks',
           recordId: tankId,

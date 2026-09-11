@@ -203,7 +203,11 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
   Future<void> _save(_Draft draft) async {
     if (_saving) return;
     final l10n = context.l10n;
-    if (draft.status == ObservationStatus.issue && draft.tags.isEmpty) {
+    // A newer peer's tags cannot be shown, but they are still the row's
+    // tags: only an issue with none at all is refused.
+    if (draft.status == ObservationStatus.issue &&
+        draft.tags.isEmpty &&
+        (draft.existing?.unrecognizedTags.isEmpty ?? true)) {
       setState(() => draft.error = l10n.equipmentObservation_sheet_tagRequired);
       return;
     }
