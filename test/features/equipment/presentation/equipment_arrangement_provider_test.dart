@@ -21,6 +21,10 @@ class _FakeSettingsRepository extends AppSettingsRepository {
   EquipmentArrangement? stored;
   bool failWrite;
   bool failRead = false;
+
+  /// Stores the value, then throws: a write that changed the settings row
+  /// but failed a later step (the pending-sync mark).
+  bool failAfterStoring = false;
   final List<EquipmentArrangement> written = [];
   final StreamController<void> settingsTicks = StreamController<void>();
 
@@ -35,6 +39,7 @@ class _FakeSettingsRepository extends AppSettingsRepository {
     if (failWrite) throw StateError('write failed');
     written.add(arrangement);
     stored = arrangement;
+    if (failAfterStoring) throw StateError('failed after storing');
   }
 
   @override
@@ -299,6 +304,11 @@ void main() {
     await _settle();
     gated.writes.first.gate.completeError(StateError('write failed'));
     await expectLater(a, throwsA(isA<StateError>()));
+    await _settle();
+    // A write that failed may have changed the row, so B reads storage
+    // before building. A never stored anything here.
+    expect(gated.reads, hasLength(2), reason: 'B re-reads after the failure');
+    gated.reads.last.complete(null);
     await _settle();
     gated.writes.last.gate.complete();
     await b;
@@ -747,6 +757,70 @@ void main() {
       expect(
         container.read(equipmentArrangementNotifierProvider),
         EquipmentArrangement.defaults,
+      );
+    },
+  );
+
+  test(
+    'after a write that failed partway, the next edit reads first',
+    () async {
+      // The write stored the row and then failed, so storage holds the change
+      // while state does not. The next edit must build on what storage holds,
+      // or it overwrites the first change's other axes.
+      final fake = _FakeSettingsRepository()..failAfterStoring = true;
+      final container = containerWith(fake);
+      final notifier = container.read(
+        equipmentArrangementNotifierProvider.notifier,
+      );
+
+      await expectLater(
+        notifier.updateArrangement(
+          (current) => current.copyWith(groupByType: false),
+        ),
+        throwsA(isA<StateError>()),
+      );
+      fake.failAfterStoring = false;
+      await notifier.updateArrangement(
+        (current) => current.copyWith(typeOrder: EquipmentTypeOrder.headToToe),
+      );
+
+      expect(
+        fake.stored,
+        EquipmentArrangement.defaults.copyWith(
+          groupByType: false,
+          typeOrder: EquipmentTypeOrder.headToToe,
+        ),
+      );
+    },
+  );
+
+  test(
+    'an edit does not wait on an older read that can no longer publish',
+    () async {
+      // Read 1 stalls; read 2 lands and publishes. Read 1 can no longer change
+      // state (it is older than what published), so an edit must not wait
+      // for it.
+      final fake = _OrderedFakeRepository();
+      final container = ProviderContainer(
+        overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(
+        equipmentArrangementNotifierProvider.notifier,
+      );
+      await pumpEventQueue();
+      fake.settingsTicks.add(null);
+      await pumpEventQueue();
+      fake.pending[1].complete(null);
+      await notifier.loaded;
+
+      await notifier
+          .updateArrangement((current) => current.copyWith(groupByType: false))
+          .timeout(const Duration(seconds: 5));
+
+      expect(
+        container.read(equipmentArrangementNotifierProvider).groupByType,
+        isFalse,
       );
     },
   );

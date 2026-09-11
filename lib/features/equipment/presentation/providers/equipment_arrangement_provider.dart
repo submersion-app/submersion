@@ -70,9 +70,17 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   /// dropped.
   int _publishedLoadSeq = 0;
 
-  /// Completes when the reads in flight drain, for a queued edit waiting on
-  /// them; null while none is waiting.
-  Completer<void>? _readsDrained;
+  /// Completes when a read finishes, for a queued edit waiting on reads;
+  /// null while none is waiting.
+  Completer<void>? _readFinished;
+
+  /// Whether `state` is known to match storage.
+  ///
+  /// False until a read publishes, and false again after a write fails: the
+  /// write can fail after changing the settings row (the pending-sync mark
+  /// comes second), so storage may hold a value state does not. An edit
+  /// built on an unknown base could save stale axes over it.
+  bool _baseKnown = false;
 
   /// The newest successful read not yet published.
   ///
@@ -107,8 +115,8 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   void dispose() {
     _settingsSubscription?.cancel();
     // Release a queued edit waiting on reads that will no longer publish.
-    _readsDrained?.complete();
-    _readsDrained = null;
+    _readFinished?.complete();
+    _readFinished = null;
     // Nothing further will publish, so release anyone still awaiting rather
     // than leaving them hanging on a notifier that is gone.
     _settleFirstLoad();
@@ -122,11 +130,9 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
       await _read(seq);
     } finally {
       // Every path out of a read, published, deferred or failed, lets a
-      // queued edit re-check whether storage has finished speaking.
-      if (_readsInFlight.isEmpty) {
-        _readsDrained?.complete();
-        _readsDrained = null;
-      }
+      // queued edit re-check whether any read that matters is still out.
+      _readFinished?.complete();
+      _readFinished = null;
     }
   }
 
@@ -136,10 +142,14 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   /// may replace `state` is in flight: after launch that is a change synced
   /// from another device, and building on the pre-sync state would write
   /// the old axes back over the synced ones.
+  ///
+  /// Only reads newer than the last one published can still change state
+  /// (an older one landing later is dropped), so an older read that stalls
+  /// does not hold up an edit.
   Future<void> _readsSettled() async {
     await loaded;
-    while (_readsInFlight.isNotEmpty && mounted) {
-      await (_readsDrained ??= Completer<void>()).future;
+    while (mounted && _readsInFlight.any((seq) => seq > _publishedLoadSeq)) {
+      await (_readFinished ??= Completer<void>()).future;
     }
   }
 
@@ -188,6 +198,7 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
         // that THREW is different and never becomes a candidate: "could not
         // read" is not "nothing stored", so it keeps what is already loaded.
         if (mounted) state = best.stored ?? EquipmentArrangement.defaults;
+        _baseKnown = true;
       }
       _settleFirstLoad();
       return;
@@ -222,8 +233,9 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   ///   successive edits all survive;
   /// - a change whose write failed never published, so the next one builds
   ///   on what storage actually holds and the failure cannot ride along;
-  /// - if no read has ever succeeded, the stored arrangement is unknown, so
-  ///   it reads again and refuses the change rather than build on defaults.
+  /// - if no read has ever succeeded, or the last write failed (possibly
+  ///   after changing the row), state is not known to match storage, so it
+  ///   reads again and refuses the change if storage cannot say.
   ///
   /// State moves only after the write succeeds, so a failed save does not
   /// leave the diver looking at an order that will be gone on next launch.
@@ -234,16 +246,17 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
     final step = _writes.then((_) async {
       await _readsSettled();
       if (!mounted) return;
-      // A failed read leaves the stored arrangement unknown rather than "the
-      // defaults" (state only shows them because nothing better arrived).
-      // Building on them would save the defaults over every axis this
-      // change does not touch, so read again first, and refuse the change
-      // if storage still cannot say what it holds.
-      if (_publishedLoadSeq == 0) {
+      // When state is not known to match storage (no read has succeeded, or
+      // the last write failed, possibly after changing the row), building
+      // on it could save stale axes over the stored ones: the defaults over
+      // a customization, or the old value over a half-written change. Read
+      // again first, and refuse the change if storage still cannot say what
+      // it holds.
+      if (!_baseKnown) {
         await _load();
         await _readsSettled();
         if (!mounted) return;
-        if (_publishedLoadSeq == 0) {
+        if (!_baseKnown) {
           throw StateError(
             'The stored gear arrangement could not be read, so a change '
             'cannot be applied to it',
@@ -251,7 +264,12 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
         }
       }
       final next = change(state);
-      await _repository.setEquipmentArrangement(next);
+      try {
+        await _repository.setEquipmentArrangement(next);
+      } catch (_) {
+        _baseKnown = false;
+        rethrow;
+      }
       if (mounted) state = next;
     });
     // The queue must keep moving after a failure; the caller still sees it

@@ -77,10 +77,15 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// list is about to leave; a different type axis here means the row has
   /// moved and must be scrolled to again.
   ///
-  /// Only the type axis: the page orders items by its own sort, so the
-  /// arrangement's item sort (a dive-surface setting) moves no row here, and
-  /// re-scrolling on it would yank the diver back to the selected row.
+  /// Only the type axis (and the locale, which reorders alphabetical
+  /// headings): the page orders items by its own sort, so the arrangement's
+  /// item sort (a dive-surface setting) moves no row here, and re-scrolling
+  /// on it would yank the diver back to the selected row.
   Object? _scrolledTypeAxis;
+
+  /// The type axis the list was last built with, for [didUpdateWidget],
+  /// which runs before the next build and outside it.
+  Object? _currentTypeAxis;
   bool _selectionFromList = false;
 
   @override
@@ -99,12 +104,23 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       if (_selectionFromList) {
         _selectionFromList = false;
         _lastScrolledToId = widget.selectedId;
-        _scrolledTypeAxis = _typeAxisOf(ref.read(equipmentArrangementProvider));
+        _scrolledTypeAxis = _currentTypeAxis;
       }
       // External selection changes are handled by _buildEquipmentList
       // when the sorted data is available.
     }
   }
+
+  /// What moves rows on this page: the arrangement's type axis, plus the
+  /// locale, since alphabetical headings sort by the translated type name
+  /// and a new language reorders them with no arrangement change.
+  static Object _typeAxisOf(EquipmentArrangement arrangement, Locale locale) =>
+      (
+        arrangement.groupByType,
+        arrangement.typeOrder,
+        arrangement.typeOrderDescending,
+        locale,
+      );
 
   /// Scroll the list to bring the row at [index] into view.
   ///
@@ -113,13 +129,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// Headings are sized separately because sizing them like items overshoots
   /// by the difference for every heading above the target, which in a
   /// grouped list is nearly one per item.
-  /// The parts of [arrangement] that move rows on this page.
-  static Object _typeAxisOf(EquipmentArrangement arrangement) => (
-    arrangement.groupByType,
-    arrangement.typeOrder,
-    arrangement.typeOrderDescending,
-  );
-
   void _scrollToIndex(
     List<_EquipmentListRow> rows,
     int index,
@@ -831,7 +840,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // after the first frame, or the diver regrouping). The index counts
     // heading rows too, since they take space above the item.
     final selectedId = widget.selectedId;
-    final typeAxis = _typeAxisOf(arrangement);
+    final typeAxis = _typeAxisOf(arrangement, Localizations.localeOf(context));
+    _currentTypeAxis = typeAxis;
     if (selectedId != null &&
         (selectedId != _lastScrolledToId || typeAxis != _scrolledTypeAxis) &&
         !_selectionFromList) {

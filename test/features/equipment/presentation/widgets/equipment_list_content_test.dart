@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -1037,6 +1038,94 @@ void main() {
       repository.heldRead!.complete(
         EquipmentArrangement.defaults.copyWith(typeOrderDescending: true),
       );
+      await tester.pumpAndSettle();
+
+      final row = find.text(target.name);
+      expect(row, findsOneWidget);
+      final list = tester.getRect(find.byType(ListView));
+      final rect = tester.getRect(row);
+      expect(
+        rect.top,
+        greaterThanOrEqualTo(list.top),
+        reason: '$rect in $list',
+      );
+      expect(rect.bottom, lessThanOrEqualTo(list.bottom), reason: '$rect');
+    });
+
+    testWidgets('switching language re-scrolls to the selected gear', (
+      tester,
+    ) async {
+      // Alphabetical headings sort by the translated type name, so a new
+      // language reorders them without any arrangement change. The selected
+      // row must be brought back into view after the reorder.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      List<EquipmentType> orderIn(Locale locale) {
+        final l10n = lookupAppLocalizations(locale);
+        return [
+          for (final group in arrangeEquipment(
+            gear,
+            EquipmentArrangement.defaults,
+            typeLabel: (t) => t.localizedName(l10n),
+          ))
+            group.type!,
+        ];
+      }
+
+      final english = orderIn(const Locale('en'));
+      final german = orderIn(const Locale('de'));
+      // A type the switch moves several rows, so the viewport (about five
+      // rows) no longer shows it, while it stays within the first dozen rows
+      // in both languages: this checks that the list re-scrolls, not how
+      // far the row-height estimate drifts deep into a long list.
+      int shift(EquipmentType t) =>
+          (german.indexOf(t) - english.indexOf(t)).abs();
+      final candidates = english.where(
+        (t) => english.indexOf(t) <= 12 && german.indexOf(t) <= 12,
+      );
+      final type = candidates.reduce((a, b) => shift(a) >= shift(b) ? a : b);
+      expect(
+        shift(type),
+        greaterThanOrEqualTo(5),
+        reason: 'the switch must move the row off screen to prove anything',
+      );
+      final target = gear.firstWhere((e) => e.type == type);
+
+      final locale = ValueNotifier(const Locale('en'));
+      addTearDown(locale.dispose);
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: EquipmentArrangement.defaults,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: ValueListenableBuilder<Locale>(
+            valueListenable: locale,
+            builder: (context, value, _) => MaterialApp(
+              locale: value,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: EquipmentListContent(
+                  showAppBar: false,
+                  selectedId: target.id,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(target.name), findsOneWidget);
+
+      locale.value = const Locale('de');
       await tester.pumpAndSettle();
 
       final row = find.text(target.name);
