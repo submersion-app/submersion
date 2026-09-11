@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -46,6 +47,7 @@ class ReparseService {
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
   }) : _transmitterMatcherLoader = transmitterMatcherLoader,
+       _sync = SyncRepository(database: db),
        _profileSeries =
            profileSeries ??
            ProfileSeriesRepository(
@@ -59,6 +61,7 @@ class ReparseService {
              syncRepository: SyncRepository(database: db),
            );
 
+  final SyncRepository _sync;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
 
@@ -80,6 +83,12 @@ class ReparseService {
   ///
   /// Returns whether the dive's profile strand was left untouched because
   /// this source does not own it -- see [_sourceOwnsProfileStrand].
+  ///
+  /// The dive row and its source row, tanks, events and gas switches all
+  /// export only through the dive's HLC, so the dive is staged for sync
+  /// whatever this re-parse wrote, and every child row it removes is
+  /// tombstoned: a peer's import only upserts those, so a row deleted here
+  /// without one would linger there beside its replacement.
   Future<({bool profilePreserved})> applyParsedUpdate({
     required String diveId,
     required String sourceRowId,
@@ -91,7 +100,7 @@ class ReparseService {
     Uint8List? rawData,
     Uint8List? rawFingerprint,
   }) async {
-    return db.transaction(() async {
+    final outcome = await db.transaction(() async {
       final now = DateTime.now();
 
       // ------------------------------------------------------------------
@@ -173,12 +182,27 @@ class ReparseService {
       // one original had one, so the ownership guard applies here too --
       // otherwise the merge's own surface-gap markers are deleted (#1164).
       if (!isMultiSource && ownsStrand) {
+        final oldEvents = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals(diveId))).get();
         await (db.delete(
           db.diveProfileEvents,
         )..where((t) => t.diveId.equals(diveId))).go();
+        for (final event in oldEvents) {
+          await _sync.logDeletion(
+            entityType: 'diveProfileEvents',
+            recordId: event.id,
+          );
+        }
+        final oldSwitches = await (db.select(
+          db.gasSwitches,
+        )..where((t) => t.diveId.equals(diveId))).get();
         await (db.delete(
           db.gasSwitches,
         )..where((t) => t.diveId.equals(diveId))).go();
+        for (final sw in oldSwitches) {
+          await _sync.logDeletion(entityType: 'gasSwitches', recordId: sw.id);
+        }
         await _tankSeries.deleteForDive(diveId);
 
         // Re-insert events from parsed data
@@ -215,8 +239,18 @@ class ReparseService {
         );
       }
 
+      // Unconditional: even a non-primary re-parse rewrote its source row,
+      // which rides the dive's clock like the rest.
+      await _sync.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+
       return (profilePreserved: !ownsStrand);
     });
+    SyncEventBus.notifyLocalChange();
+    return outcome;
   }
 
   /// Whether [row] is the sole author of its `(dive_id, computer_id)` profile
@@ -822,6 +856,7 @@ class ReparseService {
         await (db.delete(
           db.diveTanks,
         )..where((t) => t.id.equals(existing.id))).go();
+        await _sync.logDeletion(entityType: 'diveTanks', recordId: existing.id);
       }
     }
 
