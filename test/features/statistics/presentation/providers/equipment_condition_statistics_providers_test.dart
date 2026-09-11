@@ -283,6 +283,32 @@ void main() {
       ]);
     });
 
+    test('a gear link on an existing dive reaches the filtered set', () async {
+      // The filter reads the link tables, not just `dives`: linking the
+      // BCD to r1 must put r1 in the set without any dive row changing.
+      container.read(statisticsFilterProvider.notifier).state = DiveFilterState(
+        equipmentIds: [bcd.id],
+      );
+      final sub = container.listen(
+        statisticsFilteredDiveIdsProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      expect(await container.read(statisticsFilteredDiveIdsProvider.future), {
+        'b1',
+        'b2',
+      });
+
+      await link('r1', bcd.id);
+      Set<String>? ids;
+      for (var i = 0; i < 100; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        ids = await container.read(statisticsFilteredDiveIdsProvider.future);
+        if (ids!.contains('r1')) break;
+      }
+      expect(ids, {'b1', 'b2', 'r1'});
+    });
+
     test('reported issues count only check-ins on those dives', () async {
       final observations = EquipmentObservationRepository();
       await observations.create(

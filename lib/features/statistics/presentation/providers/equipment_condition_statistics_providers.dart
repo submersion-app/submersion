@@ -26,8 +26,18 @@ final statisticsFilteredDiveIdsProvider = FutureProvider<Set<String>?>((
   ref,
 ) async {
   final filter = ref.watch(statisticsFilterProvider);
-  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
-  return ref.watch(statisticsRepositoryProvider).filteredDiveIds(filter);
+  final statistics = ref.watch(statisticsRepositoryProvider);
+  // The filter reads far more than `dives`: the gear and tank links, tags,
+  // dive types, buddies, sites and trips, and equipment attributes. Linking
+  // gear to an existing dive changes no dive row, yet changes the set.
+  ref.invalidateSelfWhen(statistics.watchStatisticsChanges());
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
+  ref.invalidateSelfWhen(
+    ref.watch(equipmentRepositoryProvider).watchAttributeChanges(),
+  );
+  return statistics.filteredDiveIds(filter);
 });
 
 /// The unit the exposure ranking card is showing.
