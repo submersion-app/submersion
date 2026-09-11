@@ -150,7 +150,16 @@ void main() {
       ]),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Evidence dives'), findsOneWidget);
+    Finder tileOf(String sentence) =>
+        find.ancestor(of: find.text(sentence), matching: find.byType(ListTile));
+    Finder evidenceIn(Finder tile) =>
+        find.descendant(of: tile, matching: find.text('Evidence dives'));
+    // The bench incident's row has no action; the recurring issue's does.
+    expect(evidenceIn(tileOf('1 incident names this item')), findsNothing);
+    expect(
+      evidenceIn(tileOf('Free flow reported 3 times in the last 5 dives')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a disabled rule is hidden and the count follows', (

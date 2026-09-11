@@ -10,10 +10,38 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// A percentage, median or decline the evidence did not carry renders as
 /// this, never as a fabricated 0 that would read as "output fell 0
-/// percent". Counts and the cell slot are not covered: they fill integer
-/// plural placeholders, and the engine writes them for every rule that
-/// names them, so their 0 fallback only guards a malformed row.
+/// percent". Counts and the cell slot fill integer plural placeholders
+/// instead, so a row missing one reads as its rule's name (see
+/// [_integersFor]) rather than as "Cell 0" or "on 0 dives".
 const _unknown = '--';
+
+/// The whole-number inputs each rule's sentence needs.
+List<String> _integersFor(ConditionRuleId rule) => switch (rule) {
+  ConditionRuleId.cellDivergent ||
+  ConditionRuleId.cellCurrentLimited ||
+  ConditionRuleId.transmitterDropoutHigh ||
+  ConditionRuleId.issueRecurring ||
+  ConditionRuleId.incidentLinked => const ['count'],
+  ConditionRuleId.issueColdCorrelated => const [
+    'coldIssueDives',
+    'warmIssueDives',
+  ],
+  ConditionRuleId.issueDeepCorrelated => const [
+    'deepIssueDives',
+    'shallowIssueDives',
+  ],
+  ConditionRuleId.cellOutputDeclining ||
+  ConditionRuleId.cellOutputLow ||
+  ConditionRuleId.transmitterDropoutRising => const [],
+};
+
+bool _isSlotRule(ConditionRuleId rule) => switch (rule) {
+  ConditionRuleId.cellOutputDeclining ||
+  ConditionRuleId.cellOutputLow ||
+  ConditionRuleId.cellDivergent ||
+  ConditionRuleId.cellCurrentLimited => true,
+  _ => false,
+};
 
 /// The sentence for a finding, composed at render time from its evidence
 /// with every number in the diver's units. No template names a date
@@ -26,12 +54,17 @@ String conditionFindingTitle(
 }) {
   final e = finding.evidence;
   double? v(String key) => e.values[key];
-  int count(String key) => v(key)?.round() ?? 0;
+  // A missing count or slot would have to be invented; name the rule.
+  if ((_isSlotRule(finding.ruleId) && e.slot == null) ||
+      _integersFor(finding.ruleId).any((k) => v(k) == null)) {
+    return conditionFindingShortLabel(finding.ruleId, l10n);
+  }
+  int count(String key) => v(key)!.round();
   String pct(double? fraction) =>
       fraction == null ? _unknown : (fraction * 100).round().toString();
   // Through the display helper, so a comma locale reads "41,2".
   String one(double? x) => x == null ? _unknown : formatFixedForDisplay(x, 1);
-  final slot = e.slot ?? 0;
+  final slot = e.slot ?? 0; // Checked above for every rule that reads it.
   // The drop the engine measured, rebuilt from its evidence medians rather
   // than the stored value, which a stale or partial row could misstate.
   String decline() {
