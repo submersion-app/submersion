@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_condition_refresher.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -25,6 +26,7 @@ final equipmentConditionRefresherProvider =
         transmitters: ref.watch(transmitterRepositoryProvider),
         summaries: ref.watch(diveSensorSummaryRepositoryProvider),
         findings: ref.watch(equipmentFindingsRepositoryProvider),
+        requestSummaries: scheduleSensorSummaryRefresh,
       ),
     );
 
