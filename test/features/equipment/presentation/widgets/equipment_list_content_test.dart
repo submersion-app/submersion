@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -924,6 +925,28 @@ void main() {
       expect(headings(tester), hasLength(3));
     });
 
+    testWidgets('dense mode stays flat on the page sort, like the table', (
+      tester,
+    ) async {
+      // Dense is a single-row flat layout (not offered for gear, but a stored
+      // value from an older build can still select it). Only Detailed and
+      // Compact honour the arrangement.
+      await pumpList(tester, viewMode: ListViewMode.dense);
+
+      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      final names = tester
+          .widgetList<DenseEquipmentListTile>(
+            find.byType(DenseEquipmentListTile),
+          )
+          .map((t) => t.item.name)
+          .toList();
+      expect(names, ['Alpha Reg', 'Bravo BCD', 'Charlie BCD', 'Delta Suit']);
+
+      await tester.tap(find.byTooltip('Sort'));
+      await tester.pumpAndSettle();
+      expect(find.text('Group by type'), findsNothing);
+    });
+
     testWidgets('table mode stays flat', (tester) async {
       // The table has its own column sort, so headings there would fight it.
       await pumpList(tester, viewMode: ListViewMode.table);
@@ -1248,6 +1271,62 @@ void main() {
 
       expect(selected.value, isNotNull, reason: 'the tap selected the row');
       expect(position.pixels, 600);
+    });
+
+    testWidgets('with no type order, flags it ignores do not jump the list', (
+      tester,
+    ) async {
+      // "Do not order by type" ignores the grouping switch and the type
+      // direction, so a synced change to either moves no row.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final noTypeOrder = EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.none,
+      );
+      final target = arrangeEquipment(
+        gear,
+        noTypeOrder,
+        typeLabel: (t) => t.displayName,
+      ).single.items[12];
+      final source = StateProvider<EquipmentArrangement>((ref) => noTypeOrder);
+
+      final overrides = await _buildPhoneOverrides(items: gear);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            equipmentArrangementProvider.overrideWith(
+              (ref) => ref.watch(source),
+            ),
+          ],
+          child: EquipmentListContent(showAppBar: false, selectedId: target.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      expect(position.pixels, greaterThan(0), reason: 'scrolled to the row');
+
+      position.jumpTo(0);
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EquipmentListContent)),
+      );
+      container.read(source.notifier).state = noTypeOrder.copyWith(
+        groupByType: false,
+        typeOrderDescending: true,
+      );
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, 0);
     });
 
     testWidgets('a change to only the dive item sort does not jump the list', (

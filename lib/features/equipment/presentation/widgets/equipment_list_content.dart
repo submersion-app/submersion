@@ -117,15 +117,34 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// sorts by the translated type name and a new language reorders it with
   /// no arrangement change. The curated orders and "none" ignore the labels,
   /// so there a language switch moves no row and must not re-scroll.
-  static Object _typeAxisOf(EquipmentArrangement arrangement, Locale locale) =>
-      (
-        arrangement.groupByType,
-        arrangement.typeOrder,
-        arrangement.typeOrderDescending,
-        arrangement.typeOrder == EquipmentTypeOrder.alphabetical
-            ? locale
-            : null,
-      );
+  ///
+  /// With no type order the arranger ignores the grouping switch and the
+  /// type direction as well, so they collapse to one key there.
+  static Object _typeAxisOf(EquipmentArrangement arrangement, Locale locale) {
+    if (arrangement.typeOrder == EquipmentTypeOrder.none) {
+      return EquipmentTypeOrder.none;
+    }
+    return (
+      arrangement.groupByType,
+      arrangement.typeOrder,
+      arrangement.typeOrderDescending,
+      arrangement.typeOrder == EquipmentTypeOrder.alphabetical ? locale : null,
+    );
+  }
+
+  /// Whether [mode] draws the shared arrangement: the card modes only.
+  static bool _honoursArrangement(ListViewMode mode) =>
+      mode == ListViewMode.detailed || mode == ListViewMode.compact;
+
+  /// Orders the flat modes by the page sort alone: with no type order the
+  /// arranger draws no headings and [arrangeEquipment]'s item comparator,
+  /// always the page's here, is the only key.
+  static const EquipmentArrangement _pageSortOnly = EquipmentArrangement(
+    typeOrder: EquipmentTypeOrder.none,
+    groupByType: false,
+    itemSortField: EquipmentItemSortField.name,
+    itemSortDirection: SortDirection.ascending,
+  );
 
   /// Scroll the list to bring the row at [index] into view.
   ///
@@ -240,7 +259,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // The list honours the gear arrangement every gear surface shares: its
     // type axis groups and orders the headings, while the page's own sort
     // (which alone offers Service Due) orders the gear inside each group.
-    final arrangement = ref.watch(equipmentArrangementProvider);
+    // Only the card modes do: Dense is a single-row flat layout (not offered
+    // for gear, but a value stored by an older build can still select it),
+    // so it stays flat on the page sort, as the table does.
+    final arrangement = _honoursArrangement(viewMode)
+        ? ref.watch(equipmentArrangementProvider)
+        : _pageSortOnly;
     final compareItems = equipmentSortComparator(
       sort,
       serviceUrgency: serviceUrgency,
@@ -726,11 +750,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   }
 
   void _showSortSheet(BuildContext context) {
-    // The table stays flat, so its sheet leaves the grouping out.
+    // The flat modes (table, dense) ignore the grouping, so their sheet
+    // leaves it out.
     showEquipmentListSortSheet(
       context,
-      showGrouping:
-          ref.read(equipmentListViewModeProvider) != ListViewMode.table,
+      showGrouping: _honoursArrangement(
+        ref.read(equipmentListViewModeProvider),
+      ),
     );
   }
 
