@@ -72,6 +72,32 @@ void main() {
     },
   );
 
+  test('the decline percentage comes from its evidence medians', () {
+    // The sentence is composed from the evidence. A stale or missing
+    // stored value must not show a wrong figure, and missing medians show
+    // the placeholder whatever the value says.
+    final stale = finding(
+      ConditionRuleId.cellOutputDeclining,
+      slot: 2,
+      value: 99,
+      values: {'recentMedian': 41.2, 'baselineMedian': 52.8},
+    );
+    expect(
+      conditionFindingTitle(stale, l10n, metric, thresholds: thresholds),
+      contains('fell 22 percent'),
+    );
+    final noMedians = finding(
+      ConditionRuleId.cellOutputDeclining,
+      slot: 2,
+      value: 22.4,
+      values: const {},
+    );
+    expect(
+      conditionFindingTitle(noMedians, l10n, metric, thresholds: thresholds),
+      contains('fell -- percent'),
+    );
+  });
+
   test('the cold correlation sentence shows the threshold in diver units', () {
     final f = finding(
       ConditionRuleId.issueColdCorrelated,
