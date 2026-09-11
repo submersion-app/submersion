@@ -78,6 +78,9 @@ class MockFilePickerPlatform extends FilePickerPlatform
   /// The fileName the last `saveFile` call was asked to use.
   String? lastSavedFileName;
 
+  /// The dialogTitle the last `saveFile` call was given.
+  String? lastSavedDialogTitle;
+
   @override
   Future<Uri?> saveFile({
     required String fileName,
@@ -92,6 +95,7 @@ class MockFilePickerPlatform extends FilePickerPlatform
   }) async {
     lastSavedFileName = fileName;
     lastSavedBytes = bytes;
+    lastSavedDialogTitle = dialogTitle;
     final target = saveFileResult;
     // Mirror the real plugin: it writes the bytes, so anything asserting on
     // the saved file sees them without the caller writing separately.

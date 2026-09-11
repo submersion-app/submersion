@@ -108,14 +108,15 @@ class CsvExportService {
 
   /// Save gear check-ins CSV to a user-selected location.
   Future<String?> saveObservationsCsvToFile(
-    List<ObservationExportRow> rows,
-  ) async {
+    List<ObservationExportRow> rows, {
+    required String dialogTitle,
+  }) async {
     final csvContent = generateObservationsCsvContent(rows);
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'observations_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
-      dialogTitle: 'Save Gear Check-ins CSV',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.custom,
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
@@ -379,13 +380,16 @@ class CsvExportService {
   // ==================== Save to File ====================
 
   /// Save dives CSV to a user-selected location.
-  Future<String?> saveDivesCsvToFile(List<Dive> dives) async {
+  Future<String?> saveDivesCsvToFile(
+    List<Dive> dives, {
+    required String dialogTitle,
+  }) async {
     final csvContent = generateDivesCsvContent(dives);
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
-      dialogTitle: 'Save Dives CSV',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.custom,
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
@@ -397,13 +401,16 @@ class CsvExportService {
   }
 
   /// Save sites CSV to a user-selected location.
-  Future<String?> saveSitesCsvToFile(List<DiveSite> sites) async {
+  Future<String?> saveSitesCsvToFile(
+    List<DiveSite> sites, {
+    required String dialogTitle,
+  }) async {
     final csvContent = generateSitesCsvContent(sites);
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'sites_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
-      dialogTitle: 'Save Sites CSV',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.custom,
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
@@ -418,6 +425,7 @@ class CsvExportService {
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    required String dialogTitle,
   }) async {
     final csvContent = generateEquipmentCsvContent(
       equipment,
@@ -427,7 +435,7 @@ class CsvExportService {
     final fileName = 'equipment_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
-      dialogTitle: 'Save Equipment CSV',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.custom,
       bytes: Uint8List.fromList(utf8.encode(csvContent)),

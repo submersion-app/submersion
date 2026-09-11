@@ -383,7 +383,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveObservationsCsvToFile(rows);
+      final path = await _exportService.saveObservationsCsvToFile(
+        rows,
+        dialogTitle: _l10n.settings_export_saveObservationsCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1070,7 +1073,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveDivesCsvToFile(dives);
+      final path = await _exportService.saveDivesCsvToFile(
+        dives,
+        dialogTitle: _l10n.settings_export_saveDivesCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1112,7 +1118,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveSitesCsvToFile(sites);
+      final path = await _exportService.saveSitesCsvToFile(
+        sites,
+        dialogTitle: _l10n.settings_export_saveSitesCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1157,6 +1166,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveEquipmentCsvToFile(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
       );
 
       if (path == null) {

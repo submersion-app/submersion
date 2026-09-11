@@ -64,24 +64,70 @@ void main() {
 
   final sites = [const DiveSite(id: 's1', name: 'Blue Hole', description: '')];
 
+  group('CSV saves hand the picker the caller\'s dialog title', () {
+    // The title is the diver's language, resolved by the caller; the
+    // service must not fall back to a fixed English string.
+    test('dives', () async {
+      chooses('dives.csv');
+      await CsvExportService().saveDivesCsvToFile(dives, dialogTitle: 'T1');
+      expect(picker.lastSavedDialogTitle, 'T1');
+    });
+
+    test('sites', () async {
+      chooses('sites.csv');
+      await CsvExportService().saveSitesCsvToFile(sites, dialogTitle: 'T2');
+      expect(picker.lastSavedDialogTitle, 'T2');
+    });
+
+    test('equipment', () async {
+      chooses('equipment.csv');
+      await CsvExportService().saveEquipmentCsvToFile(
+        const [],
+        dialogTitle: 'T3',
+      );
+      expect(picker.lastSavedDialogTitle, 'T3');
+    });
+
+    test('gear check-ins', () async {
+      chooses('observations.csv');
+      await CsvExportService().saveObservationsCsvToFile(
+        const [],
+        dialogTitle: 'T4',
+      );
+      expect(picker.lastSavedDialogTitle, 'T4');
+    });
+  });
+
   group('returns the chosen location and writes the file', () {
     test('dives CSV', () async {
       final target = chooses('dives.csv');
 
-      expect(await CsvExportService().saveDivesCsvToFile(dives), target);
+      expect(
+        await CsvExportService().saveDivesCsvToFile(dives, dialogTitle: 'Save'),
+        target,
+      );
       expect(await File(target).readAsString(), isNotEmpty);
       expect(picker.lastSavedFileName, endsWith('.csv'));
     });
 
     test('sites CSV', () async {
       final target = chooses('sites.csv');
-      expect(await CsvExportService().saveSitesCsvToFile(sites), target);
+      expect(
+        await CsvExportService().saveSitesCsvToFile(sites, dialogTitle: 'Save'),
+        target,
+      );
       expect(await File(target).exists(), isTrue);
     });
 
     test('equipment CSV', () async {
       final target = chooses('equipment.csv');
-      expect(await CsvExportService().saveEquipmentCsvToFile(const []), target);
+      expect(
+        await CsvExportService().saveEquipmentCsvToFile(
+          const [],
+          dialogTitle: 'Save',
+        ),
+        target,
+      );
       expect(await File(target).exists(), isTrue);
     });
 
@@ -200,7 +246,10 @@ void main() {
     test('across every service', () async {
       picker.saveFileResult = null;
 
-      expect(await CsvExportService().saveDivesCsvToFile(dives), isNull);
+      expect(
+        await CsvExportService().saveDivesCsvToFile(dives, dialogTitle: 'Save'),
+        isNull,
+      );
       expect(await UddfExportService().saveDivesToUddfFile(dives), isNull);
       expect(
         await UddfFullExportService().saveAllDataToUddfFile(dives: dives),
@@ -224,7 +273,7 @@ void main() {
     picker.saveFileResult = Uri.parse('content://downloads/doc/77');
 
     expect(
-      await CsvExportService().saveDivesCsvToFile(dives),
+      await CsvExportService().saveDivesCsvToFile(dives, dialogTitle: 'Save'),
       'content://downloads/doc/77',
     );
   });

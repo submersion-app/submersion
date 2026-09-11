@@ -36435,6 +36435,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_export_saveBackupDialogTitle => 'Save Backup';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle => 'Save Dives CSV';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle => 'Save Sites CSV';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Save Equipment CSV';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'Save Gear Check-ins CSV';
+
+  @override
   String backup_operation_created(String size) {
     return 'Backup created: $size';
   }

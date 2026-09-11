@@ -37039,6 +37039,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Guardar copia de seguridad';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle =>
+      'Guardar CSV de inmersiones';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle =>
+      'Guardar CSV de puntos de buceo';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Guardar CSV de equipo';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'Guardar CSV de revisiones de equipo';
+
+  @override
   String backup_operation_created(String size) {
     return 'Copia de seguridad creada: $size';
   }
