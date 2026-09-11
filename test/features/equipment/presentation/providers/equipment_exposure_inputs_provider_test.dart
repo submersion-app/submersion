@@ -94,4 +94,30 @@ void main() {
     }
     expect(samples, 0);
   });
+
+  test('a part with no install date inherits from its creation', () async {
+    // Created after the rebreather's dive and never given an install
+    // date: that dive happened before the part existed.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'late',
+            name: 'Late cell',
+            type: 'o2Cell',
+            createdAt: DateTime.utc(2026, 2, 1).millisecondsSinceEpoch,
+            updatedAt: 1,
+          ).copyWith(parentEquipmentId: const Value('ccr')),
+        );
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
+    );
+    addTearDown(container.dispose);
+    final inputs = await container.read(
+      equipmentExposureInputsProvider('late').future,
+    );
+    expect(inputs!.samples, isEmpty);
+  });
 }

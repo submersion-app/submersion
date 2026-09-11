@@ -45,7 +45,7 @@ final equipmentExposureInputsProvider =
       final samples = await repository.getExposureSamplesForEquipment(
         item.id,
         parentEquipmentId: parentId,
-        installedSince: item.installedDate,
+        installedSince: item.parentDivesFrom,
         rebreatherContact: isRebreather,
       );
       final classifier = ExposureClassifier(
