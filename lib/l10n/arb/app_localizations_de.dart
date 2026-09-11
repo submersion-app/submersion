@@ -37338,6 +37338,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_export_saveBackupDialogTitle => 'Sicherung speichern';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle =>
+      'Tauchgänge-CSV speichern';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle =>
+      'Tauchplätze-CSV speichern';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Ausrüstungs-CSV speichern';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'CSV der Ausrüstungs-Check-ins speichern';
+
+  @override
   String backup_operation_created(String size) {
     return 'Sicherung erstellt: $size';
   }

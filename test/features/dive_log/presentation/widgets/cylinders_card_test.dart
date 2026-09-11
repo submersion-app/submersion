@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -30,6 +31,7 @@ DiveTank _makeTank({
   GasMix gasMix = const GasMix(o2: 32),
   String? computerId,
   String? transmitterSerial,
+  String? equipmentId,
 }) {
   return DiveTank(
     id: id,
@@ -40,6 +42,7 @@ DiveTank _makeTank({
     gasMix: gasMix,
     computerId: computerId,
     transmitterSerial: transmitterSerial,
+    equipmentId: equipmentId,
   );
 }
 
@@ -103,6 +106,7 @@ Widget _buildCard({
   GasConsumptionDisplay display = GasConsumptionDisplay.sac,
   VisualDensity? visualDensity,
   List<Transmitter> registry = const [],
+  List<dynamic> extraOverrides = const [],
 }) {
   final card = CylindersCard(
     dive: dive,
@@ -138,6 +142,7 @@ Widget _buildCard({
       tankPressuresProvider.overrideWith((ref, id) async => tankPressures),
       diveDataSourcesProvider.overrideWith((ref, id) async => dataSources),
       transmittersProvider.overrideWith((ref) async => registry),
+      ...extraOverrides,
     ],
   );
 }
@@ -196,6 +201,25 @@ void main() {
       // gasUsedLiters = (200 - 50) * 11.1 = 1665 L, shown in the subtitle
       // beside the pressure drop it restates.
       expect(find.textContaining('(150 bar / 1665 L used)'), findsOneWidget);
+    });
+
+    testWidgets('a linked cylinder whose item does not resolve keeps its SAC '
+        'block', (tester) async {
+      // Only the check-in chip depends on the linked item; while it loads,
+      // or for a link to an item this device no longer has, the SAC block
+      // must still show.
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(equipmentId: 'gone')]),
+          cylinderSacs: [_makeSac()],
+          extraOverrides: [
+            equipmentItemProvider('gone').overrideWith((ref) async => null),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
     });
 
     testWidgets('omits the SAC block when SAC is not computable', (

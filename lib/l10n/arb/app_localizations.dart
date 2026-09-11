@@ -61167,6 +61167,30 @@ abstract class AppLocalizations {
   /// **'Save Backup'**
   String get settings_export_saveBackupDialogTitle;
 
+  /// No description provided for @settings_export_saveDivesCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Dives CSV'**
+  String get settings_export_saveDivesCsvDialogTitle;
+
+  /// No description provided for @settings_export_saveSitesCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Sites CSV'**
+  String get settings_export_saveSitesCsvDialogTitle;
+
+  /// No description provided for @settings_export_saveEquipmentCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Equipment CSV'**
+  String get settings_export_saveEquipmentCsvDialogTitle;
+
+  /// No description provided for @settings_export_saveObservationsCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Gear Check-ins CSV'**
+  String get settings_export_saveObservationsCsvDialogTitle;
+
   /// No description provided for @backup_operation_created.
   ///
   /// In en, this message translates to:

@@ -136,6 +136,7 @@ void main() {
         .saveObservationsCsvToFile();
     expect(t.repo.askedFor, ['me']);
     expect(t.export.saved.map((r) => r.observation.id), ['mine']);
+    expect(t.export.saveTitle, 'Save Gear Check-ins CSV');
     expect(
       t.container.read(exportNotifierProvider).status,
       ExportStatus.success,
@@ -201,6 +202,7 @@ class _FakeExportService implements ExportService {
   final bool throwOnShare;
   List<ObservationExportRow> shared = const [];
   List<ObservationExportRow> saved = const [];
+  String? saveTitle;
 
   _FakeExportService({this.cancelSave = false, this.throwOnShare = false});
 
@@ -215,9 +217,11 @@ class _FakeExportService implements ExportService {
 
   @override
   Future<String?> saveObservationsCsvToFile(
-    List<ObservationExportRow> rows,
-  ) async {
+    List<ObservationExportRow> rows, {
+    required String dialogTitle,
+  }) async {
     saved = rows;
+    saveTitle = dialogTitle;
     return cancelSave ? null : '/tmp/saved.csv';
   }
 

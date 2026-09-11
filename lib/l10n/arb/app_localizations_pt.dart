@@ -37431,6 +37431,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_export_saveBackupDialogTitle => 'Salvar Backup';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle =>
+      'Salvar CSV de mergulhos';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle => 'Salvar CSV de pontos';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Salvar CSV de equipamentos';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'Salvar CSV de verificações de equipamento';
+
+  @override
   String backup_operation_created(String size) {
     return 'Backup criado: $size';
   }

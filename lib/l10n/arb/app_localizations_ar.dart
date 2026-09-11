@@ -37034,6 +37034,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_saveBackupDialogTitle => 'حفظ النسخة الاحتياطية';
 
   @override
+  String get settings_export_saveDivesCsvDialogTitle => 'حفظ ملف CSV للغوصات';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle => 'حفظ ملف CSV للمواقع';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'حفظ ملف CSV للمعدات';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'حفظ ملف CSV لفحوصات المعدات';
+
+  @override
   String backup_operation_created(String size) {
     return 'تم إنشاء نسخة احتياطية: $size';
   }
