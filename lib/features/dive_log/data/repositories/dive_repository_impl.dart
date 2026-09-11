@@ -66,6 +66,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -122,6 +123,8 @@ class DiveRepository {
   final _log = LoggerService.forClass(DiveRepository);
   final TagRepository _tagRepository = TagRepository();
   final BuddyRepository _buddyRepository = BuddyRepository();
+  final EquipmentObservationRepository _observationRepository =
+      EquipmentObservationRepository();
   late final DiveCustomFieldRepository _customFieldRepository =
       DiveCustomFieldRepository(_db);
 
@@ -1936,6 +1939,8 @@ class DiveRepository {
     try {
       _log.info('Deleting dive: $id');
       if (cascadeMedia) await _cascadeMediaForDiveDeletion([id]);
+      // Check-ins on the dive stay as bench notes; staged, not just nulled.
+      await _observationRepository.unlinkFromDeletedDives([id]);
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       SyncEventBus.notifyLocalChange();
@@ -1961,6 +1966,8 @@ class DiveRepository {
     try {
       _log.info('Bulk deleting ${ids.length} dives');
       if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
+      // Check-ins on the dives stay as bench notes; staged, not just nulled.
+      await _observationRepository.unlinkFromDeletedDives(ids);
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
       for (final id in ids) {
         await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
