@@ -1,6 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/dive_sensor_summary.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -116,7 +115,7 @@ class EquipmentConditionEngine {
   ) {
     final item = input.item;
     if (item.type == EquipmentType.o2Cell) {
-      final slot = item.attrNum(EquipmentAttrKeys.cellSlot)?.round();
+      final slot = item.cellSlot;
       if (slot == null) return const [];
       final installed = item.parentDivesFrom;
       final own = installed == null
@@ -163,7 +162,7 @@ class EquipmentConditionEngine {
     final cells = [
       for (final c in children)
         if (c.type == EquipmentType.o2Cell &&
-            c.attrNum(EquipmentAttrKeys.cellSlot)?.round() == slot &&
+            c.cellSlot == slot &&
             c.parentDivesFrom != null)
           c,
     ];

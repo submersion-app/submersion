@@ -1058,14 +1058,14 @@ class EquipmentRepository {
   ) {
     final from = item.parentDivesFrom;
     if (from == null) return null;
-    final slot = item.attrNum(EquipmentAttrKeys.cellSlot)?.round();
+    final slot = item.cellSlot;
     // A slot is what says which later part took this one's place. Only
     // batteries succeed without one; a slotless cell has no successor.
     if (slot == null && item.type != EquipmentType.battery) return null;
     DateTime? earliest;
     for (final s in siblings) {
       if (s.id == item.id || s.type != item.type) continue;
-      if (s.attrNum(EquipmentAttrKeys.cellSlot)?.round() != slot) continue;
+      if (s.cellSlot != slot) continue;
       final start = s.parentDivesFrom;
       if (start == null || !start.isAfter(from)) continue;
       if (earliest == null || start.isBefore(earliest)) earliest = start;

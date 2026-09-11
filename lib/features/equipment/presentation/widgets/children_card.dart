@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
@@ -65,14 +64,17 @@ class ChildrenCard extends ConsumerWidget {
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
-                TextButton.icon(
-                  // Already fitted to this host: without the parent the new
-                  // part saved loose, and the diver had to pick it again.
-                  onPressed: () =>
-                      context.push('/equipment/new?parent=${equipment.id}'),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.equipmentCondition_children_add),
-                ),
+                // A retired or sold host cannot take a new part: the editor
+                // only accepts a fitted parent and would save it loose.
+                if (equipment.isFitted)
+                  TextButton.icon(
+                    // Already fitted to this host: without the parent the new
+                    // part saved loose, and the diver had to pick it again.
+                    onPressed: () =>
+                        context.push('/equipment/new?parent=${equipment.id}'),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.equipmentCondition_children_add),
+                  ),
               ],
             ),
             const Divider(),
@@ -145,7 +147,7 @@ class ChildrenCard extends ConsumerWidget {
   }
 
   String _title(AppLocalizations l10n, EquipmentItem child) {
-    final slot = child.attrNum(EquipmentAttrKeys.cellSlot)?.round();
+    final slot = child.cellSlot;
     if (slot == null) return child.name;
     return '${l10n.equipmentCondition_children_slot(slot)} · ${child.name}';
   }
@@ -161,12 +163,20 @@ class ChildrenCard extends ConsumerWidget {
     final installed = child.parentDivesFrom;
     if (installed == null) return child.type.localizedName(l10n);
     final now = DateTime.now();
-    final days = now.difference(installed).inDays;
+    // Whole calendar days, both ends in the dive frame parentDivesFrom uses
+    // (a local day as UTC midnight): a local instant minus it is off by the
+    // device's UTC offset.
+    final days = DateTime.utc(now.year, now.month, now.day)
+        .difference(
+          DateTime.utc(installed.year, installed.month, installed.day),
+        )
+        .inDays;
     // Completed calendar months: an average month length undercounts, so
     // a part installed a year ago read "11 months".
     var months = (now.year - installed.year) * 12 + now.month - installed.month;
     if (now.day < installed.day) months--;
-    final age = days < 60
+    // Days through day 60, calendar months after (the phase plan).
+    final age = days <= 60
         ? l10n.equipmentCondition_children_ageDays(days < 0 ? 0 : days)
         : l10n.equipmentCondition_children_ageMonths(months);
     return l10n.equipmentCondition_children_installed(
@@ -238,6 +248,10 @@ class ChildrenCard extends ConsumerWidget {
       }
       return;
     }
+    // The diver may have left the page while the replacement saved; a
+    // disposed state can no longer use ref. Both providers re-read on the
+    // next visit anyway.
+    if (!context.mounted) return;
     // The child list watches the equipment stream; the findings marker
     // reads the children, so a fresh child means a fresh review.
     ref.invalidate(childEquipmentProvider(equipment.id));
