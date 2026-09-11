@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -129,6 +130,51 @@ void main() {
     expect(saved.single.transmitterEquipmentId, 'tx');
     expect(saved.single.equipmentId, isNull, reason: 'no cylinder picked');
   });
+
+  testWidgets(
+    'saving a transmitter link refreshes the items it moves between',
+    (tester) async {
+      // The dropout findings read serials through this link, and the stored
+      // findings are read without the engine, so both the item it left and the
+      // item it names must be refreshed when the entry is saved.
+      final requested = <String>{};
+      SensorSummaryScheduler.instance.findingsRequestListener =
+          requested.addAll;
+      addTearDown(
+        () => SensorSummaryScheduler.instance.findingsRequestListener = null,
+      );
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('old-tx', 'diver-1', 'Old Tx', 'transmitter', 1, "
+        "1), ('new-tx', 'diver-1', 'New Tx', 'transmitter', 1, 1)",
+      );
+      final now = DateTime.utc(2026);
+      await TransmitterRepository().create(
+        Transmitter(
+          id: 'r1',
+          diverId: 'diver-1',
+          transmitterSerial: '555',
+          label: 'Main',
+          transmitterEquipmentId: 'old-tx',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await tester.pumpWidget(
+        _buildPage(diverIdNotifier, prefs, transmitterId: 'r1'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Transmitter from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New Tx'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(requested, {'old-tx', 'new-tx'});
+    },
+  );
 
   testWidgets('refuses an entry with neither serial nor channel', (
     tester,

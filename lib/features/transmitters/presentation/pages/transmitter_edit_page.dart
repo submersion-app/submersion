@@ -20,6 +20,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
@@ -286,6 +287,14 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       } else {
         await repo.create(entry);
       }
+      // The dropout findings read serials through the transmitter link and
+      // are stored, read without the engine, so the item the entry left and
+      // the one it names both refresh now, not on the next page visit.
+      final touched = {
+        ?_existing?.transmitterEquipmentId,
+        ?entry.transmitterEquipmentId,
+      };
+      if (touched.isNotEmpty) scheduleConditionFindingsRefresh(touched);
     } on TransmitterConflictException catch (e) {
       setState(
         () => _duplicateError = l10n.transmitters_validation_duplicate(
