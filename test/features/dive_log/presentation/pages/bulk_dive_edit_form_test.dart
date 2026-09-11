@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -100,7 +101,7 @@ void main() {
           id: 'd1',
           dateTime: DateTime(2026, 1, 1),
           notes: '',
-          equipment: const [reg],
+          gear: looseGear(const [reg]),
         ),
       );
       await repository.createDive(
@@ -586,7 +587,7 @@ void main() {
           id: 'coll-1',
           dateTime: DateTime(2026, 1, 1),
           notes: '',
-          equipment: const [reg],
+          gear: looseGear(const [reg]),
         ),
       );
       final overrides = await getBaseOverrides();

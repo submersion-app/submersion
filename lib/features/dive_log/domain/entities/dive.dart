@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
@@ -38,7 +40,20 @@ class Dive extends Equatable {
   final String? tripId;
   final List<DiveTank> tanks;
   final List<DiveProfilePoint> profile;
-  final List<EquipmentItem> equipment;
+
+  /// The gear on this dive, one link per junction row with the item and
+  /// where it came from (issue #1487). [equipment] is the flat view.
+  final List<GearLink> gear;
+
+  /// The gear as a flat item list, for readers that do not care about
+  /// assemblies or sets.
+  List<EquipmentItem> get equipment => [for (final g in gear) g.item];
+
+  /// Provenance only, the shape the expander and the tree helpers take.
+  List<GearProvenance> get gearProvenance => [
+    for (final g in gear) g.provenance,
+  ];
+
   final String notes;
   final List<String> photoIds;
   final List<MarineSighting> sightings;
@@ -204,7 +219,7 @@ class Dive extends Equatable {
     this.tripId,
     this.tanks = const [],
     this.profile = const [],
-    this.equipment = const [],
+    this.gear = const [],
     this.notes = '',
     this.photoIds = const [],
     this.sightings = const [],
@@ -590,7 +605,7 @@ class Dive extends Equatable {
     String? tripId,
     List<DiveTank>? tanks,
     List<DiveProfilePoint>? profile,
-    List<EquipmentItem>? equipment,
+    List<GearLink>? gear,
     String? notes,
     List<String>? photoIds,
     List<MarineSighting>? sightings,
@@ -687,7 +702,7 @@ class Dive extends Equatable {
       tripId: tripId ?? this.tripId,
       tanks: tanks ?? this.tanks,
       profile: profile ?? this.profile,
-      equipment: equipment ?? this.equipment,
+      gear: gear ?? this.gear,
       notes: notes ?? this.notes,
       photoIds: photoIds ?? this.photoIds,
       sightings: sightings ?? this.sightings,
@@ -787,7 +802,7 @@ class Dive extends Equatable {
     tripId,
     tanks,
     profile,
-    equipment,
+    gear,
     notes,
     photoIds,
     sightings,

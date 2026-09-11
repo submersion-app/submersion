@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -42,7 +43,7 @@ void main() {
     diveNumber: 1,
     dateTime: DateTime(2026, 3, 28, 10, 0),
     notes: '',
-    equipment: gear,
+    gear: looseGear(gear),
   );
 
   test('equipment rows follow the chosen type order', () {

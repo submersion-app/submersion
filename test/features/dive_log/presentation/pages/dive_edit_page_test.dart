@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -83,7 +84,7 @@ void main() {
         maxDepth: 20.0,
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],
@@ -143,7 +144,7 @@ void main() {
           const DiveProfilePoint(timestamp: 2640, depth: 5),
           const DiveProfilePoint(timestamp: 2700, depth: 0),
         ],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],
@@ -209,7 +210,7 @@ void main() {
           avgDepth: 14.2,
           tanks: const [],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],

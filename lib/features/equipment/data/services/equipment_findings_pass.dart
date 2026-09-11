@@ -91,6 +91,12 @@ class EquipmentFindingsPass {
   Future<List<EquipmentItem>> activeItems({String? diverId}) =>
       _equipment.getActiveEquipment(diverId: diverId);
 
+  /// The items named by [ids] that still exist, for a pass over just
+  /// the gear a write touched.
+  Future<List<EquipmentItem>> itemsById(Iterable<String> ids) async => [
+    for (final id in ids) ?await _equipment.getEquipmentById(id),
+  ];
+
   /// Visits [items] in order. [onProgress] fires once with (0, total),
   /// then after each item. [isCancelled] is polled before each item.
   Future<EquipmentFindingsPassResult> run({

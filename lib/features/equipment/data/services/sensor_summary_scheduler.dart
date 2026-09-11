@@ -10,6 +10,11 @@ import 'package:submersion/features/equipment/data/services/equipment_findings_p
 /// `QualityScanScheduler`, which it is called beside. Every batch ends
 /// with a findings pass over the active diver's gear, so a downloaded
 /// dive reaches its condition findings without a page visit.
+///
+/// Check-in and incident writes queue a findings pass over just the gear
+/// they name ([scheduleFindings]), as the spec asks: those findings are
+/// stored and read without the engine (the statistics rankings), so they
+/// have to move when the write happens, not when a page is next opened.
 class SensorSummaryScheduler {
   SensorSummaryScheduler._();
   static final SensorSummaryScheduler instance = SensorSummaryScheduler._();
@@ -34,8 +39,14 @@ class SensorSummaryScheduler {
   Future<ConditionPassInputs> Function() conditionInputsLoader =
       EquipmentFindingsPass.loadActiveDiverInputs;
 
+  /// Widget tests run with the scheduler off; this lets them see which
+  /// gear a write asked to refresh.
+  @visibleForTesting
+  void Function(Set<String> equipmentIds)? findingsRequestListener;
+
   Future<void> _tail = Future.value();
   final Set<String> _pending = {};
+  final Set<String> _pendingFindings = {};
   bool _staleSweepPending = false;
 
   @visibleForTesting
@@ -56,6 +67,16 @@ class SensorSummaryScheduler {
     _enqueue();
   }
 
+  /// Refreshes the condition findings of [equipmentIds] alone, merged
+  /// into the next batch. A summary batch in the same run already visits
+  /// all active gear, so these ride along with it.
+  void scheduleFindings(Set<String> equipmentIds) {
+    findingsRequestListener?.call(equipmentIds);
+    if (!enabled || equipmentIds.isEmpty) return;
+    _pendingFindings.addAll(equipmentIds);
+    _enqueue();
+  }
+
   void _enqueue() {
     // The queue is one chained future, so the callback must always
     // complete normally: an error escaping it leaves _tail completed with
@@ -63,12 +84,21 @@ class SensorSummaryScheduler {
     // silently never runs. The inner catches keep their own wording; this
     // outer one is the backstop that holds however the body changes.
     _tail = _tail.then((_) async {
+      final findingsOnly = Set.of(_pendingFindings);
+      _pendingFindings.clear();
+      var summaryBatch = false;
       try {
         final ids = Set.of(_pending);
         _pending.clear();
         final sweep = _staleSweepPending;
         _staleSweepPending = false;
-        if (ids.isEmpty && !sweep) return;
+        if (ids.isEmpty && !sweep) {
+          if (findingsOnly.isNotEmpty) {
+            await _refreshFindings(only: findingsOnly);
+          }
+          return;
+        }
+        summaryBatch = true;
         final repo = repositoryFactory();
         if (sweep) {
           try {
@@ -99,20 +129,23 @@ class SensorSummaryScheduler {
           stackTrace: st,
         );
       }
-      await _refreshFindings();
+      if (summaryBatch) await _refreshFindings();
     });
   }
 
-  /// Runs the engine over active gear through the review marker. The
-  /// pass swallows per-item failures; this guards the settings read and
-  /// the gear query so a broken batch never poisons the queue.
-  Future<void> _refreshFindings() async {
+  /// Runs the engine through the review marker over active gear, or over
+  /// [only] when given. The pass swallows per-item failures; this guards
+  /// the settings read and the gear query so a broken batch never poisons
+  /// the queue.
+  Future<void> _refreshFindings({Set<String>? only}) async {
     try {
       final inputs = await conditionInputsLoader();
       if (!inputs.engineEnabled) return;
       final pass = EquipmentFindingsPass();
       await pass.run(
-        items: await pass.activeItems(diverId: inputs.diverId),
+        items: only == null
+            ? await pass.activeItems(diverId: inputs.diverId)
+            : await pass.itemsById(only),
         thresholds: inputs.thresholds,
       );
     } catch (e, st) {
@@ -123,3 +156,7 @@ class SensorSummaryScheduler {
 
 void scheduleSensorSummaryRefresh(Iterable<String> diveIds) =>
     SensorSummaryScheduler.instance.schedule(diveIds.toSet());
+
+/// The hook for writes that change an item's check-ins or incidents.
+void scheduleConditionFindingsRefresh(Iterable<String> equipmentIds) =>
+    SensorSummaryScheduler.instance.scheduleFindings(equipmentIds.toSet());

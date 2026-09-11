@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -297,7 +298,7 @@ void main() {
           ),
         );
         await repository.createDive(
-          createTestDive(diveNumber: 1).copyWith(equipment: [gear]),
+          createTestDive(diveNumber: 1).copyWith(gear: looseGear([gear])),
         );
 
         final result = await repository.getAllDives();

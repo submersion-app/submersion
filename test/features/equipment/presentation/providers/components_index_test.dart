@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 
 void main() {
@@ -86,5 +88,28 @@ void main() {
   test('empty is empty', () {
     expect(ComponentsIndex.empty.componentCount('x'), 0);
     expect(ComponentsIndex.empty.descendantsOf('x'), isEmpty);
+  });
+
+  test('namesByParent lists each assembly\'s parts by name in order', () {
+    final index = ComponentsIndex.fromRows([
+      edge('reg', 'hose', order: 1),
+      edge('reg', 'first', order: 0),
+      edge('kit', 'ghost', order: 0),
+    ]);
+    final names = index.namesByParent({
+      'first': const EquipmentItem(
+        id: 'first',
+        name: 'First stage',
+        type: EquipmentType.firstStage,
+      ),
+      'hose': const EquipmentItem(
+        id: 'hose',
+        name: 'Long hose',
+        type: EquipmentType.hose,
+      ),
+    });
+    expect(names['reg'], ['First stage', 'Long hose']);
+    // A part whose item is not in the map falls back to its id.
+    expect(names['kit'], ['ghost']);
   });
 }

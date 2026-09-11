@@ -15,6 +15,10 @@ import 'package:submersion/features/divers/domain/entities/diver_weight_entry.da
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
@@ -45,6 +49,10 @@ class WeightPlannerPage extends ConsumerStatefulWidget {
 
 class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
   final List<EquipmentItem> _gear = [];
+
+  /// Where each item in [_gear] came from: the assembly it was attached
+  /// through and the set applied (issue #1487).
+  final List<GearProvenance> _gearProvenance = [];
   final List<TankPresetEntity> _tanks = [];
   WaterType _water = WaterType.salt;
   // Committed values feed the (synthetic-profile) twin. The `_draft` fields
@@ -155,6 +163,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       waterType: _water,
       bodyWeightKg: _bodyWeightKg(units),
       heightCm: _heightCm(units),
+      rolledUpIds: GearTree.rolledUpIds(_gearProvenance),
     );
     final input = TwinInput(
       profile: _squareProfile(),
@@ -277,6 +286,58 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
         if (mounted) setState(() => _deltaText = null);
       });
     }
+  }
+
+  /// Ids in [_gear] that are parts of an assembly also in [_gear], as the
+  /// tree places them: an orphaned row stays a visible chip.
+  Set<String> get _partIds => GearTree.partIds(_gearProvenance);
+
+  /// Parts under each assembly id, for the chip label.
+  Map<String, int> get _partCounts => GearTree.partCounts(_gearProvenance);
+
+  /// Every add funnels here so an assembly expands into its parts the same
+  /// way it does on a dive (issue #1487). The prediction delta is shown
+  /// once, after the parts have arrived.
+  Future<void> _addGear(
+    UnitFormatter units,
+    List<EquipmentItem> items, {
+    String? viaSetId,
+  }) async {
+    final merged = [
+      ..._gear,
+      for (final item in items)
+        if (!_gear.any((g) => g.id == item.id)) item,
+    ];
+    final expansion = await expandGearOnPage(
+      ref,
+      additions: [
+        for (final i in items) (equipmentId: i.id, viaSetId: viaSetId),
+      ],
+      existing: _gearProvenance,
+      existingItems: merged,
+    );
+    if (!mounted) return;
+    _mutate(units, () {
+      _gear
+        ..clear()
+        ..addAll(merged)
+        ..addAll(expansion.newItems);
+      _gearProvenance
+        ..clear()
+        ..addAll(expansion.provenance);
+    });
+  }
+
+  /// Removes [item] and every part attached through it.
+  void _removeGear(UnitFormatter units, EquipmentItem item) {
+    _mutate(units, () {
+      final gone = GearExpander.subtreeIds(_gearProvenance, item.id);
+      _gear.removeWhere((g) => gone.contains(g.id));
+      final kept = GearExpander.removeSubtree(_gearProvenance, item.id);
+      _gearProvenance
+        ..clear()
+        ..addAll(kept);
+    });
   }
 
   Future<void> _saveBodyWeightToProfile(UnitFormatter units) async {
@@ -417,6 +478,8 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
           const SizedBox(height: 8),
           RigComposer(
             gear: _gear,
+            partIds: _partIds,
+            partCounts: _partCounts,
             tanks: _tanks,
             waterType: _water,
             bodyWeightController: _bodyWeightController,
@@ -426,16 +489,10 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
             bmi: bmi,
             units: units,
             showSaveBodyWeight: showSave,
-            onGearAdded: (item) => _mutate(units, () => _gear.add(item)),
-            onGearSetAdded: (items) => _mutate(units, () {
-              for (final item in items) {
-                if (!_gear.any((g) => g.id == item.id)) {
-                  _gear.add(item);
-                }
-              }
-            }),
-            onGearRemoved: (item) =>
-                _mutate(units, () => _gear.removeWhere((g) => g.id == item.id)),
+            onGearAdded: (item) => _addGear(units, [item]),
+            onGearSetAdded: (set, items) =>
+                _addGear(units, items, viaSetId: set.id),
+            onGearRemoved: (item) => _removeGear(units, item),
             onTankAdded: (preset) => _mutate(units, () => _tanks.add(preset)),
             onTankRemoved: (index) =>
                 _mutate(units, () => _tanks.removeAt(index)),

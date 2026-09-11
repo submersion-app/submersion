@@ -59,6 +59,7 @@ extension EquipmentStatusDisplay on EquipmentStatus {
     EquipmentStatus.needsService => l10n.enum_equipmentStatus_needsService,
     EquipmentStatus.inService => l10n.enum_equipmentStatus_inService,
     EquipmentStatus.retired => l10n.enum_equipmentStatus_retired,
+    EquipmentStatus.sold => l10n.enum_equipmentStatus_sold,
     EquipmentStatus.loaned => l10n.enum_equipmentStatus_loaned,
     EquipmentStatus.lost => l10n.enum_equipmentStatus_lost,
   };

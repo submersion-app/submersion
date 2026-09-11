@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -37,6 +39,7 @@ void main() {
     String? serial,
     String? diverId,
     List<domain.DiveProfilePoint> profile = const [],
+    List<domain.DiveTank> tanks = const [],
   }) async {
     final dive = domain.Dive(
       id: id,
@@ -47,6 +50,7 @@ void main() {
       diveComputerSerial: serial,
       diverId: diverId,
       profile: profile,
+      tanks: tanks,
     );
     await diveRepo.createDive(dive);
     return id;
@@ -312,4 +316,106 @@ void main() {
       expect(ctx.neighbors.single.lastSampleDepth, 1.5);
     },
   );
+
+  // Issue #1720. The delete-duplicate verdict deletes a whole dive, so it has
+  // to know whether the copy it names holds anything the diver put there.
+  // Both sides of a pair are measured by the same SQL so the answer cannot
+  // depend on which dive the scan reached first.
+  group('carriesDiverData', () {
+    Future<void> seedGearOn(String diveId) async {
+      const item = EquipmentItem(
+        id: 'e1',
+        name: 'My BCD',
+        type: EquipmentType.bcd,
+      );
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: item.id,
+              name: item.name,
+              type: item.type.name,
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: diveId, equipmentId: item.id),
+          );
+    }
+
+    test('false for a dive nothing but the computer has touched', () async {
+      await seedDive(id: 'd1', entry: DateTime.utc(2026, 7, 1, 10));
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.carriesDiverData, isFalse);
+    });
+
+    test('true once the dive carries a gear link', () async {
+      await seedDive(id: 'd1', entry: DateTime.utc(2026, 7, 1, 10));
+      await seedGearOn('d1');
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.carriesDiverData, isTrue);
+    });
+
+    test('true for notes, a rating, or a site link', () async {
+      final entry = DateTime.utc(2026, 7, 1, 10);
+      await seedDive(id: 'dNotes', entry: entry);
+      await (db.update(db.dives)..where((t) => t.id.equals('dNotes'))).write(
+        const DivesCompanion(notes: Value('viz was poor')),
+      );
+      expect(
+        (await builder.buildAll(['dNotes'])).single.carriesDiverData,
+        isTrue,
+      );
+
+      await seedDive(id: 'dRating', entry: entry.add(const Duration(days: 5)));
+      await (db.update(db.dives)..where((t) => t.id.equals('dRating'))).write(
+        const DivesCompanion(rating: Value(4)),
+      );
+      expect(
+        (await builder.buildAll(['dRating'])).single.carriesDiverData,
+        isTrue,
+      );
+    });
+
+    // Whitespace is not an entry: a blank notes column must not make a
+    // pristine download look annotated and withhold the repair for nothing.
+    test('blank notes do not count as diver data', () async {
+      await seedDive(id: 'd1', entry: DateTime.utc(2026, 7, 1, 10));
+      await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+        const DivesCompanion(notes: Value('   ')),
+      );
+      expect((await builder.buildAll(['d1'])).single.carriesDiverData, isFalse);
+    });
+
+    // The tanks and dive types every download produces say nothing about
+    // whether a human has worked on the dive, so they are excluded.
+    test('a downloaded dive with tanks still reads as untouched', () async {
+      await seedDive(
+        id: 'd1',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        tanks: [const domain.DiveTank(id: 't1', name: 'AL80')],
+      );
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.tanks, hasLength(1));
+      expect(ctx.carriesDiverData, isFalse);
+    });
+
+    test('reported for a neighbor from the same query', () async {
+      final entry = DateTime.utc(2026, 7, 1, 10);
+      await seedDive(id: 'dA', entry: entry, serial: 'SN-1');
+      await seedDive(
+        id: 'dB',
+        entry: entry.add(const Duration(hours: 1)),
+        serial: 'SN-1',
+      );
+      await seedGearOn('dB');
+      final ctx = (await builder.buildAll(['dA'])).single;
+      expect(ctx.carriesDiverData, isFalse);
+      expect(ctx.neighbors.single.id, 'dB');
+      expect(ctx.neighbors.single.carriesDiverData, isTrue);
+    });
+  });
 }

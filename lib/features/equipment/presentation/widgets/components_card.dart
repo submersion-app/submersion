@@ -4,19 +4,22 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_role_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Components card on the equipment detail page (issue #1487): the parts
 /// this item is assembled from, each with its role, its own service dot,
-/// inline edit and remove actions, and drag-to-reorder.
+/// inline edit, replace and remove actions, and drag-to-reorder.
 ///
 /// Lives on the detail page, not the edit form, like every other cross-item
 /// edge (service clocks, documents, unit configurations): a new item has no
@@ -50,6 +53,39 @@ class ComponentsCard extends ConsumerWidget {
     );
     if (role == null || role == part.role) return;
     await repository.updateRole(part.id, role);
+  }
+
+  /// Removes the part from the template, and from the past dives that
+  /// carry the assembly when the diver asks for that (swap with history).
+  Future<void> _remove(
+    BuildContext context,
+    WidgetRef ref,
+    EquipmentComponent part,
+  ) async {
+    // Every step here can fail against the database, the dive count the
+    // question is built from included, and none of it may escape the icon
+    // callback as an unhandled exception with nothing shown to the diver.
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final choice = await askAssemblyHistory(
+        context,
+        ref,
+        assemblyId: equipmentId,
+        change: AssemblyHistoryChange.removed,
+      );
+      if (choice == null) return;
+      await ref
+          .read(equipmentComponentRepositoryProvider)
+          .removeComponent(part.id);
+      if (choice == AssemblyHistoryChoice.alsoPast) {
+        await ref.read(diveRepositoryProvider).rewriteAssemblyOnPastDives(
+          equipmentId,
+          [GearPartRemoved(part.componentEquipmentId)],
+        );
+      }
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 
   @override
@@ -113,7 +149,12 @@ class ComponentsCard extends ConsumerWidget {
                     worstClocks[part.componentEquipmentId]?.status.severity,
                   ),
                   onEditRole: (part) => _editRole(context, ref, part),
-                  onRemove: (part) => repository.removeComponent(part.id),
+                  onReplace: (part) => showComponentPicker(
+                    context,
+                    parentId: equipmentId,
+                    replacing: part,
+                  ),
+                  onRemove: (part) => _remove(context, ref, part),
                   onReorder: (ids) => repository.reorder(equipmentId, ids),
                 );
               },
@@ -132,6 +173,7 @@ class _ComponentsList extends StatefulWidget {
   final List<EquipmentComponent> parts;
   final Color Function(EquipmentComponent part) dotColorFor;
   final void Function(EquipmentComponent part) onEditRole;
+  final void Function(EquipmentComponent part) onReplace;
   final void Function(EquipmentComponent part) onRemove;
   final void Function(List<String> orderedIds) onReorder;
 
@@ -139,6 +181,7 @@ class _ComponentsList extends StatefulWidget {
     required this.parts,
     required this.dotColorFor,
     required this.onEditRole,
+    required this.onReplace,
     required this.onRemove,
     required this.onReorder,
   });
@@ -183,6 +226,7 @@ class _ComponentsListState extends State<_ComponentsList> {
             part: part,
             dotColor: widget.dotColorFor(part),
             onEditRole: () => widget.onEditRole(part),
+            onReplace: () => widget.onReplace(part),
             onRemove: () => widget.onRemove(part),
           ),
       ],
@@ -195,6 +239,7 @@ class _PartTile extends StatelessWidget {
   final EquipmentComponent part;
   final Color dotColor;
   final VoidCallback onEditRole;
+  final VoidCallback onReplace;
   final VoidCallback onRemove;
 
   const _PartTile({
@@ -203,6 +248,7 @@ class _PartTile extends StatelessWidget {
     required this.part,
     required this.dotColor,
     required this.onEditRole,
+    required this.onReplace,
     required this.onRemove,
   });
 
@@ -251,6 +297,11 @@ class _PartTile extends StatelessWidget {
             icon: const Icon(Icons.edit_outlined),
             tooltip: l10n.equipment_components_editRole,
             onPressed: onEditRole,
+          ),
+          IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: l10n.equipment_components_replace,
+            onPressed: onReplace,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),

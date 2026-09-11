@@ -371,26 +371,32 @@ class EquipmentConditionEngine {
     if (samples.isEmpty) return const [];
     final window = _lastN(samples, recurringWindow);
     final windowIds = {for (final s in window) s.diveId};
-    final byTag = <ObservationTag, Set<String>>{};
+    // Counted per report, as the spec and the sentence ("reported 3
+    // times") both say: several reports on one dive each count. The dive
+    // ids are only for the evidence, where each dive is named once.
+    final reportsByTag = <ObservationTag, int>{};
+    final divesByTag = <ObservationTag, Set<String>>{};
     for (final o in input.observations) {
       final diveId = o.diveId;
       if (!o.isIssue || diveId == null || !windowIds.contains(diveId)) {
         continue;
       }
       for (final tag in o.issueTags) {
-        byTag.putIfAbsent(tag, () => {}).add(diveId);
+        reportsByTag[tag] = (reportsByTag[tag] ?? 0) + 1;
+        divesByTag.putIfAbsent(tag, () => {}).add(diveId);
       }
     }
     final findings = <EquipmentFinding>[];
     for (final tag in ObservationTag.values) {
-      final dives = byTag[tag];
-      if (dives == null || dives.length < recurringMinCount) continue;
+      final reports = reportsByTag[tag] ?? 0;
+      if (reports < recurringMinCount) continue;
+      final dives = divesByTag[tag]!;
       findings.add(
         _finding(
           input,
           ConditionRuleId.issueRecurring,
           input.item.id,
-          value: dives.length.toDouble(),
+          value: reports.toDouble(),
           evidence: FindingEvidence(
             n: window.length,
             windowStart: window.first.date,
@@ -399,7 +405,7 @@ class EquipmentConditionEngine {
               for (final s in window)
                 if (dives.contains(s.diveId)) s.diveId,
             ],
-            values: {'count': dives.length.toDouble()},
+            values: {'count': reports.toDouble()},
             tag: tag.dbValue,
           ),
           idTag: tag.dbValue,

@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -64,6 +65,7 @@ class UddfFullExportService {
     Map<String, List<ProfileEvent>>? diveProfileEvents,
     Map<String, List<DiveWeight>>? diveWeights,
     List<EquipmentSet>? equipmentSets,
+    List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
@@ -460,6 +462,8 @@ class UddfFullExportService {
           courses: courses,
           dataSources: sources,
           dataSourceDumps: encodedById,
+          components: components,
+          gearLinkDives: dives,
         );
 
         // The UDDF specification places <divecomputercontrol> last, so this
@@ -485,15 +489,19 @@ class UddfFullExportService {
   Future<String> generateAllDataXmlForTest({
     required List<Dive> dives,
     Diver? owner,
-    List<DiveSourceExport>? dataSources,
     List<EquipmentItem>? equipment,
+    List<EquipmentSet>? equipmentSets,
+    List<EquipmentComponent>? components,
+    List<DiveSourceExport>? dataSources,
     List<EquipmentObservation>? observations,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
     owner: owner,
-    dataSources: dataSources,
     equipment: equipment,
+    equipmentSets: equipmentSets,
+    components: components,
+    dataSources: dataSources,
     observations: observations,
     options: options,
   );
@@ -522,6 +530,7 @@ class UddfFullExportService {
     Map<String, List<ProfileEvent>>? diveProfileEvents,
     Map<String, List<DiveWeight>>? diveWeights,
     List<EquipmentSet>? equipmentSets,
+    List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
@@ -550,6 +559,7 @@ class UddfFullExportService {
       diveProfileEvents: diveProfileEvents,
       diveWeights: diveWeights,
       equipmentSets: equipmentSets,
+      components: components,
       courses: courses,
       diveGasSwitches: diveGasSwitches,
       diveTankPressures: diveTankPressures,
@@ -585,6 +595,7 @@ class UddfFullExportService {
     Map<String, List<ProfileEvent>>? diveProfileEvents,
     Map<String, List<DiveWeight>>? diveWeights,
     List<EquipmentSet>? equipmentSets,
+    List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
@@ -613,6 +624,7 @@ class UddfFullExportService {
       diveProfileEvents: diveProfileEvents,
       diveWeights: diveWeights,
       equipmentSets: equipmentSets,
+      components: components,
       courses: courses,
       diveGasSwitches: diveGasSwitches,
       diveTankPressures: diveTankPressures,

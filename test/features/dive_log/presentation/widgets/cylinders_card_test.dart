@@ -162,6 +162,27 @@ void main() {
       expect(find.textContaining('MND:'), findsOneWidget);
     });
 
+    testWidgets('MOD and its label follow the working ppO2 setting', (
+      tester,
+    ) async {
+      // EAN32 at ppO2 1.4 is 34 m; at 1.6 it is 40 m. The label used to say
+      // "ppO₂ 1.4" no matter the setting.
+      const settings = AppSettings(ppO2MaxWorking: 1.6);
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank()]),
+          cylinderSacs: [_makeSac()],
+          settings: settings,
+          units: const UnitFormatter(settings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('MOD: 40m'), findsOneWidget);
+      expect(find.textContaining('ppO₂ 1.6'), findsOneWidget);
+      expect(find.textContaining('ppO₂ 1.4'), findsNothing);
+    });
+
     testWidgets('shows the SAC rate and the gas used on a single-tank dive', (
       tester,
     ) async {

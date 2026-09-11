@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -445,11 +446,18 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     // displayName rather than a localized label: this template has no
     // AppLocalizations in scope, which is exactly why arrangeEquipment takes
     // the label resolver as a parameter.
-    final groups = arrangeEquipment(
-      dive.equipment,
-      arrangement,
-      typeLabel: (type) => type.displayName,
-    );
+    //
+    // An assembly keeps its parts under it, indented, in template order
+    // (#1487). Set bands print without a heading: the template has no set
+    // catalog in scope to name them.
+    final buckets = GearTree.build(dive.gear);
+    List<_Field> rows(GearNode node, int depth) => [
+      _Field(
+        '${'  ' * depth}${node.link.item.type.displayName}',
+        node.link.item.name,
+      ),
+      for (final child in node.children) ...rows(child, depth + 1),
+    ];
     return [
       // The current editor writes Dive.weights; weightAmount is the legacy
       // scalar kept for older dives.
@@ -459,9 +467,23 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field('Weight', units.formatWeight(dive.weightAmount)),
       if (dive.weightType != null)
         _Field('Weight Type', dive.weightType!.displayName),
-      for (final group in groups)
-        for (final item in group.items)
-          _Field(item.type.displayName, item.name),
+      for (final bucket in buckets) ..._bucketRows(bucket, arrangement, rows),
+    ];
+  }
+
+  List<_Field> _bucketRows(
+    GearBucket bucket,
+    EquipmentArrangement arrangement,
+    List<_Field> Function(GearNode node, int depth) rows,
+  ) {
+    final rootsById = {for (final n in bucket.roots) n.link.item.id: n};
+    return [
+      for (final group in arrangeEquipment(
+        [for (final n in bucket.roots) n.link.item],
+        arrangement,
+        typeLabel: (type) => type.displayName,
+      ))
+        for (final item in group.items) ...rows(rootsById[item.id]!, 0),
     ];
   }
 

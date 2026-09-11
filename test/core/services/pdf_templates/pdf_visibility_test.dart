@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Existing coverage pins the historical ISO rendering; #964 preference
@@ -35,7 +36,7 @@ void main() {
         visibility: visibility,
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],

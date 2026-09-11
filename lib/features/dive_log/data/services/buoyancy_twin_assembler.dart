@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/equipment/domain/services/gear_feature_mapper.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 
 /// The full result of running the twin for one dive: the raw series, the
 /// derived outputs, and the wing lift capacity (when the rig records one).
@@ -90,6 +91,7 @@ class BuoyancyTwinAssembler {
       model: model,
       waterType: dive.waterType,
       bodyWeightKg: bodyWeightKg,
+      rolledUpIds: GearTree.rolledUpIds(dive.gearProvenance),
     );
 
     return TwinInput(
@@ -127,6 +129,7 @@ class BuoyancyTwinAssembler {
     required double? bodyWeightKg,
     double? heightCm,
     double? salinityPpt,
+    Set<String> rolledUpIds = const {},
   }) {
     final suitItem = _exposureSuit(items);
     final bodyMass = bodyWeightKg ?? BuoyancyPhysics.defaultBodyMassKg;
@@ -165,6 +168,9 @@ class BuoyancyTwinAssembler {
     }
 
     for (final item in items) {
+      // An assembly whose parts are on this dive declares nothing itself:
+      // the parts carry the mass and lift (issue #1487).
+      if (rolledUpIds.contains(item.id)) continue;
       final feature = _featureFor(item);
       if (feature == null) continue;
       gearDryMass += feature.dryMassKg;
@@ -228,7 +234,7 @@ class BuoyancyTwinAssembler {
   /// ditchable; an unstyled weights item counts as fixed, which understates
   /// what the diver can drop rather than overstating it.
   static double droppableLeadKg(Dive dive) {
-    final gear = EquipmentLead.droppableKg(dive.equipment);
+    final gear = EquipmentLead.droppableKg(GearTree.leafItems(dive.gear));
     if (dive.weights.isNotEmpty) {
       var sum = 0.0;
       for (final w in dive.weights) {
@@ -307,7 +313,7 @@ class BuoyancyTwinAssembler {
     final typed = dive.weights.isNotEmpty
         ? dive.weights.fold(0.0, (sum, w) => sum + w.amountKg)
         : (dive.weightAmount ?? 0.0);
-    return typed + EquipmentLead.totalKg(dive.equipment);
+    return typed + EquipmentLead.totalKg(GearTree.leafItems(dive.gear));
   }
 
   static EquipmentItem? _exposureSuit(List<EquipmentItem> items) {

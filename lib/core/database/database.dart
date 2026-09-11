@@ -1162,6 +1162,21 @@ class DiveEquipment extends Table {
     onDelete: KeyAction.setNull,
   )();
 
+  /// When this link was last written, in Unix ms (issue #1728). NOT an LWW
+  /// clock for the row's payload: the junction carries no hlc and rides its
+  /// parent, and the merge still applies it as a clockless upsert. It exists
+  /// so the merge has an age signal at all. Without one,
+  /// `_extractUpdatedAtMillis` returns null, which collapses both guards in
+  /// `SyncService._applyRemoteDeletions` to false (each is written
+  /// `localUpdatedAt != null && ...`) and makes the revival branch in
+  /// `_mergeEntity` unreachable, so a link lost anywhere is permanent.
+  /// Nullable so a row from a pre-v207 peer still parses, and a
+  /// `clientDefault` stamps every local insert so a future call site cannot
+  /// silently reintroduce a clockless link.
+  IntColumn get updatedAt => integer().nullable().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch,
+  )();
+
   @override
   Set<Column> get primaryKey => {diveId, equipmentId};
 }
@@ -1223,6 +1238,12 @@ class DivePlanEquipment extends Table {
     onDelete: KeyAction.setNull,
   )();
 
+  /// The sync merge's age signal for this link; see [DiveEquipment.updatedAt]
+  /// for why the junctions need one (issue #1728).
+  IntColumn get updatedAt => integer().nullable().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch,
+  )();
+
   @override
   Set<Column> get primaryKey => {planId, equipmentId};
 }
@@ -1255,6 +1276,12 @@ class EquipmentSetItems extends Table {
       text().references(EquipmentSets, #id, onDelete: KeyAction.cascade)();
   TextColumn get equipmentId =>
       text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+
+  /// The sync merge's age signal for this link; see [DiveEquipment.updatedAt]
+  /// for why the junctions need one (issue #1728).
+  IntColumn get updatedAt => integer().nullable().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch,
+  )();
 
   @override
   Set<Column> get primaryKey => {setId, equipmentId};
@@ -2024,6 +2051,12 @@ class DiverSettings extends Table {
   // Dive list view mode (v51)
   TextColumn get diveListViewMode =>
       text().withDefault(const Constant('detailed'))();
+
+  /// Fold consecutive same-trip dives under a trip header in the dive list
+  /// (v204, issue #1193). Off by default: grouping changes the structure of
+  /// the list, so existing divers opt in rather than being reorganised.
+  BoolColumn get groupTripsInDiveList =>
+      boolean().withDefault(const Constant(false))();
   // List view modes for other features (v52)
   TextColumn get siteListViewMode =>
       text().withDefault(const Constant('detailed'))();
@@ -3845,7 +3878,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 206;
+  static const int currentSchemaVersion = 207;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4372,9 +4405,24 @@ class AppDatabase extends _$AppDatabase {
     // 203: equipment assemblies (issue #1487). Renumbered from 202, which
     // condition intelligence took while this branch was open.
     203,
+    // v204: diver_settings.group_trips_in_dive_list -- inline collapsible
+    // trip groups in the dive list (issue #1193). Additive defaulted boolean,
+    // no backfill. Renumbered from 202 and then 201: the linearity link,
+    // condition intelligence and assemblies all landed while this branch was
+    // open, and a rung at or below the shipped version never runs its
+    // onUpgrade step.
+    204,
     // 206: condition engine toggles on diver_settings (condition phase 3b).
-    // 204 and 205 were claimed by sibling branches when this rung was cut.
+    // 205 is unused. v207 shipped in 1.7.8 while this branch was open, so
+    // a device already at 207 skips this step; the beforeOpen backstop
+    // adds the columns there instead.
     206,
+    // v207: an updated_at on the three composite-natural-key gear junctions
+    // (issue #1728). 204 landed on main while this branch was open and 205
+    // and 206 are claimed by the condition-intelligence branches, so this
+    // rung takes 207; the list only counts remaining steps for progress
+    // reporting and is non-contiguous by design.
+    207,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4716,6 +4764,65 @@ class AppDatabase extends _$AppDatabase {
           'REFERENCES equipment_sets (id) ON DELETE SET NULL',
         );
       }
+    }
+  }
+
+  /// v207 (issue #1728): `updated_at` on the three composite-natural-key gear
+  /// junctions, backfilled from the parent row each one rides.
+  ///
+  /// These junctions are the only clockless children a stale tombstone can
+  /// still match, because their key is the natural pair rather than a fresh
+  /// uuid. With no age signal, `SyncService._applyRemoteDeletions` applied a
+  /// remote tombstone unconditionally and `_mergeEntity` could never revive
+  /// the row, so one dropped link became permanent, library-wide data loss.
+  ///
+  /// The backfill value is the parent's `updated_at`: the junction is
+  /// rewritten wholesale whenever its parent is saved, so that is the age the
+  /// link would have carried had the column always existed. Rows whose parent
+  /// is missing keep NULL, which is exactly the pre-rung behavior (no signal).
+  ///
+  /// Idempotent, and safe to re-run from the beforeOpen backstop. The
+  /// backfill runs only for a table whose column this call just added, so a
+  /// steady-state open costs one PRAGMA per junction and never a table scan,
+  /// and a link re-stamped since the rung is never dragged back to its
+  /// parent's clock. onUpgrade runs inside a transaction, so a crash between
+  /// the ALTER and the UPDATE rolls back both rather than stranding a table
+  /// with the column but no values.
+  Future<void> _assertJunctionUpdatedAtColumns() async {
+    const parents = {
+      'dive_equipment': ('dives', 'dive_id'),
+      'equipment_set_items': ('equipment_sets', 'set_id'),
+      'dive_plan_equipment': ('dive_plans', 'plan_id'),
+    };
+    final tables = (await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table'",
+    ).get()).map((r) => r.read<String>('name')).toSet();
+
+    for (final entry in parents.entries) {
+      final table = entry.key;
+      final (parentTable, foreignKey) = entry.value;
+      if (!tables.contains(table)) continue;
+      final cols = await customSelect("PRAGMA table_info('$table')").get();
+      if (cols.isEmpty) continue;
+      final names = cols.map((c) => c.read<String>('name')).toSet();
+      if (names.contains('updated_at')) continue;
+      await customStatement('ALTER TABLE $table ADD COLUMN updated_at INTEGER');
+      if (!tables.contains(parentTable)) continue;
+      // The parent must also HAVE an updated_at. Minimal old-schema fixtures
+      // (and genuinely ancient databases) carry a parent table stripped to
+      // its id, and selecting a column that is not there aborts the whole
+      // open with a SQL logic error. Nothing to backfill from is not a
+      // failure: the rows keep NULL, which is the pre-rung behavior.
+      final parentCols = await customSelect(
+        "PRAGMA table_info('$parentTable')",
+      ).get();
+      final parentNames = parentCols.map((c) => c.read<String>('name')).toSet();
+      if (!parentNames.contains('updated_at')) continue;
+      await customStatement(
+        'UPDATE $table SET updated_at = ('
+        'SELECT p.updated_at FROM $parentTable p WHERE p.id = $table.$foreignKey'
+        ') WHERE updated_at IS NULL',
+      );
     }
   }
 
@@ -7336,6 +7443,22 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       "ALTER TABLE diver_settings ADD COLUMN default_planner_water_type "
       "TEXT NOT NULL DEFAULT 'salt'",
+    );
+  }
+
+  /// Idempotent DDL for diver_settings.group_trips_in_dive_list (v204).
+  /// Existing rows default to off, matching a fresh install: turning the dive
+  /// list into trip groups is opt-in.
+  Future<void> _assertGroupTripsInDiveListColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('group_trips_in_dive_list')) return;
+    await customStatement(
+      'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
+      'INTEGER NOT NULL DEFAULT 0',
     );
   }
 
@@ -11251,17 +11374,42 @@ class AppDatabase extends _$AppDatabase {
           await _assertGearProvenanceColumns();
         }
         if (from < 203) await reportProgress();
+        // v204: diver_settings.group_trips_in_dive_list (issue #1193).
+        // Column-only rung, no backfill.
+        if (from < 204) {
+          await _assertGroupTripsInDiveListColumn();
+        }
+        if (from < 204) await reportProgress();
         // v206: condition engine toggles (condition phase 3b). Column-only
         // rung on diver_settings, no backfill: the defaults (engine on, no
-        // rules disabled) are what every existing diver wants.
+        // rules disabled) are what every existing diver wants. A device
+        // already at the shipped v207 skips this step and gets the columns
+        // from the beforeOpen backstop.
         if (from < 206) {
           await _assertConditionEngineSettingsColumns();
         }
         if (from < 206) await reportProgress();
+        // v207: an updated_at on the three composite-natural-key gear
+        // junctions (issue #1728), backfilled from the parent each junction
+        // rides. Numbered 207 because 205 and 206 are claimed by the
+        // condition-intelligence branches still open. Idempotent, and
+        // re-asserted in the beforeOpen backstop: a junction stranded without
+        // the column is silently unprotected against a stale peer tombstone,
+        // and the loss it lets through cannot be undone by a later sync.
+        if (from < 207) {
+          await _assertJunctionUpdatedAtColumns();
+        }
+        if (from < 207) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
+
+        // v207 backstop: re-assert the gear junctions' updated_at. A device
+        // stranded without it has no age signal on those rows, so a stale
+        // peer tombstone deletes a gear link unconditionally and no later
+        // sync can revive it (issue #1728).
+        await _assertJunctionUpdatedAtColumns();
 
         // v201 backstop: re-assert the cell linearity columns.
         await _assertTemplateItemSourceIdColumn();
@@ -11469,6 +11617,9 @@ class AppDatabase extends _$AppDatabase {
         await _assertEquipmentConditionSchema();
         // v206 backstop: the condition engine toggle columns.
         await _assertConditionEngineSettingsColumns();
+
+        // v204 backstop: re-assert diver_settings.group_trips_in_dive_list.
+        await _assertGroupTripsInDiveListColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
@@ -21,12 +22,24 @@ import 'package:submersion/features/safety/domain/entities/incident.dart';
 /// the item would read as unchanged while its findings still cited a dive
 /// that had left the logbook.
 ///
-/// [summaryVersion] is the sensor summary algorithm's own version. The
-/// summaries are not hashed row by row (they are derived from the same
-/// dives the samples carry), but they ARE recomputed when that version
-/// rises without any dive changing, and the engine reads them. Leaving it
-/// out froze every finding against readings that had since moved.
+/// The configuration counts as much as the data. [item] contributes its
+/// type, its parent link and its own cell slot and install date, [parent]
+/// its type (which decides the rebreather rules), each child its type,
+/// slot and install date, and [transmitterSerials] the registry serials
+/// the dropout rules match gaps against. Any of them changing re-points
+/// the rules at other readings without a single dive changing.
+///
+/// [summaryStamps] carries each stored sensor summary as
+/// `engineVersion/sourceUpdatedAt`, keyed by dive. A summary can arrive
+/// after the item was first reviewed (the background sweep writes it
+/// later) or be recomputed, and neither touches the dive; without the
+/// stamps the old marker still matched and served findings built without
+/// those readings. [summaryVersion] is the summary algorithm's version.
 String conditionInputFingerprint({
+  required EquipmentItem item,
+  required EquipmentItem? parent,
+  required Map<String, String> summaryStamps,
+  required Set<String> transmitterSerials,
   required List<EquipmentExposureSample> samples,
   required List<EquipmentObservation> observations,
   required List<Incident> incidents,
@@ -57,13 +70,17 @@ String conditionInputFingerprint({
   final incidentKeys = [
     for (final i in incidents) '${i.id}@${i.updatedAt.millisecondsSinceEpoch}',
   ];
-  final childKeys = [
-    for (final c in children)
-      '${c.id}@${c.installedDate?.millisecondsSinceEpoch}',
-  ]..sort();
+  final childKeys = [for (final c in children) '${c.id}@${_configOf(c)}']
+    ..sort();
+  final summaryKeys = [
+    for (final e in summaryStamps.entries) '${e.key}@${e.value}',
+  ];
   final canonical = [
     'v$engineVersion',
     'sv$summaryVersion',
+    'm${_configOf(item)}:${item.parentEquipmentId}:${parent?.type.name}',
+    'x${_digest(summaryKeys)}',
+    'r${_digest(transmitterSerials.toList())}',
     's${samples.length}:$newestSample:${_digest(sampleKeys)}',
     'o${observations.length}:$newestObservation:${_digest(observationKeys)}',
     'i${incidents.length}:$newestIncident:${_digest(incidentKeys)}',
@@ -72,6 +89,15 @@ String conditionInputFingerprint({
   ].join('|');
   return sha1.convert(utf8.encode(canonical)).toString();
 }
+
+/// What the engine reads off an item beyond its id: the type, the cell
+/// slot, and the install date with the creation date it falls back to.
+String _configOf(EquipmentItem e) => [
+  e.type.name,
+  e.attrNum(EquipmentAttrKeys.cellSlot),
+  e.installedDate?.millisecondsSinceEpoch,
+  e.createdAt?.millisecondsSinceEpoch,
+].join('/');
 
 /// A short, order-independent digest of a set of "id@stamp" keys. Sorted
 /// so two devices holding the same rows in a different order agree, and

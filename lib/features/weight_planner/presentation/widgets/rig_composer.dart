@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -30,8 +31,17 @@ class RigComposer extends ConsumerWidget {
   final UnitFormatter units;
   final bool showSaveBodyWeight;
   final ValueChanged<EquipmentItem> onGearAdded;
-  final ValueChanged<List<EquipmentItem>> onGearSetAdded;
+  final void Function(EquipmentSet set, List<EquipmentItem> items)
+  onGearSetAdded;
   final ValueChanged<EquipmentItem> onGearRemoved;
+
+  /// Ids in [gear] that are parts of an assembly also in [gear]; they show
+  /// inside the assembly's chip as a count rather than as chips of their
+  /// own (issue #1487).
+  final Set<String> partIds;
+
+  /// Number of parts under each assembly id, for the chip label.
+  final Map<String, int> partCounts;
   final ValueChanged<TankPresetEntity> onTankAdded;
   final ValueChanged<int> onTankRemoved;
   final void Function(int index, TankPresetEntity preset) onTankChanged;
@@ -54,6 +64,8 @@ class RigComposer extends ConsumerWidget {
     required this.onGearAdded,
     required this.onGearSetAdded,
     required this.onGearRemoved,
+    this.partIds = const {},
+    this.partCounts = const {},
     required this.onTankAdded,
     required this.onTankRemoved,
     required this.onTankChanged,
@@ -95,7 +107,7 @@ class RigComposer extends ConsumerWidget {
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
           onSetSelected: (set, items) {
-            onGearSetAdded(items);
+            onGearSetAdded(set, items);
             Navigator.of(context).pop();
           },
         ),
@@ -155,10 +167,18 @@ class RigComposer extends ConsumerWidget {
                 runSpacing: 4,
                 children: [
                   for (final item in gear)
-                    InputChip(
-                      label: Text(item.name),
-                      onDeleted: () => onGearRemoved(item),
-                    ),
+                    if (!partIds.contains(item.id))
+                      InputChip(
+                        label: Text(switch (partCounts[item.id]) {
+                          final n? when n > 0 =>
+                            context.l10n.equipment_assemblyChip_label(
+                              n,
+                              item.name,
+                            ),
+                          _ => item.name,
+                        }),
+                        onDeleted: () => onGearRemoved(item),
+                      ),
                 ],
               ),
             const SizedBox(height: 12),

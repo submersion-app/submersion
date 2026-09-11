@@ -140,11 +140,17 @@ class EquipmentFindingsRepository {
             final oldIds =
                 FindingEvidence.decode(old.evidence)?.diveIds.toSet() ??
                 const <String>{};
-            final newIds = finding.evidence.diveIds.where((id) {
-              if (oldIds.contains(id)) return false;
-              final date = diveDates[id];
-              return date != null && date.millisecondsSinceEpoch > dismissedMs;
-            }).length;
+            // Distinct dives: a rule may name one dive more than once (one
+            // incident each), and the threshold is new dives, not entries.
+            final newIds = finding.evidence.diveIds
+                .where((id) {
+                  if (oldIds.contains(id)) return false;
+                  final date = diveDates[id];
+                  return date != null &&
+                      date.millisecondsSinceEpoch > dismissedMs;
+                })
+                .toSet()
+                .length;
             if (newIds < dismissalClearsAfterNewDives) continue;
             dismissedAt = null;
           }
@@ -201,6 +207,11 @@ class EquipmentFindingsRepository {
 
       for (final old in existingRows) {
         if (keep.contains(old.id)) continue;
+        // A rule this build does not know came from a newer peer. This
+        // engine cannot emit it, so its absence here says nothing about
+        // whether it still fires, and a tombstone would delete it on the
+        // peer that computed it.
+        if (ConditionRuleId.fromDbValue(old.ruleId) == null) continue;
         await (_db.delete(
           _db.equipmentFindings,
         )..where((t) => t.id.equals(old.id))).go();

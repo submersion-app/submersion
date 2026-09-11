@@ -13,6 +13,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Alkatrész hozzáadása';
 
   @override
@@ -36,6 +41,47 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Nincsenek alkatrészek. Add hozzá azokat a részeket, amelyekből ez a felszerelés áll.';
+
+  @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés frissítése is',
+      one: '1 merülés frissítése is',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Az új részt azokhoz a merülésekhez is hozzáadja, vagy csak mostantól?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'A részt azokról a merülésekről is eltávolítja, vagy csak mostantól?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'A részt azokon a merüléseken is kicseréli, vagy csak mostantól?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'Mostantól';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ez az összeállítás $count naplózott merülésen szerepel.',
+      one: 'Ez az összeállítás 1 naplózott merülésen szerepel.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle =>
+      'Frissíti a korábbi merüléseket?';
 
   @override
   String equipment_components_partOf(Object name) {
@@ -70,6 +116,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs más aktív felszerelés, amit ide lehetne adni.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Csere';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Csere erre';
+
+  @override
   String get equipment_components_pickerTitle => 'Alkatrészek hozzáadása';
 
   @override
@@ -77,6 +129,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Átrendezés';
+
+  @override
+  String get equipment_components_replace => 'Alkatrész cseréje';
 
   @override
   String get equipment_components_role => 'Szerep';
@@ -543,6 +598,28 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_bulkEdit_confirmApply => 'Alkalmaz';
+
+  @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hozzáadás mind a $count merüléshez',
+      one: 'Hozzáadás 1 merüléshez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítás mind a $count merülésből',
+      one: 'Eltávolítás 1 merülésből',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_bulkEdit_nothingSelected =>
@@ -2777,6 +2854,26 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Kezdés';
+
+  @override
+  String get diveLog_gear_collapse => 'Részek elrejtése';
+
+  @override
+  String get diveLog_gear_expand => 'Részek megjelenítése';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Összeállítás és részei eltávolítása';
+
+  @override
+  String get diveLog_gear_removePart => 'Rész eltávolítása';
+
+  @override
+  String get diveLog_gear_removeSet =>
+      'Készlet eltávolítása erről a merülésről';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Készlet';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7047,6 +7144,57 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Merulesek keresese...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Az utak szerinti csoportositas ki van kapcsolva $sortName szerinti rendezeskor';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Rendezes datum szerint';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Utak csoportositasa';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Minden ut kibontasa';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Minden ut osszecsukasa';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'UT';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merules',
+      one: '1 merules',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded / $total merules';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return '$tripName merulesei megjelenitese';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return '$tripName merulesei elrejtese';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return '$tripName ut megnyitasa';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'Az első $limit találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.';
   }
@@ -7764,13 +7912,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Állítsa automatikusra a He% kiszámításához';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount felhasználva)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -10581,6 +10734,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_retired => 'Kivonva';
+
+  @override
+  String get enum_equipmentStatus_sold => 'Eladva';
 
   @override
   String get enum_equipmentType_backplate => 'Hátlemez';
@@ -21419,16 +21575,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Kozelgo';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Partról';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'Hajós';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'Üdülő';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Napi túra';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -28100,6 +28256,106 @@ class AppLocalizationsHu extends AppLocalizations {
   String dataQuality_deleteDuplicate_delete(String dive) {
     return 'Törlés: $dive';
   }
+
+  @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'Ez a példány ezt is tartalmazza: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés',
+      one: '1 felszerelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ólomsúly',
+      one: '1 ólomsúly',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count búvártárs',
+      one: '1 búvártárs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count címke',
+      one: '1 címke',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó vagy videó',
+      one: '1 fotó vagy videó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count melléklet',
+      one: '1 melléklet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count egyéni mező',
+      one: '1 egyéni mező',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'egy értékelés';
+
+  @override
+  String get dataQuality_carries_favorite => 'egy kedvenc jelölés';
+
+  @override
+  String get dataQuality_carries_site => 'egy merülőhely';
+
+  @override
+  String get dataQuality_carries_trip => 'egy utazás';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'egy búvárbázis';
+
+  @override
+  String get dataQuality_carries_course => 'egy tanfolyam';
 
   @override
   String get dataQuality_repairLabel_combine => 'Összevonás egy merüléssé';

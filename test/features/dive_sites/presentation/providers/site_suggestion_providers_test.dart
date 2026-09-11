@@ -50,6 +50,9 @@ void main() {
       dives.watchDivesChanges(),
     ).thenAnswer((_) => const Stream<void>.empty());
     when(
+      dives.watchDiveListChanges(),
+    ).thenAnswer((_) => const Stream<void>.empty());
+    when(
       sites.watchSitesChanges(),
     ).thenAnswer((_) => const Stream<void>.empty());
     when(

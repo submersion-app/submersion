@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
+import 'package:submersion/features/data_quality/data/services/diver_data_sql.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -138,6 +139,7 @@ class QualityContextBuilder {
 
     final sources = await _diveRepo.getDataSources(dive.id);
     final neighbors = await _neighbors(dive);
+    final carriesDiverData = await _carriesDiverData(dive.id);
 
     return DiveQualityContext(
       dive: dive,
@@ -145,6 +147,7 @@ class QualityContextBuilder {
       sources: sources,
       primarySamples: samples,
       primarySampleCount: primarySampleCount,
+      carriesDiverData: carriesDiverData,
       tanks: dive.tanks,
       pressuresByTankId: pressures,
       gasSwitches: switches,
@@ -152,6 +155,23 @@ class QualityContextBuilder {
       ppO2MaxBar: await _ppO2Max(dive.diverId),
       knownTransmitterSerials: await _knownSerials(dive.diverId),
     );
+  }
+
+  /// [DiveQualityContext.carriesDiverData] for one dive. Read through the same
+  /// fragment the neighbor query uses so a duplicate pair's two sides are
+  /// measured identically; null when the row is gone, which leaves the
+  /// delete-duplicate repair withheld rather than offered on a guess (#1720).
+  Future<bool?> _carriesDiverData(String diveId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT ($kDiverDataExistsSql) AS carries_diver_data '
+          'FROM dives WHERE id = ?1',
+          variables: [Variable.withString(diveId)],
+          readsFrom: diverDataTables(_db),
+        )
+        .get();
+    if (rows.isEmpty) return null;
+    return (rows.single.read<int?>('carries_diver_data') ?? 0) != 0;
   }
 
   Future<List<QualityNeighbor>> _neighbors(domain.Dive dive) async {
@@ -187,7 +207,11 @@ class QualityContextBuilder {
           // NULL (not 0) when the neighbor has no primary series, so an
           // unknown recording never reads as an empty one.
           '(SELECT SUM(s.sample_count) FROM dive_profile_series s '
-          'WHERE s.dive_id = dives.id AND s.is_primary = 1) AS sample_count '
+          'WHERE s.dive_id = dives.id AND s.is_primary = 1) AS sample_count, '
+          // Projected here rather than looked up per neighbor: the scan
+          // resolves this window for every dive in the library, and a second
+          // round trip per neighbor would be an N+1 (#1720).
+          '($kDiverDataExistsSql) AS carries_diver_data '
           'FROM dives WHERE id != ?1 AND diver_id IS ?2 '
           'AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4 '
           'ORDER BY COALESCE(entry_time, dive_date_time) ASC',
@@ -197,7 +221,7 @@ class QualityContextBuilder {
             Variable.withInt(entry.millisecondsSinceEpoch - windowMs),
             Variable.withInt(exit.millisecondsSinceEpoch + windowMs),
           ],
-          readsFrom: {_db.dives, _db.diveProfileSeries},
+          readsFrom: {...diverDataTables(_db), _db.diveProfileSeries},
         )
         .get();
     final out = <QualityNeighbor>[];
@@ -226,6 +250,7 @@ class QualityContextBuilder {
           firstSampleDepth: _finiteDepth(row.read<double?>('first_depth')),
           lastSampleDepth: _finiteDepth(row.read<double?>('last_depth')),
           sampleCount: row.read<int?>('sample_count'),
+          carriesDiverData: (row.read<int?>('carries_diver_data') ?? 0) != 0,
         ),
       );
     }

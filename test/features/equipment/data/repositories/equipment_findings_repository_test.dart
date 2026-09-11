@@ -345,6 +345,72 @@ void main() {
     expect((await repo.getFindings('reg')).single.isDismissed, isFalse);
   });
 
+  test('one new dive named three times is still one new dive', () async {
+    // incidentLinked names a dive once per incident, so three incidents on
+    // one dive after the dismissal list that dive three times. The rule
+    // is three new dives, not three new entries.
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [
+        recurring(['d1', 'd2', 'd3']),
+      ],
+      engineVersion: 1,
+      diveDates: diveDates,
+      now: t0,
+    );
+    final id = conditionFindingId(
+      'reg',
+      ConditionRuleId.issueRecurring,
+      tag: 'freeFlow',
+    );
+    await repo.setDismissed(
+      findingId: id,
+      dismissed: true,
+      now: t0.add(const Duration(days: 1)),
+    );
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp2',
+      findings: [
+        recurring(['d1', 'd2', 'd3', 'd4', 'd4', 'd4']),
+      ],
+      engineVersion: 1,
+      diveDates: diveDates,
+      now: t0.add(const Duration(days: 5)),
+    );
+    expect((await repo.getFindings('reg')).single.isDismissed, isTrue);
+  });
+
+  test('a row for a rule this build does not know survives a review', () async {
+    // A newer peer's rule arrives by sync. This build cannot compute it,
+    // so it never appears in the engine's output; deleting it as "stopped
+    // firing" would tombstone it and delete it on the newer peer too.
+    await db
+        .into(db.equipmentFindings)
+        .insert(
+          EquipmentFindingsCompanion.insert(
+            id: 'cf_reg_futureRule',
+            equipmentId: 'reg',
+            ruleId: 'futureRule',
+            severity: 'caution',
+            evidenceFingerprint: 'x',
+            engineVersion: 9,
+            createdAt: 1,
+          ),
+        );
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [incident()],
+      engineVersion: 1,
+      now: t0,
+    );
+    final rows = await db.select(db.equipmentFindings).get();
+    expect(rows.map((r) => r.id), contains('cf_reg_futureRule'));
+    expect(await tombstones(), isEmpty);
+  });
+
   test('an imported backlog of older dives leaves a dismissal alone', () async {
     await repo.saveReview(
       equipmentId: 'reg',

@@ -13,6 +13,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'הוספת רכיב';
 
   @override
@@ -36,6 +41,46 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.';
+
+  @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לעדכן גם $count צלילות',
+      one: 'לעדכן גם צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'להוסיף את החלק החדש גם לצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'להסיר את החלק גם מהצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'להחליף את החלק גם בצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'מעכשיו';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'המכלול הזה נמצא ב-$count צלילות רשומות.',
+      one: 'המכלול הזה נמצא בצלילה רשומה אחת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => 'לעדכן צלילות קודמות?';
 
   @override
   String equipment_components_partOf(Object name) {
@@ -70,6 +115,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין ציוד פעיל נוסף שאפשר להוסיף כאן.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'החלפה';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'להחליף ב';
+
+  @override
   String get equipment_components_pickerTitle => 'הוספת רכיבים';
 
   @override
@@ -77,6 +128,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'סידור מחדש';
+
+  @override
+  String get equipment_components_replace => 'החלפת רכיב';
 
   @override
   String get equipment_components_role => 'תפקיד';
@@ -537,6 +591,28 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_bulkEdit_confirmApply => 'החל';
+
+  @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מוסיף לכל $count הצלילות',
+      one: 'מוסיף לצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מסיר מכל $count הצלילות',
+      one: 'מסיר מצלילה אחת',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_bulkEdit_nothingSelected =>
@@ -2711,6 +2787,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'התחל';
+
+  @override
+  String get diveLog_gear_collapse => 'הסתרת חלקים';
+
+  @override
+  String get diveLog_gear_expand => 'הצגת חלקים';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'הסרת המכלול וחלקיו';
+
+  @override
+  String get diveLog_gear_removePart => 'הסרת חלק';
+
+  @override
+  String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
+
+  @override
+  String get diveLog_gear_unknownSet => 'סט';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -6884,6 +6978,57 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'חיפוש צלילות...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'קיבוץ טיולים כבוי בזמן מיון לפי $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'מיין לפי תאריך';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'קבץ טיולים';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'הרחב את כל הטיולים';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'כווץ את כל הטיולים';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'טיול';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded מתוך $total צלילות';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'הצג צלילות של $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'הסתר צלילות של $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'פתח טיול $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'מוצגות $limit ההתאמות הראשונות. חדדו את החיפוש כדי לצמצם את התוצאות.';
   }
@@ -7583,13 +7728,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'הגדר לחישוב אוטומטי של He%';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount נוצלו)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -10356,6 +10506,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_retired => 'הוצא משימוש';
+
+  @override
+  String get enum_equipmentStatus_sold => 'נמכר';
 
   @override
   String get enum_equipmentType_backplate => 'פלטת גב';
@@ -20930,16 +21083,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'קרובים';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'מהחוף';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'סירת שהייה';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'ריזורט';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'טיול יום';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -27515,6 +27668,106 @@ class AppLocalizationsHe extends AppLocalizations {
   String dataQuality_deleteDuplicate_delete(String dive) {
     return 'למחוק: $dive';
   }
+
+  @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'העותק הזה מכיל גם: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count משקולות',
+      one: 'משקולת אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בני זוג',
+      one: 'בן זוג אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תוויות',
+      one: 'תווית אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות או סרטונים',
+      one: 'תמונה או סרטון אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים מצורפים',
+      one: 'קובץ מצורף אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שדות מותאמים',
+      one: 'שדה מותאם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'דירוג';
+
+  @override
+  String get dataQuality_carries_favorite => 'סימון מועדף';
+
+  @override
+  String get dataQuality_carries_site => 'אתר צלילה';
+
+  @override
+  String get dataQuality_carries_trip => 'טיול';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'מרכז צלילה';
+
+  @override
+  String get dataQuality_carries_course => 'קורס';
 
   @override
   String get dataQuality_repairLabel_combine => 'מיזוג לצלילה אחת';

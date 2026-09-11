@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Could not open your browser. Use Copy link and paste the address into your browser.'**
   String get settings_oauth_connect_browserFailed;
 
+  /// No description provided for @equipment_assemblyChip_label.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (+{count})'**
+  String equipment_assemblyChip_label(Object count, Object name);
+
   /// No description provided for @equipment_components_add.
   ///
   /// In en, this message translates to:
@@ -152,6 +158,48 @@ abstract class AppLocalizations {
   /// **'No components. Add the parts this item is assembled from.'**
   String get equipment_components_empty;
 
+  /// No description provided for @equipment_components_historyAlsoPast.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Also update 1 dive} other{Also update {count} dives}}'**
+  String equipment_components_historyAlsoPast(num count);
+
+  /// No description provided for @equipment_components_historyAskAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the new part to those dives as well, or only from now on?'**
+  String get equipment_components_historyAskAdded;
+
+  /// No description provided for @equipment_components_historyAskRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the part from those dives as well, or only from now on?'**
+  String get equipment_components_historyAskRemoved;
+
+  /// No description provided for @equipment_components_historyAskReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap the part on those dives as well, or only from now on?'**
+  String get equipment_components_historyAskReplaced;
+
+  /// No description provided for @equipment_components_historyFutureOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'From now on'**
+  String get equipment_components_historyFutureOnly;
+
+  /// No description provided for @equipment_components_historyOnDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This assembly is on 1 logged dive.} other{This assembly is on {count} logged dives.}}'**
+  String equipment_components_historyOnDives(num count);
+
+  /// No description provided for @equipment_components_historyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update past dives?'**
+  String get equipment_components_historyTitle;
+
   /// No description provided for @equipment_components_partOf.
   ///
   /// In en, this message translates to:
@@ -176,6 +224,18 @@ abstract class AppLocalizations {
   /// **'No other active gear can be added here.'**
   String get equipment_components_pickerEmpty;
 
+  /// No description provided for @equipment_components_pickerReplaceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get equipment_components_pickerReplaceConfirm;
+
+  /// No description provided for @equipment_components_pickerReplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace with'**
+  String get equipment_components_pickerReplaceTitle;
+
   /// No description provided for @equipment_components_pickerTitle.
   ///
   /// In en, this message translates to:
@@ -193,6 +253,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reorder'**
   String get equipment_components_reorder;
+
+  /// No description provided for @equipment_components_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace component'**
+  String get equipment_components_replace;
 
   /// No description provided for @equipment_components_role.
   ///
@@ -924,6 +990,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get diveLog_bulkEdit_confirmApply;
+
+  /// No description provided for @diveLog_bulkEdit_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Adding to 1 dive} other{Adding to all {count} dives}}'**
+  String diveLog_bulkEdit_confirmAdding(int count);
+
+  /// No description provided for @diveLog_bulkEdit_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removing from 1 dive} other{Removing from all {count} dives}}'**
+  String diveLog_bulkEdit_confirmRemoving(int count);
 
   /// No description provided for @diveLog_bulkEdit_nothingSelected.
   ///
@@ -4652,6 +4730,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Begin'**
   String get preDive_start_begin;
+
+  /// No description provided for @diveLog_gear_collapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide parts'**
+  String get diveLog_gear_collapse;
+
+  /// No description provided for @diveLog_gear_expand.
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts'**
+  String get diveLog_gear_expand;
+
+  /// No description provided for @diveLog_gear_removeAssembly.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove assembly and its parts'**
+  String get diveLog_gear_removeAssembly;
+
+  /// No description provided for @diveLog_gear_removePart.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove part'**
+  String get diveLog_gear_removePart;
+
+  /// No description provided for @diveLog_gear_removeSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove set from this dive'**
+  String get diveLog_gear_removeSet;
+
+  /// No description provided for @diveLog_gear_unknownSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get diveLog_gear_unknownSet;
 
   /// No description provided for @diveLog_listPage_bottomSheet_preDiveChecklist.
   ///
@@ -11679,6 +11793,72 @@ abstract class AppLocalizations {
   /// **'Search dives...'**
   String get diveLog_listPage_searchFieldLabel;
 
+  /// Shown above the dive list when the Group trips toggle is on but the active sort scatters a trip's dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip grouping is off while sorted by {sortName}'**
+  String diveLog_listPage_groupingPausedBySort(String sortName);
+
+  /// No description provided for @diveLog_listPage_groupingPausedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by date'**
+  String get diveLog_listPage_groupingPausedAction;
+
+  /// No description provided for @diveLog_listPage_menuGroupTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Group trips'**
+  String get diveLog_listPage_menuGroupTrips;
+
+  /// No description provided for @diveLog_listPage_menuExpandAllTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all trips'**
+  String get diveLog_listPage_menuExpandAllTrips;
+
+  /// No description provided for @diveLog_listPage_menuCollapseAllTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all trips'**
+  String get diveLog_listPage_menuCollapseAllTrips;
+
+  /// No description provided for @diveLog_listPage_tripGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIP'**
+  String get diveLog_listPage_tripGroupLabel;
+
+  /// Dive count on a dive list trip header when the whole trip is in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String diveLog_listPage_tripGroupDiveCount(int count);
+
+  /// Dive count on a dive list trip header when only some of the trip's dives are in the list, because of paging or a filter.
+  ///
+  /// In en, this message translates to:
+  /// **'{loaded} of {total} dives'**
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total);
+
+  /// Screen-reader label for a collapsed trip header in the dive list.
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives on {tripName}'**
+  String diveLog_listPage_tripGroupExpand(String tripName);
+
+  /// Screen-reader label for an expanded trip header in the dive list.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide dives on {tripName}'**
+  String diveLog_listPage_tripGroupCollapse(String tripName);
+
+  /// Tooltip for the button that opens the trip from its dive list header.
+  ///
+  /// In en, this message translates to:
+  /// **'Open trip {tripName}'**
+  String diveLog_listPage_tripGroupOpenTrip(String tripName);
+
   /// No description provided for @diveLog_listPage_searchLimitNotice.
   ///
   /// In en, this message translates to:
@@ -12939,17 +13119,23 @@ abstract class AppLocalizations {
   /// **'Set to auto-calculate He%'**
   String get diveLog_tank_mndHelper;
 
+  /// Trailing note on the tank pressure line: how much gas the dive consumed, e.g. "(160 bar / 1920 L used)"
+  ///
+  /// In en, this message translates to:
+  /// **'({amount} used)'**
+  String diveLog_tank_gasUsed(String amount);
+
   /// No description provided for @diveLog_tank_modInfo.
   ///
   /// In en, this message translates to:
-  /// **'MOD: {depth} (ppO2 1.4)'**
-  String diveLog_tank_modInfo(Object depth);
+  /// **'MOD: {depth} (ppO₂ {ppO2})'**
+  String diveLog_tank_modInfo(Object depth, String ppO2);
 
   /// No description provided for @diveLog_tank_modMndInfo.
   ///
   /// In en, this message translates to:
-  /// **'MOD: {mod} (ppO₂ 1.4) | MND: {mnd}'**
-  String diveLog_tank_modMndInfo(Object mod, Object mnd);
+  /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///
@@ -17757,6 +17943,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retired'**
   String get enum_equipmentStatus_retired;
+
+  /// No description provided for @enum_equipmentStatus_sold.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold'**
+  String get enum_equipmentStatus_sold;
 
   /// No description provided for @enum_equipmentType_backplate.
   ///
@@ -46297,6 +46489,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete: {dive}'**
   String dataQuality_deleteDuplicate_delete(String dive);
+
+  /// Introduces the list of things the copy about to be deleted carries, shown under the red delete line.
+  ///
+  /// In en, this message translates to:
+  /// **'This copy also has: {items}'**
+  String dataQuality_deleteDuplicate_carries(String items);
+
+  /// Summary fragment: how many gear links the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 gear item} other{{count} gear items}}'**
+  String dataQuality_carries_gear(int count);
+
+  /// Summary fragment: how many weight entries the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 weight} other{{count} weights}}'**
+  String dataQuality_carries_weights(int count);
+
+  /// Summary fragment: how many buddies the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 buddy} other{{count} buddies}}'**
+  String dataQuality_carries_buddies(int count);
+
+  /// Summary fragment: how many tags the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 tag} other{{count} tags}}'**
+  String dataQuality_carries_tags(int count);
+
+  /// Summary fragment: how many photos or videos the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 photo or video} other{{count} photos or videos}}'**
+  String dataQuality_carries_media(int count);
+
+  /// Summary fragment: how many signatures, documents, maps or other non-photo attachments the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 attachment} other{{count} attachments}}'**
+  String dataQuality_carries_attachments(int count);
+
+  /// Summary fragment: how many custom fields the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 custom field} other{{count} custom fields}}'**
+  String dataQuality_carries_customFields(int count);
+
+  /// Summary fragment: the dive about to be deleted has a rating.
+  ///
+  /// In en, this message translates to:
+  /// **'a rating'**
+  String get dataQuality_carries_rating;
+
+  /// Summary fragment: the dive about to be deleted is marked as a favorite.
+  ///
+  /// In en, this message translates to:
+  /// **'a favorite'**
+  String get dataQuality_carries_favorite;
+
+  /// Summary fragment: the dive about to be deleted is linked to a dive site.
+  ///
+  /// In en, this message translates to:
+  /// **'a site'**
+  String get dataQuality_carries_site;
+
+  /// Summary fragment: the dive about to be deleted is linked to a trip.
+  ///
+  /// In en, this message translates to:
+  /// **'a trip'**
+  String get dataQuality_carries_trip;
+
+  /// Summary fragment: the dive about to be deleted is linked to a dive center.
+  ///
+  /// In en, this message translates to:
+  /// **'a dive center'**
+  String get dataQuality_carries_diveCenter;
+
+  /// Summary fragment: the dive about to be deleted is linked to a course.
+  ///
+  /// In en, this message translates to:
+  /// **'a course'**
+  String get dataQuality_carries_course;
 
   /// No description provided for @dataQuality_repairLabel_combine.
   ///

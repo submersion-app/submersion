@@ -46,6 +46,46 @@ class PayloadMerger {
     'tagRefs',
   ];
 
+  /// Reference fields inside a dive's `gearLinks` entries and an item's
+  /// `components` entries (issue #1487): nested lists of maps, so they
+  /// need their own pass.
+  static const _gearLinkRefFields = ['itemRef', 'viaRef', 'setRef'];
+  static const _componentRefFields = ['componentRef'];
+
+  /// Rewrites the string reference [fields] of every map in [item]'s
+  /// [key] list through [rewrite], copying rather than mutating the
+  /// nested maps. A null reference stays null; a map without the list is
+  /// left without it.
+  ///
+  /// Matches a bare [Map] rather than `Map<String, dynamic>`: parsers hand
+  /// these lists over with whatever type argument the literal inferred
+  /// (`Map<String, String?>` from the gear-link parser today), and a map
+  /// that failed the narrower check would be passed through with its refs
+  /// un-namespaced, which merges two files' rows together instead of
+  /// failing loudly. Entries are re-keyed to `Map<String, dynamic>` so the
+  /// list is uniform whatever arrived.
+  static void _rewriteNested(
+    Map<String, dynamic> item,
+    String key,
+    List<String> fields,
+    String Function(String ref) rewrite,
+  ) {
+    final value = item[key];
+    if (value is! List) return;
+    item[key] = [
+      for (final entry in value)
+        if (entry is Map)
+          <String, dynamic>{
+            for (final pair in entry.entries) '${pair.key}': pair.value,
+            for (final field in fields)
+              if (entry[field] case final String ref when ref.isNotEmpty)
+                field: rewrite(ref),
+          }
+        else
+          entry,
+    ];
+  }
+
   ImportPayload merge(List<FilePayload> inputs) {
     final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
     final warnings = <ImportWarning>[];
@@ -175,6 +215,21 @@ class PayloadMerger {
           ];
         }
       }
+      _rewriteNested(
+        item,
+        'gearLinks',
+        _gearLinkRefFields,
+        (ref) => '$fileId:$ref',
+      );
+    }
+
+    if (type == ImportEntityType.equipment) {
+      _rewriteNested(
+        item,
+        'components',
+        _componentRefFields,
+        (ref) => '$fileId:$ref',
+      );
     }
 
     if (type == ImportEntityType.equipmentSets) {
@@ -254,6 +309,11 @@ class PayloadMerger {
           ];
         }
       }
+      _rewriteNested(dive, 'gearLinks', _gearLinkRefFields, resolve);
+    }
+
+    for (final item in entities[ImportEntityType.equipment] ?? const []) {
+      _rewriteNested(item, 'components', _componentRefFields, resolve);
     }
 
     for (final set in entities[ImportEntityType.equipmentSets] ?? const []) {

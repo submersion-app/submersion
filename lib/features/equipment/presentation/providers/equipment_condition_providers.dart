@@ -34,9 +34,11 @@ final equipmentConditionRefresherProvider =
 /// through [conditionDisabledRulesProvider], like the safety review.
 ///
 /// Self-invalidates on every stream an input can arrive through: the
-/// equipment, observation, incident and findings tables and the dive
-/// detail stream (which carries the sensor summaries). A sync pull or a
-/// sweep write therefore reaches an open item page without a restart.
+/// equipment and attribute tables (type, parent, cell slot, install
+/// date), the transmitter registry (the serials the dropout rules match),
+/// the observation, incident and findings tables, and the dive detail
+/// stream (which carries the sensor summaries). A sync pull or a sweep
+/// write therefore reaches an open item page without a restart.
 final equipmentConditionProvider =
     FutureProvider.family<List<EquipmentFinding>?, String>((
       ref,
@@ -45,6 +47,12 @@ final equipmentConditionProvider =
       final refresher = ref.watch(equipmentConditionRefresherProvider);
       ref.invalidateSelfWhen(
         ref.watch(equipmentRepositoryProvider).watchEquipmentChanges(),
+      );
+      ref.invalidateSelfWhen(
+        ref.watch(equipmentRepositoryProvider).watchAttributeChanges(),
+      );
+      ref.invalidateSelfWhen(
+        ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
       );
       ref.invalidateSelfWhen(
         ref.watch(equipmentObservationRepositoryProvider).watchChanges(),

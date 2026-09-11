@@ -157,6 +157,36 @@ void main() {
     expect(await EquipmentFindingsRepository(db: db).getReview('reg'), isNull);
   });
 
+  test('a findings request reviews just the named items', () async {
+    // The hook for check-in and incident writes: the item's findings must
+    // move without an item page open, and without a summary batch or a
+    // pass over every other piece of gear.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'bcd',
+            name: 'bcd',
+            type: 'bcd',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    scheduleConditionFindingsRefresh(['reg', 'missing']);
+    await SensorSummaryScheduler.instance.idle;
+    final findings = EquipmentFindingsRepository(db: db);
+    expect(await findings.getReview('reg'), isNotNull);
+    expect(await findings.getReview('bcd'), isNull);
+    expect(visited, isEmpty);
+  });
+
+  test('a findings request does nothing while disabled', () async {
+    SensorSummaryScheduler.enabled = false;
+    scheduleConditionFindingsRefresh(['reg']);
+    await SensorSummaryScheduler.instance.idle;
+    expect(await EquipmentFindingsRepository(db: db).getReview('reg'), isNull);
+  });
+
   test('an empty batch still refreshes findings', () async {
     scheduleSensorSummaryRefresh(['d1', 'd2']);
     await SensorSummaryScheduler.instance.idle;

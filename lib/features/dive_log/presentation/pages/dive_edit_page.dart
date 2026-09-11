@@ -31,10 +31,14 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
-import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
@@ -64,6 +68,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/buddies_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
@@ -82,6 +87,7 @@ import 'package:submersion/features/weight_presets/presentation/providers/weight
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/weight_preset_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_change_summary.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
@@ -122,7 +128,6 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
@@ -239,6 +244,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Set<String> _originalSightingIds =
       {}; // Track original IDs to detect deletions
   List<EquipmentItem> _selectedEquipment = [];
+
+  /// Where each selected item came from: the assembly it was attached
+  /// through and the set applied (issue #1487). Read through [_gearRows].
+  List<GearProvenance> _gearProvenance = [];
   List<BuddyWithRole> _selectedBuddies = [];
   Set<String> _originalBuddyIds = {};
   String? _diverRoleId;
@@ -712,8 +721,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             _tanksDirty = true;
           }
 
-          // Load equipment
+          // Load equipment with its provenance
           _selectedEquipment = List.from(dive.equipment);
+          _gearProvenance = dive.gearProvenance;
 
           // Load conditions fields
           _currentDirection = dive.currentDirection;
@@ -1002,6 +1012,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Map<String, int> _equipmentCounts = {};
   List<BulkMembershipItem> _equipmentMembers = [];
   MembershipDelta _equipmentDelta = MembershipDelta.empty;
+
+  /// The last "Use Set" instruction to the equipment editor: every item of the
+  /// set goes on all the selected dives (#1754). The serial makes each
+  /// application a fresh request, even for the same set.
+  ({int serial, Set<String> ids})? _equipmentEnsureOn;
 
   Map<String, int> _tagCounts = {};
   List<BulkMembershipItem> _tagMembers = [];
@@ -1409,6 +1424,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             label: Text(l10n.diveLog_edit_useSet),
           ),
           onChanged: (d) => setState(() => _equipmentDelta = d),
+          ensureOn: _equipmentEnsureOn,
+          // Assembly and part-of chips, as on the equipment list (#1487).
+          trailingBuilder: (item) => AssemblyChips(itemId: item.id),
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
@@ -1631,7 +1649,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<WaterType>(
               value: _waterType,
               options: WaterType.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _waterType = v),
             ),
           ),
@@ -1818,7 +1836,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<DiveMode>(
               value: _diveMode,
               options: DiveMode.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _diveMode = v ?? DiveMode.oc),
             ),
           ),
@@ -1929,12 +1947,51 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         : 0;
     if (!mounted) return;
 
+    // Name every membership change up front: a stray removal otherwise lands
+    // on every selected dive with nothing but "Apply changes?" to warn (#1754).
+    final changes = summarizeBulkMembership([
+      (
+        title: l10n.diveLog_edit_section_tags,
+        delta: _tagDelta,
+        members: _tagMembers,
+      ),
+      (
+        title: l10n.diveLog_edit_label_diveTypes,
+        delta: _diveTypeDelta,
+        members: _diveTypeMembers,
+      ),
+      (
+        title: l10n.diveLog_edit_section_equipment,
+        delta: _equipmentDelta,
+        members: _equipmentMembers,
+      ),
+      (
+        title: l10n.diveLog_edit_group_buddies,
+        delta: _buddyDelta,
+        members: _buddyMembers,
+      ),
+    ]);
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.diveLog_bulkEdit_confirmTitle),
-        content: skipped > 0
-            ? Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped))
+        content: skipped > 0 || changes.isNotEmpty
+            ? SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (changes.isNotEmpty)
+                      BulkChangeSummary(
+                        sections: changes,
+                        totalDives: ids.length,
+                      ),
+                    if (skipped > 0)
+                      Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped)),
+                  ],
+                ),
+              )
             : null,
         actions: [
           TextButton(
@@ -2862,8 +2919,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return [
       l10n.diveLog_edit_summary_tanks(_tanks.length),
       ?mix,
+      // Top-level rows as the tree view places them: an assembly's parts
+      // sit inside its row and an orphaned row is promoted (#1487).
       if (_selectedEquipment.isNotEmpty)
-        l10n.diveLog_edit_summary_items(_selectedEquipment.length),
+        l10n.diveLog_edit_summary_items(GearTree.topLevelCount(_gearRows)),
     ].join(' · ');
   }
 
@@ -3221,7 +3280,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Re-check emptiness after the await: the diver may have manually added
       // gear while the provider resolved, and auto-apply must never overwrite.
       if (items.isEmpty || !mounted || _selectedEquipment.isNotEmpty) return;
-      setState(() => _selectedEquipment = [...items]);
+      await _addGear(items, viaSetId: best!.id, markDirty: false);
     } catch (_) {
       // Equipment sets unavailable; skip best-effort auto-apply.
     }
@@ -3251,7 +3310,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         );
         final items = best?.items ?? const [];
         if (items.isNotEmpty && _selectedEquipment.isEmpty) {
-          setState(() => _selectedEquipment = [...items]);
+          await _addGear(items, viaSetId: best!.id, markDirty: false);
         }
         return;
       }
@@ -3304,14 +3363,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               setName: _geofenceSuggestion!.name,
               locationLabel: _selectedSite?.name,
               onApply: () {
-                setState(() {
-                  _markDirty();
-                  final ids = _selectedEquipment.map((e) => e.id).toSet();
-                  for (final item in _geofenceSuggestion!.items ?? const []) {
-                    if (!ids.contains(item.id)) _selectedEquipment.add(item);
-                  }
-                  _geofenceSuggestion = null;
-                });
+                final suggestion = _geofenceSuggestion!;
+                setState(() => _geofenceSuggestion = null);
+                _addGear(suggestion.items ?? const [], viaSetId: suggestion.id);
               },
               onDismiss: () => setState(() {
                 _dismissedSuggestionSetIds.add(_geofenceSuggestion!.id);
@@ -3327,59 +3381,22 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Rendered through the diver's arrangement (#1486, #1576).
-                // _selectedEquipment keeps its own order as the source of
-                // truth for saving; sorting it would write a pointless
-                // reordering of dive_equipment on every save.
-                for (final group in arrangeEquipment(
-                  _selectedEquipment,
-                  ref.watch(equipmentArrangementProvider),
-                  typeLabel: (type) => type.localizedName(context.l10n),
-                )) ...[
-                  if (group.type != null)
-                    EquipmentGroupHeader(type: group.type!),
-                  ...group.items.map((item) {
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        child: Icon(
-                          equipmentTypeIcon(item.type),
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                          size: 20,
-                        ),
-                      ),
-                      title: Text(item.name),
-                      subtitle: group.type == null
-                          ? Text(item.type.localizedName(context.l10n))
-                          : null,
-                      trailing: IconButton(
-                        icon: const Icon(Icons.close, size: 18),
-                        tooltip:
-                            context.l10n.diveLog_edit_tooltip_removeEquipment,
-                        onPressed: () {
-                          setState(() {
-                            _markDirty();
-                            // By id, never by display index: the list is
-                            // rendered through the diver's arrangement, so a
-                            // render position addresses a different item and
-                            // the diver would silently lose the wrong gear.
-                            // Rebuilding rather than removeAt also keeps the
-                            // project's immutability rule.
-                            _selectedEquipment = [
-                              for (final e in _selectedEquipment)
-                                if (e.id != item.id) e,
-                            ];
-                          });
-                        },
-                      ),
-                    );
-                  }),
-                ],
+                // Rendered through the diver's arrangement inside set bands,
+                // assemblies collapsed (#1486, #1576, #1487). Removals are
+                // by id, never by display index: a render position addresses
+                // a different item under an arrangement. _selectedEquipment
+                // keeps its own order as the source of truth for saving;
+                // sorting it would write a pointless reordering of
+                // dive_equipment on every save.
+                DiveGearTreeView(
+                  links: gearLinksFor(_selectedEquipment, _gearRows),
+                  onRemoveSet: (setId) =>
+                      _setGear(GearExpander.removeSet(_gearRows, setId)),
+                  onRemoveSubtree: (id) =>
+                      _setGear(GearExpander.removeSubtree(_gearRows, id)),
+                  onRemovePart: (id) =>
+                      _setGear(GearExpander.removePart(_gearRows, id)),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -3398,7 +3415,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       onPressed: () {
                         setState(() {
                           _markDirty();
-                          _selectedEquipment.clear();
+                          _selectedEquipment = [];
+                          _gearProvenance = [];
                         });
                       },
                       child: Text(context.l10n.diveLog_edit_clearAllEquipment),
@@ -3410,6 +3428,59 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ),
       ],
     );
+  }
+
+  /// One provenance row per selected item: an item that arrived without a
+  /// row (an older code path) is a loose top-level row.
+  List<GearProvenance> get _gearRows {
+    final byId = {for (final p in _gearProvenance) p.equipmentId: p};
+    return [
+      for (final e in _selectedEquipment)
+        byId[e.id] ?? GearProvenance(equipmentId: e.id),
+    ];
+  }
+
+  /// Every way gear reaches this page funnels here so an assembly expands
+  /// identically whether it came from the picker, a set, a geofence
+  /// suggestion or the on-empty default (issue #1487).
+  Future<void> _addGear(
+    List<EquipmentItem> items, {
+    String? viaSetId,
+    bool markDirty = true,
+  }) async {
+    if (items.isEmpty) return;
+    final merged = [
+      ..._selectedEquipment,
+      for (final item in items)
+        if (!_selectedEquipment.any((e) => e.id == item.id)) item,
+    ];
+    final expansion = await expandGearOnPage(
+      ref,
+      additions: [
+        for (final i in items) (equipmentId: i.id, viaSetId: viaSetId),
+      ],
+      existing: _gearRows,
+      existingItems: merged,
+    );
+    if (!mounted) return;
+    setState(() {
+      if (markDirty) _markDirty();
+      _selectedEquipment = [...merged, ...expansion.newItems];
+      _gearProvenance = expansion.provenance;
+    });
+  }
+
+  /// Applies a removal: [rows] is the gear that stays, with provenance.
+  void _setGear(List<GearProvenance> rows) {
+    final keep = {for (final p in rows) p.equipmentId};
+    setState(() {
+      _markDirty();
+      _gearProvenance = rows;
+      _selectedEquipment = [
+        for (final e in _selectedEquipment)
+          if (keep.contains(e.id)) e,
+      ];
+    });
   }
 
   void _showEquipmentPicker() {
@@ -3425,13 +3496,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           selectedEquipmentIds: _selectedEquipment.map((e) => e.id).toSet(),
           onEquipmentSelected: (equipment) {
-            setState(() {
-              // Add if not already selected
-              if (!_selectedEquipment.any((e) => e.id == equipment.id)) {
-                _selectedEquipment.add(equipment);
-              }
-            });
             Navigator.of(context).pop();
+            _addGear([equipment]);
           },
         ),
       ),
@@ -3450,15 +3516,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
           onSetSelected: (set, items) {
-            setState(() {
-              // Add all items from set that aren't already selected
-              for (final item in items) {
-                if (!_selectedEquipment.any((e) => e.id == item.id)) {
-                  _selectedEquipment.add(item);
-                }
-              }
-            });
             Navigator.of(context).pop();
+            _addGear(items, viaSetId: set.id);
           },
         ),
       ),
@@ -3600,6 +3659,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       icon: equipmentTypeIcon(item.type),
                     ),
               ];
+              // Rows already listed keep whatever the user set them to, so
+              // appending alone would let an unchecked row remove a set item
+              // from every dive (#1754). Switch the whole set on.
+              _equipmentEnsureOn = (
+                serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
+                ids: {for (final item in items) item.id},
+              );
             });
             Navigator.of(context).pop();
           },
@@ -3792,6 +3858,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   void _saveEquipmentAsSet() {
     if (_selectedEquipment.isEmpty) return;
+    // A set holds top-level rows only: an assembly re-expands into its
+    // parts when the set is applied (issue #1487).
+    final topLevelIds = [
+      for (final g in gearLinksFor(_selectedEquipment, _gearRows))
+        if (g.isTopLevel) g.item.id,
+    ];
 
     final nameController = TextEditingController();
     final descriptionController = TextEditingController();
@@ -3806,7 +3878,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           children: [
             Text(
               context.l10n.diveLog_edit_saveAsSetDialog_content(
-                _selectedEquipment.length,
+                topLevelIds.length,
               ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -3859,7 +3931,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   id: '',
                   name: name,
                   description: descriptionController.text.trim(),
-                  equipmentIds: _selectedEquipment.map((e) => e.id).toList(),
+                  equipmentIds: topLevelIds,
                   createdAt: DateTime.now(),
                   updatedAt: DateTime.now(),
                 );
@@ -4008,7 +4080,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         label: l10n.diveLog_edit_label_waterType,
         value: _waterType,
         values: WaterType.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _waterType = v),
       ),
       EnumPickerRow<CurrentDirection>(
@@ -5039,7 +5111,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         diveCenter: _selectedDiveCenter,
         courseId: _selectedCourse?.id,
         tanks: _tanks,
-        equipment: _selectedEquipment,
+        gear: gearLinksFor(_selectedEquipment, _gearRows),
         // Conditions fields
         currentDirection: _currentDirection,
         currentStrength: _currentStrength,

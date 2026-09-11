@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 void main() {
   late GasAnalysisService service;
@@ -29,7 +30,7 @@ void main() {
       avgDepth: avgDepth,
       tanks: tanks,
       profile: profile,
-      equipment: const [],
+      gear: looseGear(const []),
       notes: '',
       photoIds: const [],
       sightings: const [],

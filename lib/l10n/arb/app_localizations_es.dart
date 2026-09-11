@@ -13,6 +13,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo abrir el navegador. Usa Copiar enlace y pega la dirección en tu navegador.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Añadir componente';
 
   @override
@@ -36,6 +41,47 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Sin componentes. Añade las piezas que forman este equipo.';
+
+  @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Actualizar también $count inmersiones',
+      one: 'Actualizar también 1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      '¿Añadir la pieza nueva también a esas inmersiones o solo a partir de ahora?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      '¿Quitar la pieza también de esas inmersiones o solo a partir de ahora?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      '¿Cambiar la pieza también en esas inmersiones o solo a partir de ahora?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'A partir de ahora';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Este conjunto está en $count inmersiones registradas.',
+      one: 'Este conjunto está en 1 inmersión registrada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle =>
+      '¿Actualizar inmersiones pasadas?';
 
   @override
   String equipment_components_partOf(Object name) {
@@ -70,6 +116,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay más equipo activo que se pueda añadir aquí.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Reemplazar';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Reemplazar por';
+
+  @override
   String get equipment_components_pickerTitle => 'Añadir componentes';
 
   @override
@@ -77,6 +129,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Reordenar';
+
+  @override
+  String get equipment_components_replace => 'Reemplazar componente';
 
   @override
   String get equipment_components_role => 'Función';
@@ -546,6 +601,28 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_bulkEdit_confirmApply => 'Aplicar';
+
+  @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Añadiendo a todas las $count inmersiones',
+      one: 'Añadiendo a 1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Quitando de todas las $count inmersiones',
+      one: 'Quitando de 1 inmersión',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_bulkEdit_nothingSelected =>
@@ -2790,6 +2867,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Comenzar';
+
+  @override
+  String get diveLog_gear_collapse => 'Ocultar piezas';
+
+  @override
+  String get diveLog_gear_expand => 'Mostrar piezas';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'Quitar el conjunto y sus piezas';
+
+  @override
+  String get diveLog_gear_removePart => 'Quitar pieza';
+
+  @override
+  String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Equipo';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7069,6 +7164,58 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Buscar inmersiones...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'La agrupación por viaje está desactivada al ordenar por $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Ordenar por fecha';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Agrupar viajes';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Expandir todos los viajes';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips =>
+      'Contraer todos los viajes';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'VIAJE';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded de $total inmersiones';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'Mostrar inmersiones de $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'Ocultar inmersiones de $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'Abrir viaje $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'Mostrando las primeras $limit coincidencias. Refina la búsqueda para acotar los resultados.';
   }
@@ -7785,13 +7932,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Configurar para calcular He% automaticamente';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount usados)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -10609,6 +10761,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_retired => 'Retirado';
+
+  @override
+  String get enum_equipmentStatus_sold => 'Vendido';
 
   @override
   String get enum_equipmentType_backplate => 'Placa dorsal';
@@ -21506,16 +21661,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Proximos';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Costa';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'Crucero';
 
   @override
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Salida de un día';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -28233,6 +28388,106 @@ class AppLocalizationsEs extends AppLocalizations {
   String dataQuality_deleteDuplicate_delete(String dive) {
     return 'Eliminar: $dive';
   }
+
+  @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'Esta copia también tiene: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos',
+      one: '1 equipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lastres',
+      one: '1 lastre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compañeros',
+      one: '1 compañero',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count etiquetas',
+      one: '1 etiqueta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos o vídeos',
+      one: '1 foto o vídeo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adjuntos',
+      one: '1 adjunto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count campos personalizados',
+      one: '1 campo personalizado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'una valoración';
+
+  @override
+  String get dataQuality_carries_favorite => 'un favorito';
+
+  @override
+  String get dataQuality_carries_site => 'un punto de inmersión';
+
+  @override
+  String get dataQuality_carries_trip => 'un viaje';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'un centro de buceo';
+
+  @override
+  String get dataQuality_carries_course => 'un curso';
 
   @override
   String get dataQuality_repairLabel_combine => 'Combinar en una inmersión';

@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as de;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as dw;
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as se;
@@ -46,7 +47,7 @@ class BulkDiveEditService {
 
     Map<String, List<String>>? priorTagIds;
     Map<String, List<String>>? priorDiveTypeIds;
-    Map<String, List<String>>? priorEquipmentIds;
+    Map<String, List<GearProvenance>>? priorGear;
     Map<String, List<BuddyWithRole>>? priorBuddies;
     Map<String, List<DiveTank>>? priorTanks;
     List<DiveTank>? priorTankSpecRows;
@@ -86,9 +87,15 @@ class BulkDiveEditService {
           final rows = await (_db.select(
             _db.diveEquipment,
           )..where((t) => t.diveId.isIn(ids))).get();
-          priorEquipmentIds = {for (final id in ids) id: <String>[]};
+          priorGear = {for (final id in ids) id: <GearProvenance>[]};
           for (final r in rows) {
-            priorEquipmentIds[r.diveId]!.add(r.equipmentId);
+            priorGear[r.diveId]!.add(
+              GearProvenance(
+                equipmentId: r.equipmentId,
+                viaEquipmentId: r.viaEquipmentId,
+                viaSetId: r.viaSetId,
+              ),
+            );
           }
         case BuddiesOp():
           priorBuddies = {
@@ -144,7 +151,7 @@ class BulkDiveEditService {
       priorDiveRows: priorDiveRows,
       priorTagIds: priorTagIds,
       priorDiveTypeIds: priorDiveTypeIds,
-      priorEquipmentIds: priorEquipmentIds,
+      priorGear: priorGear,
       priorBuddies: priorBuddies,
       priorTanks: priorTanks,
       priorTankSpecRows: priorTankSpecRows,
@@ -186,10 +193,10 @@ class BulkDiveEditService {
           await _diveRepo.bulkReplaceDiveTypes([id], diveTypes[id] ?? const []);
         }
       }
-      final equip = snapshot.priorEquipmentIds;
-      if (equip != null) {
+      final gear = snapshot.priorGear;
+      if (gear != null) {
         for (final id in ids) {
-          await _diveRepo.bulkReplaceEquipment([id], equip[id] ?? const []);
+          await _diveRepo.replaceGearRows(id, gear[id] ?? const []);
         }
       }
       final buddies = snapshot.priorBuddies;
