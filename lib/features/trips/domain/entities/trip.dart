@@ -88,6 +88,16 @@ class Trip extends Equatable {
     return start.isAfter(dateOnly);
   }
 
+  /// Whether the trip's last day is behind [date] (date-only, same
+  /// normalization as [startsAfter]): the trip is over. Takes its
+  /// reference date for the same reason, so "past" is one clock read
+  /// rather than [isUpcoming] and [isInProgress] reading it twice.
+  bool endsBefore(DateTime date) {
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+    return end.isBefore(dateOnly);
+  }
+
   /// Whether this trip is upcoming or currently underway (date-only
   /// comparison, same normalization as [containsDate]).
   bool get isUpcoming {

@@ -52,7 +52,9 @@ class TripScrubberMarginCard extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final isPast = !trip.isUpcoming && !trip.isInProgress;
+    // One clock read: the two getters each read it, and a build crossing
+    // midnight between them could misclassify a trip that just ended.
+    final isPast = trip.endsBefore(DateTime.now());
     final title = isPast
         ? '${l10n.trips_scrubber_title} '
               '(${l10n.trips_scrubber_asOfStart(units.formatDate(trip.startDate))})'
