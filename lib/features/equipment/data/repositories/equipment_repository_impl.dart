@@ -476,8 +476,9 @@ class EquipmentRepository {
         // Cylinders the transmitter registry linked to this item. The schema
         // sets the link null on delete (v210), but that write reaches no
         // peer, so the tanks are cleared here and staged like any other
-        // tank edit. Before v210 the link had no action and the delete
-        // failed outright.
+        // tank edit. Tanks export only through their parent dive's HLC, so
+        // each parent dive is staged too. Before v210 the link had no action
+        // and the delete failed outright.
         final linkedTanks = await (_db.select(
           _db.diveTanks,
         )..where((t) => t.equipmentId.equals(id))).get();
@@ -490,6 +491,13 @@ class EquipmentRepository {
             await _syncRepository.markRecordPending(
               entityType: 'diveTanks',
               recordId: tank.id,
+              localUpdatedAt: now,
+            );
+          }
+          for (final diveId in {for (final t in linkedTanks) t.diveId}) {
+            await _syncRepository.markRecordPending(
+              entityType: 'dives',
+              recordId: diveId,
               localUpdatedAt: now,
             );
           }

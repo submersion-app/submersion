@@ -510,10 +510,21 @@ void main() {
             .customSelect("SELECT equipment_id FROM dive_tanks WHERE id = 't1'")
             .getSingle();
         expect(tank.read<String?>('equipment_id'), isNull);
-        final pendingTanks = (await db.select(db.syncRecords).get())
+        final pending = await db.select(db.syncRecords).get();
+        final pendingTanks = pending
             .where((r) => r.entityType == 'diveTanks')
             .map((r) => r.recordId);
         expect(pendingTanks, ['t1'], reason: 'an unlinked tank is untouched');
+        // Tanks export through their parent dive's HLC, so the dive must be
+        // staged too or the cleared link never reaches a peer.
+        final pendingDives = pending
+            .where((r) => r.entityType == 'dives')
+            .map((r) => r.recordId);
+        expect(pendingDives, ['d1']);
+        final dive = await db
+            .customSelect("SELECT hlc FROM dives WHERE id = 'd1'")
+            .getSingle();
+        expect(dive.read<String?>('hlc'), isNotNull);
       });
     });
 

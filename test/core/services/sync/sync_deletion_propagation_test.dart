@@ -637,6 +637,63 @@ void main() {
       },
     );
 
+    test(
+      'applying a peer deletion of a gear item a local cylinder is linked '
+      'to does not fail the sync; the tank keeps its dive, link cleared',
+      () async {
+        // dive_tanks.equipment_id, written by the transmitter registry, was a
+        // NO ACTION foreign key until v210, so this tombstone failed (787).
+        final serializer = SyncDataSerializer();
+        await serializer.upsertRecord('equipment', {
+          'id': 'cyl-x',
+          'name': 'Blue AL80',
+          'type': 'tank',
+          'status': 'active',
+          'purchaseCurrency': 'USD',
+          'notes': '',
+          'isActive': true,
+          'createdAt': 1000,
+          'updatedAt': 1000,
+        });
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'dive-y', diveNumber: 1),
+        );
+        await DatabaseService.instance.database.customStatement(
+          'INSERT INTO dive_tanks (id, dive_id, equipment_id) '
+          "VALUES ('tank-y', 'dive-y', 'cyl-x')",
+        );
+
+        await buildService().performSync(); // push, advance lastSync
+
+        const data = SyncData();
+        final payload = SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: 9000,
+          deviceId: 'peer-dev',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(data.toJson())))
+              .toString(),
+          data: data,
+          deletions: {
+            'equipment': [const SyncDeletion(id: 'cyl-x', deletedAt: 8000)],
+          },
+        );
+        await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
+
+        final result = await buildService().performSync();
+
+        expect(result.status, isNot(SyncResultStatus.error));
+        expect(await serializer.fetchRecord('equipment', 'cyl-x'), isNull);
+        final tank = await DatabaseService.instance.database
+            .customSelect(
+              "SELECT dive_id, equipment_id FROM dive_tanks WHERE id = 'tank-y'",
+            )
+            .getSingle();
+        expect(tank.read<String>('dive_id'), 'dive-y');
+        expect(tank.read<String?>('equipment_id'), isNull);
+      },
+    );
+
     test('a parent revived in the same payload keeps its children; the FK is '
         'not cleared by the stale tombstone snapshot (any merge order)', () async {
       final serializer = SyncDataSerializer();

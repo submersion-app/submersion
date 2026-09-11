@@ -11,6 +11,17 @@ import 'package:submersion/core/database/database.dart';
 /// with a foreign key error. SQLite cannot alter a constraint in place, so
 /// the rung rebuilds the table from its own stored definition.
 
+/// Deletes and tombstones look tanks up by equipment_id.
+Future<bool> _hasEquipmentIndex(AppDatabase db) async {
+  final rows = await db
+      .customSelect(
+        "SELECT name FROM sqlite_master WHERE type = 'index' "
+        "AND name = 'idx_dive_tanks_equipment'",
+      )
+      .get();
+  return rows.isNotEmpty;
+}
+
 Future<Map<String, String>> _onDelete(AppDatabase db) async {
   final rows = await db
       .customSelect("PRAGMA foreign_key_list('dive_tanks')")
@@ -109,6 +120,8 @@ Future<void> _expectRebuilt(AppDatabase db) async {
       .get();
   expect(indexes, hasLength(1));
 
+  expect(await _hasEquipmentIndex(db), isTrue);
+
   // The child's reference still names the rebuilt table.
   final childLinks = await db
       .customSelect("PRAGMA foreign_key_list('fk_probe_child')")
@@ -124,11 +137,20 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(210));
   });
 
+  test('the sync compatibility floor is 210', () {
+    // An older peer's code deletes an equipment row with no regard for
+    // the linked cylinders, so under its NO ACTION link a tombstone from
+    // this build fails there and the item lingers. Holding readers below
+    // 210 until they update is what makes the tombstone apply.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+  });
+
   test('a fresh database creates the link with ON DELETE SET NULL', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
     expect((await _onDelete(db))['equipment_id'], 'SET NULL');
+    expect(await _hasEquipmentIndex(db), isTrue);
 
     // The point of the rung: deleting the linked item clears the link.
     await db.customStatement(
@@ -179,6 +201,43 @@ void main() {
       await _expectRebuilt(db);
     },
   );
+
+  test('a link with an action the rung does not own is left alone', () async {
+    // Only NO ACTION (or RESTRICT) is rewritten. Any other action stays as
+    // it is rather than gaining a second ON DELETE clause.
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute('PRAGMA user_version = 209');
+          raw.execute('CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY)');
+          raw.execute('''
+            CREATE TABLE dive_tanks (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_id TEXT NOT NULL,
+              equipment_id TEXT REFERENCES equipment(id) ON DELETE CASCADE
+            )
+          ''');
+          raw.execute("INSERT INTO dive_tanks VALUES ('t1', 'd1', NULL)");
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    expect((await _onDelete(db))['equipment_id'], 'CASCADE');
+    final stored = await db
+        .customSelect("SELECT sql FROM sqlite_master WHERE name = 'dive_tanks'")
+        .getSingle();
+    final sql = stored.read<String>('sql');
+    expect(
+      sql,
+      isNot(contains('ON DELETE SET NULL ON DELETE')),
+      reason: 'not rebuilt with a second ON DELETE clause',
+    );
+    // A rebuilt table is renamed into place and stored as "dive_tanks".
+    expect(sql, startsWith('CREATE TABLE dive_tanks ('), reason: 'untouched');
+    final rows = await db.customSelect('SELECT id FROM dive_tanks').get();
+    expect(rows, hasLength(1));
+  });
 
   test('a dive_tanks without the equipment link is left alone', () async {
     // Partial-schema fixtures elsewhere build dive_tanks with a plain column

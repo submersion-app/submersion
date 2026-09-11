@@ -164,7 +164,10 @@ void main() {
 
     test('v182 is present in the migration ladder', () {
       expect(AppDatabase.migrationVersions, contains(182));
-      expect(AppDatabase.minimumCompatibleSchemaVersion, 183);
+      expect(
+        AppDatabase.minimumCompatibleSchemaVersion,
+        greaterThanOrEqualTo(183),
+      );
     });
   });
 

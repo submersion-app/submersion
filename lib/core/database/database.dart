@@ -3934,7 +3934,18 @@ class AppDatabase extends _$AppDatabase {
   /// is one-directional and does nothing to inbound payloads from an older
   /// peer. See [_purgeLegacySampleBookkeeping] for why those inbound legacy
   /// rows stay safe without the purged tombstones.
-  static const int minimumCompatibleSchemaVersion = 183;
+  ///
+  /// Raised 183 -> 210 by the cylinder gear link: v210 lets a gear item a
+  /// cylinder is linked to be deleted (dive_tanks.equipment_id now sets null
+  /// on delete), so this build publishes equipment tombstones an older
+  /// reader cannot apply. Its code deletes the equipment row directly under
+  /// the old NO ACTION link, the delete fails, the sync moves past it, and
+  /// the item lingers there for good. That is an old reader misapplying our
+  /// payload, which is what this floor exists to prevent. Peers below 210
+  /// are held until they update. Their own payloads still arrive here, and
+  /// a live tank row still pointing at an item deleted here has its link
+  /// cleared by [SyncService.parentRefs].
+  static const int minimumCompatibleSchemaVersion = 210;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -4846,10 +4857,10 @@ class AppDatabase extends _$AppDatabase {
       (r) => r.read<String>('from') == 'equipment_id',
     );
     if (equipmentLink.isEmpty) return;
-    if (equipmentLink.first.read<String>('on_delete').toUpperCase() ==
-        'SET NULL') {
-      return;
-    }
+    // Only the initial schema's action is rewritten. SET NULL is done; any
+    // other action is not this rung's to change.
+    final action = equipmentLink.first.read<String>('on_delete').toUpperCase();
+    if (action != 'NO ACTION' && action != 'RESTRICT') return;
 
     final stored = await customSelect(
       "SELECT sql FROM sqlite_master WHERE type = 'table' "
@@ -4857,11 +4868,13 @@ class AppDatabase extends _$AppDatabase {
     ).getSingle();
     final createSql = stored.read<String>('sql');
     // The column's own clause only: the character before it must not be a
-    // name character, so regulator_equipment_id is never matched.
+    // name character, so regulator_equipment_id is never matched, and the
+    // clause must end the column definition, so a clause followed by any
+    // other action is not matched at all.
     final clause = RegExp(
       r'''(^|[\s,(])("?equipment_id"?\s+TEXT(?:\s+NULL)?\s+REFERENCES\s+'''
       r'''"?equipment"?\s*\(\s*"?id"?\s*\))(\s+ON\s+DELETE\s+'''
-      r'''(?:NO\s+ACTION|RESTRICT))?''',
+      r'''(?:NO\s+ACTION|RESTRICT))?(?=\s*[,)])''',
       caseSensitive: false,
     );
     final header = RegExp(
