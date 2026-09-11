@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
@@ -272,6 +273,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
+  /// The active diver's gear check-ins. The export's equipment and dives
+  /// are scoped to that diver, and a shared item can carry another diver's
+  /// check-in, so an unscoped read would put it in this diver's file.
+  Future<List<EquipmentObservation>> _diverObservations() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    return _ref
+        .read(equipmentObservationRepositoryProvider)
+        .getAll(diverId: diverId);
+  }
+
   /// Every gear check-in flattened for the Excel sheet and the CSV file:
   /// the item name and type, the dive number when the check-in is on a
   /// dive the export knows, and the observation itself (condition 3a).
@@ -279,9 +290,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
     List<EquipmentItem> equipment,
     List<Dive> dives,
   ) async {
-    final observations = await _ref
-        .read(equipmentObservationRepositoryProvider)
-        .getAll();
+    final observations = await _diverObservations();
     final itemsById = {for (final e in equipment) e.id: e};
     final numberByDive = {for (final d in dives) d.id: d.diveNumber};
     return [
@@ -651,9 +660,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipmentSets: equipmentSets,
         components: components,
         serviceRecords: allServiceRecords,
-        observations: await _ref
-            .read(equipmentObservationRepositoryProvider)
-            .getAll(),
+        observations: await _diverObservations(),
         courses: courses,
         diveWeights: diveWeights,
         diveGasSwitches: diveGasSwitches,
@@ -1277,9 +1284,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipmentSets: equipmentSets,
         components: components,
         serviceRecords: allServiceRecords,
-        observations: await _ref
-            .read(equipmentObservationRepositoryProvider)
-            .getAll(),
+        observations: await _diverObservations(),
         courses: courses,
         diveWeights: diveWeights,
         diveGasSwitches: diveGasSwitches,

@@ -366,9 +366,22 @@ class _EditorState extends ConsumerState<_Editor> {
             subtitle: draft.diveId == null
                 ? Text(l10n.equipmentObservation_sheet_noDive)
                 : _DiveLabel(diveId: draft.diveId!),
-            trailing: TextButton(
-              onPressed: _pickDive,
-              child: Text(l10n.equipmentObservation_sheet_pickDive),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // The picker's dismissal keeps the current dive, so going
+                // back to a bench note needs its own control.
+                if (draft.diveId != null)
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    tooltip: l10n.equipmentObservation_sheet_noDive,
+                    onPressed: () => setState(() => draft.diveId = null),
+                  ),
+                TextButton(
+                  onPressed: _pickDive,
+                  child: Text(l10n.equipmentObservation_sheet_pickDive),
+                ),
+              ],
             ),
           ),
         ListTile(
@@ -405,7 +418,8 @@ class _EditorState extends ConsumerState<_Editor> {
   }
 }
 
-/// "Dive #n" for a picked dive, the raw id while it loads.
+/// "Dive #n" for a picked dive, or the plain "Dive" label while it loads
+/// (the id is internal and never shown).
 class _DiveLabel extends ConsumerWidget {
   final String diveId;
 
