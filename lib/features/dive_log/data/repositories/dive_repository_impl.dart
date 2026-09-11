@@ -3555,6 +3555,8 @@ class DiveRepository {
         resortName: trip.resortName,
         liveaboardName: trip.liveaboardName,
         notes: trip.notes,
+        expectedDives: trip.expectedDives,
+        expectedRuntimeMinutes: trip.expectedRuntimeMinutes,
         createdAt: DateTime.fromMillisecondsSinceEpoch(trip.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(trip.updatedAt),
       );
@@ -3965,6 +3967,8 @@ class DiveRepository {
           resortName: tripRow.resortName,
           liveaboardName: tripRow.liveaboardName,
           notes: tripRow.notes,
+          expectedDives: tripRow.expectedDives,
+          expectedRuntimeMinutes: tripRow.expectedRuntimeMinutes,
           createdAt: DateTime.fromMillisecondsSinceEpoch(tripRow.createdAt),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(tripRow.updatedAt),
         );
