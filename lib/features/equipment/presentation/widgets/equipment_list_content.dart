@@ -21,6 +21,7 @@ import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
@@ -112,14 +113,18 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   }
 
   /// What moves rows on this page: the arrangement's type axis, plus the
-  /// locale, since alphabetical headings sort by the translated type name
-  /// and a new language reorders them with no arrangement change.
+  /// locale when the types are ordered alphabetically, since that order
+  /// sorts by the translated type name and a new language reorders it with
+  /// no arrangement change. The curated orders and "none" ignore the labels,
+  /// so there a language switch moves no row and must not re-scroll.
   static Object _typeAxisOf(EquipmentArrangement arrangement, Locale locale) =>
       (
         arrangement.groupByType,
         arrangement.typeOrder,
         arrangement.typeOrderDescending,
-        locale,
+        arrangement.typeOrder == EquipmentTypeOrder.alphabetical
+            ? locale
+            : null,
       );
 
   /// Scroll the list to bring the row at [index] into view.

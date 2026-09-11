@@ -1140,6 +1140,67 @@ void main() {
       expect(rect.bottom, lessThanOrEqualTo(list.bottom), reason: '$rect');
     });
 
+    testWidgets('switching language under a fixed type order does not jump', (
+      tester,
+    ) async {
+      // Only alphabetical ordering reads the translated labels; head to toe
+      // is a curated table, so a new language moves no row and must not
+      // yank the diver back to the selected one.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final headToToe = EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+      );
+      final target = arrangeEquipment(
+        gear,
+        headToToe,
+        typeLabel: (t) => t.displayName,
+      )[8].items.single;
+
+      final locale = ValueNotifier(const Locale('en'));
+      addTearDown(locale.dispose);
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: headToToe,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: ValueListenableBuilder<Locale>(
+            valueListenable: locale,
+            builder: (context, value, _) => MaterialApp(
+              locale: value,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: EquipmentListContent(
+                  showAppBar: false,
+                  selectedId: target.id,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      ScrollPosition position() =>
+          tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+      expect(position().pixels, greaterThan(0), reason: 'scrolled to the row');
+
+      position().jumpTo(0);
+      await tester.pumpAndSettle();
+      locale.value = const Locale('de');
+      await tester.pumpAndSettle();
+
+      expect(position().pixels, 0);
+    });
+
     testWidgets('a change to only the dive item sort does not jump the list', (
       tester,
     ) async {
