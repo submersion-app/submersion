@@ -54,6 +54,10 @@ class SensorSummaryScheduler {
   bool _allFindingsPending = false;
   bool _staleSweepPending = false;
 
+  /// Dives a findings pass asked a summary for that has not been built yet
+  /// (see [_requestMissingSummaries]).
+  final Set<String> _summariesRequestedByFindings = {};
+
   @visibleForTesting
   Future<void> get idle => _tail;
 
@@ -134,6 +138,9 @@ class SensorSummaryScheduler {
         for (final id in ids) {
           try {
             await repo.ensureCurrent(id);
+            // Built: a later findings pass may ask for it again if it goes
+            // stale.
+            _summariesRequestedByFindings.remove(id);
           } catch (e, st) {
             _log.error(
               'Scheduled sensor summary failed for $id',
@@ -153,6 +160,21 @@ class SensorSummaryScheduler {
     });
   }
 
+  /// A findings pass that met exposed dives with no current sensor summary
+  /// asks for them here, since a pass run off any item page (a check-in, an
+  /// incident, an import) has no provider to do it. Without this the item
+  /// kept its non-sensor findings and no review marker until a page visit
+  /// or a later sweep. Each dive is asked for once until its summary is
+  /// built: every summary batch ends with a findings pass, so a summary
+  /// that cannot be built would otherwise be requested after every batch,
+  /// without end.
+  void _requestMissingSummaries(Set<String> diveIds) {
+    final fresh = diveIds.difference(_summariesRequestedByFindings);
+    if (fresh.isEmpty) return;
+    _summariesRequestedByFindings.addAll(fresh);
+    schedule(fresh);
+  }
+
   /// Runs the engine through the review marker over active gear, or over
   /// [only] when given. The pass swallows per-item failures; this guards
   /// the settings read and the gear query so a broken batch never poisons
@@ -161,7 +183,9 @@ class SensorSummaryScheduler {
     try {
       final inputs = await conditionInputsLoader();
       if (!inputs.engineEnabled) return;
-      final pass = EquipmentFindingsPass();
+      final pass = EquipmentFindingsPass(
+        requestSummaries: _requestMissingSummaries,
+      );
       await pass.run(
         items: only == null
             ? await pass.activeItems(diverId: inputs.diverId)
