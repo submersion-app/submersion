@@ -1356,8 +1356,9 @@ class SyncDataSerializer {
   /// re-stamped, and a re-stamp makes this device's whole parent row win
   /// under last-writer-wins, overwriting a newer edit to it made elsewhere.
   /// So a child marked pending is also exported on its own, without its
-  /// parent (see [_withPendingChildren]); the receiver applies it clockless.
-  @visibleForTesting
+  /// parent (see [_withPendingChildren]). Each also carries its own clock
+  /// (v210), so the merge refuses a remote copy strictly older than the
+  /// local one (SyncService._mergeEntity).
   static const Set<String> parentGatedChildEntities = {
     'diveTanks',
     'diveEquipment',
@@ -1408,6 +1409,87 @@ class SyncDataSerializer {
     }
   }
 
+  /// The SQL table of each [parentGatedChildEntities] type. A test pins it
+  /// to SyncRepository.hlcTargets, which stamps the same tables.
+  @visibleForTesting
+  static const Map<String, String> parentGatedTables = {
+    'diveTanks': 'dive_tanks',
+    'diveEquipment': 'dive_equipment',
+    'divePlanEquipment': 'dive_plan_equipment',
+    'diveWeights': 'dive_weights',
+    'equipmentSetItems': 'equipment_set_items',
+    'diveBuddies': 'dive_buddies',
+    'courseRequirementDives': 'course_requirement_dives',
+    'diveTags': 'dive_tags',
+    'diveDiveTypes': 'dive_dive_types',
+    'weightPresetEntries': 'weight_preset_entries',
+    'tideRecords': 'tide_records',
+    'sightings': 'sightings',
+    'diveCustomFields': 'dive_custom_fields',
+    'diveDataSources': 'dive_data_sources',
+    'siteSpecies': 'site_species',
+    'diveProfileEvents': 'dive_profile_events',
+    'diveSafetyReviews': 'dive_safety_reviews',
+    'diveSafetyFindings': 'dive_safety_findings',
+    'gasSwitches': 'gas_switches',
+  };
+
+  /// The key columns of a [parentGatedChildEntities] table, in the order
+  /// its sync record id joins them with `|`.
+  static const Map<String, List<String>> _parentGatedKeyColumns = {
+    'diveEquipment': ['dive_id', 'equipment_id'],
+    'divePlanEquipment': ['plan_id', 'equipment_id'],
+    'equipmentSetItems': ['set_id', 'equipment_id'],
+    'diveSafetyReviews': ['dive_id'],
+  };
+
+  /// [ids] of a [parentGatedChildEntities] type in one query (per chunk the
+  /// caller hands in), keyed by sync record id; a missing id is absent. A
+  /// read per row turned every export or merge carrying many children (a
+  /// re-parse's events, a bulk edit's links) into hundreds of queries.
+  Future<Map<String, Map<String, dynamic>>> _fetchParentGatedChildren(
+    String entityType,
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return {};
+    final tableName = parentGatedTables[entityType]!;
+    final table = _db.allTables.firstWhere(
+      (t) => t.actualTableName == tableName,
+    );
+    final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
+    final tuples = [
+      for (final id in ids)
+        if (keys.length == 1)
+          [id]
+        else if (id.split('|') case final parts when parts.length == 2)
+          parts,
+    ];
+    if (tuples.isEmpty) return {};
+    final placeholders = keys.length == 1
+        ? tuples.map((_) => '?').join(', ')
+        : 'VALUES ${tuples.map((_) => '(${keys.map((_) => '?').join(', ')})').join(', ')}';
+    final keyList = keys.length == 1 ? keys.single : '(${keys.join(', ')})';
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM $tableName WHERE $keyList IN ($placeholders)',
+          variables: [
+            for (final tuple in tuples)
+              for (final value in tuple) Variable.withString(value),
+          ],
+          readsFrom: {table},
+        )
+        .get();
+    final byId = <String, Map<String, dynamic>>{};
+    for (final row in rows) {
+      final data = table.map(row.data);
+      if (data is! DataClass) continue;
+      final json = data.toJson(serializer: _syncBlobSerializer);
+      final id = parentGatedRecordId(entityType, json);
+      if (id != null) byId[id] = json;
+    }
+    return byId;
+  }
+
   /// Pending sync record ids for [parentGatedChildEntities], by entity type.
   Future<Map<String, Set<String>>> _pendingParentGatedChildIds() async {
     final rows =
@@ -1437,12 +1519,12 @@ class SyncDataSerializer {
     final present = {
       for (final row in rows) ?parentGatedRecordId(entityType, row),
     };
-    final extra = <Map<String, dynamic>>[];
-    for (final id in pending) {
-      if (present.contains(id)) continue;
-      final row = await fetchRecord(entityType, id);
-      if (row != null) extra.add(row);
-    }
+    final missing = [
+      for (final id in pending)
+        if (!present.contains(id)) id,
+    ];
+    if (missing.isEmpty) return rows;
+    final extra = (await fetchRecords(entityType, missing)).values;
     return extra.isEmpty ? rows : [...rows, ...extra];
   }
 
@@ -2382,6 +2464,9 @@ class SyncDataSerializer {
         merged.addAll(await fetchRecords(entityType, idList.sublist(i, end)));
       }
       return merged;
+    }
+    if (parentGatedChildEntities.contains(entityType)) {
+      return _fetchParentGatedChildren(entityType, idList);
     }
     switch (entityType) {
       case 'divers':

@@ -2584,7 +2584,13 @@ class SyncService {
     // only this pre-fetched map plus the pre-fetched tombstone/pending maps --
     // never a row written earlier in this loop -- so deferring all writes to a
     // single batch at the end cannot change any decision.
-    final localById = hasUpdatedAt
+    // A child exported through its parent is applied as a blind upsert, but
+    // carries its own clock (v210), so its local copy is read too: one batch
+    // for the stale-copy guard below.
+    final childClocked = SyncDataSerializer.parentGatedChildEntities.contains(
+      entityType,
+    );
+    final localById = hasUpdatedAt || childClocked
         ? await _serializer.fetchRecords(entityType, [
             for (final record in records)
               ?recordIdForEntity(entityType, record),
@@ -2673,6 +2679,23 @@ class SyncService {
         }
 
         if (!hasUpdatedAt) {
+          if (childClocked) {
+            final remoteHlc = _extractHlc(record);
+            if (remoteHlc != null) SyncClock.instance.receive(remoteHlc);
+            final localHlc = _extractHlc(localById[recordId]);
+            // A copy strictly older than the local row is stale: a peer's
+            // snapshot taken before this device's newer edit to the same
+            // child, which the blind upsert used to write over it. An exact
+            // tie or a missing clock on either side still applies, as the
+            // blind upsert always did, so a writer that changed the row
+            // without restamping it still propagates; and no conflict card is
+            // ever raised for a child (the v207 rule for the gear junctions).
+            if (localHlc != null &&
+                remoteHlc != null &&
+                remoteHlc.compareTo(localHlc) < 0) {
+              continue;
+            }
+          }
           toUpsert.add(recordToApply);
           applied += 1;
           continue;

@@ -122,6 +122,29 @@ class SyncRepository {
     // honest about the table carrying a clock column.
     'equipmentObservations': (table: 'equipment_observations', pk: 'id'),
     'mediaSmartAlbums': (table: 'media_smart_albums', pk: 'id'),
+    // v210: the children exported through their parent
+    // (SyncDataSerializer.parentGatedChildEntities). Their merge refuses a
+    // remote copy strictly older than the local one. The three gear
+    // junctions are keyed by two columns; see [compositeHlcKeys].
+    'diveTanks': (table: 'dive_tanks', pk: 'id'),
+    'diveEquipment': (table: 'dive_equipment', pk: 'dive_id'),
+    'divePlanEquipment': (table: 'dive_plan_equipment', pk: 'plan_id'),
+    'diveWeights': (table: 'dive_weights', pk: 'id'),
+    'equipmentSetItems': (table: 'equipment_set_items', pk: 'set_id'),
+    'diveBuddies': (table: 'dive_buddies', pk: 'id'),
+    'courseRequirementDives': (table: 'course_requirement_dives', pk: 'id'),
+    'diveTags': (table: 'dive_tags', pk: 'id'),
+    'diveDiveTypes': (table: 'dive_dive_types', pk: 'id'),
+    'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
+    'tideRecords': (table: 'tide_records', pk: 'id'),
+    'sightings': (table: 'sightings', pk: 'id'),
+    'diveCustomFields': (table: 'dive_custom_fields', pk: 'id'),
+    'diveDataSources': (table: 'dive_data_sources', pk: 'id'),
+    'siteSpecies': (table: 'site_species', pk: 'id'),
+    'diveProfileEvents': (table: 'dive_profile_events', pk: 'id'),
+    'diveSafetyReviews': (table: 'dive_safety_reviews', pk: 'dive_id'),
+    'diveSafetyFindings': (table: 'dive_safety_findings', pk: 'id'),
+    'gasSwitches': (table: 'gas_switches', pk: 'id'),
   };
 
   // ============================================================================
@@ -694,12 +717,33 @@ class SyncRepository {
   /// here (the write choke point) rather than in every repository companion.
   /// The row is expected to already exist (repositories mark pending after the
   /// insert/update); if it does not, the UPDATE is a harmless no-op.
+  /// The second key column of the [hlcTargets] keyed by two columns (the
+  /// gear junctions, whose record id is `first|second`); [hlcTargets] names
+  /// the first.
+  @visibleForTesting
+  static const Map<String, String> compositeHlcKeys = {
+    'diveEquipment': 'equipment_id',
+    'divePlanEquipment': 'equipment_id',
+    'equipmentSetItems': 'equipment_id',
+  };
+
   Future<void> _stampHlc(String entityType, String recordId) async {
     final target = hlcTargets[entityType];
     if (target == null) return;
     await ensureSyncClockConfigured();
     final hlc = SyncClock.instance.issue();
     if (hlc == null) return;
+    final second = compositeHlcKeys[entityType];
+    if (second != null) {
+      final parts = recordId.split('|');
+      if (parts.length != 2) return;
+      await _db.customStatement(
+        'UPDATE "${target.table}" SET hlc = ? '
+        'WHERE "${target.pk}" = ? AND "$second" = ?',
+        [hlc, parts[0], parts[1]],
+      );
+      return;
+    }
     await _db.customStatement(
       'UPDATE "${target.table}" SET hlc = ? WHERE "${target.pk}" = ?',
       [hlc, recordId],

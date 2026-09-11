@@ -122,6 +122,12 @@ Future<void> _expectRebuilt(AppDatabase db) async {
 
   expect(await _hasEquipmentIndex(db), isTrue);
 
+  // The children's own clocks (v210): the rebuilt tanks carry one too.
+  final tankCols = await db
+      .customSelect("PRAGMA table_info('dive_tanks')")
+      .get();
+  expect(tankCols.map((c) => c.read<String>('name')), contains('hlc'));
+
   // The child's reference still names the rebuilt table.
   final childLinks = await db
       .customSelect("PRAGMA foreign_key_list('fk_probe_child')")

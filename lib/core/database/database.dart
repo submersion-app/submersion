@@ -1031,6 +1031,12 @@ class DiveTanks extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Equipment catalog
@@ -1187,6 +1193,12 @@ class DiveEquipment extends Table {
 
   @override
   Set<Column> get primaryKey => {diveId, equipmentId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Multiple weight entries per dive (e.g., integrated + trim weights)
@@ -1202,6 +1214,12 @@ class DiveWeights extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Dated body-mass measurements per diver (weight prediction, v104).
@@ -1254,6 +1272,12 @@ class DivePlanEquipment extends Table {
 
   @override
   Set<Column> get primaryKey => {planId, equipmentId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Equipment sets (named collections of equipment items)
@@ -1293,6 +1317,12 @@ class EquipmentSetItems extends Table {
 
   @override
   Set<Column> get primaryKey => {setId, equipmentId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Geofences attached to an equipment set. A geofence matches a dive when its
@@ -1356,6 +1386,12 @@ class WeightPresetEntries extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Data-quality findings produced by the Data Quality Assistant detectors.
@@ -1513,6 +1549,12 @@ class Sightings extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Photos and media files (also used for signatures)
@@ -2235,6 +2277,12 @@ class DiveBuddies extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Diver certifications
@@ -2416,6 +2464,12 @@ class DiveTags extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Junction table for dive types (many-to-many).
@@ -2432,6 +2486,12 @@ class DiveDiveTypes extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Seeds one junction row per existing dive from its representative dive_type
@@ -3064,6 +3124,12 @@ class DiveDataSources extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Profile events (markers on dive profile)
@@ -3094,6 +3160,12 @@ class DiveProfileEvents extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Marker row recording that the safety review engine has analyzed a dive.
@@ -3108,6 +3180,12 @@ class DiveSafetyReviews extends Table {
 
   @override
   Set<Column> get primaryKey => {diveId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// One safety review observation for a dive (see SafetyFinding entity).
@@ -3127,6 +3205,12 @@ class DiveSafetyFindings extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// User-added hyperbaric chamber entries for the offline emergency card
@@ -3271,6 +3355,12 @@ class GasSwitches extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// One packed series of profile samples: every sample a
@@ -3394,6 +3484,12 @@ class TideRecords extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// User-defined key:value fields per dive
@@ -3408,6 +3504,12 @@ class DiveCustomFields extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 // ============================================================================
@@ -3627,6 +3729,12 @@ class CourseRequirementDives extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Junction table for expected species at dive sites (manual curation)
@@ -3641,6 +3749,12 @@ class SiteSpecies extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Diver-placed annotations on a dive site (slice 2 of the seascape
@@ -4435,6 +4549,8 @@ class AppDatabase extends _$AppDatabase {
     // v210: dive_tanks.equipment_id ON DELETE SET NULL. The link was NO
     // ACTION from the initial schema, so deleting a gear item a cylinder
     // was linked to failed. Rebuilds the table from its stored definition.
+    // Also an hlc column on the 19 child tables exported through their
+    // parent, so a stale copy from a peer cannot overwrite a newer edit.
     // 208 is claimed by #1627 and #1753 and 209 by #1639, all still open.
     210,
   ];
@@ -4821,6 +4937,36 @@ class AppDatabase extends _$AppDatabase {
         'SELECT p.updated_at FROM $parentTable p WHERE p.id = $table.$foreignKey'
         ') WHERE updated_at IS NULL',
       );
+    }
+  }
+
+  /// v210: an `hlc` column on every child table exported through its
+  /// parent (SyncDataSerializer.parentGatedChildEntities). Idempotent; called
+  /// from the v210 onUpgrade block and the beforeOpen backstop. A table a
+  /// partial fixture lacks is skipped by [_addColumnIfMissing].
+  Future<void> _assertChildHlcColumns() async {
+    for (final table in const [
+      'dive_tanks',
+      'dive_equipment',
+      'dive_plan_equipment',
+      'dive_weights',
+      'equipment_set_items',
+      'dive_buddies',
+      'course_requirement_dives',
+      'dive_tags',
+      'dive_dive_types',
+      'weight_preset_entries',
+      'tide_records',
+      'sightings',
+      'dive_custom_fields',
+      'dive_data_sources',
+      'site_species',
+      'dive_profile_events',
+      'dive_safety_reviews',
+      'dive_safety_findings',
+      'gas_switches',
+    ]) {
+      await _addColumnIfMissing(table, 'hlc', 'TEXT');
     }
   }
 
@@ -11504,6 +11650,7 @@ class AppDatabase extends _$AppDatabase {
         // before foreign keys are switched on.
         if (from < 210) {
           await _assertDiveTankEquipmentSetNull();
+          await _assertChildHlcColumns();
         }
         if (from < 210) await reportProgress();
       },
@@ -11513,6 +11660,8 @@ class AppDatabase extends _$AppDatabase {
         // drops the table, which with enforcement on would cascade into the
         // rows that hang off the tanks.
         await _assertDiveTankEquipmentSetNull();
+        // v210 backstop: the child tables' own clocks.
+        await _assertChildHlcColumns();
 
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
