@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 
@@ -29,4 +30,22 @@ final observationsForDiveProvider =
       final repo = ref.watch(equipmentObservationRepositoryProvider);
       ref.invalidateSelfWhen(repo.watchChanges());
       return repo.getForDive(diveId);
+    });
+
+/// The dive numbers of the dives [equipmentId]'s check-ins name, keyed by
+/// dive id, in one slim read: the item page's rows need a number, not the
+/// hydrated dive, and an item can carry check-ins from many dives. A dive
+/// that no longer exists is absent.
+final observationDiveNumbersProvider =
+    FutureProvider.family<Map<String, int?>, String>((ref, equipmentId) async {
+      final observations = await ref.watch(
+        observationsForEquipmentProvider(equipmentId).future,
+      );
+      final diveIds = {for (final o in observations) ?o.diveId};
+      if (diveIds.isEmpty) return const {};
+      final dives = ref.watch(diveRepositoryProvider);
+      // A renumber writes only the dives table.
+      ref.invalidateSelfWhen(dives.watchDivesChanges());
+      final summaries = await dives.getSummariesByIds(diveIds.toList());
+      return {for (final d in summaries) d.id: d.diveNumber};
     });

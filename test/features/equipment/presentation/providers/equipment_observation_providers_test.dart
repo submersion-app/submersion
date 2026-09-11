@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -49,6 +50,55 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
+
+  test(
+    'dive numbers for an item\'s check-ins, and a renumber reaches them',
+    () async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'd2',
+              diveDateTime: 2000,
+              createdAt: 2000,
+              updatedAt: 2000,
+            ).copyWith(diveNumber: const Value(13)),
+          );
+      await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+        const DivesCompanion(diveNumber: Value(12)),
+      );
+      for (final diveId in ['d1', 'd2', null]) {
+        await repo.create(
+          equipmentId: 'reg',
+          diveId: diveId,
+          observedAt: DateTime.utc(2026),
+          status: ObservationStatus.ok,
+        );
+      }
+      final sub = container.listen(
+        observationDiveNumbersProvider('reg'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      expect(
+        await container.read(observationDiveNumbersProvider('reg').future),
+        {'d1': 12, 'd2': 13},
+      );
+
+      await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+        const DivesCompanion(diveNumber: Value(20)),
+      );
+      Map<String, int?>? numbers;
+      for (var i = 0; i < 100; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        numbers = await container.read(
+          observationDiveNumbersProvider('reg').future,
+        );
+        if (numbers?['d1'] == 20) break;
+      }
+      expect(numbers, {'d1': 20, 'd2': 13});
+    },
+  );
 
   test('both families refresh after a write', () async {
     final byItem = container.listen(
