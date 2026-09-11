@@ -154,6 +154,46 @@ void main() {
       expect(lines[2], contains(',,ok,,'));
     });
 
+    test('a newer peer\'s tags are exported with the known ones', () {
+      // The entity keeps names this build cannot read; dropping them here
+      // would lose part of the record. They come from another device, so
+      // the cell is still neutralised.
+      final csv = service.generateObservationsCsvContent([
+        (
+          equipmentName: 'Reg',
+          equipmentType: 'Regulator',
+          diveNumber: null,
+          observation: EquipmentObservation(
+            id: 'o1',
+            equipmentId: 'reg',
+            observedAt: DateTime.utc(2026, 3, 14),
+            status: ObservationStatus.issue,
+            issueTags: const [ObservationTag.leak],
+            unrecognizedTags: const ['futureTag'],
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        ),
+        (
+          equipmentName: 'Reg',
+          equipmentType: 'Regulator',
+          diveNumber: null,
+          observation: EquipmentObservation(
+            id: 'o2',
+            equipmentId: 'reg',
+            observedAt: DateTime.utc(2026, 3, 15),
+            status: ObservationStatus.issue,
+            unrecognizedTags: const ['=cmd'],
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        ),
+      ]);
+      final lines = csv.trim().split(RegExp(r'\r?\n'));
+      expect(lines[1], contains(',leak; futureTag,'));
+      expect(lines[2], contains(",'=cmd,"));
+    });
+
     test(
       'a formula-looking note or name is neutralised and kept on one row',
       () {

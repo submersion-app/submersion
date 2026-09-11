@@ -73,4 +73,24 @@ void main() {
     expect(cell(sheet, 4, 2), 'ok');
     expect(cell(sheet, 5, 2), '');
   });
+
+  test('a newer peer\'s tags are exported with the known ones', () {
+    final excel = xl.Excel.createExcel();
+    ObservationsExcelExportService().buildSheet(
+      excel,
+      rows: [
+        (
+          equipmentName: 'Reg',
+          equipmentType: 'Regulator',
+          diveNumber: null,
+          observation: rows.first.observation.copyWith(
+            unrecognizedTags: const ['futureTag'],
+          ),
+        ),
+      ],
+      dateFormat: DateFormatPreference.mmmDYYYY,
+    );
+    final sheet = excel[ObservationsExcelExportService.observationsSheet];
+    expect(cell(sheet, 5, 1), 'freeFlow; leak; futureTag');
+  });
 }

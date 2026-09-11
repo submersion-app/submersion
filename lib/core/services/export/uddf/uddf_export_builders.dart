@@ -2002,12 +2002,15 @@ void _buildObservation(XmlBuilder builder, EquipmentObservation o) {
         builder.element('diveref', nest: 'dive_${o.diveId}');
       }
       builder.element('status', nest: o.status.dbValue);
-      if (o.issueTags.isNotEmpty) {
+      // Every stored name, a newer peer's included: a backup must not drop
+      // tags this build merely cannot read.
+      final tagNames = o.storedTagNames;
+      if (tagNames.isNotEmpty) {
         builder.element(
           'tags',
           nest: () {
-            for (final t in o.issueTags) {
-              builder.element('tag', nest: t.dbValue);
+            for (final t in tagNames) {
+              builder.element('tag', nest: t);
             }
           },
         );

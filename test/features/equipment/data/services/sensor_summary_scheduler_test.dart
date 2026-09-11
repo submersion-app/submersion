@@ -180,6 +180,48 @@ void main() {
     expect(visited, isEmpty);
   });
 
+  test('a findings request reviews only the loaded diver\'s items', () async {
+    // The pass runs with the active diver's thresholds. A queued write on
+    // another diver's gear (or a diver switch before the queue runs) must
+    // not recompute that gear with the wrong diver's settings.
+    for (final id in ['me', 'other']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    for (final (id, diver) in [('mine', 'me'), ('theirs', 'other')]) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'bcd',
+              createdAt: 1,
+              updatedAt: 1,
+            ).copyWith(diverId: Value(diver)),
+          );
+    }
+    SensorSummaryScheduler.instance.conditionInputsLoader = () async =>
+        const ConditionPassInputs(
+          diverId: 'me',
+          thresholds: ExposureThresholds.defaults,
+          engineEnabled: true,
+        );
+    scheduleConditionFindingsRefresh(['mine', 'theirs']);
+    await SensorSummaryScheduler.instance.idle;
+    final findings = EquipmentFindingsRepository(db: db);
+    expect(await findings.getReview('mine'), isNotNull);
+    expect(await findings.getReview('theirs'), isNull);
+  });
+
   test('an all-gear findings request reviews every active item', () async {
     // The import hook: check-ins arrive inside equipment items, with or
     // without new dives, and none of them names a single item to refresh.

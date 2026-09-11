@@ -49,7 +49,7 @@ class ObservationsExcelExportService {
         formatDateForExport(o.observedAt, dateFormat),
         row.diveNumber,
         o.status.dbValue,
-        o.issueTags.map((t) => t.dbValue).join('; '),
+        o.storedTagNames.join('; '),
         o.note.replaceAll('\n', ' '),
       ]);
     }
