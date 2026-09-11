@@ -59,6 +59,7 @@ Future<void> _pumpNewTripPage(
       ],
       child: MaterialApp.router(
         routerConfig: router,
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),
@@ -101,6 +102,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -122,6 +124,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -143,6 +146,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -166,6 +170,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -194,6 +199,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -221,6 +227,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -248,6 +255,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -275,6 +283,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -296,6 +305,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -325,6 +335,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -351,6 +362,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -383,6 +395,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-id'),
@@ -406,6 +419,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-id'),
@@ -440,6 +454,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => false),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -489,6 +504,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -540,6 +556,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-shared'),
@@ -587,6 +604,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -619,6 +637,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -648,6 +667,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -682,6 +702,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -708,6 +729,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -857,6 +879,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -902,6 +925,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -938,6 +962,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-id'),
@@ -977,6 +1002,7 @@ void main() {
               ),
             ],
             child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: TripEditPage(tripId: 'test-id'),
@@ -1166,6 +1192,7 @@ void main() {
             ),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -1196,6 +1223,7 @@ void main() {
               }),
             ],
             child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: TripEditPage(),
@@ -1259,6 +1287,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -1468,6 +1497,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'fail-id'),
@@ -1490,6 +1520,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -1537,6 +1568,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-shared'),
@@ -1594,6 +1626,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-shared'),
@@ -1707,6 +1740,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
