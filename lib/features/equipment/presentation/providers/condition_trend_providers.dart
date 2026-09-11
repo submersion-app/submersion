@@ -28,6 +28,11 @@ final conditionTrendProvider =
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
       );
+      // The registry serials decide which gaps belong to a transmitter;
+      // assigning one writes only the registry.
+      ref.invalidateSelfWhen(
+        ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
+      );
       final inputs = await ref.watch(
         equipmentExposureInputsProvider(key.equipmentId).future,
       );

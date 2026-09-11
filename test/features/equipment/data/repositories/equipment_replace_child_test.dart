@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
@@ -138,6 +139,16 @@ void main() {
     await expectLater(repo.replaceChild(loose), throwsArgumentError);
     expect(await equipmentRows(), rowsBefore);
     expect((await repo.getEquipmentById(loose.id))!.isActive, isTrue);
+  });
+
+  test('a legacy row retired by status alone is refused', () async {
+    // Older rows can be retired or sold with isActive left true; the
+    // repository treats both statuses as gone.
+    final (_, cell) = await ccrWithCell();
+    await (db.update(db.equipment)..where((t) => t.id.equals(cell.id))).write(
+      const EquipmentCompanion(status: Value('sold')),
+    );
+    await expectLater(repo.replaceChild(cell), throwsStateError);
   });
 
   test('a child already retired is refused and nothing is written', () async {

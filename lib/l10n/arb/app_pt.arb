@@ -8638,7 +8638,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} de {totalIssue} problemas registados foram em mergulhos mais frios do que {threshold}, em {n} mergulhos com este item",
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} de {totalIssue} mergulhos com problemas foram mais frios do que {threshold}, em {n} mergulhos com este item",
   "@equipmentCondition_finding_issueColdCorrelated": {
     "placeholders": {
       "insideIssue": {
@@ -8655,7 +8655,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} de {totalIssue} problemas registados foram em mergulhos além de {threshold}, em {n} mergulhos com este item",
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} de {totalIssue} mergulhos com problemas foram além de {threshold}, em {n} mergulhos com este item",
   "@equipmentCondition_finding_issueDeepCorrelated": {
     "placeholders": {
       "insideIssue": {

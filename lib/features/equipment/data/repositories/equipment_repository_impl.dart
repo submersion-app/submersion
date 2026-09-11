@@ -16,6 +16,7 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
@@ -484,6 +485,11 @@ class EquipmentRepository {
                       t.componentEquipmentId.equals(id),
                 ))
                 .get();
+        // Gear check-ins are a synced root of their own, also cascaded
+        // away by SQLite (condition phase 3a), so tombstoned here too.
+        final observations = await (_db.select(
+          _db.equipmentObservations,
+        )..where((t) => t.equipmentId.equals(id))).get();
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -501,6 +507,12 @@ class EquipmentRepository {
           await _syncRepository.logDeletion(
             entityType: 'equipmentComponents',
             recordId: c.id,
+          );
+        }
+        for (final o in observations) {
+          await _syncRepository.logDeletion(
+            entityType: 'equipmentObservations',
+            recordId: o.id,
           );
         }
         await _syncRepository.logDeletion(
@@ -601,7 +613,9 @@ class EquipmentRepository {
       if (parentId == null) {
         throw ArgumentError.value(old.id, 'old', 'Not a child part');
       }
-      if (!current.isActive) {
+      // isFitted, not isActive: a legacy row can be retired or sold with
+      // isActive left true, and the repository treats both as gone.
+      if (!current.isFitted) {
         throw StateError('Equipment ${old.id} is already retired');
       }
       final slot = current.attrNum(EquipmentAttrKeys.cellSlot);
@@ -878,6 +892,8 @@ class EquipmentRepository {
         ) je
         JOIN dives d ON d.id = je.dive_id
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
+          AND s.source_updated_at = d.updated_at
+          AND s.engine_version >= ?6
         WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
           AND (?4 IS NULL OR d.dive_date_time >= ?4)
         GROUP BY d.id
@@ -891,6 +907,10 @@ class EquipmentRepository {
               Variable(installedSince?.millisecondsSinceEpoch),
               Variable(since?.millisecondsSinceEpoch),
               Variable.withInt(rebreatherContact ? 1 : 0),
+              // Only a current summary: one built from an older version of
+              // the dive, or by an older algorithm, is stale until the
+              // sweep rebuilds it, and the header is the truth till then.
+              Variable.withInt(DiveSensorSummaryService.version),
             ],
           )
           .get();

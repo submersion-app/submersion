@@ -241,6 +241,9 @@ final childEquipmentProvider =
     FutureProvider.family<List<EquipmentItem>, String>((ref, parentId) async {
       final repository = ref.watch(equipmentRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Slots and install dates are attributes, written without touching
+      // the equipment row.
+      ref.invalidateSelfWhen(repository.watchAttributeChanges());
       final children = await repository.getChildEquipment(parentId);
       int slotOf(EquipmentItem e) =>
           e.attrNum(EquipmentAttrKeys.cellSlot)?.round() ?? 1 << 20;
@@ -249,7 +252,9 @@ final childEquipmentProvider =
         EquipmentType.battery => 1,
         _ => 2,
       };
-      return children.where((c) => c.isActive).toList()..sort((a, b) {
+      // isFitted, not isActive: a legacy row can be retired or sold with
+      // isActive left true, and must not show as an installed part.
+      return children.where((c) => c.isFitted).toList()..sort((a, b) {
         final byRank = rankOf(a.type).compareTo(rankOf(b.type));
         if (byRank != 0) return byRank;
         final byType = a.type.name.compareTo(b.type.name);

@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/condition_trend.da
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
@@ -41,9 +42,10 @@ Widget host(
   ConditionTrend? trend, {
   ConditionTrendKind? kind,
   List<Override> extra = const [],
+  MockSettingsNotifier? settings,
 }) => ProviderScope(
   overrides: [
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    settingsProvider.overrideWith((ref) => settings ?? MockSettingsNotifier()),
     conditionTrendProvider((
       equipmentId: 'r1',
       kind: kind,
@@ -75,13 +77,13 @@ void main() {
     expect(find.text('Cell 2'), findsOneWidget);
   });
 
-  testWidgets('the selected finding shades its window', (tester) async {
+  EquipmentFinding declining({required int fromDay}) {
     final evidence = FindingEvidence(
       n: 2,
-      windowStart: DateTime.utc(2026, 1, 2),
-      windowEnd: DateTime.utc(2026, 1, 3),
+      windowStart: DateTime.utc(2026, 1, fromDay),
+      windowEnd: DateTime.utc(2026, 1, fromDay + 1),
     );
-    final finding = EquipmentFinding(
+    return EquipmentFinding(
       id: 'cf_r1_cellOutputDeclining_1',
       equipmentId: 'r1',
       ruleId: ConditionRuleId.cellOutputDeclining,
@@ -91,20 +93,61 @@ void main() {
       engineVersion: 1,
       createdAt: DateTime.utc(2026),
     );
-    await tester.pumpWidget(
-      host(
-        cellTrend,
-        extra: [
-          selectedConditionFindingProvider('r1').overrideWith((ref) => finding),
-        ],
-      ),
-    );
+  }
+
+  List<Override> selecting(
+    EquipmentFinding selected, {
+    List<EquipmentFinding>? current,
+  }) => [
+    selectedConditionFindingProvider('r1').overrideWith((ref) => selected),
+    equipmentConditionProvider(
+      'r1',
+    ).overrideWith((ref) async => current ?? [selected]),
+  ];
+
+  testWidgets('the selected finding shades its window', (tester) async {
+    final finding = declining(fromDay: 2);
+    await tester.pumpWidget(host(cellTrend, extra: selecting(finding)));
     await tester.pumpAndSettle();
     final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
     expect(chart.highlightRange, (
       start: DateTime.utc(2026, 1, 2),
       end: DateTime.utc(2026, 1, 3),
     ));
+  });
+
+  testWidgets('a hidden finding shades nothing', (tester) async {
+    // With the engine switched off the findings card hides it, so the
+    // chart must not keep shading its window.
+    final settings = MockSettingsNotifier();
+    await settings.setConditionEngineEnabled(false);
+    await tester.pumpWidget(
+      host(
+        cellTrend,
+        settings: settings,
+        extra: selecting(declining(fromDay: 2)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+    expect(chart.highlightRange, isNull);
+  });
+
+  testWidgets('a recomputed finding shades its current window', (tester) async {
+    // The selection holds a snapshot; the chart follows the finding as
+    // it is now.
+    await tester.pumpWidget(
+      host(
+        cellTrend,
+        extra: selecting(
+          declining(fromDay: 2),
+          current: [declining(fromDay: 3)],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+    expect(chart.highlightRange?.start, DateTime.utc(2026, 1, 3));
   });
 
   testWidgets('a scrubber card titles and labels its series', (tester) async {

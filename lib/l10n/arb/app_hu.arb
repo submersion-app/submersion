@@ -8638,7 +8638,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueColdCorrelated": "{totalIssue} jelentett problémából {insideIssue} a(z) {threshold} alatti hőmérsékletű merüléseken történt, {n} merülés alapján ezzel az eszközzel",
+  "equipmentCondition_finding_issueColdCorrelated": "{totalIssue} problémás merülésből {insideIssue} volt {threshold} alatti hőmérsékletű, {n} merülés alapján ezzel az eszközzel",
   "@equipmentCondition_finding_issueColdCorrelated": {
     "placeholders": {
       "insideIssue": {
@@ -8655,7 +8655,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueDeepCorrelated": "{totalIssue} jelentett problémából {insideIssue} a(z) {threshold} mélységen túli merüléseken történt, {n} merülés alapján ezzel az eszközzel",
+  "equipmentCondition_finding_issueDeepCorrelated": "{totalIssue} problémás merülésből {insideIssue} ment {threshold} mélységen túl, {n} merülés alapján ezzel az eszközzel",
   "@equipmentCondition_finding_issueDeepCorrelated": {
     "placeholders": {
       "insideIssue": {

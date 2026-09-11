@@ -1,3 +1,6 @@
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -63,5 +66,62 @@ void main() {
       'Battery',
       'Strobe',
     ]);
+  });
+
+  test('a legacy row retired by status alone is not listed', () async {
+    final parent = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Rig', type: EquipmentType.rebreather),
+    );
+    await child(parent.id, 'Fitted', EquipmentType.o2Cell, slot: 1);
+    await child(parent.id, 'Sold', EquipmentType.o2Cell, slot: 2);
+    final db = DatabaseService.instance.database;
+    await (db.update(db.equipment)..where((t) => t.name.equals('Sold'))).write(
+      const EquipmentCompanion(status: Value('sold')),
+    );
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final children = await container.read(
+      childEquipmentProvider(parent.id).future,
+    );
+    expect(children.map((c) => c.name), ['Fitted']);
+  });
+
+  test('an attribute edit reorders an open list', () async {
+    // Slots live in equipment_attributes; a write there reaches no
+    // equipment row, so the list must watch the attributes too.
+    final parent = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Rig', type: EquipmentType.rebreather),
+    );
+    await child(parent.id, 'A', EquipmentType.o2Cell, slot: 1);
+    await child(parent.id, 'B', EquipmentType.o2Cell, slot: 2);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final sub = container.listen(childEquipmentProvider(parent.id), (_, _) {});
+    addTearDown(sub.close);
+    Future<List<String>> names() async => [
+      for (final c in await container.read(
+        childEquipmentProvider(parent.id).future,
+      ))
+        c.name,
+    ];
+    expect(await names(), ['A', 'B']);
+    final a = (await names()).isEmpty
+        ? null
+        : (await container.read(
+            childEquipmentProvider(parent.id).future,
+          )).first;
+    await repo.saveAttributes(a!.id, [
+      EquipmentAttribute.curated(
+        equipmentId: a.id,
+        key: EquipmentAttrKeys.cellSlot,
+        valueNum: 3,
+      ),
+    ]);
+    var now = await names();
+    for (var i = 0; i < 50 && now.first != 'B'; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = await names();
+    }
+    expect(now, ['B', 'A']);
   });
 }

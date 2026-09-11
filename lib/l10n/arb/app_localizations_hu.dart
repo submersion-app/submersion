@@ -27435,7 +27435,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$totalIssue jelentett problémából $insideIssue a(z) $threshold alatti hőmérsékletű merüléseken történt, $n merülés alapján ezzel az eszközzel';
+    return '$totalIssue problémás merülésből $insideIssue volt $threshold alatti hőmérsékletű, $n merülés alapján ezzel az eszközzel';
   }
 
   @override
@@ -27445,7 +27445,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$totalIssue jelentett problémából $insideIssue a(z) $threshold mélységen túli merüléseken történt, $n merülés alapján ezzel az eszközzel';
+    return '$totalIssue problémás merülésből $insideIssue ment $threshold mélységen túl, $n merülés alapján ezzel az eszközzel';
   }
 
   @override

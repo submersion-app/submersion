@@ -23,6 +23,12 @@ const ccr = EquipmentItem(
   type: EquipmentType.rebreather,
 );
 
+class _FailingRepo extends EquipmentRepository {
+  @override
+  Future<EquipmentItem> replaceChild(EquipmentItem old, {DateTime? now}) =>
+      Future.error(StateError('db closed'));
+}
+
 class _RecordingRepo extends EquipmentRepository {
   final replaced = <EquipmentItem>[];
 
@@ -93,6 +99,8 @@ Widget host({
   Map<String, DueClock> worst = const {},
   EquipmentRepository? repo,
   List<String>? pushed,
+  List<String?>? newParents,
+  Future<List<EquipmentItem>> Function()? load,
 }) {
   final router = GoRouter(
     routes: [
@@ -100,6 +108,13 @@ Widget host({
         path: '/',
         builder: (context, state) =>
             Scaffold(body: ChildrenCard(equipment: equipment)),
+      ),
+      GoRoute(
+        path: '/equipment/new',
+        builder: (context, state) {
+          newParents?.add(state.uri.queryParameters['parent']);
+          return const Scaffold(body: Text('NEW'));
+        },
       ),
       GoRoute(
         path: '/equipment/:id',
@@ -115,7 +130,7 @@ Widget host({
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       childEquipmentProvider(
         equipment.id,
-      ).overrideWith((ref) async => children),
+      ).overrideWith((ref) => load?.call() ?? Future.value(children)),
       equipmentWorstClockProvider.overrideWith((ref) async => worst),
       if (repo != null) equipmentRepositoryProvider.overrideWithValue(repo),
     ],
@@ -193,6 +208,69 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     expect(pushed, ['c1']);
+  });
+
+  testWidgets('a full year reads as twelve months', (tester) async {
+    // Completed calendar months: an average month length undercounts, so
+    // a part installed a year ago read "11 months".
+    final yearOld = child(
+      'y1',
+      'Old cell',
+      EquipmentType.o2Cell,
+      slot: 2,
+      installed: DateTime(now.year - 1, now.month, now.day),
+    );
+    await tester.pumpWidget(host(equipment: ccr, children: [yearOld]));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('12 months'), findsOneWidget);
+  });
+
+  testWidgets('a failed replace tells the diver', (tester) async {
+    await tester.pumpWidget(
+      host(equipment: ccr, children: [cell], repo: _FailingRepo()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Replace'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a failed load shows a localized line, not the error', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        equipment: ccr,
+        children: const [],
+        load: () => Future.error(StateError('db closed')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('db closed'), findsNothing);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('add opens a new part already fitted to this host', (
+    tester,
+  ) async {
+    final parents = <String?>[];
+    await tester.pumpWidget(
+      host(equipment: ccr, children: const [], newParents: parents),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(parents, ['r1']);
   });
 
   testWidgets('a host with no children shows the empty line', (tester) async {

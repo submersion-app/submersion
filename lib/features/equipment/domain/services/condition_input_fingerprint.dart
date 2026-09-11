@@ -97,6 +97,7 @@ String conditionInputFingerprint({
 String _configOf(EquipmentItem e) => [
   e.type.name,
   e.isActive,
+  e.status.name,
   e.attrNum(EquipmentAttrKeys.cellSlot),
   e.installedDate?.millisecondsSinceEpoch,
   e.createdAt?.millisecondsSinceEpoch,

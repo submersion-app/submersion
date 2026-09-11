@@ -120,4 +120,101 @@ void main() {
     );
     expect(inputs!.samples, isEmpty);
   });
+
+  ProviderContainer container() {
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
+    );
+    addTearDown(c.dispose);
+    return c;
+  }
+
+  Future<void> part(
+    String id,
+    String type, {
+    required DateTime installed,
+    String status = 'active',
+    bool active = true,
+    int? slot,
+  }) async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: id,
+            name: id,
+            type: type,
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(
+            parentEquipmentId: const Value('ccr'),
+            status: Value(status),
+            isActive: Value(active),
+          ),
+        );
+    await EquipmentRepository().saveAttributes(id, [
+      EquipmentAttribute.curated(
+        equipmentId: id,
+        key: EquipmentAttrKeys.installedDate,
+        valueNum: installed.millisecondsSinceEpoch.toDouble(),
+      ),
+      if (slot != null)
+        EquipmentAttribute.curated(
+          equipmentId: id,
+          key: EquipmentAttrKeys.cellSlot,
+          valueNum: slot.toDouble(),
+        ),
+    ]);
+  }
+
+  test('a battery retired by status alone is not fitted', () async {
+    // A legacy row can be retired with isActive left true. It must not
+    // switch the parent's battery-cycle exposure off as if fitted.
+    await part(
+      'old-battery',
+      'battery',
+      installed: DateTime.utc(2025),
+      status: 'retired',
+    );
+    final inputs = await container().read(
+      equipmentExposureInputsProvider('ccr').future,
+    );
+    expect(inputs!.classifier.hasBatteryChild, isFalse);
+  });
+
+  test('a replaced part stops inheriting at its successor', () async {
+    // The old cell's page must not keep growing with every dive its
+    // successor makes: it left the slot when the successor went in.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'later',
+            diveDateTime: DateTime.utc(2026, 3, 1).millisecondsSinceEpoch,
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'later', equipmentId: 'ccr'),
+        );
+    await part(
+      'old',
+      'o2Cell',
+      installed: DateTime.utc(2025),
+      status: 'retired',
+      active: false,
+      slot: 2,
+    );
+    await part('new', 'o2Cell', installed: DateTime.utc(2026, 2, 1), slot: 2);
+    final c = container();
+    final old = await c.read(equipmentExposureInputsProvider('old').future);
+    expect(old!.samples.map((s) => s.diveId), ['d1']);
+    final fresh = await c.read(equipmentExposureInputsProvider('new').future);
+    expect(fresh!.samples.map((s) => s.diveId), ['later']);
+  });
 }

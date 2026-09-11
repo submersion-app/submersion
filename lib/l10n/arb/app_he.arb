@@ -8638,7 +8638,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} מתוך {totalIssue} דיווחי תקלה היו בצלילות קרות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} מתוך {totalIssue} צלילות עם תקלה היו קרות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
   "@equipmentCondition_finding_issueColdCorrelated": {
     "placeholders": {
       "insideIssue": {
@@ -8655,7 +8655,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} מתוך {totalIssue} דיווחי תקלה היו בצלילות עמוקות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} מתוך {totalIssue} צלילות עם תקלה היו עמוקות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
   "@equipmentCondition_finding_issueDeepCorrelated": {
     "placeholders": {
       "insideIssue": {

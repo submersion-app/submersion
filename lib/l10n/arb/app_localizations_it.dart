@@ -27541,7 +27541,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue di $totalIssue problemi segnalati riguardavano immersioni più fredde di $threshold, su $n immersioni con questo articolo';
+    return '$insideIssue di $totalIssue immersioni con problemi erano più fredde di $threshold, su $n immersioni con questo articolo';
   }
 
   @override
@@ -27551,7 +27551,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue di $totalIssue problemi segnalati riguardavano immersioni oltre $threshold, su $n immersioni con questo articolo';
+    return '$insideIssue di $totalIssue immersioni con problemi andavano oltre $threshold, su $n immersioni con questo articolo';
   }
 
   @override

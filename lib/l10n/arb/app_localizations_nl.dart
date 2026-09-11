@@ -27334,7 +27334,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue van $totalIssue gemelde problemen waren op duiken kouder dan $threshold, over $n duiken met dit item';
+    return '$insideIssue van $totalIssue duiken met een probleem waren kouder dan $threshold, over $n duiken met dit item';
   }
 
   @override
@@ -27344,7 +27344,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue van $totalIssue gemelde problemen waren op duiken dieper dan $threshold, over $n duiken met dit item';
+    return '$insideIssue van $totalIssue duiken met een probleem gingen dieper dan $threshold, over $n duiken met dit item';
   }
 
   @override

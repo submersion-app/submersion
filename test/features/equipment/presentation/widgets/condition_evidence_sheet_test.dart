@@ -56,7 +56,11 @@ final summaries = <DiveSummary>[
   ),
 ];
 
-Widget host(AppSettings settings, {required List<String> pushed}) {
+Widget host(
+  AppSettings settings, {
+  required List<String> pushed,
+  bool failLoad = false,
+}) {
   final router = GoRouter(
     routes: [
       GoRoute(
@@ -89,7 +93,9 @@ Widget host(AppSettings settings, {required List<String> pushed}) {
       conditionEvidenceDivesProvider((
         equipmentId: 'reg',
         findingId: 'cf_reg_incidentLinked',
-      )).overrideWith((ref) async => summaries),
+      )).overrideWith(
+        (ref) async => failLoad ? throw StateError('db closed') : summaries,
+      ),
     ],
     child: MaterialApp.router(
       routerConfig: router,
@@ -120,5 +126,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(pushed, ['d2']);
     expect(find.text('DIVE'), findsOneWidget);
+  });
+
+  testWidgets('a failed load says so in words, never the raw error', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(const AppSettings(), pushed: [], failLoad: true),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('db closed'), findsNothing);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 }

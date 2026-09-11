@@ -420,13 +420,18 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final seriesLabels = _seriesLabels(context, isRaw, smoothed, fit);
     final highlight = widget.highlightRange;
 
+    // Every plotted point, secondaries included: the condition charts
+    // leave the primary empty and draw all their data as secondaries.
+    final pointCount =
+        points.length +
+        widget.secondarySeries.fold<int>(0, (n, s) => n + s.points.length);
     return Semantics(
       label: yAxisLabel != null
           ? context.l10n.statistics_chart_trendSemanticLabelWithAxis(
-              points.length,
+              pointCount,
               yAxisLabel,
             )
-          : context.l10n.statistics_chart_trendSemanticLabel(points.length),
+          : context.l10n.statistics_chart_trendSemanticLabel(pointCount),
       child: SizedBox(
         height: height,
         child: LineChart(

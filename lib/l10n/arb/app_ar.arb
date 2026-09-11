@@ -8638,7 +8638,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} من {totalIssue} بلاغات مشكلات كانت في غطسات أبرد من {threshold}، على مدى {n} غطسة بهذه القطعة",
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} من {totalIssue} غطسات فيها مشكلة كانت أبرد من {threshold}، على مدى {n} غطسة بهذه القطعة",
   "@equipmentCondition_finding_issueColdCorrelated": {
     "placeholders": {
       "insideIssue": {
@@ -8655,7 +8655,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} من {totalIssue} بلاغات مشكلات كانت في غطسات أعمق من {threshold}، على مدى {n} غطسة بهذه القطعة",
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} من {totalIssue} غطسات فيها مشكلة كانت أعمق من {threshold}، على مدى {n} غطسة بهذه القطعة",
   "@equipmentCondition_finding_issueDeepCorrelated": {
     "placeholders": {
       "insideIssue": {

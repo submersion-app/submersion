@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
@@ -14,6 +15,16 @@ void main() {
   final l10n = AppLocalizationsEn();
   const metric = UnitFormatter(AppSettings());
   const thresholds = ExposureThresholds.defaults;
+
+  // DateFormat and the decimal separator read the process-global
+  // Intl.defaultLocale, not an app locale; pin it so the English
+  // expectations hold on any host.
+  late String? savedLocale;
+  setUp(() {
+    savedLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = savedLocale);
 
   EquipmentFinding finding(
     ConditionRuleId rule, {
@@ -77,12 +88,13 @@ void main() {
     );
     expect(
       conditionFindingTitle(f, l10n, imperial, thresholds: thresholds),
-      '3 of 4 issue reports were on dives colder than 50°F, over 41 dives '
+      // The engine counts dives with an issue, not reports.
+      '3 of 4 dives with an issue were colder than 50°F, over 41 dives '
       'with this item',
     );
     expect(
       conditionFindingTitle(f, l10n, metric, thresholds: thresholds),
-      startsWith('3 of 4 issue reports were on dives colder than 10°C'),
+      startsWith('3 of 4 dives with an issue were colder than 10°C'),
     );
   });
 
@@ -142,10 +154,31 @@ void main() {
   });
 
   test('the window line counts dives and formats the range', () {
-    final f = finding(ConditionRuleId.incidentLinked, n: 1);
+    final f = finding(ConditionRuleId.cellOutputLow, n: 1);
     expect(
       conditionFindingWindow(f, l10n, metric),
       '1 dive, Mar 3 - Jun 9, 2026',
+    );
+  });
+
+  test('an incident window gives the range alone', () {
+    // Its n counts incidents, and an incident need not name a dive, so
+    // "3 dives" there would claim dives the evidence does not list.
+    final f = finding(ConditionRuleId.incidentLinked, n: 3);
+    expect(conditionFindingWindow(f, l10n, metric), 'Mar 3 - Jun 9, 2026');
+  });
+
+  test('one-decimal values use the locale decimal separator', () {
+    final f = finding(
+      ConditionRuleId.cellOutputLow,
+      slot: 1,
+      n: 3,
+      values: {'recentMedian': 41.2},
+    );
+    Intl.defaultLocale = 'de';
+    expect(
+      conditionFindingTitle(f, l10n, metric, thresholds: thresholds),
+      contains('41,2'),
     );
   });
 

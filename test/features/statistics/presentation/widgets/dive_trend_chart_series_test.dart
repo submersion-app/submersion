@@ -179,4 +179,53 @@ void main() {
     await tester.pumpWidget(host(DiveTrendChart(points: series(6))));
     expect(readData(tester).rangeAnnotations.verticalRangeAnnotations, isEmpty);
   });
+
+  testWidgets('a chart drawn from secondary series announces their points', (
+    tester,
+  ) async {
+    // The condition charts leave the primary series empty and draw every
+    // point as a secondary; a screen reader must not hear "0 points".
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: DiveTrendChart(
+            points: const [],
+            secondarySeries: [
+              TrendSeries(
+                label: 'Cell 1',
+                color: Colors.blue,
+                points: [
+                  for (var i = 0; i < 3; i++)
+                    TrendDataPoint(
+                      date: DateTime.utc(2026, 1, 1 + i),
+                      value: 50.0 - i,
+                    ),
+                ],
+              ),
+              TrendSeries(
+                label: 'Cell 2',
+                color: Colors.green,
+                points: [
+                  for (var i = 0; i < 2; i++)
+                    TrendDataPoint(
+                      date: DateTime.utc(2026, 1, 1 + i),
+                      value: 48.0 - i,
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final labels = [
+      for (final e in find.byType(Semantics).evaluate())
+        (e.widget as Semantics).properties.label,
+    ].whereType<String>();
+    expect(labels, contains('Trend line chart showing 5 data points'));
+  });
 }

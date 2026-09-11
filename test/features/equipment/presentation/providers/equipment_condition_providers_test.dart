@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/data/services/equipment_condition_
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_condition_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
@@ -35,6 +36,36 @@ class _CountingEngine extends EquipmentConditionEngine {
     calls++;
     last = input;
     return super.evaluate(input);
+  }
+}
+
+/// Always reports a low cell on the rebreather, whatever it is given.
+class _EmitsCellFinding extends EquipmentConditionEngine {
+  @override
+  List<EquipmentFinding> evaluate(ConditionEngineInput input) {
+    final evidence = FindingEvidence(
+      n: 3,
+      windowStart: DateTime.utc(2026),
+      windowEnd: DateTime.utc(2026),
+      slot: 1,
+    );
+    return [
+      ...super.evaluate(input),
+      EquipmentFinding(
+        id: conditionFindingId(
+          input.item.id,
+          ConditionRuleId.cellOutputLow,
+          slot: 1,
+        ),
+        equipmentId: input.item.id,
+        ruleId: ConditionRuleId.cellOutputLow,
+        severity: ConditionSeverity.significant,
+        evidence: evidence,
+        evidenceFingerprint: evidenceFingerprint(evidence),
+        engineVersion: EquipmentConditionEngine.engineVersion,
+        createdAt: DateTime.utc(2026),
+      ),
+    ];
   }
 }
 
@@ -416,6 +447,120 @@ void main() {
       expect(summariesRequested, {'synced'});
     },
   );
+
+  Future<void> ccrWithDive({required int summaryStamp}) async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'ccr',
+            name: 'CCR',
+            type: 'rebreather',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'loop',
+            diveDateTime: DateTime.utc(2026, 1, 1).millisecondsSinceEpoch,
+            createdAt: 1,
+            updatedAt: 5,
+          ),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'loop', equipmentId: 'ccr'),
+        );
+    await db
+        .into(db.diveSensorSummaries)
+        .insert(
+          DiveSensorSummariesCompanion.insert(
+            diveId: 'loop',
+            engineVersion: 1,
+            sourceUpdatedAt: summaryStamp,
+            computedAt: 1,
+          ),
+        );
+  }
+
+  test('a stale summary never reaches the engine', () async {
+    // Built from an older version of the dive: the rebuild is requested,
+    // and until it lands the engine must not read the old readings.
+    await ccrWithDive(summaryStamp: 3);
+    await container.read(equipmentConditionProvider('ccr').future);
+    expect(engine.last!.summariesByDive, isEmpty);
+    expect(summariesRequested, {'loop'});
+  });
+
+  test('a current summary does reach the engine', () async {
+    await ccrWithDive(summaryStamp: 5);
+    await container.read(equipmentConditionProvider('ccr').future);
+    expect(engine.last!.summariesByDive.keys, ['loop']);
+  });
+
+  test('while summaries are missing the sensor rules write nothing', () async {
+    // Partial readings cannot be trusted either way: the rules neither
+    // delete a finding nor write one until every summary is current.
+    await ccrWithDive(summaryStamp: 3);
+    final refresher = EquipmentConditionRefresher(
+      equipment: EquipmentRepository(),
+      observations: observations,
+      incidents: incidents,
+      transmitters: TransmitterRepository(),
+      summaries: DiveSensorSummaryRepository(db: db),
+      findings: EquipmentFindingsRepository(db: db),
+      engine: _EmitsCellFinding(),
+    );
+    await refresher.ensureCurrent(
+      'ccr',
+      thresholds: ExposureThresholds.defaults,
+      engineEnabled: true,
+    );
+    final rows = await db.select(db.equipmentFindings).get();
+    expect(rows.where((r) => r.ruleId == 'cellOutputLow'), isEmpty);
+  });
+
+  test('incident dives count towards clearing a dismissal', () async {
+    // incidentLinked names each incident's dive, and the item may never
+    // have been linked to those dives. Their dates must still be known,
+    // or a dismissed incident finding could never clear.
+    for (var i = 1; i <= 3; i++) {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'i$i',
+              diveDateTime: DateTime.utc(2026, 3, i).millisecondsSinceEpoch,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    final first = await read();
+    final finding = first!.single;
+    await EquipmentFindingsRepository(db: db).setDismissed(
+      findingId: finding.id,
+      dismissed: true,
+      now: DateTime.utc(2026, 2, 1),
+    );
+    for (var i = 1; i <= 3; i++) {
+      await incidents.createIncident(
+        occurredAt: DateTime.utc(2026, 3, i),
+        category: IncidentCategory.equipment,
+        severity: IncidentSeverity.moderate,
+        narrative: 'n$i',
+        diveId: 'i$i',
+        equipmentId: 'reg',
+      );
+    }
+    container.invalidate(equipmentConditionProvider('reg'));
+    final after = await read();
+    expect(after!.single.isDismissed, isFalse);
+  });
 
   test('a threshold change recomputes', () async {
     final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});

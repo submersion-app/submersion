@@ -17672,7 +17672,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} of {totalIssue} issue reports were on dives colder than {threshold}, over {n} dives with this item",
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} of {totalIssue} dives with an issue were colder than {threshold}, over {n} dives with this item",
   "@equipmentCondition_finding_issueColdCorrelated": {
     "placeholders": {
       "insideIssue": {
@@ -17689,7 +17689,7 @@
       }
     }
   },
-  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} of {totalIssue} issue reports were on dives beyond {threshold}, over {n} dives with this item",
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} of {totalIssue} dives with an issue went beyond {threshold}, over {n} dives with this item",
   "@equipmentCondition_finding_issueDeepCorrelated": {
     "placeholders": {
       "insideIssue": {

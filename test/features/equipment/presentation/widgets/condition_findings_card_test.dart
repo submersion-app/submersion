@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
@@ -97,6 +98,16 @@ Widget host(
 );
 
 void main() {
+  // Dates format through the process-global Intl.defaultLocale, which
+  // MaterialApp.locale does not set; pin it so the English month names
+  // in these expectations hold on any host.
+  late String? savedIntlLocale;
+  setUp(() {
+    savedIntlLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = savedIntlLocale);
+
   testWidgets('lists active findings and folds the dismissed away', (
     tester,
   ) async {
@@ -113,7 +124,9 @@ void main() {
     await tester.tap(find.text('Show 1 dismissed'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Cell 1 output'), findsOneWidget);
-    expect(find.text('5 dives, Mar 3 - Jun 9, 2026'), findsNWidgets(3));
+    // The incident finding gives its range alone: its n counts incidents.
+    expect(find.text('5 dives, Mar 3 - Jun 9, 2026'), findsNWidgets(2));
+    expect(find.text('Mar 3 - Jun 9, 2026'), findsOneWidget);
   });
 
   testWidgets('a disabled rule is hidden and the count follows', (

@@ -27639,7 +27639,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue des $totalIssue problèmes signalés concernaient des plongées plus froides que $threshold, sur $n plongées avec cet équipement';
+    return '$insideIssue des $totalIssue plongées avec un problème étaient plus froides que $threshold, sur $n plongées avec cet équipement';
   }
 
   @override
@@ -27649,7 +27649,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String threshold,
     int n,
   ) {
-    return '$insideIssue des $totalIssue problèmes signalés concernaient des plongées au-delà de $threshold, sur $n plongées avec cet équipement';
+    return '$insideIssue des $totalIssue plongées avec un problème allaient au-delà de $threshold, sur $n plongées avec cet équipement';
   }
 
   @override
