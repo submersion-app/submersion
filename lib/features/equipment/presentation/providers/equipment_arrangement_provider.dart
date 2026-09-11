@@ -76,10 +76,12 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
 
   /// Whether `state` is known to match storage.
   ///
-  /// False until a read publishes, and false again after a write fails: the
-  /// write can fail after changing the settings row (the pending-sync mark
-  /// comes second), so storage may hold a value state does not. An edit
-  /// built on an unknown base could save stale axes over it.
+  /// False until a read publishes, and false again after a write fails (it
+  /// can fail after changing the settings row, as the pending-sync mark
+  /// comes second) or a re-read fails (it may have been reading a change
+  /// synced from another device): either way storage may hold a value state
+  /// does not. An edit built on an unknown base could save stale axes over
+  /// it.
   bool _baseKnown = false;
 
   /// The newest successful read not yet published.
@@ -172,6 +174,12 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
         error: e,
         stackTrace: stackTrace,
       );
+      // What is on screen stays, but it may now be behind storage: a tick
+      // can follow a change synced from another device. Mark it unknown so
+      // the next edit reads again rather than save stale axes over the
+      // synced ones. A failure older than what already published says
+      // nothing newer than that read did, so it leaves the base alone.
+      if (seq > _publishedLoadSeq) _baseKnown = false;
     }
     _readsInFlight.remove(seq);
     _decideLoad();

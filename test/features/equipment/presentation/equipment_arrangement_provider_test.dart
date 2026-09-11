@@ -825,6 +825,40 @@ void main() {
     },
   );
 
+  test('after a failed re-read, the next edit reads again first', () async {
+    // A settings tick can follow a change synced from another device. If
+    // that re-read fails, state may be behind storage, so the next edit
+    // must read again rather than save the pre-sync axes over the synced
+    // ones. What is on screen stays meanwhile.
+    final fake = _FakeSettingsRepository();
+    final container = containerWith(fake);
+    final notifier = container.read(
+      equipmentArrangementNotifierProvider.notifier,
+    );
+    await notifier.loaded;
+
+    final synced = EquipmentArrangement.defaults.copyWith(
+      typeOrder: EquipmentTypeOrder.headToToe,
+    );
+    fake
+      ..stored = synced
+      ..failRead = true;
+    fake.settingsTicks.add(null);
+    await pumpEventQueue();
+    expect(
+      container.read(equipmentArrangementNotifierProvider),
+      EquipmentArrangement.defaults,
+      reason: 'the failed re-read keeps what is on screen',
+    );
+
+    fake.failRead = false;
+    await notifier.updateArrangement(
+      (current) => current.copyWith(groupByType: false),
+    );
+
+    expect(fake.written.single, synced.copyWith(groupByType: false));
+  });
+
   test('loaded settles when the read fails, so a caller cannot hang', () async {
     final fake = _FakeSettingsRepository()..failRead = true;
     final container = containerWith(fake);
