@@ -44,6 +44,10 @@ class SensorSummaryScheduler {
   @visibleForTesting
   void Function(Set<String> equipmentIds)? findingsRequestListener;
 
+  /// Likewise for stale sweep requests (launch, restore, a synced pull).
+  @visibleForTesting
+  void Function()? staleSweepRequestListener;
+
   Future<void> _tail = Future.value();
   final Set<String> _pending = {};
   final Set<String> _pendingFindings = {};
@@ -61,8 +65,10 @@ class SensorSummaryScheduler {
   }
 
   /// Refreshes every dive whose row is missing or stale: the startup
-  /// backfill and the post-restore rebuild.
+  /// backfill, the post-restore rebuild and the rebuild after a sync
+  /// pulled dives in.
   void scheduleStaleSweep() {
+    staleSweepRequestListener?.call();
     if (!enabled) return;
     _staleSweepPending = true;
     _enqueue();
