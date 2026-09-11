@@ -62869,6 +62869,12 @@ abstract class AppLocalizations {
   /// **'Cylinder from gear'**
   String get transmitters_field_gear;
 
+  /// No description provided for @transmitters_field_transmitterGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter from gear'**
+  String get transmitters_field_transmitterGear;
+
   /// No description provided for @transmitters_field_material.
   ///
   /// In en, this message translates to:

@@ -37864,6 +37864,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transmitters_field_gear => 'Cylinder from gear';
 
   @override
+  String get transmitters_field_transmitterGear => 'Transmitter from gear';
+
+  @override
   String get transmitters_field_material => 'Material';
 
   @override

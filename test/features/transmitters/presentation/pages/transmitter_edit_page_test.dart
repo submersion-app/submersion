@@ -101,6 +101,35 @@ void main() {
     expect(find.text('Apply to existing dives'), findsOneWidget);
   });
 
+  testWidgets('names the transmitter gear item the entry is', (tester) async {
+    // Beside the cylinder it feeds, an entry names the transmitter item it
+    // is, which is how the dropout rules find that item's serials.
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+      "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, 1), "
+      "('tank', 'diver-1', 'Blue AL80', 'tank', 1, 1)",
+    );
+    await tester.pumpWidget(
+      _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Transmitter from gear'));
+    await tester.pumpAndSettle();
+    expect(find.text('Blue AL80'), findsNothing, reason: 'transmitters only');
+    await tester.tap(find.text('Perdix Tx'));
+    await tester.pumpAndSettle();
+    expect(find.text('Perdix Tx'), findsOneWidget, reason: 'shown on the tile');
+
+    await tester.enterText(find.byKey(const Key('transmitter_label')), 'Main');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = await TransmitterRepository().getForDiver('diver-1');
+    expect(saved.single.transmitterEquipmentId, 'tx');
+    expect(saved.single.equipmentId, isNull, reason: 'no cylinder picked');
+  });
+
   testWidgets('refuses an entry with neither serial nor channel', (
     tester,
   ) async {

@@ -11310,6 +11310,7 @@
   "transmitters_field_channel": "القناة",
   "transmitters_field_role": "الدور",
   "transmitters_field_gear": "أسطوانة من المعدات",
+  "transmitters_field_transmitterGear": "جهاز إرسال من المعدات",
   "transmitters_field_material": "المادة",
   "transmitters_gear_none": "لا شيء",
   "transmitters_validation_key": "أدخل رقمًا تسلسليًا، أو اختر كمبيوتر غوص وقناة",

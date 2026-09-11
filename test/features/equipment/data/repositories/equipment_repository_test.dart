@@ -7,6 +7,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -715,6 +717,61 @@ void main() {
       {fitted.id, old.id},
     );
   });
+
+  test(
+    'deleting gear clears and stages the registry rows that name it',
+    () async {
+      // A registry row names the cylinder it feeds and the transmitter item
+      // it is. SQLite nulls either link on delete but moves no clock, so a
+      // peer kept the stale link; the delete clears and stages the row.
+      final tx = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Tx',
+          type: EquipmentType.transmitter,
+        ),
+      );
+      final tank = await repository.createEquipment(
+        const EquipmentItem(id: '', name: 'AL80', type: EquipmentType.tank),
+      );
+      final now = DateTime.utc(2026);
+      await TransmitterRepository().create(
+        Transmitter(
+          id: 'r1',
+          transmitterSerial: '180777',
+          label: 'Left',
+          equipmentId: tank.id,
+          transmitterEquipmentId: tx.id,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final db = DatabaseService.instance.database;
+      await db.delete(db.syncRecords).go();
+
+      await repository.deleteEquipment(tx.id);
+      var row = await TransmitterRepository().getById('r1');
+      expect(row!.transmitterEquipmentId, isNull);
+      expect(row.equipmentId, tank.id, reason: 'the cylinder link stays');
+      expect(
+        (await db.select(db.syncRecords).get())
+            .where((r) => r.entityType == 'transmitters')
+            .map((r) => r.recordId),
+        ['r1'],
+      );
+
+      await db.delete(db.syncRecords).go();
+      await repository.deleteEquipment(tank.id);
+      row = await TransmitterRepository().getById('r1');
+      expect(row!.equipmentId, isNull);
+      expect(
+        (await db.select(db.syncRecords).get())
+            .where((r) => r.entityType == 'transmitters')
+            .map((r) => r.recordId),
+        ['r1'],
+      );
+    },
+  );
 
   test('deleting an item tombstones its condition findings', () async {
     // equipment_findings syncs and goes by cascade like the check-ins; a

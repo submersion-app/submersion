@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/domain/services/dive_sensor_summar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
 class EquipmentRepository {
   /// Injectable seams mirror [SiteRepository]: tests hand in a coordinator
@@ -498,6 +499,9 @@ class EquipmentRepository {
         // Incidents naming the item stay; their gear link is staged, not
         // just nulled by SQLite.
         await IncidentRepository().unlinkFromDeletedEquipment(id);
+        // Registry rows naming the item (as a cylinder or a transmitter)
+        // stay; the link is staged, not just nulled.
+        await TransmitterRepository().unlinkFromDeletedEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(

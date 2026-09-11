@@ -11310,6 +11310,7 @@
   "transmitters_field_channel": "Kanaal",
   "transmitters_field_role": "Rol",
   "transmitters_field_gear": "Fles uit uitrusting",
+  "transmitters_field_transmitterGear": "Zender uit uitrusting",
   "transmitters_field_material": "Materiaal",
   "transmitters_gear_none": "Geen",
   "transmitters_validation_key": "Voer een serienummer in, of kies een duikcomputer en kanaal",

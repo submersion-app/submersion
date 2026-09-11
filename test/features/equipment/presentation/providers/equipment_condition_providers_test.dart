@@ -285,7 +285,8 @@ void main() {
             label: 'Back gas',
             tankRole: 'backGas',
             transmitterSerial: const Value('ABC123'),
-            equipmentId: const Value('tx'),
+            // The transmitter item it is; equipmentId would be the cylinder.
+            transmitterEquipmentId: const Value('tx'),
             createdAt: 1,
             updatedAt: 1,
           ),

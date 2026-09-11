@@ -11310,6 +11310,7 @@
   "transmitters_field_channel": "ערוץ",
   "transmitters_field_role": "תפקיד",
   "transmitters_field_gear": "מיכל מהציוד",
+  "transmitters_field_transmitterGear": "משדר מהציוד",
   "transmitters_field_material": "חומר",
   "transmitters_gear_none": "ללא",
   "transmitters_validation_key": "הזינו מספר סידורי, או בחרו מחשב צלילה וערוץ",

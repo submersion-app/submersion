@@ -11310,6 +11310,7 @@
   "transmitters_field_channel": "通道",
   "transmitters_field_role": "用途",
   "transmitters_field_gear": "来自装备的气瓶",
+  "transmitters_field_transmitterGear": "来自装备的无线发射器",
   "transmitters_field_material": "材质",
   "transmitters_gear_none": "无",
   "transmitters_validation_key": "请输入发射器序列号，或选择潜水电脑和通道",

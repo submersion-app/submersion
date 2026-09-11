@@ -84,4 +84,50 @@ void main() {
       );
     },
   );
+
+  // The registry's link to the transmitter gear item it is (condition phase
+  // 3b), beside its existing link to the cylinder it feeds. The dropout
+  // rules read serials through it.
+  test('a fresh database has the registry\'s transmitter link', () async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    expect(
+      await _columns(db, 'transmitters'),
+      contains('transmitter_equipment_id'),
+    );
+    final links = await db
+        .customSelect("PRAGMA foreign_key_list('transmitters')")
+        .get();
+    final link = links.singleWhere(
+      (r) => r.read<String>('from') == 'transmitter_equipment_id',
+    );
+    expect(link.read<String>('table'), 'equipment');
+    expect(link.read<String>('on_delete'), 'SET NULL');
+  });
+
+  test('the backstop adds the transmitter link to a current file', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute(
+            'PRAGMA user_version = ${AppDatabase.currentSchemaVersion}',
+          );
+          raw.execute('CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY)');
+          raw.execute('''
+            CREATE TABLE transmitters (
+              id TEXT NOT NULL PRIMARY KEY, transmitter_serial TEXT,
+              dive_computer_id TEXT, channel_index INTEGER,
+              label TEXT NOT NULL, tank_role TEXT NOT NULL,
+              equipment_id TEXT, created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL)
+          ''');
+        },
+      ),
+    );
+    addTearDown(db.close);
+    expect(
+      await _columns(db, 'transmitters'),
+      contains('transmitter_equipment_id'),
+    );
+  });
 }

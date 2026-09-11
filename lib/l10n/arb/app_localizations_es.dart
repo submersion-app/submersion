@@ -38498,6 +38498,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transmitters_field_gear => 'Botella del equipo';
 
   @override
+  String get transmitters_field_transmitterGear => 'Transmisor del equipo';
+
+  @override
   String get transmitters_field_material => 'Material';
 
   @override

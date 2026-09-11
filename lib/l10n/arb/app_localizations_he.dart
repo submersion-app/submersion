@@ -37684,6 +37684,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_field_gear => 'מיכל מהציוד';
 
   @override
+  String get transmitters_field_transmitterGear => 'משדר מהציוד';
+
+  @override
   String get transmitters_field_material => 'חומר';
 
   @override

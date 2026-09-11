@@ -11310,6 +11310,7 @@
   "transmitters_field_channel": "Kanal",
   "transmitters_field_role": "Rolle",
   "transmitters_field_gear": "Flasche aus der Ausrüstung",
+  "transmitters_field_transmitterGear": "Sender aus der Ausrüstung",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "Keine",
   "transmitters_validation_key": "Gib eine Seriennummer ein oder wähle Tauchcomputer und Kanal",

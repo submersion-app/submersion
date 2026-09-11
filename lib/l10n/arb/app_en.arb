@@ -23212,6 +23212,7 @@
   "transmitters_field_channel": "Channel",
   "transmitters_field_role": "Role",
   "transmitters_field_gear": "Cylinder from gear",
+  "transmitters_field_transmitterGear": "Transmitter from gear",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "None",
   "transmitters_validation_key": "Enter a transmitter serial, or pick a dive computer and channel",

@@ -2375,6 +2375,8 @@ class SyncService {
     // cylinder or computer (set null), so a missing parent must not drop it.
     'transmitters': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+      // v206: the transmitter gear item the entry is (condition phase 3b).
+      (field: 'transmitterEquipmentId', parent: 'equipment', nullable: true),
       (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
     ],
     // v202: a child item (O2 cell, battery) points at the item it is installed

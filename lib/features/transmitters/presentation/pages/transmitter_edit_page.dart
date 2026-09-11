@@ -59,6 +59,11 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   String? _presetName;
   String? _equipmentId;
   String? _equipmentName;
+
+  /// The transmitter gear item this entry is (condition phase 3b), beside
+  /// the cylinder it feeds; the dropout rules read serials through it.
+  String? _transmitterEquipmentId;
+  String? _transmitterEquipmentName;
   Transmitter? _existing;
   bool _loading = false;
   String? _keyError;
@@ -103,6 +108,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       _material = entry.material;
       _presetName = entry.presetName;
       _equipmentId = entry.equipmentId;
+      _transmitterEquipmentId = entry.transmitterEquipmentId;
       _fillSpecFields(units, settings, entry.volumeL, entry.workingPressureBar);
     });
     if (entry?.equipmentId != null) {
@@ -110,6 +116,12 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         equipmentItemProvider(entry!.equipmentId!).future,
       );
       if (mounted) setState(() => _equipmentName = gear?.name);
+    }
+    if (entry?.transmitterEquipmentId != null) {
+      final gear = await ref.read(
+        equipmentItemProvider(entry!.transmitterEquipmentId!).future,
+      );
+      if (mounted) setState(() => _transmitterEquipmentName = gear?.name);
     }
   }
 
@@ -190,6 +202,31 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     );
   }
 
+  Future<void> _pickTransmitterGear() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => EquipmentPickerSheet(
+          scrollController: scrollController,
+          selectedEquipmentIds: {?_transmitterEquipmentId},
+          typeFilter: EquipmentType.transmitter,
+          onEquipmentSelected: (item) {
+            setState(() {
+              _transmitterEquipmentId = item.id;
+              _transmitterEquipmentName = item.name;
+            });
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _save() async {
     final l10n = context.l10n;
     setState(() {
@@ -237,6 +274,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       material: _material,
       presetName: _presetName,
       equipmentId: _equipmentId,
+      transmitterEquipmentId: _transmitterEquipmentId,
       createdAt: _existing?.createdAt ?? now,
       updatedAt: now,
     );
@@ -440,6 +478,24 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                             }),
                           ),
                     onTap: _pickGear,
+                  ),
+                  ListTile(
+                    key: const Key('transmitter_transmitter_gear'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.transmitters_field_transmitterGear),
+                    subtitle: Text(
+                      _transmitterEquipmentName ?? l10n.transmitters_gear_none,
+                    ),
+                    trailing: _transmitterEquipmentId == null
+                        ? const Icon(Icons.chevron_right)
+                        : IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () => setState(() {
+                              _transmitterEquipmentId = null;
+                              _transmitterEquipmentName = null;
+                            }),
+                          ),
+                    onTap: _pickTransmitterGear,
                   ),
                   const SizedBox(height: 8),
                   presets.when(
