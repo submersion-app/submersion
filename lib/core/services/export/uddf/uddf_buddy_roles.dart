@@ -21,6 +21,10 @@ abstract final class UddfBuddyRoles {
   static const _guideRefsKey = 'diveGuideRefs';
   static const _guideNamesKey = 'unmatchedDiveGuideNames';
 
+  /// Transient: the raw `<divemaster>` text, held until [settle] can weigh
+  /// it against the exact roles. [settle] removes it.
+  static const _leaderTextKey = '_leaderText';
+
   /// Splits the comma-joined names of a `<divemaster>` element and
   /// resolves each against the people the document declares ([buddies],
   /// keyed by `<buddy id>`), case-insensitively.
@@ -33,6 +37,14 @@ abstract final class UddfBuddyRoles {
   static ({List<String> refs, List<String> unmatched}) resolveLeaderNames(
     String text,
     Map<String, Map<String, dynamic>> buddies,
+  ) => _links(_resolve(text, buddies));
+
+  /// Each leader named in [text], in order, with the declared person it
+  /// resolves to. A null [ref] on a [declared] name is a repeat with no
+  /// declared person of that name left to link.
+  static List<({String name, String? ref, bool declared})> _resolve(
+    String text,
+    Map<String, Map<String, dynamic>> buddies,
   ) {
     final refsByName = <String, List<String>>{};
     for (final entry in buddies.entries) {
@@ -43,8 +55,8 @@ abstract final class UddfBuddyRoles {
     }
 
     final parts = _fragments(text);
-    final refs = <String>[];
-    final unmatched = <String>[];
+    final used = <String>{};
+    final leaders = <({String name, String? ref, bool declared})>[];
     var i = 0;
     while (i < parts.length) {
       var taken = 1;
@@ -56,33 +68,35 @@ abstract final class UddfBuddyRoles {
           break;
         }
       }
-      if (candidates == null) {
-        final name = parts[i];
-        if (!unmatched.any((n) => n.toLowerCase() == name.toLowerCase())) {
-          unmatched.add(name);
-        }
-      } else {
-        // Every declared person of this name already taken means the text
-        // repeats a leader; there is no one new to link.
-        final next = candidates.where((r) => !refs.contains(r)).firstOrNull;
-        if (next != null) refs.add(next);
-      }
+      final name = parts.sublist(i, i + taken).join(', ');
+      final ref = candidates?.where((r) => !used.contains(r)).firstOrNull;
+      if (ref != null) used.add(ref);
+      leaders.add((name: name, ref: ref, declared: candidates != null));
       i += taken;
+    }
+    return leaders;
+  }
+
+  static ({List<String> refs, List<String> unmatched}) _links(
+    Iterable<({String name, String? ref, bool declared})> leaders,
+  ) {
+    final refs = <String>[];
+    final unmatched = <String>[];
+    for (final leader in leaders) {
+      if (leader.ref case final ref?) {
+        refs.add(ref);
+      } else if (!leader.declared &&
+          !unmatched.any((n) => _normalized(n) == _normalized(leader.name))) {
+        unmatched.add(leader.name);
+      }
     }
     return (refs: refs, unmatched: unmatched);
   }
 
-  /// Records the dive's `<divemaster>` [text] on [dive] as dive guide
-  /// links: refs to declared people, and names to find or create.
-  static void applyLeaderNames(
-    Map<String, dynamic> dive,
-    String text,
-    Map<String, Map<String, dynamic>> buddies,
-  ) {
-    final leaders = resolveLeaderNames(text, buddies);
-    if (leaders.refs.isNotEmpty) dive[_guideRefsKey] = leaders.refs;
-    if (leaders.unmatched.isNotEmpty) dive[_guideNamesKey] = leaders.unmatched;
-  }
+  /// Holds the dive's `<divemaster>` [text] on [dive] for [settle], which
+  /// turns it into dive guide links once the exact roles are known.
+  static void recordLeaderText(Map<String, dynamic> dive, String text) =>
+      dive[_leaderTextKey] = text;
 
   /// The private `<buddyroles>` block: per dive ref, each person's role.
   static Map<String, List<Map<String, String>>> parse(XmlElement block) => {
@@ -102,9 +116,7 @@ abstract final class UddfBuddyRoles {
   ///
   /// A row is used only when its person is declared ([declaredBuddies])
   /// and its role is built in or declared ([declaredRoleIds]); anything
-  /// else leaves that person to the standard elements. When a used row is
-  /// a leader, the dive's `<divemaster>` text was written from these rows,
-  /// so the guides inferred from it are dropped as superseded.
+  /// else leaves that person to the standard elements.
   static void applyExactRoles(
     Map<String, dynamic> dive,
     List<Map<String, String>> rows, {
@@ -118,22 +130,51 @@ abstract final class UddfBuddyRoles {
                 declaredRoleIds.contains(row['roleId'])))
           row,
     ];
-    if (usable.isEmpty) return;
-    dive[roleRefsKey] = usable;
-    if (usable.any((row) => DiveRole.leaderIds.contains(row['roleId']))) {
-      dive
-        ..remove(_guideRefsKey)
-        ..remove(_guideNamesKey);
-    }
+    if (usable.isNotEmpty) dive[roleRefsKey] = usable;
   }
 
-  /// Leaves each person in [dive] holding one role: whoever is linked as
-  /// a guide or with an exact role is taken out of the plain buddy links
-  /// (Submersion's export links every participant, leaders included).
+  /// Settles [dive]'s role links once every source has been read.
   ///
-  /// Runs once every other step has recorded its links, so no step has to
-  /// undo another's removal.
-  static void settle(Map<String, dynamic> dive) {
+  /// The recorded `<divemaster>` text becomes dive guide links, except
+  /// for the names the exact roles already cover: Submersion writes that
+  /// text from its leader rows, so each leader row with an exact role
+  /// accounts for one name, matched by name ([buddies] gives each
+  /// person's), since the text may have resolved a namesake instead. Then
+  /// whoever holds a guide or exact role leaves the plain buddy links, as
+  /// Submersion's export links every participant, leaders included.
+  ///
+  /// Nothing earlier removes a link, so no step has to undo another's.
+  static void settle(
+    Map<String, dynamic> dive,
+    Map<String, Map<String, dynamic>> buddies,
+  ) {
+    final leaderText = dive.remove(_leaderTextKey);
+    if (leaderText is String) {
+      final covered = <String, int>{};
+      for (final row in (dive[roleRefsKey] as List?) ?? const []) {
+        if (row is! Map || !DiveRole.leaderIds.contains(row['roleId'])) {
+          continue;
+        }
+        final name = buddies[row['buddyRef']]?['name'];
+        if (name is String) {
+          covered.update(_normalized(name), (n) => n + 1, ifAbsent: () => 1);
+        }
+      }
+      final uncovered = <({String name, String? ref, bool declared})>[];
+      for (final leader in _resolve(leaderText, buddies)) {
+        final key = _normalized(leader.name);
+        final left = covered[key] ?? 0;
+        if (left > 0) {
+          covered[key] = left - 1;
+        } else {
+          uncovered.add(leader);
+        }
+      }
+      final links = _links(uncovered);
+      if (links.refs.isNotEmpty) dive[_guideRefsKey] = links.refs;
+      if (links.unmatched.isNotEmpty) dive[_guideNamesKey] = links.unmatched;
+    }
+
     final buddyRefs = dive[_buddyRefsKey];
     if (buddyRefs is! List) return;
     final elsewhere = <Object?>{

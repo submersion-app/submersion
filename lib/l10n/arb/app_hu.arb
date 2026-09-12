@@ -3663,6 +3663,7 @@
   "equipment_detail_editTooltipShort": "Szerkesztes",
   "equipment_detail_errorMessage": "Hiba: {error}",
   "equipment_detail_errorTitle": "Hiba",
+  "equipment_detail_installedInLabel": "Beszerelve ebbe",
   "equipment_detail_lastServiceLabel": "Utolso szerviz",
   "equipment_detail_loadingTitle": "Betoltes...",
   "equipment_detail_modelLabel": "Modell",
@@ -3671,6 +3672,17 @@
   "equipment_detail_notFoundTitle": "Felszereles nem talalhato",
   "equipment_detail_notesTitle": "Megjegyzesek",
   "equipment_detail_ownedForLabel": "Birtoklasi ido",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Vasarlas datuma",
   "equipment_detail_purchasePriceLabel": "Vasarlasi ar",
   "equipment_detail_retiredChip": "Kivont",
@@ -3838,6 +3850,7 @@
   "equipment_detail_tripsCountSingular": "{count} utazas",
   "equipment_detail_tripsLabel": "Utazasok",
   "equipment_detail_tripsSemanticLabel": "Utazasok megtekintese ezzel a felszerelessel",
+  "equipment_detail_wasInstalledInLabel": "Korabban beszerelve ebbe",
   "equipment_edit_appBar_editTitle": "Felszereles szerkesztese",
   "equipment_edit_appBar_newTitle": "Uj felszereles",
   "equipment_edit_appBar_saveButton": "Mentes",

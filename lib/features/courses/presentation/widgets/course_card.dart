@@ -7,6 +7,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/widgets/card_icon_label.dart';
 import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// Card widget for displaying a course in a list
@@ -95,36 +96,20 @@ class CourseCard extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      Row(
+                      // A Wrap, not a Row: the start date drops onto its own
+                      // line when a narrow card, or the checkbox column in
+                      // selection mode, leaves too little width for both.
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 4,
                         children: [
-                          Icon(
-                            Icons.business,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
+                          CardIconLabel(
+                            icon: Icons.business,
+                            text: course.agency.localizedName(context.l10n),
                           ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              course.agency.localizedName(context.l10n),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            Icons.calendar_today,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            startDateStr,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          CardIconLabel(
+                            icon: Icons.calendar_today,
+                            text: startDateStr,
                           ),
                         ],
                       ),

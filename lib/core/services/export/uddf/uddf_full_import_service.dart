@@ -517,7 +517,9 @@ class UddfFullImportService {
 
     // Every source of role links has now been read, so each person can be
     // left holding exactly one role per dive.
-    dives.forEach(UddfBuddyRoles.settle);
+    for (final dive in dives) {
+      UddfBuddyRoles.settle(dive, buddyMap);
+    }
 
     _applyTripDateRanges(trips, dives);
 
@@ -989,7 +991,7 @@ class UddfFullImportService {
         'divemaster',
       );
       if (leaderNames != null) {
-        UddfBuddyRoles.applyLeaderNames(diveData, leaderNames, buddies);
+        UddfBuddyRoles.recordLeaderText(diveData, leaderNames);
       }
 
       final diveTypeElements = beforeElement.findElements('divetype').toList();

@@ -93,7 +93,7 @@ void main() {
       expect(find.byKey(const ValueKey('dive_row_highlight')), findsNothing);
     });
 
-    testWidgets('the checkbox replaces the dive number in selection mode', (
+    testWidgets('the dive number stays visible beside the checkbox', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -104,9 +104,15 @@ void main() {
       expect(find.byType(Checkbox), findsOneWidget);
       expect(
         find.text('#412'),
-        findsNothing,
+        findsOneWidget,
         reason:
-            'the checkbox replaces the leading element, it does not badge it',
+            'the number is what a diver picks dives by during a bulk edit, so '
+            'the checkbox must not hide it (issue #1717)',
+      );
+      expect(
+        tester.getTopRight(find.byType(Checkbox)).dx,
+        lessThanOrEqualTo(tester.getTopLeft(find.text('#412')).dx),
+        reason: 'the checkbox sits ahead of the number, not on top of it',
       );
     });
   });

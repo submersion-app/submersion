@@ -11390,6 +11390,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Fout';
 
   @override
+  String get equipment_detail_installedInLabel => 'Geplaatst in';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Laatste service';
 
   @override
@@ -11413,6 +11416,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'In bezit sinds';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Aankoopdatum';
@@ -11813,6 +11821,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Bekijk reizen met deze uitrusting';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Was geplaatst in';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Uitrusting bewerken';
