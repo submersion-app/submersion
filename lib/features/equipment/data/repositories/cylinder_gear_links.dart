@@ -5,8 +5,9 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Chunk size for the `IN (...)` lists, well under SQLite's variable limit.
-const _chunkSize = 500;
+/// Chunk size for the `IN (...)` lists. The select binds each chunk twice,
+/// once per link column, so it must stay under half SQLite's ~999 limit.
+const _chunkSize = 400;
 
 /// Clears every dive tank link to the gear items in [equipmentIds], both the
 /// cylinder's own item (`equipment_id`, written by the transmitter registry)

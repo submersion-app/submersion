@@ -8,6 +8,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 
+import '../../../../helpers/bound_variables.dart';
 import '../../../../helpers/test_database.dart';
 
 /// A re-parse rewrites its source row, the dive's tanks, events and gas
@@ -175,6 +176,48 @@ void main() {
               .customSelect("SELECT hlc FROM dives WHERE id = 'd1'")
               .getSingle())
           .read<String?>('hlc');
+
+  test(
+    'a dive with many events binds within SQLite\'s variable limit',
+    () async {
+      // Every replaced event's id went into one DELETE ... IN list.
+      await tearDownTestDatabase();
+      db = setUpLoggingTestDatabase();
+      service = ReparseService(db: db);
+      serializer = SyncDataSerializer();
+      await quietly(() async {
+        await seedPublishedDive();
+        await db.batch(
+          (b) => b.insertAll(db.diveProfileEvents, [
+            for (var i = 0; i < 1200; i++)
+              DiveProfileEventsCompanion(
+                id: Value('e$i'),
+                diveId: const Value('d1'),
+                computerId: const Value('c1'),
+                timestamp: Value(i),
+                eventType: const Value('bookmark'),
+                createdAt: const Value(nowMs),
+              ),
+          ]),
+        );
+        await publishEverything();
+      });
+
+      final most = await maxBoundVariables(reparse);
+      expect(most, lessThanOrEqualTo(sqliteVariableLimit));
+      expect(
+        await db.select(db.diveProfileEvents).get(),
+        hasLength(1),
+        reason: 'every replaced event is gone',
+      );
+      expect(
+        (await db.select(db.deletionLog).get()).where(
+          (d) => d.entityType == 'diveProfileEvents',
+        ),
+        hasLength(1201),
+      );
+    },
+  );
 
   test('stages the dive, so the rewritten rows reach peers in the next '
       'changeset', () async {

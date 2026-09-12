@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
@@ -286,10 +288,15 @@ class ReparseService {
       'gasSwitches' => 'gas_switches',
       _ => throw ArgumentError.value(entityType, 'entityType'),
     };
-    await db.customStatement(
-      'DELETE FROM $table WHERE id IN (${List.filled(ids.length, '?').join(', ')})',
-      ids,
-    );
+    // In chunks: a long dive's events can outnumber SQLite's ~999
+    // variables in one statement.
+    for (var i = 0; i < ids.length; i += 900) {
+      final chunk = ids.sublist(i, math.min(i + 900, ids.length));
+      await db.customStatement(
+        'DELETE FROM $table WHERE id IN (${List.filled(chunk.length, '?').join(', ')})',
+        chunk,
+      );
+    }
     for (final id in ids) {
       await _sync.logDeletion(entityType: entityType, recordId: id);
     }

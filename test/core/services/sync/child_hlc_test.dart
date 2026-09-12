@@ -10,6 +10,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../helpers/bound_variables.dart';
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
@@ -123,6 +124,23 @@ void main() {
       await serializer.fetchRecord('diveEquipment', 'd1|e1'),
     );
   });
+
+  test(
+    'a batch of composite keys binds within SQLite\'s variable limit',
+    () async {
+      // Each composite key binds two variables, so a 900-key batch of gear
+      // links bound 1800.
+      await tearDownTestDatabase();
+      setUpLoggingTestDatabase();
+      for (final type in ['diveEquipment', 'diveTanks']) {
+        final ids = [for (var i = 0; i < 2000; i++) 'd$i|e$i'];
+        final most = await maxBoundVariables(
+          () => SyncDataSerializer().fetchRecords(type, ids),
+        );
+        expect(most, lessThanOrEqualTo(sqliteVariableLimit), reason: type);
+      }
+    },
+  );
 
   group('a peer\'s copy of a tank', () {
     late Map<String, dynamic> local;

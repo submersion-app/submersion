@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
@@ -1473,6 +1474,19 @@ class SyncDataSerializer {
       (t) => t.actualTableName == tableName,
     );
     final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
+    // A composite key binds a variable per column, so a batch sized for
+    // single ids would bind twice SQLite's ~999 limit.
+    final perStatement = 900 ~/ keys.length;
+    if (ids.length > perStatement) {
+      final merged = <String, Map<String, dynamic>>{};
+      for (var i = 0; i < ids.length; i += perStatement) {
+        final end = math.min(i + perStatement, ids.length);
+        merged.addAll(
+          await _fetchParentGatedChildren(entityType, ids.sublist(i, end)),
+        );
+      }
+      return merged;
+    }
     final tuples = [
       for (final id in ids)
         if (keys.length == 1)
