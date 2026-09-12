@@ -125,6 +125,8 @@ class PresetsTest(unittest.TestCase):
             "website-hero": (1920, 640),
             "website-hero@2x": (3840, 1280),
             "square": (1080, 1080),
+            "reddit-banner": (2144, 256),
+            "reddit-mobile-banner": (2160, 256),
             "mark-256": (256, 256),
             "mark-512": (512, 512),
             "mark-1024": (1024, 1024),
@@ -135,6 +137,19 @@ class PresetsTest(unittest.TestCase):
                 self.assertEqual((p.width, p.height), size)
         for name in ("lockup-dark", "lockup-light", "wordmark-dark", "wordmark-light"):
             self.assertEqual(presets.find(name).kind, "transparent")
+
+    def test_reddit_banners_fill_the_safe_height(self):
+        # Reddit shows these only 128px tall, so the icon fills the whole
+        # safe height to keep the slogan as large as the strip allows.
+        for name in ("reddit-banner", "reddit-mobile-banner"):
+            with self.subTest(name=name):
+                preset = presets.find(name)
+                ins = presets.safe_insets(preset)
+                result = layout_for(preset)
+                self.assertAlmostEqual(
+                    result.icon.h, preset.height - ins.top - ins.bottom, places=6
+                )
+                self.assertIsNotNone(result.slogan)
 
     def test_default_inset_is_one_eighth_of_height(self):
         ins = presets.safe_insets(presets.find("github-social"))

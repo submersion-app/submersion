@@ -12,11 +12,16 @@ drop shadow; generate_brand_assets_test.py compares the result against
 assets/icon/icon.png to catch the copy drifting.
 """
 
+import functools
+
 from PIL import Image, ImageChops, ImageFilter
 
 from generate_icon import SUPERSAMPLE, build_flag, build_wave_arrow_mask
 
 MARK_PADDING = 0.04
+# Every mark is scaled down from a render at the official icon's size, so the
+# white outline keeps the icon's hairline proportion at any size.
+MASTER_PX = 1024
 
 
 def _solid(size, color):
@@ -59,16 +64,18 @@ def _render_glyph_hi(hi):
     return img
 
 
-def render_glyph(size):
-    """The glyph where it sits in the app icon, on a transparent square."""
-    hi = size * SUPERSAMPLE
-    return _render_glyph_hi(hi).resize((size, size), Image.Resampling.LANCZOS)
+@functools.lru_cache(maxsize=None)
+def _master_glyph_hi():
+    # Drawn once at the official icon's scale. The outline is a fixed number
+    # of pixels wide, so rendering directly at a smaller size would make it
+    # several times thicker, relative to the logo, than the real icon has it.
+    return _render_glyph_hi(MASTER_PX * SUPERSAMPLE)
 
 
-def create_mark(size):
-    """The glyph cropped to its bounds and centered with a small padding."""
-    hi = size * SUPERSAMPLE
-    glyph = _render_glyph_hi(hi)
+@functools.lru_cache(maxsize=None)
+def _master_mark_hi():
+    glyph = _master_glyph_hi()
+    hi = glyph.width
     glyph = glyph.crop(glyph.getchannel("A").getbbox())
     scale = hi * (1 - 2 * MARK_PADDING) / max(glyph.size)
     glyph = glyph.resize(
@@ -77,4 +84,14 @@ def create_mark(size):
     )
     canvas = _solid((hi, hi), (0, 0, 0, 0))
     canvas.paste(glyph, ((hi - glyph.width) // 2, (hi - glyph.height) // 2))
-    return canvas.resize((size, size), Image.Resampling.LANCZOS)
+    return canvas
+
+
+def render_glyph(size):
+    """The glyph where it sits in the app icon, on a transparent square."""
+    return _master_glyph_hi().resize((size, size), Image.Resampling.LANCZOS)
+
+
+def create_mark(size):
+    """The glyph cropped to its bounds and centered with a small padding."""
+    return _master_mark_hi().resize((size, size), Image.Resampling.LANCZOS)

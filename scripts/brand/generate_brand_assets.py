@@ -48,6 +48,10 @@ WAVE_FILL = (255, 255, 255, 26)  # 10% white
 WAVE_STROKE = (255, 255, 255, 41)  # 16% white
 WAVE_STROKE_W = 3
 
+# The size assets/icon/icon.png is generated at; every banner icon is this
+# render scaled down (no preset needs a larger icon).
+OFFICIAL_ICON_PX = 1024
+
 # Icon drop shadow at the 340px reference icon: (y offset, blur, opacity).
 ICON_SHADOWS = ((22, 17, 0.38), (4, 4, 0.22))
 SHADOW_RGB = (0, 62, 72)
@@ -147,8 +151,16 @@ def _waves(width, height):
 
 
 @functools.lru_cache(maxsize=None)
+def _official_icon():
+    return create_icon(OFFICIAL_ICON_PX)
+
+
+@functools.lru_cache(maxsize=None)
 def _icon(px):
-    return create_icon(px)
+    # Scale the official icon rather than rendering at px: generate_icon.py
+    # draws its white outline a fixed number of pixels wide, so a direct
+    # small render would show it several times thicker than the real icon.
+    return _official_icon().resize((px, px), Image.Resampling.LANCZOS)
 
 
 def _icon_shadow(size, icon_img, x, y):

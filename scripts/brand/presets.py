@@ -68,6 +68,23 @@ PRESETS = (
     _banner("website-hero", 1920, 640, "Website home page hero"),
     _banner("website-hero@2x", 3840, 1280, "Website home page hero, 2x"),
     Preset("square", 1080, 1080, "banner", "stacked", "Square social posts", icon_ratio=0.36),
+    # Reddit shows its banners only 128px tall (1072x128 desktop, 1080x128
+    # app; these are 2x). The icon fills the whole safe height so the name
+    # and slogan are as large as the strip allows.
+    _banner(
+        "reddit-banner",
+        2144,
+        256,
+        "Reddit community banner, desktop slot",
+        icon_ratio=1 - 2 * DEFAULT_INSET_RATIO,
+    ),
+    _banner(
+        "reddit-mobile-banner",
+        2160,
+        256,
+        "Reddit community banner, mobile app slot",
+        icon_ratio=1 - 2 * DEFAULT_INSET_RATIO,
+    ),
     _mark(256),
     _mark(512),
     _mark(1024),

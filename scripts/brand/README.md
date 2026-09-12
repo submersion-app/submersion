@@ -47,6 +47,8 @@ the app (a test enforces this).
 | `play-feature` | 1024x500 | Google Play feature graphic |
 | `website-hero`, `website-hero@2x` | 1920x640, 3840x1280 | Website home page hero |
 | `square` | 1080x1080 | Square social posts |
+| `reddit-banner` | 2144x256 | Subreddit banner, desktop slot (Reddit shows it at 1072x128) |
+| `reddit-mobile-banner` | 2160x256 | Subreddit banner, mobile app slot (1080x128) |
 | `mark-256`, `mark-512`, `mark-1024` | square | Logo glyph only, transparent; for dark or colored backgrounds |
 | `lockup-dark`, `lockup-light` | ~2400 wide | Icon, name, rule and slogan on transparency; navy or white text |
 | `wordmark-dark`, `wordmark-light` | ~2400 wide | Icon and name on transparency; navy or white text |

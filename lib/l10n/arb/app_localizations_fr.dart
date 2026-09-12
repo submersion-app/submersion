@@ -7070,8 +7070,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'Créer un nouveau profil';
 
   @override
-  String get setup_welcome_subtitle =>
-      'Enregistrement et analyse avancés de plongée';
+  String get setup_welcome_subtitle => 'Plongez en sécurité. Enregistrez tout.';
 
   @override
   String get setup_welcome_title => 'Bienvenue dans Submersion';
@@ -15757,7 +15756,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_about_description =>
-      'Suivez vos plongées, gerez votre équipement et explorez les sites de plongée.';
+      'Plongez en sécurité. Enregistrez tout.';
 
   @override
   String get settings_about_header => 'À propos';

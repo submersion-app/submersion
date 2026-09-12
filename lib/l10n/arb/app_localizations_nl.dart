@@ -6982,7 +6982,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'Een nieuw profiel instellen';
 
   @override
-  String get setup_welcome_subtitle => 'Geavanceerd duiklogboek en analyse';
+  String get setup_welcome_subtitle => 'Duik veilig. Log alles.';
 
   @override
   String get setup_welcome_title => 'Welkom bij Submersion';
@@ -15576,8 +15576,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description =>
-      'Houd je duiken bij, beheer uitrusting en verken duikstekken.';
+  String get settings_about_description => 'Duik veilig. Log alles.';
 
   @override
   String get settings_about_header => 'Over';

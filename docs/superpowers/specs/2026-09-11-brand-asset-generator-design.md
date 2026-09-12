@@ -125,8 +125,9 @@ icon above the text block, both horizontally centered.
 
 ### mark.py
 
-`create_mark(size)` renders the glyph on a transparent canvas at 4x and
-downsamples with LANCZOS, like the icon. It imports `build_flag` and
+`create_mark(size)` renders the glyph once on a transparent canvas at the
+official icon's scale (1024, drawn at 4x) and downsamples that master with
+LANCZOS to each size. It imports `build_flag` and
 `build_wave_arrow_mask` from `generate_icon.py` and applies its own copy of
 the white outline (mask dilation) and edge lighting steps, without the drop
 shadow and without a tile clip. It duplicates roughly 40 lines of
@@ -138,9 +139,16 @@ from the icon.
 For each selected preset: build the canvas (banner: the approved card's
 160-degree gradient `#4FE9FD` 0%, `#40D3E0` 45%, `#2FB4AA` 100% plus the three
 decorative wave shapes and the icon's soft teal drop shadow; transparent:
-empty RGBA, no shadow), render the icon tile with `create_icon()` at the
+empty RGBA, no shadow), place the icon tile by downscaling
+`create_icon(1024)` (pixel-identical to `assets/icon/icon.png`) to the
 laid-out size, draw the name, rule and slogan with the bundled fonts, crop
 transparent lockups to content plus margin, and save PNG.
+
+The icon and mark are always scaled down from a 1024 render, never drawn
+directly at a smaller size: `generate_icon.py` draws the white outline a
+fixed 8px wide at 4x supersampling whatever the size, so a direct 340px
+render showed it about three times thicker, relative to the logo, than the
+official icon's hairline (fixed after #1782).
 
 Text requires Pillow's RAQM layout. Inter carries its kerning only in the
 OpenType GPOS table (it has no legacy `kern` table), and Pillow's BASIC layout

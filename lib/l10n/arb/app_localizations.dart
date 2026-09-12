@@ -11598,7 +11598,7 @@ abstract class AppLocalizations {
   /// No description provided for @setup_welcome_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Advanced dive logging and analytics'**
+  /// **'Dive safe. Log everything.'**
   String get setup_welcome_subtitle;
 
   /// No description provided for @setup_welcome_title.
@@ -25981,7 +25981,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_description.
   ///
   /// In en, this message translates to:
-  /// **'Dive deeper.'**
+  /// **'Dive safe. Log everything.'**
   String get settings_about_description;
 
   /// No description provided for @settings_about_header.

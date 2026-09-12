@@ -6908,7 +6908,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'Set up a new profile';
 
   @override
-  String get setup_welcome_subtitle => 'Advanced dive logging and analytics';
+  String get setup_welcome_subtitle => 'Dive safe. Log everything.';
 
   @override
   String get setup_welcome_title => 'Welcome to Submersion';
@@ -15437,7 +15437,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description => 'Dive deeper.';
+  String get settings_about_description => 'Dive safe. Log everything.';
 
   @override
   String get settings_about_header => 'About';
