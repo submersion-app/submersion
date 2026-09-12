@@ -147,6 +147,63 @@ void main() {
     expect(find.byType(Checkbox), findsOneWidget);
   });
 
+  testWidgets('keeps the avatar beside the checkbox in selection mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        child: SiteListTile(
+          entry: _richEntry,
+          isSelectionMode: true,
+          isChecked: false,
+          onTap: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byIcon(Icons.location_on),
+      findsOneWidget,
+      reason: 'the checkbox is inserted ahead of the avatar (issue #1717)',
+    );
+    expect(
+      tester.getTopRight(find.byType(Checkbox)).dx,
+      lessThanOrEqualTo(tester.getTopLeft(find.byType(CircleAvatar)).dx),
+    );
+  });
+
+  testWidgets('keeps the stat line under the title in selection mode', (
+    tester,
+  ) async {
+    Future<double> statOffsetFromTitle({required bool selecting}) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: SiteListTile(
+            entry: _richEntry,
+            isSelectionMode: selecting,
+            isChecked: false,
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return tester.getTopLeft(find.text('5-50m')).dx -
+          tester.getTopLeft(find.text('Blue Hole')).dx;
+    }
+
+    final normal = await statOffsetFromTitle(selecting: false);
+    final selecting = await statOffsetFromTitle(selecting: true);
+    expect(
+      selecting,
+      normal,
+      reason: 'the lower lines move with the checkbox column',
+    );
+  });
+
   testWidgets('renders a FlutterMap background for a located site', (
     tester,
   ) async {

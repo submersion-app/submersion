@@ -204,4 +204,60 @@ void main() {
 
     expect(find.byType(Checkbox), findsOneWidget);
   });
+
+  testWidgets('keeps the avatar initials beside the checkbox in selection '
+      'mode', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        child: BuddyListTile(
+          entry: BuddyWithDiveCount(buddy: _buddy(), diveCount: 1),
+          isSelectionMode: true,
+          isChecked: false,
+          onTap: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('JD'),
+      findsOneWidget,
+      reason: 'the checkbox is inserted ahead of the avatar (issue #1717)',
+    );
+    expect(
+      tester.getTopRight(find.byType(Checkbox)).dx,
+      lessThanOrEqualTo(tester.getTopLeft(find.text('JD')).dx),
+    );
+  });
+
+  testWidgets('keeps the stat line under the title in selection mode', (
+    tester,
+  ) async {
+    Future<double> statOffsetFromTitle({required bool selecting}) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: BuddyListTile(
+            entry: BuddyWithDiveCount(buddy: _buddy(), diveCount: 23),
+            isSelectionMode: selecting,
+            isChecked: false,
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return tester.getTopLeft(find.text('23 dives')).dx -
+          tester.getTopLeft(find.text('Jane Doe')).dx;
+    }
+
+    final normal = await statOffsetFromTitle(selecting: false);
+    final selecting = await statOffsetFromTitle(selecting: true);
+    expect(
+      selecting,
+      normal,
+      reason: 'the lower lines move with the checkbox column',
+    );
+  });
 }
