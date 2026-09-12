@@ -21,6 +21,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_components_add => 'إضافة مكوّن';
 
   @override
+  String get equipment_components_containsSection => 'يحتوي على';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'لا يحتوي على أجزاء خاصة به. أضفها إذا كان هذا العنصر يتكوّن من عناصر أخرى.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -96,6 +103,14 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'جزء من تجميعة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'جزء من';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role، في $rigs';
   }
 
   @override

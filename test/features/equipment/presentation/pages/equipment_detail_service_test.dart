@@ -68,6 +68,9 @@ void main() {
           equipmentComponentsProvider(
             item.id,
           ).overrideWith((ref) async => const []),
+          equipmentPartOfProvider(
+            item.id,
+          ).overrideWith((ref) async => const []),
           equipmentExposureTotalsProvider(
             item.id,
           ).overrideWith((ref) async => EquipmentExposureTotals.empty),

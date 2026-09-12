@@ -21,6 +21,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_components_add => 'Adicionar componente';
 
   @override
+  String get equipment_components_containsSection => 'Contém';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Sem componentes. Adicione as peças que compõem este item.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'Sem peças próprias. Adicione-as se este item for composto por outros.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -97,6 +104,14 @@ class AppLocalizationsPt extends AppLocalizations {
       one: 'Parte de 1 conjunto',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'Parte de';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role, em $rigs';
   }
 
   @override

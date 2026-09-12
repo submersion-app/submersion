@@ -21,6 +21,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_components_add => 'Onderdeel toevoegen';
 
   @override
+  String get equipment_components_containsSection => 'Bevat';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Geen onderdelen. Voeg de delen toe waaruit dit item is opgebouwd.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'Geen eigen onderdelen. Voeg ze toe als dit item uit andere is opgebouwd.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -96,6 +103,14 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'Onderdeel van 1 samenstel',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'Onderdeel van';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role, in $rigs';
   }
 
   @override

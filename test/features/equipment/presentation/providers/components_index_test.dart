@@ -85,6 +85,46 @@ void main() {
     expect(index.ancestorsOf('a'), {'b', 'a'});
   });
 
+  group('rootsOf', () {
+    test('finds the outermost assembly up a chain', () {
+      final index = ComponentsIndex.fromRows([
+        edge('rig', 'reg'),
+        edge('reg', 'first'),
+        edge('first', 'hose'),
+      ]);
+      expect(index.rootsOf('hose'), {'rig'});
+      expect(index.rootsOf('reg'), {'rig'});
+    });
+
+    test('a diamond reaches every root once', () {
+      final index = ComponentsIndex.fromRows([
+        edge('sidemount', 'reg'),
+        edge('backmount', 'reg'),
+        edge('reg', 'hose'),
+        edge('kit', 'hose'),
+      ]);
+      expect(index.rootsOf('hose'), {'sidemount', 'backmount', 'kit'});
+      expect(index.rootsOf('reg'), {'sidemount', 'backmount'});
+    });
+
+    test('a top-level item has no roots above it', () {
+      final index = ComponentsIndex.fromRows([edge('rig', 'reg')]);
+      expect(index.rootsOf('rig'), isEmpty);
+      expect(index.rootsOf('unrelated'), isEmpty);
+    });
+
+    test('a corrupt cycle terminates and keeps any real root', () {
+      final loop = ComponentsIndex.fromRows([edge('a', 'b'), edge('b', 'a')]);
+      expect(loop.rootsOf('a'), isEmpty);
+      final rooted = ComponentsIndex.fromRows([
+        edge('kit', 'a'),
+        edge('a', 'b'),
+        edge('b', 'a'),
+      ]);
+      expect(rooted.rootsOf('b'), {'kit'});
+    });
+  });
+
   test('empty is empty', () {
     expect(ComponentsIndex.empty.componentCount('x'), 0);
     expect(ComponentsIndex.empty.descendantsOf('x'), isEmpty);
