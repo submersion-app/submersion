@@ -69,6 +69,45 @@ void main() {
     expect(entries.last.rootNames, ['backmount rig', 'Sidemount rig']);
   });
 
+  test('renaming a parent or a rig refreshes the entries', () async {
+    final rig = await item('Sidemount rig', EquipmentType.other);
+    final reg = await item('Travel reg', EquipmentType.regulator);
+    final octo = await item('XTX50 octopus', EquipmentType.secondStage);
+    await components.addComponent(parentId: rig, componentId: reg);
+    await components.addComponent(parentId: reg, componentId: octo);
+
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final provider = equipmentPartOfProvider(octo);
+    container.listen(provider, (_, _) {});
+    final before = await container.read(provider.future);
+    expect(before.single.edge.parent?.name, 'Travel reg');
+    expect(before.single.rootNames, ['Sidemount rig']);
+
+    Future<void> rename(String id, String name) async {
+      final current = (await equipment.getEquipmentByIds([id])).single;
+      await equipment.updateEquipment(current.copyWith(name: name));
+    }
+
+    await rename(reg, 'Trip reg');
+    await rename(rig, 'Side rig');
+
+    // The change stream is debounced, so wait for the refresh rather than
+    // assuming a fixed delay.
+    List<PartOfEntry> after = before;
+    final deadline = DateTime.now().add(const Duration(seconds: 5));
+    while (DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      after = await container.read(provider.future);
+      if (after.single.edge.parent?.name == 'Trip reg' &&
+          after.single.rootNames.single == 'Side rig') {
+        break;
+      }
+    }
+    expect(after.single.edge.parent?.name, 'Trip reg');
+    expect(after.single.rootNames, ['Side rig']);
+  });
+
   test('an item that is part of nothing has no entries', () async {
     final rig = await item('Rig', EquipmentType.other);
     final reg = await item('Reg', EquipmentType.regulator);
