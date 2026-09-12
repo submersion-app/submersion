@@ -68,6 +68,14 @@ class EquipmentConditionEngine {
     ConditionRuleId.transmitterDropoutHigh,
   };
 
+  /// Whether any of [summaryRules] can fire for an item of [type]: the
+  /// cell rules for an O2 cell or a rebreather, the dropout rules for a
+  /// transmitter. No other item reads the summaries.
+  static bool readsSummaries(EquipmentType type) =>
+      type == EquipmentType.o2Cell ||
+      type == EquipmentType.rebreather ||
+      type == EquipmentType.transmitter;
+
   static const int declineMinDives = 10;
   static const double declineFraction = 0.15;
   static const int lowMinDives = 3;
