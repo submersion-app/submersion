@@ -35,45 +35,51 @@ class _TestCardConfigNotifier extends CardViewConfigNotifier {
 }
 
 void main() {
-  Widget compact({required bool isSelectionMode, bool isChecked = false}) =>
-      testApp(
-        overrides: [
-          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-        ],
-        child: CompactDiveListTile(
-          diveId: 'd1',
-          diveNumber: 125,
-          dateTime: DateTime(2025, 7, 19, 12, 24),
-          siteName: 'Centeen SCUBA park',
-          maxDepth: 10.6,
-          duration: const Duration(minutes: 28),
-          isSelectionMode: isSelectionMode,
-          isChecked: isChecked,
-          onTap: () {},
-        ),
-      );
+  Widget compact({
+    required bool isSelectionMode,
+    bool isChecked = false,
+    VoidCallback? onTap,
+  }) => testApp(
+    overrides: [
+      settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+    ],
+    child: CompactDiveListTile(
+      diveId: 'd1',
+      diveNumber: 125,
+      dateTime: DateTime(2025, 7, 19, 12, 24),
+      siteName: 'Centeen SCUBA park',
+      maxDepth: 10.6,
+      duration: const Duration(minutes: 28),
+      isSelectionMode: isSelectionMode,
+      isChecked: isChecked,
+      onTap: onTap ?? () {},
+    ),
+  );
 
-  Widget detailed({required bool isSelectionMode, bool isChecked = false}) =>
-      testApp(
-        overrides: [
-          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          detailedCardConfigProvider.overrideWith(
-            (ref) => _TestCardConfigNotifier(),
-          ),
-        ],
-        child: DiveListTile(
-          diveId: 'd1',
-          diveNumber: 125,
-          dateTime: DateTime(2025, 7, 19, 12, 24),
-          siteName: 'Centeen SCUBA park',
-          siteLocation: 'Ontario, Canada',
-          maxDepth: 10.6,
-          duration: const Duration(minutes: 28),
-          isSelectionMode: isSelectionMode,
-          isChecked: isChecked,
-          onTap: () {},
-        ),
-      );
+  Widget detailed({
+    required bool isSelectionMode,
+    bool isChecked = false,
+    VoidCallback? onTap,
+  }) => testApp(
+    overrides: [
+      settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      detailedCardConfigProvider.overrideWith(
+        (ref) => _TestCardConfigNotifier(),
+      ),
+    ],
+    child: DiveListTile(
+      diveId: 'd1',
+      diveNumber: 125,
+      dateTime: DateTime(2025, 7, 19, 12, 24),
+      siteName: 'Centeen SCUBA park',
+      siteLocation: 'Ontario, Canada',
+      maxDepth: 10.6,
+      duration: const Duration(minutes: 28),
+      isSelectionMode: isSelectionMode,
+      isChecked: isChecked,
+      onTap: onTap ?? () {},
+    ),
+  );
 
   /// Narrow phone width, matching the screenshots on issue #1717.
   Future<void> usePhoneWidth(WidgetTester tester) async {
@@ -84,7 +90,12 @@ void main() {
 
   void selectionNumberTests(
     String name,
-    Widget Function({required bool isSelectionMode, bool isChecked}) build,
+    Widget Function({
+      required bool isSelectionMode,
+      bool isChecked,
+      VoidCallback? onTap,
+    })
+    build,
   ) {
     group('$name in selection mode', () {
       for (final checked in [false, true]) {
@@ -124,6 +135,27 @@ void main() {
 
         expect(find.byType(Checkbox), findsNothing);
         expect(find.text('#125'), findsOneWidget);
+      });
+
+      testWidgets('tapping the checkbox toggles the row', (tester) async {
+        var taps = 0;
+        await tester.pumpWidget(
+          build(isSelectionMode: true, onTap: () => taps++),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          tester.widget<Checkbox>(find.byType(Checkbox)).onChanged,
+          isNotNull,
+          reason: 'a disabled checkbox would read as an unselectable row',
+        );
+        await tester.tap(find.byType(Checkbox));
+        expect(
+          taps,
+          1,
+          reason:
+              'the checkbox claims the tap, so the row toggles exactly once',
+        );
       });
 
       for (final selecting in [false, true]) {
