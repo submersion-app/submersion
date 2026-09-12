@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/presentation/providers/exposure_th
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -709,6 +710,13 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final isRebreather =
       item.type == EquipmentType.rebreather ||
       parent?.type == EquipmentType.rebreather;
+  // A transmitter's dives include the tanks that carried its registered
+  // serials, and assigning a serial writes only the registry.
+  if (item.type == EquipmentType.transmitter) {
+    ref.invalidateSelfWhen(
+      ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
+    );
+  }
   final usage = await repository.getExposureSamplesForEquipment(
     item.id,
     parentEquipmentId: parentId,

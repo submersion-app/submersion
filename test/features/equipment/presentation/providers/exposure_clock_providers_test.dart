@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/data/repositories/service_schedule
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -110,4 +111,76 @@ void main() {
       expect(status.usageByUnit[ExposureUnit.coldDives]!.since, 1);
     },
   );
+
+  test('a registry edit reaches a transmitter\'s clock', () async {
+    // A transmitter's dives are the tanks that carried its registered
+    // serials; assigning a serial writes only the registry.
+    final tx = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Tx',
+        type: EquipmentType.transmitter,
+        purchaseDate: DateTime(2025, 1, 1),
+      ),
+    );
+    final schedule = await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: tx.id,
+        serviceKindId: 'regulator-service',
+        exposureIntervals: const {ExposureUnit.dives: 10},
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    final ms = DateTime.utc(2026, 1, 1).millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: ms,
+            createdAt: ms,
+            updatedAt: ms,
+          ).copyWith(runtime: const Value(3600)),
+        );
+    await db.customStatement(
+      "INSERT INTO dive_tanks (id, dive_id, transmitter_serial) "
+      "VALUES ('t1', 'd1', '555')",
+    );
+    final sub = container.listen(
+      serviceClockStatusesProvider(tx.id),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+    Future<double?> since() async =>
+        (await container.read(serviceClockStatusesProvider(tx.id).future))
+            .firstWhere((s) => s.schedule.id == schedule.id)
+            .usageByUnit[ExposureUnit.dives]
+            ?.since;
+    expect(await since(), 0);
+
+    // Through drift, so the registry's change stream ticks as the app's
+    // own writes do.
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 'r1',
+            label: 'Main',
+            tankRole: 'backGas',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(
+            transmitterSerial: const Value('555'),
+            transmitterEquipmentId: Value(tx.id),
+          ),
+        );
+    var now = await since();
+    for (var i = 0; i < 50 && now != 1; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = await since();
+    }
+    expect(now, 1);
+  });
 }
