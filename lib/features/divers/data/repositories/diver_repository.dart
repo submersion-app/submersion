@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
+import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
 ///
@@ -561,6 +562,16 @@ class DiverRepository {
         await _db.customStatement('DELETE FROM dive_sites WHERE diver_id = ?', [
           id,
         ]);
+        // Other divers' surviving tanks can still link this diver's gear, as
+        // the cylinder's item or its regulator. Cleared and staged with their
+        // dives here: the cylinder link had no ON DELETE action before v210
+        // and failed this delete, and the schema's SET NULL reaches no peer.
+        await clearCylinderGearLinks(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM equipment WHERE diver_id = ?', [id]),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await _db.customStatement('DELETE FROM equipment WHERE diver_id = ?', [
           id,
         ]);

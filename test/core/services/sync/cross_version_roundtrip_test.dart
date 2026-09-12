@@ -16,6 +16,14 @@
 // so the second group below covers the direction the floor cannot reach: a
 // pre-160 peer's payload, keyed with the old spelling, arriving here.
 // postV137DiveKeys stays as the record of the previous boundary.
+//
+// The floor moved 183 -> 210 with the cylinder gear link: v210 lets a gear
+// item a cylinder is linked to be deleted, and an older reader cannot apply
+// that tombstone. v210 adds no synced column, so no new projection is
+// needed. The direction the floor cannot reach, an older peer's payload
+// arriving here, has nothing new to carry: that peer cannot delete such an
+// item, and its live tank rows meet the parentRefs guard, which
+// sync_deletion_propagation_test.dart covers for this link.
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -355,8 +363,12 @@ void main() {
       expect(result.status, isNot(SyncResultStatus.error));
     }
 
-    test('the floor is 183', () {
-      expect(AppDatabase.minimumCompatibleSchemaVersion, 183);
+    test('the floor is at least 183', () {
+      // v210 raised it again; the v210 migration test owns the exact value.
+      expect(
+        AppDatabase.minimumCompatibleSchemaVersion,
+        greaterThanOrEqualTo(183),
+      );
     });
 
     test('an old peer that still sends dive_profiles rows produces a series '
