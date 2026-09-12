@@ -975,7 +975,15 @@ class DiveTanks extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
-  TextColumn get equipmentId => text().nullable().references(Equipment, #id)();
+
+  /// The cylinder's gear item, written by the transmitter registry. v210:
+  /// ON DELETE SET NULL, like every other nullable link to equipment, so
+  /// deleting the item clears the link instead of failing on it.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   RealColumn get volume => real().nullable()(); // liters
   RealColumn get workingPressure => real().nullable()(); // bar - rated pressure
   RealColumn get startPressure => real().nullable()(); // bar
@@ -1023,6 +1031,12 @@ class DiveTanks extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Equipment catalog
@@ -1179,6 +1193,12 @@ class DiveEquipment extends Table {
 
   @override
   Set<Column> get primaryKey => {diveId, equipmentId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Multiple weight entries per dive (e.g., integrated + trim weights)
@@ -1194,6 +1214,12 @@ class DiveWeights extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Dated body-mass measurements per diver (weight prediction, v104).
@@ -1246,6 +1272,12 @@ class DivePlanEquipment extends Table {
 
   @override
   Set<Column> get primaryKey => {planId, equipmentId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Equipment sets (named collections of equipment items)
@@ -1285,6 +1317,12 @@ class EquipmentSetItems extends Table {
 
   @override
   Set<Column> get primaryKey => {setId, equipmentId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Geofences attached to an equipment set. A geofence matches a dive when its
@@ -1348,6 +1386,12 @@ class WeightPresetEntries extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Data-quality findings produced by the Data Quality Assistant detectors.
@@ -1505,6 +1549,12 @@ class Sightings extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Photos and media files (also used for signatures)
@@ -2232,6 +2282,12 @@ class DiveBuddies extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Diver certifications
@@ -2413,6 +2469,12 @@ class DiveTags extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Junction table for dive types (many-to-many).
@@ -2429,6 +2491,12 @@ class DiveDiveTypes extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Seeds one junction row per existing dive from its representative dive_type
@@ -3082,6 +3150,12 @@ class DiveDataSources extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// The original logbook file a file import was parsed out of, kept so a later
@@ -3154,6 +3228,12 @@ class DiveProfileEvents extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Marker row recording that the safety review engine has analyzed a dive.
@@ -3168,6 +3248,12 @@ class DiveSafetyReviews extends Table {
 
   @override
   Set<Column> get primaryKey => {diveId};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// One safety review observation for a dive (see SafetyFinding entity).
@@ -3187,6 +3273,12 @@ class DiveSafetyFindings extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// User-added hyperbaric chamber entries for the offline emergency card
@@ -3331,6 +3423,12 @@ class GasSwitches extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// One packed series of profile samples: every sample a
@@ -3454,6 +3552,12 @@ class TideRecords extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// User-defined key:value fields per dive
@@ -3468,6 +3572,12 @@ class DiveCustomFields extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 // ============================================================================
@@ -3550,6 +3660,13 @@ class DeletionLog extends Table {
   // minimal sentinel, so null only arises for a delete logged before the sync
   // clock was configured; such a tombstone is always included in a base.
   TextColumn get hlc => text().nullable()();
+  // The clock of the delete itself, as the deleting device stamped it, and
+  // what the wire carries (v210). [hlc] above is re-issued by every device
+  // that logs a peer's tombstone, so it says when this device heard of the
+  // delete, which is too late to judge a child edit made in between. Null
+  // for a tombstone logged before v210, or relayed from a peer that sent
+  // none: such a tombstone is judged by the older rules.
+  TextColumn get originHlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -3687,6 +3804,12 @@ class CourseRequirementDives extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Junction table for expected species at dive sites (manual curation)
@@ -3701,6 +3824,12 @@ class SiteSpecies extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  /// v210: this child's own clock, stamped when it is marked pending. The
+  /// merge refuses a remote copy strictly older than the local one, so a
+  /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }
 
 /// Diver-placed annotations on a dive site (slice 2 of the seascape
@@ -3942,7 +4071,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 208;
+  static const int currentSchemaVersion = 210;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3995,7 +4124,18 @@ class AppDatabase extends _$AppDatabase {
   /// is one-directional and does nothing to inbound payloads from an older
   /// peer. See [_purgeLegacySampleBookkeeping] for why those inbound legacy
   /// rows stay safe without the purged tombstones.
-  static const int minimumCompatibleSchemaVersion = 183;
+  ///
+  /// Raised 183 -> 210 by the cylinder gear link: v210 lets a gear item a
+  /// cylinder is linked to be deleted (dive_tanks.equipment_id now sets null
+  /// on delete), so this build publishes equipment tombstones an older
+  /// reader cannot apply. Its code deletes the equipment row directly under
+  /// the old NO ACTION link, the delete fails, the sync moves past it, and
+  /// the item lingers there for good. That is an old reader misapplying our
+  /// payload, which is what this floor exists to prevent. Peers below 210
+  /// are held until they update. Their own payloads still arrive here, and
+  /// a live tank row still pointing at an item deleted here has its link
+  /// cleared by [SyncService.parentRefs].
+  static const int minimumCompatibleSchemaVersion = 210;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -4494,6 +4634,13 @@ class AppDatabase extends _$AppDatabase {
     // 185: main landed 185 through 207 while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     208,
+    // v210: dive_tanks.equipment_id ON DELETE SET NULL. The link was NO
+    // ACTION from the initial schema, so deleting a gear item a cylinder
+    // was linked to failed. Rebuilds the table from its stored definition.
+    // Also an hlc column on the 19 child tables exported through their
+    // parent, so a stale copy from a peer cannot overwrite a newer edit.
+    // 209 is claimed by #1639, still open.
+    210,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4906,6 +5053,149 @@ class AppDatabase extends _$AppDatabase {
         'SELECT p.updated_at FROM $parentTable p WHERE p.id = $table.$foreignKey'
         ') WHERE updated_at IS NULL',
       );
+    }
+  }
+
+  /// v210: an `hlc` column on every child table exported through its
+  /// parent (SyncDataSerializer.parentGatedChildEntities), and an
+  /// `origin_hlc` on the deletion log. Idempotent; called
+  /// from the v210 onUpgrade block and the beforeOpen backstop. A table a
+  /// partial fixture lacks is skipped by [_addColumnIfMissing].
+  Future<void> _assertChildHlcColumns() async {
+    for (final table in const [
+      'dive_tanks',
+      'dive_equipment',
+      'dive_plan_equipment',
+      'dive_weights',
+      'equipment_set_items',
+      'dive_buddies',
+      'course_requirement_dives',
+      'dive_tags',
+      'dive_dive_types',
+      'weight_preset_entries',
+      'tide_records',
+      'sightings',
+      'dive_custom_fields',
+      'dive_data_sources',
+      'site_species',
+      'dive_profile_events',
+      'dive_safety_reviews',
+      'dive_safety_findings',
+      'gas_switches',
+    ]) {
+      await _addColumnIfMissing(table, 'hlc', 'TEXT');
+    }
+    // And the clock of a delete, which the tombstone paths compare with
+    // them (DeletionLog.originHlc).
+    await _addColumnIfMissing('deletion_log', 'origin_hlc', 'TEXT');
+  }
+
+  /// v210: gives `dive_tanks.equipment_id` the ON DELETE SET NULL action.
+  ///
+  /// The column carried a NO ACTION reference from the initial schema. It sat
+  /// unused until the transmitter registry began writing it, after which
+  /// deleting a linked gear item (locally, or from a peer's tombstone) failed
+  /// with a foreign key error. Every other nullable link to equipment already
+  /// sets null.
+  ///
+  /// SQLite cannot alter a constraint in place, so this rebuilds the table:
+  /// it rewrites only the equipment_id clause of the table's STORED
+  /// definition, which carries every column later rungs added, copies the
+  /// rows across, and recreates the table's indexes. No column list is
+  /// written out, so a column this code has never heard of survives too.
+  ///
+  /// Foreign keys must be off for the swap: with them on, the DROP deletes
+  /// every row first and cascades into the tables that hang off the tanks.
+  /// onUpgrade and the top of beforeOpen run before enforcement is switched
+  /// on, but this switches it off itself, and refuses rather than risk the
+  /// cascade if it cannot. The swap runs in one transaction so a crash can
+  /// never leave the table dropped.
+  ///
+  /// Idempotent: a table whose link already sets null, or that has no
+  /// equipment reference at all (minimal fixtures), is left untouched, so a
+  /// steady-state open costs one PRAGMA. Called from the v210 onUpgrade block
+  /// and the beforeOpen backstop.
+  Future<void> _assertDiveTankEquipmentSetNull() async {
+    final links = await customSelect(
+      "PRAGMA foreign_key_list('dive_tanks')",
+    ).get();
+    final equipmentLink = links.where(
+      (r) => r.read<String>('from') == 'equipment_id',
+    );
+    if (equipmentLink.isEmpty) return;
+    // Only the initial schema's action is rewritten. SET NULL is done; any
+    // other action is not this rung's to change.
+    final action = equipmentLink.first.read<String>('on_delete').toUpperCase();
+    if (action != 'NO ACTION' && action != 'RESTRICT') return;
+
+    final stored = await customSelect(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' "
+      "AND name = 'dive_tanks'",
+    ).getSingle();
+    final createSql = stored.read<String>('sql');
+    // The column's own clause only: the character before it must not be a
+    // name character, so regulator_equipment_id is never matched, and the
+    // clause must end the column definition, so a clause followed by any
+    // other action is not matched at all.
+    final clause = RegExp(
+      r'''(^|[\s,(])("?equipment_id"?\s+TEXT(?:\s+NULL)?\s+REFERENCES\s+'''
+      r'''"?equipment"?\s*\(\s*"?id"?\s*\))(\s+ON\s+DELETE\s+'''
+      r'''(?:NO\s+ACTION|RESTRICT))?(?=\s*[,)])''',
+      caseSensitive: false,
+    );
+    final header = RegExp(
+      r'^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?"?dive_tanks"?',
+      caseSensitive: false,
+    );
+    if (clause.allMatches(createSql).length != 1 ||
+        !header.hasMatch(createSql)) {
+      developer.log(
+        'dive_tanks.equipment_id: stored definition not in a recognised '
+        'shape, left as NO ACTION',
+        name: 'AppDatabase',
+      );
+      return;
+    }
+    const scratch = 'dive_tanks_v210';
+    final rebuiltSql = createSql
+        .replaceFirstMapped(clause, (m) => '${m[1]}${m[2]} ON DELETE SET NULL')
+        .replaceFirst(header, 'CREATE TABLE $scratch');
+    final dependents = await customSelect(
+      "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_tanks' "
+      "AND type IN ('index', 'trigger') AND sql IS NOT NULL",
+    ).get();
+
+    Future<bool> enforced() async =>
+        (await customSelect(
+          'PRAGMA foreign_keys',
+        ).getSingle()).read<int>('foreign_keys') ==
+        1;
+    final wasEnforced = await enforced();
+    if (wasEnforced) {
+      await customStatement('PRAGMA foreign_keys = OFF');
+      // A no-op inside a transaction. Refuse rather than cascade.
+      if (await enforced()) {
+        developer.log(
+          'dive_tanks.equipment_id: foreign keys could not be switched off, '
+          'rebuild deferred to a later open',
+          name: 'AppDatabase',
+        );
+        return;
+      }
+    }
+    try {
+      await transaction(() async {
+        await customStatement('DROP TABLE IF EXISTS $scratch');
+        await customStatement(rebuiltSql);
+        await customStatement('INSERT INTO $scratch SELECT * FROM dive_tanks');
+        await customStatement('DROP TABLE dive_tanks');
+        await customStatement('ALTER TABLE $scratch RENAME TO dive_tanks');
+        for (final row in dependents) {
+          await customStatement(row.read<String>('sql'));
+        }
+      });
+    } finally {
+      if (wasEnforced) await customStatement('PRAGMA foreign_keys = ON');
     }
   }
 
@@ -11525,8 +11815,25 @@ class AppDatabase extends _$AppDatabase {
           await _assertImportedFilesSchema();
         }
         if (from < 208) await reportProgress();
+        // v210: dive_tanks.equipment_id ON DELETE SET NULL, a table rebuild
+        // (see _assertDiveTankEquipmentSetNull). 209 is claimed by an open
+        // PR. Re-asserted in the beforeOpen backstop, which runs it before
+        // foreign keys are switched on.
+        if (from < 210) {
+          await _assertDiveTankEquipmentSetNull();
+          await _assertChildHlcColumns();
+        }
+        if (from < 210) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v210 backstop: the dive_tanks equipment link sets null on delete.
+        // First, while foreign keys are still off: the rebuild it may do
+        // drops the table, which with enforcement on would cascade into the
+        // rows that hang off the tanks.
+        await _assertDiveTankEquipmentSetNull();
+        // v210 backstop: the child tables' own clocks.
+        await _assertChildHlcColumns();
+
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
 

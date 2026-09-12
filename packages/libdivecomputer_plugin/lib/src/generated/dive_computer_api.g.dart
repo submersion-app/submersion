@@ -284,6 +284,7 @@ class GasMix {
     required this.index,
     required this.o2Percent,
     required this.hePercent,
+    this.usage,
   });
 
   int index;
@@ -292,8 +293,14 @@ class GasMix {
 
   double hePercent;
 
+  /// Gas usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+  /// 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+  /// Set on the gas mix itself, so it is available even when the mix has no
+  /// tank/transmitter record.
+  int? usage;
+
   Object encode() {
-    return <Object?>[index, o2Percent, hePercent];
+    return <Object?>[index, o2Percent, hePercent, usage];
   }
 
   static GasMix decode(Object result) {
@@ -302,6 +309,7 @@ class GasMix {
       index: result[0]! as int,
       o2Percent: result[1]! as double,
       hePercent: result[2]! as double,
+      usage: result[3] as int?,
     );
   }
 }

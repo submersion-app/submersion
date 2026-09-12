@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
@@ -90,14 +91,26 @@ class SyncDeletion {
   final String id;
   final int deletedAt;
 
-  const SyncDeletion({required this.id, required this.deletedAt});
+  /// The clock of the delete itself, as the deleting device stamped it
+  /// (DeletionLog.originHlc). The merge compares it with a child row's own
+  /// HLC. Null from a peer that predates it; omitted from the JSON then, so
+  /// such a tombstone reads exactly as before.
+  final String? hlc;
 
-  Map<String, dynamic> toJson() => {'id': id, 'deletedAt': deletedAt};
+  const SyncDeletion({required this.id, required this.deletedAt, this.hlc});
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'deletedAt': deletedAt,
+    'hlc': ?hlc,
+  };
 
   factory SyncDeletion.fromJson(Map<String, dynamic> json) {
+    final hlc = json['hlc'];
     return SyncDeletion(
       id: json['id'] as String,
       deletedAt: json['deletedAt'] as int? ?? 0,
+      hlc: hlc is String && hlc.isNotEmpty ? hlc : null,
     );
   }
 }
@@ -1349,7 +1362,11 @@ class SyncDataSerializer {
       deletionMap
           .putIfAbsent(deletion.entityType, () => [])
           .add(
-            SyncDeletion(id: deletion.recordId, deletedAt: deletion.deletedAt),
+            SyncDeletion(
+              id: deletion.recordId,
+              deletedAt: deletion.deletedAt,
+              hlc: deletion.originHlc,
+            ),
           );
     }
     return deletionMap;
@@ -1383,8 +1400,203 @@ class SyncDataSerializer {
     return maxHlc;
   }
 
+  /// Children with no clock of their own whose incremental export selects
+  /// rows through a parent's HLC (a dive's tanks, gear links, tags and so
+  /// on). A change to only such a child reached peers only if the parent was
+  /// re-stamped, and a re-stamp makes this device's whole parent row win
+  /// under last-writer-wins, overwriting a newer edit to it made elsewhere.
+  /// So a child marked pending is also exported on its own, without its
+  /// parent (see [_withPendingChildren]). Each also carries its own clock
+  /// (v210), so the merge refuses a remote copy strictly older than the
+  /// local one (SyncService._mergeEntity).
+  static const Set<String> parentGatedChildEntities = {
+    'diveTanks',
+    'diveEquipment',
+    'divePlanEquipment',
+    'diveWeights',
+    'equipmentSetItems',
+    'diveBuddies',
+    'courseRequirementDives',
+    'diveTags',
+    'diveDiveTypes',
+    'weightPresetEntries',
+    'tideRecords',
+    'sightings',
+    'diveCustomFields',
+    'diveDataSources',
+    'siteSpecies',
+    'diveProfileEvents',
+    'diveSafetyReviews',
+    'diveSafetyFindings',
+    'gasSwitches',
+  };
+
+  /// The sync record id of a [parentGatedChildEntities] row, in the shape
+  /// SyncService.recordIdForEntity uses (a composite key is joined with
+  /// `|`). Mirrored here rather than imported because sync_service.dart
+  /// imports this file; a test pins that the two agree.
+  @visibleForTesting
+  static String? parentGatedRecordId(
+    String entityType,
+    Map<String, dynamic> row,
+  ) {
+    String? composite(Object? left, Object? right) =>
+        left is String && right is String ? '$left|$right' : null;
+    switch (entityType) {
+      case 'diveSafetyReviews':
+        return row['diveId'] as String?;
+      case 'diveEquipment':
+        return row['id'] as String? ??
+            composite(row['diveId'], row['equipmentId']);
+      case 'equipmentSetItems':
+        return row['id'] as String? ??
+            composite(row['setId'], row['equipmentId']);
+      case 'divePlanEquipment':
+        return row['id'] as String? ??
+            composite(row['planId'], row['equipmentId']);
+      default:
+        return row['id'] as String?;
+    }
+  }
+
+  /// The SQL table of each [parentGatedChildEntities] type. A test pins it
+  /// to SyncRepository.hlcTargets, which stamps the same tables.
+  @visibleForTesting
+  static const Map<String, String> parentGatedTables = {
+    'diveTanks': 'dive_tanks',
+    'diveEquipment': 'dive_equipment',
+    'divePlanEquipment': 'dive_plan_equipment',
+    'diveWeights': 'dive_weights',
+    'equipmentSetItems': 'equipment_set_items',
+    'diveBuddies': 'dive_buddies',
+    'courseRequirementDives': 'course_requirement_dives',
+    'diveTags': 'dive_tags',
+    'diveDiveTypes': 'dive_dive_types',
+    'weightPresetEntries': 'weight_preset_entries',
+    'tideRecords': 'tide_records',
+    'sightings': 'sightings',
+    'diveCustomFields': 'dive_custom_fields',
+    'diveDataSources': 'dive_data_sources',
+    'siteSpecies': 'site_species',
+    'diveProfileEvents': 'dive_profile_events',
+    'diveSafetyReviews': 'dive_safety_reviews',
+    'diveSafetyFindings': 'dive_safety_findings',
+    'gasSwitches': 'gas_switches',
+  };
+
+  /// The key columns of a [parentGatedChildEntities] table, in the order
+  /// its sync record id joins them with `|`.
+  static const Map<String, List<String>> _parentGatedKeyColumns = {
+    'diveEquipment': ['dive_id', 'equipment_id'],
+    'divePlanEquipment': ['plan_id', 'equipment_id'],
+    'equipmentSetItems': ['set_id', 'equipment_id'],
+    'diveSafetyReviews': ['dive_id'],
+  };
+
+  /// [ids] of a [parentGatedChildEntities] type in one query (per chunk the
+  /// caller hands in), keyed by sync record id; a missing id is absent. A
+  /// read per row turned every export or merge carrying many children (a
+  /// re-parse's events, a bulk edit's links) into hundreds of queries.
+  Future<Map<String, Map<String, dynamic>>> _fetchParentGatedChildren(
+    String entityType,
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return {};
+    final tableName = parentGatedTables[entityType]!;
+    final table = _db.allTables.firstWhere(
+      (t) => t.actualTableName == tableName,
+    );
+    final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
+    // A composite key binds a variable per column, so a batch sized for
+    // single ids would bind twice SQLite's ~999 limit.
+    final perStatement = 900 ~/ keys.length;
+    if (ids.length > perStatement) {
+      final merged = <String, Map<String, dynamic>>{};
+      for (var i = 0; i < ids.length; i += perStatement) {
+        final end = math.min(i + perStatement, ids.length);
+        merged.addAll(
+          await _fetchParentGatedChildren(entityType, ids.sublist(i, end)),
+        );
+      }
+      return merged;
+    }
+    final tuples = [
+      for (final id in ids)
+        if (keys.length == 1)
+          [id]
+        else if (id.split('|') case final parts when parts.length == 2)
+          parts,
+    ];
+    if (tuples.isEmpty) return {};
+    final placeholders = keys.length == 1
+        ? tuples.map((_) => '?').join(', ')
+        : 'VALUES ${tuples.map((_) => '(${keys.map((_) => '?').join(', ')})').join(', ')}';
+    final keyList = keys.length == 1 ? keys.single : '(${keys.join(', ')})';
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM $tableName WHERE $keyList IN ($placeholders)',
+          variables: [
+            for (final tuple in tuples)
+              for (final value in tuple) Variable.withString(value),
+          ],
+          readsFrom: {table},
+        )
+        .get();
+    final byId = <String, Map<String, dynamic>>{};
+    for (final row in rows) {
+      final data = table.map(row.data);
+      if (data is! DataClass) continue;
+      final json = data.toJson(serializer: _syncBlobSerializer);
+      final id = parentGatedRecordId(entityType, json);
+      if (id != null) byId[id] = json;
+    }
+    return byId;
+  }
+
+  /// Pending sync record ids for [parentGatedChildEntities], by entity type.
+  Future<Map<String, Set<String>>> _pendingParentGatedChildIds() async {
+    final rows =
+        await (_db.select(_db.syncRecords)..where(
+              (t) =>
+                  t.syncStatus.equals('pending') &
+                  t.entityType.isIn(parentGatedChildEntities),
+            ))
+            .get();
+    final byType = <String, Set<String>>{};
+    for (final row in rows) {
+      byType.putIfAbsent(row.entityType, () => <String>{}).add(row.recordId);
+    }
+    return byType;
+  }
+
+  /// [rows] from the parent-gated export plus every pending [entityType] row
+  /// it did not already include. A pending id whose row is gone is skipped:
+  /// its deletion travels as a tombstone.
+  Future<List<Map<String, dynamic>>> _withPendingChildren(
+    String entityType,
+    List<Map<String, dynamic>> rows,
+    Map<String, Set<String>> pendingChildren,
+  ) async {
+    final pending = pendingChildren[entityType];
+    if (pending == null || pending.isEmpty) return rows;
+    final present = {
+      for (final row in rows) ?parentGatedRecordId(entityType, row),
+    };
+    final missing = [
+      for (final id in pending)
+        if (!present.contains(id)) id,
+    ];
+    if (missing.isEmpty) return rows;
+    final extra = (await fetchRecords(entityType, missing)).values;
+    return extra.isEmpty ? rows : [...rows, ...extra];
+  }
+
   /// Build the full SyncData, filtering by [hlcSince] (null = full export).
   Future<SyncData> _buildSyncData(String? hlcSince) async {
+    // A base (null hlcSince) already carries every row.
+    final pendingChildren = hlcSince == null
+        ? const <String, Set<String>>{}
+        : await _pendingParentGatedChildIds();
     return SyncData(
       divers: await _safeExport('divers', () => _exportDivers(hlcSince)),
       diverSettings: await _safeExport(
@@ -1394,15 +1606,27 @@ class SyncDataSerializer {
       dives: await _safeExport('dives', () => _exportDives(hlcSince)),
       diveTanks: await _safeExport(
         'diveTanks',
-        () => _exportDiveTanks(hlcSince),
+        () async => _withPendingChildren(
+          'diveTanks',
+          await _exportDiveTanks(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveEquipment: await _safeExport(
         'diveEquipment',
-        () => _exportDiveEquipment(hlcSince),
+        () async => _withPendingChildren(
+          'diveEquipment',
+          await _exportDiveEquipment(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveWeights: await _safeExport(
         'diveWeights',
-        () => _exportDiveWeights(hlcSince),
+        () async => _withPendingChildren(
+          'diveWeights',
+          await _exportDiveWeights(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveSites: await _safeExport(
         'diveSites',
@@ -1418,7 +1642,11 @@ class SyncDataSerializer {
       ),
       equipmentSetItems: await _safeExport(
         'equipmentSetItems',
-        () => _exportEquipmentSetItems(hlcSince),
+        () async => _withPendingChildren(
+          'equipmentSetItems',
+          await _exportEquipmentSetItems(hlcSince),
+          pendingChildren,
+        ),
       ),
       equipmentSetGeofences: await _safeExport(
         'equipmentSetGeofences',
@@ -1468,7 +1696,11 @@ class SyncDataSerializer {
       ),
       diveBuddies: await _safeExport(
         'diveBuddies',
-        () => _exportDiveBuddies(hlcSince),
+        () async => _withPendingChildren(
+          'diveBuddies',
+          await _exportDiveBuddies(hlcSince),
+          pendingChildren,
+        ),
       ),
       certifications: await _safeExport(
         'certifications',
@@ -1481,7 +1713,11 @@ class SyncDataSerializer {
       ),
       courseRequirementDives: await _safeExport(
         'courseRequirementDives',
-        () => _exportCourseRequirementDives(hlcSince),
+        () async => _withPendingChildren(
+          'courseRequirementDives',
+          await _exportCourseRequirementDives(hlcSince),
+          pendingChildren,
+        ),
       ),
       serviceRecords: await _safeExport(
         'serviceRecords',
@@ -1558,17 +1794,32 @@ class SyncDataSerializer {
       ),
       divePlanEquipment: await _safeExport(
         'divePlanEquipment',
-        () => _exportDivePlanEquipment(hlcSince),
+        () async => _withPendingChildren(
+          'divePlanEquipment',
+          await _exportDivePlanEquipment(hlcSince),
+          pendingChildren,
+        ),
       ),
       diverWeightEntries: await _safeExport(
         'diverWeightEntries',
         () => _exportDiverWeightEntries(hlcSince),
       ),
       tags: await _safeExport('tags', () => _exportTags(hlcSince)),
-      diveTags: await _safeExport('diveTags', () => _exportDiveTags(hlcSince)),
+      diveTags: await _safeExport(
+        'diveTags',
+        () async => _withPendingChildren(
+          'diveTags',
+          await _exportDiveTags(hlcSince),
+          pendingChildren,
+        ),
+      ),
       diveDiveTypes: await _safeExport(
         'diveDiveTypes',
-        () => _exportDiveDiveTypes(hlcSince),
+        () async => _withPendingChildren(
+          'diveDiveTypes',
+          await _exportDiveDiveTypes(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveTypes: await _safeExport(
         'diveTypes',
@@ -1588,7 +1839,11 @@ class SyncDataSerializer {
       ),
       weightPresetEntries: await _safeExport(
         'weightPresetEntries',
-        () => _exportWeightPresetEntries(hlcSince),
+        () async => _withPendingChildren(
+          'weightPresetEntries',
+          await _exportWeightPresetEntries(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveComputers: await _safeExport(
         'diveComputers',
@@ -1600,25 +1855,45 @@ class SyncDataSerializer {
       ),
       tideRecords: await _safeExport(
         'tideRecords',
-        () => _exportTideRecords(hlcSince),
+        () async => _withPendingChildren(
+          'tideRecords',
+          await _exportTideRecords(hlcSince),
+          pendingChildren,
+        ),
       ),
       settings: await _safeExport('settings', () => _exportSettings(hlcSince)),
       species: await _safeExport('species', () => _exportSpecies(hlcSince)),
       sightings: await _safeExport(
         'sightings',
-        () => _exportSightings(hlcSince),
+        () async => _withPendingChildren(
+          'sightings',
+          await _exportSightings(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveProfileEvents: await _safeExport(
         'diveProfileEvents',
-        () => _exportDiveProfileEvents(hlcSince),
+        () async => _withPendingChildren(
+          'diveProfileEvents',
+          await _exportDiveProfileEvents(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveSafetyReviews: await _safeExport(
         'diveSafetyReviews',
-        () => _exportDiveSafetyReviews(hlcSince),
+        () async => _withPendingChildren(
+          'diveSafetyReviews',
+          await _exportDiveSafetyReviews(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveSafetyFindings: await _safeExport(
         'diveSafetyFindings',
-        () => _exportDiveSafetyFindings(hlcSince),
+        () async => _withPendingChildren(
+          'diveSafetyFindings',
+          await _exportDiveSafetyFindings(hlcSince),
+          pendingChildren,
+        ),
       ),
       emergencyChambers: await _safeExport(
         'emergencyChambers',
@@ -1638,11 +1913,19 @@ class SyncDataSerializer {
       ),
       gasSwitches: await _safeExport(
         'gasSwitches',
-        () => _exportGasSwitches(hlcSince),
+        () async => _withPendingChildren(
+          'gasSwitches',
+          await _exportGasSwitches(hlcSince),
+          pendingChildren,
+        ),
       ),
       diveCustomFields: await _safeExport(
         'diveCustomFields',
-        () => _exportDiveCustomFields(hlcSince),
+        () async => _withPendingChildren(
+          'diveCustomFields',
+          await _exportDiveCustomFields(hlcSince),
+          pendingChildren,
+        ),
       ),
       importedFiles: await _safeExport(
         'importedFiles',
@@ -1650,11 +1933,19 @@ class SyncDataSerializer {
       ),
       diveDataSources: await _safeExport(
         'diveDataSources',
-        () => _exportDiveDataSources(hlcSince),
+        () async => _withPendingChildren(
+          'diveDataSources',
+          await _exportDiveDataSources(hlcSince),
+          pendingChildren,
+        ),
       ),
       siteSpecies: await _safeExport(
         'siteSpecies',
-        () => _exportSiteSpecies(hlcSince),
+        () async => _withPendingChildren(
+          'siteSpecies',
+          await _exportSiteSpecies(hlcSince),
+          pendingChildren,
+        ),
       ),
       mediaSpecies: await _safeExport(
         'mediaSpecies',
@@ -2264,6 +2555,9 @@ class SyncDataSerializer {
       }
       return merged;
     }
+    if (parentGatedChildEntities.contains(entityType)) {
+      return _fetchParentGatedChildren(entityType, idList);
+    }
     switch (entityType) {
       case 'divers':
         final rows = await (_db.select(
@@ -2646,19 +2940,18 @@ class SyncDataSerializer {
   /// Convergence does NOT depend on republishing these rows, and deliberately
   /// so: the survivor rule is deterministic, so every device that sees both
   /// tags performs the identical fold from its own copy. The repointed rows
-  /// are still marked pending to record that they changed locally, but note
-  /// that alone does not re-export them -- `_exportDiveTags` gathers junctions
-  /// by their parent DIVE's HLC, not from pending junction records, and
-  /// bumping the dive to force it would risk clobbering a peer's newer edit to
-  /// that dive under LWW.
+  /// are still marked pending, and a pending junction is now exported on its
+  /// own ([parentGatedChildEntities]) without bumping the dive, which would
+  /// risk clobbering a peer's newer edit to that dive under LWW.
   ///
   /// The residual gap is narrow and known: a junction referencing a tag folded
   /// away in an EARLIER sync run arrives with no alias to rewrite it, so
   /// `repairDanglingForeignKeys` drops it and that one dive loses the tag
-  /// locally until something touches it. Closing it properly means either a
-  /// durable alias table or teaching the incremental export to honour pending
-  /// junction records -- both new sync surface, deferred rather than smuggled
-  /// into this change (PR #1033 review).
+  /// locally until something touches it. The pending export alone does not
+  /// close it, because a receiver that already holds the junction row applies
+  /// `diveTags` with DO NOTHING and keeps the old tag id; closing it means a
+  /// durable alias table or an updating apply for that entity (PR #1033
+  /// review).
   Future<void> _foldTagInto({
     required String loser,
     required String survivor,
@@ -5032,6 +5325,12 @@ class SyncDataSerializer {
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipment':
+        // A cylinder linked to the item (dive_tanks.equipment_id) keeps the
+        // tombstone from applying on a database whose link predates v210's
+        // ON DELETE SET NULL, so clear it first either way.
+        await (_db.update(_db.diveTanks)
+              ..where((t) => t.equipmentId.equals(recordId)))
+            .write(const DiveTanksCompanion(equipmentId: Value(null)));
         await (_db.delete(
           _db.equipment,
         )..where((t) => t.id.equals(recordId))).go();

@@ -804,6 +804,16 @@ GasMix::GasMix(
     o2_percent_(o2_percent),
     he_percent_(he_percent) {}
 
+GasMix::GasMix(
+  int64_t index,
+  double o2_percent,
+  double he_percent,
+  const int64_t* usage)
+ : index_(index),
+    o2_percent_(o2_percent),
+    he_percent_(he_percent),
+    usage_(usage ? std::optional<int64_t>(*usage) : std::nullopt) {}
+
 int64_t GasMix::index() const {
   return index_;
 }
@@ -831,12 +841,26 @@ void GasMix::set_he_percent(double value_arg) {
 }
 
 
+const int64_t* GasMix::usage() const {
+  return usage_ ? &(*usage_) : nullptr;
+}
+
+void GasMix::set_usage(const int64_t* value_arg) {
+  usage_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void GasMix::set_usage(int64_t value_arg) {
+  usage_ = value_arg;
+}
+
+
 EncodableList GasMix::ToEncodableList() const {
   EncodableList list;
-  list.reserve(3);
+  list.reserve(4);
   list.push_back(EncodableValue(index_));
   list.push_back(EncodableValue(o2_percent_));
   list.push_back(EncodableValue(he_percent_));
+  list.push_back(usage_ ? EncodableValue(*usage_) : EncodableValue());
   return list;
 }
 
@@ -845,6 +869,10 @@ GasMix GasMix::FromEncodableList(const EncodableList& list) {
     std::get<int64_t>(list[0]),
     std::get<double>(list[1]),
     std::get<double>(list[2]));
+  auto& encodable_usage = list[3];
+  if (!encodable_usage.IsNull()) {
+    decoded.set_usage(std::get<int64_t>(encodable_usage));
+  }
   return decoded;
 }
 
