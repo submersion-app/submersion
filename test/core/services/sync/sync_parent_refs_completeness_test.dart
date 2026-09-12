@@ -59,6 +59,7 @@ void main() {
     'dive_profile_events': 'diveProfileEvents',
     'gas_switches': 'gasSwitches',
     'dive_custom_fields': 'diveCustomFields',
+    'imported_files': 'importedFiles',
     'dive_data_sources': 'diveDataSources',
     'site_species': 'siteSpecies',
     'media_species': 'mediaSpecies',

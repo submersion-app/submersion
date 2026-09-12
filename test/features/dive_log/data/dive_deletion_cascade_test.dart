@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -19,12 +22,14 @@ void main() {
   late MediaTransferQueueRepository queue;
   late MediaRepository mediaRepository;
   late DiveRepository diveRepository;
+  late ImportedFileRepository importedFiles;
 
   setUp(() async {
     await setUpTestDatabase();
     cacheDb = LocalCacheDatabase(NativeDatabase.memory());
     queue = MediaTransferQueueRepository(database: cacheDb);
     mediaRepository = MediaRepository();
+    importedFiles = ImportedFileRepository();
     diveRepository = DiveRepository(
       mediaRepository: mediaRepository,
       mediaDeletionCoordinator: MediaDeletionCoordinator(
@@ -175,5 +180,115 @@ void main() {
     expect(await mediaRepository.getMediaById(doomed.id), isNull);
     expect(await mediaTombstones(), contains(doomed.id));
     expect(await queue.allForTesting(), isEmpty);
+  });
+
+  group('imported file cascade (issue #478)', () {
+    Future<bool> stillStored(String id) => importedFiles.exists(id);
+
+    Future<String> storeFileFor(
+      List<String> diveIds, {
+      List<int> bytes = const [1, 2, 3],
+    }) async {
+      final db = DatabaseService.instance.database;
+      final id = await importedFiles.store(
+        bytes: Uint8List.fromList(bytes),
+        fileName: 'logbook.uddf',
+      );
+      for (final diveId in diveIds) {
+        await db
+            .into(db.diveDataSources)
+            .insert(
+              DiveDataSourcesCompanion.insert(
+                id: 'src-$diveId',
+                diveId: diveId,
+                isPrimary: const Value(true),
+                importedAt: DateTime(2026, 1, 1),
+                createdAt: DateTime(2026, 1, 1),
+                sourceFileFormat: const Value('uddf'),
+                importedFileId: Value(id),
+              ),
+            );
+      }
+      return id;
+    }
+
+    test('deleting the only dive that points at a stored file removes '
+        'it', () async {
+      final dive = await makeDive();
+      final id = await storeFileFor([dive.id]);
+
+      await diveRepository.deleteDive(dive.id);
+
+      expect(await stillStored(id), isFalse);
+    });
+
+    test('a file shared by a surviving dive is kept', () async {
+      final d1 = await makeDive();
+      final d2 = await makeDive();
+      final id = await storeFileFor([d1.id, d2.id]);
+
+      await diveRepository.deleteDive(d1.id);
+
+      expect(await stillStored(id), isTrue);
+
+      await diveRepository.deleteDive(d2.id);
+
+      expect(await stillStored(id), isFalse);
+    });
+
+    test('bulkDeleteDives removes a file once its last pointer goes', () async {
+      final d1 = await makeDive();
+      final d2 = await makeDive();
+      final d3 = await makeDive();
+      final shared = await storeFileFor([d1.id, d2.id]);
+      final other = await storeFileFor([d3.id], bytes: const [9, 9, 9]);
+
+      await diveRepository.bulkDeleteDives([d1.id, d2.id]);
+
+      expect(await stillStored(shared), isFalse);
+      expect(await stillStored(other), isTrue);
+    });
+
+    test('tombstones the reclaimed row so peers drop it too', () async {
+      final dive = await makeDive();
+      final id = await storeFileFor([dive.id]);
+      final db = DatabaseService.instance.database;
+
+      await diveRepository.deleteDive(dive.id);
+
+      final tombstones = await (db.select(
+        db.deletionLog,
+      )..where((t) => t.entityType.equals('importedFiles'))).get();
+      expect(tombstones.map((r) => r.recordId), contains(id));
+    });
+
+    test('sweeps a row an earlier run orphaned as well', () async {
+      // The sweep asks which rows nothing names any more, so it also collects
+      // a row left behind by an import that never wrote its source row -- the
+      // garbage the on-disk folder had no way to reclaim at all.
+      final dive = await makeDive();
+      final id = await storeFileFor([dive.id]);
+      final stray = await importedFiles.store(
+        bytes: Uint8List.fromList(const [7, 7, 7, 7]),
+        fileName: 'never-referenced.uddf',
+      );
+
+      await diveRepository.deleteDive(dive.id);
+
+      expect(await stillStored(id), isFalse);
+      expect(await stillStored(stray), isFalse);
+    });
+
+    test(
+      'a restore-safe delete (cascadeMedia: false) keeps the file',
+      () async {
+        final dive = await makeDive();
+        final id = await storeFileFor([dive.id]);
+
+        await diveRepository.deleteDive(dive.id, cascadeMedia: false);
+
+        expect(await stillStored(id), isTrue);
+      },
+    );
   });
 }

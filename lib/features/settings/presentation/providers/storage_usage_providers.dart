@@ -13,12 +13,17 @@ import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/core/services/storage/storage_inventory.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 
 /// The real inventory, wired to path_provider and the live services.
+// no-tick: builds the StorageInventory SERVICE, not a measurement. Every size
+// it is given -- importedFileBytes included -- is a callback the inventory
+// invokes while the screen measures, so this provider caches no row that could
+// go stale, and the screen carries its own Recalculate action.
 final storageInventoryProvider = Provider<StorageInventory>((ref) {
   // Memoized because the local cache database and the two thumbnail categories
   // each resolve it, and it is a platform channel round trip that returns the
@@ -50,6 +55,8 @@ final storageInventoryProvider = Provider<StorageInventory>((ref) {
     networkImageDirectory: () async => Directory(
       p.join((await getTemporaryDirectory()).path, DefaultCacheManager.key),
     ),
+    importedFileBytes: () =>
+        ref.read(importedFileRepositoryProvider).storedBytes(),
   );
 });
 

@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/constants/sort_options.dart';
-import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_summary_widget.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
@@ -150,25 +147,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
               tooltip: context.l10n.equipment_list_sortTooltip,
-              onPressed: () {
-                final sort = ref.read(equipmentSortProvider);
-                showSortBottomSheet<EquipmentSortField>(
-                  context: context,
-                  title: context.l10n.equipment_list_sortTitle,
-                  currentField: sort.field,
-                  currentDirection: sort.direction,
-                  fields: EquipmentSortField.values,
-                  getFieldDisplayName: (field) =>
-                      field.localizedName(context.l10n),
-                  getFieldIcon: (field) => field.icon,
-                  onSortChanged: (field, direction) {
-                    ref.read(equipmentSortProvider.notifier).state = SortState(
-                      field: field,
-                      direction: direction,
-                    );
-                  },
-                );
-              },
+              // The table stays flat, so its sheet leaves the grouping out.
+              onPressed: () =>
+                  showEquipmentListSortSheet(context, showGrouping: false),
             ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, size: 20),

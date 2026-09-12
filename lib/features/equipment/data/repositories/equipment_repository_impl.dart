@@ -859,7 +859,8 @@ class EquipmentRepository {
   }
 
   /// Every dive this item was on, with what it was exposed to. One SQL union
-  /// over the four link paths (junction, cylinder, regulator, parent),
+  /// over the link paths (junction, cylinder, regulator, a transmitter's
+  /// registered serials, parent),
   /// left-joined to the sensor summary so profile extremes win over the dive
   /// header when a summary exists.
   ///
@@ -914,6 +915,20 @@ class EquipmentRepository {
             JOIN dive_tanks t ON t.dive_id = de.dive_id
               AND t.tank_role IN ('diluent', 'oxygenSupply')
             WHERE de.equipment_id = ?1 AND ?5 = 1
+          UNION ALL
+          -- A transmitter item: the tanks that carried a serial the
+          -- registry assigns to it. That link writes no dive_equipment
+          -- row. Only the entry's diver, and a blank or all-zero serial
+          -- (normalizeTransmitterSerial) names no transmitter.
+          SELECT t.dive_id, NULL, 0
+            FROM transmitters r
+            JOIN dive_tanks t
+              ON TRIM(t.transmitter_serial) = TRIM(r.transmitter_serial)
+            JOIN dives rd ON rd.id = t.dive_id
+            WHERE r.transmitter_equipment_id = ?1
+              AND LTRIM(TRIM(r.transmitter_serial), '0') <> ''
+              AND (r.diver_id IS NULL OR rd.diver_id IS NULL
+                OR rd.diver_id = r.diver_id)
           UNION ALL
           SELECT dive_id, NULL, 1 FROM dive_equipment WHERE equipment_id = ?2
           UNION ALL

@@ -16990,6 +16990,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_finding => 'Finding';
 
   @override
+  String get settings_conflict_ref_importedFile => 'Imported file';
+
+  @override
   String get settings_conflict_ref_instructor => 'Instructor';
 
   @override
@@ -24600,6 +24603,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'Re-parse failed: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Resync from original file';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'Dive updated from the original file';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Could not resync: this dive no longer exists';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Could not resync: no original file is stored for this dive';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Could not resync: this file format is not supported';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Could not resync: the original file is missing from this device';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Could not resync: the original file no longer contains a matching dive';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Could not resync: an unexpected error occurred while reading the original file';
 
   @override
   String get universalImport_label_replaceSource => 'Replace Source';
@@ -38082,6 +38117,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'Exported Files';
 
   @override
+  String get settings_storageUsage_group_importedFiles => 'Raw imported data';
+
+  @override
   String get settings_storageUsage_category_database => 'Dive log database';
 
   @override
@@ -38129,6 +38167,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'Exported files';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'Imported logbook files';
 
   @override
   String get profilePhoto_sheet_title => 'Profile Photo';
@@ -38614,9 +38656,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'Last service';
 
   @override
-  String get equipment_arrange_title => 'Arrange gear';
-
-  @override
   String get equipment_arrange_groupByType => 'Group by type';
 
   @override
@@ -38631,9 +38670,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'Sort by';
-
-  @override
-  String get equipment_arrange_tooltip => 'Arrange gear';
 
   @override
   String get equipment_arrange_reset => 'Reset to defaults';

@@ -17281,6 +17281,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_finding => 'Rilievo';
 
   @override
+  String get settings_conflict_ref_importedFile => 'File importato';
+
+  @override
   String get settings_conflict_ref_instructor => 'Istruttore';
 
   @override
@@ -25027,6 +25030,38 @@ class AppLocalizationsIt extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'Rianalisi non riuscita: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Risincronizza dal file originale';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'Immersione aggiornata dal file originale';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Impossibile risincronizzare: questa immersione non esiste più';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Impossibile risincronizzare: per questa immersione non è stato salvato alcun file originale';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Impossibile risincronizzare: questo formato di file non è supportato';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Impossibile risincronizzare: il file originale non è più presente su questo dispositivo';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Impossibile risincronizzare: il file originale non contiene più un\'immersione corrispondente';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Impossibile risincronizzare: si è verificato un errore imprevisto durante la lettura del file originale';
 
   @override
   String get universalImport_label_replaceSource => 'Sostituisci sorgente';
@@ -38670,6 +38705,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'File esportati';
 
   @override
+  String get settings_storageUsage_group_importedFiles =>
+      'Dati grezzi importati';
+
+  @override
   String get settings_storageUsage_category_database =>
       'Database del diario immersioni';
 
@@ -38718,6 +38757,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'File esportati';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'File di importazione originali';
 
   @override
   String get profilePhoto_sheet_title => 'Foto del profilo';
@@ -39212,9 +39255,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'Ultima revisione';
 
   @override
-  String get equipment_arrange_title => 'Disponi l\'attrezzatura';
-
-  @override
   String get equipment_arrange_groupByType => 'Raggruppa per tipo';
 
   @override
@@ -39229,9 +39269,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'Ordina per';
-
-  @override
-  String get equipment_arrange_tooltip => 'Disponi l\'attrezzatura';
 
   @override
   String get equipment_arrange_reset => 'Ripristina predefiniti';

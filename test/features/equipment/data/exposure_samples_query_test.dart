@@ -294,6 +294,54 @@ void main() {
     expect(samples.single.contactO2Fraction, closeTo(0.36, 1e-9));
   });
 
+  test(
+    'a transmitter item has the dives its registered serials were on',
+    () async {
+      // The registry links a transmitter to the gear item it is; that link
+      // writes no dive_equipment row, so the item's dives are the tanks that
+      // carried one of its serials. Only its diver's, and a blank or all-zero
+      // serial matches nothing.
+      final tx = await repo.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Tx',
+          type: EquipmentType.transmitter,
+        ),
+      );
+      await db.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('me', 'Me', 1, 1), ('buddy', 'Buddy', 1, 1)",
+      );
+      await db.customStatement(
+        'INSERT INTO transmitters (id, diver_id, transmitter_serial, label, '
+        'tank_role, transmitter_equipment_id, created_at, updated_at) VALUES '
+        "('r1', 'me', ' 180777 ', 'Left', 'backGas', '${tx.id}', 1, 1), "
+        "('r2', 'me', '000', 'Unset', 'backGas', '${tx.id}', 1, 1)",
+      );
+      for (final (id, date, diver) in [
+        ('mine', t1, 'me'),
+        ('logged', t2, 'me'),
+        ('buddys', t3, 'buddy'),
+        ('zeros', DateTime.utc(2026, 4, 10).millisecondsSinceEpoch, 'me'),
+      ]) {
+        await insertDive(id, dateMs: date);
+        await db.customStatement(
+          "UPDATE dives SET diver_id = '$diver' WHERE id = '$id'",
+        );
+      }
+      await db.customStatement(
+        'INSERT INTO dive_tanks (id, dive_id, transmitter_serial) VALUES '
+        "('a', 'mine', '180777'), ('b', 'logged', '180777 '), "
+        "('c', 'buddys', '180777'), ('z', 'zeros', '000')",
+      );
+      // Also logged as dive gear: still one sample.
+      await link('logged', tx.id);
+
+      final samples = await repo.getExposureSamplesForEquipment(tx.id);
+      expect(samples.map((s) => s.diveId), ['mine', 'logged']);
+    },
+  );
+
   test('the samples come from exactly one statement', () async {
     await tearDownTestDatabase();
     db = AppDatabase(NativeDatabase.memory(logStatements: true));

@@ -149,6 +149,8 @@ class _GroupHeader extends StatelessWidget {
       StorageGroup.backups => l10n.settings_storageUsage_group_backups,
       StorageGroup.temporary => l10n.settings_storageUsage_group_temporary,
       StorageGroup.exports => l10n.settings_storageUsage_group_exports,
+      StorageGroup.importedFiles =>
+        l10n.settings_storageUsage_group_importedFiles,
     };
   }
 }
@@ -213,6 +215,8 @@ class StorageUsageRow extends ConsumerWidget {
       StorageCategoryId.temporary =>
         l10n.settings_storageUsage_category_temporary,
       StorageCategoryId.exports => l10n.settings_storageUsage_category_exports,
+      StorageCategoryId.importedFiles =>
+        l10n.settings_storageUsage_category_importedFiles,
       _ => id,
     };
   }

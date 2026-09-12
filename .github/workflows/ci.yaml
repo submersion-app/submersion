@@ -558,6 +558,35 @@ jobs:
           python3 -m pip install shapely
           python3 scripts/sea_area_harvester_test.py
 
+      - name: Run brand asset generator tests
+        # The generator draws the social card, banners, lockups and logo mark
+        # from code. Pillow is installed with the same retry as coverage.py;
+        # the tests fail rather than skip without it, so this step cannot go
+        # green having tested nothing. It runs before the dive site step,
+        # whose unretried `pip install -r scripts/requirements.txt` would
+        # otherwise be the one downloading Pillow (it is listed there too). Text needs Pillow's RAQM layout, which
+        # loads the system libfribidi; install it if the runner lacks it.
+        # layout_test.py needs no Pillow.
+        run: |
+          for attempt in 1 2 3; do
+            if python3 -m pip install 'Pillow>=10.1'; then
+              break
+            fi
+            echo "::warning::pip install Pillow failed (attempt $attempt/3)"
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            else
+              echo "::error::pip install Pillow failed after 3 attempts"
+              exit 1
+            fi
+          done
+          if ! python3 -c "from PIL import features; raise SystemExit(not features.check('raqm'))"; then
+            sudo apt-get update
+            sudo apt-get install -y libfribidi0
+          fi
+          python3 scripts/brand/layout_test.py
+          python3 scripts/brand/generate_brand_assets_test.py
+
       - name: Run dive site harvester tests
         # The harvester stamps the bundled dive site and dive centre assets.
         # Its dependency set is the one scripts/requirements.txt declares;

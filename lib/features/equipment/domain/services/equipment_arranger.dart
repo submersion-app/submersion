@@ -29,11 +29,17 @@ final DateTime _noDate = DateTime.utc(9999);
 /// widget dependencies and lets the PDF template, which has no localizations
 /// in scope, reuse the identical logic by passing `(t) => t.displayName`.
 ///
+/// [compareItems], when given, replaces the arrangement's item sort. The
+/// Equipment page passes its own comparator so it keeps the Service Due sort
+/// the arrangement does not model, while the type axis (grouping, header
+/// order, direction) stays identical to every other gear surface.
+///
 /// The input list is never mutated.
 List<EquipmentGroup> arrangeEquipment(
   List<EquipmentItem> items,
   EquipmentArrangement arrangement, {
   required String Function(EquipmentType) typeLabel,
+  Comparator<EquipmentItem>? compareItems,
 }) {
   if (items.isEmpty) return const [];
 
@@ -81,7 +87,7 @@ List<EquipmentGroup> arrangeEquipment(
   String lowerName(EquipmentItem item) =>
       lowerNames[item.id] ??= item.name.toLowerCase();
 
-  int compareItems(EquipmentItem a, EquipmentItem b) {
+  int compareByArrangement(EquipmentItem a, EquipmentItem b) {
     int primary;
     switch (arrangement.itemSortField) {
       case EquipmentItemSortField.name:
@@ -110,6 +116,8 @@ List<EquipmentGroup> arrangeEquipment(
     return byName != 0 ? byName : a.id.compareTo(b.id);
   }
 
+  final itemOrder = compareItems ?? compareByArrangement;
+
   if (!grouped) {
     final flat = List<EquipmentItem>.from(items);
     flat.sort((a, b) {
@@ -117,7 +125,7 @@ List<EquipmentGroup> arrangeEquipment(
         final byType = compareTypes(a.type, b.type);
         if (byType != 0) return byType;
       }
-      return compareItems(a, b);
+      return itemOrder(a, b);
     });
     return [EquipmentGroup(type: null, items: List.unmodifiable(flat))];
   }
@@ -131,7 +139,7 @@ List<EquipmentGroup> arrangeEquipment(
     for (final type in types)
       EquipmentGroup(
         type: type,
-        items: List.unmodifiable(buckets[type]!..sort(compareItems)),
+        items: List.unmodifiable(buckets[type]!..sort(itemOrder)),
       ),
   ];
 }

@@ -7,12 +7,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 import '../../../../helpers/fake_dive_consolidation_service.dart';
 
@@ -77,6 +79,35 @@ class _ThrowingMergeService implements DiveMergeService {
   Future<DiveMergeOutcome> apply(List<String> diveIds) async {
     throw StateError('apply failed');
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Fake [DiveMergeService] whose `apply` succeeds with merged dive 'm'.
+class _OkMergeService implements DiveMergeService {
+  @override
+  Future<DiveMergeOutcome> apply(List<String> diveIds) async =>
+      DiveMergeOutcome(
+        mergedDive: domain.Dive(id: 'm', dateTime: DateTime.utc(2026, 7, 1)),
+        snapshot: const DiveMergeSnapshot(
+          mergedDiveId: 'm',
+          diveRows: [],
+          tankRows: [],
+          weightRows: [],
+          customFieldRows: [],
+          equipmentRows: [],
+          diveTypeRows: [],
+          tagRows: [],
+          buddyRows: [],
+          sightingRows: [],
+          eventRows: [],
+          gasSwitchRows: [],
+          dataSourceRows: [],
+          tideRows: [],
+          mediaDiveIds: {},
+        ),
+      );
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -464,6 +495,30 @@ void main() {
         );
       },
     );
+  });
+
+  testWidgets('a combine rebuilds the sensor summaries it changed', (
+    tester,
+  ) async {
+    // The condition engine reads the summaries; the originals are gone and
+    // the merged dive is new, so its summary is built now.
+    final requests = <String>[];
+    SensorSummaryScheduler.instance.summaryRequestListener = (ids, force) =>
+        requests.add('${(ids.toList()..sort()).join(',')}:$force');
+    addTearDown(
+      () => SensorSummaryScheduler.instance.summaryRequestListener = null,
+    );
+    await pumpCombineDialog(
+      tester,
+      dives: [
+        diveAt('a', DateTime.utc(2026, 7, 1, 9)),
+        diveAt('b', DateTime.utc(2026, 7, 1, 10)),
+      ],
+      mergeService: _OkMergeService(),
+    );
+    await tester.tap(find.text('Combine into one dive'));
+    await tester.pumpAndSettle();
+    expect(requests, ['a,b,m:true']);
   });
 
   testWidgets('apply failure closes dialog and shows error snackbar', (

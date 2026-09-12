@@ -58,6 +58,7 @@ void main() {
       'certifications': 'Certification',
       'courseRequirements': 'Course requirement',
       'serviceKinds': 'Service type',
+      'importedFiles': 'Imported file',
       'species': 'Species',
       'sightings': 'Sighting',
       'media': 'Media',

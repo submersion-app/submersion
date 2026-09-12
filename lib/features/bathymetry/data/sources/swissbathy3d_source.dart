@@ -226,7 +226,10 @@ class SwissBathy3dSource implements BathymetrySource {
   ) async {
     final tileKey = '${tileE}_$tileN';
 
-    final cached = await _tileCache.read(tileKey);
+    final cached = await _tileCache.read(
+      tileKey,
+      expectedReferenceLevelMeters: lake.meanLevelMeters,
+    );
     if (cached != null) {
       if (!_isStale(cached.checkedAt)) return cached.grid;
       return _refreshIfStale(tileKey, tileE, tileN, lake, cached);
@@ -257,7 +260,10 @@ class SwissBathy3dSource implements BathymetrySource {
       // tile once their real content was checked — deterministic for this
       // tile, so caching it avoids repeating the same lookup (and any
       // shared-href downloads) on every future visit to this coordinate.
-      await _tileCache.writeEmpty(tileKey);
+      await _tileCache.writeEmpty(
+        tileKey,
+        referenceLevelMeters: lake.meanLevelMeters,
+      );
       return null;
     }
 
@@ -272,6 +278,7 @@ class SwissBathy3dSource implements BathymetrySource {
       grid,
       sourceDatetime: resolved.asset.datetime,
       sourceHref: resolved.asset.href,
+      referenceLevelMeters: lake.meanLevelMeters,
     );
     return grid;
   }
@@ -477,6 +484,7 @@ class SwissBathy3dSource implements BathymetrySource {
         grid,
         sourceDatetime: resolved.asset.datetime,
         sourceHref: resolved.asset.href,
+        referenceLevelMeters: lake.meanLevelMeters,
       );
       return (grid: grid, outcome: _TileCheckOutcome.updated);
     } on SwissStacException {
@@ -510,7 +518,7 @@ class SwissBathy3dSource implements BathymetrySource {
   /// re-downloads that lake's zip at most once for the entire sweep, not
   /// once per affected tile.
   Future<SwissBathyRefreshSummary> refreshAllCachedTiles() async {
-    final tileKeys = await _tileCache.okTileKeys();
+    final tileKeys = await _tileCache.allTileKeys();
 
     final sharedRawGrids = <String, Future<List<RawEsriGrid>>>{};
     Future<List<RawEsriGrid>> download(String href) =>
@@ -519,9 +527,6 @@ class SwissBathy3dSource implements BathymetrySource {
     final outcomes = await _runBounded(tileKeys, maxConcurrentTileRequests, (
       tileKey,
     ) async {
-      final cached = await _tileCache.read(tileKey);
-      if (cached == null) return null; // evicted/corrupted since listing
-
       final parts = tileKey.split('_');
       final tileE = parts.length == 2 ? int.tryParse(parts[0]) : null;
       final tileN = parts.length == 2 ? int.tryParse(parts[1]) : null;
@@ -534,7 +539,41 @@ class SwissBathy3dSource implements BathymetrySource {
       final lake = findSwissLake(
         GeoPoint(tileCenter.latitude, tileCenter.longitude),
       );
-      if (lake == null) return null; // should not happen for a real 'ok' tile
+      if (lake == null) {
+        // The tile's OWN center resolves to no current lake, but the row
+        // may still be one fetch() cached under the FETCH CENTER's lake
+        // as a fallback (a real edge tile whose own center misses every
+        // registered bbox -- see fetch()'s tileLake fallback), so there is
+        // no single current lake to pass to read()'s normal per-lookup
+        // check. Delete it only if its stored level belongs to no lake in
+        // the CURRENT table at all -- the actual staleness signal a lake
+        // removal or a documented level correction leaves behind (Copilot
+        // review).
+        await _tileCache.deleteIfLevelUnknown(
+          tileKey,
+          swissLakeLevels.map((l) => l.meanLevelMeters),
+        );
+        return null;
+      }
+
+      // Computed BEFORE the read so a reference-level mismatch (the lake
+      // table changed since this tile was cached) is caught here too, not
+      // just on the next fetch() visit -- read() drops the row and returns
+      // null in that case, same as corruption. Applies uniformly to an
+      // 'ok' row (dropped, so the next fetch() re-downloads) and an
+      // 'empty' one (dropped, so the next fetch() re-resolves instead of
+      // hasCachedAnswer() suppressing it forever) -- see allTileKeys' doc
+      // for why 'empty' tiles are included in this sweep at all. A still-
+      // valid 'empty' row also reads back null here (it never carries a
+      // grid), so this branch covers "nothing to check" and "just
+      // invalidated" alike; neither needs the freshness check below.
+      final cached = await _tileCache.read(
+        tileKey,
+        expectedReferenceLevelMeters: lake.meanLevelMeters,
+      );
+      if (cached == null) {
+        return null;
+      }
 
       final result = await _checkAndMaybeUpdate(
         tileKey,

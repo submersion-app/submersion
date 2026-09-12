@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 /// One item's exposure samples with the classifier that reads them, wired
 /// exactly as the service clocks wire theirs (same link semantics, same
@@ -34,6 +35,13 @@ final equipmentExposureInputsProvider =
       );
       final item = await repository.getEquipmentById(equipmentId);
       if (item == null) return null;
+      // A transmitter's dives include the tanks that carried its registered
+      // serials, and assigning a serial writes only the registry.
+      if (item.type == EquipmentType.transmitter) {
+        ref.invalidateSelfWhen(
+          ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
+        );
+      }
       // The repository's one wiring: the clocks, the reminders and the
       // condition engine read the same parent dives, install dates,
       // fitted parts and successor cutoff.

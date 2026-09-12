@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
@@ -97,6 +99,15 @@ class SuuntoDiveParser {
 
     final tanks = _buildTanks(diving, profileResult.gasSwitchOrder);
 
+    // Suunto takes a surface fix before the descent and another after the
+    // ascent, and keeps the pair in the dive footer's DiveLocation block
+    // (hoisted onto the header by [SuuntoSmlNormalizer]). A dive may hold
+    // either fix alone. The samples' DiveRouteOrigin repeats the entry fix
+    // and is the fallback for exports whose footer has no Start.
+    final diveLocation = header['DiveLocation'] as Map<String, dynamic>?;
+    final entryFix = _surfaceFix(diveLocation?['Start']);
+    final exitFix = _surfaceFix(diveLocation?['Stop']);
+
     final dive = DownloadedDive(
       startTime: startTime,
       durationSeconds: durationSeconds,
@@ -104,8 +115,10 @@ class SuuntoDiveParser {
       avgDepth: avgDepth,
       minTemperature: minTemperature,
       maxTemperature: maxTemperature,
-      entryLatitude: firstPass.latitude,
-      entryLongitude: firstPass.longitude,
+      entryLatitude: entryFix?.latitude ?? firstPass.latitude,
+      entryLongitude: entryFix?.longitude ?? firstPass.longitude,
+      exitLatitude: exitFix?.latitude,
+      exitLongitude: exitFix?.longitude,
       profile: profileResult.samples,
       tanks: tanks,
       gasSwitches: profileResult.gasSwitches,
@@ -496,6 +509,29 @@ class SuuntoDiveParser {
 
   static double _kelvinToCelsius(double kelvin) => kelvin - 273.15;
 
+  /// Reads one `DiveLocation` fix (`Start` or `Stop`), whose coordinates are
+  /// radians, into degrees.
+  ///
+  /// Returns null for a fix that is absent, incomplete, at null island, or
+  /// whose converted coordinates fall off the globe -- the last of which
+  /// catches a fix that was in degrees already, rather than importing it
+  /// scaled by 180/pi as a plausible-looking position somewhere else.
+  static _SurfaceFix? _surfaceFix(dynamic fix) {
+    if (fix is! Map) return null;
+    final latRadians = _asDouble(fix['Latitude']);
+    final lonRadians = _asDouble(fix['Longitude']);
+    if (latRadians == null || lonRadians == null) return null;
+    if (latRadians == 0 && lonRadians == 0) return null;
+
+    final latitude = _radiansToDegrees(latRadians);
+    final longitude = _radiansToDegrees(lonRadians);
+    if (latitude.abs() > 90 || longitude.abs() > 180) return null;
+
+    return _SurfaceFix(latitude, longitude);
+  }
+
+  static double _radiansToDegrees(double radians) => radians * 180.0 / math.pi;
+
   static double? _asDouble(dynamic value) => (value as num?)?.toDouble();
 
   static int? _parseTimestampMs(Map<String, dynamic> sample) {
@@ -580,6 +616,13 @@ class _PressureReading {
   const _PressureReading(this.tankIndex, this.pressureBar);
   final int tankIndex;
   final double pressureBar;
+}
+
+/// One surface GPS fix, in degrees.
+class _SurfaceFix {
+  const _SurfaceFix(this.latitude, this.longitude);
+  final double latitude;
+  final double longitude;
 }
 
 /// First pass over the raw samples: collects temperature readings (matched

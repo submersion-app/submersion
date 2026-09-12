@@ -17227,6 +17227,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_finding => 'Eszrevetel';
 
   @override
+  String get settings_conflict_ref_importedFile => 'Importált fájl';
+
+  @override
   String get settings_conflict_ref_instructor => 'Oktato';
 
   @override
@@ -24948,6 +24951,38 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'Újraelemzés sikertelen: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Újraszinkronizálás az eredeti fájlból';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'A merülés frissítve az eredeti fájlból';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Nem sikerült újraszinkronizálni: ez a merülés már nem létezik';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Nem sikerült újraszinkronizálni: ehhez a merüléshez nincs eltárolt eredeti fájl';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Nem sikerült újraszinkronizálni: ez a fájlformátum nem támogatott';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Nem sikerült újraszinkronizálni: az eredeti fájl nem található ezen az eszközön';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Nem sikerült újraszinkronizálni: az eredeti fájl már nem tartalmaz megfelelő merülést';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Nem sikerült újraszinkronizálni: váratlan hiba történt az eredeti fájl olvasása közben';
 
   @override
   String get universalImport_label_replaceSource => 'Forrás cseréje';
@@ -38519,6 +38554,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'Exportált fájlok';
 
   @override
+  String get settings_storageUsage_group_importedFiles =>
+      'Nyers importált adatok';
+
+  @override
   String get settings_storageUsage_category_database =>
       'Merülésnapló-adatbázis';
 
@@ -38568,6 +38607,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'Exportált fájlok';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'Eredeti importált fájlok';
 
   @override
   String get profilePhoto_sheet_title => 'Profilkép';
@@ -39060,9 +39103,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'Utolsó szerviz';
 
   @override
-  String get equipment_arrange_title => 'Felszerelés rendezése';
-
-  @override
   String get equipment_arrange_groupByType => 'Csoportosítás típus szerint';
 
   @override
@@ -39077,9 +39117,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'Rendezés';
-
-  @override
-  String get equipment_arrange_tooltip => 'Felszerelés rendezése';
 
   @override
   String get equipment_arrange_reset => 'Alapértelmezések visszaállítása';

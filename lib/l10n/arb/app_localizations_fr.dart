@@ -17343,6 +17343,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_finding => 'Anomalie';
 
   @override
+  String get settings_conflict_ref_importedFile => 'Fichier importé';
+
+  @override
   String get settings_conflict_ref_instructor => 'Moniteur';
 
   @override
@@ -25125,6 +25128,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'Échec de la réanalyse : $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Resynchroniser depuis le fichier original';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'Plongée mise à jour à partir du fichier original';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Impossible de resynchroniser : cette plongée n\'existe plus';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Impossible de resynchroniser : aucun fichier original n\'est enregistré pour cette plongée';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Impossible de resynchroniser : ce format de fichier n\'est pas pris en charge';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Impossible de resynchroniser : le fichier original est introuvable sur cet appareil';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Impossible de resynchroniser : le fichier original ne contient plus de plongée correspondante';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Impossible de resynchroniser : une erreur inattendue s\'est produite lors de la lecture du fichier original';
 
   @override
   String get universalImport_label_replaceSource => 'Remplacer la source';
@@ -38784,6 +38819,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'Fichiers exportés';
 
   @override
+  String get settings_storageUsage_group_importedFiles =>
+      'Données brutes importées';
+
+  @override
   String get settings_storageUsage_category_database =>
       'Base de données du carnet de plongée';
 
@@ -38832,6 +38871,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'Fichiers exportés';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'Fichiers d\'importation originaux';
 
   @override
   String get profilePhoto_sheet_title => 'Photo de profil';
@@ -39324,9 +39367,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'Dernier entretien';
 
   @override
-  String get equipment_arrange_title => 'Organiser l\'équipement';
-
-  @override
   String get equipment_arrange_groupByType => 'Grouper par type';
 
   @override
@@ -39341,9 +39381,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'Trier par';
-
-  @override
-  String get equipment_arrange_tooltip => 'Organiser l\'équipement';
 
   @override
   String get equipment_arrange_reset => 'Réinitialiser';

@@ -119,6 +119,25 @@ class SwissBathyTileCache extends Table {
   /// (v15), which fall back to one full re-resolution on their next check.
   TextColumn get sourceHref => text().nullable()();
 
+  /// The `SwissLakeLevel.meanLevelMeters` this tile's cached depths were
+  /// computed against (depth = referenceLevelMeters - elevation). Compared
+  /// against the CURRENT lookup's mean level on read -- a mismatch means a
+  /// correction to `swiss_lake_levels.dart` (a lake's bbox or documented
+  /// level changed) since this tile was cached, so the baked-in depths are
+  /// wrong and the row must be dropped rather than served stale. Null for
+  /// 'empty' rows and rows written before this field existed (v17), which
+  /// are ALSO treated as a mismatch (not trusted as-is): unlike
+  /// [sourceDatetime]/[checkedAt], there is no way to tell whether an old
+  /// row's baked-in level is still correct without this field, so it falls
+  /// back to one full re-resolution on its next read -- the only way to
+  /// actually correct already-wrongly-cached tiles (e.g. a coordinate that
+  /// used to resolve to a coarser neighboring lake's bbox before a
+  /// whitelist correction) rather than merely preventing new ones. Null
+  /// only for rows written before this field existed (v17) -- every 'ok'
+  /// AND 'empty' row written since then stores its actual level, so the
+  /// mismatch check above applies uniformly to both statuses.
+  RealColumn get referenceLevelMeters => real().nullable()();
+
   @override
   Set<Column> get primaryKey => {tileKey};
 }
@@ -271,7 +290,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -413,6 +432,28 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           );
         }
       }
+      // v17: the lake reference level a tile's cached depths were computed
+      // against, so a correction to the swissBATHY3D lake table (a bbox or
+      // documented level change) invalidates only the tiles it actually
+      // affects instead of either serving them stale forever or wiping the
+      // whole cache. See SwissBathyTileCache.referenceLevelMeters's doc.
+      //
+      // Column-existence checked first for the same reason as v15/v16
+      // above: v14's createTable already builds the table with the current
+      // (post-v17) column set for upgrades starting below v14.
+      if (from < 17) {
+        final cols = await customSelect(
+          "PRAGMA table_info('swiss_bathy_tile_cache')",
+        ).get();
+        final columnNames = cols.map((c) => c.read<String>('name')).toSet();
+        if (columnNames.isNotEmpty &&
+            !columnNames.contains('reference_level_meters')) {
+          await m.addColumn(
+            swissBathyTileCache,
+            swissBathyTileCache.referenceLevelMeters,
+          );
+        }
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -503,9 +544,29 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           source_datetime TEXT NULL,
           checked_at INTEGER NULL,
           source_href TEXT NULL,
+          reference_level_meters REAL NULL,
           PRIMARY KEY (tile_key)
         )
       ''');
+      // CREATE TABLE IF NOT EXISTS above is a no-op when the table already
+      // exists -- the exact ladder-collision case this backstop is meant to
+      // heal, e.g. a database stamped at v17 (by a colliding branch that
+      // claimed the same user_version first) whose table still has the v16
+      // shape. The onUpgrade `from < 17` step never runs then, since Drift
+      // reads the already-stamped v17 and sees nothing to upgrade from, so
+      // the column would otherwise stay permanently missing.
+      final swissBathyCols = await customSelect(
+        "PRAGMA table_info('swiss_bathy_tile_cache')",
+      ).get();
+      final swissBathyColumnNames = swissBathyCols
+          .map((c) => c.read<String>('name'))
+          .toSet();
+      if (!swissBathyColumnNames.contains('reference_level_meters')) {
+        await customStatement(
+          'ALTER TABLE swiss_bathy_tile_cache '
+          'ADD COLUMN reference_level_meters REAL NULL',
+        );
+      }
     },
   );
 }

@@ -95,6 +95,63 @@ void main() {
     expect(samples, 0);
   });
 
+  test('a registry edit reaches an open transmitter', () async {
+    // A transmitter's dives are the tanks that carried its registered
+    // serials; assigning one writes only the registry, and the exposure
+    // card and the trend chart read these inputs.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'tx',
+            name: 'Tx',
+            type: 'transmitter',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db.customStatement(
+      "INSERT INTO dive_tanks (id, dive_id, transmitter_serial) "
+      "VALUES ('t1', 'd1', '555')",
+    );
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(
+      equipmentExposureInputsProvider('tx'),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+    Future<int> samples() async => (await container.read(
+      equipmentExposureInputsProvider('tx').future,
+    ))!.samples.length;
+    expect(await samples(), 0);
+
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 'r1',
+            label: 'Main',
+            tankRole: 'backGas',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(
+            transmitterSerial: const Value('555'),
+            transmitterEquipmentId: const Value('tx'),
+          ),
+        );
+    var now = await samples();
+    for (var i = 0; i < 50 && now != 1; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = await samples();
+    }
+    expect(now, 1);
+  });
+
   test('a part with no install date inherits from its creation', () async {
     // Created after the rebreather's dive and never given an install
     // date: that dive happened before the part existed.
