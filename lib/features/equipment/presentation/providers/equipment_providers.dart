@@ -575,22 +575,10 @@ class ServiceRecordNotifier
   }
 
   Future<ServiceRecord> addRecord(ServiceRecord record) async {
+    // A newer service takes a clock over from its baseline by the shared
+    // rule (clockAnchorFromServices) without the baseline being erased, so
+    // deleting that service later hands the clock back to the baseline.
     final newRecord = await _repository.createRecord(record);
-    // A baseline date outranks records, so a service newer than it must
-    // clear it or the clock would never restart. Only a newly logged
-    // service does this: editing an existing record is correcting history.
-    final kindId = record.serviceKindId;
-    if (kindId != null) {
-      await _ref
-          .read(serviceScheduleRepositoryProvider)
-          .clearAnchorsSupersededBy(
-            equipmentId: record.equipmentId,
-            serviceKindId: kindId,
-            serviceDate: newRecord.serviceDate,
-            loggedAt: newRecord.createdAt,
-          );
-      _ref.invalidate(serviceSchedulesForEquipmentProvider(equipmentId));
-    }
     await refresh();
     return newRecord;
   }

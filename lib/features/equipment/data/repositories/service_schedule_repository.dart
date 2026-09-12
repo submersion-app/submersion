@@ -9,12 +9,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
-import 'package:submersion/features/equipment/domain/entities/service_record.dart'
-    as domain_record;
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart'
     as domain;
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
-import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 
 /// CRUD for service clocks plus the auto-attach hook that seeds clocks on
 /// newly created equipment.
@@ -112,44 +109,6 @@ class ServiceScheduleRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
-  }
-
-  /// Clears the baseline dates a service just logged for [equipmentId]'s
-  /// [serviceKindId] clock has taken over, so the edit dialog never shows a
-  /// date the clock no longer counts from. The clock itself does not depend
-  /// on this: `clockAnchorFromServices` derives the same answer from the
-  /// rows. A service dated on or after the baseline takes it over; so does
-  /// any service when the baseline carries no set time (the pre-v213 rule).
-  /// A backdated service leaves a dated baseline in place, and so does one
-  /// [loggedAt] before the baseline was set: a baseline set (or synced in)
-  /// between the record insert and this call outranks that record.
-  Future<void> clearAnchorsSupersededBy({
-    required String equipmentId,
-    required String serviceKindId,
-    required DateTime serviceDate,
-    required DateTime loggedAt,
-  }) async {
-    for (final schedule in await getSchedulesForEquipment(equipmentId)) {
-      if (schedule.serviceKindId != serviceKindId) continue;
-      final supersedes = !baselineInEffect(
-        serviceKindId: serviceKindId,
-        baseline: schedule.anchorDate,
-        baselineSetAt: schedule.anchorSetAt,
-        records: [
-          domain_record.ServiceRecord(
-            id: '',
-            equipmentId: equipmentId,
-            serviceCategory: ServiceCategory.other,
-            serviceKindId: serviceKindId,
-            serviceDate: serviceDate,
-            createdAt: loggedAt,
-            updatedAt: loggedAt,
-          ),
-        ],
-      );
-      if (schedule.anchorDate == null || !supersedes) continue;
-      await updateSchedule(schedule.withBaseline(null, now: DateTime.now()));
-    }
   }
 
   Future<void> deleteSchedule(String id) async {

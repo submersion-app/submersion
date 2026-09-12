@@ -6691,7 +6691,7 @@
     }
   },
   "equipment_scheduleDialog_anchorDate": "Baseline date",
-  "equipment_scheduleDialog_anchorHint": "The clock counts from this date. Logging a newer service clears it.",
+  "equipment_scheduleDialog_anchorHint": "The clock counts from this date until you log a newer service.",
   "equipment_scheduleDialog_clearAnchor": "Clear baseline date",
   "equipment_scheduleDialog_save": "Save",
   "equipment_scheduleDialog_cancel": "Cancel",

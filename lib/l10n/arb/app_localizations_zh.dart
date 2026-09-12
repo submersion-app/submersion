@@ -11214,7 +11214,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_scheduleDialog_anchorDate => '基准日期';
 
   @override
-  String get equipment_scheduleDialog_anchorHint => '时钟从此日期开始计算。记录更新的维护会清除此日期。';
+  String get equipment_scheduleDialog_anchorHint => '时钟从此日期开始计算，直到记录更新的维护。';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => '清除基准日期';

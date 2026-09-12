@@ -119,8 +119,8 @@ void main() {
     expect(clock.usageByUnit[ExposureUnit.dives]!.since, 3);
   });
 
-  test('logging a newer service clears the baseline and restarts the '
-      'clock', () async {
+  test('logging a newer service restarts the clock and keeps the baseline '
+      'stored', () async {
     final reg = await regulatorWithDives();
     await setBaseline(reg.id, yearAgo);
     expect((await regClock(reg.id)).usageByUnit[ExposureUnit.dives]!.since, 3);
@@ -136,9 +136,36 @@ void main() {
         .addRecord(regService(reg.id, serviced));
 
     final clock = await regClock(reg.id, fresh: false);
-    expect(clock.schedule.anchorDate, isNull);
+    // Superseded, not erased: deleting that service must be able to hand
+    // the clock back to the baseline.
+    expect(clock.schedule.anchorDate, yearAgo);
     expect(clock.anchor, serviced);
     expect(clock.usageByUnit[ExposureUnit.dives]!.since, 1);
+  });
+
+  test('deleting the service that took over hands the clock back to the '
+      'baseline', () async {
+    // A service logged by mistake, or deleted on another device, must not
+    // leave the clock counting from an older record or the purchase date.
+    final reg = await regulatorWithDives();
+    await setBaseline(reg.id, yearAgo);
+    final fiftyDaysAgo = now.subtract(const Duration(days: 50));
+    final notifier = container.read(
+      serviceRecordNotifierProvider(reg.id).notifier,
+    );
+    final logged = await notifier.addRecord(
+      regService(
+        reg.id,
+        DateTime(fiftyDaysAgo.year, fiftyDaysAgo.month, fiftyDaysAgo.day),
+      ),
+    );
+    expect((await regClock(reg.id, fresh: false)).anchor, isNot(yearAgo));
+
+    await notifier.deleteRecord(logged.id);
+
+    final clock = await regClock(reg.id, fresh: false);
+    expect(clock.anchor, yearAgo);
+    expect(clock.usageByUnit[ExposureUnit.dives]!.since, 3);
   });
 
   test('logging a backdated service keeps the baseline', () async {

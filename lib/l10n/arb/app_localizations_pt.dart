@@ -11739,7 +11739,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'O relógio conta a partir desta data. Registrar uma manutenção mais recente a apaga.';
+      'O relógio conta a partir desta data até registrar uma manutenção mais recente.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>

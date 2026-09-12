@@ -11654,7 +11654,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'De klok telt vanaf deze datum. Een nieuwere service vastleggen wist deze.';
+      'De klok telt vanaf deze datum tot je een nieuwere service vastlegt.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Referentiedatum wissen';

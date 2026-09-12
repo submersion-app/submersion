@@ -3797,7 +3797,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervallo (cicli di batteria)",
   "equipment_scheduleDialog_inheritHint": "Predefinito: {value}",
   "equipment_scheduleDialog_anchorDate": "Data di riferimento",
-  "equipment_scheduleDialog_anchorHint": "Il contatore parte da questa data. Registrare una manutenzione più recente la cancella.",
+  "equipment_scheduleDialog_anchorHint": "Il contatore parte da questa data finché non registri una manutenzione più recente.",
   "equipment_scheduleDialog_clearAnchor": "Cancella data di riferimento",
   "equipment_scheduleDialog_save": "Salva",
   "equipment_scheduleDialog_cancel": "Annulla",

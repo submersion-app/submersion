@@ -11539,7 +11539,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'تبدأ الساعة العدّ من هذا التاريخ. تسجيل صيانة أحدث يمسحه.';
+      'تعدّ الساعة من هذا التاريخ حتى تسجّل صيانة أحدث.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'مسح تاريخ الأساس';

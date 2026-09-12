@@ -19711,7 +19711,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_scheduleDialog_anchorHint.
   ///
   /// In en, this message translates to:
-  /// **'The clock counts from this date. Logging a newer service clears it.'**
+  /// **'The clock counts from this date until you log a newer service.'**
   String get equipment_scheduleDialog_anchorHint;
 
   /// No description provided for @equipment_scheduleDialog_clearAnchor.

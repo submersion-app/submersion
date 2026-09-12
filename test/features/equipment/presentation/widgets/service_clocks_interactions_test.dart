@@ -392,13 +392,15 @@ void main() {
     expect(find.byTooltip('Clear baseline date'), findsNothing);
     expect(find.text('Jun 1, 2024'), findsNothing);
 
-    // Saving drops the dead baseline rather than keeping it hidden.
+    // Saving keeps the hidden baseline stored, set time and all: deleting
+    // the service that took over must be able to bring it back.
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     await tester.runAsync(() async {
       final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
       final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
-      expect(hydro.anchorDate, isNull);
+      expect(hydro.anchorDate, DateTime(2024, 6, 1));
+      expect(hydro.anchorSetAt, DateTime(2025));
     });
   });
 

@@ -3797,7 +3797,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervallum (akkumulátorciklusok)",
   "equipment_scheduleDialog_inheritHint": "Alapértelmezés: {value}",
   "equipment_scheduleDialog_anchorDate": "Kiindulási dátum",
-  "equipment_scheduleDialog_anchorHint": "Az óra ettől a dátumtól számol. Egy újabb szerviz rögzítése törli.",
+  "equipment_scheduleDialog_anchorHint": "Az óra ettől a dátumtól számol, amíg újabb szervizt nem rögzítesz.",
   "equipment_scheduleDialog_clearAnchor": "Kiindulási dátum törlése",
   "equipment_scheduleDialog_save": "Mentés",
   "equipment_scheduleDialog_cancel": "Mégse",

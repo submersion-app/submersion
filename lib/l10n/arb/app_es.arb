@@ -3881,7 +3881,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervalo (ciclos de batería)",
   "equipment_scheduleDialog_inheritHint": "Predeterminado: {value}",
   "equipment_scheduleDialog_anchorDate": "Fecha de referencia",
-  "equipment_scheduleDialog_anchorHint": "El reloj cuenta desde esta fecha. Registrar un mantenimiento más reciente la borra.",
+  "equipment_scheduleDialog_anchorHint": "El reloj cuenta desde esta fecha hasta que registres un mantenimiento más reciente.",
   "equipment_scheduleDialog_clearAnchor": "Borrar fecha de referencia",
   "equipment_scheduleDialog_save": "Guardar",
   "equipment_scheduleDialog_cancel": "Cancelar",

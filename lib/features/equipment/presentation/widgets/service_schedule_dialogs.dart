@@ -129,8 +129,9 @@ Future<void> showScheduleOverrideDialog(
 }) async {
   // Only a baseline the clock still counts from is offered for editing. A
   // later service (logged here, synced in, or written by an older build)
-  // can take the clock over while the stored date lingers; showing that
-  // date would claim a start the clock no longer uses.
+  // takes the clock over while the stored date stays (so deleting that
+  // service restores it); showing that date would claim a start the clock
+  // no longer uses.
   final records = await ref
       .read(serviceRecordRepositoryProvider)
       .getRecordsForEquipment(schedule.equipmentId);
@@ -425,13 +426,22 @@ class _ScheduleOverrideDialogState
             // pre-v213 baseline shown here (only while no service of the kind
             // exists, see baselineInEffect) is stamped too: that moves
             // nothing now, and makes the hint's promise hold from here on.
+            // A baseline a later service took over is hidden, not dropped:
+            // left untouched it stays stored, so deleting that service hands
+            // the clock back to it.
+            final hiddenUntouched =
+                widget.initialBaseline == null &&
+                _anchorDate == null &&
+                !_baselinePicked;
             final legacyInEffect =
                 widget.initialBaseline != null && schedule.anchorSetAt == null;
-            final baseline = schedule.withBaseline(
-              _anchorDate,
-              now: DateTime.now(),
-              picked: _baselinePicked || legacyInEffect,
-            );
+            final baseline = hiddenUntouched
+                ? schedule
+                : schedule.withBaseline(
+                    _anchorDate,
+                    now: DateTime.now(),
+                    picked: _baselinePicked || legacyInEffect,
+                  );
             // copyWith cannot null a field; build the updated entity directly.
             final updated = ServiceSchedule(
               id: schedule.id,

@@ -3881,7 +3881,7 @@
   "equipment_scheduleDialog_intervalCycles": "الفاصل (دورات البطارية)",
   "equipment_scheduleDialog_inheritHint": "الافتراضي: {value}",
   "equipment_scheduleDialog_anchorDate": "تاريخ الأساس",
-  "equipment_scheduleDialog_anchorHint": "تبدأ الساعة العدّ من هذا التاريخ. تسجيل صيانة أحدث يمسحه.",
+  "equipment_scheduleDialog_anchorHint": "تعدّ الساعة من هذا التاريخ حتى تسجّل صيانة أحدث.",
   "equipment_scheduleDialog_clearAnchor": "مسح تاريخ الأساس",
   "equipment_scheduleDialog_save": "حفظ",
   "equipment_scheduleDialog_cancel": "إلغاء",

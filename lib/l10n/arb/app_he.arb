@@ -3797,7 +3797,7 @@
   "equipment_scheduleDialog_intervalCycles": "מרווח (מחזורי סוללה)",
   "equipment_scheduleDialog_inheritHint": "ברירת מחדל: {value}",
   "equipment_scheduleDialog_anchorDate": "תאריך בסיס",
-  "equipment_scheduleDialog_anchorHint": "השעון סופר מתאריך זה. תיעוד טיפול חדש יותר מנקה אותו.",
+  "equipment_scheduleDialog_anchorHint": "השעון סופר מתאריך זה עד שתתעד טיפול חדש יותר.",
   "equipment_scheduleDialog_clearAnchor": "ניקוי תאריך הבסיס",
   "equipment_scheduleDialog_save": "שמירה",
   "equipment_scheduleDialog_cancel": "ביטול",

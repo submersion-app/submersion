@@ -4026,7 +4026,7 @@
   "equipment_scheduleDialog_intervalCycles": "间隔（电池循环次数）",
   "equipment_scheduleDialog_inheritHint": "默认：{value}",
   "equipment_scheduleDialog_anchorDate": "基准日期",
-  "equipment_scheduleDialog_anchorHint": "时钟从此日期开始计算。记录更新的维护会清除此日期。",
+  "equipment_scheduleDialog_anchorHint": "时钟从此日期开始计算，直到记录更新的维护。",
   "equipment_scheduleDialog_clearAnchor": "清除基准日期",
   "equipment_scheduleDialog_save": "保存",
   "equipment_scheduleDialog_cancel": "取消",

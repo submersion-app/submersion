@@ -3881,7 +3881,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervall (Batteriezyklen)",
   "equipment_scheduleDialog_inheritHint": "Standard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referenzdatum",
-  "equipment_scheduleDialog_anchorHint": "Die Uhr zählt ab diesem Datum. Eine neuere erfasste Wartung löscht es.",
+  "equipment_scheduleDialog_anchorHint": "Die Uhr zählt ab diesem Datum, bis eine neuere Wartung erfasst wird.",
   "equipment_scheduleDialog_clearAnchor": "Referenzdatum löschen",
   "equipment_scheduleDialog_save": "Speichern",
   "equipment_scheduleDialog_cancel": "Abbrechen",

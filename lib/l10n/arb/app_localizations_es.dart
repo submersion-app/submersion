@@ -11741,7 +11741,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'El reloj cuenta desde esta fecha. Registrar un mantenimiento más reciente la borra.';
+      'El reloj cuenta desde esta fecha hasta que registres un mantenimiento más reciente.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>

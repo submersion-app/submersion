@@ -11560,7 +11560,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'The clock counts from this date. Logging a newer service clears it.';
+      'The clock counts from this date until you log a newer service.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Clear baseline date';

@@ -3797,7 +3797,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervalle (cycles de batterie)",
   "equipment_scheduleDialog_inheritHint": "Par défaut : {value}",
   "equipment_scheduleDialog_anchorDate": "Date de référence",
-  "equipment_scheduleDialog_anchorHint": "Le compteur part de cette date. Enregistrer un entretien plus récent l'efface.",
+  "equipment_scheduleDialog_anchorHint": "Le compteur part de cette date jusqu'à l'enregistrement d'un entretien plus récent.",
   "equipment_scheduleDialog_clearAnchor": "Effacer la date de référence",
   "equipment_scheduleDialog_save": "Enregistrer",
   "equipment_scheduleDialog_cancel": "Annuler",

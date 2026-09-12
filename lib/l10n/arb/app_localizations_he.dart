@@ -11477,7 +11477,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'השעון סופר מתאריך זה. תיעוד טיפול חדש יותר מנקה אותו.';
+      'השעון סופר מתאריך זה עד שתתעד טיפול חדש יותר.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'ניקוי תאריך הבסיס';

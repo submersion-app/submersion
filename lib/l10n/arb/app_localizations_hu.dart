@@ -11712,7 +11712,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Az óra ettől a dátumtól számol. Egy újabb szerviz rögzítése törli.';
+      'Az óra ettől a dátumtól számol, amíg újabb szervizt nem rögzítesz.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Kiindulási dátum törlése';

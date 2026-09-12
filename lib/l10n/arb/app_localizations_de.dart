@@ -11736,7 +11736,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Die Uhr zählt ab diesem Datum. Eine neuere erfasste Wartung löscht es.';
+      'Die Uhr zählt ab diesem Datum, bis eine neuere Wartung erfasst wird.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Referenzdatum löschen';

@@ -11786,7 +11786,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Le compteur part de cette date. Enregistrer un entretien plus récent l\'efface.';
+      'Le compteur part de cette date jusqu\'à l\'enregistrement d\'un entretien plus récent.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>

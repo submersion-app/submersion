@@ -11743,7 +11743,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Il contatore parte da questa data. Registrare una manutenzione più recente la cancella.';
+      'Il contatore parte da questa data finché non registri una manutenzione più recente.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>

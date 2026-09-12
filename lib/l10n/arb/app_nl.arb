@@ -3881,7 +3881,7 @@
   "equipment_scheduleDialog_intervalCycles": "Interval (batterijcycli)",
   "equipment_scheduleDialog_inheritHint": "Standaard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referentiedatum",
-  "equipment_scheduleDialog_anchorHint": "De klok telt vanaf deze datum. Een nieuwere service vastleggen wist deze.",
+  "equipment_scheduleDialog_anchorHint": "De klok telt vanaf deze datum tot je een nieuwere service vastlegt.",
   "equipment_scheduleDialog_clearAnchor": "Referentiedatum wissen",
   "equipment_scheduleDialog_save": "Opslaan",
   "equipment_scheduleDialog_cancel": "Annuleren",
