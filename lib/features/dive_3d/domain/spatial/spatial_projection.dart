@@ -49,8 +49,13 @@ class SpatialProjection {
 
   double northAt(double z) => -z / horizScale + centerNorth;
 
-  double yOf(double depth) =>
-      maxDepth <= 0 ? 0 : -(depth / maxDepth) * SceneBounds.ySpan;
+  /// True to scale with [xOf]/[zOf]: depth uses the same meters-per-unit
+  /// factor as the horizontal axes, so the rendered terrain is genuinely
+  /// proportional rather than independently stretched to fill a fixed
+  /// scene height (issue: depth read as a near-vertical plunge regardless
+  /// of how shallow the site actually was, because the old formula always
+  /// normalized whatever the max depth was to fill the full scene height).
+  double yOf(double depth) => -depth * horizScale;
 
   /// Half-extent of the projected northing axis (for the scene Z range).
   double get zHalfExtent => (northSpan / 2) * horizScale;

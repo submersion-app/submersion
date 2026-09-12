@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_spread
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -1038,6 +1039,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // getTouchedSpotIndicator during paint. See [velocityIndicatorSuppression].
   List<({double x, double y})> _suppressedDepthIndicatorSpots = const [];
 
+  // The spots of the latest touch response. fl_chart keeps each touched
+  // spot's index across rebuilds, and once the series under it is re-cut (a
+  // pan, see [_windowedBars]) or re-decimated that index names a different
+  // sample; getTouchedSpotIndicator only draws a marker whose spot is still
+  // one of these.
+  List<({double x, double y})> _touchedIndicatorSpots = const [];
+
+  // The bars last handed to fl_chart, cut to the visible window when zoomed,
+  // and the inputs they were cut for (see [_windowedBars]).
+  WindowedBars _barWindow = const WindowedBars([], []);
+  List<LineChartBarData>? _barWindowSource;
+  ({double minX, double maxX, double minY})? _barWindowRange;
+
   // Memoized lineBarsData. The chart's series builders are pure w.r.t.
   // interaction state, so the assembled bars are reused across playback / hover
   // / zoom rebuilds and only reconstructed when the underlying data, units,
@@ -1333,7 +1347,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // synthetic vertex should read the first sample, not suppress the tooltip.
     final index = touched == null
         ? -1
-        : math.max(0, starts[touched.barIndex] + touched.spotIndex);
+        : math.max(0, starts[touched.barIndex] + _sourceSpotIndex(touched));
     if (touched == null || index < 0 || index >= widget.profile.length) {
       widget.onTooltipData!(null);
       return;
@@ -1343,7 +1357,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // On the lead-in vertex the cursor is before the first sample, so the
     // readout must describe t=0 rather than repeat the first sample's values.
     final onLeadIn =
-        touched.spotIndex == 0 &&
+        _sourceSpotIndex(touched) == 0 &&
         starts[touched.barIndex] < 0 &&
         shouldDrawSurfaceLeadIn(widget.profile);
     final point = onLeadIn
@@ -3086,184 +3100,195 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             // invalidation; the combined key memoizes the concatenation so a
             // playback-only rebuild returns the identical outer list (fl_chart
             // listEquals short-circuits on identity).
-            lineBarsData: _barsCache.series(
-              'combined',
-              _sigOf([
-                _baseSig,
-                _sacSig,
-                _ascentSig,
-                _analysisSig,
-                _markersSig,
-                _overlaysSig,
-              ]),
-              () => [
-                ..._barsCache.series(
-                  'base',
+            lineBarsData: _windowedBars(
+              visibleMinX: visibleMinX,
+              visibleRangeX: visibleRangeX,
+              chartMinY: -visibleMaxDepth,
+              _barsCache.series(
+                'combined',
+                _sigOf([
                   _baseSig,
-                  () => [
-                    // Depth line segments (colored by active gas if present)
-                    ..._buildGasColoredDepthLines(colorScheme, units),
+                  _sacSig,
+                  _ascentSig,
+                  _analysisSig,
+                  _markersSig,
+                  _overlaysSig,
+                ]),
+                () => [
+                  ..._barsCache.series(
+                    'base',
+                    _baseSig,
+                    () => [
+                      // Depth line segments (colored by active gas if present)
+                      ..._buildGasColoredDepthLines(colorScheme, units),
 
-                    // Gas switch markers (if showing and data available)
-                    if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
+                      // Gas switch markers (if showing and data available)
+                      if (_showGasSwitchMarkers)
+                        ..._buildGasSwitchMarkers(units),
 
-                    // Temperature line(s) (if showing) — one per visible
-                    // computer when multi-computer profiles are present, else
-                    // a single curve from the primary profile.
-                    if (_showTemperature &&
-                        hasTemperatureData &&
-                        minTemp != null &&
-                        maxTemp != null)
-                      ..._buildTemperatureLines(
-                        colorScheme,
+                      // Temperature line(s) (if showing) — one per visible
+                      // computer when multi-computer profiles are present, else
+                      // a single curve from the primary profile.
+                      if (_showTemperature &&
+                          hasTemperatureData &&
+                          minTemp != null &&
+                          maxTemp != null)
+                        ..._buildTemperatureLines(
+                          colorScheme,
+                          metricBand,
+                          minTemp,
+                          maxTemp,
+                          units,
+                        ),
+
+                      // Multi-tank pressure lines (per-tank visibility controlled
+                      // inside _buildMultiTankPressureLines via _showTankPressure)
+                      if (_hasMultiTankPressure)
+                        ..._buildMultiTankPressureLines(metricBand),
+
+                      // Heart rate line (if showing)
+                      if (_showHeartRate &&
+                          hasHeartRateData &&
+                          minHR != null &&
+                          maxHR != null)
+                        _buildHeartRateLine(
+                          heartRateColor,
+                          metricBand,
+                          minHR,
+                          maxHR,
+                        ),
+                    ],
+                  ),
+                  ..._barsCache.series(
+                    'sac',
+                    _sacSig,
+                    () => [
+                      // SAC curve line (if showing)
+                      if (_showSac &&
+                          hasSacData &&
+                          minSac != null &&
+                          maxSac != null)
+                        _buildSacLine(metricBand, minSac, maxSac),
+                    ],
+                  ),
+                  ..._barsCache.series(
+                    'ascent',
+                    _ascentSig,
+                    () => [
+                      // Ascent-rate magnitude line (separate overlay; signed
+                      // m/min)
+                      if (_showAscentRateLine && widget.ascentRates != null)
+                        _buildAscentRateLine(metricBand),
+                    ],
+                  ),
+                  ..._barsCache.series(
+                    'analysis',
+                    _analysisSig,
+                    () => [
+                      // Deco stop band, drawn before the ceiling line so the
+                      // dashed curve stays legible on top of the fill.
+                      if (_showDecoStops && widget.decoStopCurve != null)
+                        buildDecoStopBand(
+                          decoStopCurve: widget.decoStopCurve!,
+                          timestamps: [
+                            for (final p in widget.profile) p.timestamp,
+                          ],
+                          units: units,
+                        ),
+                      // Ceiling line (if showing and data available)
+                      if (_showCeiling && widget.ceilingCurve != null)
+                        _buildCeilingLine(units),
+
+                      // NDL line (if showing)
+                      if (_showNdl && widget.ndlCurve != null)
+                        _buildNdlLine(metricBand),
+
+                      // ppO2 line (if showing)
+                      if (_showPpO2 && widget.ppO2Curve != null)
+                        _buildPpO2Line(metricBand),
+
+                      // ppN2 line (if showing)
+                      if (_showPpN2 && widget.ppN2Curve != null)
+                        _buildPpN2Line(metricBand),
+
+                      // ppHe line (if showing and has helium data)
+                      if (_showPpHe &&
+                          widget.ppHeCurve != null &&
+                          widget.ppHeCurve!.any((v) => v > 0.001))
+                        _buildPpHeLine(metricBand),
+
+                      // O2 cell agreement rug plus one millivolt line per cell
+                      if (_showO2CellMv && widget.o2CellMvCurves != null) ...[
+                        ..._buildO2CellRug(metricBand),
+                        ..._buildO2CellMvLines(metricBand, units),
+                      ],
+
+                      // MOD line (if showing)
+                      if (_showMod && widget.modCurve != null)
+                        _buildModLine(units),
+
+                      // Gas density line (if showing)
+                      if (_showDensity && widget.densityCurve != null)
+                        _buildDensityLine(metricBand),
+
+                      // GF% line (if showing)
+                      if (_showGf && widget.gfCurve != null)
+                        _buildGfLine(metricBand),
+
+                      // Surface GF line (if showing)
+                      if (_showSurfaceGf && widget.surfaceGfCurve != null)
+                        _buildSurfaceGfLine(metricBand),
+
+                      // Mean depth line (if showing)
+                      if (_showMeanDepth && widget.meanDepthCurve != null)
+                        _buildMeanDepthLine(units),
+
+                      // TTS line (if showing)
+                      if (_showTts && widget.ttsCurve != null)
+                        _buildTtsLine(metricBand),
+
+                      // GTR line (if showing)
+                      if (_showGtr && widget.gtrCurve != null)
+                        _buildGtrLine(metricBand),
+
+                      // CNS% curve (if showing)
+                      if (_showCns && widget.cnsCurve != null)
+                        _buildCnsLine(metricBand),
+
+                      // OTU curve (if showing)
+                      if (_showOtu && widget.otuCurve != null)
+                        _buildOtuLine(metricBand),
+                    ],
+                  ),
+                  ..._barsCache.series(
+                    'markers',
+                    _markersSig,
+                    () => [
+                      // Profile markers (max depth, pressure thresholds)
+                      ..._buildMarkerLines(
+                        units,
+                        metricBand,
+                        minPressure: minPressure,
+                        maxPressure: maxPressure,
+                      ),
+                    ],
+                  ),
+                  ..._barsCache.series(
+                    'overlays',
+                    _overlaysSig,
+                    () => [
+                      // Overlaid comparison sources — LAST, so depth bars keep
+                      // occupying the leading barIndex range (_depthBarCount).
+                      ..._buildOverlayLines(
+                        units,
                         metricBand,
                         minTemp,
                         maxTemp,
-                        units,
                       ),
-
-                    // Multi-tank pressure lines (per-tank visibility controlled
-                    // inside _buildMultiTankPressureLines via _showTankPressure)
-                    if (_hasMultiTankPressure)
-                      ..._buildMultiTankPressureLines(metricBand),
-
-                    // Heart rate line (if showing)
-                    if (_showHeartRate &&
-                        hasHeartRateData &&
-                        minHR != null &&
-                        maxHR != null)
-                      _buildHeartRateLine(
-                        heartRateColor,
-                        metricBand,
-                        minHR,
-                        maxHR,
-                      ),
-                  ],
-                ),
-                ..._barsCache.series(
-                  'sac',
-                  _sacSig,
-                  () => [
-                    // SAC curve line (if showing)
-                    if (_showSac &&
-                        hasSacData &&
-                        minSac != null &&
-                        maxSac != null)
-                      _buildSacLine(metricBand, minSac, maxSac),
-                  ],
-                ),
-                ..._barsCache.series(
-                  'ascent',
-                  _ascentSig,
-                  () => [
-                    // Ascent-rate magnitude line (separate overlay; signed
-                    // m/min)
-                    if (_showAscentRateLine && widget.ascentRates != null)
-                      _buildAscentRateLine(metricBand),
-                  ],
-                ),
-                ..._barsCache.series(
-                  'analysis',
-                  _analysisSig,
-                  () => [
-                    // Deco stop band, drawn before the ceiling line so the
-                    // dashed curve stays legible on top of the fill.
-                    if (_showDecoStops && widget.decoStopCurve != null)
-                      buildDecoStopBand(
-                        decoStopCurve: widget.decoStopCurve!,
-                        timestamps: [
-                          for (final p in widget.profile) p.timestamp,
-                        ],
-                        units: units,
-                      ),
-                    // Ceiling line (if showing and data available)
-                    if (_showCeiling && widget.ceilingCurve != null)
-                      _buildCeilingLine(units),
-
-                    // NDL line (if showing)
-                    if (_showNdl && widget.ndlCurve != null)
-                      _buildNdlLine(metricBand),
-
-                    // ppO2 line (if showing)
-                    if (_showPpO2 && widget.ppO2Curve != null)
-                      _buildPpO2Line(metricBand),
-
-                    // ppN2 line (if showing)
-                    if (_showPpN2 && widget.ppN2Curve != null)
-                      _buildPpN2Line(metricBand),
-
-                    // ppHe line (if showing and has helium data)
-                    if (_showPpHe &&
-                        widget.ppHeCurve != null &&
-                        widget.ppHeCurve!.any((v) => v > 0.001))
-                      _buildPpHeLine(metricBand),
-
-                    // O2 cell agreement rug plus one millivolt line per cell
-                    if (_showO2CellMv && widget.o2CellMvCurves != null) ...[
-                      ..._buildO2CellRug(metricBand),
-                      ..._buildO2CellMvLines(metricBand, units),
                     ],
-
-                    // MOD line (if showing)
-                    if (_showMod && widget.modCurve != null)
-                      _buildModLine(units),
-
-                    // Gas density line (if showing)
-                    if (_showDensity && widget.densityCurve != null)
-                      _buildDensityLine(metricBand),
-
-                    // GF% line (if showing)
-                    if (_showGf && widget.gfCurve != null)
-                      _buildGfLine(metricBand),
-
-                    // Surface GF line (if showing)
-                    if (_showSurfaceGf && widget.surfaceGfCurve != null)
-                      _buildSurfaceGfLine(metricBand),
-
-                    // Mean depth line (if showing)
-                    if (_showMeanDepth && widget.meanDepthCurve != null)
-                      _buildMeanDepthLine(units),
-
-                    // TTS line (if showing)
-                    if (_showTts && widget.ttsCurve != null)
-                      _buildTtsLine(metricBand),
-
-                    // GTR line (if showing)
-                    if (_showGtr && widget.gtrCurve != null)
-                      _buildGtrLine(metricBand),
-
-                    // CNS% curve (if showing)
-                    if (_showCns && widget.cnsCurve != null)
-                      _buildCnsLine(metricBand),
-
-                    // OTU curve (if showing)
-                    if (_showOtu && widget.otuCurve != null)
-                      _buildOtuLine(metricBand),
-                  ],
-                ),
-                ..._barsCache.series(
-                  'markers',
-                  _markersSig,
-                  () => [
-                    // Profile markers (max depth, pressure thresholds)
-                    ..._buildMarkerLines(
-                      units,
-                      metricBand,
-                      minPressure: minPressure,
-                      maxPressure: maxPressure,
-                    ),
-                  ],
-                ),
-                ..._barsCache.series(
-                  'overlays',
-                  _overlaysSig,
-                  () => [
-                    // Overlaid comparison sources — LAST, so depth bars keep
-                    // occupying the leading barIndex range (_depthBarCount).
-                    ..._buildOverlayLines(units, metricBand, minTemp, maxTemp),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
             rangeAnnotations: RangeAnnotations(
               verticalRangeAnnotations: _buildHighlightRangeAnnotations(
@@ -3310,7 +3335,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     if (index < 0 || index >= barData.spots.length)
                       null
                     else if (suppressed.isNotEmpty &&
-                        _isSuppressedIndicatorSpot(barData, index, suppressed))
+                        _isSpotAt(barData, index, suppressed))
+                      null
+                    else if (!_isSpotAt(barData, index, _touchedIndicatorSpots))
                       null
                     else
                       defaultTouchedIndicators(barData, [index]).first,
@@ -3343,6 +3370,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 // depth dot, independently of the external selection/tooltip
                 // callbacks below (so the built-in indicator is de-cluttered
                 // even when neither callback is wired).
+                _touchedIndicatorSpots = active
+                    ? [for (final s in spots) (x: s.x, y: s.y)]
+                    : const [];
                 _suppressedDepthIndicatorSpots = active
                     ? DiveProfileChart.velocityIndicatorSuppression([
                         for (final s in spots)
@@ -3371,7 +3401,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                             profile: widget.profile,
                             depthBarStarts: starts,
                             barIndex: depthSpot.barIndex,
-                            spotIndex: depthSpot.spotIndex,
+                            spotIndex: _sourceSpotIndex(depthSpot),
                             spotX: depthSpot.x,
                             multiComputer: false,
                           );
@@ -3425,7 +3455,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           profile: widget.profile,
                           depthBarStarts: depthBarStarts,
                           barIndex: depthSpot.barIndex,
-                          spotIndex: depthSpot.spotIndex,
+                          spotIndex: _sourceSpotIndex(depthSpot),
                           spotX: depthSpot.x,
                           multiComputer: false,
                         );
@@ -3439,7 +3469,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   // readout must describe t=0, not repeat the first sample.
                   final onLeadIn =
                       depthSpot != null &&
-                      depthSpot.spotIndex == 0 &&
+                      _sourceSpotIndex(depthSpot) == 0 &&
                       depthBarStarts[depthSpot.barIndex] < 0 &&
                       shouldDrawSurfaceLeadIn(widget.profile);
 
@@ -4729,26 +4759,65 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return [0 - leadIn];
   }
 
-  /// Whether the built-in focus indicator for [barData]'s spot at [index]
-  /// should be hidden because velocity colouring already shows the depth dot on
-  /// another band (see [velocityIndicatorSuppression]). Matches on the spot
-  /// coordinate because fl_chart hands the indicator callback a copied bar
-  /// without its position in the bar list.
-  bool _isSuppressedIndicatorSpot(
+  /// Whether [barData]'s spot at [index] is one of [spots]. Matches on the
+  /// spot coordinate because fl_chart hands the indicator callback a copied
+  /// bar without its position in the bar list. Used both to hide the focus
+  /// indicator velocity colouring already shows on another band (see
+  /// [velocityIndicatorSuppression]) and to drop a stale touched index (see
+  /// [_touchedIndicatorSpots]).
+  bool _isSpotAt(
     LineChartBarData barData,
     int index,
-    List<({double x, double y})> suppressed,
+    List<({double x, double y})> spots,
   ) {
     if (index < 0 || index >= barData.spots.length) return false;
     final spot = barData.spots[index];
     const epsilon = 1e-6;
-    for (final s in suppressed) {
+    for (final s in spots) {
       if ((s.x - spot.x).abs() < epsilon && (s.y - spot.y).abs() < epsilon) {
         return true;
       }
     }
     return false;
   }
+
+  /// The bars fl_chart is handed: [bars] cut to the visible window when
+  /// zoomed, so no path runs far off screen (see [windowBars]). Memoized on
+  /// the source list and the snapped window: a horizontal pan that stays
+  /// inside one eighth-window step hands fl_chart the identical list, which
+  /// keeps its touched spot indices valid and lets its listEquals
+  /// short-circuit. [chartMinY] is in the key too, since the cut bars' fill
+  /// gradients are placed against it.
+  List<LineChartBarData> _windowedBars(
+    List<LineChartBarData> bars, {
+    required double visibleMinX,
+    required double visibleRangeX,
+    required double chartMinY,
+  }) {
+    final snapped = snappedBarWindow(minX: visibleMinX, width: visibleRangeX);
+    final range = _viewport.isZoomed
+        ? (minX: snapped.minX, maxX: snapped.maxX, minY: chartMinY)
+        : null;
+    if (identical(bars, _barWindowSource) && range == _barWindowRange) {
+      return _barWindow.bars;
+    }
+    _barWindowSource = bars;
+    _barWindowRange = range;
+    _barWindow = range == null
+        ? WindowedBars.unwindowed(bars)
+        : windowBars(
+            bars,
+            minX: range.minX,
+            maxX: range.maxX,
+            chartMinY: range.minY,
+          );
+    return _barWindow.bars;
+  }
+
+  /// [spot]'s index in its source bar, before [_windowedBars] cut it.
+  /// fl_chart reports touches against the cut bars it was handed.
+  int _sourceSpotIndex(LineBarSpot spot) =>
+      _barWindow.sourceSpotIndex(spot.barIndex, spot.spotIndex);
 
   /// Build every overlaid source's lines: dashed depth, dimmed temperature
   /// (when the temperature metric is enabled), and computer-reported

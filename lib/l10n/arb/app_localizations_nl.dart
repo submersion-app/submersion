@@ -17142,6 +17142,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_finding => 'Bevinding';
 
   @override
+  String get settings_conflict_ref_importedFile => 'Geïmporteerd bestand';
+
+  @override
   String get settings_conflict_ref_instructor => 'Instructeur';
 
   @override
@@ -24610,6 +24613,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'Opnieuw verwerken mislukt: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Opnieuw synchroniseren vanuit origineel bestand';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'Duik bijgewerkt vanuit het originele bestand';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Kan niet opnieuw synchroniseren: deze duik bestaat niet meer';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Kan niet opnieuw synchroniseren: er is geen origineel bestand opgeslagen voor deze duik';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Kan niet opnieuw synchroniseren: deze bestandsindeling wordt niet ondersteund';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Kan niet opnieuw synchroniseren: het originele bestand staat niet meer op dit apparaat';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Kan niet opnieuw synchroniseren: het originele bestand bevat geen overeenkomende duik meer';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Kan niet opnieuw synchroniseren: er is een onverwachte fout opgetreden bij het lezen van het originele bestand';
 
   @override
   String get universalImport_label_replaceSource => 'Bron vervangen';
@@ -38188,6 +38223,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'Geëxporteerde bestanden';
 
   @override
+  String get settings_storageUsage_group_importedFiles => 'Ruwe importgegevens';
+
+  @override
   String get settings_storageUsage_category_database => 'Duiklogboekdatabase';
 
   @override
@@ -38237,6 +38275,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_storageUsage_category_exports =>
       'Geëxporteerde bestanden';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'Originele importbestanden';
 
   @override
   String get profilePhoto_sheet_title => 'Profielfoto';
@@ -38727,9 +38769,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'Laatste onderhoud';
 
   @override
-  String get equipment_arrange_title => 'Uitrusting ordenen';
-
-  @override
   String get equipment_arrange_groupByType => 'Groeperen op type';
 
   @override
@@ -38744,9 +38783,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'Sorteren op';
-
-  @override
-  String get equipment_arrange_tooltip => 'Uitrusting ordenen';
 
   @override
   String get equipment_arrange_reset => 'Standaardwaarden herstellen';

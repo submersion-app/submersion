@@ -106,9 +106,12 @@ void main() {
       expect(mesh!.vertexCount, 4);
       expect(mesh.indices, hasLength(6));
       expect(mesh.opacity, closeTo(0.45, 1e-9));
-      // Vertices ride the terrain surface plus a small lift: the sw corner
-      // sits at yOf(10) + 0.015.
-      expect(mesh.positions[1], closeTo(proj.yOf(10) + 0.015, 1e-5));
+      // Vertices ride the terrain surface plus a small, horizScale-scaled
+      // lift: the sw corner sits at yOf(10) + 0.15 * horizScale.
+      expect(
+        mesh.positions[1],
+        closeTo(proj.yOf(10) + 0.15 * proj.horizScale, 1e-5),
+      );
 
       expect(
         buildWallHighlightMesh(
@@ -119,6 +122,31 @@ void main() {
         ),
         isNull,
       );
+    });
+
+    test('a corner shallower than twice the shared lift caps its own lift at '
+        'half its depth, so it never renders above the waterline (regression: '
+        'the four corners of a steep wall cell can have very different '
+        'depths, so a lift sized for the deep corners could still push a '
+        'shallow corner -- e.g. 0.05 m -- above Y=0 -- Copilot review, round '
+        '2)', () {
+      final grid = gridOf([
+        [0.05, 0.05, 0.05],
+        [60.0, 60.0, 0.05],
+      ]);
+      final proj = projFor(grid);
+      final mesh = buildWallHighlightMesh(
+        grid: grid,
+        center: const GeoPoint(0, 0),
+        projection: proj,
+        thresholdDeg: 22,
+      );
+      expect(mesh, isNotNull);
+      // sw is the shallow (0.05 m) corner, first vertex emitted.
+      final liftedY = mesh!.positions[1];
+      expect(liftedY, closeTo(proj.yOf(0.05) + 0.025 * proj.horizScale, 1e-6));
+      // Below the waterline, not above it.
+      expect(liftedY, lessThanOrEqualTo(0));
     });
   });
 }

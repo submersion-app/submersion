@@ -18,10 +18,18 @@ import 'package:submersion/features/dive_log/domain/services/tank_source_index.d
 /// This repository handles storage and retrieval of pressure readings
 /// from AI transmitters for multi-tank dives.
 class TankPressureRepository {
-  AppDatabase get _db => DatabaseService.instance.database;
-  final SyncRepository _syncRepository = SyncRepository();
-  final TankPressureSeriesRepository _tankSeries =
-      TankPressureSeriesRepository();
+  /// [database] is optional so the zero-arg construction sites keep resolving
+  /// through [DatabaseService]; services that own an [AppDatabase] (and wrap
+  /// these writes in their own transaction) pass it so the injection is real.
+  TankPressureRepository({AppDatabase? database})
+    : _database = database,
+      _syncRepository = SyncRepository(database: database),
+      _tankSeries = TankPressureSeriesRepository(database: database);
+
+  final AppDatabase? _database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+  final SyncRepository _syncRepository;
+  final TankPressureSeriesRepository _tankSeries;
 
   /// Get all tank pressure data for a dive, grouped by tank ID
   ///
@@ -148,6 +156,29 @@ class TankPressureRepository {
       await deleteTankPressuresForDive(diveId);
       await insertTankPressures(diveId, pressuresByTank);
     });
+  }
+
+  /// Replace the pressure data of exactly [tankIds], leaving the series of
+  /// every tank not named intact.
+  ///
+  /// A resync keeps a `dive_tanks` row the fresh parse no longer reports
+  /// (#276: the cascade makes a wrong delete unrecoverable), so the pressure
+  /// series recorded against that tank has to be kept with it. The dive-wide
+  /// [replaceTankPressures] deletes it and tombstones it to every peer.
+  Future<void> replaceTankPressuresForTanks(
+    String diveId,
+    Iterable<String> tankIds,
+    Map<String, List<({int timestamp, double pressure})>> pressuresByTank,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      for (final tankId in tankIds) {
+        await _tankSeries.deleteForTank(diveId, tankId);
+      }
+      await insertTankPressures(diveId, pressuresByTank);
+      await _touchDive(diveId, now);
+    });
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Move the pressure series of [fromTankId] onto [toTankId]. Since v200 this

@@ -20,6 +20,7 @@ import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/core/utils/deco_dive_detector.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
+import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
@@ -45,8 +46,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 
 /// Repository for managing dive computers and multi-profile support.
 class DiveComputerRepository {
-  DiveComputerRepository({DiveAltitudeEnricher? altitudeEnricher})
-    : _altitudeEnricher = altitudeEnricher ?? DiveAltitudeEnricher();
+  DiveComputerRepository({
+    DiveAltitudeEnricher? altitudeEnricher,
+    ImportedFileReclaimer? importedFileReclaimer,
+  }) : _altitudeEnricher = altitudeEnricher ?? DiveAltitudeEnricher(),
+       _importedFileReclaimer =
+           importedFileReclaimer ?? ImportedFileReclaimer();
 
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
@@ -67,6 +72,11 @@ class DiveComputerRepository {
   Stream<void> watchComputersChanges() => _db
       .tableUpdates(TableUpdateQuery.onTable(_db.diveComputers))
       .debounce(DiveRepository.changeTickDebounce);
+
+  /// The same refcounted sweep the dive-deletion cascade uses (issue #478):
+  /// the row this repository deletes on the replaceSource path may be the
+  /// last one naming a stored import file.
+  final ImportedFileReclaimer _importedFileReclaimer;
 
   /// Held for the repository's lifetime so a multi-dive download shares one
   /// elevation-lookup cache: a trip's worth of dives at the same site costs a
@@ -1080,6 +1090,11 @@ class DiveComputerRepository {
         [diveId, computerId],
       );
     });
+    // A row deleted above can have been the last reference to a stored import
+    // file (issue #478). Swept after the transaction commits, so a failure
+    // leaks a row rather than stranding a surviving source row on bytes that
+    // are gone.
+    await _importedFileReclaimer.reclaimOrphans();
   }
 
   /// Import a profile and associate it with a dive (creating one if needed).

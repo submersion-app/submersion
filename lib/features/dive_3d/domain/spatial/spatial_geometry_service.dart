@@ -182,7 +182,7 @@ class SpatialGeometryService {
     final bounds = SceneBounds(
       durationSeconds: placed.durationSeconds,
       maxDepthMeters: maxDepth,
-      sceneMinY: -SceneBounds.ySpan,
+      sceneMinY: proj.yOf(maxDepth),
       sceneMaxY: 0,
       sceneMinZ: -zHalf,
       sceneMaxZ: zHalf,

@@ -110,7 +110,7 @@ Future<List<Override>> _buildOverrides({
     equipmentSortProvider.overrideWith(
       (ref) => const SortState(
         field: EquipmentSortField.name,
-        direction: SortDirection.descending,
+        direction: SortDirection.ascending,
       ),
     ),
   ];
@@ -285,7 +285,7 @@ void main() {
       expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
     });
 
-    testWidgets('table mode sort button opens sort bottom sheet', (
+    testWidgets('table mode sort button opens the sort sheet, no grouping', (
       tester,
     ) async {
       tester.view.devicePixelRatio = 1.0;
@@ -315,10 +315,14 @@ void main() {
       await tester.tap(find.byIcon(Icons.sort));
       await tester.pumpAndSettle();
 
-      // The sort bottom sheet should appear with sort field options
-      expect(find.text('Type'), findsOneWidget);
+      // The Equipment sort sheet, minus the grouping: the table stays flat.
+      expect(find.text('Sort Equipment'), findsOneWidget);
       expect(find.text('Purchase Date'), findsOneWidget);
       expect(find.text('Last Service'), findsOneWidget);
+      expect(find.text('Service Due'), findsOneWidget);
+      expect(find.text('Group by type'), findsNothing);
+      // Type order is the arrangement's axis now, not an item sort field.
+      expect(find.text('Type'), findsNothing);
     });
 
     testWidgets('table mode search button opens search', (tester) async {
@@ -425,7 +429,7 @@ void main() {
       expect(find.text('Compact'), findsNothing);
     });
 
-    testWidgets('selecting sort option triggers onSortChanged callback', (
+    testWidgets('selecting a sort option sorts and keeps the sheet open', (
       tester,
     ) async {
       tester.view.devicePixelRatio = 1.0;
@@ -456,12 +460,18 @@ void main() {
       await tester.tap(find.byIcon(Icons.sort));
       await tester.pumpAndSettle();
 
-      // Tap a sort field option to trigger onSortChanged
-      await tester.tap(find.text('Type'));
+      await tester.tap(find.text('Purchase Date'));
       await tester.pumpAndSettle();
 
-      // The sort bottom sheet should have closed after selection
-      expect(find.text('Purchase Date'), findsNothing);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EquipmentListPage)),
+      );
+      expect(
+        container.read(equipmentSortProvider).field,
+        EquipmentSortField.purchaseDate,
+      );
+      // The sheet carries several axes, so a pick leaves it open.
+      expect(find.text('Sort Equipment'), findsOneWidget);
     });
 
     testWidgets('table mode with details pane shows summary builder', (

@@ -114,6 +114,35 @@ void main() {
       expect(export.header['Diving']['GfHigh'], 85);
     });
 
+    // The dive footer holds the surface GPS pair (entry and exit); it sits in
+    // its own Summary block, so the header has to carry it over for the dive
+    // parser, which only ever sees (header, samples).
+    test('carries the dive footer location onto the header', () {
+      final fixture = _cloudFixture();
+      (fixture['Summary'] as Map)['Samples'].add({
+        'Attributes': {
+          'suunto/sml': {
+            'DiveFooter': {
+              'DiveLocation': {
+                'Start': {'Latitude': 0.6021385919, 'Longitude': 0.6152631256},
+                'Stop': {'Latitude': 0.6021396642, 'Longitude': 0.6152677321},
+              },
+            },
+          },
+        },
+      });
+
+      final export = SuuntoSmlNormalizer.parse(fixture);
+      final location = export.header['DiveLocation'] as Map<String, dynamic>;
+      expect(location['Start']['Latitude'], 0.6021385919);
+      expect(location['Stop']['Longitude'], 0.6152677321);
+    });
+
+    test('leaves DiveLocation absent when the footer has none', () {
+      final export = SuuntoSmlNormalizer.parse(_cloudFixture());
+      expect(export.header.containsKey('DiveLocation'), isFalse);
+    });
+
     test('omits Diving.Gases when no gas has a filled tank', () {
       final fixture = _cloudFixture();
       (((fixture['Summary'] as Map)['Samples'] as List)[1]

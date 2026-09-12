@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
+import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
@@ -79,7 +80,7 @@ class ReparseService {
   /// overwriting existing blobs during the re-parse path.
   ///
   /// Returns whether the dive's profile strand was left untouched because
-  /// this source does not own it -- see [_sourceOwnsProfileStrand].
+  /// this source does not own it -- see [sourceOwnsProfileStrand].
   Future<({bool profilePreserved})> applyParsedUpdate({
     required String diveId,
     required String sourceRowId,
@@ -127,7 +128,7 @@ class ReparseService {
         db.diveDataSources,
       )..where((t) => t.diveId.equals(diveId))).get();
       final isMultiSource = sourceRows.length > 1;
-      final ownsStrand = _sourceOwnsProfileStrand(sourceRow, sourceRows);
+      final ownsStrand = sourceOwnsProfileStrand(sourceRow, sourceRows);
 
       // ------------------------------------------------------------------
       // 4. Replace DiveProfiles for this source's computerId -- but only
@@ -148,7 +149,7 @@ class ReparseService {
         // dive is always multi-source: apply() backfills a primary source row
         // on the target before folding anything in, so the offset-bearing row
         // never arrives alone. A row that did arrive alone would be
-        // non-primary, which _sourceOwnsProfileStrand already refuses.
+        // non-primary, which sourceOwnsProfileStrand already refuses.
         await _replaceDiveProfiles(
           diveId: diveId,
           computerId: computerId,
@@ -217,44 +218,6 @@ class ReparseService {
 
       return (profilePreserved: !ownsStrand);
     });
-  }
-
-  /// Whether [row] is the sole author of its `(dive_id, computer_id)` profile
-  /// strand, with that strand still in [row]'s own parse frame.
-  ///
-  /// Re-parsing deletes the strand and re-inserts the parsed samples at their
-  /// own `timeSeconds`, so it is only safe when both hold. A sequential
-  /// combine breaks both: [DiveMergeService.apply] re-bases each segment onto
-  /// the merged timeline and carries every original's source row over demoted
-  /// to non-primary, so re-parsing one of them would drop half a dive back at
-  /// the original download's timestamps and delete the synthesized
-  /// surface-gap samples along the way (#1164).
-  ///
-  /// Two signals, either of which disqualifies the row:
-  ///
-  /// - **No row on the dive is primary.** That is exactly a combined dive:
-  ///   the merge demotes all carried rows and the merged dive has no source
-  ///   row of its own. [DiveConsolidationService] demotes only its
-  ///   secondaries, so a consolidated dive keeps a primary row and its
-  ///   per-computer strands stay re-parseable.
-  /// - **A re-parseable sibling row shares this row's `computerId`** (null
-  ///   counts as equal to null). The strand has more than one author, so
-  ///   whichever source re-parses last would wipe out what the others wrote
-  ///   -- true of same-computer halves regardless of the primary flag. Only
-  ///   siblings carrying raw data count: deleting a computer nulls its
-  ///   sources' `computerId` (FK `setNull`) and
-  ///   `_backfillProvenanceSnapshots` adds rows with no `computerId` at all,
-  ///   so sharing a null strand with a row that can never be re-parsed is an
-  ///   ordinary shape, not contention.
-  bool _sourceOwnsProfileStrand(
-    DiveDataSourcesData row,
-    List<DiveDataSourcesData> allRowsForDive,
-  ) {
-    if (!allRowsForDive.any((r) => r.isPrimary)) return false;
-    return !allRowsForDive.any(
-      (r) =>
-          r.id != row.id && r.computerId == row.computerId && r.rawData != null,
-    );
   }
 
   /// Count how many sources for a given computer have raw data vs not.
@@ -373,7 +336,7 @@ class ReparseService {
   ///
   /// Returns the error messages (empty on full success) alongside the number
   /// of sources whose profile strand was deliberately left alone -- see
-  /// [_sourceOwnsProfileStrand]. Callers surface that count so a re-parse on
+  /// [sourceOwnsProfileStrand]. Callers surface that count so a re-parse on
   /// a combined dive does not look like an unexplained no-op (#1164).
   Future<({List<String> errors, int profilesPreserved})> reparseDive(
     String diveId, {
