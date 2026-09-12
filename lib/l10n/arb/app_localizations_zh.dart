@@ -6672,7 +6672,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_welcome_startFresh_title => '创建新档案';
 
   @override
-  String get setup_welcome_subtitle => '高级潜水日志与分析';
+  String get setup_welcome_subtitle => '安全潜水，记录一切。';
 
   @override
   String get setup_welcome_title => '欢迎使用 Submersion';
@@ -14943,7 +14943,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description => '深入探索。';
+  String get settings_about_description => '安全潜水，记录一切。';
 
   @override
   String get settings_about_header => '关于';

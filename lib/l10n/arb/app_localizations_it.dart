@@ -7035,7 +7035,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get setup_welcome_subtitle =>
-      'Registrazione e analisi avanzata delle immersioni';
+      'Immergiti in sicurezza. Registra tutto.';
 
   @override
   String get setup_welcome_title => 'Benvenuto in Submersion';
@@ -15695,7 +15695,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_about_description =>
-      'Registra le tue immersioni, gestisci l\'attrezzatura ed esplora i siti di immersione.';
+      'Immergiti in sicurezza. Registra tutto.';
 
   @override
   String get settings_about_header => 'Informazioni';

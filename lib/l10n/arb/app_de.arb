@@ -500,7 +500,7 @@
   "setup_welcome_skipSetup": "Einrichtung überspringen",
   "setup_welcome_startFresh_subtitle": "Taucherprofil erstellen und die App einrichten",
   "setup_welcome_startFresh_title": "Neues Profil einrichten",
-  "setup_welcome_subtitle": "Erweiterte Tauchprotokollierung und -analyse",
+  "setup_welcome_subtitle": "Sicher tauchen. Alles erfassen.",
   "setup_welcome_title": "Willkommen bei Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4961,7 +4961,7 @@
   "planning_welcome_title": "Planungswerkzeuge",
   "settings_about_aboutSubmersion": "Über Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Verfolgen Sie Ihre Tauchgänge, verwalten Sie Ausrüstung und erkunden Sie Tauchplätze.",
+  "settings_about_description": "Sicher tauchen. Alles erfassen.",
   "settings_about_header": "Über",
   "settings_about_openSourceLicenses": "Open-Source-Lizenzen",
   "settings_about_reportIssue": "Problem melden",

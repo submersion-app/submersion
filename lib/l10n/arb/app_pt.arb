@@ -500,7 +500,7 @@
   "setup_welcome_skipSetup": "Ignorar configuração",
   "setup_welcome_startFresh_subtitle": "Crie seu perfil de mergulhador e configure o aplicativo",
   "setup_welcome_startFresh_title": "Configurar um novo perfil",
-  "setup_welcome_subtitle": "Registro e análise avançada de mergulhos",
+  "setup_welcome_subtitle": "Mergulhe com segurança. Registre tudo.",
   "setup_welcome_title": "Bem-vindo ao Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4961,7 +4961,7 @@
   "planning_welcome_title": "Ferramentas de Planejamento",
   "settings_about_aboutSubmersion": "Sobre o Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Registre seus mergulhos, gerencie equipamentos e explore pontos de mergulho.",
+  "settings_about_description": "Mergulhe com segurança. Registre tudo.",
   "settings_about_header": "Sobre",
   "settings_about_openSourceLicenses": "Licencas de Codigo Aberto",
   "settings_about_reportIssue": "Relatar um Problema",

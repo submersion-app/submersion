@@ -500,7 +500,7 @@
   "setup_welcome_skipSetup": "Installatie overslaan",
   "setup_welcome_startFresh_subtitle": "Maak je duikersprofiel en stel de app in",
   "setup_welcome_startFresh_title": "Een nieuw profiel instellen",
-  "setup_welcome_subtitle": "Geavanceerd duiklogboek en analyse",
+  "setup_welcome_subtitle": "Duik veilig. Log alles.",
   "setup_welcome_title": "Welkom bij Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4961,7 +4961,7 @@
   "planning_welcome_title": "Planningstools",
   "settings_about_aboutSubmersion": "Over Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Houd je duiken bij, beheer uitrusting en verken duikstekken.",
+  "settings_about_description": "Duik veilig. Log alles.",
   "settings_about_header": "Over",
   "settings_about_openSourceLicenses": "Open source-licenties",
   "settings_about_reportIssue": "Probleem melden",

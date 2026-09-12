@@ -538,7 +538,7 @@
   "setup_welcome_skipSetup": "跳过设置",
   "setup_welcome_startFresh_subtitle": "创建潜水员档案并配置应用",
   "setup_welcome_startFresh_title": "创建新档案",
-  "setup_welcome_subtitle": "高级潜水日志与分析",
+  "setup_welcome_subtitle": "安全潜水，记录一切。",
   "setup_welcome_title": "欢迎使用 Submersion",
   "@tankPresets_deleteDefaultMessage": {
     "placeholders": {
@@ -5127,7 +5127,7 @@
   "planning_welcome_title": "规划工具",
   "settings_about_aboutSubmersion": "关于 Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "深入探索。",
+  "settings_about_description": "安全潜水，记录一切。",
   "settings_about_header": "关于",
   "settings_about_openSourceLicenses": "开源许可证",
   "settings_about_reportIssue": "报告问题",

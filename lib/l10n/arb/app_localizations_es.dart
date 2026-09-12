@@ -7034,8 +7034,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'Configurar un perfil nuevo';
 
   @override
-  String get setup_welcome_subtitle =>
-      'Registro y análisis avanzado de inmersiones';
+  String get setup_welcome_subtitle => 'Bucea seguro. Registra todo.';
 
   @override
   String get setup_welcome_title => 'Bienvenido a Submersion';
@@ -15689,8 +15688,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description =>
-      'Registra tus inmersiones, administra tu equipo y explora puntos de buceo.';
+  String get settings_about_description => 'Bucea seguro. Registra todo.';
 
   @override
   String get settings_about_header => 'Acerca de';

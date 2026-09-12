@@ -500,7 +500,7 @@
   "setup_welcome_skipSetup": "تخطي الإعداد",
   "setup_welcome_startFresh_subtitle": "أنشئ ملف الغواص الخاص بك واضبط التطبيق",
   "setup_welcome_startFresh_title": "إعداد ملف تعريف جديد",
-  "setup_welcome_subtitle": "تسجيل وتحليل متقدم للغوص",
+  "setup_welcome_subtitle": "غُص بأمان. سجّل كل شيء.",
   "setup_welcome_title": "مرحباً بك في Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4961,7 +4961,7 @@
   "planning_welcome_title": "أدوات التخطيط",
   "settings_about_aboutSubmersion": "حول Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "تتبع غوصاتك، وأدر معداتك، واستكشف مواقع الغوص.",
+  "settings_about_description": "غُص بأمان. سجّل كل شيء.",
   "settings_about_header": "حول",
   "settings_about_openSourceLicenses": "تراخيص المصادر المفتوحة",
   "settings_about_reportIssue": "الإبلاغ عن مشكلة",

@@ -500,7 +500,7 @@
   "setup_welcome_skipSetup": "Omitir configuración",
   "setup_welcome_startFresh_subtitle": "Crea tu perfil de buceador y configura la aplicación",
   "setup_welcome_startFresh_title": "Configurar un perfil nuevo",
-  "setup_welcome_subtitle": "Registro y análisis avanzado de inmersiones",
+  "setup_welcome_subtitle": "Bucea seguro. Registra todo.",
   "setup_welcome_title": "Bienvenido a Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4961,7 +4961,7 @@
   "planning_welcome_title": "Herramientas de planificacion",
   "settings_about_aboutSubmersion": "Acerca de Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Registra tus inmersiones, administra tu equipo y explora puntos de buceo.",
+  "settings_about_description": "Bucea seguro. Registra todo.",
   "settings_about_header": "Acerca de",
   "settings_about_openSourceLicenses": "Licencias de codigo abierto",
   "settings_about_reportIssue": "Reportar un problema",

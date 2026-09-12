@@ -500,7 +500,7 @@
   "setup_welcome_skipSetup": "Beállítás kihagyása",
   "setup_welcome_startFresh_subtitle": "Búvárprofil létrehozása és az alkalmazás beállítása",
   "setup_welcome_startFresh_title": "Új profil beállítása",
-  "setup_welcome_subtitle": "Fejlett merülés napló és elemzés",
+  "setup_welcome_subtitle": "Merüljön biztonságosan. Rögzítsen mindent.",
   "setup_welcome_title": "Üdvözöl a Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -4877,7 +4877,7 @@
   "planning_welcome_title": "Tervezo eszkozök",
   "settings_about_aboutSubmersion": "A Submersion-rol",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Kövesse nyomon merüleseit, kezelje felszereleset es fedezze fel a merülohelyeket.",
+  "settings_about_description": "Merüljön biztonságosan. Rögzítsen mindent.",
   "settings_about_header": "Rolunk",
   "settings_about_openSourceLicenses": "Nyilt forrasu licencek",
   "settings_about_reportIssue": "Hiba bejelentese",

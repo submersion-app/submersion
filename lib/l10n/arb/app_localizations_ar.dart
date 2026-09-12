@@ -6889,7 +6889,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'إعداد ملف تعريف جديد';
 
   @override
-  String get setup_welcome_subtitle => 'تسجيل وتحليل متقدم للغوص';
+  String get setup_welcome_subtitle => 'غُص بأمان. سجّل كل شيء.';
 
   @override
   String get setup_welcome_title => 'مرحباً بك في Submersion';
@@ -15412,8 +15412,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description =>
-      'تتبع غوصاتك، وأدر معداتك، واستكشف مواقع الغوص.';
+  String get settings_about_description => 'غُص بأمان. سجّل كل شيء.';
 
   @override
   String get settings_about_header => 'حول';

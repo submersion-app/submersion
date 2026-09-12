@@ -7033,8 +7033,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'Neues Profil einrichten';
 
   @override
-  String get setup_welcome_subtitle =>
-      'Erweiterte Tauchprotokollierung und -analyse';
+  String get setup_welcome_subtitle => 'Sicher tauchen. Alles erfassen.';
 
   @override
   String get setup_welcome_title => 'Willkommen bei Submersion';
@@ -15675,8 +15674,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description =>
-      'Verfolgen Sie Ihre Tauchgänge, verwalten Sie Ausrüstung und erkunden Sie Tauchplätze.';
+  String get settings_about_description => 'Sicher tauchen. Alles erfassen.';
 
   @override
   String get settings_about_header => 'Über';

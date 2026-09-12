@@ -7015,7 +7015,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'Új profil beállítása';
 
   @override
-  String get setup_welcome_subtitle => 'Fejlett merülés napló és elemzés';
+  String get setup_welcome_subtitle =>
+      'Merüljön biztonságosan. Rögzítsen mindent.';
 
   @override
   String get setup_welcome_title => 'Üdvözöl a Submersion';
@@ -15644,7 +15645,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_about_description =>
-      'Kövesse nyomon merüleseit, kezelje felszereleset es fedezze fel a merülohelyeket.';
+      'Merüljön biztonságosan. Rögzítsen mindent.';
 
   @override
   String get settings_about_header => 'Rolunk';
