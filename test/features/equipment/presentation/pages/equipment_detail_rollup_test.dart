@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -84,6 +85,9 @@ void main() {
             'reg',
           ).overrideWith((ref) async => const []),
           equipmentComponentsProvider(
+            'reg',
+          ).overrideWith((ref) async => const []),
+          observationsForEquipmentProvider(
             'reg',
           ).overrideWith((ref) async => const []),
           equipmentWorstClockProvider.overrideWith((ref) async => {}),

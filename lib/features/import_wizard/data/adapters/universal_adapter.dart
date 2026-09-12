@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -568,23 +569,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       courses: resolve(wizard.ImportEntityType.courses),
     );
 
-    final repos = ImportRepositories(
-      tripRepository: _ref.read(tripRepositoryProvider),
-      equipmentRepository: _ref.read(equipmentRepositoryProvider),
-      equipmentSetRepository: _ref.read(equipmentSetRepositoryProvider),
-      buddyRepository: _ref.read(buddyRepositoryProvider),
-      diveCenterRepository: _ref.read(diveCenterRepositoryProvider),
-      certificationRepository: _ref.read(certificationRepositoryProvider),
-      tagRepository: _ref.read(tagRepositoryProvider),
-      diveTypeRepository: _ref.read(diveTypeRepositoryProvider),
-      diveRoleRepository: _ref.read(diveRoleRepositoryProvider),
-      siteRepository: _ref.read(siteRepositoryProvider),
-      diveRepository: _ref.read(diveRepositoryProvider),
-      tankPressureRepository: _ref.read(tankPressureRepositoryProvider),
-      courseRepository: _ref.read(courseRepositoryProvider),
-      serviceRecordRepository: _ref.read(serviceRecordRepositoryProvider),
-      diveComputerRepository: _ref.read(diveComputerRepositoryProvider),
-    );
+    final repos = universalImportRepositories(_ref);
 
     final settings = _ref.read(settingsProvider);
     final resolver = DefaultTankPresetResolver(
@@ -1378,4 +1363,32 @@ class UniversalAdapter implements ImportSourceAdapter {
       serviceRecords: payload.entitiesOf(ui.ImportEntityType.serviceRecords),
     );
   }
+}
+
+/// The repositories a UDDF import writes through. Every optional one is
+/// supplied here: the importer skips the entities a missing one owns, so
+/// leaving one out drops that data from real imports without a word.
+ImportRepositories universalImportRepositories(WidgetRef ref) {
+  return ImportRepositories(
+    tripRepository: ref.read(tripRepositoryProvider),
+    equipmentRepository: ref.read(equipmentRepositoryProvider),
+    equipmentSetRepository: ref.read(equipmentSetRepositoryProvider),
+    buddyRepository: ref.read(buddyRepositoryProvider),
+    diveCenterRepository: ref.read(diveCenterRepositoryProvider),
+    certificationRepository: ref.read(certificationRepositoryProvider),
+    tagRepository: ref.read(tagRepositoryProvider),
+    diveTypeRepository: ref.read(diveTypeRepositoryProvider),
+    diveRoleRepository: ref.read(diveRoleRepositoryProvider),
+    siteRepository: ref.read(siteRepositoryProvider),
+    diveRepository: ref.read(diveRepositoryProvider),
+    tankPressureRepository: ref.read(tankPressureRepositoryProvider),
+    courseRepository: ref.read(courseRepositoryProvider),
+    serviceRecordRepository: ref.read(serviceRecordRepositoryProvider),
+    diveComputerRepository: ref.read(diveComputerRepositoryProvider),
+    // Without it every check-in in the file is skipped (condition phase
+    // 3a); the field is optional only for legacy callers.
+    equipmentObservationRepository: ref.read(
+      equipmentObservationRepositoryProvider,
+    ),
+  );
 }

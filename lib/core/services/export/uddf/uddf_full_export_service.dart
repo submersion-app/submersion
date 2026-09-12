@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -51,6 +52,7 @@ class UddfFullExportService {
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
+    List<EquipmentObservation>? observations,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -448,6 +450,7 @@ class UddfFullExportService {
           diveCenters: diveCenters,
           species: species,
           serviceRecords: serviceRecords,
+          observations: observations,
           settings: settings,
           owner: owner,
           tags: tags,
@@ -490,6 +493,7 @@ class UddfFullExportService {
     List<EquipmentSet>? equipmentSets,
     List<EquipmentComponent>? components,
     List<DiveSourceExport>? dataSources,
+    List<EquipmentObservation>? observations,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
@@ -498,6 +502,7 @@ class UddfFullExportService {
     equipmentSets: equipmentSets,
     components: components,
     dataSources: dataSources,
+    observations: observations,
     options: options,
   );
 
@@ -512,6 +517,7 @@ class UddfFullExportService {
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
+    List<EquipmentObservation>? observations,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -540,6 +546,7 @@ class UddfFullExportService {
       diveCenters: diveCenters,
       species: species,
       serviceRecords: serviceRecords,
+      observations: observations,
       settings: settings,
       diveBuddies: diveBuddies,
       owner: owner,
@@ -575,6 +582,7 @@ class UddfFullExportService {
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
+    List<EquipmentObservation>? observations,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -603,6 +611,7 @@ class UddfFullExportService {
       diveCenters: diveCenters,
       species: species,
       serviceRecords: serviceRecords,
+      observations: observations,
       settings: settings,
       diveBuddies: diveBuddies,
       owner: owner,

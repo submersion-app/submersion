@@ -753,6 +753,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
     if (choice == null || !mounted) return BulkActionOutcome.cancelled;
     final destination = choice.destination;
+    // Resolved while the context is known to be mounted; used after awaits.
+    final csvSaveTitle = context.l10n.settings_export_saveDivesCsvDialogTitle;
     final uddfOptions = UddfExportOptions(
       includeRawData: choice.includeRawData,
     );
@@ -868,7 +870,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         _BulkExportFormat.csv =>
           sharing
               ? await exportService.exportDivesToCsv(selectedDives)
-              : await exportService.saveDivesCsvToFile(selectedDives),
+              : await exportService.saveDivesCsvToFile(
+                  selectedDives,
+                  dialogTitle: csvSaveTitle,
+                ),
         _BulkExportFormat.uddf =>
           sharing
               ? await exportService.exportDivesToUddf(

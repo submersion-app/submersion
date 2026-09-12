@@ -20710,6 +20710,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Exportar inventario de equipos e informacion de servicio';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Cada revisión OK y cada problema notificado, con su inmersión, etiquetas y nota';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Exportar ubicaciones y detalles de puntos de buceo';
 
@@ -20726,6 +20730,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV de equipos';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'CSV de revisiones de equipo';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'CSV de puntos';
 
   @override
@@ -20738,6 +20746,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipos';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Revisiones de equipo';
 
   @override
   String get transfer_csvExport_typeSites => 'Puntos';
@@ -26967,6 +26978,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los informes de casi incidentes se sincronizan entre tus dispositivos y se incluyen en las copias de seguridad, pero nunca en exportaciones ni páginas compartidas del diario.';
 
   @override
+  String get incidentEdit_equipment => 'Equipo implicado';
+
+  @override
+  String get incidentEdit_equipment_none => 'Ninguno';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'En esta inmersión';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Todo el equipo';
+
+  @override
   String get incidentCategory_buoyancy => 'Flotabilidad';
 
   @override
@@ -27099,6 +27122,199 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipmentConditionSettings_rebuild_failed =>
       'No se pudieron reconstruir los resúmenes de sensores.';
+
+  @override
+  String get equipmentObservation_tag_freeFlow => 'Flujo continuo';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Respiración dura';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Respiración húmeda';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Fuga';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Daño en latiguillo';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflador atascado';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflador lento';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Fuga en la vejiga';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Fuga en válvula de purga';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Fuga en el sello del cuello';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Fuga en el sello de muñeca';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Fuga en la cremallera';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Fuga en el escarpín';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Fuga en válvula';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Fuga en costura';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Desgarro';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Costura abierta';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Débil';
+
+  @override
+  String get equipmentObservation_tag_died => 'Se apagó';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Inundado';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Fallo del interruptor';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Batería baja';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Fallo de pantalla';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Fallo de conexión';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Pérdida de señal';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Aviso de célula';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Fuga en el circuito';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Fallo del solenoide';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough =>
+      'Ruptura del absorbente';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Respuesta lenta';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Errático';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Poca capacidad';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Fallo de hélice';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Correa rota';
+
+  @override
+  String get equipmentObservation_tag_other => 'Otro';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Problema';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Revisión: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'Aún no hay revisiones en esta inmersión.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'Aún no hay revisiones.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Añadir revisión';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Editar revisión';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Eliminar revisión';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm =>
+      '¿Eliminar esta revisión?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Nota';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'Qué ocurrió';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Observado';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Inmersión';
+
+  @override
+  String get equipmentObservation_sheet_noDive =>
+      'Sin inmersión (en el taller)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Elegir una inmersión';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Guardar';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Cancelar';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Elige al menos una etiqueta para un problema';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Revisado, OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Problema notificado';
+
+  @override
+  String get equipmentObservation_chip_none => 'Revisar';
+
+  @override
+  String get equipmentObservation_card_title => 'Revisiones';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'No hay revisiones registradas para este elemento.';
+
+  @override
+  String get equipmentObservation_card_add => 'Añadir revisión';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'Inmersión n.º $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Taller';
 
   @override
   String get settings_section_security_title => 'Seguridad de la app';
@@ -36584,6 +36800,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Exportando equipo a CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Exportando revisiones de equipo a CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generando registro PDF...';
 
   @override
@@ -36651,6 +36871,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Preparando el CSV de equipo...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'Preparando CSV de revisiones de equipo...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Preparando el archivo UDDF...';
 
@@ -36674,6 +36898,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_export_empty_equipment => 'No hay equipo para exportar';
+
+  @override
+  String get settings_export_empty_observations =>
+      'No hay revisiones de equipo para exportar';
 
   @override
   String get settings_export_empty_data => 'No hay datos para exportar';
@@ -36715,6 +36943,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Equipo exportado correctamente';
+
+  @override
+  String get settings_export_success_observations =>
+      'Revisiones de equipo exportadas';
 
   @override
   String get settings_export_success_pdf =>
@@ -36773,6 +37005,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'CSV de equipo guardado correctamente';
 
   @override
+  String get settings_export_saved_observationsCsv =>
+      'CSV de revisiones de equipo guardado';
+
+  @override
   String get settings_export_saved_uddf =>
       'Archivo UDDF guardado correctamente';
 
@@ -36801,6 +37037,22 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_export_saveBackupDialogTitle =>
       'Guardar copia de seguridad';
+
+  @override
+  String get settings_export_saveDivesCsvDialogTitle =>
+      'Guardar CSV de inmersiones';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle =>
+      'Guardar CSV de puntos de buceo';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Guardar CSV de equipo';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'Guardar CSV de revisiones de equipo';
 
   @override
   String backup_operation_created(String size) {

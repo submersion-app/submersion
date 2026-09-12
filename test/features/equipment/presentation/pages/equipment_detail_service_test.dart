@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -60,6 +61,9 @@ void main() {
           equipmentDiveCountProvider(item.id).overrideWith((ref) async => 0),
           equipmentTripCountProvider(item.id).overrideWith((ref) async => 0),
           equipmentComponentsProvider(
+            item.id,
+          ).overrideWith((ref) async => const []),
+          observationsForEquipmentProvider(
             item.id,
           ).overrideWith((ref) async => const []),
           equipmentWorstClockProvider.overrideWith((ref) async => {}),

@@ -20651,6 +20651,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstungsinventar und Serviceinformationen exportieren';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Jede OK-Prüfung und jedes gemeldete Problem mit Tauchgang, Schlagwörtern und Notiz';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Tauchplatzstandorte und Details exportieren';
 
@@ -20667,6 +20671,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Ausrüstung CSV';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'Ausrüstungs-Check-ins als CSV';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'Tauchplätze CSV';
 
   @override
@@ -20679,6 +20687,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Ausrüstung';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Ausrüstungs-Check-ins';
 
   @override
   String get transfer_csvExport_typeSites => 'Tauchplätze';
@@ -26899,6 +26910,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.';
 
   @override
+  String get incidentEdit_equipment => 'Beteiligte Ausrüstung';
+
+  @override
+  String get incidentEdit_equipment_none => 'Keine';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'Bei diesem Tauchgang';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Gesamte Ausrüstung';
+
+  @override
   String get incidentCategory_buoyancy => 'Tarierung';
 
   @override
@@ -27030,6 +27053,198 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipmentConditionSettings_rebuild_failed =>
       'Die Sensorzusammenfassungen konnten nicht neu erstellt werden.';
+
+  @override
+  String get equipmentObservation_tag_freeFlow => 'Abblasen';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Schwer atmend';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Nass atmend';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Leck';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Schlauchschaden';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflator klemmt';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflator langsam';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Blasenleck';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Ablassventil undicht';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Halsmanschette undicht';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Armmanschette undicht';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Reißverschluss undicht';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Füßling undicht';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Ventil undicht';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Naht undicht';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Riss';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Naht aufgegangen';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Schwach';
+
+  @override
+  String get equipmentObservation_tag_died => 'Ausgefallen';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Geflutet';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Schalterfehler';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Batterie schwach';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Displayfehler';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Verbindungsfehler';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Aussetzer';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Zellenwarnung';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Kreislauf undicht';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Magnetventilfehler';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough =>
+      'Scrubber-Durchbruch';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Träge Reaktion';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Sprunghaft';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Geringe Kapazität';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Propellerfehler';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Band gerissen';
+
+  @override
+  String get equipmentObservation_tag_other => 'Sonstiges';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Problem';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Check-in: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'Noch keine Check-ins zu diesem Tauchgang.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'Noch keine Check-ins.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Check-in hinzufügen';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Check-in bearbeiten';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Check-in löschen';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm =>
+      'Diesen Check-in löschen?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Notiz';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'Was ist passiert';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Beobachtet';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Tauchgang';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'Kein Tauchgang (Werkbank)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Tauchgang wählen';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Speichern';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Abbrechen';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Wähle für ein Problem mindestens ein Schlagwort';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Geprüft, OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Problem gemeldet';
+
+  @override
+  String get equipmentObservation_chip_none => 'Einchecken';
+
+  @override
+  String get equipmentObservation_card_title => 'Check-ins';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'Keine Check-ins zu diesem Teil erfasst.';
+
+  @override
+  String get equipmentObservation_card_add => 'Check-in hinzufügen';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'Tauchgang Nr. $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Werkbank';
 
   @override
   String get settings_section_security_title => 'App-Sicherheit';
@@ -36462,6 +36677,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstung wird nach CSV exportiert...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Ausrüstungs-Check-ins werden als CSV exportiert...';
+
+  @override
   String get settings_export_progress_pdf => 'PDF-Logbuch wird erstellt...';
 
   @override
@@ -36530,6 +36749,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstungs-CSV wird vorbereitet...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'CSV der Ausrüstungs-Check-ins wird vorbereitet...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'UDDF-Datei wird vorbereitet...';
 
@@ -36553,6 +36776,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_export_empty_equipment =>
       'Keine Ausrüstung zum Exportieren';
+
+  @override
+  String get settings_export_empty_observations =>
+      'Keine Ausrüstungs-Check-ins zum Exportieren';
 
   @override
   String get settings_export_empty_data => 'Keine Daten zum Exportieren';
@@ -36595,6 +36822,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Ausrüstung erfolgreich exportiert';
+
+  @override
+  String get settings_export_success_observations =>
+      'Ausrüstungs-Check-ins exportiert';
 
   @override
   String get settings_export_success_pdf => 'PDF-Logbuch erfolgreich erstellt';
@@ -36651,6 +36882,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstungs-CSV erfolgreich gespeichert';
 
   @override
+  String get settings_export_saved_observationsCsv =>
+      'CSV der Ausrüstungs-Check-ins gespeichert';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF-Datei erfolgreich gespeichert';
 
   @override
@@ -36679,6 +36914,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_export_saveBackupDialogTitle => 'Sicherung speichern';
+
+  @override
+  String get settings_export_saveDivesCsvDialogTitle =>
+      'Tauchgänge-CSV speichern';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle =>
+      'Tauchplätze-CSV speichern';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Ausrüstungs-CSV speichern';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'CSV der Ausrüstungs-Check-ins speichern';
 
   @override
   String backup_operation_created(String size) {

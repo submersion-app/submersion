@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/excel/blender_invoice_excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
+import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
@@ -39,6 +40,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -103,16 +105,38 @@ class ExportService {
     componentNames: componentNames,
   );
 
-  Future<String?> saveDivesCsvToFile(List<Dive> dives) =>
-      _csv.saveDivesCsvToFile(dives);
+  // Each CSV save takes its picker title from the caller, which has the
+  // diver's locale; the service has none.
+  Future<String?> saveDivesCsvToFile(
+    List<Dive> dives, {
+    required String dialogTitle,
+  }) => _csv.saveDivesCsvToFile(dives, dialogTitle: dialogTitle);
 
-  Future<String?> saveSitesCsvToFile(List<DiveSite> sites) =>
-      _csv.saveSitesCsvToFile(sites);
+  Future<String?> saveSitesCsvToFile(
+    List<DiveSite> sites, {
+    required String dialogTitle,
+  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle);
 
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
-  }) => _csv.saveEquipmentCsvToFile(equipment, componentNames: componentNames);
+    required String dialogTitle,
+  }) => _csv.saveEquipmentCsvToFile(
+    equipment,
+    componentNames: componentNames,
+    dialogTitle: dialogTitle,
+  );
+
+  Future<String> exportObservationsToCsv(List<ObservationExportRow> rows) =>
+      _csv.exportObservationsToCsv(rows);
+
+  String generateObservationsCsvContent(List<ObservationExportRow> rows) =>
+      _csv.generateObservationsCsvContent(rows);
+
+  Future<String?> saveObservationsCsvToFile(
+    List<ObservationExportRow> rows, {
+    required String dialogTitle,
+  }) => _csv.saveObservationsCsvToFile(rows, dialogTitle: dialogTitle);
 
   // ==================== PDF Export ====================
 
@@ -243,6 +267,7 @@ class ExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     Map<String, List<String>> componentNames = const {},
+    List<ObservationExportRow> observationRows = const [],
   }) => _excel.exportToExcel(
     dives: dives,
     sites: sites,
@@ -255,6 +280,7 @@ class ExportService {
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
     componentNames: componentNames,
+    observationRows: observationRows,
   );
 
   Future<List<int>> generateExcelBytes({
@@ -269,6 +295,7 @@ class ExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     Map<String, List<String>> componentNames = const {},
+    List<ObservationExportRow> observationRows = const [],
   }) => _excel.generateExcelBytes(
     dives: dives,
     sites: sites,
@@ -281,6 +308,7 @@ class ExportService {
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
     componentNames: componentNames,
+    observationRows: observationRows,
   );
 
   Future<String?> saveExcelToFile({
@@ -295,6 +323,7 @@ class ExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     Map<String, List<String>> componentNames = const {},
+    List<ObservationExportRow> observationRows = const [],
   }) => _excel.saveExcelToFile(
     dives: dives,
     sites: sites,
@@ -307,6 +336,7 @@ class ExportService {
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
     componentNames: componentNames,
+    observationRows: observationRows,
   );
 
   // ==================== Maintenance Log Export ====================
@@ -398,6 +428,7 @@ class ExportService {
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
+    List<EquipmentObservation>? observations,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -425,6 +456,7 @@ class ExportService {
     diveCenters: diveCenters,
     species: species,
     serviceRecords: serviceRecords,
+    observations: observations,
     settings: settings,
     diveBuddies: diveBuddies,
     owner: owner,
@@ -454,6 +486,7 @@ class ExportService {
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
+    List<EquipmentObservation>? observations,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -481,6 +514,7 @@ class ExportService {
     diveCenters: diveCenters,
     species: species,
     serviceRecords: serviceRecords,
+    observations: observations,
     settings: settings,
     diveBuddies: diveBuddies,
     owner: owner,

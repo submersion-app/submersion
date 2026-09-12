@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
@@ -4655,6 +4656,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: DiveGearTreeView(
           links: dive.gear,
           onTap: (item) => context.push('/equipment/${item.id}'),
+          // The check-in chip for each row (condition phase 3a).
+          rowTrailing: (item) =>
+              ObservationStatusChip(equipment: item, dive: dive),
         ),
       ),
     );
@@ -5420,6 +5424,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               title: Text(context.l10n.diveLog_export_csv),
               subtitle: Text(context.l10n.diveLog_export_csvDescription),
               onTap: () {
+                final saveTitle =
+                    context.l10n.settings_export_saveDivesCsvDialogTitle;
                 Navigator.of(sheetContext).pop();
                 _handleSingleDiveExport(
                   context,
@@ -5429,7 +5435,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       ref.read(exportServiceProvider).exportDivesToCsv([dive]),
                   saveFn: (_) => ref
                       .read(exportServiceProvider)
-                      .saveDivesCsvToFile([dive]),
+                      .saveDivesCsvToFile([dive], dialogTitle: saveTitle),
                 );
               },
             ),

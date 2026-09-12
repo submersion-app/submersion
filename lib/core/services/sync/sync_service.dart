@@ -1579,6 +1579,11 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'incidents', records: data.incidents, hasUpdatedAt: true),
+          (
+            type: 'equipmentObservations',
+            records: data.equipmentObservations,
+            hasUpdatedAt: true,
+          ),
         ];
 
     // Precompute the locally-tombstoned parents this payload will REVIVE (a
@@ -2316,6 +2321,7 @@ class SyncService {
     'diveSafetyFindings': false,
     'emergencyChambers': true,
     'incidents': true,
+    'equipmentObservations': true,
     'gasSwitches': false,
     'diveCustomFields': false,
     'diveDataSources': false,
@@ -2455,6 +2461,12 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: true),
       // v202: the item an equipment incident attributes to; nullable.
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
+    // v202: a gear check-in; the item is required, the dive optional.
+    'equipmentObservations': [
+      (field: 'diverId', parent: 'divers', nullable: true),
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: true),
     ],
     'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],

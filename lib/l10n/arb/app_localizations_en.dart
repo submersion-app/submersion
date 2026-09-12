@@ -20338,6 +20338,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Export equipment inventory and service info';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Every OK check and reported issue, with its dive, tags and note';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Export dive site locations and details';
 
@@ -20354,6 +20358,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Equipment CSV';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle => 'Gear check-ins CSV';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'Sites CSV';
 
   @override
@@ -20366,6 +20373,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipment';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Gear check-ins';
 
   @override
   String get transfer_csvExport_typeSites => 'Sites';
@@ -26501,6 +26511,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.';
 
   @override
+  String get incidentEdit_equipment => 'Equipment involved';
+
+  @override
+  String get incidentEdit_equipment_none => 'None';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'On this dive';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'All gear';
+
+  @override
   String get incidentCategory_buoyancy => 'Buoyancy';
 
   @override
@@ -26630,6 +26652,198 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipmentConditionSettings_rebuild_failed =>
       'Could not rebuild the sensor summaries.';
+
+  @override
+  String get equipmentObservation_tag_freeFlow => 'Free flow';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Hard breathing';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Wet breathing';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Leak';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Hose damage';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflator stuck';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflator slow';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Bladder leak';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Dump valve leak';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Neck seal leak';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Wrist seal leak';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Zip leak';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Boot leak';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Valve leak';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Seam leak';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Tear';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Seam failure';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Dim';
+
+  @override
+  String get equipmentObservation_tag_died => 'Died';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Flooded';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Switch fault';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Battery low';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Screen fault';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Connection fault';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Dropout';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Cell warning';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Loop leak';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Solenoid fault';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough =>
+      'Scrubber breakthrough';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Slow response';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Erratic';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Low capacity';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Prop fault';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Strap broke';
+
+  @override
+  String get equipmentObservation_tag_other => 'Other';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Issue';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Check-in: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'No check-ins on this dive yet.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'No check-ins yet.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Add check-in';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Edit check-in';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Delete check-in';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm =>
+      'Delete this check-in?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Note';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'What happened';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Observed';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Dive';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'No dive (bench)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Choose a dive';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Save';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Cancel';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Pick at least one tag for an issue';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Checked OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Issue reported';
+
+  @override
+  String get equipmentObservation_chip_none => 'Check in';
+
+  @override
+  String get equipmentObservation_card_title => 'Check-ins';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'No check-ins recorded for this item.';
+
+  @override
+  String get equipmentObservation_card_add => 'Add check-in';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Bench';
 
   @override
   String get settings_section_security_title => 'App Security';
@@ -35998,6 +36212,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Exporting equipment to CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Exporting gear check-ins to CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generating PDF logbook...';
 
   @override
@@ -36064,6 +36282,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Preparing equipment CSV...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'Preparing gear check-ins CSV...';
+
+  @override
   String get settings_export_progress_preparingUddf => 'Preparing UDDF file...';
 
   @override
@@ -36085,6 +36307,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_export_empty_equipment => 'No equipment to export';
+
+  @override
+  String get settings_export_empty_observations =>
+      'No gear check-ins to export';
 
   @override
   String get settings_export_empty_data => 'No data to export';
@@ -36122,6 +36348,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Equipment exported successfully';
+
+  @override
+  String get settings_export_success_observations => 'Gear check-ins exported';
 
   @override
   String get settings_export_success_pdf =>
@@ -36175,6 +36404,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Equipment CSV saved successfully';
 
   @override
+  String get settings_export_saved_observationsCsv =>
+      'Gear check-ins CSV saved';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF file saved successfully';
 
   @override
@@ -36200,6 +36433,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_export_saveBackupDialogTitle => 'Save Backup';
+
+  @override
+  String get settings_export_saveDivesCsvDialogTitle => 'Save Dives CSV';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle => 'Save Sites CSV';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Save Equipment CSV';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'Save Gear Check-ins CSV';
 
   @override
   String backup_operation_created(String size) {

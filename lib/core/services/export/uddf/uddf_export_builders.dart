@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -883,6 +884,7 @@ class UddfExportBuilders {
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
+    List<EquipmentObservation>? observations,
     Map<String, String>? settings,
     Diver? owner,
     List<Tag>? tags,
@@ -912,6 +914,7 @@ class UddfExportBuilders {
         (diveCenters?.isNotEmpty ?? false) ||
         (species?.isNotEmpty ?? false) ||
         (serviceRecords?.isNotEmpty ?? false) ||
+        (observations?.isNotEmpty ?? false) ||
         (settings?.isNotEmpty ?? false) ||
         owner != null ||
         (tags?.isNotEmpty ?? false) ||
@@ -927,6 +930,13 @@ class UddfExportBuilders {
         (dataSources?.isNotEmpty ?? false);
 
     if (!hasData) return;
+
+    // Check-ins grouped by item once, in their list order, so each item
+    // looks its own up instead of scanning every check-in in the logbook.
+    final observationsByItem = <String, List<EquipmentObservation>>{};
+    for (final o in observations ?? const <EquipmentObservation>[]) {
+      (observationsByItem[o.equipmentId] ??= []).add(o);
+    }
 
     builder.element(
       'applicationdata',
@@ -997,6 +1007,28 @@ class UddfExportBuilders {
                         );
                         if (item.notes.isNotEmpty) {
                           builder.element('notes', nest: item.notes);
+                        }
+                        // Condition phase 3a: the parent link and the
+                        // check-ins ride inside the item so the importer
+                        // can resolve them once equipment and dives exist.
+                        if (item.parentEquipmentId != null) {
+                          builder.element(
+                            'parentref',
+                            nest: 'equip_${item.parentEquipmentId}',
+                          );
+                        }
+                        final mine =
+                            observationsByItem[item.id] ??
+                            const <EquipmentObservation>[];
+                        if (mine.isNotEmpty) {
+                          builder.element(
+                            'observations',
+                            nest: () {
+                              for (final o in mine) {
+                                _buildObservation(builder, o);
+                              }
+                            },
+                          );
                         }
                       },
                     );
@@ -1957,4 +1989,35 @@ class UddfExportBuilders {
         return '0';
     }
   }
+}
+
+/// One `<observation>` under an equipment item (condition phase 3a).
+void _buildObservation(XmlBuilder builder, EquipmentObservation o) {
+  builder.element(
+    'observation',
+    attributes: {'id': 'obs_${o.id}'},
+    nest: () {
+      builder.element('date', nest: o.observedAt.toIso8601String());
+      if (o.diveId != null) {
+        builder.element('diveref', nest: 'dive_${o.diveId}');
+      }
+      builder.element('status', nest: o.status.dbValue);
+      // Every stored name, a newer peer's included: a backup must not drop
+      // tags this build merely cannot read.
+      final tagNames = o.storedTagNames;
+      if (tagNames.isNotEmpty) {
+        builder.element(
+          'tags',
+          nest: () {
+            for (final t in tagNames) {
+              builder.element('tag', nest: t);
+            }
+          },
+        );
+      }
+      if (o.note.isNotEmpty) {
+        builder.element('note', nest: o.note);
+      }
+    },
+  );
 }

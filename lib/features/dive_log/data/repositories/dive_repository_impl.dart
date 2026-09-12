@@ -66,6 +66,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -122,6 +123,8 @@ class DiveRepository {
   final _log = LoggerService.forClass(DiveRepository);
   final TagRepository _tagRepository = TagRepository();
   final BuddyRepository _buddyRepository = BuddyRepository();
+  final EquipmentObservationRepository _observationRepository =
+      EquipmentObservationRepository();
   late final DiveCustomFieldRepository _customFieldRepository =
       DiveCustomFieldRepository(_db);
 
@@ -1936,6 +1939,8 @@ class DiveRepository {
     try {
       _log.info('Deleting dive: $id');
       if (cascadeMedia) await _cascadeMediaForDiveDeletion([id]);
+      // Check-ins on the dive stay as bench notes; staged, not just nulled.
+      await _observationRepository.unlinkFromDeletedDives([id]);
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       SyncEventBus.notifyLocalChange();
@@ -1961,6 +1966,8 @@ class DiveRepository {
     try {
       _log.info('Bulk deleting ${ids.length} dives');
       if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
+      // Check-ins on the dives stay as bench notes; staged, not just nulled.
+      await _observationRepository.unlinkFromDeletedDives(ids);
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
       for (final id in ids) {
         await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
@@ -3716,6 +3723,7 @@ class DiveRepository {
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
               regulatorEquipmentId: t.regulatorEquipmentId,
+              equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
           )
@@ -4135,6 +4143,7 @@ class DiveRepository {
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
           regulatorEquipmentId: t.regulatorEquipmentId,
+          equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
       }).toList(),
@@ -6269,12 +6278,15 @@ class DiveRepository {
     return {for (final r in rows) r.read(j.diveTypeId)!: r.read(countExpr)!};
   }
 
+  /// A whole new tank row. [withLink] writes [t]'s registry cylinder link;
+  /// only an undo restoring the rows it captured passes it.
   DiveTanksCompanion _tankCompanion(
     String id,
     String diveId,
     domain.DiveTank t,
-    int order,
-  ) => DiveTanksCompanion(
+    int order, {
+    bool withLink = false,
+  }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
     volume: Value(t.volume),
@@ -6292,6 +6304,10 @@ class DiveRepository {
     transmitterSerial: Value(t.transmitterSerial),
     regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
+    // The registry's cylinder link, owned by the transmitter registry. A
+    // template copied from a linked tank must not stamp that cylinder onto
+    // every dive it lands on, so only a restore writes it.
+    equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -6447,10 +6463,15 @@ class DiveRepository {
 
   /// Replace each dive's tank list with [tanks] (fresh ids, sequential order).
   /// No notify/txn. Cascades to delete tank_pressure_series/gas_switches.
+  ///
+  /// [restoreLinks] keeps each tank's registry cylinder link: set by undo,
+  /// which puts back the rows it captured. A bulk edit's template tanks
+  /// never write one.
   Future<void> bulkReplaceTanks(
     List<String> diveIds,
-    List<domain.DiveTank> tanks,
-  ) async {
+    List<domain.DiveTank> tanks, {
+    bool restoreLinks = false,
+  }) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
@@ -6470,7 +6491,15 @@ class DiveRepository {
         final tankId = _uuid.v4();
         await _db
             .into(_db.diveTanks)
-            .insert(_tankCompanion(tankId, diveId, tanks[i], i));
+            .insert(
+              _tankCompanion(
+                tankId,
+                diveId,
+                tanks[i],
+                i,
+                withLink: restoreLinks,
+              ),
+            );
         await _syncRepository.markRecordPending(
           entityType: 'diveTanks',
           recordId: tankId,

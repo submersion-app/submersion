@@ -8,8 +8,10 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/deco_dive_detector.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -76,6 +78,10 @@ class ImportRepositories {
   /// Optional for the same reason; when null, equipment service history in
   /// the source is skipped rather than failing the import.
   final ServiceRecordRepository? serviceRecordRepository;
+
+  /// Optional for the same reason; when null, gear check-ins in the source
+  /// are skipped (condition phase 3a).
+  final EquipmentObservationRepository? equipmentObservationRepository;
   final SiteRepository siteRepository;
   final DiveRepository diveRepository;
   final TankPressureRepository tankPressureRepository;
@@ -103,6 +109,7 @@ class ImportRepositories {
     required this.diveTypeRepository,
     this.diveRoleRepository,
     this.serviceRecordRepository,
+    this.equipmentObservationRepository,
     required this.siteRepository,
     required this.diveRepository,
     required this.tankPressureRepository,
@@ -468,6 +475,17 @@ class UddfEntityImporter {
       cancelToken: cancelToken,
     );
 
+    // Gear check-ins ride with the equipment they belong to and reference
+    // dives, so they land only after both (condition phase 3a).
+    await _importObservations(
+      data.equipment,
+      selections.equipment,
+      repositories.equipmentObservationRepository,
+      equipmentIdMapping,
+      divesResult.diveIdBySourceUuid,
+      diverId,
+    );
+
     return UddfEntityImportResult(
       trips: tripsCount,
       equipment: equipmentCount,
@@ -649,6 +667,90 @@ class UddfEntityImporter {
       onProgress?.call(ImportPhase.equipment, count, selected.length);
     }
 
+    // Second pass: parent links (condition phase 3a). A child may precede
+    // its parent in the file, so links resolve only once every selected
+    // item has an id. A parent that was not imported leaves the child
+    // unlinked rather than dangling.
+    for (var i = 0; i < items.length; i++) {
+      if (!selected.contains(i)) continue;
+      final equipData = items[i];
+      final uddfId = equipData['uddfId'] as String?;
+      final parentRef = equipData['parentRef'] as String?;
+      if (uddfId == null || parentRef == null) continue;
+      final childId = idMapping[uddfId];
+      final parentId = idMapping[parentRef];
+      if (childId == null || parentId == null) continue;
+      final created = await repository.getEquipmentById(childId);
+      if (created == null) continue;
+      try {
+        await repository.updateEquipment(
+          created.copyWith(parentEquipmentId: parentId),
+        );
+      } catch (_) {
+        // A bad link must not abort the import; the child stays unlinked.
+      }
+    }
+
+    return count;
+  }
+
+  /// Persists the check-ins carried under each imported item (condition
+  /// phase 3a). Runs after dives so a `diveRef` can resolve through the
+  /// dive's UDDF id; an unresolved reference becomes a bench observation.
+  Future<int> _importObservations(
+    List<Map<String, dynamic>> items,
+    Set<int> selected,
+    EquipmentObservationRepository? repository,
+    Map<String, String> equipmentIdMapping,
+    Map<String, String> diveIdBySourceUuid,
+    String diverId,
+  ) async {
+    if (repository == null) return 0;
+    var count = 0;
+    for (var i = 0; i < items.length; i++) {
+      if (!selected.contains(i)) continue;
+      final equipData = items[i];
+      final uddfId = equipData['uddfId'] as String?;
+      final equipmentId = uddfId == null ? null : equipmentIdMapping[uddfId];
+      if (equipmentId == null) continue;
+      final raw = equipData['observations'];
+      if (raw is! List) continue;
+      for (final entry in raw) {
+        if (entry is! Map) continue;
+        final observedAt = entry['observedAt'] as DateTime?;
+        if (observedAt == null) continue;
+        final diveRef = entry['diveRef'] as String?;
+        final tags = entry['tags'];
+        final tagNames = [
+          if (tags is List)
+            for (final t in tags)
+              if (t is String) t,
+        ];
+        try {
+          await repository.create(
+            equipmentId: equipmentId,
+            diveId: diveRef == null ? null : diveIdBySourceUuid[diveRef],
+            diverId: diverId,
+            observedAt: observedAt,
+            status: ObservationStatus.fromDbValue(entry['status'] as String?),
+            issueTags: [
+              for (final t in tagNames) ?ObservationTag.fromDbValue(t),
+            ],
+            // A file from a newer build can name tags this one cannot;
+            // they are kept so the row writes them back rather than
+            // deleting them.
+            unrecognizedTags: [
+              for (final t in tagNames)
+                if (ObservationTag.fromDbValue(t) == null) t,
+            ],
+            note: entry['note'] as String? ?? '',
+          );
+          count++;
+        } catch (_) {
+          // One bad row must not abort the import.
+        }
+      }
+    }
     return count;
   }
 
@@ -1637,6 +1739,7 @@ class UddfEntityImporter {
     var restoredDataSources = 0;
     final importedDiveIds = <String>[];
     final diveIdByIndex = <int, String>{};
+    final diveIdBySourceUuid = <String, String>{};
     final inlineBuddyIds = <String>{};
 
     // Sort selected indices by dateTime (oldest first) for sequential
@@ -2042,6 +2145,8 @@ class UddfEntityImporter {
       await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
       importedDiveIds.add(diveId);
       diveIdByIndex[i] = diveId;
+      final sourceUuid = diveData['sourceUuid'];
+      if (sourceUuid is String) diveIdBySourceUuid[sourceUuid] = diveId;
 
       // Write MacDive dive metadata columns that don't flow through the Dive
       // domain entity. Also plug `weather` into the existing weatherDescription
@@ -2400,6 +2505,7 @@ class UddfEntityImporter {
       importedDiveIds,
       diveIdByIndex,
       restoredDataSources,
+      diveIdBySourceUuid,
     );
   }
 
@@ -2712,11 +2818,16 @@ class _DiveImportResult {
   /// How many `dive_data_sources` rows were restored from `<source>` entries.
   final int restoredDataSources;
 
+  /// The dive's UDDF id (`dive_<id>` in the file) to its new row id, for
+  /// references parsed elsewhere in the file (condition phase 3a).
+  final Map<String, String> diveIdBySourceUuid;
+
   const _DiveImportResult(
     this.count,
     this.inlineBuddies, [
     this.diveIds = const [],
     this.diveIdByIndex = const {},
     this.restoredDataSources = 0,
+    this.diveIdBySourceUuid = const {},
   ]);
 }

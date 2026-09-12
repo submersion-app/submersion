@@ -17,6 +17,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -245,7 +247,37 @@ class CylindersCard extends ConsumerWidget {
         ],
       ),
       isThreeLine: serial != null,
-      trailing: _trailingBlock(context.l10n, theme, cylinderSac, sourceName),
+      trailing: _trailingWithCheckIn(
+        context,
+        tank: tank,
+        block: _trailingBlock(context.l10n, theme, cylinderSac, sourceName),
+      ),
+    );
+  }
+
+  /// A cylinder that is a gear item (the registry wrote its equipment link)
+  /// gets the check-in chip ahead of the SAC block; any other cylinder keeps
+  /// the block alone. The item loads through its own provider so the row
+  /// never blocks on it.
+  Widget _trailingWithCheckIn(
+    BuildContext context, {
+    required DiveTank tank,
+    required Widget? block,
+  }) {
+    final equipmentId = tank.equipmentId;
+    if (equipmentId == null) return block ?? const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Consumer(
+          builder: (context, ref, _) {
+            final item = ref.watch(equipmentItemProvider(equipmentId)).value;
+            if (item == null) return const SizedBox.shrink();
+            return ObservationStatusChip(equipment: item, dive: dive);
+          },
+        ),
+        ?block,
+      ],
     );
   }
 

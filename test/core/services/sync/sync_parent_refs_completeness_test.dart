@@ -88,6 +88,7 @@ void main() {
     'dive_roles': 'diveRoles',
     'equipment_attributes': 'equipmentAttributes',
     'equipment_components': 'equipmentComponents',
+    'equipment_observations': 'equipmentObservations',
     'dive_dive_types': 'diveDiveTypes',
     'dive_safety_reviews': 'diveSafetyReviews',
     'dive_safety_findings': 'diveSafetyFindings',

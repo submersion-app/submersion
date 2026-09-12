@@ -46,6 +46,9 @@ Dive _dive(String id, {DiveSite? site}) {
 /// than silently returning null.
 class _RecordingExportService implements ExportService {
   final calls = <String>[];
+
+  /// The picker title the last CSV save was given.
+  String? csvSaveTitle;
   List<DiveSite>? uddfSites;
 
   /// Return value for every `save*ToFile`; null simulates a cancelled panel.
@@ -119,7 +122,13 @@ class _RecordingExportService implements ExportService {
   Future<String> exportDivesToCsv(List<Dive> dives) => _share('csv');
 
   @override
-  Future<String?> saveDivesCsvToFile(List<Dive> dives) => _save('csv');
+  Future<String?> saveDivesCsvToFile(
+    List<Dive> dives, {
+    required String dialogTitle,
+  }) {
+    csvSaveTitle = dialogTitle;
+    return _save('csv');
+  }
 
   @override
   Future<String> exportDivesToUddf(
@@ -285,6 +294,7 @@ void main() {
     await chooseFormatAndDestination(tester, 'CSV', 'Save to File');
 
     expect(exportService.calls, ['save:csv']);
+    expect(exportService.csvSaveTitle, 'Save Dives CSV');
     expect(find.text('Exported 2 dives successfully'), findsOneWidget);
     // A completed export leaves selection mode.
     expect(find.text('2 selected'), findsNothing);
