@@ -304,6 +304,44 @@ void main() {
     });
   });
 
+  testWidgets(
+    'saving the dialog moves a pre-update baseline onto the new rule',
+    (tester) async {
+      // The hint promises "logging a newer service clears it", which a
+      // baseline with no set time does not honour (any record wins, even a
+      // backdated one). The dialog only shows such a baseline while no
+      // service of the kind exists, so stamping it on save moves nothing now
+      // and makes the promise true from then on.
+      final tank = await makeTank(tester);
+      await tester.runAsync(() async {
+        final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+        final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+        await scheduleRepo.updateSchedule(
+          hydro.copyWith(anchorDate: DateTime(2024, 6, 1)),
+        );
+      });
+      await tester.pumpWidget(buildCard(tank.id));
+      await tester.pumpAndSettle();
+
+      await openMenu(tester, 'Hydrostatic test');
+      await tester.tap(find.text('Edit intervals'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Interval (days)'),
+        '100',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      await tester.runAsync(() async {
+        final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+        final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+        expect(hydro.anchorDate, DateTime(2024, 6, 1));
+        expect(hydro.anchorSetAt, isNotNull);
+      });
+    },
+  );
+
   testWidgets('the dialog leaves out a baseline a later service took over', (
     tester,
   ) async {

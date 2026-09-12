@@ -420,12 +420,17 @@ class _ScheduleOverrideDialogState
           onPressed: () async {
             if (!(_formKey.currentState?.validate() ?? true)) return;
             final schedule = widget.schedule;
-            // Stamps the baseline's set time only when the date changed, so
-            // records logged before it cannot outrank it.
+            // Stamps the baseline's set time when the date changed or was
+            // picked, so records logged before it cannot outrank it. A
+            // pre-v213 baseline shown here (only while no service of the kind
+            // exists, see baselineInEffect) is stamped too: that moves
+            // nothing now, and makes the hint's promise hold from here on.
+            final legacyInEffect =
+                widget.initialBaseline != null && schedule.anchorSetAt == null;
             final baseline = schedule.withBaseline(
               _anchorDate,
               now: DateTime.now(),
-              picked: _baselinePicked,
+              picked: _baselinePicked || legacyInEffect,
             );
             // copyWith cannot null a field; build the updated entity directly.
             final updated = ServiceSchedule(
