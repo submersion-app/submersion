@@ -24,7 +24,7 @@ wordmark's width.
 | --- | --- |
 | Renderer | Pillow, reusing the existing icon code (approach A). No browser, no SVG rasterizer. |
 | Font | Inter Display (SIL Open Font License), bundled: ExtraBold for the name, Medium for the slogan. Apple's SF Pro used in the prototype cannot be committed. |
-| Committed outputs | Script only. No generated PNGs are committed; `scripts/brand/out/` is gitignored. |
+| Committed outputs | The generated PNGs are committed under `assets/brand/`, the script's default output (revised after implementation; originally script only). Not listed in `pubspec.yaml`, so not bundled into the app. No CI staleness check. |
 | Location | New folder `scripts/brand/`. `scripts/generate_icon.py` moves there too. |
 | `generate_icon.py` | Moved with `git mv`; the only edit is the one-line project-root path fix the move requires. No other code changes. |
 | README | Unchanged. The README banner asset is generated, but the README header is not modified. |
@@ -32,7 +32,7 @@ wordmark's width.
 ## Outputs
 
 Running `python3 scripts/brand/generate_brand_assets.py` writes every preset to
-`scripts/brand/out/<name>.png`. `--only <name>[,<name>...]` renders a subset;
+`assets/brand/<name>.png`. `--only <name>[,<name>...]` renders a subset;
 `--list` prints every preset with its size and purpose; `--out <dir>`
 overrides the output directory.
 
@@ -86,7 +86,6 @@ scripts/brand/
   fonts/InterDisplay-Medium.ttf
   fonts/OFL.txt
   README.md                     what each preset is for, how to add one
-  out/                          generated output (gitignored)
   layout_test.py
   generate_brand_assets_test.py
 ```
@@ -168,7 +167,6 @@ PNG encoding).
 
 - `scripts/requirements.txt`: add `Pillow>=10.0`, noting it serves the brand
   scripts (the icon script already depended on it without listing it).
-- `.gitignore`: add `scripts/brand/out/`.
 
 ## Testing
 
@@ -217,7 +215,9 @@ by side with the approved SF Pro prototype.
 ## Out of scope
 
 - Changing the README header.
-- Committing generated PNGs or a staleness check for them.
+- A CI staleness check for the committed PNGs (Pillow, FreeType and fribidi
+  versions differ between machines, so a pixel-exact check would fail
+  spuriously).
 - Any change to `generate_icon.py` beyond the path fix, including performance
   work on its per-pixel loops (revisit only if the measured run time is a
   problem).

@@ -1,7 +1,8 @@
 # Brand assets
 
-Code that draws the Submersion logo and brand images. Nothing generated here
-is committed; run the scripts to get fresh PNGs.
+Code that draws the Submersion logo and brand images. The generated images
+are committed under `assets/brand/`; after changing a preset, the layout or
+the design, rerun the generator and commit the updated PNGs with the change.
 
 ## Setup
 
@@ -32,7 +33,9 @@ scripts/.venv/bin/python scripts/brand/generate_brand_assets.py --list   # what 
 scripts/.venv/bin/python scripts/brand/generate_brand_assets.py --only github-social
 ```
 
-Output goes to `scripts/brand/out/` (gitignored); `--out` picks another folder.
+Output goes to `assets/brand/`; `--out` picks another folder. That folder is
+deliberately not listed in `pubspec.yaml`, so the images are not bundled into
+the app (a test enforces this).
 
 | Preset | Size | Use |
 | --- | --- | --- |

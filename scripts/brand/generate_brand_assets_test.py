@@ -233,10 +233,16 @@ class CliTest(unittest.TestCase):
         # Guards the environment: without RAQM, Inter's GPOS kerning is lost.
         self.assertTrue(gen.raqm_available(), "install fribidi (see README.md)")
 
-    def test_default_output_folder_is_gitignored(self):
-        self.assertEqual(gen.DEFAULT_OUT, os.path.join(HERE, "out"))
-        with open(os.path.join(REPO, ".gitignore"), encoding="utf-8") as f:
-            self.assertIn("scripts/brand/out/", f.read().splitlines())
+    def test_default_output_folder_is_assets_brand(self):
+        self.assertEqual(gen.DEFAULT_OUT, os.path.join(REPO, "assets", "brand"))
+
+    def test_brand_images_are_not_bundled_into_the_app(self):
+        # The committed banners are for the web, stores and social sites.
+        # Flutter only bundles the asset folders pubspec.yaml lists, so
+        # listing assets/brand/ would ship ~2 MB of PNGs in every build.
+        with open(os.path.join(REPO, "pubspec.yaml"), encoding="utf-8") as f:
+            pubspec = f.read()
+        self.assertNotIn("assets/brand", pubspec)
 
 
 if __name__ == "__main__":

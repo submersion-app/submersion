@@ -7,8 +7,8 @@ Usage:
   python3 scripts/brand/generate_brand_assets.py --only github-social,mark-512
   python3 scripts/brand/generate_brand_assets.py --out /path/to/dir
 
-Writes <out>/<preset>.png; the default output folder scripts/brand/out/ is
-gitignored. Needs Pillow (pip install -r scripts/requirements.txt) with RAQM
+Writes <out>/<preset>.png; the default output folder is assets/brand/, where
+the images are committed. Needs Pillow (pip install -r scripts/requirements.txt) with RAQM
 text layout, which loads the system fribidi library. Presets are defined in
 presets.py; see README.md in this folder.
 """
@@ -31,7 +31,9 @@ from mark import create_mark
 
 BRAND_DIR = os.path.dirname(os.path.abspath(__file__))
 FONT_DIR = os.path.join(BRAND_DIR, "fonts")
-DEFAULT_OUT = os.path.join(BRAND_DIR, "out")
+# Committed output, like generate_icon.py's assets/icon/. Not listed in
+# pubspec.yaml, so none of it is bundled into the app.
+DEFAULT_OUT = os.path.join(os.path.dirname(os.path.dirname(BRAND_DIR)), "assets", "brand")
 FONT_FILES = {"name": "InterDisplay-ExtraBold.ttf", "slogan": "InterDisplay-Medium.ttf"}
 
 # The approved card's background: 160 degrees, three stops.
