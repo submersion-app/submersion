@@ -495,6 +495,19 @@ class UddfFullImportService {
 
     final sources = _parseDataSources(uddfElement);
 
+    // Each dive's <source> entries also ride on its own map as `dataSources`,
+    // like `gearLinks` above. The import wizard flattens this result into
+    // entity lists and rebuilds it without dataSourcesByDiveRef, so a restore
+    // through it otherwise saw no sources at all: no restored source rows,
+    // and no GPS for a backup that kept it only there (#1735).
+    for (final dive in dives) {
+      final entries = UddfImportResult.sourcesForDive(
+        sources.byDiveRef,
+        dive['sourceUuid'] as String?,
+      );
+      if (entries.isNotEmpty) dive['dataSources'] = entries;
+    }
+
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
       unpairedDumps: sources.unpaired,
@@ -964,6 +977,14 @@ class UddfFullImportService {
         );
       }
 
+      // The dive's own entry fix, under the keys every other import format
+      // uses for it (#1735).
+      if (UddfImportParsers.parseDiveGps(beforeElement, 'entry')
+          case final fix?) {
+        diveData['latitude'] = fix.latitude;
+        diveData['longitude'] = fix.longitude;
+      }
+
       // Parse dive mode
       final diveMode = UddfImportParsers.parseDiveModeIn(beforeElement);
       if (diveMode != null) {
@@ -1148,6 +1169,12 @@ class UddfFullImportService {
           exitType,
           enums.EntryMethod.values,
         );
+      }
+
+      if (UddfImportParsers.parseDiveGps(afterElement, 'exit')
+          case final fix?) {
+        diveData['exitLatitude'] = fix.latitude;
+        diveData['exitLongitude'] = fix.longitude;
       }
 
       // Parse weight used
