@@ -92,6 +92,7 @@ Widget _buildList({
             availableActions:
                 availableActions ?? DuplicateAction.values.toSet(),
             onToggleSelection: onToggleSelection ?? (_) {},
+            onSetSelections: onSetSelections,
             onDuplicateActionChanged: onDuplicateActionChanged ?? (_, a) {},
             onSelectAll: onSelectAll ?? () {},
             onDeselectAll: onDeselectAll ?? () {},
