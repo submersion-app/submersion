@@ -1038,6 +1038,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // getTouchedSpotIndicator during paint. See [velocityIndicatorSuppression].
   List<({double x, double y})> _suppressedDepthIndicatorSpots = const [];
 
+  // The spots of the latest touch response. fl_chart keeps each touched
+  // spot's index across rebuilds, and once the series under it is
+  // re-decimated (a zoomed pan crossing a decimation bucket) that index names
+  // a different sample; getTouchedSpotIndicator only draws a marker whose
+  // spot is still one of these.
+  List<({double x, double y})> _touchedIndicatorSpots = const [];
+
   // Memoized lineBarsData. The chart's series builders are pure w.r.t.
   // interaction state, so the assembled bars are reused across playback / hover
   // / zoom rebuilds and only reconstructed when the underlying data, units,
@@ -3310,7 +3317,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     if (index < 0 || index >= barData.spots.length)
                       null
                     else if (suppressed.isNotEmpty &&
-                        _isSuppressedIndicatorSpot(barData, index, suppressed))
+                        _isSpotAt(barData, index, suppressed))
+                      null
+                    else if (!_isSpotAt(barData, index, _touchedIndicatorSpots))
                       null
                     else
                       defaultTouchedIndicators(barData, [index]).first,
@@ -3343,6 +3352,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 // depth dot, independently of the external selection/tooltip
                 // callbacks below (so the built-in indicator is de-cluttered
                 // even when neither callback is wired).
+                _touchedIndicatorSpots = active
+                    ? [for (final s in spots) (x: s.x, y: s.y)]
+                    : const [];
                 _suppressedDepthIndicatorSpots = active
                     ? DiveProfileChart.velocityIndicatorSuppression([
                         for (final s in spots)
@@ -4729,20 +4741,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return [0 - leadIn];
   }
 
-  /// Whether the built-in focus indicator for [barData]'s spot at [index]
-  /// should be hidden because velocity colouring already shows the depth dot on
-  /// another band (see [velocityIndicatorSuppression]). Matches on the spot
-  /// coordinate because fl_chart hands the indicator callback a copied bar
-  /// without its position in the bar list.
-  bool _isSuppressedIndicatorSpot(
+  /// Whether [barData]'s spot at [index] is one of [spots]. Matches on the
+  /// spot coordinate because fl_chart hands the indicator callback a copied
+  /// bar without its position in the bar list. Used both to hide the focus
+  /// indicator velocity colouring already shows on another band (see
+  /// [velocityIndicatorSuppression]) and to drop a stale touched index (see
+  /// [_touchedIndicatorSpots]).
+  bool _isSpotAt(
     LineChartBarData barData,
     int index,
-    List<({double x, double y})> suppressed,
+    List<({double x, double y})> spots,
   ) {
     if (index < 0 || index >= barData.spots.length) return false;
     final spot = barData.spots[index];
     const epsilon = 1e-6;
-    for (final s in suppressed) {
+    for (final s in spots) {
       if ((s.x - spot.x).abs() < epsilon && (s.y - spot.y).abs() < epsilon) {
         return true;
       }
