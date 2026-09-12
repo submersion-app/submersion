@@ -157,9 +157,9 @@ Future<void> _expectRebuilt(AppDatabase db) async {
 
 void main() {
   test('v210 is the current schema version and is in the ladder', () {
-    // This is the newest rung, so it owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 210);
+    // Relaxed once v211 (issue #998's auto_tag_imports) landed on top; the
+    // newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(210));
     expect(AppDatabase.migrationVersions, contains(210));
   });
 

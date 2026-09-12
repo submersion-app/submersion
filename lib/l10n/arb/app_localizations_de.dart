@@ -20321,6 +20321,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_manage_title => 'Tags';
 
   @override
+  String get tags_manage_importsSection => 'Import';
+
+  @override
+  String get tags_manage_autoTagImports => 'Importe automatisch taggen';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Jeder neue Import startet mit einem Tag, das Quelle und Datum nennt. Für einen einzelnen Import lässt sich dies in dessen Import-Optionen ändern.';
+
+  @override
   String get tags_manage_searchHint => 'Tags suchen...';
 
   @override
@@ -25041,6 +25051,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Tauchgangsnummern aus der importierten Datei verwenden, statt automatisch zuzuweisen';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Diesen Import automatisch taggen';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'Startet mit deiner gespeicherten Einstellung unter Tags. Eine Änderung hier gilt nur für diesen Import.';
 
   @override
   String get universalImport_title_successImported => 'Erfolgreich importiert';

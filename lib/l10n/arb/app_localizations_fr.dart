@@ -20456,6 +20456,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_manage_title => 'Étiquettes';
 
   @override
+  String get tags_manage_importsSection => 'Imports';
+
+  @override
+  String get tags_manage_autoTagImports =>
+      'Étiqueter automatiquement les imports';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Chaque nouvel import commence avec une étiquette indiquant la source et la date. Vous pouvez modifier cela pour un import donné dans ses options.';
+
+  @override
   String get tags_manage_searchHint => 'Rechercher des étiquettes...';
 
   @override
@@ -25191,6 +25202,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Utiliser les numéros de plongée du fichier importé au lieu de les attribuer automatiquement';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Étiqueter automatiquement cet import';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'Démarre avec votre préférence enregistrée dans les paramètres Étiquettes. La modifier ici n\'affecte que cet import.';
 
   @override
   String get universalImport_title_successImported => 'Importation réussie';

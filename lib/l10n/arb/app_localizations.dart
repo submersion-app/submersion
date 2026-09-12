@@ -33504,6 +33504,24 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get tags_manage_title;
 
+  /// Section header above the auto-tag-imports switch on the tag management screen
+  ///
+  /// In en, this message translates to:
+  /// **'Imports'**
+  String get tags_manage_importsSection;
+
+  /// Switch title for auto-tagging every new import session
+  ///
+  /// In en, this message translates to:
+  /// **'Tag imports automatically'**
+  String get tags_manage_autoTagImports;
+
+  /// Switch subtitle for auto-tagging every new import session
+  ///
+  /// In en, this message translates to:
+  /// **'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.'**
+  String get tags_manage_autoTagImports_subtitle;
+
   /// No description provided for @tags_manage_searchHint.
   ///
   /// In en, this message translates to:
@@ -41120,6 +41138,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use dive numbers from the imported file instead of auto-assigning'**
   String get universalImport_label_retainDiveNumbersSubtitle;
+
+  /// Switch title for the session-only auto-tag override in the import options sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Tag this import automatically'**
+  String get universalImport_label_autoTagThisImport;
+
+  /// Switch subtitle for the session-only auto-tag override in the import options sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Starts from your saved preference in Tags settings. Changing it here only affects this import.'**
+  String get universalImport_label_autoTagThisImportSubtitle;
 
   /// Title shown when dives are successfully imported
   ///

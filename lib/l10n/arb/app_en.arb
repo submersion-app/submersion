@@ -12388,6 +12388,18 @@
   },
   "tags_hint_addTags": "Add tags...",
   "tags_manage_title": "Tags",
+  "tags_manage_importsSection": "Imports",
+  "@tags_manage_importsSection": {
+    "description": "Section header above the auto-tag-imports switch on the tag management screen"
+  },
+  "tags_manage_autoTagImports": "Tag imports automatically",
+  "@tags_manage_autoTagImports": {
+    "description": "Switch title for auto-tagging every new import session"
+  },
+  "tags_manage_autoTagImports_subtitle": "Every new import starts with a tag naming the source and date. You can change this for a single import in that import's options.",
+  "@tags_manage_autoTagImports_subtitle": {
+    "description": "Switch subtitle for auto-tagging every new import session"
+  },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
   "@tags_manage_diveCount": {
@@ -16071,6 +16083,14 @@
   "universalImport_label_retainDiveNumbersSubtitle": "Use dive numbers from the imported file instead of auto-assigning",
   "@universalImport_label_retainDiveNumbersSubtitle": {
     "description": "Switch subtitle for retaining dive numbers"
+  },
+  "universalImport_label_autoTagThisImport": "Tag this import automatically",
+  "@universalImport_label_autoTagThisImport": {
+    "description": "Switch title for the session-only auto-tag override in the import options sheet"
+  },
+  "universalImport_label_autoTagThisImportSubtitle": "Starts from your saved preference in Tags settings. Changing it here only affects this import.",
+  "@universalImport_label_autoTagThisImportSubtitle": {
+    "description": "Switch subtitle for the session-only auto-tag override in the import options sheet"
   },
   "universalImport_title_successImported": "Successfully Imported",
   "@universalImport_title_successImported": {

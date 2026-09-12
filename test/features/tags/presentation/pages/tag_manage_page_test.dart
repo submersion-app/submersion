@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
@@ -102,6 +104,7 @@ List<Tag> _tagsFromStats(List<TagStatistic> stats) =>
 Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
+  MockSettingsNotifier? settingsNotifier,
 }) {
   return ProviderScope(
     overrides: [
@@ -110,6 +113,9 @@ Widget _buildTestWidget({
         (ref) => notifier ?? _MockTagListNotifier(_tagsFromStats(stats)),
       ),
       tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
+      settingsProvider.overrideWith(
+        (ref) => settingsNotifier ?? MockSettingsNotifier(),
+      ),
     ],
     child: const MaterialApp(
       // flutter_test resolves against the HOST machine's locale list, so an
@@ -129,6 +135,57 @@ Widget _buildTestWidget({
 // ---------------------------------------------------------------------------
 
 void main() {
+  group('auto-tag imports switch', () {
+    testWidgets('reflects the on default from settings', (tester) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      final switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile),
+      );
+      expect(switchTile.value, isTrue);
+    });
+
+    testWidgets('reflects an off value from settings', (tester) async {
+      final settingsNotifier = MockSettingsNotifier(
+        const AppSettings(autoTagImports: false),
+      );
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, settingsNotifier: settingsNotifier),
+      );
+      await tester.pumpAndSettle();
+
+      final switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile),
+      );
+      expect(switchTile.value, isFalse);
+    });
+
+    testWidgets('toggling it updates settings', (tester) async {
+      final settingsNotifier = MockSettingsNotifier();
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, settingsNotifier: settingsNotifier),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(SwitchListTile));
+      await tester.pumpAndSettle();
+
+      expect(settingsNotifier.state.autoTagImports, isFalse);
+    });
+
+    testWidgets('is hidden while a bulk selection is active', (tester) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+      expect(find.byType(SwitchListTile), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SwitchListTile), findsNothing);
+    });
+  });
+
   group('selection contract', () {
     testWidgets('satisfies the shared selection contract', (tester) async {
       await verifySelectionContract(

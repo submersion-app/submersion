@@ -20370,6 +20370,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_manage_title => 'Tag';
 
   @override
+  String get tags_manage_importsSection => 'Importazioni';
+
+  @override
+  String get tags_manage_autoTagImports =>
+      'Tagga automaticamente le importazioni';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Ogni nuova importazione inizia con un tag che indica l\'origine e la data. Puoi modificarlo per una singola importazione nelle opzioni di quell\'importazione.';
+
+  @override
   String get tags_manage_searchHint => 'Cerca tag...';
 
   @override
@@ -25094,6 +25105,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Usa i numeri di immersione dal file importato invece di assegnarli automaticamente';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Tagga automaticamente questa importazione';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'Parte dalla tua preferenza salvata nelle impostazioni Tag. Modificarla qui riguarda solo questa importazione.';
 
   @override
   String get universalImport_title_successImported => 'Importazione riuscita';

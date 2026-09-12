@@ -20311,6 +20311,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_manage_title => 'Címkék';
 
   @override
+  String get tags_manage_importsSection => 'Importok';
+
+  @override
+  String get tags_manage_autoTagImports => 'Importok automatikus címkézése';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Minden új import egy, a forrást és a dátumot megnevező címkével kezdődik. Ez egyetlen importra megváltoztatható az adott import beállításaiban.';
+
+  @override
   String get tags_manage_searchHint => 'Címkék keresése...';
 
   @override
@@ -25016,6 +25026,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Az importált fájl merülésszámainak használata az automatikus kiosztás helyett';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Ennek az importnak az automatikus címkézése';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'A Címkék beállításokban mentett beállításból indul. Az itt végzett módosítás csak ezt az importot érinti.';
 
   @override
   String get universalImport_title_successImported => 'Sikeresen importálva';

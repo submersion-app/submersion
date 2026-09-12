@@ -20378,6 +20378,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tags_manage_title => 'Etiquetas';
 
   @override
+  String get tags_manage_importsSection => 'Importações';
+
+  @override
+  String get tags_manage_autoTagImports => 'Marcar importações automaticamente';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Cada nova importação começa com uma etiqueta que indica a origem e a data. Pode alterar isto para uma única importação nas opções dessa importação.';
+
+  @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';
 
   @override
@@ -25099,6 +25109,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Usar os números de mergulho do arquivo importado em vez de atribuí-los automaticamente';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Marcar esta importação automaticamente';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'Começa com a sua preferência guardada nas configurações de Etiquetas. Alterá-la aqui afeta apenas esta importação.';
 
   @override
   String get universalImport_title_successImported => 'Importados com Sucesso';
