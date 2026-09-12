@@ -11277,6 +11277,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_errorTitle => 'خطأ';
 
   @override
+  String get equipment_detail_installedInLabel => 'مركّب في';
+
+  @override
+  String get equipment_detail_installedInSemanticLabel =>
+      'عرض المعدات المركّب فيها هذا العنصر';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'آخر صيانة';
 
   @override
@@ -11300,6 +11307,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'مدة الملكية';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'تاريخ الشراء';
@@ -11701,6 +11713,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'عرض الرحلات باستخدام هذه المعدات';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
 
   @override
   String get equipment_edit_appBar_editTitle => 'تعديل المعدات';

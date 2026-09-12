@@ -3747,6 +3747,8 @@
   "equipment_detail_editTooltipShort": "Editar",
   "equipment_detail_errorMessage": "Erro: {error}",
   "equipment_detail_errorTitle": "Erro",
+  "equipment_detail_installedInLabel": "Instalado em",
+  "equipment_detail_installedInSemanticLabel": "Ver o equipamento em que está instalado",
   "equipment_detail_lastServiceLabel": "Ultima Manutencao",
   "equipment_detail_loadingTitle": "Carregando...",
   "equipment_detail_modelLabel": "Modelo",
@@ -3755,6 +3757,17 @@
   "equipment_detail_notFoundTitle": "Equipamento Nao Encontrado",
   "equipment_detail_notesTitle": "Observacoes",
   "equipment_detail_ownedForLabel": "Tempo de Posse",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Data de Compra",
   "equipment_detail_purchasePriceLabel": "Preco de Compra",
   "equipment_detail_retiredChip": "Aposentado",
@@ -3922,6 +3935,7 @@
   "equipment_detail_tripsCountSingular": "{count} viagem",
   "equipment_detail_tripsLabel": "Viagens",
   "equipment_detail_tripsSemanticLabel": "Ver viagens usando este equipamento",
+  "equipment_detail_wasInstalledInLabel": "Esteve instalado em",
   "equipment_edit_appBar_editTitle": "Editar Equipamento",
   "equipment_edit_appBar_newTitle": "Novo Equipamento",
   "equipment_edit_appBar_saveButton": "Salvar",

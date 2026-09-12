@@ -3747,6 +3747,8 @@
   "equipment_detail_editTooltipShort": "Bewerken",
   "equipment_detail_errorMessage": "Fout: {error}",
   "equipment_detail_errorTitle": "Fout",
+  "equipment_detail_installedInLabel": "Geplaatst in",
+  "equipment_detail_installedInSemanticLabel": "Bekijk de uitrusting waarin dit geplaatst is",
   "equipment_detail_lastServiceLabel": "Laatste service",
   "equipment_detail_loadingTitle": "Laden...",
   "equipment_detail_modelLabel": "Model",
@@ -3755,6 +3757,17 @@
   "equipment_detail_notFoundTitle": "Uitrusting niet gevonden",
   "equipment_detail_notesTitle": "Notities",
   "equipment_detail_ownedForLabel": "In bezit sinds",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Aankoopdatum",
   "equipment_detail_purchasePriceLabel": "Aankoopprijs",
   "equipment_detail_retiredChip": "Buiten gebruik",
@@ -3922,6 +3935,7 @@
   "equipment_detail_tripsCountSingular": "{count} reis",
   "equipment_detail_tripsLabel": "Reizen",
   "equipment_detail_tripsSemanticLabel": "Bekijk reizen met deze uitrusting",
+  "equipment_detail_wasInstalledInLabel": "Was geplaatst in",
   "equipment_edit_appBar_editTitle": "Uitrusting bewerken",
   "equipment_edit_appBar_newTitle": "Nieuwe uitrusting",
   "equipment_edit_appBar_saveButton": "Opslaan",

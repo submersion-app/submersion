@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/child_installed_text.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -152,38 +153,13 @@ class ChildrenCard extends ConsumerWidget {
     return '${l10n.equipmentCondition_children_slot(slot)} · ${child.name}';
   }
 
-  /// "Installed {date}, {age}"; days under two months, months after.
+  /// "Installed {date}, {age}", or the type name for a part with no date
+  /// to count from.
   String _installedLine(
     AppLocalizations l10n,
     UnitFormatter units,
     EquipmentItem child,
-  ) {
-    // The date its exposure counts from: the install date, else when the
-    // part was created, as parentDivesFrom reads it.
-    final installed = child.parentDivesFrom;
-    if (installed == null) return child.type.localizedName(l10n);
-    final now = DateTime.now();
-    // Whole calendar days, both ends in the dive frame parentDivesFrom uses
-    // (a local day as UTC midnight): a local instant minus it is off by the
-    // device's UTC offset.
-    final days = DateTime.utc(now.year, now.month, now.day)
-        .difference(
-          DateTime.utc(installed.year, installed.month, installed.day),
-        )
-        .inDays;
-    // Completed calendar months: an average month length undercounts, so
-    // a part installed a year ago read "11 months".
-    var months = (now.year - installed.year) * 12 + now.month - installed.month;
-    if (now.day < installed.day) months--;
-    // Days through day 60, calendar months after (the phase plan).
-    final age = days <= 60
-        ? l10n.equipmentCondition_children_ageDays(days < 0 ? 0 : days)
-        : l10n.equipmentCondition_children_ageMonths(months);
-    return l10n.equipmentCondition_children_installed(
-      units.formatDate(installed),
-      age,
-    );
-  }
+  ) => childInstalledText(l10n, units, child) ?? child.type.localizedName(l10n);
 
   Color _dotColor(ColorScheme scheme, ServiceClockSeverity? severity) {
     return switch (severity) {

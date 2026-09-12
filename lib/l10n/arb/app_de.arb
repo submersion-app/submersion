@@ -3747,6 +3747,8 @@
   "equipment_detail_editTooltipShort": "Bearbeiten",
   "equipment_detail_errorMessage": "Fehler: {error}",
   "equipment_detail_errorTitle": "Fehler",
+  "equipment_detail_installedInLabel": "Eingebaut in",
+  "equipment_detail_installedInSemanticLabel": "Ausrüstung anzeigen, in die dies eingebaut ist",
   "equipment_detail_lastServiceLabel": "Letzte Wartung",
   "equipment_detail_loadingTitle": "Wird geladen...",
   "equipment_detail_modelLabel": "Modell",
@@ -3755,6 +3757,17 @@
   "equipment_detail_notFoundTitle": "Ausrüstung nicht gefunden",
   "equipment_detail_notesTitle": "Notizen",
   "equipment_detail_ownedForLabel": "Im Besitz seit",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Kaufdatum",
   "equipment_detail_purchasePriceLabel": "Kaufpreis",
   "equipment_detail_retiredChip": "Ausgemustert",
@@ -3922,6 +3935,7 @@
   "equipment_detail_tripsCountSingular": "{count} Reise",
   "equipment_detail_tripsLabel": "Reisen",
   "equipment_detail_tripsSemanticLabel": "Reisen mit dieser Ausrüstung anzeigen",
+  "equipment_detail_wasInstalledInLabel": "War eingebaut in",
   "equipment_edit_appBar_editTitle": "Ausrüstung bearbeiten",
   "equipment_edit_appBar_newTitle": "Neue Ausrüstung",
   "equipment_edit_appBar_saveButton": "Speichern",

@@ -11449,6 +11449,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Hiba';
 
   @override
+  String get equipment_detail_installedInLabel => 'Beszerelve ebbe';
+
+  @override
+  String get equipment_detail_installedInSemanticLabel =>
+      'A felszereles megtekintese, amelybe be van szerelve';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Utolso szerviz';
 
   @override
@@ -11473,6 +11480,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'Birtoklasi ido';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Vasarlas datuma';
@@ -11871,6 +11883,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Utazasok megtekintese ezzel a felszerelessel';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Korabban beszerelve ebbe';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Felszereles szerkesztese';

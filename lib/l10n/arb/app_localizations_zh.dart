@@ -10965,6 +10965,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_errorTitle => '错误';
 
   @override
+  String get equipment_detail_installedInLabel => '安装于';
+
+  @override
+  String get equipment_detail_installedInSemanticLabel => '查看此物品所安装的装备';
+
+  @override
   String get equipment_detail_lastServiceLabel => '最近维护';
 
   @override
@@ -10987,6 +10993,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => '拥有为';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name（$status）';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => '购买日期';
@@ -11366,6 +11377,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_detail_tripsSemanticLabel => '查看使用此装备的旅行';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => '曾安装于';
 
   @override
   String get equipment_edit_appBar_editTitle => '编辑装备';

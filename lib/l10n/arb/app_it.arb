@@ -3663,6 +3663,8 @@
   "equipment_detail_editTooltipShort": "Modifica",
   "equipment_detail_errorMessage": "Errore: {error}",
   "equipment_detail_errorTitle": "Errore",
+  "equipment_detail_installedInLabel": "Installato in",
+  "equipment_detail_installedInSemanticLabel": "Visualizza l'attrezzatura in cui è installato",
   "equipment_detail_lastServiceLabel": "Ultima manutenzione",
   "equipment_detail_loadingTitle": "Caricamento...",
   "equipment_detail_modelLabel": "Modello",
@@ -3671,6 +3673,17 @@
   "equipment_detail_notFoundTitle": "Attrezzatura non trovata",
   "equipment_detail_notesTitle": "Note",
   "equipment_detail_ownedForLabel": "Posseduto da",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Data di acquisto",
   "equipment_detail_purchasePriceLabel": "Prezzo di acquisto",
   "equipment_detail_retiredChip": "Ritirato",
@@ -3838,6 +3851,7 @@
   "equipment_detail_tripsCountSingular": "{count} viaggio",
   "equipment_detail_tripsLabel": "Viaggi",
   "equipment_detail_tripsSemanticLabel": "Visualizza viaggi con questa attrezzatura",
+  "equipment_detail_wasInstalledInLabel": "Era installato in",
   "equipment_edit_appBar_editTitle": "Modifica attrezzatura",
   "equipment_edit_appBar_newTitle": "Nuova attrezzatura",
   "equipment_edit_appBar_saveButton": "Salva",

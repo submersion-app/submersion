@@ -3747,6 +3747,8 @@
   "equipment_detail_editTooltipShort": "تعديل",
   "equipment_detail_errorMessage": "خطأ: {error}",
   "equipment_detail_errorTitle": "خطأ",
+  "equipment_detail_installedInLabel": "مركّب في",
+  "equipment_detail_installedInSemanticLabel": "عرض المعدات المركّب فيها هذا العنصر",
   "equipment_detail_lastServiceLabel": "آخر صيانة",
   "equipment_detail_loadingTitle": "جارٍ التحميل...",
   "equipment_detail_modelLabel": "الطراز",
@@ -3755,6 +3757,17 @@
   "equipment_detail_notFoundTitle": "المعدات غير موجودة",
   "equipment_detail_notesTitle": "ملاحظات",
   "equipment_detail_ownedForLabel": "مدة الملكية",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "تاريخ الشراء",
   "equipment_detail_purchasePriceLabel": "سعر الشراء",
   "equipment_detail_retiredChip": "متقاعد",
@@ -3922,6 +3935,7 @@
   "equipment_detail_tripsCountSingular": "{count} رحلة",
   "equipment_detail_tripsLabel": "الرحلات",
   "equipment_detail_tripsSemanticLabel": "عرض الرحلات باستخدام هذه المعدات",
+  "equipment_detail_wasInstalledInLabel": "كان مركّبًا في",
   "equipment_edit_appBar_editTitle": "تعديل المعدات",
   "equipment_edit_appBar_newTitle": "معدات جديدة",
   "equipment_edit_appBar_saveButton": "حفظ",

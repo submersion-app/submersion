@@ -19288,6 +19288,18 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get equipment_detail_errorTitle;
 
+  /// No description provided for @equipment_detail_installedInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed in'**
+  String get equipment_detail_installedInLabel;
+
+  /// No description provided for @equipment_detail_installedInSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'View the equipment this is installed in'**
+  String get equipment_detail_installedInSemanticLabel;
+
   /// No description provided for @equipment_detail_lastServiceLabel.
   ///
   /// In en, this message translates to:
@@ -19335,6 +19347,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Owned For'**
   String get equipment_detail_ownedForLabel;
+
+  /// No description provided for @equipment_detail_parentWithStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({status})'**
+  String equipment_detail_parentWithStatus(String name, String status);
 
   /// No description provided for @equipment_detail_purchaseDateLabel.
   ///
@@ -19953,6 +19971,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View trips using this equipment'**
   String get equipment_detail_tripsSemanticLabel;
+
+  /// No description provided for @equipment_detail_wasInstalledInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Was installed in'**
+  String get equipment_detail_wasInstalledInLabel;
 
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///

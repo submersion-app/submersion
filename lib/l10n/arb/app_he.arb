@@ -3663,6 +3663,8 @@
   "equipment_detail_editTooltipShort": "ערוך",
   "equipment_detail_errorMessage": "שגיאה: {error}",
   "equipment_detail_errorTitle": "שגיאה",
+  "equipment_detail_installedInLabel": "מותקן ב",
+  "equipment_detail_installedInSemanticLabel": "צפה בציוד שבו פריט זה מותקן",
   "equipment_detail_lastServiceLabel": "טיפול אחרון",
   "equipment_detail_loadingTitle": "טוען...",
   "equipment_detail_modelLabel": "דגם",
@@ -3671,6 +3673,17 @@
   "equipment_detail_notFoundTitle": "הציוד לא נמצא",
   "equipment_detail_notesTitle": "הערות",
   "equipment_detail_ownedForLabel": "בבעלות",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "תאריך רכישה",
   "equipment_detail_purchasePriceLabel": "מחיר רכישה",
   "equipment_detail_retiredChip": "הוצא משימוש",
@@ -3838,6 +3851,7 @@
   "equipment_detail_tripsCountSingular": "{count} טיול",
   "equipment_detail_tripsLabel": "טיולים",
   "equipment_detail_tripsSemanticLabel": "צפה בטיולים המשתמשים בציוד זה",
+  "equipment_detail_wasInstalledInLabel": "היה מותקן ב",
   "equipment_edit_appBar_editTitle": "ערוך ציוד",
   "equipment_edit_appBar_newTitle": "ציוד חדש",
   "equipment_edit_appBar_saveButton": "שמור",

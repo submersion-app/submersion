@@ -6509,6 +6509,8 @@
   "equipment_detail_editTooltipShort": "Edit",
   "equipment_detail_errorMessage": "Error: {error}",
   "equipment_detail_errorTitle": "Error",
+  "equipment_detail_installedInLabel": "Installed in",
+  "equipment_detail_installedInSemanticLabel": "View the equipment this is installed in",
   "equipment_detail_lastServiceLabel": "Last Service",
   "equipment_detail_loadingTitle": "Loading...",
   "equipment_detail_modelLabel": "Model",
@@ -6517,6 +6519,17 @@
   "equipment_detail_notFoundTitle": "Equipment Not Found",
   "equipment_detail_notesTitle": "Notes",
   "equipment_detail_ownedForLabel": "Owned For",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Purchase Date",
   "equipment_detail_purchasePriceLabel": "Purchase Price",
   "equipment_detail_retiredChip": "Retired",
@@ -6811,6 +6824,7 @@
   "equipment_detail_tripsCountSingular": "{count} trip",
   "equipment_detail_tripsLabel": "Trips",
   "equipment_detail_tripsSemanticLabel": "View trips using this equipment",
+  "equipment_detail_wasInstalledInLabel": "Was installed in",
   "equipment_edit_appBar_editTitle": "Edit Equipment",
   "equipment_edit_appBar_newTitle": "New Equipment",
   "equipment_edit_appBar_saveButton": "Save",
