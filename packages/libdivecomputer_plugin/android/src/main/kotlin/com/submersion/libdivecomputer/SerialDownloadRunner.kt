@@ -184,7 +184,8 @@ class SerialDownloadRunner(private val context: Context) {
             GasMix(
                 index = i.toLong(),
                 o2Percent = gm[0] * 100.0,
-                hePercent = gm[1] * 100.0
+                hePercent = gm[1] * 100.0,
+                usage = gm.getOrNull(2)?.toLong()?.takeIf { it != 0L }
             )
         }
 
