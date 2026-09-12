@@ -1,6 +1,5 @@
 import 'package:xml/xml.dart';
 
-import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Gear elements shared by the full backup and the dives-only export.
@@ -9,12 +8,23 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// `<applicationdata><submersion><equipment>` block; the only standard
 /// declarations are the dive computers, which live under the owner.
 abstract final class UddfGearWriters {
+  /// The id a `<divecomputer>` is declared under in the UDDF standard
+  /// sections, and therefore the only id a `<link ref>` may point at.
+  ///
+  /// Built from model and serial rather than the `dive_computers` row id: the
+  /// standard `<divecomputer>` elements are minted from the dives' display
+  /// snapshots, and the row's UUID appears only inside
+  /// `<applicationdata><submersion><divecomputers>`, which is not a valid
+  /// IDREF target.
+  static String computerRefId(String model, String? serial) =>
+      'dc_${model.replaceAll(' ', '_')}_${serial ?? 'unknown'}';
+
   /// The `<divecomputer>` id of each distinct computer on [dives], first
   /// seen first. A dive with no computer model contributes nothing.
   static Set<String> computerIds(Iterable<Dive> dives) => {
     for (final dive in dives)
       if (dive.diveComputerModel case final model? when model.isNotEmpty)
-        UddfExportBuilders.computerRefId(model, dive.diveComputerSerial),
+        computerRefId(model, dive.diveComputerSerial),
   };
 
   /// The owner's `<equipment>` block declaring each computer on [dives],
@@ -29,10 +39,7 @@ abstract final class UddfGearWriters {
     for (final dive in dives) {
       final model = dive.diveComputerModel;
       if (model == null || model.isEmpty) continue;
-      computers[UddfExportBuilders.computerRefId(
-        model,
-        dive.diveComputerSerial,
-      )] = (
+      computers[computerRefId(model, dive.diveComputerSerial)] = (
         model: model,
         serial: dive.diveComputerSerial ?? '',
       );
@@ -63,7 +70,7 @@ abstract final class UddfGearWriters {
   static void writeEquipmentUsed(XmlBuilder builder, Dive dive) {
     final model = dive.diveComputerModel;
     final computerRef = model != null && model.isNotEmpty
-        ? UddfExportBuilders.computerRefId(model, dive.diveComputerSerial)
+        ? computerRefId(model, dive.diveComputerSerial)
         : null;
     if (dive.equipment.isEmpty && computerRef == null) return;
     builder.element(

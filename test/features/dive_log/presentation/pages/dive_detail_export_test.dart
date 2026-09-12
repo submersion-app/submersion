@@ -216,6 +216,9 @@ void main() {
             diverPhotoLoaderProvider.overrideWithValue(photoLoader),
         ],
         child: MaterialApp(
+          // Pinned: the finders below are English, and the host machine's
+          // locale would otherwise pick one of the 11 supported languages.
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: DiveDetailPage(diveId: dive.id, embedded: true)),

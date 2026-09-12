@@ -1680,17 +1680,12 @@ class UddfExportBuilders {
     );
   }
 
-  /// The id a `<divecomputer>` is declared under in the UDDF standard
-  /// sections, and therefore the only id a `<link ref>` may point at.
-  ///
-  /// Built from model and serial rather than the `dive_computers` row id: the
-  /// standard `<divecomputer>` elements are minted from the dives' display
-  /// snapshots, and the row's UUID appears only inside
-  /// `<applicationdata><submersion><divecomputers>`, which is not a valid
-  /// IDREF target. Callers must still check the id is actually declared
-  /// before linking to it; see [buildDiveComputerControl].
+  /// The id a `<divecomputer>` is declared under; see
+  /// [UddfGearWriters.computerRefId], which owns it so the gear writers need
+  /// nothing from this file. Callers must still check the id is actually
+  /// declared before linking to it; see [buildDiveComputerControl].
   static String computerRefId(String model, String? serial) =>
-      'dc_${model.replaceAll(' ', '_')}_${serial ?? 'unknown'}';
+      UddfGearWriters.computerRefId(model, serial);
 
   /// Hex encode, matching SQLite's `hex()` and the convention
   /// `dive_repository_impl.dart` documents for raw fingerprints.

@@ -155,6 +155,9 @@ void main() {
         ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
+          // Pinned: the finders below are English, and the host machine's
+          // locale would otherwise pick one of the 11 supported languages.
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
         ),

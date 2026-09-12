@@ -220,4 +220,18 @@ void main() {
     expect(choice.options.includeParticipants, isFalse);
     expect(choice.options.includeGear, isFalse);
   });
+
+  testWidgets('the sheet sizes to its content, not the screen', (tester) async {
+    // isScrollControlled lifts the 9/16 height cap so the three checkboxes
+    // fit on a phone; the scroll view inside must still size to its content,
+    // or every export sheet would open full screen.
+    await _pumpSheetHost(tester);
+
+    final screenHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(
+      tester.getSize(find.byType(SingleChildScrollView)).height,
+      lessThan(screenHeight / 2),
+    );
+  });
 }

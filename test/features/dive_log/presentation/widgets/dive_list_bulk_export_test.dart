@@ -270,6 +270,9 @@ void main() {
             diverPhotoLoaderProvider.overrideWithValue(photoLoader),
         ],
         child: const DiveListContent(showAppBar: false),
+        // Pinned: the finders below are English, and the host machine's
+        // locale would otherwise pick one of the 11 supported languages.
+        locale: const Locale('en'),
       ),
     );
     await tester.pumpAndSettle();
