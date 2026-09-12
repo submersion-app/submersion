@@ -176,10 +176,17 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
     flutter::EncodableList gas_mixes;
     gas_mixes.reserve(dive.gasmix_count);
     for (unsigned int i = 0; i < dive.gasmix_count; i++) {
+        std::optional<int64_t> opt_gm_usage =
+            (dive.gasmixes[i].usage == 0)
+                ? std::nullopt
+                : std::optional<int64_t>(
+                      static_cast<int64_t>(dive.gasmixes[i].usage));
+
         gas_mixes.push_back(flutter::CustomEncodableValue(GasMix(
             static_cast<int64_t>(i),
             dive.gasmixes[i].oxygen * 100.0,
-            dive.gasmixes[i].helium * 100.0)));
+            dive.gasmixes[i].helium * 100.0,
+            opt_gm_usage ? &*opt_gm_usage : nullptr)));
     }
 
     // Convert tanks.

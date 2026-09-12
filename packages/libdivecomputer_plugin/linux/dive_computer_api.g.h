@@ -524,12 +524,13 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginGasMix, libdivecomputer_plugin_gas_mix
  * index: field in this object.
  * o2_percent: field in this object.
  * he_percent: field in this object.
+ * usage: field in this object.
  *
  * Creates a new #GasMix object.
  *
  * Returns: a new #LibdivecomputerPluginGasMix
  */
-LibdivecomputerPluginGasMix* libdivecomputer_plugin_gas_mix_new(int64_t index, double o2_percent, double he_percent);
+LibdivecomputerPluginGasMix* libdivecomputer_plugin_gas_mix_new(int64_t index, double o2_percent, double he_percent, int64_t* usage);
 
 /**
  * libdivecomputer_plugin_gas_mix_get_index
@@ -560,6 +561,19 @@ double libdivecomputer_plugin_gas_mix_get_o2_percent(LibdivecomputerPluginGasMix
  * Returns: the field value.
  */
 double libdivecomputer_plugin_gas_mix_get_he_percent(LibdivecomputerPluginGasMix* object);
+
+/**
+ * libdivecomputer_plugin_gas_mix_get_usage
+ * @object: a #LibdivecomputerPluginGasMix.
+ *
+ * Gas usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+ * 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+ * Set on the gas mix itself, so it is available even when the mix has no
+ * tank/transmitter record.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_gas_mix_get_usage(LibdivecomputerPluginGasMix* object);
 
 /**
  * LibdivecomputerPluginTankInfo:

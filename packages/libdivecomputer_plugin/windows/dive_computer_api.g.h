@@ -372,11 +372,18 @@ class ProfileSample {
 // Generated class from Pigeon that represents data sent in messages.
 class GasMix {
  public:
-  // Constructs an object setting all fields.
+  // Constructs an object setting all non-nullable fields.
   explicit GasMix(
     int64_t index,
     double o2_percent,
     double he_percent);
+
+  // Constructs an object setting all fields.
+  explicit GasMix(
+    int64_t index,
+    double o2_percent,
+    double he_percent,
+    const int64_t* usage);
 
   int64_t index() const;
   void set_index(int64_t value_arg);
@@ -386,6 +393,14 @@ class GasMix {
 
   double he_percent() const;
   void set_he_percent(double value_arg);
+
+  // Gas usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+  // 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+  // Set on the gas mix itself, so it is available even when the mix has no
+  // tank/transmitter record.
+  const int64_t* usage() const;
+  void set_usage(const int64_t* value_arg);
+  void set_usage(int64_t value_arg);
 
 
  private:
@@ -397,6 +412,7 @@ class GasMix {
   int64_t index_;
   double o2_percent_;
   double he_percent_;
+  std::optional<int64_t> usage_;
 
 };
 
