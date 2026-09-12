@@ -506,4 +506,4 @@ Submersion builds on the work of the dive logging community:
 
 ---
 
-*Dive safe. Log everything. Own your data.*
+*Dive safe. Log everything.*
