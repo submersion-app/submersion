@@ -200,6 +200,11 @@ final _sacAnalysis = ProfileAnalysis.empty().copyWith(
 /// so no phase or gas-switch provider is in play.
 List<Override> _sacOverrides(Dive dive, ProfileAnalysis? analysis) => [
   profileAnalysisProvider(dive.id).overrideWith((ref) async => analysis),
+  ..._sacSupportOverrides(dive),
+];
+
+/// Everything the Gas consumption card reads besides the analysis itself.
+List<Override> _sacSupportOverrides(Dive dive) => [
   selectedSegmentationProvider.overrideWith(
     (ref) => SacSegmentationType.timeInterval,
   ),
@@ -779,6 +784,50 @@ void main() {
       final cylY = tester.getTopLeft(find.text('Cylinders')).dy;
       final sacY = tester.getTopLeft(find.text(_sacTitle)).dy;
       expect(cylY, lessThan(sacY));
+    });
+
+    testWidgets('keeps the row when the analysis briefly goes null', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndProfile('gas-sac-transient');
+      // Starts good, then settles to null the way a mid-sync empty-profile
+      // read does. The card keeps its last good segments, so the pair must
+      // too, or the row would split while the card stayed.
+      final analysis = StateProvider<ProfileAnalysis?>((ref) => _sacAnalysis);
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.sacSegments,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacSupportOverrides(dive),
+            profileAnalysisProvider(
+              dive.id,
+            ).overrideWith((ref) async => ref.watch(analysis)),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      ).read(analysis.notifier).state = null;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      final cylPos = tester.getTopLeft(find.text('Cylinders'));
+      final sacPos = tester.getTopLeft(find.text(_sacTitle));
+      expect(cylPos.dx, lessThan(sacPos.dx));
+      expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
     });
 
     testWidgets('no pairing when the dive has no SAC segments', (tester) async {
