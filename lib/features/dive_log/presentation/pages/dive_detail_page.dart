@@ -634,14 +634,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Mirrors the card's own gate, including its last-good fallback, so a
   /// transient null analysis cannot split the pair while the card stays.
   /// The read is narrowed to that answer, so the page rebuilds only when it
-  /// flips.
+  /// flips. It goes through the built-in [AsyncValue.value], which keeps the
+  /// previous analysis while a reload is in flight; the valueOrNull polyfill
+  /// reads null there, which would rebuild the whole page into the same
+  /// layout on every reload.
   bool _hasSacSegments(WidgetRef ref, Dive dive) {
     if (dive.profile.isEmpty) return false;
     final hasSegments = ref.watch(
       sourceProfileAnalysisProvider((
         diveId: dive.id,
         sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-      )).select((a) => a.valueOrNull?.sacSegments?.isNotEmpty ?? false),
+      )).select((a) => a.value?.sacSegments?.isNotEmpty ?? false),
     );
     return hasSegments ||
         (_lastSacSegmentsAnalysisDiveId == dive.id &&

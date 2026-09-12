@@ -830,6 +830,53 @@ void main() {
       expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
     });
 
+    testWidgets('an analysis reload does not rebuild the page', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndProfile('gas-sac-reload');
+      final analysis = StateProvider<ProfileAnalysis?>((ref) => _sacAnalysis);
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.sacSegments,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacSupportOverrides(dive),
+            profileAnalysisProvider(
+              dive.id,
+            ).overrideWith((ref) async => ref.watch(analysis)),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+
+      // The pair gate is the page's only read of the analysis. A reload
+      // passes through loading; if the gate read that as "no segments" the
+      // whole page would rebuild twice into the same layout.
+      var pageRebuilds = 0;
+      debugOnRebuildDirtyWidget = (element, builtOnce) {
+        if (element.widget is DiveDetailPage) pageRebuilds++;
+      };
+      addTearDown(() => debugOnRebuildDirtyWidget = null);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      ).read(analysis.notifier).state = _sacAnalysis.copyWith(
+        sacSegments: [..._sacAnalysis.sacSegments!],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      expect(pageRebuilds, 0);
+    });
+
     testWidgets('no pairing when the dive has no SAC segments', (tester) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
