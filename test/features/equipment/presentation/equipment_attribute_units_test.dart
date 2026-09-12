@@ -69,15 +69,17 @@ void main() {
   group('attributeDisplayFromMetric', () {
     test('metric formatter is identity for every same-unit dimension', () {
       // Every dimension whose canonical storage unit is also its metric
-      // display unit: kg, L, bar, m, mm. speedMps (stored m/s, shown m/min)
-      // and durationH (stored hours, shown minutes) are the deliberate
-      // per-time exceptions and are asserted on their own below.
-      const perTime = {
+      // display unit: kg, L, bar, m, mm. speedMps (stored m/s, shown m/min),
+      // durationH (stored hours, shown minutes) and shortLengthM (stored m,
+      // shown cm) are the deliberate exceptions and are asserted on their
+      // own below.
+      const rescaled = {
         AttributeDimension.speedMps,
         AttributeDimension.durationH,
+        AttributeDimension.shortLengthM,
       };
       for (final d in AttributeDimension.values) {
-        if (perTime.contains(d)) continue;
+        if (rescaled.contains(d)) continue;
         expect(
           attributeDisplayFromMetric(d, units, 10),
           closeTo(10, 1e-9),
@@ -108,6 +110,21 @@ void main() {
       expect(
         attributeDisplayFromMetric(AttributeDimension.durationH, imperial, 1.5),
         closeTo(90, 1e-9),
+      );
+    });
+
+    test('short length converts metres to cm or inches (issue #1804)', () {
+      expect(
+        attributeDisplayFromMetric(AttributeDimension.shortLengthM, units, 1),
+        closeTo(100, 1e-9),
+      );
+      expect(
+        attributeDisplayFromMetric(
+          AttributeDimension.shortLengthM,
+          imperial,
+          0.0254,
+        ),
+        closeTo(1, 1e-9),
       );
     });
 
@@ -172,6 +189,11 @@ void main() {
     expect(attributeUnitSymbol(AttributeDimension.speedMps, units), 'm/min');
     expect(attributeUnitSymbol(AttributeDimension.durationH, imperial), 'min');
     expect(attributeUnitSymbol(AttributeDimension.durationH, units), 'min');
+    expect(
+      attributeUnitSymbol(AttributeDimension.shortLengthM, imperial),
+      'in',
+    );
+    expect(attributeUnitSymbol(AttributeDimension.shortLengthM, units), 'cm');
     expect(attributeUnitSymbol(AttributeDimension.none, imperial), '');
   });
 
@@ -286,6 +308,48 @@ void main() {
         expect(
           formatAttributeValue(attr(num: metricValue), def, imperial, l10n),
           '180.4 ft/min',
+        );
+      });
+    });
+
+    group('hose and SMB length (issue #1804)', () {
+      test('a hose typed in inches reads back in inches, not feet', () {
+        final def = EquipmentAttributeCatalog.defFor('hose_length_m')!;
+        // Hoses are sold by the inch: a 15" hose must not read as 1.3 ft.
+        final stored = attributeMetricFromDisplay(def.dimension, imperial, 15);
+        expect(
+          formatAttributeValue(attr(num: stored), def, imperial, l10n),
+          '15 in',
+        );
+        // Re-seeding the edit field must give back exactly what was typed.
+        expect(
+          formatAttributeNumberForEditing(def.dimension, imperial, stored),
+          '15',
+        );
+      });
+
+      test('a metric diver reads the same hose in centimetres', () {
+        final def = EquipmentAttributeCatalog.defFor('hose_length_m')!;
+        // 22" is 55.88 cm; one decimal place keeps the fraction visible.
+        expect(
+          formatAttributeValue(attr(num: 0.5588), def, units, l10n),
+          '55.9 cm',
+        );
+        expect(
+          formatAttributeValue(attr(num: 0.56), def, units, l10n),
+          '56 cm',
+        );
+      });
+
+      test('an SMB length shares the cm / in display', () {
+        final def = EquipmentAttributeCatalog.defFor('length_m')!;
+        expect(
+          formatAttributeValue(attr(num: 1.4), def, units, l10n),
+          '140 cm',
+        );
+        expect(
+          formatAttributeValue(attr(num: 1.4), def, imperial, l10n),
+          '55.1 in',
         );
       });
     });

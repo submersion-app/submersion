@@ -6,7 +6,8 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attri
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Canonical metric -> diver's display units. thicknessMm and none are
-/// identity (mm is the industry convention in every market).
+/// identity (mm is the industry convention in every market); shortLengthM
+/// reads metres as cm or inches.
 double attributeDisplayFromMetric(
   AttributeDimension d,
   UnitFormatter units,
@@ -17,6 +18,7 @@ double attributeDisplayFromMetric(
   AttributeDimension.pressureBar => units.convertPressure(metric),
   AttributeDimension.lengthM ||
   AttributeDimension.depthM => units.convertDepth(metric),
+  AttributeDimension.shortLengthM => units.convertShortLength(metric),
   // Stored in m/s (see AttributeDimension.speedMps), read as distance per
   // minute: m/s -> m/min is x60, then the depth conversion carries it to
   // ft/min for an imperial diver. Same shape as the ascent-rate axis, which
@@ -38,6 +40,7 @@ double attributeMetricFromDisplay(
   AttributeDimension.pressureBar => units.pressureToBar(display),
   AttributeDimension.lengthM ||
   AttributeDimension.depthM => units.depthToMeters(display),
+  AttributeDimension.shortLengthM => units.shortLengthToMeters(display),
   AttributeDimension.speedMps => units.depthToMeters(display) / 60,
   AttributeDimension.durationH => display / 60,
   AttributeDimension.thicknessMm || AttributeDimension.none => display,
@@ -50,6 +53,7 @@ String attributeUnitSymbol(AttributeDimension d, UnitFormatter units) =>
       AttributeDimension.pressureBar => units.pressureSymbol,
       AttributeDimension.lengthM ||
       AttributeDimension.depthM => units.depthSymbol,
+      AttributeDimension.shortLengthM => units.shortLengthSymbol,
       AttributeDimension.speedMps => '${units.depthSymbol}/min',
       AttributeDimension.durationH => 'min',
       AttributeDimension.thicknessMm => 'mm',
