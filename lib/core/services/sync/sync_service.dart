@@ -1255,7 +1255,8 @@ class SyncService {
     // our deletion. Loaded after _applyRemoteDeletions so a tombstone arriving
     // in the same payload also protects against a self-contradictory payload
     // that carries both a delete and a stale live copy of the same record.
-    final tombstonesByEntity = await _deletionMap();
+    final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
+        await _deletionMaps();
 
     final data = remotePayload.data;
 
@@ -1621,6 +1622,7 @@ class SyncService {
         lastSyncMs: lastSyncMs,
         pendingRecordIds: pendingByEntity[entry.type] ?? const <String>{},
         allTombstones: tombstonesByEntity,
+        tombstoneClocks: tombstoneClocks,
         revivedParents: revivedParents,
         contradicted: contradictedByEntity[entry.type] ?? const <String>{},
       );
@@ -1840,7 +1842,8 @@ class SyncService {
       conflictsFound += delResult.conflictsFound;
       recordsFailed += delResult.recordsFailed;
 
-      final tombstonesByEntity = await _deletionMap();
+      final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
+          await _deletionMaps();
 
       final revivedParents = <String, Set<String>>{};
       for (final parentType in parentTypes) {
@@ -1875,6 +1878,7 @@ class SyncService {
           lastSyncMs: lastSyncMs,
           pendingRecordIds: pendingByEntity[table] ?? const <String>{},
           allTombstones: tombstonesByEntity,
+          tombstoneClocks: tombstoneClocks,
           revivedParents: revivedParents,
           contradicted: contradictedByEntity[table] ?? const <String>{},
         );
@@ -2015,7 +2019,8 @@ class SyncService {
 
       // Load tombstones AFTER deletions so a tombstone arriving in this base
       // also guards the merge below (mirrors _applyRemotePayloadInner).
-      final tombstonesByEntity = await _deletionMap();
+      final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
+          await _deletionMaps();
 
       // Revived parents: a parent row whose remote updatedAt is newer than our
       // local tombstone. Combines pass-2 file data with post-deletion
@@ -2054,6 +2059,7 @@ class SyncService {
           lastSyncMs: lastSyncMs,
           pendingRecordIds: pendingByEntity[table] ?? const <String>{},
           allTombstones: tombstonesByEntity,
+          tombstoneClocks: tombstoneClocks,
           revivedParents: revivedParents,
           contradicted: contradictedByEntity[table] ?? const <String>{},
         );
@@ -2125,6 +2131,32 @@ class SyncService {
             continue;
           }
           final local = await _serializer.fetchRecord(entityType, recordId);
+          final deletionTimestamp = deletion.deletedAt > 0
+              ? deletion.deletedAt
+              : remoteExportedAt;
+          // A child with its own clock, against a tombstone carrying the
+          // clock of the delete: the later event wins, with no conflict
+          // card (children resolve per row, as their upserts do). A child
+          // edited after the peer deleted it, which reached us before the
+          // delete did, is kept. Either clock missing: the rules below.
+          final localHlc =
+              SyncDataSerializer.parentGatedChildEntities.contains(entityType)
+              ? _extractHlc(local)
+              : null;
+          final deletionHlc = _parseHlc(deletion.hlc);
+          if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
+          if (localHlc != null && deletionHlc != null) {
+            if (localHlc.compareTo(deletionHlc) > 0) continue;
+            await _serializer.deleteRecord(entityType, recordId);
+            await _syncRepository.logDeletionIfMissing(
+              entityType: entityType,
+              recordId: recordId,
+              deletedAt: deletionTimestamp,
+              originHlc: deletion.hlc,
+            );
+            applied += 1;
+            continue;
+          }
           // _extractUpdatedAtMillis falls back to createdAt, so a row created
           // locally after our last sync (or after the tombstone itself) is
           // protected from a stale remote tombstone even on append-only child
@@ -2137,9 +2169,6 @@ class SyncService {
           // WOULD match a re-inserted row, but the contradicted-key skip above
           // already drops a tombstone whose key the same payload re-inserts.
           final localUpdatedAt = _extractUpdatedAtMillis(local);
-          final deletionTimestamp = deletion.deletedAt > 0
-              ? deletion.deletedAt
-              : remoteExportedAt;
 
           // Two independent guards; either one routes to a conflict:
           //  * edited since our last sync (three-way; needs a horizon), and
@@ -2168,6 +2197,7 @@ class SyncService {
               conflictDataJson: jsonEncode({
                 '_deleted': true,
                 'deletedAt': deletionTimestamp,
+                'hlc': ?deletion.hlc,
                 'recordId': recordId,
               }),
               localUpdatedAt: localUpdatedAt,
@@ -2180,6 +2210,7 @@ class SyncService {
             entityType: entityType,
             recordId: recordId,
             deletedAt: deletionTimestamp,
+            originHlc: deletion.hlc,
           );
           applied += 1;
         } catch (e, stackTrace) {
@@ -2565,6 +2596,7 @@ class SyncService {
     required int? lastSyncMs,
     required Set<String> pendingRecordIds,
     required Map<String, Map<String, int>> allTombstones,
+    required Map<String, Map<String, Hlc>> tombstoneClocks,
     required Map<String, Set<String>> revivedParents,
     required Set<String> contradicted,
   }) async {
@@ -2577,6 +2609,8 @@ class SyncService {
     var failed = 0;
 
     final selfTombstones = allTombstones[entityType] ?? const <String, int>{};
+    final selfTombstoneClocks =
+        tombstoneClocks[entityType] ?? const <String, Hlc>{};
     final entityParentRefs = parentRefs[entityType] ?? const <ParentRef>[];
 
     // Read-decide-write: batch-fetch every local row the LWW compare needs in
@@ -2664,10 +2698,23 @@ class SyncService {
             // gear junctions, so a link lost anywhere could never be revived
             // by a live copy from a peer (issue #1728). A genuinely clockless
             // entity still yields null here and is unaffected.
-            final remoteUpdatedAt = _extractUpdatedAtMillis(record);
-            if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
-              // No newer remote edit -- the deletion wins; stay deleted.
-              continue;
+            // A child with its own clock, against the clock of our delete:
+            // only an edit made after the delete revives it. Either clock
+            // missing: the timestamps below.
+            final deleteClock = childClocked
+                ? selfTombstoneClocks[recordId]
+                : null;
+            final remoteClock = deleteClock == null
+                ? null
+                : _extractHlc(record);
+            if (deleteClock != null && remoteClock != null) {
+              if (remoteClock.compareTo(deleteClock) <= 0) continue;
+            } else {
+              final remoteUpdatedAt = _extractUpdatedAtMillis(record);
+              if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
+                // No newer remote edit -- the deletion wins; stay deleted.
+                continue;
+              }
             }
             // Remote edit is newer than the deletion: revive the record and
             // drop the now-obsolete tombstone so it stops re-deleting it.
@@ -2832,21 +2879,39 @@ class SyncService {
     return map;
   }
 
-  /// Local deletion tombstones as entityType -> (recordId -> latest deletedAt).
-  /// Used by [_mergeEntity] to keep a remote live copy from resurrecting a
-  /// record we have deleted.
-  Future<Map<String, Map<String, int>>> _deletionMap() async {
+  /// Local deletion tombstones as entityType -> (recordId -> latest
+  /// deletedAt), and the clock of each delete that has one
+  /// (DeletionLog.originHlc) keyed the same way. Used by [_mergeEntity] to
+  /// keep a remote live copy from resurrecting a record we have deleted.
+  Future<
+    ({
+      Map<String, Map<String, int>> deletedAt,
+      Map<String, Map<String, Hlc>> clocks,
+    })
+  >
+  _deletionMaps() async {
     final deletions = await _syncRepository.getAllDeletions();
     final map = <String, Map<String, int>>{};
+    final clocks = <String, Map<String, Hlc>>{};
     for (final d in deletions) {
       final byId = map.putIfAbsent(d.entityType, () => <String, int>{});
       final existing = byId[d.recordId];
       // Keep the most recent deletion if duplicate tombstones exist.
       if (existing == null || d.deletedAt > existing) {
         byId[d.recordId] = d.deletedAt;
+        final clock = _parseHlc(d.originHlc);
+        final clocksById = clocks.putIfAbsent(
+          d.entityType,
+          () => <String, Hlc>{},
+        );
+        if (clock == null) {
+          clocksById.remove(d.recordId);
+        } else {
+          clocksById[d.recordId] = clock;
+        }
       }
     }
-    return map;
+    return (deletedAt: map, clocks: clocks);
   }
 
   int? _extractUpdatedAtMillis(Map<String, dynamic>? data) {
@@ -2861,8 +2926,10 @@ class SyncService {
   /// Parse a record's Hybrid Logical Clock, or null if absent/blank (rows
   /// written before the HLC rollout). Malformed values are treated as absent
   /// so a bad value can never crash the merge.
-  Hlc? _extractHlc(Map<String, dynamic>? data) {
-    final raw = data?['hlc'];
+  Hlc? _extractHlc(Map<String, dynamic>? data) => _parseHlc(data?['hlc']);
+
+  /// [raw] as an HLC, or null when absent, blank or malformed.
+  Hlc? _parseHlc(Object? raw) {
     if (raw is! String || raw.isEmpty) return null;
     try {
       return Hlc.parse(raw);
@@ -2968,6 +3035,9 @@ class SyncService {
             entityType: entityType,
             recordId: recordId,
             deletedAt: deletedAt ?? DateTime.now().millisecondsSinceEpoch,
+            originHlc: remoteData['hlc'] is String
+                ? remoteData['hlc'] as String
+                : null,
           );
         } else {
           // keepRemote overwrites the local row. For HLC-bearing entities the

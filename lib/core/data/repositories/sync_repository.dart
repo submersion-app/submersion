@@ -1159,11 +1159,16 @@ class SyncRepository {
   // Deletion Log Operations
   // ============================================================================
 
-  /// Log a record deletion for sync
+  /// Log a record deletion for sync. A local delete's own clock is the
+  /// stamp issued here. A [relayed] peer tombstone keeps the clock the peer
+  /// sent as [originHlc], or none: this device's stamp says only when it
+  /// heard of the delete, not when the delete happened.
   Future<void> logDeletion({
     required String entityType,
     required String recordId,
     int? deletedAt,
+    bool relayed = false,
+    String? originHlc,
   }) async {
     try {
       final id = _uuid.v4();
@@ -1197,6 +1202,7 @@ class SyncRepository {
                 recordId: Value(recordId),
                 deletedAt: Value(now),
                 hlc: Value(hlc),
+                originHlc: Value(relayed ? originHlc : hlc),
               ),
             );
       });
@@ -1249,6 +1255,7 @@ class SyncRepository {
     required String entityType,
     required String recordId,
     required int deletedAt,
+    String? originHlc,
   }) async {
     // Use .get() instead of .getSingleOrNull() to handle cases where
     // duplicate deletion entries exist (the schema allows this since
@@ -1263,6 +1270,8 @@ class SyncRepository {
       entityType: entityType,
       recordId: recordId,
       deletedAt: deletedAt,
+      relayed: true,
+      originHlc: originHlc,
     );
   }
 

@@ -71,6 +71,19 @@ void _seedOldSchema(Database raw, {required int userVersion}) {
     "INSERT INTO dive_tanks VALUES ('t2', 'd1', NULL, 7.0, 'Deco', NULL)",
   );
   raw.execute("INSERT INTO fk_probe_child VALUES ('c1', 't1'), ('c2', 't2')");
+  // The deletion log as it was before tombstones carried the delete's clock.
+  raw.execute('''
+    CREATE TABLE deletion_log (
+      id TEXT NOT NULL PRIMARY KEY,
+      entity_type TEXT NOT NULL,
+      record_id TEXT NOT NULL,
+      deleted_at INTEGER NOT NULL,
+      hlc TEXT
+    )
+  ''');
+  raw.execute(
+    "INSERT INTO deletion_log VALUES ('x1', 'diveTanks', 't9', 5, 'h')",
+  );
 }
 
 Future<void> _expectRebuilt(AppDatabase db) async {
@@ -127,6 +140,13 @@ Future<void> _expectRebuilt(AppDatabase db) async {
       .customSelect("PRAGMA table_info('dive_tanks')")
       .get();
   expect(tankCols.map((c) => c.read<String>('name')), contains('hlc'));
+  // And a tombstone's (v210), with the existing log kept and unclocked.
+  final tombstones = await db
+      .customSelect('SELECT record_id, hlc, origin_hlc FROM deletion_log')
+      .get();
+  expect(tombstones.map((r) => r.data).toList(), [
+    {'record_id': 't9', 'hlc': 'h', 'origin_hlc': null},
+  ]);
 
   // The child's reference still names the rebuilt table.
   final childLinks = await db

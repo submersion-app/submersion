@@ -89,14 +89,26 @@ class SyncDeletion {
   final String id;
   final int deletedAt;
 
-  const SyncDeletion({required this.id, required this.deletedAt});
+  /// The clock of the delete itself, as the deleting device stamped it
+  /// (DeletionLog.originHlc). The merge compares it with a child row's own
+  /// HLC. Null from a peer that predates it; omitted from the JSON then, so
+  /// such a tombstone reads exactly as before.
+  final String? hlc;
 
-  Map<String, dynamic> toJson() => {'id': id, 'deletedAt': deletedAt};
+  const SyncDeletion({required this.id, required this.deletedAt, this.hlc});
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'deletedAt': deletedAt,
+    'hlc': ?hlc,
+  };
 
   factory SyncDeletion.fromJson(Map<String, dynamic> json) {
+    final hlc = json['hlc'];
     return SyncDeletion(
       id: json['id'] as String,
       deletedAt: json['deletedAt'] as int? ?? 0,
+      hlc: hlc is String && hlc.isNotEmpty ? hlc : null,
     );
   }
 }
@@ -1316,7 +1328,11 @@ class SyncDataSerializer {
       deletionMap
           .putIfAbsent(deletion.entityType, () => [])
           .add(
-            SyncDeletion(id: deletion.recordId, deletedAt: deletion.deletedAt),
+            SyncDeletion(
+              id: deletion.recordId,
+              deletedAt: deletion.deletedAt,
+              hlc: deletion.originHlc,
+            ),
           );
     }
     return deletionMap;

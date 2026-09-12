@@ -3592,6 +3592,13 @@ class DeletionLog extends Table {
   // minimal sentinel, so null only arises for a delete logged before the sync
   // clock was configured; such a tombstone is always included in a base.
   TextColumn get hlc => text().nullable()();
+  // The clock of the delete itself, as the deleting device stamped it, and
+  // what the wire carries (v210). [hlc] above is re-issued by every device
+  // that logs a peer's tombstone, so it says when this device heard of the
+  // delete, which is too late to judge a child edit made in between. Null
+  // for a tombstone logged before v210, or relayed from a peer that sent
+  // none: such a tombstone is judged by the older rules.
+  TextColumn get originHlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -4941,7 +4948,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// v210: an `hlc` column on every child table exported through its
-  /// parent (SyncDataSerializer.parentGatedChildEntities). Idempotent; called
+  /// parent (SyncDataSerializer.parentGatedChildEntities), and an
+  /// `origin_hlc` on the deletion log. Idempotent; called
   /// from the v210 onUpgrade block and the beforeOpen backstop. A table a
   /// partial fixture lacks is skipped by [_addColumnIfMissing].
   Future<void> _assertChildHlcColumns() async {
@@ -4968,6 +4976,9 @@ class AppDatabase extends _$AppDatabase {
     ]) {
       await _addColumnIfMissing(table, 'hlc', 'TEXT');
     }
+    // And the clock of a delete, which the tombstone paths compare with
+    // them (DeletionLog.originHlc).
+    await _addColumnIfMissing('deletion_log', 'origin_hlc', 'TEXT');
   }
 
   /// v210: gives `dive_tanks.equipment_id` the ON DELETE SET NULL action.
