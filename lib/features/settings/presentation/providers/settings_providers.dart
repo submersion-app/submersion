@@ -2358,12 +2358,6 @@ final conditionEngineEnabledProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.conditionEngineEnabled));
 });
 
-/// The condition rule dbValues the active diver has hidden; display-time
-/// only, like [safetyReviewDisabledRulesProvider].
-final conditionDisabledRulesProvider = Provider<Set<String>>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.conditionDisabledRules));
-});
-
 final showAscentRateColorsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showAscentRateColors));
 });

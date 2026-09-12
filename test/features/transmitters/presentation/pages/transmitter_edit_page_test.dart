@@ -176,6 +176,46 @@ void main() {
     },
   );
 
+  testWidgets('clearing the transmitter gear saves the entry unlinked', (
+    tester,
+  ) async {
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+      "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, 1)",
+    );
+    final now = DateTime.utc(2026);
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'r1',
+        diverId: 'diver-1',
+        transmitterSerial: '555',
+        label: 'Main',
+        transmitterEquipmentId: 'tx',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await tester.pumpWidget(
+      _buildPage(diverIdNotifier, prefs, transmitterId: 'r1'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Perdix Tx'), findsOneWidget);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('transmitter_transmitter_gear')),
+        matching: find.byIcon(Icons.clear),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Perdix Tx'), findsNothing);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = await TransmitterRepository().getForDiver('diver-1');
+    expect(saved.single.transmitterEquipmentId, isNull);
+  });
+
   testWidgets('refuses an entry with neither serial nor channel', (
     tester,
   ) async {

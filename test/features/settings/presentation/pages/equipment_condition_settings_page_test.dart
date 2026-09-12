@@ -209,6 +209,15 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('dives that failed to summarise are reported', (tester) async {
+      await rebuildReporting(tester, failedDives: 2, failedItems: 0);
+      expect(find.text('Sensor summaries rebuilt'), findsNothing);
+      expect(
+        find.text('Sensor summaries rebuilt; 2 dives could not be summarised'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('findings that failed to refresh are reported', (tester) async {
       // The sweep counts them; "rebuilt" alone would hide that the
       // condition findings for those items are still stale.

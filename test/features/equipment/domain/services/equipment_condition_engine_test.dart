@@ -557,6 +557,24 @@ void main() {
         );
       });
 
+      test('a slot replaced twice stays with its cells', () {
+        // Each retired cell holds the slot until the NEXT cell went in, not
+        // the last one: the middle cell's dives are its own.
+        final findings = engine.evaluate(
+          input(
+            item: item('ccr', EquipmentType.rebreather),
+            children: [
+              retired(cell('old', 1, installed: DateTime.utc(2025))),
+              retired(cell('middle', 1, installed: DateTime.utc(2026, 1, 2))),
+              cell('new', 1, installed: DateTime.utc(2027)),
+            ],
+            samples: samples,
+            summaries: lowOnSlotOne,
+          ),
+        );
+        expect(of(findings, ConditionRuleId.cellOutputLow), isEmpty);
+      });
+
       test('with no successor leaves the slot to the rebreather', () {
         // Claiming forever would silence the slot for good once cells
         // are retired without being replaced.
@@ -660,6 +678,39 @@ void main() {
       expect(found.severity, ConditionSeverity.significant);
       expect(found.value, closeTo(0.1, 1e-9));
       expect(found.evidence.values['count'], 3);
+    });
+
+    test('a dive counts the worst gap among the item\'s serials', () {
+      // One transmitter item can feed two tanks (two registry serials); a
+      // dive's figure is its worst gap, whichever tank reports it first.
+      TransmitterGap gap(String serial, double fraction) => TransmitterGap(
+        tankId: serial,
+        transmitterSerial: serial,
+        cadenceSeconds: 10,
+        gapSeconds: (fraction * 1000).round(),
+        gapCount: fraction > 0 ? 1 : 0,
+        longestGapSeconds: (fraction * 1000).round(),
+        diveSeconds: 1000,
+      );
+      final found = of(
+        engine.evaluate(
+          input(
+            item: item('tx', EquipmentType.transmitter),
+            samples: [for (var i = 0; i < 5; i++) sample(i)],
+            summaries: {
+              for (var i = 0; i < 5; i++)
+                'd$i': summary(
+                  'd$i',
+                  gaps: [gap('180778', 0.2), gap('180777', 0.0)],
+                ),
+            },
+            serials: {'180777', '180778'},
+          ),
+        ),
+        ConditionRuleId.transmitterDropoutHigh,
+      ).single;
+      expect(found.value, closeTo(0.2, 1e-9));
+      expect(found.evidence.values['count'], 5);
     });
 
     test('a transmitter with no registry serial reads nothing', () {
