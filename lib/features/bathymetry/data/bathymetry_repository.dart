@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_lake_levels.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+const _log = LoggerService('BathymetryRepository');
 
 /// Cache-first bathymetry access. Grids cache per quantized 0.02 degree
 /// coordinate cell (nearby sites, re-pinned sites, and site-less GPS dives
@@ -39,7 +42,26 @@ class BathymetryRepository {
   /// rows never expire, so without this every already-visited site would
   /// keep serving the grid its old resolver chose. Old rows go inert, the
   /// same way the 4 km rows did when the span went to 8 km.
-  static const String selectionGeneration = 'v2';
+  ///
+  /// v3: the swissBATHY3D lake whitelist changed (Greifensee/Lago di
+  /// Lugano/Pfäffikersee removed, Lac de Joux/Lungernsee/Silsersee/
+  /// Silvaplanersee/Rotsee added) -- without bumping this, a coordinate at
+  /// one of the five newly-covered lakes that had already cached a
+  /// fallback grid from a coarser regional/global source would keep
+  /// serving that stale grid forever instead of re-resolving through
+  /// swissBATHY3D now that it covers it (Copilot review).
+  ///
+  /// v4 (#1763, already merged): forces a fresh outer read for an install
+  /// that already visited this v3 whitelist fix, so it also reaches
+  /// #1763's inner swiss_bathy_tile_cache reference-level fix instead of
+  /// the outer cache masking it forever.
+  ///
+  /// v5 here: this branch's own cross-lake fix (resolving each tile's
+  /// lake independently instead of the fetch center's lake for all of
+  /// them) changes what some ALREADY-v4-cached Rotsee/Vierwaldstättersee-
+  /// area coordinates should have resolved to, so those rows need one
+  /// more forced re-resolution too.
+  static const String selectionGeneration = 'v5';
   static const double quantumDeg = 0.02;
 
   final LocalCacheDatabase _db;
@@ -75,14 +97,27 @@ class BathymetryRepository {
     // differently must miss the old rows and refetch. Stale rows are inert
     // leftovers in this local-only cache.
     final span = BathymetryResolver.defaultSpanMeters.round();
-    if (quantumDegFor(c) <= 0) {
+    final lake = findSwissLake(c);
+    if (lake != null) {
+      // The lake's OWN mean level rides along in the key, not just
+      // selectionGeneration: _load returns a matching outer row before the
+      // resolver -- and so before SwissBathyTileCacheRepository.read's own
+      // reference-level check -- ever runs again, so a FUTURE correction
+      // to this lake's documented level (independent of any code change,
+      // and so not covered by any one-time generation bump) would
+      // otherwise keep serving the outer cache's stale depths forever
+      // (Copilot review). Folding the level in here means only the
+      // coordinates of the ACTUALLY corrected lake miss, not the whole
+      // cache, and needs no manual bump at all going forward.
+      //
       // Raw coordinate, not a quantized cell corner: needs enough decimals
       // to actually distinguish nearby sites (2 decimals is ~1 km at these
       // latitudes -- exactly the coalescing this branch exists to avoid).
       // See the class doc for the cache-coalescing this gives up, and why
       // that is deferred to issue #1511.
       return '${c.latitude.toStringAsFixed(6)},'
-          '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration';
+          '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration'
+          '@${lake.meanLevelMeters}';
     }
     final q = quantize(c);
     return '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}'
@@ -112,15 +147,33 @@ class BathymetryRepository {
   /// The scene must survive ANY cache/fetch failure (a broken table, an
   /// unexpected parser error) by degrading to synthesized terrain — so
   /// every failure becomes a null grid, treated as transient (no caching).
+  ///
+  /// Logged via [LoggerService] rather than a debug-only `assert`/`print` —
+  /// the previous debug-only logging meant a release build (including a
+  /// TestFlight/Play Store beta) had no way to tell "no data because
+  /// nothing covers this coordinate" apart from "swissBATHY3D itself is
+  /// failing for a diagnosable reason", both of which render identically as
+  /// "keine Daten verfügbar" in the UI.
+  ///
+  /// [LoggerService]'s persistent file backend and the in-app debug log
+  /// viewer are still gated behind the user's own "Debug-Modus" setting
+  /// (see `main.dart`), on purpose — bathymetry log lines embed GPS
+  /// coordinates, so writing them to disk for every install by default
+  /// would be a real privacy cost most users never asked for (Copilot
+  /// review). The fix here is still a genuine improvement over the old
+  /// `assert`: it no longer requires a DEBUG BUILD, which a real user's
+  /// installed release/beta app can never be — only that the user (or a
+  /// support conversation walking them through it) flips Debug-Modus on in
+  /// Settings before reproducing, in any build.
   Future<BathymetryGrid?> _guardedLoad(String key, GeoPoint center) async {
     try {
       return await _load(key, center);
-    } catch (e) {
-      assert(() {
-        // ignore: avoid_print
-        print('BathymetryRepository.getGrid($key) degraded to null: $e');
-        return true;
-      }());
+    } catch (e, stackTrace) {
+      _log.warning(
+        'getGrid($key) degraded to null',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }

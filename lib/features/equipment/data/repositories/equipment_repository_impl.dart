@@ -14,9 +14,14 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
+import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
 class EquipmentRepository {
   /// Injectable seams mirror [SiteRepository]: tests hand in a coordinator
@@ -125,6 +130,12 @@ class EquipmentRepository {
   Stream<void> watchEquipmentChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.equipment));
 
+  /// Ticks when any item's attributes change (a cell slot, an install
+  /// date). `saveAttributes` and a sync pull write only
+  /// `equipment_attributes`, which [watchEquipmentChanges] does not see.
+  Stream<void> watchAttributeChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.equipmentAttributes));
+
   /// Get all equipment
   Future<List<EquipmentItem>> getAllEquipment({String? diverId}) async {
     try {
@@ -209,13 +220,18 @@ class EquipmentRepository {
   }
 
   /// Active items installed in [parentId] (O2 cells, batteries).
-  Future<List<EquipmentItem>> getChildEquipment(String parentId) async {
+  Future<List<EquipmentItem>> getChildEquipment(
+    String parentId, {
+    bool includeRetired = false,
+  }) async {
     final rows =
         await (_db.select(_db.equipment)
               ..where(
                 (t) =>
                     t.parentEquipmentId.equals(parentId) &
-                    t.isActive.equals(true),
+                    (includeRetired
+                        ? const Constant(true)
+                        : t.isActive.equals(true)),
               )
               ..orderBy([(t) => OrderingTerm.asc(t.name)]))
             .get();
@@ -448,6 +464,7 @@ class EquipmentRepository {
   /// component rows are first-class synced children cascade-deleted by
   /// SQLite, but cascades emit no deletion-log entries, so each is
   /// tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
+  /// Cylinders linked to the item are cleared and staged for sync.
   Future<void> deleteEquipment(String id) async {
     try {
       _log.info('Deleting equipment: $id');
@@ -472,6 +489,27 @@ class EquipmentRepository {
                       t.componentEquipmentId.equals(id),
                 ))
                 .get();
+        // Gear check-ins are a synced root of their own, also cascaded
+        // away by SQLite (condition phase 3a), so tombstoned here too.
+        final observations = await (_db.select(
+          _db.equipmentObservations,
+        )..where((t) => t.equipmentId.equals(id))).get();
+        // Condition findings sync too and go by the same cascade (condition
+        // phase 3b); the device-local review marker needs no tombstone.
+        final findings = await (_db.select(
+          _db.equipmentFindings,
+        )..where((t) => t.equipmentId.equals(id))).get();
+        // Incidents naming the item stay; their gear link is staged, not
+        // just nulled by SQLite.
+        await IncidentRepository().unlinkFromDeletedEquipment(id);
+        // Registry rows naming the item (as a cylinder or a transmitter)
+        // stay; the link is staged, not just nulled.
+        await TransmitterRepository().unlinkFromDeletedEquipment(id);
+        // Cylinders linked to this item, as their own gear or the regulator
+        // they were breathed from: cleared, and each tank staged for sync.
+        await clearCylinderGearLinks(_db, _syncRepository, [
+          id,
+        ], now: DateTime.now().millisecondsSinceEpoch);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -489,6 +527,18 @@ class EquipmentRepository {
           await _syncRepository.logDeletion(
             entityType: 'equipmentComponents',
             recordId: c.id,
+          );
+        }
+        for (final o in observations) {
+          await _syncRepository.logDeletion(
+            entityType: 'equipmentObservations',
+            recordId: o.id,
+          );
+        }
+        for (final f in findings) {
+          await _syncRepository.logDeletion(
+            entityType: 'equipmentFindings',
+            recordId: f.id,
           );
         }
         await _syncRepository.logDeletion(
@@ -560,6 +610,77 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// Retires [old] and creates its successor in the same parent and slot
+  /// (condition phase 4a): same diver, type, name, brand and model, the
+  /// `cell_slot` attribute when present, `installed_date` set to [now];
+  /// serial, notes and purchase details start empty because it is a new
+  /// part. Both rows are staged for sync. Returns the new item.
+  ///
+  /// The stored row decides, not the caller's copy: an item that no longer
+  /// exists or has no parent throws [ArgumentError], one already retired
+  /// throws [StateError], and nothing is written. The create and the retire
+  /// share one transaction, so a failure in either leaves neither behind
+  /// and watchers see the swap as one change, never two active parts in
+  /// the slot.
+  ///
+  /// [now] is only the successor's install date, which the diver may
+  /// backdate. The rows' own timestamps stay on the real clock, since the
+  /// sync clock must never move backwards.
+  Future<EquipmentItem> replaceChild(EquipmentItem old, {DateTime? now}) async {
+    final stamp = now ?? DateTime.now();
+    return _db.transaction(() async {
+      final current = await getEquipmentById(old.id);
+      if (current == null) {
+        throw ArgumentError.value(old.id, 'old', 'No such equipment');
+      }
+      final parentId = current.parentEquipmentId;
+      if (parentId == null) {
+        throw ArgumentError.value(old.id, 'old', 'Not a child part');
+      }
+      // isFitted, not isActive: a legacy row can be retired or sold with
+      // isActive left true, and the repository treats both as gone.
+      if (!current.isFitted) {
+        throw StateError('Equipment ${old.id} is already retired');
+      }
+      // The successor is the same kind of part, so its physical spec carries
+      // over (a cell's slot, a battery's chemistry and rechargeability).
+      // Its install date and purchase record are its own.
+      final specKeys = {
+        for (final def in EquipmentAttributeCatalog.attributesFor(current.type))
+          if (def.group == AttributeGroup.spec &&
+              def.key != EquipmentAttrKeys.installedDate)
+            def.key,
+      };
+      final successor = EquipmentItem(
+        id: '',
+        diverId: current.diverId,
+        name: current.name,
+        type: current.type,
+        brand: current.brand,
+        model: current.model,
+        parentEquipmentId: parentId,
+        attributes: [
+          for (final a in current.attributes)
+            if (!a.isCustom && specKeys.contains(a.key))
+              EquipmentAttribute.curated(
+                equipmentId: '',
+                key: a.key,
+                valueText: a.valueText,
+                valueNum: a.valueNum,
+              ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.installedDate,
+            valueNum: stamp.millisecondsSinceEpoch.toDouble(),
+          ),
+        ],
+      );
+      final created = await createEquipment(successor);
+      await retireEquipment(current.id);
+      return created;
+    });
   }
 
   /// Reactivate equipment
@@ -745,7 +866,8 @@ class EquipmentRepository {
   }
 
   /// Every dive this item was on, with what it was exposed to. One SQL union
-  /// over the four link paths (junction, cylinder, regulator, parent),
+  /// over the link paths (junction, cylinder, regulator, a transmitter's
+  /// registered serials, parent),
   /// left-joined to the sensor summary so profile extremes win over the dive
   /// header when a summary exists.
   ///
@@ -772,8 +894,17 @@ class EquipmentRepository {
       final rows = await _db
           .customSelect(
             '''
-        SELECT d.dive_date_time AS date_ms,
-               COALESCE(d.runtime, d.bottom_time, 0) AS duration_sec,
+        SELECT d.id AS dive_id,
+               d.updated_at AS updated_at,
+               d.dive_date_time AS date_ms,
+               -- The first positive length: a manual zero runtime beside
+               -- a real bottom time is no figure, and must not count the
+               -- dive as zero hours (or subtract any).
+               CASE
+                 WHEN d.runtime > 0 THEN d.runtime
+                 WHEN d.bottom_time > 0 THEN d.bottom_time
+                 ELSE 0
+               END AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,
@@ -792,6 +923,20 @@ class EquipmentRepository {
               AND t.tank_role IN ('diluent', 'oxygenSupply')
             WHERE de.equipment_id = ?1 AND ?5 = 1
           UNION ALL
+          -- A transmitter item: the tanks that carried a serial the
+          -- registry assigns to it. That link writes no dive_equipment
+          -- row. Only the entry's diver, and a blank or all-zero serial
+          -- (normalizeTransmitterSerial) names no transmitter.
+          SELECT t.dive_id, NULL, 0
+            FROM transmitters r
+            JOIN dive_tanks t
+              ON TRIM(t.transmitter_serial) = TRIM(r.transmitter_serial)
+            JOIN dives rd ON rd.id = t.dive_id
+            WHERE r.transmitter_equipment_id = ?1
+              AND LTRIM(TRIM(r.transmitter_serial), '0') <> ''
+              AND (r.diver_id IS NULL OR rd.diver_id IS NULL
+                OR rd.diver_id = r.diver_id)
+          UNION ALL
           SELECT dive_id, NULL, 1 FROM dive_equipment WHERE equipment_id = ?2
           UNION ALL
           SELECT dive_id, o2_percent, 1 FROM dive_tanks
@@ -805,6 +950,8 @@ class EquipmentRepository {
         ) je
         JOIN dives d ON d.id = je.dive_id
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
+          AND s.source_updated_at = d.updated_at
+          AND s.engine_version >= ?6
         WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
           AND (?4 IS NULL OR d.dive_date_time >= ?4)
         GROUP BY d.id
@@ -818,6 +965,10 @@ class EquipmentRepository {
               Variable(installedSince?.millisecondsSinceEpoch),
               Variable(since?.millisecondsSinceEpoch),
               Variable.withInt(rebreatherContact ? 1 : 0),
+              // Only a current summary: one built from an older version of
+              // the dive, or by an older algorithm, is stale until the
+              // sweep rebuilds it, and the header is the truth till then.
+              Variable.withInt(DiveSensorSummaryService.version),
             ],
           )
           .get();
@@ -835,6 +986,8 @@ class EquipmentRepository {
             ? o2Percent / 100.0
             : (rebreatherContact && mode == DiveMode.ccr ? 1.0 : null);
         return EquipmentExposureSample(
+          diveId: r.data['dive_id'] as String,
+          updatedAt: (r.data['updated_at'] as num).toInt(),
           // dives.dive_date_time is epoch millis with wall-clock-as-UTC
           // semantics (see dive_filter_sql.dart); decode with isUtc: true
           // like the other dive-date mappers so the engine's
@@ -860,6 +1013,93 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// [item]'s exposure, wired one way for every surface that reads it: the
+  /// service clocks, the reminder scheduler, the condition engine and the
+  /// item page's exposure card and trend. Samples come from the item's own
+  /// dives plus, for a part, its parent's dives from its install date; a
+  /// part no longer fitted stops at the install date of the next part of
+  /// its type in the same slot, so a replaced cell's history does not keep
+  /// growing with its successor's dives. [fittedChildren] leaves out parts
+  /// retired or sold (even with isActive left true), which must not switch
+  /// the parent's battery cycles off.
+  ///
+  /// [siblings] is the active gear list when the caller already has it, so
+  /// the parent and children lookups cost no query per item.
+  Future<
+    ({
+      EquipmentItem? parent,
+      List<EquipmentItem> fittedChildren,
+      bool isRebreather,
+      List<EquipmentExposureSample> samples,
+    })
+  >
+  getItemExposure(EquipmentItem item, {List<EquipmentItem>? siblings}) async {
+    final parentId = item.parentEquipmentId;
+    final parent = parentId == null
+        ? null
+        : siblings?.where((s) => s.id == parentId).firstOrNull ??
+              await getEquipmentById(parentId);
+    final fittedChildren = [
+      for (final c
+          in siblings != null
+              ? siblings.where((s) => s.parentEquipmentId == item.id)
+              : await getChildEquipment(item.id))
+        if (c.isFitted) c,
+    ];
+    final isRebreather =
+        item.type == EquipmentType.rebreather ||
+        parent?.type == EquipmentType.rebreather;
+    final samples = await getExposureSamplesForEquipment(
+      item.id,
+      parentEquipmentId: parentId,
+      installedSince: item.parentDivesFrom,
+      rebreatherContact: isRebreather,
+    );
+    // Only a part no longer fitted can have a successor.
+    final until = parentId == null || item.isFitted
+        ? null
+        : successorStart(
+            item,
+            await getChildEquipment(parentId, includeRetired: true),
+          );
+    return (
+      parent: parent,
+      fittedChildren: fittedChildren,
+      isRebreather: isRebreather,
+      samples: until == null
+          ? samples
+          : [
+              for (final s in samples)
+                if (s.date.isBefore(until)) s,
+            ],
+    );
+  }
+
+  /// When the next part of [item]'s type went into the same slot after it,
+  /// or null when none has (or when a cell carries no slot to match).
+  /// Batteries carry no slot, so the next battery of the same parent is
+  /// the successor.
+  static DateTime? successorStart(
+    EquipmentItem item,
+    List<EquipmentItem> siblings,
+  ) {
+    final from = item.parentDivesFrom;
+    if (from == null) return null;
+    final slot = item.cellSlot;
+    // A slot is what says which later part took this one's place. Only
+    // batteries succeed without one; a slotless cell has no successor.
+    if (slot == null && item.type != EquipmentType.battery) return null;
+    DateTime? earliest;
+    for (final s in siblings) {
+      if (s.id == item.id || s.type != item.type) continue;
+      if (s.cellSlot != slot) continue;
+      final start = s.parentDivesFrom;
+      if (start == null || !start.isAfter(from)) continue;
+      if (earliest == null || start.isBefore(earliest)) earliest = start;
+    }
+    return earliest;
   }
 
   /// The regulator last paired with a cylinder preset, for prefilling the

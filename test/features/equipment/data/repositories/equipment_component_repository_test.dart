@@ -132,6 +132,25 @@ void main() {
     expect(await repo.getComponents('hose'), isEmpty);
   });
 
+  test(
+    'getParents hydrates every assembly, retired included, by name',
+    () async {
+      await repo.addComponent(parentId: 'reg', componentId: 'second');
+      await repo.addComponent(parentId: 'kit', componentId: 'second');
+      await (db.update(db.equipment)..where((t) => t.id.equals('kit'))).write(
+        const EquipmentCompanion(
+          status: Value('retired'),
+          isActive: Value(false),
+        ),
+      );
+      final parents = await repo.getParents('second');
+      expect(parents.map((p) => p.parentEquipmentId), ['kit', 'reg']);
+      expect(parents.map((p) => p.parent?.name), ['kit', 'reg']);
+      expect(parents.first.parent?.isActive, isFalse);
+      expect(await repo.getParents('reg'), isEmpty);
+    },
+  );
+
   test('parts that collide on sort order come back in row id order', () async {
     // A sync merge of concurrent reorders can leave two parts on one
     // sort_order; the repository must still answer in one fixed order.
@@ -299,4 +318,47 @@ void main() {
       expect(parts.single.componentEquipmentId, 'hose');
     });
   });
+
+  test(
+    'getComponentsForDives keeps rows between gear on the given dives',
+    () async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      for (final id in ['dive-a', 'dive-b']) {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion(
+                id: Value(id),
+                diveDateTime: Value(t),
+                createdAt: Value(t),
+                updatedAt: Value(t),
+              ),
+            );
+      }
+      for (final (dive, item) in [
+        ('dive-a', 'reg'),
+        ('dive-a', 'first'),
+        ('dive-b', 'hose'),
+      ]) {
+        await db
+            .into(db.diveEquipment)
+            .insert(
+              DiveEquipmentCompanion.insert(diveId: dive, equipmentId: item),
+            );
+      }
+      await repo.addComponent(parentId: 'reg', componentId: 'first');
+      await repo.addComponent(parentId: 'first', componentId: 'hose');
+      await repo.addComponent(parentId: 'kit', componentId: 'second');
+
+      String pair(c) => '${c.parentEquipmentId}>${c.componentEquipmentId}';
+      expect((await repo.getComponentsForDives(['dive-a'])).map(pair), [
+        'reg>first',
+      ], reason: 'hose is not on dive-a, so first>hose is left out');
+      expect(
+        (await repo.getComponentsForDives(['dive-a', 'dive-b'])).map(pair),
+        ['first>hose', 'reg>first'],
+      );
+      expect(await repo.getComponentsForDives(const []), isEmpty);
+    },
+  );
 }

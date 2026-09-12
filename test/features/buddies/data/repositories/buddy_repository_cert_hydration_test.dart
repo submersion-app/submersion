@@ -4,6 +4,9 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -64,6 +67,44 @@ void main() {
       expect(
         buddies.firstWhere((b) => b.id == 'bNoCerts').certificationLevel,
         isNull,
+      );
+    },
+  );
+
+  test(
+    'getBuddiesForDivesWithCertifications derives primary per person, per dive',
+    () async {
+      await makeBuddy('b1');
+      await makeBuddy('bNoCerts');
+      await certRepo.createCertification(cmasCert('b1', 'cmas2StarDiver'));
+      final dives = DiveRepository();
+      await dives.createDive(Dive(id: 'd1', dateTime: DateTime(2026, 3, 1)));
+      await dives.createDive(Dive(id: 'd2', dateTime: DateTime(2026, 3, 2)));
+      await buddyRepo.addBuddyToDive('d1', 'b1', DiveRole.diveGuideId);
+      await buddyRepo.addBuddyToDive('d1', 'bNoCerts', DiveRole.buddyId);
+      await buddyRepo.addBuddyToDive('d2', 'b1', DiveRole.buddyId);
+
+      final byDive = await buddyRepo.getBuddiesForDivesWithCertifications([
+        'd1',
+        'd2',
+      ]);
+
+      Buddy on(String diveId, String buddyId) =>
+          byDive[diveId]!.singleWhere((w) => w.buddy.id == buddyId).buddy;
+      expect(
+        on('d1', 'b1').certificationLevel,
+        CertificationLevel.cmas2StarDiver,
+      );
+      expect(on('d1', 'b1').certificationAgency, CertificationAgency.cmas);
+      expect(
+        on('d2', 'b1').certificationLevel,
+        CertificationLevel.cmas2StarDiver,
+      );
+      expect(on('d1', 'bNoCerts').certificationLevel, isNull);
+      expect(
+        byDive['d1']!.singleWhere((w) => w.buddy.id == 'b1').role.id,
+        DiveRole.diveGuideId,
+        reason: 'roles are kept as the lean load returns them',
       );
     },
   );

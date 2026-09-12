@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
@@ -41,11 +44,16 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
+import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
+import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
+import 'package:submersion/features/dive_import/presentation/dive_resync_failure_message.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
+import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -75,6 +83,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -423,21 +432,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.sacSegments: (_) {
         if (dive.profile.isEmpty) return [];
-        return [
-          Consumer(
-            builder: (context, ref, _) {
-              final selectedPointIndex = ref.watch(
-                profileTrackingIndexProvider(diveId),
-              );
-              return _buildSacSegmentsSection(
-                context,
-                ref,
-                dive,
-                selectedPointIndex,
-              );
-            },
-          ),
-        ];
+        return [_sacSegmentsCard(dive)];
       },
       DiveDetailSectionId.details: (_) {
         return [
@@ -614,13 +609,63 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// The Cylinders card. Extracted so both the normal section flow and the
-  /// side-by-side pairing (with Weights) render identical content.
+  /// side-by-side pairing (with Gas consumption by segment) render identical
+  /// content.
   Widget _cylindersCard(Dive dive, UnitFormatter units, AppSettings settings) {
     return CylindersCard(
       dive: dive,
       units: units,
       settings: settings,
       display: ref.watch(gasConsumptionDisplayProvider),
+    );
+  }
+
+  /// The Gas consumption by segment card. Extracted so both the normal
+  /// section flow and the side-by-side pairing (with Cylinders) render
+  /// identical content. The tracking index is watched in its own [Consumer]
+  /// so hovering the profile chart rebuilds this card, not the page.
+  Widget _sacSegmentsCard(Dive dive) {
+    return Consumer(
+      builder: (context, ref, _) => _buildSacSegmentsSection(
+        context,
+        ref,
+        dive,
+        ref.watch(profileTrackingIndexProvider(dive.id)),
+      ),
+    );
+  }
+
+  /// Whether the Gas consumption by segment card has segments to show.
+  ///
+  /// Mirrors the card's own gate, including its last-good fallback, so a
+  /// transient null analysis cannot split the pair while the card stays.
+  /// The read is narrowed to that answer, so the page rebuilds only when it
+  /// flips. It goes through the built-in [AsyncValue.value], which keeps the
+  /// previous analysis while a reload is in flight; the valueOrNull polyfill
+  /// reads null there, which would rebuild the whole page into the same
+  /// layout on every reload.
+  bool _hasSacSegments(WidgetRef ref, Dive dive) {
+    if (dive.profile.isEmpty) return false;
+    final hasSegments = ref.watch(
+      sourceProfileAnalysisProvider((
+        diveId: dive.id,
+        sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+      )).select((a) => a.value?.sacSegments?.isNotEmpty ?? false),
+    );
+    return hasSegments ||
+        (_lastSacSegmentsAnalysisDiveId == dive.id &&
+            _lastSacSegmentsAnalysis != null);
+  }
+
+  /// Whether the Buoyancy card has a modelled result to show.
+  ///
+  /// [BuoyancySection] renders nothing while loading, on error, or for an
+  /// unmodelable dive; this reads the provider the same way, narrowed to
+  /// that answer.
+  bool _hasBuoyancy(WidgetRef ref, Dive dive) {
+    if (dive.tanks.isEmpty && !_hasExposureSuit(dive)) return false;
+    return ref.watch(
+      buoyancyTwinProvider(dive.id).select((a) => a.valueOrNull != null),
     );
   }
 
@@ -679,15 +724,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Builds the ordered configurable-section widgets, rendering the fixed card
   /// pairs in [kDiveDetailSectionPairs] side by side when the pane is wide
-  /// enough: Details + Conditions, Surface GPS + Tide, Cylinders + Weights,
+  /// enough: Deco Status + Tissue Loading, Cylinders + Gas consumption by
+  /// segment, Details + Conditions, Surface GPS + Tide, Weights + Buoyancy,
   /// and Buddies + Signatures.
   ///
   /// A pair forms whenever both halves are visible and both have content to
   /// show, wherever they sit in the configured order. The row renders at the
   /// slot of whichever half comes first and anything between them drops below,
   /// which is what lets a diver whose saved order predates a pair (Water
-  /// Conditions between Tide and Surface GPS, Buoyancy between Weights and
-  /// Cylinders) still get the paired layout. Left/right come from the pair
+  /// Conditions between Tide and Surface GPS, Details between Gas consumption
+  /// and Cylinders) still get the paired layout. Left/right come from the pair
   /// definition rather than the configured order, so the arrangement is the
   /// same either way. When either half has nothing to show, both render
   /// full-width in their own slots exactly as before.
@@ -842,9 +888,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// rendering full-width in their own slots.
   ///
   /// The presence gates mirror what each section builder would decide for
-  /// itself: Conditions, Tide and Signatures all self-erase when empty, so
-  /// without these checks a pair could put a blank column beside a half-width
-  /// card.
+  /// itself: Conditions, Gas consumption by segment, Tide, Buoyancy and
+  /// Signatures all self-erase when empty, so without these checks a pair
+  /// could put a blank column beside a half-width card.
   _PairCards? _buildPairCards(
     DiveDetailSectionPair pair, {
     required BuildContext context,
@@ -906,10 +952,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         );
 
       case DiveDetailSectionId.tanks:
-        if (dive.tanks.isEmpty || !_hasWeights(dive)) return null;
+        if (dive.tanks.isEmpty || !_hasSacSegments(ref, dive)) return null;
         return _PairCards(
           _cylindersCard(dive, units, settings),
+          _sacSegmentsCard(dive),
+        );
+
+      case DiveDetailSectionId.weights:
+        if (!_hasWeights(dive) || !_hasBuoyancy(ref, dive)) return null;
+        return _PairCards(
           _buildWeightSection(context, dive, units),
+          BuoyancySection(diveId: dive.id, units: units),
         );
 
       case DiveDetailSectionId.buddies:
@@ -987,6 +1040,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final computerReadingsAsync = ref.watch(diveDataSourcesProvider(dive.id));
     final hasRawData =
         ref.watch(diveHasRawDataProvider(dive.id)).valueOrNull ?? false;
+    final hasImportedFile =
+        ref.watch(diveHasImportedFileProvider(dive.id)).valueOrNull ?? false;
     final linkedPreDive = ref
         .watch(preDiveSessionForDiveProvider(dive.id))
         .value;
@@ -1046,8 +1101,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             SizedBox(height: layout.headerGap),
             // Configurable sections in user-defined order -- the dive profile
             // chart among them -- with the card pairs (Deco+Tissue,
-            // Details+Conditions, Cylinders+Weights, Buddies+Signatures) laid
-            // out side by side when the pane is wide enough. Gauge dives hide
+            // Cylinders+Gas consumption, Details+Conditions, GPS+Tide,
+            // Weights+Buoyancy, Buddies+Signatures) laid out side by side
+            // when the pane is wide enough. Gauge dives hide
             // gas/deco sections (deco status, tissue loading, SAC segments,
             // cylinders). The list layout folds each section to a header row.
             ..._buildOrderedSections(
@@ -1070,7 +1126,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (widget.embedded) {
       return Column(
         children: [
-          _buildEmbeddedHeader(context, ref, dive, hasRawData: hasRawData),
+          _buildEmbeddedHeader(
+            context,
+            ref,
+            dive,
+            hasRawData: hasRawData,
+            hasImportedFile: hasImportedFile,
+          ),
           Expanded(child: body),
         ],
       );
@@ -1129,6 +1191,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'reparse':
                   _reparseDive(context, ref, dive);
                   break;
+                case 'resync':
+                  _resyncDive(context, ref, dive);
+                  break;
                 case 'logNearMiss':
                   context.push('/incidents/new?diveId=$diveId');
                   break;
@@ -1184,6 +1249,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
+              if (hasImportedFile)
+                PopupMenuItem(
+                  value: 'resync',
+                  child: ListTile(
+                    leading: const Icon(Icons.sync),
+                    title: Text(
+                      context.l10n.diveLog_detail_menu_resyncImportedFile,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
@@ -1209,6 +1285,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     WidgetRef ref,
     Dive dive, {
     bool hasRawData = false,
+    bool hasImportedFile = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final linkedPreDive = ref
@@ -1331,6 +1408,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     case 'reparse':
                       _reparseDive(context, ref, dive);
                       break;
+                    case 'resync':
+                      _resyncDive(context, ref, dive);
+                      break;
                     case 'logNearMiss':
                       context.push('/incidents/new?diveId=$diveId');
                       break;
@@ -1387,6 +1467,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         leading: const Icon(Icons.refresh),
                         title: Text(
                           context.l10n.diveLog_detail_menu_reparseRawData,
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  if (hasImportedFile)
+                    PopupMenuItem(
+                      value: 'resync',
+                      child: ListTile(
+                        leading: const Icon(Icons.sync),
+                        title: Text(
+                          context.l10n.diveLog_detail_menu_resyncImportedFile,
                         ),
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -1690,32 +1781,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               : null,
           child: Stack(
             children: [
-              // Map background (decorative, non-interactive).
+              // Map background (decorative, non-interactive), faded into the
+              // card toward the bottom.
               Positioned.fill(
-                child: DiveLocationsMap(
-                  entry: entryLoc,
-                  exit: exitLoc,
-                  site: hasGps ? null : siteLoc,
-                  interactive: false,
-                  initialCenter: mapCenter,
-                  initialZoom: 12.0,
-                ),
-              ),
-              // Gradient overlay from top to bottom
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.3, 0.7, 1.0],
-                      colors: [
-                        cardColor.withValues(alpha: 0.3),
-                        cardColor.withValues(alpha: 0.6),
-                        cardColor.withValues(alpha: 0.85),
-                        cardColor,
-                      ],
-                    ),
+                child: HeaderMapBackdrop(
+                  fadeColor: cardColor,
+                  child: DiveLocationsMap(
+                    entry: entryLoc,
+                    exit: exitLoc,
+                    site: hasGps ? null : siteLoc,
+                    interactive: false,
+                    initialCenter: mapCenter,
+                    initialZoom: 12.0,
                   ),
                 ),
               ),
@@ -4641,7 +4718,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       // section the diver was looking at.
       trailing: IconButton(
         icon: const Icon(Icons.sort, size: 20),
-        tooltip: context.l10n.equipment_arrange_tooltip,
+        tooltip: context.l10n.equipment_list_sortTooltip,
         onPressed: () => showEquipmentArrangeSheet(context),
       ),
       onToggle: (expanded) {
@@ -4654,6 +4731,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: DiveGearTreeView(
           links: dive.gear,
           onTap: (item) => context.push('/equipment/${item.id}'),
+          // The check-in chip for each row (condition phase 3a).
+          rowTrailing: (item) =>
+              ObservationStatusChip(equipment: item, dive: dive),
         ),
       ),
     );
@@ -5199,6 +5279,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           .split(diveId: dive.id, sourceId: sourceId);
       // Re-scan both the original and the newly split dive (fire-and-forget).
       scheduleQualityScan([dive.id, newDiveId]);
+      scheduleSensorSummaryRefresh([dive.id, newDiveId]);
       if (!mounted) return;
       ref.invalidate(diveProvider(dive.id));
       ref.invalidate(diveProfileProvider(dive.id));
@@ -5248,6 +5329,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           .separate(diveId: dive.id);
       // Re-scan the surviving dive and every restored one (fire-and-forget).
       scheduleQualityScan([dive.id, ...newDiveIds]);
+      scheduleSensorSummaryRefresh([dive.id, ...newDiveIds]);
       if (!mounted) return;
       ref.invalidate(diveProvider(dive.id));
       ref.invalidate(diveProfileProvider(dive.id));
@@ -5331,6 +5413,52 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         );
       }
     }
+  }
+
+  Future<void> _resyncDive(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) async {
+    final orchestrator = ref.read(diveResyncOrchestratorProvider);
+    final l10n = context.l10n;
+
+    DiveResyncOutcome outcome;
+    try {
+      outcome = await orchestrator.resync(dive.id);
+    } catch (_) {
+      // The orchestrator's enumerated skip paths never throw; only an
+      // unexpected failure while reading/parsing the stored file (e.g. it
+      // was corrupted or truncated on disk since import) reaches here, and
+      // it must still produce a visible message rather than a silent no-op.
+      outcome = const DiveResyncOutcome.failure(
+        DiveResyncFailure.unexpectedError,
+      );
+    }
+
+    ref.invalidate(diveProvider(dive.id));
+    ref.invalidate(diveProfileProvider(dive.id));
+    ref.invalidate(sourceProfilesProvider(dive.id));
+    ref.invalidate(diveDataSourcesProvider(dive.id));
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          outcome.succeeded
+              // A resync on a combined or multi-source dive refreshes the
+              // header and leaves the profile alone; the re-parse path
+              // already has the string for exactly that (#1164).
+              ? (outcome.profilePreserved
+                    ? l10n.diveLog_detail_reparseProfilePreserved
+                    : l10n.diveLog_detail_resyncSuccess)
+              : diveResyncFailureMessage(
+                  l10n,
+                  outcome.failureReason ?? DiveResyncFailure.unexpectedError,
+                ),
+        ),
+      ),
+    );
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
@@ -5417,6 +5545,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               title: Text(context.l10n.diveLog_export_csv),
               subtitle: Text(context.l10n.diveLog_export_csvDescription),
               onTap: () {
+                final saveTitle =
+                    context.l10n.settings_export_saveDivesCsvDialogTitle;
                 Navigator.of(sheetContext).pop();
                 _handleSingleDiveExport(
                   context,
@@ -5426,7 +5556,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       ref.read(exportServiceProvider).exportDivesToCsv([dive]),
                   saveFn: (_) => ref
                       .read(exportServiceProvider)
-                      .saveDivesCsvToFile([dive]),
+                      .saveDivesCsvToFile([dive], dialogTitle: saveTitle),
                 );
               },
             ),
@@ -5442,6 +5572,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ref,
                   title: context.l10n.diveLog_export_uddf,
                   offerRawData: true,
+                  offerDiveContent: true,
                   shareFn: (options) async => ref
                       .read(exportServiceProvider)
                       .exportDivesToUddf(
@@ -5449,6 +5580,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         sites: sites,
                         options: options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
+                          dive.id,
+                        ], options),
+                        extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], options),
                       ),
@@ -5459,6 +5593,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         sites: sites,
                         options: options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
+                          dive.id,
+                        ], options),
+                        extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], options),
                       ),
@@ -5514,15 +5651,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     required Future<String> Function(UddfExportOptions options) shareFn,
     required Future<String?> Function(UddfExportOptions options) saveFn,
     bool offerRawData = false,
+    bool offerDiveContent = false,
   }) async {
     final choice = await showExportDestinationSheetWithOptions(
       context,
       title: title,
       showRawDataToggle: offerRawData,
+      showDiveContentToggles: offerDiveContent,
     );
     if (choice == null || !context.mounted) return;
     final destination = choice.destination;
-    final options = UddfExportOptions(includeRawData: choice.includeRawData);
+    final options = choice.options;
 
     final showProgress = destination == ExportDestination.share;
     if (showProgress) {

@@ -56,4 +56,19 @@ void main() {
     expect(s.hoursRemaining, isNull);
     expect(s.usageByUnit[ExposureUnit.coldDives]!.remaining, 47);
   });
+
+  test('a sample equals only a sample of the same dive as last edited', () {
+    // The condition fingerprint and the providers compare samples; the
+    // dive and its edit stamp are what tell two apart.
+    EquipmentExposureSample sample({String diveId = 'd1', int updatedAt = 1}) =>
+        EquipmentExposureSample(
+          diveId: diveId,
+          date: DateTime.utc(2026),
+          durationSeconds: 3000,
+          updatedAt: updatedAt,
+        );
+    expect(sample(), sample());
+    expect(sample(diveId: 'd2'), isNot(sample()));
+    expect(sample(updatedAt: 2), isNot(sample()));
+  });
 }

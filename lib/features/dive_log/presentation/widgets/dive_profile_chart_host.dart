@@ -20,10 +20,12 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_rang
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/cell_divergence_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
+import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -167,6 +169,11 @@ class DiveProfileChartHost extends ConsumerWidget {
     );
 
     final gasSwitches = ref.watch(gasSwitchesProvider(diveId)).value;
+
+    // Cell divergence bands (condition phase 2). .value keeps the previous
+    // summary while the provider reloads behind a detail tick, like the
+    // inputs above.
+    final sensorSummary = ref.watch(diveSensorSummaryProvider(diveId)).value;
 
     // Per-tank pressures, augmented for the chart only with linear estimates
     // between the samples a computer actually reported (#197).
@@ -411,6 +418,10 @@ class DiveProfileChartHost extends ConsumerWidget {
             : null,
         highlightRange: profileHighlightRangeFor(
           visibleSelectedFinding,
+          Theme.of(context).colorScheme,
+        ),
+        secondaryRanges: cellDivergenceHighlightRanges(
+          sensorSummary,
           Theme.of(context).colorScheme,
         ),
         safetyFindings: laneFindings.isEmpty ? null : laneFindings,

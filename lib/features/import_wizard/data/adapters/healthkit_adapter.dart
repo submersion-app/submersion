@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_import/domain/entities/imported_dive.da
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
@@ -295,6 +296,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(importedDiveIds);
+    scheduleSensorSummaryRefresh(importedDiveIds);
 
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},

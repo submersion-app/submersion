@@ -76,7 +76,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.sort),
-                    tooltip: context.l10n.equipment_arrange_tooltip,
+                    tooltip: context.l10n.equipment_list_sortTooltip,
                     onPressed: () => showEquipmentArrangeSheet(context),
                   ),
                   IconButton(

@@ -59,6 +59,7 @@ Future<void> _pumpNewTripPage(
       ],
       child: MaterialApp.router(
         routerConfig: router,
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),
@@ -101,6 +102,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -122,6 +124,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -143,6 +146,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -166,6 +170,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -194,6 +199,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -221,6 +227,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -248,6 +255,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -275,6 +283,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -296,6 +305,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -325,6 +335,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -351,6 +362,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -383,6 +395,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-id'),
@@ -406,6 +419,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-id'),
@@ -440,6 +454,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => false),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -489,6 +504,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -540,6 +556,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-shared'),
@@ -587,6 +604,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -619,6 +637,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -648,6 +667,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -682,6 +702,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -708,6 +729,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -857,6 +879,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -902,6 +925,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -938,6 +962,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-id'),
@@ -977,6 +1002,7 @@ void main() {
               ),
             ],
             child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: TripEditPage(tripId: 'test-id'),
@@ -1089,6 +1115,71 @@ void main() {
       expect(find.text('Trip added successfully'), findsOneWidget);
     });
 
+    testWidgets('the planning fields save as integers', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Expected dives'),
+        '12',
+      );
+      await tester.enterText(
+        find.widgetWithText(
+          TextFormField,
+          'Expected runtime per dive (minutes)',
+        ),
+        '70',
+      );
+      await _saveNewTrip(tester, 'Red Sea 2026');
+      expect(notifier.lastAdded?.expectedDives, 12);
+      expect(notifier.lastAdded?.expectedRuntimeMinutes, 70);
+    });
+
+    testWidgets('zero or negative planning fields save as null', (
+      tester,
+    ) async {
+      // The scrubber margin multiplies these; a zero or negative one makes
+      // the arithmetic meaningless, and "unset" is what the diver meant.
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Expected dives'),
+        '0',
+      );
+      await tester.enterText(
+        find.widgetWithText(
+          TextFormField,
+          'Expected runtime per dive (minutes)',
+        ),
+        '-5',
+      );
+      await _saveNewTrip(tester, 'Red Sea 2026');
+      expect(notifier.lastAdded?.expectedDives, isNull);
+      expect(notifier.lastAdded?.expectedRuntimeMinutes, isNull);
+    });
+
+    testWidgets('empty planning fields save as null', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      await _saveNewTrip(tester, 'Red Sea 2026');
+      expect(notifier.lastAdded?.expectedDives, isNull);
+      expect(notifier.lastAdded?.expectedRuntimeMinutes, isNull);
+    });
+
     testWidgets('save errors show error snackbar', (tester) async {
       final notifier = _ThrowingTripListNotifier();
       await tester.pumpWidget(
@@ -1101,6 +1192,7 @@ void main() {
             ),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -1131,6 +1223,7 @@ void main() {
               }),
             ],
             child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: TripEditPage(),
@@ -1194,6 +1287,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -1403,6 +1497,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'fail-id'),
@@ -1425,6 +1520,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -1472,6 +1568,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-shared'),
@@ -1529,6 +1626,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(tripId: 'test-shared'),
@@ -1642,6 +1740,7 @@ void main() {
             }),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripEditPage(),
@@ -1971,6 +2070,7 @@ class _MockTripListNotifier
   int addCalls = 0;
   int updateCalls = 0;
   int assignCalls = 0;
+  Trip? lastAdded;
   List<String>? assignedDiveIds;
   String? assignedTripId;
   Set<String>? assignedOldTripIds;
@@ -1981,6 +2081,7 @@ class _MockTripListNotifier
   @override
   Future<Trip> addTrip(Trip trip) async {
     addCalls++;
+    lastAdded = trip;
     return trip.copyWith(id: 'new-id-${addCalls.toString()}');
   }
 

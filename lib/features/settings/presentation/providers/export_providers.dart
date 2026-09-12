@@ -2,9 +2,13 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -23,7 +27,6 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -270,6 +273,142 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
+  /// The active diver's gear check-ins. The export's equipment and dives
+  /// are scoped to that diver, and a shared item can carry another diver's
+  /// check-in, so an unscoped read would put it in this diver's file.
+  Future<List<EquipmentObservation>> _diverObservations() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    return _ref
+        .read(equipmentObservationRepositoryProvider)
+        .getAll(diverId: diverId);
+  }
+
+  /// The active diver's dives for the full UDDF export and the workbook,
+  /// through the validated diver id like their gear and check-ins. [divesProvider] follows the raw
+  /// id, so a stale one (a restore, or a sync that removed the diver) found
+  /// no dives and aborted the export as empty, and any dive list scoped
+  /// apart from the check-ins could leave a check-in's dive out of the file.
+  Future<List<Dive>> _validatedDiverDives() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    return _ref.read(diveRepositoryProvider).getAllDives(diverId: diverId);
+  }
+
+  /// Every gear check-in flattened for the Excel sheet and the CSV file:
+  /// the item name and type, the dive number when the check-in is on a
+  /// dive the export knows, and the observation itself (condition 3a).
+  Future<List<ObservationExportRow>> _observationRows(
+    List<EquipmentItem> equipment,
+    List<Dive> dives,
+  ) async {
+    final observations = await _diverObservations();
+    final itemsById = {for (final e in equipment) e.id: e};
+    final numberByDive = <String, int?>{
+      for (final d in dives) d.id: d.diveNumber,
+    };
+    // [dives] follows the raw diver id and the check-ins the validated one,
+    // so a stale raw id leaves the check-ins' dives out of the list. Look
+    // those up by id so each row keeps its dive number.
+    final missing = {
+      for (final o in observations)
+        if (o.diveId case final id? when !numberByDive.containsKey(id)) id,
+    };
+    if (missing.isNotEmpty) {
+      final found = await _ref
+          .read(diveRepositoryProvider)
+          .getSummariesByIds(missing.toList());
+      for (final s in found) {
+        numberByDive[s.id] = s.diveNumber;
+      }
+    }
+    return [
+      for (final o in observations)
+        if (itemsById[o.equipmentId] case final item?)
+          (
+            equipmentName: item.name,
+            equipmentType: item.type.displayName,
+            diveNumber: o.diveId == null ? null : numberByDive[o.diveId],
+            observation: o,
+          ),
+    ];
+  }
+
+  Future<void> exportObservationsToCsv() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: _l10n.settings_export_progress_observationsCsv,
+    );
+    try {
+      final equipment = await _ref.read(allEquipmentProvider.future);
+      final dives = await _ref.read(divesProvider.future);
+      final rows = await _observationRows(equipment, dives);
+      if (rows.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_observations,
+        );
+        return;
+      }
+      final path = await _exportService.exportObservationsToCsv(rows);
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: _l10n.settings_export_success_observations,
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: _l10n.settings_data_export_failed('$e'),
+      );
+    }
+  }
+
+  /// Save gear check-ins CSV to a user-selected location.
+  Future<void> saveObservationsCsvToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: _l10n.settings_export_progress_preparingObservationsCsv,
+    );
+    try {
+      final equipment = await _ref.read(allEquipmentProvider.future);
+      final dives = await _ref.read(divesProvider.future);
+      final rows = await _observationRows(equipment, dives);
+      if (rows.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_observations,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        message: _l10n.settings_export_progress_chooseLocation,
+      );
+      final path = await _exportService.saveObservationsCsvToFile(
+        rows,
+        dialogTitle: _l10n.settings_export_saveObservationsCsvDialogTitle,
+      );
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: _l10n.settings_export_cancelled_save,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: _l10n.settings_export_saved_observationsCsv,
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: _l10n.settings_export_saveFailed('$e'),
+      );
+    }
+  }
+
   /// Export dives to PDF with the specified options.
   ///
   /// Uses the template system to generate PDFs in different styles.
@@ -426,14 +565,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_uddf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
-      if (dives.isEmpty) {
-        state = state.copyWith(
-          status: ExportStatus.error,
-          message: _l10n.settings_export_empty_dives,
-        );
-        return;
-      }
+      final dives = await _validatedDiverDives();
 
       // Collect all data for comprehensive export
       state = state.copyWith(
@@ -441,6 +573,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
+      // A library can hold gear, sites and bench check-ins before any dive;
+      // the full export carries those too (the builder takes an empty dive
+      // list). Only a library with none of them is refused, as the workbook
+      // does.
+      if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_data,
+        );
+        return;
+      }
       final buddies = await _ref.read(allBuddiesProvider.future);
       final certifications = await _ref.read(allCertificationsProvider.future);
       final diveCenters = await _ref.read(allDiveCentersProvider.future);
@@ -551,6 +694,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipmentSets: equipmentSets,
         components: components,
         serviceRecords: allServiceRecords,
+        observations: await _diverObservations(),
         courses: courses,
         diveWeights: diveWeights,
         diveGasSwitches: diveGasSwitches,
@@ -585,7 +729,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_excel,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      // Validated, like its check-ins sheet (see _validatedDiverDives).
+      final dives = await _validatedDiverDives();
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
       // Checklist runs ride along in the workbook. Fetched in bulk: one query
@@ -621,6 +766,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
+        observationRows: await _observationRows(equipment, dives),
       );
 
       state = state.copyWith(
@@ -692,7 +838,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingExcel,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      // Validated, like its check-ins sheet (see _validatedDiverDives).
+      final dives = await _validatedDiverDives();
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
       // Checklist runs ride along in the workbook. Fetched in bulk: one query
@@ -728,6 +875,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
+        observationRows: await _observationRows(equipment, dives),
       );
 
       if (path == null) {
@@ -931,7 +1079,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveDivesCsvToFile(dives);
+      final path = await _exportService.saveDivesCsvToFile(
+        dives,
+        dialogTitle: _l10n.settings_export_saveDivesCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -973,7 +1124,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveSitesCsvToFile(sites);
+      final path = await _exportService.saveSitesCsvToFile(
+        sites,
+        dialogTitle: _l10n.settings_export_saveSitesCsvDialogTitle,
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1018,6 +1172,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveEquipmentCsvToFile(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
       );
 
       if (path == null) {
@@ -1052,14 +1207,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingUddf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
-      if (dives.isEmpty) {
-        state = state.copyWith(
-          status: ExportStatus.error,
-          message: _l10n.settings_export_empty_dives,
-        );
-        return;
-      }
+      final dives = await _validatedDiverDives();
 
       // Collect all data for comprehensive export
       state = state.copyWith(
@@ -1067,6 +1215,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
       );
       final sites = await _ref.read(sitesProvider.future);
       final equipment = await _ref.read(allEquipmentProvider.future);
+      // A library can hold gear, sites and bench check-ins before any dive;
+      // the full export carries those too (the builder takes an empty dive
+      // list). Only a library with none of them is refused, as the workbook
+      // does.
+      if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_data,
+        );
+        return;
+      }
       final buddies = await _ref.read(allBuddiesProvider.future);
       final certifications = await _ref.read(allCertificationsProvider.future);
       final diveCenters = await _ref.read(allDiveCentersProvider.future);
@@ -1172,6 +1331,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipmentSets: equipmentSets,
         components: components,
         serviceRecords: allServiceRecords,
+        observations: await _diverObservations(),
         courses: courses,
         diveWeights: diveWeights,
         diveGasSwitches: diveGasSwitches,

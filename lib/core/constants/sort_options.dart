@@ -52,10 +52,13 @@ enum TripSortField {
   const TripSortField(this.displayName, this.icon);
 }
 
-/// Sort fields for Equipment
+/// Sort fields for the Equipment page.
+///
+/// No `type` field: ordering by type is the separate primary axis of the
+/// shared `EquipmentArrangement` ("Order types by" in the sort sheet), which
+/// the page honours like every other gear surface.
 enum EquipmentSortField {
   name('Name', Icons.sort_by_alpha),
-  type('Type', Icons.category),
   purchaseDate('Purchase Date', Icons.shopping_bag),
   lastServiceDate('Last Service', Icons.build),
   serviceDue('Service Due', Icons.av_timer);

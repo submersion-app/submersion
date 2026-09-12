@@ -22,6 +22,11 @@ class Transmitter extends Equatable {
   final TankMaterial? material;
   final String? presetName;
   final String? equipmentId;
+
+  /// The transmitter gear item this entry is, beside [equipmentId], the
+  /// cylinder it feeds (condition phase 3b). The dropout rules read an
+  /// item's serials through it.
+  final String? transmitterEquipmentId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -38,6 +43,7 @@ class Transmitter extends Equatable {
     this.material,
     this.presetName,
     this.equipmentId,
+    this.transmitterEquipmentId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -79,6 +85,8 @@ class Transmitter extends Equatable {
     bool clearPresetName = false,
     String? equipmentId,
     bool clearEquipmentId = false,
+    String? transmitterEquipmentId,
+    bool clearTransmitterEquipmentId = false,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Transmitter(
@@ -102,6 +110,9 @@ class Transmitter extends Equatable {
     material: clearMaterial ? null : (material ?? this.material),
     presetName: clearPresetName ? null : (presetName ?? this.presetName),
     equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
+    transmitterEquipmentId: clearTransmitterEquipmentId
+        ? null
+        : (transmitterEquipmentId ?? this.transmitterEquipmentId),
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -122,5 +133,6 @@ class Transmitter extends Equatable {
     material,
     presetName,
     equipmentId,
+    transmitterEquipmentId,
   ];
 }

@@ -344,9 +344,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                 urlTemplate: ref.watch(mapTileUrlProvider),
                 userAgentPackageName: 'app.submersion',
                 maxZoom: ref.watch(mapTileMaxZoomProvider),
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider()
-                    : null,
+                tileProvider: TileCacheService.instance.tileProviderFor(
+                  urlTemplate: ref.watch(mapTileUrlProvider),
+                ),
               ),
               // Depth overlay for the selected site: same layer the
               // master-detail map and site detail render, so the app-bar

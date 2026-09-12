@@ -106,4 +106,38 @@ void main() {
 
     expect(ids, isEmpty);
   });
+
+  test('an equipment filter finds a cylinder used through its tank', () async {
+    // The registry links a cylinder to a dive's tank without any
+    // dive_equipment row; the list must find it as statistics do.
+    await insertDive('with-cylinder', 1000);
+    await insertDive('without', 2000);
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'cyl1',
+            name: 'Cylinder',
+            type: 'tank',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          const DiveTanksCompanion(
+            id: Value('t1'),
+            diveId: Value('with-cylinder'),
+            equipmentId: Value('cyl1'),
+            o2Percent: Value(21.0),
+            hePercent: Value(0.0),
+            tankOrder: Value(0),
+          ),
+        );
+    final ids = await repository.getOrderedDiveIds(
+      filter: const DiveFilterState(equipmentIds: ['cyl1']),
+    );
+    expect(ids, ['with-cylinder']);
+  });
 }

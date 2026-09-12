@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_cont
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -66,6 +67,12 @@ class _StubMergeService implements DiveMergeService {
           mediaDiveIds: const {},
         ),
       );
+
+  final undone = <String>[];
+
+  @override
+  Future<void> undo(DiveMergeSnapshot snapshot) async =>
+      undone.add(snapshot.mergedDiveId);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -286,6 +293,68 @@ void main() {
       tester.element(find.byType(DiveListContent)),
     );
     expect(container.read(highlightedDiveIdProvider), 'merged-1');
+  });
+
+  testWidgets('undoing a combine rebuilds the restored dives\' summaries', (
+    tester,
+  ) async {
+    // The condition engine reads the summaries: the originals come back and
+    // the merged dive is gone.
+    final requests = <String>[];
+    SensorSummaryScheduler.instance.summaryRequestListener = (ids, force) =>
+        requests.add('${(ids.toList()..sort()).join(',')}:$force');
+    addTearDown(
+      () => SensorSummaryScheduler.instance.summaryRequestListener = null,
+    );
+    final dives = [
+      _makeDive(
+        id: 'd1',
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+        dateTime: DateTime(2026, 1, 1, 9),
+      ),
+      _makeDive(
+        id: 'd2',
+        site: const DiveSite(id: 's2', name: 'Bbb'),
+        dateTime: DateTime(2026, 1, 1, 11),
+      ),
+    ];
+    final merge = _StubMergeService('merged-1');
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+          paginatedDiveListProvider.overrideWith(
+            (ref) => _MockPaginatedNotifier(
+              dives.map(DiveSummary.fromDive).toList(),
+            ),
+          ),
+          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
+          diveMergeServiceProvider.overrideWithValue(merge),
+        ],
+        child: const DiveListContent(showAppBar: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+    Finder tileFinder(String id) =>
+        find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(tileFinder('d1'));
+    await tester.pumpAndSettle();
+    await tester.tap(tileFinder('d2'));
+    await tester.pumpAndSettle();
+    await tester.tap(combineButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Combine into one dive'));
+    await tester.pumpAndSettle();
+    expect(requests, ['d1,d2,merged-1:true'], reason: 'the combine itself');
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(merge.undone, ['merged-1']);
+    expect(requests, ['d1,d2,merged-1:true', 'd1,d2,merged-1:true']);
   });
 
   testWidgets('successful combine scrolls the merged dive into view', (

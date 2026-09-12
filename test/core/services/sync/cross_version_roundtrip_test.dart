@@ -16,6 +16,14 @@
 // so the second group below covers the direction the floor cannot reach: a
 // pre-160 peer's payload, keyed with the old spelling, arriving here.
 // postV137DiveKeys stays as the record of the previous boundary.
+//
+// The floor moved 183 -> 210 with the cylinder gear link: v210 lets a gear
+// item a cylinder is linked to be deleted, and an older reader cannot apply
+// that tombstone. v210 adds no synced column, so no new projection is
+// needed. The direction the floor cannot reach, an older peer's payload
+// arriving here, has nothing new to carry: that peer cannot delete such an
+// item, and its live tank rows meet the parentRefs guard, which
+// sync_deletion_propagation_test.dart covers for this link.
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -33,6 +41,10 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -355,8 +367,12 @@ void main() {
       expect(result.status, isNot(SyncResultStatus.error));
     }
 
-    test('the floor is 183', () {
-      expect(AppDatabase.minimumCompatibleSchemaVersion, 183);
+    test('the floor is at least 183', () {
+      // v210 raised it again; the v210 migration test owns the exact value.
+      expect(
+        AppDatabase.minimumCompatibleSchemaVersion,
+        greaterThanOrEqualTo(183),
+      );
     });
 
     test('an old peer that still sends dive_profiles rows produces a series '
@@ -449,6 +465,130 @@ void main() {
 
         final profile = await DiveRepository().getDiveProfile(diveId);
         expect(profile.map((p) => p.depth), [1.0, 30.0]);
+      },
+    );
+  });
+
+  group('pre-v213 peer editing a service clock baseline', () {
+    // v213 added service_schedules.anchor_set_at: when the diver set the
+    // baseline. A null set time keeps the pre-v213 rule (any record of the
+    // kind outranks the baseline). An older peer republishes a schedule
+    // WITHOUT the key, and the #474 overlay refills omitted keys from the
+    // local row, so without care a baseline the old peer set would inherit
+    // this device's set time for a DIFFERENT date.
+    late FakeCloudStorageProvider cloud;
+
+    setUp(() async {
+      await setUpTestDatabase();
+      cloud = FakeCloudStorageProvider();
+    });
+
+    tearDown(() => DatabaseService.instance.resetForTesting());
+
+    /// A regulator whose service clock carries a stamped baseline, returned
+    /// as the full exported schedule row.
+    Future<Map<String, dynamic>> seedStampedBaseline() async {
+      final reg = await EquipmentRepository().createEquipment(
+        const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+      );
+      final repo = ServiceScheduleRepository();
+      final schedule = (await repo.getSchedulesForEquipment(
+        reg.id,
+      )).firstWhere((s) => s.serviceKindId == 'regulator-service');
+      await repo.updateSchedule(
+        schedule.withBaseline(DateTime(2025, 6, 1), now: DateTime(2026, 9)),
+      );
+      final row = await SyncDataSerializer().fetchRecord(
+        'serviceSchedules',
+        schedule.id,
+      );
+      expect(row!['anchorSetAt'], isNotNull, reason: 'precondition');
+      expect(row['hlc'], isNotNull, reason: 'precondition: row is clocked');
+      await SyncRepository().resetSyncState();
+      return Map<String, dynamic>.from(row);
+    }
+
+    /// [row] as a pre-v213 peer republishes it, edited by [edit], with a
+    /// strictly newer clock so it wins last-writer-wins.
+    Future<Map<String, dynamic>> pullPeerEdit(
+      Map<String, dynamic> row,
+      void Function(Map<String, dynamic>) edit,
+    ) async {
+      final peerRow = Map<String, dynamic>.from(row)..remove('anchorSetAt');
+      edit(peerRow);
+      peerRow['hlc'] = Hlc(
+        Hlc.parse(row['hlc'] as String).physicalTime + 60000,
+        0,
+        'peer-212',
+      ).toString();
+      peerRow['updatedAt'] = (row['updatedAt'] as int) + 60000;
+
+      final data = SyncData(serviceSchedules: [peerRow]);
+      final payload = SyncPayload(
+        version: syncFormatVersion,
+        exportedAt: 9000,
+        deviceId: 'peer-212',
+        checksum: sha256
+            .convert(utf8.encode(jsonEncode(data.toJson())))
+            .toString(),
+        data: data,
+        deletions: const {},
+      );
+      await seedPeerBaseFromPayload(cloud, 'peer-212', payload);
+      final result = await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      ).performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+      final after = await SyncDataSerializer().fetchRecord(
+        'serviceSchedules',
+        row['id'] as String,
+      );
+      return after!;
+    }
+
+    test(
+      'an old peer that moves the baseline leaves it without a set time',
+      () async {
+        final row = await seedStampedBaseline();
+        final moved = DateTime(2024, 1, 1).millisecondsSinceEpoch;
+
+        final after = await pullPeerEdit(row, (r) => r['anchorDate'] = moved);
+
+        expect(after['anchorDate'], moved);
+        expect(
+          after['anchorSetAt'],
+          isNull,
+          reason:
+              'the old peer set this baseline under the pre-v213 rule; '
+              'keeping our set time would dress it in the new one',
+        );
+      },
+    );
+
+    test(
+      'an old peer that clears the baseline clears the set time too',
+      () async {
+        final row = await seedStampedBaseline();
+
+        final after = await pullPeerEdit(row, (r) => r['anchorDate'] = null);
+
+        expect(after['anchorDate'], isNull);
+        expect(after['anchorSetAt'], isNull);
+      },
+    );
+
+    test(
+      'an old-peer edit that leaves the baseline alone keeps its set time',
+      () async {
+        final row = await seedStampedBaseline();
+
+        final after = await pullPeerEdit(row, (r) => r['intervalDays'] = 400);
+
+        expect(after['intervalDays'], 400);
+        expect(after['anchorDate'], row['anchorDate']);
+        expect(after['anchorSetAt'], row['anchorSetAt']);
       },
     );
   });

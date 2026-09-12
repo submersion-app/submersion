@@ -189,10 +189,15 @@ void main() {
         'createdAt': 1000,
         'updatedAt': 1000,
       });
-      // The membership currently exists locally.
+      // The membership currently exists locally, and predates the peer's
+      // deletion. Since v207 these rows carry a clock (issue #1728), and a
+      // row left unstamped would be stamped `now` by the column's
+      // clientDefault -- newer than this tombstone, which the age guard would
+      // then correctly refuse to apply.
       await serializer.upsertRecord('equipmentSetItems', {
         'setId': 'set-2',
         'equipmentId': 'gear-3',
+        'updatedAt': 3000,
       });
 
       // Peer removed the item: a tombstone with NO matching live row.
@@ -298,9 +303,13 @@ void main() {
           'updatedAt': 1000,
         });
         // C is currently a member locally and is being removed by the edit.
+        // Stamped before the tombstone: since v207 the row carries a clock,
+        // and a membership newer than the deletion is a conflict, not a
+        // removal (issue #1728).
         await serializer.upsertRecord('equipmentSetItems', {
           'setId': 'set-4',
           'equipmentId': 'g-c',
+          'updatedAt': 3000,
         });
 
         // updateSet on the peer keeps A and B (live + reinsert tombstone) and

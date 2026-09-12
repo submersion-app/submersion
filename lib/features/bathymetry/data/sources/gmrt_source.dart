@@ -25,6 +25,11 @@ class GmrtSource implements BathymetrySource {
   @override
   bool get global => true;
 
+  /// See [BathymetrySource.minKnownFraction]'s doc: unchanged from the
+  /// resolver's original default for a global source.
+  @override
+  double get minKnownFraction => 0.60;
+
   /// GMRT's global tiles run to roughly 60 m where ship multibeam exists.
   /// A NOMINAL figure: elsewhere the same grid spacing carries upsampled
   /// GEBCO. The resolver's preemption factor exists so this number cannot

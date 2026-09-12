@@ -665,6 +665,22 @@ void main() {
     await insertTank('d6', 'tank-d6', o2Percent: 21.0);
     await insertTank('d7', 'tank-d7', o2Percent: 21.0);
 
+    // equipment through a tank link: a cylinder the registry matched to
+    // d5's first tank, with no dive_equipment row at all.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'cyl1',
+            name: 'Cylinder',
+            type: 'tank',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('tank-d5-a')))
+        .write(const DiveTanksCompanion(equipmentId: Value('cyl1')));
+
     // custom fields: shared key with varied values so key-only and
     // key+value-substring both discriminate.
     await insertCustomField('d1', 'visMeters', '20');
@@ -691,6 +707,9 @@ void main() {
       ),
       'multi tag (ANY)': const DiveFilterState(tagIds: ['dry', 'night']),
       'equipment (ANY)': const DiveFilterState(equipmentIds: ['eq1']),
+      'equipment via a tank link': const DiveFilterState(
+        equipmentIds: ['cyl1'],
+      ),
       'minDepth (null-exclusion)': const DiveFilterState(minDepth: 20),
       'maxDepth (null-exclusion)': const DiveFilterState(maxDepth: 20),
       'favoritesOnly': const DiveFilterState(favoritesOnly: true),
@@ -742,6 +761,9 @@ void main() {
     // null-exclusion), so a bug shared by BOTH apply() and the SQL builder
     // can't hide behind their mutual agreement.
     expect(await idsMatching(battery['siteId']!), {'d1', 'd4', 'd7'});
+    // A cylinder used on a dive through its tank counts as used there, as
+    // the equipment statistics count it.
+    expect(await idsMatching(battery['equipment via a tank link']!), {'d5'});
     expect(await idsMatching(battery['diveCenterId']!), {'d1', 'd2', 'd7'});
     expect(await idsMatching(battery['equipment (ANY)']!), {'d1', 'd2', 'd6'});
     expect(await idsMatching(battery['multi tag (ANY)']!), {

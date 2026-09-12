@@ -74,13 +74,19 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
     params.addAll(filter.weekdays.map((w) => w % 7));
   }
 
-  // Equipment: match ANY selected item.
+  // Equipment: match ANY selected item, linked to the dive directly or
+  // through a tank (a cylinder the transmitter registry matched), as the
+  // equipment statistics count it. Kept in step with apply() and the
+  // dive list's clause.
   if (filter.equipmentIds.isNotEmpty) {
     final ph = List.filled(filter.equipmentIds.length, '?').join(', ');
     conditions.add(
-      'id IN (SELECT dive_id FROM dive_equipment WHERE equipment_id IN ($ph))',
+      'id IN (SELECT dive_id FROM dive_equipment WHERE equipment_id IN ($ph) '
+      'UNION SELECT dive_id FROM dive_tanks WHERE equipment_id IN ($ph))',
     );
-    params.addAll(filter.equipmentIds);
+    params
+      ..addAll(filter.equipmentIds)
+      ..addAll(filter.equipmentIds);
   }
 
   // Equipment attribute: dives linked to an equipment item whose curated

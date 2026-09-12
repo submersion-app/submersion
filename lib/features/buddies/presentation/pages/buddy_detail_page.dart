@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -341,10 +341,11 @@ class _BuddyDetailContent extends ConsumerWidget {
       context,
       title: l10n.buddies_action_shareDives,
       showRawDataToggle: true,
+      showDiveContentToggles: true,
     );
     if (choice == null) return;
     final destination = choice.destination;
-    final options = UddfExportOptions(includeRawData: choice.includeRawData);
+    final options = choice.options;
 
     // Show preparing message
     scaffoldMessenger.showSnackBar(
@@ -401,12 +402,17 @@ class _BuddyDetailContent extends ConsumerWidget {
         dives.map((d) => d.id).toList(growable: false),
         options,
       );
+      final extras = await ref.read(uddfDivesExtrasFetchProvider)(
+        dives.map((d) => d.id).toList(growable: false),
+        options,
+      );
       switch (destination) {
         case ExportDestination.share:
           await exportService.exportDivesToUddf(
             dives,
             sites: sites,
             dataSources: dataSources,
+            extras: extras,
             options: options,
           );
         case ExportDestination.saveToFile:
@@ -414,6 +420,7 @@ class _BuddyDetailContent extends ConsumerWidget {
             dives,
             sites: sites,
             dataSources: dataSources,
+            extras: extras,
             options: options,
           );
       }

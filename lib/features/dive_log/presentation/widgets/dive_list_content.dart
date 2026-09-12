@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
@@ -62,6 +62,7 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 /// True if [d]'s date falls within [r], inclusive of the end calendar day.
 bool inDateRange(DiveSummary d, DateTimeRange r) {
@@ -611,6 +612,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             try {
               await ref.read(diveMergeServiceProvider).undo(toUndo.snapshot);
               _refreshAfterMerge();
+              // The originals are back and the merged dive is gone; the
+              // condition engine reads their sensor summaries.
+              scheduleSensorSummaryRefresh([
+                ...ids,
+                toUndo.mergedDive.id,
+              ], force: true);
               if (mounted) {
                 // The merged dive no longer exists; clear it from the detail
                 // pane and the row highlight if it is still selected.
@@ -750,12 +757,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       context,
       title: formatLabel,
       showRawDataToggle: format == _BulkExportFormat.uddf,
+      showDiveContentToggles: format == _BulkExportFormat.uddf,
     );
     if (choice == null || !mounted) return BulkActionOutcome.cancelled;
     final destination = choice.destination;
-    final uddfOptions = UddfExportOptions(
-      includeRawData: choice.includeRawData,
-    );
+    // Resolved while the context is known to be mounted; used after awaits.
+    final csvSaveTitle = context.l10n.settings_export_saveDivesCsvDialogTitle;
+    final uddfOptions = choice.options;
 
     // Saving opens the native save panel, which must not be raised while a
     // modal route is up - so that path drops the progress dialog first.
@@ -868,7 +876,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         _BulkExportFormat.csv =>
           sharing
               ? await exportService.exportDivesToCsv(selectedDives)
-              : await exportService.saveDivesCsvToFile(selectedDives),
+              : await exportService.saveDivesCsvToFile(
+                  selectedDives,
+                  dialogTitle: csvSaveTitle,
+                ),
         _BulkExportFormat.uddf =>
           sharing
               ? await exportService.exportDivesToUddf(
@@ -879,12 +890,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
+                  extras: await ref.read(uddfDivesExtrasFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
                 )
               : await exportService.saveDivesToUddfFile(
                   selectedDives,
                   sites: sites,
                   options: uddfOptions,
                   dataSources: await ref.read(uddfSourceFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
+                  extras: await ref.read(uddfDivesExtrasFetchProvider)(
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),

@@ -39,17 +39,26 @@ void main() {
 
     test('saveDivesCsvToFile returns null when cancelled', () async {
       mockPicker.saveFileResult = null;
-      expect(await service.saveDivesCsvToFile([]), isNull);
+      expect(await service.saveDivesCsvToFile([], dialogTitle: 'Save'), isNull);
     });
 
     test('saveSitesCsvToFile returns null when cancelled', () async {
       mockPicker.saveFileResult = null;
-      expect(await service.saveSitesCsvToFile(<DiveSite>[]), isNull);
+      expect(
+        await service.saveSitesCsvToFile(<DiveSite>[], dialogTitle: 'Save'),
+        isNull,
+      );
     });
 
     test('saveEquipmentCsvToFile returns null when cancelled', () async {
       mockPicker.saveFileResult = null;
-      expect(await service.saveEquipmentCsvToFile(<EquipmentItem>[]), isNull);
+      expect(
+        await service.saveEquipmentCsvToFile(
+          <EquipmentItem>[],
+          dialogTitle: 'Save',
+        ),
+        isNull,
+      );
     });
   });
 

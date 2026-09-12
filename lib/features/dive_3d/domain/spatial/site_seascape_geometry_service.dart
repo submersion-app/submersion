@@ -243,8 +243,8 @@ class SiteSeascapeGeometryService {
     final zHalf = proj.zHalfExtent + SceneBounds.zHalfWidth;
     // The camera frame grows to keep the pin in view when the diver's
     // recorded max depth reaches past the measured terrain; it never
-    // shrinks below the terrain's own -ySpan floor.
-    final sceneMinY = math.min(-SceneBounds.ySpan, proj.yOf(pinDepth));
+    // shrinks above the terrain's own true-to-scale floor.
+    final sceneMinY = math.min(proj.yOf(maxDepth), proj.yOf(pinDepth));
     final scene = Scene3d(
       layers: layers,
       markers: markers,

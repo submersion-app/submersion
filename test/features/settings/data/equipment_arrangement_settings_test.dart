@@ -54,6 +54,23 @@ void main() {
     expect(await repository.getEquipmentArrangement(), isNull);
   });
 
+  test(
+    'a read that fails throws rather than reading as "nothing stored"',
+    () async {
+      // null means "no usable value is stored", and the notifier shows the
+      // defaults for it. A read that could not reach the value is different:
+      // reporting it as null would reset a diver's customized arrangement on
+      // one transient error, and the next edit would save the defaults over
+      // it. Dropping the table forces a genuine read failure.
+      await db.customStatement('DROP TABLE settings');
+
+      await expectLater(
+        repository.getEquipmentArrangement(),
+        throwsA(anything),
+      );
+    },
+  );
+
   test('a JSON value that is not an object reads as null', () async {
     await storeRaw('[1, 2, 3]');
 

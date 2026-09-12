@@ -45,6 +45,14 @@ class DiveRole extends Equatable {
     safetyDiverId,
   ];
 
+  /// Roles that lead the dive. Interchange formats with a single leader
+  /// field (UDDF and Subsurface `<divemaster>`) carry these people there.
+  static const Set<String> leaderIds = {
+    diveGuideId,
+    diveMasterId,
+    instructorId,
+  };
+
   /// Placeholder for a role id with no dive_roles row (legacy or
   /// not-yet-synced data). Displays the raw slug instead of silently
   /// renaming it to Buddy.
