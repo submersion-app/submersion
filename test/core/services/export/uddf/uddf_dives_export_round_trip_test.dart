@@ -5,6 +5,8 @@ import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -52,6 +54,20 @@ void main() {
     final student = await person('Sam Park');
     final photographer = await person('Pat Kim');
     final plain = await person('Joe Bloggs');
+    // A certification lives in its own table and is derived onto the
+    // person at read time, so it only reaches the file if the export's
+    // participant read hydrates it.
+    await CertificationRepository().createCertification(
+      Certification(
+        id: '',
+        buddyId: instructor.id,
+        name: 'Rescue Diver',
+        agency: CertificationAgency.padi,
+        level: CertificationLevel.rescue,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
 
     final equipment = EquipmentRepository();
     final reg = await equipment.createEquipment(
@@ -140,6 +156,11 @@ void main() {
         b.buddy.name: b.role.id,
     };
     final photographerRole = roles['Pat Kim'];
+    final tom = (await BuddyRepository().getBuddiesForDive(
+      restored.id,
+    )).singleWhere((b) => b.buddy.name == 'Tom Lee').buddy;
+    expect(tom.certificationLevel, CertificationLevel.rescue);
+    expect(tom.certificationAgency, CertificationAgency.padi);
     expect(roles, {
       'Nicol Sorin': DiveRole.diveGuideId,
       'Ana Reyes': DiveRole.diveMasterId,

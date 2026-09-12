@@ -32,7 +32,7 @@ class _Buddies extends Fake implements BuddyRepository {
   final calls = <List<String>>[];
 
   @override
-  Future<Map<String, List<BuddyWithRole>>> getBuddiesForDives(
+  Future<Map<String, List<BuddyWithRole>>> getBuddiesForDivesWithCertifications(
     List<String> diveIds,
   ) async {
     calls.add(diveIds);

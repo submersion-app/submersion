@@ -58,8 +58,10 @@ Future<UddfDivesExtras> resolveDivesExtras(
   List<String> diveIds,
   UddfExportOptions options,
 ) async => UddfDivesExtras(
+  // The lean list-view load leaves certifications out, and every <buddy>
+  // declaration carries one, so this path reads them too.
   diveBuddies: options.includeParticipants
-      ? await buddies.getBuddiesForDives(diveIds)
+      ? await buddies.getBuddiesForDivesWithCertifications(diveIds)
       : const {},
   components: options.includeGear
       ? await components.getAllComponents()
