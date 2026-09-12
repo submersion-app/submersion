@@ -42,6 +42,7 @@ Future<ValueGetter<Object?>> _pumpSheetHost(WidgetTester tester) async {
 Future<ValueGetter<Object?>> _pumpOptionsHost(
   WidgetTester tester, {
   bool showRawDataToggle = true,
+  bool showDiveContentToggles = false,
 }) async {
   Object? result = #pending;
   await tester.pumpWidget(
@@ -61,6 +62,7 @@ Future<ValueGetter<Object?>> _pumpOptionsHost(
                 context,
                 title: 'Dive Log UDDF',
                 showRawDataToggle: showRawDataToggle,
+                showDiveContentToggles: showDiveContentToggles,
               );
             },
             child: const Text('open'),
@@ -130,7 +132,7 @@ void main() {
 
     expect(result(), isA<ExportChoice>());
     expect((result()! as ExportChoice).destination, ExportDestination.share);
-    expect((result()! as ExportChoice).includeRawData, isTrue);
+    expect((result()! as ExportChoice).options.includeRawData, isTrue);
   });
 
   testWidgets('unchecking the toggle carries through to the choice', (
@@ -154,7 +156,7 @@ void main() {
       (result()! as ExportChoice).destination,
       ExportDestination.saveToFile,
     );
-    expect((result()! as ExportChoice).includeRawData, isFalse);
+    expect((result()! as ExportChoice).options.includeRawData, isFalse);
   });
 
   testWidgets('no toggle is offered for formats with no raw bytes', (
@@ -167,6 +169,55 @@ void main() {
     await tester.tap(find.text('Share'));
     await tester.pumpAndSettle();
 
-    expect((result()! as ExportChoice).includeRawData, isTrue);
+    expect((result()! as ExportChoice).options.includeRawData, isTrue);
+  });
+
+  testWidgets('the dive content toggles appear only on request', (
+    tester,
+  ) async {
+    await _pumpOptionsHost(tester);
+
+    expect(find.text('Include dive participants'), findsNothing);
+    expect(find.text('Include gear'), findsNothing);
+  });
+
+  testWidgets('the dive content toggles start checked', (tester) async {
+    final result = await _pumpOptionsHost(tester, showDiveContentToggles: true);
+
+    expect(find.text('Include dive participants'), findsOneWidget);
+    expect(find.text('Include gear'), findsOneWidget);
+    expect(
+      tester
+          .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+          .map((t) => t.value),
+      [true, true, true],
+    );
+
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+
+    final options = (result()! as ExportChoice).options;
+    expect(options.includeRawData, isTrue);
+    expect(options.includeParticipants, isTrue);
+    expect(options.includeGear, isTrue);
+  });
+
+  testWidgets('unticking participants and gear carries into the options', (
+    tester,
+  ) async {
+    final result = await _pumpOptionsHost(tester, showDiveContentToggles: true);
+
+    await tester.tap(find.text('Include dive participants'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Include gear'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    final choice = result()! as ExportChoice;
+    expect(choice.destination, ExportDestination.saveToFile);
+    expect(choice.options.includeRawData, isTrue);
+    expect(choice.options.includeParticipants, isFalse);
+    expect(choice.options.includeGear, isFalse);
   });
 }

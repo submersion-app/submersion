@@ -20881,6 +20881,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Choisissez ou enregistrer sur votre appareil';
 
   @override
+  String get transfer_export_includeGear => 'Inclure l\'équipement';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Ajoute l\'équipement et l\'ordinateur de plongée utilisés à chaque plongée. Les détails d\'achat sont omis.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Inclure les participants';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Ajoute les binômes, les guides et leurs rôles à chaque plongée, avec nom et certification. Les coordonnées sont omises.';
+
+  @override
   String get transfer_export_includeRawData =>
       'Inclure les données brutes de l\'ordinateur de plongée';
 

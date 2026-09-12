@@ -20411,6 +20411,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_export_optionSaveSubtitle => 'اختر مكان الحفظ على جهازك';
 
   @override
+  String get transfer_export_includeGear => 'تضمين المعدات';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'يضيف المعدات وكمبيوتر الغوص المستخدمة في كل غطسة. تُستبعد تفاصيل الشراء.';
+
+  @override
+  String get transfer_export_includeParticipants => 'تضمين المشاركين في الغطس';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'يضيف الرفاق والمرشدين وأدوارهم في كل غطسة، بالاسم والشهادة. تُستبعد بيانات الاتصال.';
+
+  @override
   String get transfer_export_includeRawData =>
       'تضمين البيانات الخام لكمبيوتر الغوص';
 

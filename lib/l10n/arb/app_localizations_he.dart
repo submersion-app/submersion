@@ -20257,6 +20257,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_export_optionSaveSubtitle => 'בחר היכן לשמור במכשיר שלך';
 
   @override
+  String get transfer_export_includeGear => 'כלול ציוד';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'מוסיף את הציוד ואת מחשב הצלילה ששימשו בכל צלילה. פרטי הרכישה אינם נכללים.';
+
+  @override
+  String get transfer_export_includeParticipants => 'כלול משתתפי צלילה';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'מוסיף שותפים, מדריכים ואת תפקידיהם בכל צלילה, לפי שם והסמכה. פרטי הקשר אינם נכללים.';
+
+  @override
   String get transfer_export_includeRawData =>
       'כלול נתונים גולמיים ממחשב הצלילה';
 

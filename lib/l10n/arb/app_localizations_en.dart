@@ -20431,6 +20431,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose where to save on your device';
 
   @override
+  String get transfer_export_includeGear => 'Include gear';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Adds the equipment and dive computer used on each dive. Purchase details are left out.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Include dive participants';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Adds buddies, guides and their roles on each dive, by name and certification. Contact details are left out.';
+
+  @override
   String get transfer_export_includeRawData => 'Include raw dive computer data';
 
   @override

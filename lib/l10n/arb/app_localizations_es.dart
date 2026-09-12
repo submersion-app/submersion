@@ -20804,6 +20804,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'Elige donde guardar en tu dispositivo';
 
   @override
+  String get transfer_export_includeGear => 'Incluir equipo';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Añade el equipo y el ordenador de buceo usados en cada inmersión. Los datos de compra se omiten.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Incluir participantes';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Añade compañeros, guías y sus funciones en cada inmersión, con nombre y certificación. Los datos de contacto se omiten.';
+
+  @override
   String get transfer_export_includeRawData =>
       'Incluir datos sin procesar del ordenador de buceo';
 

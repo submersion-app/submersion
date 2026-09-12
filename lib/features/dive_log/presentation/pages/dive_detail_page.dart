@@ -5651,7 +5651,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     if (choice == null || !context.mounted) return;
     final destination = choice.destination;
-    final options = UddfExportOptions(includeRawData: choice.includeRawData);
+    final options = choice.options;
 
     final showProgress = destination == ExportDestination.share;
     if (showProgress) {

@@ -19705,6 +19705,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_export_optionSaveSubtitle => '选择保存到设备上的位置';
 
   @override
+  String get transfer_export_includeGear => '包含装备';
+
+  @override
+  String get transfer_export_includeGearSubtitle => '添加每次潜水使用的装备和潜水电脑。不包含购买信息。';
+
+  @override
+  String get transfer_export_includeParticipants => '包含潜水参与者';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      '添加每次潜水的潜伴、导潜及其角色，仅含姓名和证书。不包含联系方式。';
+
+  @override
   String get transfer_export_includeRawData => '包含潜水电脑原始数据';
 
   @override

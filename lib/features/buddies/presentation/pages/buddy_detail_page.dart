@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -344,7 +343,7 @@ class _BuddyDetailContent extends ConsumerWidget {
     );
     if (choice == null) return;
     final destination = choice.destination;
-    final options = UddfExportOptions(includeRawData: choice.includeRawData);
+    final options = choice.options;
 
     // Show preparing message
     scaffoldMessenger.showSnackBar(

@@ -20790,6 +20790,20 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scegli dove salvare sul tuo dispositivo';
 
   @override
+  String get transfer_export_includeGear => 'Includi l\'attrezzatura';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Aggiunge l\'attrezzatura e il computer subacqueo usati in ogni immersione. I dettagli di acquisto sono esclusi.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Includi i partecipanti';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Aggiunge compagni, guide e i loro ruoli in ogni immersione, con nome e brevetto. I recapiti sono esclusi.';
+
+  @override
   String get transfer_export_includeRawData =>
       'Includi i dati grezzi del computer subacqueo';
 
