@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -212,6 +213,35 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect((await repo.getForDive('d1')).single.note, 'All good');
+  });
+
+  testWidgets('saving and deleting a check-in queue the item findings', (
+    tester,
+  ) async {
+    // The stored findings have to follow the write even with no item page
+    // open, so both paths hand the item to the scheduler.
+    final requests = <Set<String>>[];
+    SensorSummaryScheduler.instance.findingsRequestListener = requests.add;
+    addTearDown(
+      () => SensorSummaryScheduler.instance.findingsRequestListener = null,
+    );
+    await pumpAndOpen(tester, withDive: dive);
+    await tester.tap(find.text('Add check-in'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(requests, [
+      {'reg'},
+    ]);
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete').last);
+    await tester.pumpAndSettle();
+    expect(requests, [
+      {'reg'},
+      {'reg'},
+    ]);
   });
 
   testWidgets('an issue with only unknown tags can still be edited', (

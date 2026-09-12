@@ -103,6 +103,10 @@ void main() {
             type: 'equipmentObservations',
             table: db.equipmentObservations.actualTableName,
           ),
+          (
+            type: 'equipmentFindings',
+            table: db.equipmentFindings.actualTableName,
+          ),
           (type: 'equipmentSets', table: db.equipmentSets.actualTableName),
           (type: 'media', table: db.media.actualTableName),
           (type: 'buddies', table: db.buddies.actualTableName),

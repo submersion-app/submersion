@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 
@@ -757,5 +759,171 @@ void main() {
         );
       },
     );
+  });
+
+  // Suunto records a surface fix before the descent and another after the
+  // ascent, and stores the pair in the dive footer's DiveLocation block as
+  // radians. The samples' DiveRouteOrigin carries only the entry fix (in
+  // degrees), so it is a fallback for dives whose footer has no Start.
+  group('surface GPS fixes', () {
+    double rad(double degrees) => degrees * math.pi / 180.0;
+
+    Map<String, dynamic> fix(double latDegrees, double lonDegrees) => {
+      'Latitude': rad(latDegrees),
+      'Longitude': rad(lonDegrees),
+      'Ehpe': 4.5,
+    };
+
+    Map<String, dynamic> headerWithLocation(Map<String, dynamic> location) => {
+      ..._header(),
+      'DiveLocation': location,
+    };
+
+    test('reads entry from Start and exit from Stop, converted to degrees', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({
+          'Start': fix(34.5, 35.25),
+          'Stop': fix(34.502, 35.253),
+        }),
+        samples: const [],
+      );
+
+      expect(result.dive.entryLatitude, closeTo(34.5, 1e-9));
+      expect(result.dive.entryLongitude, closeTo(35.25, 1e-9));
+      expect(result.dive.exitLatitude, closeTo(34.502, 1e-9));
+      expect(result.dive.exitLongitude, closeTo(35.253, 1e-9));
+    });
+
+    test('handles southern and western hemispheres', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({
+          'Start': fix(-16.75, -122.4),
+          'Stop': fix(-16.751, -122.402),
+        }),
+        samples: const [],
+      );
+
+      expect(result.dive.entryLatitude, closeTo(-16.75, 1e-9));
+      expect(result.dive.entryLongitude, closeTo(-122.4, 1e-9));
+      expect(result.dive.exitLatitude, closeTo(-16.751, 1e-9));
+      expect(result.dive.exitLongitude, closeTo(-122.402, 1e-9));
+    });
+
+    test('imports a dive that holds only an exit fix', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({'Stop': fix(34.502, 35.253)}),
+        samples: const [],
+      );
+
+      expect(result.dive.entryLatitude, isNull);
+      expect(result.dive.entryLongitude, isNull);
+      expect(result.dive.exitLatitude, closeTo(34.502, 1e-9));
+      expect(result.dive.exitLongitude, closeTo(35.253, 1e-9));
+    });
+
+    test('imports a dive that holds only an entry fix', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({'Start': fix(34.5, 35.25)}),
+        samples: const [],
+      );
+
+      expect(result.dive.entryLatitude, closeTo(34.5, 1e-9));
+      expect(result.dive.exitLatitude, isNull);
+      expect(result.dive.exitLongitude, isNull);
+    });
+
+    test('falls back to DiveRouteOrigin for entry when Start is absent', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({'Stop': fix(34.502, 35.253)}),
+        samples: const [
+          {
+            'TimeISO8601': '2024-05-01T10:00:00.000Z',
+            'Depth': 0.5,
+            'DiveEvents': {'DiveStatus': true},
+            'DiveRouteOrigin': {'Latitude': 34.5, 'Longitude': 35.25},
+          },
+        ],
+      );
+
+      expect(result.dive.entryLatitude, closeTo(34.5, 1e-9));
+      expect(result.dive.entryLongitude, closeTo(35.25, 1e-9));
+      expect(result.dive.exitLatitude, closeTo(34.502, 1e-9));
+    });
+
+    test('prefers the footer Start over DiveRouteOrigin', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({'Start': fix(34.5, 35.25)}),
+        samples: const [
+          {
+            'TimeISO8601': '2024-05-01T10:00:00.000Z',
+            'Depth': 0.5,
+            'DiveEvents': {'DiveStatus': true},
+            'DiveRouteOrigin': {'Latitude': 12.0, 'Longitude': 13.0},
+          },
+        ],
+      );
+
+      expect(result.dive.entryLatitude, closeTo(34.5, 1e-9));
+      expect(result.dive.entryLongitude, closeTo(35.25, 1e-9));
+    });
+
+    test('keeps DiveRouteOrigin when the footer has no location at all', () {
+      final result = SuuntoDiveParser.parse(
+        header: _header(),
+        samples: const [
+          {
+            'TimeISO8601': '2024-05-01T10:00:00.000Z',
+            'Depth': 0.5,
+            'DiveEvents': {'DiveStatus': true},
+            'DiveRouteOrigin': {'Latitude': 34.5, 'Longitude': 35.25},
+          },
+        ],
+      );
+
+      expect(result.dive.entryLatitude, closeTo(34.5, 1e-9));
+      expect(result.dive.entryLongitude, closeTo(35.25, 1e-9));
+      expect(result.dive.exitLatitude, isNull);
+    });
+
+    test('ignores a null-island fix', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({
+          'Start': {'Latitude': 0.0, 'Longitude': 0.0},
+          'Stop': fix(34.502, 35.253),
+        }),
+        samples: const [],
+      );
+
+      expect(result.dive.entryLatitude, isNull);
+      expect(result.dive.exitLatitude, closeTo(34.502, 1e-9));
+    });
+
+    test('ignores a fix missing one of its two coordinates', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({
+          'Start': {'Latitude': rad(34.5)},
+          'Stop': {'Longitude': rad(35.253)},
+        }),
+        samples: const [],
+      );
+
+      expect(result.dive.entryLatitude, isNull);
+      expect(result.dive.exitLatitude, isNull);
+    });
+
+    // A value that only makes sense as degrees would land far outside the
+    // globe once multiplied by 180/pi, so rejecting out-of-range results
+    // stops a mis-scaled fix being imported as a plausible-looking position.
+    test('rejects a fix that is out of range once converted', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithLocation({
+          'Start': {'Latitude': 34.5, 'Longitude': 35.25},
+        }),
+        samples: const [],
+      );
+
+      expect(result.dive.entryLatitude, isNull);
+      expect(result.dive.entryLongitude, isNull);
+    });
   });
 }

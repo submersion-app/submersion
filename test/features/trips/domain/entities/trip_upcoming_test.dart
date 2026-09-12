@@ -109,4 +109,29 @@ void main() {
       );
     });
   });
+
+  group('Trip.endsBefore', () {
+    // One reference date for "is this trip over": the scrubber card
+    // combined two getters that each read the clock, which could
+    // straddle midnight.
+    final trip = Trip(
+      id: 't',
+      name: 'T',
+      startDate: DateTime(2026, 6, 1),
+      endDate: DateTime(2026, 6, 5, 18),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test('a trip is over from the day after its last day', () {
+      expect(trip.endsBefore(DateTime(2026, 6, 6)), isTrue);
+      expect(trip.endsBefore(DateTime(2026, 6, 6, 0, 1)), isTrue);
+    });
+
+    test('its last day, at any hour, is not after it', () {
+      expect(trip.endsBefore(DateTime(2026, 6, 5)), isFalse);
+      expect(trip.endsBefore(DateTime(2026, 6, 5, 23, 59)), isFalse);
+      expect(trip.endsBefore(DateTime(2026, 6, 1)), isFalse);
+    });
+  });
 }

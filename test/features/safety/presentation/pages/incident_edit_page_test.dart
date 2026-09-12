@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -544,6 +545,72 @@ void main() {
     );
     expect(chip.selected, isTrue);
   });
+  group('queues the named gear for a findings refresh', () {
+    late List<Set<String>> requests;
+    final fins = EquipmentItem(
+      id: 'fins',
+      name: 'Jet Fins',
+      type: EquipmentType.fins,
+      createdAt: DateTime.utc(2026),
+    );
+
+    setUp(() {
+      requests = [];
+      SensorSummaryScheduler.instance.findingsRequestListener = requests.add;
+    });
+    tearDown(
+      () => SensorSummaryScheduler.instance.findingsRequestListener = null,
+    );
+
+    Future<_FakeIncidentRepository> openSaved(WidgetTester tester) async {
+      useTallSurface(tester);
+      final repo = _FakeIncidentRepository(
+        result: existingIncident().copyWith(equipmentId: 'reg'),
+      );
+      await tester.pumpWidget(
+        testAppRouter(
+          locale: const Locale('en'),
+          overrides: [
+            incidentRepositoryProvider.overrideWithValue(repo),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            activeEquipmentProvider.overrideWith((ref) async => [fins]),
+          ],
+          router: routerFor(const IncidentEditPage(incidentId: 'i1')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('moving an incident to another item refreshes both', (
+      tester,
+    ) async {
+      await openSaved(tester);
+      await tester.tap(find.text('Equipment involved'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Jet Fins'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(requests, [
+        {'reg', 'fins'},
+      ]);
+    });
+
+    testWidgets('deleting an incident refreshes its item', (tester) async {
+      await openSaved(tester);
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+      expect(requests, [
+        {'reg'},
+      ]);
+    });
+  });
+
   testWidgets('a saved category survives picking an item on edit', (
     tester,
   ) async {

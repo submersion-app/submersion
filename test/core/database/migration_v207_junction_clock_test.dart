@@ -27,6 +27,8 @@ const _junctions = [
 
 void main() {
   test('v207 is the current schema version and is in the ladder', () {
+    // Relaxed once v208 (the imported-file store, issue #478) landed on top;
+    // the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(207));
     expect(AppDatabase.migrationVersions, contains(207));
   });

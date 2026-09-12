@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
@@ -94,6 +95,7 @@ class DiveRepository {
   factory DiveRepository({
     MediaRepository? mediaRepository,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
+    ImportedFileReclaimer? importedFileReclaimer,
   }) {
     final media = mediaRepository ?? MediaRepository();
     return DiveRepository._(
@@ -107,13 +109,19 @@ class DiveRepository {
             // start, or any other kick; the Verify Library sweep is the
             // backstop.
           ),
+      importedFileReclaimer ?? ImportedFileReclaimer(),
     );
   }
 
-  DiveRepository._(this._mediaRepository, this._mediaDeletionCoordinator);
+  DiveRepository._(
+    this._mediaRepository,
+    this._mediaDeletionCoordinator,
+    this._importedFileReclaimer,
+  );
 
   final MediaRepository _mediaRepository;
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
+  final ImportedFileReclaimer _importedFileReclaimer;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final ProfileSeriesRepository _profileSeries = ProfileSeriesRepository();
@@ -1942,6 +1950,12 @@ class DiveRepository {
       // Check-ins on the dive stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives([id]);
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
+      // The FK cascade took this dive's dive_data_sources rows, which may
+      // have held the last reference to a stored import file (issue #478).
+      // Gated on cascadeMedia for the same reason the media cascade is: a
+      // restore-safe delete is about to re-insert source rows naming that
+      // file, and reclaiming it here would leave them pointing at nothing.
+      if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive: $id');
@@ -1969,6 +1983,8 @@ class DiveRepository {
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives(ids);
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+      // See deleteDive: the cascade may have orphaned a stored import file.
+      if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       for (final id in ids) {
         await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       }
@@ -2454,12 +2470,18 @@ class DiveRepository {
         filter.equipmentIds.length,
         '?',
       ).join(', ');
+      // Directly linked, or through a tank the registry matched to a
+      // cylinder, in step with the statistics filter and apply().
       clauses.add(
-        'EXISTS (SELECT 1 FROM dive_equipment de '
-        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders))',
+        '(EXISTS (SELECT 1 FROM dive_equipment de '
+        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders)) '
+        'OR EXISTS (SELECT 1 FROM dive_tanks dt '
+        'WHERE dt.dive_id = d.id AND dt.equipment_id IN ($placeholders)))',
       );
-      for (final eqId in filter.equipmentIds) {
-        args.add(Variable(eqId));
+      for (var pass = 0; pass < 2; pass++) {
+        for (final eqId in filter.equipmentIds) {
+          args.add(Variable(eqId));
+        }
       }
     }
     if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
@@ -3556,6 +3578,8 @@ class DiveRepository {
         resortName: trip.resortName,
         liveaboardName: trip.liveaboardName,
         notes: trip.notes,
+        expectedDives: trip.expectedDives,
+        expectedRuntimeMinutes: trip.expectedRuntimeMinutes,
         createdAt: DateTime.fromMillisecondsSinceEpoch(trip.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(trip.updatedAt),
       );
@@ -3966,6 +3990,8 @@ class DiveRepository {
           resortName: tripRow.resortName,
           liveaboardName: tripRow.liveaboardName,
           notes: tripRow.notes,
+          expectedDives: tripRow.expectedDives,
+          expectedRuntimeMinutes: tripRow.expectedRuntimeMinutes,
           createdAt: DateTime.fromMillisecondsSinceEpoch(tripRow.createdAt),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(tripRow.updatedAt),
         );
@@ -7370,6 +7396,7 @@ class DiveRepository {
       sourceFormat: row.sourceFormat,
       sourceFileName: row.sourceFileName,
       sourceFileFormat: row.sourceFileFormat,
+      importedFileId: row.importedFileId,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       duration: row.duration,

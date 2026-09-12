@@ -115,6 +115,8 @@ class TripRepository {
               returnFlightAt: Value(
                 trip.returnFlightAt?.millisecondsSinceEpoch,
               ),
+              expectedDives: Value(trip.expectedDives),
+              expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -158,6 +160,8 @@ class TripRepository {
           isShared: Value(trip.isShared),
           // Value(null) writes SQL NULL, so clearing the flight time works.
           returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
+          expectedDives: Value(trip.expectedDives),
+          expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
           updatedAt: Value(now),
         ),
       );
@@ -651,6 +655,8 @@ class TripRepository {
               isUtc: true,
             )
           : null,
+      expectedDives: row.expectedDives,
+      expectedRuntimeMinutes: row.expectedRuntimeMinutes,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -680,6 +686,8 @@ class TripRepository {
               isUtc: true,
             )
           : null,
+      expectedDives: data['expected_dives'] as int?,
+      expectedRuntimeMinutes: data['expected_runtime_minutes'] as int?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] as int),
     );

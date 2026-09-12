@@ -538,7 +538,7 @@
   "setup_welcome_skipSetup": "跳过设置",
   "setup_welcome_startFresh_subtitle": "创建潜水员档案并配置应用",
   "setup_welcome_startFresh_title": "创建新档案",
-  "setup_welcome_subtitle": "高级潜水日志与分析",
+  "setup_welcome_subtitle": "安全潜水，记录一切。",
   "setup_welcome_title": "欢迎使用 Submersion",
   "@tankPresets_deleteDefaultMessage": {
     "placeholders": {
@@ -1150,6 +1150,7 @@
   "preDive_runner_flag": "标记",
   "preDive_runner_undo": "重置为待办",
   "preDive_runner_serviceOverdue": "维护已逾期",
+  "preDive_runner_conditionFindings": "状态发现",
   "preDive_runner_addNote": "添加备注",
   "preDive_runner_enterValue": "输入数值",
   "preDive_runner_cellInAir": "空气中",
@@ -5127,7 +5128,7 @@
   "planning_welcome_title": "规划工具",
   "settings_about_aboutSubmersion": "关于 Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "深入探索。",
+  "settings_about_description": "安全潜水，记录一切。",
   "settings_about_header": "关于",
   "settings_about_openSourceLicenses": "开源许可证",
   "settings_about_reportIssue": "报告问题",
@@ -5376,6 +5377,7 @@
   "settings_conflict_ref_equipment": "装备",
   "settings_conflict_ref_equipmentSet": "装备套装",
   "settings_conflict_ref_finding": "发现项",
+  "settings_conflict_ref_importedFile": "导入的文件",
   "settings_conflict_ref_instructor": "教练",
   "settings_conflict_ref_linkedDive": "关联潜水",
   "settings_conflict_ref_media": "媒体",
@@ -5947,6 +5949,38 @@
   "statistics_equipment_weightTrend_error": "加载配重趋势失败",
   "statistics_equipment_weightTrend_subtitle": "每次潜水携带的总配重",
   "statistics_equipment_weightTrend_title": "配重趋势",
+  "statistics_equipment_exposure_title": "使用暴露",
+  "statistics_equipment_exposure_error": "无法加载使用暴露数据",
+  "statistics_equipment_findings_error": "无法加载状态发现",
+  "statistics_equipment_issues_error": "无法加载已报告的问题",
+  "statistics_equipment_exposure_subtitle": "按您的阈值统计每件装备的总量",
+  "statistics_equipment_exposure_empty": "尚无使用装备的潜水",
+  "statistics_equipment_findings_title": "状态发现",
+  "statistics_equipment_findings_subtitle": "按规则统计的未处理发现",
+  "statistics_equipment_findings_subtitleAllDives": "按规则统计的未处理发现（涵盖所有潜水）",
+  "statistics_equipment_findings_empty": "没有未处理的发现",
+  "statistics_equipment_issues_title": "已报告的问题",
+  "statistics_equipment_issues_subtitle": "最常见的检查标签",
+  "statistics_equipment_issues_empty": "未报告问题",
+  "statistics_equipment_countLabel_items": "件",
+  "statistics_equipment_countLabel_findings": "项",
+  "statistics_equipment_countLabel_reports": "条",
+  "statistics_equipment_exposureUnit_days": "天",
+  "statistics_equipment_exposureUnit_dives": "潜水",
+  "statistics_equipment_countLabel_days": "天",
+  "statistics_equipment_countLabel_dives": "潜水",
+  "statistics_equipment_countLabel_hours": "小时",
+  "statistics_equipment_countLabel_saltHours": "盐水小时",
+  "statistics_equipment_countLabel_coldDives": "冷水潜水",
+  "statistics_equipment_countLabel_o2Hours": "高氧小时",
+  "statistics_equipment_countLabel_deepCycles": "深潜",
+  "statistics_equipment_countLabel_cycles": "电池循环",
+  "statistics_equipment_exposureUnit_hours": "小时",
+  "statistics_equipment_exposureUnit_saltHours": "盐水小时",
+  "statistics_equipment_exposureUnit_coldDives": "冷水潜水",
+  "statistics_equipment_exposureUnit_o2Hours": "高氧小时",
+  "statistics_equipment_exposureUnit_deepCycles": "深潜",
+  "statistics_equipment_exposureUnit_cycles": "电池循环",
   "statistics_error_loadingStatistics": "加载统计数据时出错",
   "statistics_filterBar_clear": "清除筛选",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 次潜水} other{{count} 次潜水}}",
@@ -6594,6 +6628,119 @@
   "trips_edit_hint_vesselName": "例如：Ocean Explorer",
   "trips_edit_label_cabinType": "舱房类型",
   "trips_edit_label_capacity": "乘客容量",
+  "trips_edit_sectionTitle_planning": "计划",
+  "trips_edit_label_expectedDives": "预计潜水次数",
+  "trips_edit_hint_expectedDives": "留空则根据近期行程估算",
+  "trips_edit_label_expectedRuntime": "每次潜水预计运行时间（分钟）",
+  "trips_edit_hint_expectedRuntime": "留空则根据近期循环呼吸器潜水估算",
+  "trips_scrubber_title": "吸收剂余量",
+  "trips_scrubber_asOfStart": "截至 {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "行程前剩余 {minutes} 分钟（额定 {rated} 分钟，自上次更换以来已使用 {consumed} 分钟）",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "行程前剩余 {minutes} 分钟（额定 {rated} 分钟，已使用 {consumed} 分钟，未记录更换）",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, other{预计 {dives} 次潜水}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, other{（根据您最近 {n} 次行程）}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "（在本行程中设置）",
+  "trips_scrubber_perDive": "每次潜水 {minutes} 分钟",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, other{（根据您最近 {n} 次循环呼吸器潜水）}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "预计使用 {minutes} 分钟",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "行程后余量 {minutes} 分钟",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "低于额定时长的 20%。请安排更换或携带备用吸收剂。",
+  "trips_scrubber_noRating": "此呼吸器没有额定时长；请在属性中添加吸收剂时长或添加更换计划。",
+  "trips_scrubber_bannerMargin": "吸收剂余量 {minutes} 分钟",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} 台呼吸器，最低吸收剂余量 {minutes} 分钟",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "下船港口",
   "trips_edit_label_embarkPort": "登船港口",
   "trips_edit_label_endDate": "结束日期",
@@ -7108,6 +7255,14 @@
   "universalImport_label_options": "选项",
   "universalImport_label_photosAttached": "已附加照片",
   "universalImport_label_photosUnmatched": "未匹配到潜水的照片",
+  "diveLog_detail_menu_resyncImportedFile": "从原始文件重新同步",
+  "diveLog_detail_resyncSuccess": "潜水记录已根据原始文件更新",
+  "diveLog_detail_resyncFailed_diveMissing": "无法重新同步：该潜水记录已不存在",
+  "diveLog_detail_resyncFailed_noStoredFile": "无法重新同步：此潜水记录没有保存原始文件",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "无法重新同步：不支持此文件格式",
+  "diveLog_detail_resyncFailed_storedFileMissing": "无法重新同步：本设备上已找不到原始文件",
+  "diveLog_detail_resyncFailed_noMatchingDive": "无法重新同步：原始文件中已没有匹配的潜水记录",
+  "diveLog_detail_resyncFailed_unexpectedError": "无法重新同步：读取原始文件时发生意外错误",
   "universalImport_label_replaceSource": "替换源数据",
   "universalImport_label_replaceSourceSubtitle": "从同一台计算机更新",
   "universalImport_label_replacedSourceData": "已替换源数据",
@@ -8207,6 +8362,359 @@
   "settings_section_equipmentCondition_title": "装备状况",
   "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
   "equipmentConditionSettings_title": "装备状况",
+  "equipmentCondition_children_title": "已安装部件",
+  "equipmentCondition_children_slot": "插槽 {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "安装于 {date}，{age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{今天} =1{1 天前} other{{days} 天前}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 个月前} other{{months} 个月前}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "更换",
+  "equipmentCondition_children_open": "打开",
+  "equipmentCondition_children_replaceTitle": "更换 {name}？",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} 将于今天退役，新的{type}将在同一插槽中取代它。序列号和备注将从空白开始。",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "更换",
+  "equipmentCondition_children_replaceCancel": "取消",
+  "equipmentCondition_children_replaced": "已更换 {name}",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "未记录任何电池或电芯",
+  "equipmentCondition_children_add": "添加",
+  "equipmentCondition_findings_title": "状态发现",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 项发现} other{{count} 项发现}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "证据潜水",
+  "equipmentCondition_findings_dismiss": "忽略",
+  "equipmentCondition_findings_restore": "恢复",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{显示 1 项已忽略} other{显示 {count} 项已忽略}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "证据潜水",
+  "equipmentCondition_evidence_dive": "第 {number} 次潜水",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "潜水",
+  "equipmentCondition_evidence_minutes": "{n} 分钟",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "每次潜水的电池输出",
+  "equipmentCondition_trend_title_gap": "每次潜水的发射器断连",
+  "equipmentCondition_trend_title_scrubber": "每次潜水的吸收剂用量",
+  "equipmentCondition_trend_title_temperature": "每次潜水的最低温度",
+  "equipmentCondition_trend_cell": "电池 {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "有问题的潜水",
+  "equipmentCondition_trend_scrubber": "吸收剂分钟数",
+  "equipmentCondition_trend_gap": "断连占比",
+  "equipmentCondition_trend_temperature": "最低温度",
+  "equipmentCondition_trend_axis_minutes": "分钟",
+  "equipmentCondition_exposure_title": "使用暴露",
+  "equipmentCondition_exposure_empty": "尚无使用此装备的潜水",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 次潜水} other{{n} 次潜水}}，{range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 次潜水} other{{n} 次潜水}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} 小时",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} 小时盐水",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 次冷水潜水} other{{n} 次冷水潜水}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} 小时高氧",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 次深潜} other{{n} 次深潜}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 次电池循环} other{{n} 次电池循环}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "自 {since} 起，{n} 次潜水中电池 {slot} 的输出下降了 {percent}%",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "最近 {n} 次潜水中电池 {slot} 的输出为 {gain} mV/bar",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "最近 {n} 次潜水中有 {count} 次电池 {slot} 与其他电池的偏差达 {bar} bar",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "最近 {n} 次潜水中有 {count} 次电池 {slot} 在高 ppO2 下读数偏低，最多占样本的 {percent}%",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "最近 5 次潜水中压力信号中断占 {recent}%，此前 {priorCount} 次为 {prior}%",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "最近 {n} 次潜水中压力信号中断平均占 {recent}%，其中 {count} 次超过 10%",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "最近 {n} 次潜水中 {tag} 被记录了 {count} 次",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{totalIssue} 次出现问题的潜水中有 {insideIssue} 次低于 {threshold}，基于使用此装备的 {n} 次潜水",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{totalIssue} 次出现问题的潜水中有 {insideIssue} 次超过 {threshold}，基于使用此装备的 {n} 次潜水",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 起事件涉及此装备} other{{count} 起事件涉及此装备}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 次潜水} other{{n} 次潜水}}，{range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "暴露阈值",
   "equipmentConditionSettings_thresholdsHelp": "潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。",
   "equipmentConditionSettings_coldLabel": "冷水低于",
@@ -8238,7 +8746,39 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 次潜水无法汇总} other{{dives} 次潜水无法汇总}}；{items, plural, =1{1 件装备的状态发现无法刷新} other{{items} 件装备的状态发现无法刷新}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "传感器摘要已重建；{count, plural, =1{1 件装备的状态发现无法刷新} other{{count} 件装备的状态发现无法刷新}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "无法重建传感器摘要。",
+  "equipmentConditionSettings_masterToggle": "状态发现",
+  "equipmentConditionSettings_masterToggle_subtitle": "报告电池输出、发射器断连和已记录问题的趋势，并附上背后的数据",
+  "equipmentConditionSettings_rulesHeader": "规则",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "电池输出下降",
+  "equipmentConditionSettings_rule_cellOutputLow": "电池输出偏低",
+  "equipmentConditionSettings_rule_cellDivergent": "电池与其他电池不一致",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "高 ppO2 下电池电流受限",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "发射器断连增多",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "发射器断连频繁",
+  "equipmentConditionSettings_rule_issueRecurring": "反复出现的问题",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "冷水潜水中的问题",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "深潜中的问题",
+  "equipmentConditionSettings_rule_incidentLinked": "关联事件",
   "equipmentObservation_tag_freeFlow": "自由流",
   "equipmentObservation_tag_hardBreathing": "呼吸费力",
   "equipmentObservation_tag_wetBreathing": "呼吸进水",
@@ -11200,6 +11740,7 @@
   "settings_storageUsage_group_backups": "备份",
   "settings_storageUsage_group_temporary": "临时文件",
   "settings_storageUsage_group_exports": "导出的文件",
+  "settings_storageUsage_group_importedFiles": "原始导入数据",
   "settings_storageUsage_category_database": "潜水日志数据库",
   "settings_storageUsage_category_localCache": "本地缓存数据库",
   "settings_storageUsage_category_mediaCacheOriginals": "原始照片和视频",
@@ -11214,6 +11755,7 @@
   "settings_storageUsage_category_backups": "备份文件",
   "settings_storageUsage_category_temporary": "临时文件",
   "settings_storageUsage_category_exports": "导出的文件",
+  "settings_storageUsage_category_importedFiles": "原始导入文件",
   "profilePhoto_sheet_title": "个人资料照片",
   "profilePhoto_source_camera": "拍照",
   "profilePhoto_source_library": "从图库中选择",
@@ -11278,6 +11820,7 @@
   "transmitters_field_channel": "通道",
   "transmitters_field_role": "用途",
   "transmitters_field_gear": "来自装备的气瓶",
+  "transmitters_field_transmitterGear": "来自装备的无线发射器",
   "transmitters_field_material": "材质",
   "transmitters_gear_none": "无",
   "transmitters_validation_key": "请输入发射器序列号，或选择潜水电脑和通道",
@@ -11324,13 +11867,11 @@
   "enum_equipmentItemSortField_purchaseDate": "购买日期",
   "enum_equipmentItemSortField_dateAdded": "添加日期",
   "enum_equipmentItemSortField_lastServiceDate": "上次保养",
-  "equipment_arrange_title": "整理装备",
   "equipment_arrange_groupByType": "按类型分组",
   "equipment_arrange_groupByTypeSubtitle": "为每类装备显示标题",
   "equipment_arrange_typeOrderLabel": "类型排序方式",
   "equipment_arrange_itemOrderLabel": "然后按",
   "equipment_arrange_itemOrderLabelFlat": "排序方式",
-  "equipment_arrange_tooltip": "整理装备",
   "equipment_arrange_reset": "恢复默认",
   "equipment_arrange_saveFailed": "无法保存排列方式",
   "settings_appearance_gearArrangement": "装备排列",

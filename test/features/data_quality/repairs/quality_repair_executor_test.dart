@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
@@ -532,6 +533,68 @@ void main() {
         expect(await statusOf('d1'), QualityStatus.resolved);
       },
     );
+  });
+
+  group('a repair rebuilds the dive\'s sensor summary', () {
+    // The condition engine reads the summaries, and a repair (or its undo)
+    // can rewrite a profile or pressure series without touching the dive's
+    // updated_at, so the rebuild is forced.
+    // Each request as "sorted ids:forced", since sets compare by identity.
+    final requests = <String>[];
+    setUp(() {
+      requests.clear();
+      SensorSummaryScheduler.instance.summaryRequestListener = (ids, force) =>
+          requests.add('${(ids.toList()..sort()).join(',')}:$force');
+    });
+    tearDown(
+      () => SensorSummaryScheduler.instance.summaryRequestListener = null,
+    );
+
+    test('after the write and after its undo', () async {
+      final tankRepo = TankPressureRepository();
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 7, 1),
+          tanks: const [
+            domain.DiveTank(id: 't1'),
+            domain.DiveTank(id: 't2'),
+          ],
+        ),
+      );
+      await tankRepo.insertTankPressures('d1', {
+        't1': const [(timestamp: 0, pressure: 200.0)],
+        't2': const [(timestamp: 0, pressure: 100.0)],
+      });
+      final finding = await seedFindingForDive('d1');
+
+      final result = await executor.swapPressureSeries(
+        diveId: 'd1',
+        tankIdA: 't1',
+        tankIdB: 't2',
+        findingId: finding.id,
+      );
+      expect(requests, ['d1:true']);
+      await result.undo!();
+      expect(requests, ['d1:true', 'd1:true']);
+    });
+
+    test('for every dive a time shift moved', () async {
+      for (final id in ['d1', 'd2']) {
+        final entry = DateTime.utc(2026, 7, 1, 10);
+        await diveRepo.createDive(
+          domain.Dive(id: id, dateTime: entry, entryTime: entry),
+        );
+      }
+      final finding = await seedFindingForDive('d1');
+      final result = await executor.shiftTimes(
+        diveIds: ['d1', 'd2'],
+        offset: const Duration(hours: -6),
+        findingId: finding.id,
+      );
+      await result.undo!();
+      expect(requests, ['d1,d2:true', 'd1,d2:true']);
+    });
   });
 
   test('swapPressureSeries exchanges the two series, undo restores', () async {

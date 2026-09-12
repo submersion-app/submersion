@@ -10,6 +10,11 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_o
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
+import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -78,6 +83,23 @@ void main() {
             _equipment.id,
           ).overrideWith((ref) async => 0),
           equipmentComponentsProvider(
+            _equipment.id,
+          ).overrideWith((ref) async => const []),
+          equipmentExposureTotalsProvider(
+            _equipment.id,
+          ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+          equipmentConditionProvider(
+            _equipment.id,
+          ).overrideWith((ref) async => const []),
+          conditionTrendProvider((
+            equipmentId: _equipment.id,
+            kind: null,
+          )).overrideWith((ref) async => null),
+          conditionTrendProvider((
+            equipmentId: _equipment.id,
+            kind: ConditionTrendKind.scrubberMinutes,
+          )).overrideWith((ref) async => null),
+          childEquipmentProvider(
             _equipment.id,
           ).overrideWith((ref) async => const []),
           observationsForEquipmentProvider(

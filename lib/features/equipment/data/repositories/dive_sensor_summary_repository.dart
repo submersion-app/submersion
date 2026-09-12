@@ -35,6 +35,63 @@ class DiveSensorSummaryRepository {
     return row == null ? null : _toDomain(row);
   }
 
+  /// The stored rows for [diveIds], keyed by dive, in chunks that stay
+  /// under SQLite's bound-variable cap. Dives without a row are absent;
+  /// nothing is computed here (condition phase 3b, the engine's read).
+  Future<Map<String, DiveSensorSummary>> getSummaries(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const {};
+    final unique = diveIds.toSet().toList();
+    const chunk = 500;
+    final result = <String, DiveSensorSummary>{};
+    for (var start = 0; start < unique.length; start += chunk) {
+      final end = start + chunk < unique.length ? start + chunk : unique.length;
+      final rows = await (_db.select(
+        _db.diveSensorSummaries,
+      )..where((t) => t.diveId.isIn(unique.sublist(start, end)))).get();
+      for (final row in rows) {
+        result[row.diveId] = _toDomain(row);
+      }
+    }
+    return result;
+  }
+
+  /// The engine version and source stamp of each stored row among
+  /// [diveIds], keyed by dive, without decoding the summaries: the
+  /// condition review reads these on every visit, so it must stay cheap.
+  /// Dives without a row are absent.
+  Future<
+    Map<String, ({int engineVersion, int sourceUpdatedAt, int computedAt})>
+  >
+  getSummaryStamps(List<String> diveIds) async {
+    if (diveIds.isEmpty) return const {};
+    final unique = diveIds.toSet().toList();
+    const chunk = 500;
+    final t = _db.diveSensorSummaries;
+    final result =
+        <String, ({int engineVersion, int sourceUpdatedAt, int computedAt})>{};
+    for (var start = 0; start < unique.length; start += chunk) {
+      final end = start + chunk < unique.length ? start + chunk : unique.length;
+      final query = _db.selectOnly(t)
+        ..addColumns([
+          t.diveId,
+          t.engineVersion,
+          t.sourceUpdatedAt,
+          t.computedAt,
+        ])
+        ..where(t.diveId.isIn(unique.sublist(start, end)));
+      for (final row in await query.get()) {
+        result[row.read(t.diveId)!] = (
+          engineVersion: row.read(t.engineVersion)!,
+          sourceUpdatedAt: row.read(t.sourceUpdatedAt)!,
+          computedAt: row.read(t.computedAt)!,
+        );
+      }
+    }
+    return result;
+  }
+
   /// The stored row when its engine version and source stamp match the
   /// dive, else a fresh computation, stored before it is returned. Null
   /// when [diveId] does not exist. [force] recomputes regardless.

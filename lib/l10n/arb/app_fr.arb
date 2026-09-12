@@ -500,7 +500,7 @@
   "setup_welcome_skipSetup": "Ignorer la configuration",
   "setup_welcome_startFresh_subtitle": "Créez votre profil de plongeur et configurez l'application",
   "setup_welcome_startFresh_title": "Créer un nouveau profil",
-  "setup_welcome_subtitle": "Enregistrement et analyse avancés de plongée",
+  "setup_welcome_subtitle": "Plongez en sécurité. Enregistrez tout.",
   "setup_welcome_title": "Bienvenue dans Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -1056,6 +1056,7 @@
   "preDive_runner_flag": "Signaler",
   "preDive_runner_undo": "Remettre en attente",
   "preDive_runner_serviceOverdue": "Entretien en retard",
+  "preDive_runner_conditionFindings": "Constats d'état",
   "preDive_runner_addNote": "Ajouter une note",
   "preDive_runner_enterValue": "Saisir une valeur",
   "preDive_runner_cellInAir": "Dans l'air",
@@ -4877,7 +4878,7 @@
   "planning_welcome_title": "Outils de planification",
   "settings_about_aboutSubmersion": "À propos de Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Suivez vos plongées, gerez votre équipement et explorez les sites de plongée.",
+  "settings_about_description": "Plongez en sécurité. Enregistrez tout.",
   "settings_about_header": "À propos",
   "settings_about_openSourceLicenses": "Licences open source",
   "settings_about_reportIssue": "Signaler un problème",
@@ -5124,6 +5125,7 @@
   "settings_conflict_ref_equipment": "Équipement",
   "settings_conflict_ref_equipmentSet": "Ensemble d'équipement",
   "settings_conflict_ref_finding": "Anomalie",
+  "settings_conflict_ref_importedFile": "Fichier importé",
   "settings_conflict_ref_instructor": "Moniteur",
   "settings_conflict_ref_linkedDive": "Plongée liée",
   "settings_conflict_ref_media": "Médias",
@@ -5672,6 +5674,38 @@
   "statistics_equipment_weightTrend_error": "Échec du chargement de la tendance de lestage",
   "statistics_equipment_weightTrend_subtitle": "Lest total par plongée",
   "statistics_equipment_weightTrend_title": "Tendance de lestage",
+  "statistics_equipment_exposure_title": "Exposition",
+  "statistics_equipment_exposure_error": "Impossible de charger les données d'exposition",
+  "statistics_equipment_findings_error": "Impossible de charger les constats d'état",
+  "statistics_equipment_issues_error": "Impossible de charger les problèmes signalés",
+  "statistics_equipment_exposure_subtitle": "Totaux par équipement avec vos seuils",
+  "statistics_equipment_exposure_empty": "Aucune plongée avec équipement pour l'instant",
+  "statistics_equipment_findings_title": "Constats d'état",
+  "statistics_equipment_findings_subtitle": "Constats ouverts par règle",
+  "statistics_equipment_findings_subtitleAllDives": "Constats ouverts par règle, sur toutes les plongées",
+  "statistics_equipment_findings_empty": "Aucun constat ouvert",
+  "statistics_equipment_issues_title": "Problèmes signalés",
+  "statistics_equipment_issues_subtitle": "Étiquettes de contrôle les plus fréquentes",
+  "statistics_equipment_issues_empty": "Aucun problème signalé",
+  "statistics_equipment_countLabel_items": "équipements",
+  "statistics_equipment_countLabel_findings": "constats",
+  "statistics_equipment_countLabel_reports": "signalements",
+  "statistics_equipment_exposureUnit_days": "Jours",
+  "statistics_equipment_exposureUnit_dives": "Plongées",
+  "statistics_equipment_countLabel_days": "jours",
+  "statistics_equipment_countLabel_dives": "plongées",
+  "statistics_equipment_countLabel_hours": "heures",
+  "statistics_equipment_countLabel_saltHours": "heures en eau salée",
+  "statistics_equipment_countLabel_coldDives": "plongées froides",
+  "statistics_equipment_countLabel_o2Hours": "heures à O2 élevé",
+  "statistics_equipment_countLabel_deepCycles": "plongées profondes",
+  "statistics_equipment_countLabel_cycles": "cycles de batterie",
+  "statistics_equipment_exposureUnit_hours": "Heures",
+  "statistics_equipment_exposureUnit_saltHours": "Heures en eau salée",
+  "statistics_equipment_exposureUnit_coldDives": "Plongées froides",
+  "statistics_equipment_exposureUnit_o2Hours": "Heures à O2 élevé",
+  "statistics_equipment_exposureUnit_deepCycles": "Plongées profondes",
+  "statistics_equipment_exposureUnit_cycles": "Cycles de batterie",
   "statistics_error_loadingStatistics": "Erreur de chargement des statistiques",
   "statistics_filterBar_clear": "Effacer le filtre",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 plongée} other{{count} plongées}}",
@@ -6324,6 +6358,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Planification",
+  "trips_edit_label_expectedDives": "Plongées prévues",
+  "trips_edit_hint_expectedDives": "Laisser vide pour estimer d'après vos voyages récents",
+  "trips_edit_label_expectedRuntime": "Durée prévue par plongée (minutes)",
+  "trips_edit_hint_expectedRuntime": "Laisser vide pour estimer d'après vos plongées en recycleur récentes",
+  "trips_scrubber_title": "Marge de chaux",
+  "trips_scrubber_asOfStart": "au {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min restantes avant le voyage (nominal {rated} min, {consumed} min utilisées depuis le dernier remplissage)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min restantes avant le voyage (nominal {rated} min, {consumed} min utilisées, aucun remplissage enregistré)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} plongée prévue} other{{dives} plongées prévues}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(d'après votre dernier voyage)} other{(d'après vos {n} derniers voyages)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(défini sur ce voyage)",
+  "trips_scrubber_perDive": "{minutes} min par plongée",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(d'après votre dernière plongée en recycleur)} other{(d'après vos {n} dernières plongées en recycleur)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min d'usage prévu",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min de marge après le voyage",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Moins de 20 pour cent de la durée nominale. Prévoyez un remplissage ou emportez de la chaux de rechange.",
+  "trips_scrubber_noRating": "Aucune durée nominale sur ce recycleur ; ajoutez la durée de la chaux à ses attributs ou un calendrier de remplissage.",
+  "trips_scrubber_bannerMargin": "{minutes} min de marge de chaux",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} recycleurs, la plus faible marge de chaux est de {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Date de fin",
@@ -7108,6 +7255,14 @@
   "universalImport_label_options": "Options",
   "universalImport_label_photosAttached": "Photos jointes",
   "universalImport_label_photosUnmatched": "Photos sans plongée correspondante",
+  "diveLog_detail_menu_resyncImportedFile": "Resynchroniser depuis le fichier original",
+  "diveLog_detail_resyncSuccess": "Plongée mise à jour à partir du fichier original",
+  "diveLog_detail_resyncFailed_diveMissing": "Impossible de resynchroniser : cette plongée n'existe plus",
+  "diveLog_detail_resyncFailed_noStoredFile": "Impossible de resynchroniser : aucun fichier original n'est enregistré pour cette plongée",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "Impossible de resynchroniser : ce format de fichier n'est pas pris en charge",
+  "diveLog_detail_resyncFailed_storedFileMissing": "Impossible de resynchroniser : le fichier original est introuvable sur cet appareil",
+  "diveLog_detail_resyncFailed_noMatchingDive": "Impossible de resynchroniser : le fichier original ne contient plus de plongée correspondante",
+  "diveLog_detail_resyncFailed_unexpectedError": "Impossible de resynchroniser : une erreur inattendue s'est produite lors de la lecture du fichier original",
   "universalImport_label_replaceSource": "Remplacer la source",
   "universalImport_label_replaceSourceSubtitle": "Mettre à jour depuis le même ordinateur",
   "universalImport_label_replacedSourceData": "Données source remplacées",
@@ -8207,6 +8362,359 @@
   "settings_section_equipmentCondition_title": "État du matériel",
   "settings_section_equipmentCondition_subtitle": "Seuils d'exposition pour les compteurs d'entretien",
   "equipmentConditionSettings_title": "État du matériel",
+  "equipmentCondition_children_title": "Pièces installées",
+  "equipmentCondition_children_slot": "Emplacement {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Installé le {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{aujourd'hui} =1{il y a 1 jour} other{il y a {days} jours}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{il y a 1 mois} other{il y a {months} mois}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Remplacer",
+  "equipmentCondition_children_open": "Ouvrir",
+  "equipmentCondition_children_replaceTitle": "Remplacer {name} ?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} est retiré aujourd'hui et un nouvel élément de type {type} prend sa place dans le même emplacement. Le numéro de série et les notes démarrent vides.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Remplacer",
+  "equipmentCondition_children_replaceCancel": "Annuler",
+  "equipmentCondition_children_replaced": "{name} remplacé",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Aucune cellule ni batterie enregistrée",
+  "equipmentCondition_children_add": "Ajouter",
+  "equipmentCondition_findings_title": "Constats d'état",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 constat} other{{count} constats}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Plongées à l'appui",
+  "equipmentCondition_findings_dismiss": "Ignorer",
+  "equipmentCondition_findings_restore": "Rétablir",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Afficher 1 ignoré} other{Afficher {count} ignorés}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Plongées à l'appui",
+  "equipmentCondition_evidence_dive": "Plongée {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Plongée",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "Sortie des cellules par plongée",
+  "equipmentCondition_trend_title_gap": "Pertes de signal de l'émetteur par plongée",
+  "equipmentCondition_trend_title_scrubber": "Usage de la chaux par plongée",
+  "equipmentCondition_trend_title_temperature": "Température minimale par plongée",
+  "equipmentCondition_trend_cell": "Cellule {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Plongées avec un problème",
+  "equipmentCondition_trend_scrubber": "Minutes de chaux",
+  "equipmentCondition_trend_gap": "Part des pertes",
+  "equipmentCondition_trend_temperature": "Température minimale",
+  "equipmentCondition_trend_axis_minutes": "min",
+  "equipmentCondition_exposure_title": "Exposition",
+  "equipmentCondition_exposure_empty": "Aucune plongée avec cet équipement pour l'instant",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 plongée} other{{n} plongées}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 plongée} other{{n} plongées}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} heures",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} heures en eau salée",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 plongée froide} other{{n} plongées froides}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} heures à O2 élevé",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 plongée profonde} other{{n} plongées profondes}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 cycle de batterie} other{{n} cycles de batterie}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "La sortie de la cellule {slot} a chuté de {percent} pour cent sur {n} plongées depuis le {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "La sortie de la cellule {slot} est de {gain} mV par bar sur les {n} dernières plongées",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "La cellule {slot} a divergé des autres jusqu'à {bar} bar sur {count} des {n} dernières plongées",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "La cellule {slot} a lu trop bas à ppO2 élevée sur {count} des {n} dernières plongées, jusqu'à {percent} pour cent des mesures",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "La pression a été perdue pendant {recent} pour cent des 5 dernières plongées, contre {prior} pour cent sur les {priorCount} précédentes",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "La pression a été perdue pendant {recent} pour cent des {n} dernières plongées en moyenne, dont {count} au-dessus de 10 pour cent",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} signalé {count} fois sur les {n} dernières plongées",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} des {totalIssue} plongées avec un problème étaient plus froides que {threshold}, sur {n} plongées avec cet équipement",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} des {totalIssue} plongées avec un problème allaient au-delà de {threshold}, sur {n} plongées avec cet équipement",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 incident mentionne cet équipement} other{{count} incidents mentionnent cet équipement}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 plongée} other{{n} plongées}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Seuils d'exposition",
   "equipmentConditionSettings_thresholdsHelp": "Une plongée compte comme froide, profonde ou à haut O2 pour les compteurs d'entretien lorsqu'elle franchit ces seuils.",
   "equipmentConditionSettings_coldLabel": "Eau froide en dessous de",
@@ -8238,7 +8746,39 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 plongée n'a pas pu être synthétisée} other{{dives} plongées n'ont pas pu être synthétisées}} ; les constats d'état de {items, plural, =1{1 équipement} other{{items} équipements}} n'ont pas pu être actualisés",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Synthèses des capteurs reconstruites ; les constats d'état de {count, plural, =1{1 équipement} other{{count} équipements}} n'ont pas pu être actualisés",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "Impossible de reconstruire les synthèses des capteurs.",
+  "equipmentConditionSettings_masterToggle": "Constats d'état",
+  "equipmentConditionSettings_masterToggle_subtitle": "Signale les tendances de la sortie des cellules, des pertes de signal de l'émetteur et des problèmes signalés, avec les chiffres à l'appui",
+  "equipmentConditionSettings_rulesHeader": "Règles",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "Sortie de cellule en baisse",
+  "equipmentConditionSettings_rule_cellOutputLow": "Sortie de cellule faible",
+  "equipmentConditionSettings_rule_cellDivergent": "Cellule en désaccord avec les autres",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "Cellule limitée en courant à ppO2 élevée",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "Pertes de signal de l'émetteur en hausse",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "Pertes de signal de l'émetteur élevées",
+  "equipmentConditionSettings_rule_issueRecurring": "Problème récurrent",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "Problèmes lors des plongées froides",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "Problèmes lors des plongées profondes",
+  "equipmentConditionSettings_rule_incidentLinked": "Incidents liés",
   "equipmentObservation_tag_freeFlow": "Débit continu",
   "equipmentObservation_tag_hardBreathing": "Respiration dure",
   "equipmentObservation_tag_wetBreathing": "Respiration humide",
@@ -11200,6 +11740,7 @@
   "settings_storageUsage_group_backups": "Sauvegardes",
   "settings_storageUsage_group_temporary": "Fichiers temporaires",
   "settings_storageUsage_group_exports": "Fichiers exportés",
+  "settings_storageUsage_group_importedFiles": "Données brutes importées",
   "settings_storageUsage_category_database": "Base de données du carnet de plongée",
   "settings_storageUsage_category_localCache": "Base de données de cache locale",
   "settings_storageUsage_category_mediaCacheOriginals": "Photos et vidéos originales",
@@ -11214,6 +11755,7 @@
   "settings_storageUsage_category_backups": "Fichiers de sauvegarde",
   "settings_storageUsage_category_temporary": "Fichiers temporaires",
   "settings_storageUsage_category_exports": "Fichiers exportés",
+  "settings_storageUsage_category_importedFiles": "Fichiers d'importation originaux",
   "profilePhoto_sheet_title": "Photo de profil",
   "profilePhoto_source_camera": "Prendre une photo",
   "profilePhoto_source_library": "Choisir dans la galerie",
@@ -11278,6 +11820,7 @@
   "transmitters_field_channel": "Canal",
   "transmitters_field_role": "Rôle",
   "transmitters_field_gear": "Bouteille de l'équipement",
+  "transmitters_field_transmitterGear": "Émetteur de l’équipement",
   "transmitters_field_material": "Matériau",
   "transmitters_gear_none": "Aucune",
   "transmitters_validation_key": "Saisissez un numéro de série, ou choisissez un ordinateur et un canal",
@@ -11324,13 +11867,11 @@
   "enum_equipmentItemSortField_purchaseDate": "Date d'achat",
   "enum_equipmentItemSortField_dateAdded": "Date d'ajout",
   "enum_equipmentItemSortField_lastServiceDate": "Dernier entretien",
-  "equipment_arrange_title": "Organiser l'équipement",
   "equipment_arrange_groupByType": "Grouper par type",
   "equipment_arrange_groupByTypeSubtitle": "Afficher un titre pour chaque type d'équipement",
   "equipment_arrange_typeOrderLabel": "Trier les types par",
   "equipment_arrange_itemOrderLabel": "Puis par",
   "equipment_arrange_itemOrderLabelFlat": "Trier par",
-  "equipment_arrange_tooltip": "Organiser l'équipement",
   "equipment_arrange_reset": "Réinitialiser",
   "equipment_arrange_saveFailed": "Impossible d'enregistrer l'organisation",
   "settings_appearance_gearArrangement": "Organisation de l'équipement",

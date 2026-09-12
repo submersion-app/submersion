@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
@@ -378,6 +379,10 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
         ),
       );
     }
+    // The incident rule reads this item's incidents, and a moved incident
+    // leaves the item it was on as well.
+    final touched = {?_equipmentId, ?_existing?.equipmentId};
+    if (touched.isNotEmpty) scheduleConditionFindingsRefresh(touched);
     if (mounted) context.pop();
   }
 
@@ -401,6 +406,9 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     );
     if (confirmed != true || !mounted) return;
     await ref.read(incidentRepositoryProvider).deleteIncident(_existing!.id);
+    if (_existing!.equipmentId case final item?) {
+      scheduleConditionFindingsRefresh([item]);
+    }
     if (mounted) context.pop();
   }
 }

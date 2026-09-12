@@ -17,12 +17,14 @@ import 'package:submersion/features/data_quality/presentation/providers/quality_
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 import '../../../helpers/l10n_test_helpers.dart';
 import '../../../helpers/test_database.dart';
@@ -263,6 +265,18 @@ class _FailingDiveRepository implements DiveRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Splits every source off into dive 'split-new'.
+class _FakeSplitService implements DiveSplitService {
+  @override
+  Future<String> split({
+    required String diveId,
+    required String sourceId,
+  }) async => 'split-new';
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
   setUp(() async {
     await setUpTestDatabase();
@@ -312,6 +326,56 @@ void main() {
     await tester.tap(find.byType(ListTile).first); // expand
     await tester.pumpAndSettle();
     expect(find.text('Go to dive'), findsOneWidget);
+  });
+
+  testWidgets('a split rebuilds the sensor summaries of both dives', (
+    tester,
+  ) async {
+    // The condition engine reads the summaries, and the split rewrites the
+    // original's profile without touching its updated_at.
+    final requests = <String>[];
+    SensorSummaryScheduler.instance.summaryRequestListener = (ids, force) =>
+        requests.add('${(ids.toList()..sort()).join(',')}:$force');
+    addTearDown(
+      () => SensorSummaryScheduler.instance.summaryRequestListener = null,
+    );
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ..._overrides(
+            prefs,
+            findings: [
+              _f(
+                id: 'f-conflict',
+                detectorId: 'source_conflict',
+                category: QualityCategory.profile,
+                params: const {'sourceId': 's1', 'primarySeconds': 100},
+              ),
+            ],
+          ),
+          diveSplitServiceProvider.overrideWithValue(_FakeSplitService()),
+        ].cast(),
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const DataQualityInboxPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(QualityFindingCard),
+            matching: find.byType(Icon),
+          )
+          .first,
+    ); // expand
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Split into separate dives'));
+    await tester.pumpAndSettle();
+    expect(requests, ['d1,split-new:true']);
   });
 
   // --- Rendering / formatter coverage --------------------------------------

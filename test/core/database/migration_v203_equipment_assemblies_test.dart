@@ -36,8 +36,9 @@ void main() {
   test('v203 is in the ladder and shipped', () {
     // Renumbered twice: the cell linearity link took 201 and condition
     // intelligence took 202 while this branch was open.
-    // Relaxed as this rung's own convention asks, now that v204 (dive list
-    // trip grouping) sits on top; the newest rung owns the exact assertion.
+    // Relaxed as this rung's own convention asks, now that later rungs
+    // (v204, v206, v207) sit on top; the newest rung owns the exact
+    // assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(203));
     expect(AppDatabase.migrationVersions, contains(203));
   });

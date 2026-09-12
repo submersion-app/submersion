@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -65,7 +67,11 @@ class GasWarningsDisplay extends ConsumerWidget {
                   child: _buildMetric(
                     context,
                     label: 'ppO₂',
-                    value: units.formatPressure(ppO2),
+                    // ppO2 is always shown in bar, never the diver's tank
+                    // pressure unit, matching the planner's ppO2 warnings.
+                    value:
+                        '${formatFixedForDisplay(ppO2, 2)} '
+                        '${PressureUnit.bar.symbol}',
                     status: ppO2Status,
                     tooltip: _getPpO2Tooltip(context, ppO2),
                   ),

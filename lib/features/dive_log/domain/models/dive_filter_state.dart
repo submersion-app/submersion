@@ -346,7 +346,12 @@ class DiveFilterState {
         return false;
       }
       if (equipmentIds.isNotEmpty) {
-        final diveEquipmentIds = dive.equipment.map((e) => e.id).toSet();
+        // Directly linked, or through a tank the registry matched to a
+        // cylinder: in step with the SQL filters.
+        final diveEquipmentIds = {
+          for (final e in dive.equipment) e.id,
+          for (final t in dive.tanks) ?t.equipmentId,
+        };
         if (!equipmentIds.any((eqId) => diveEquipmentIds.contains(eqId))) {
           return false;
         }

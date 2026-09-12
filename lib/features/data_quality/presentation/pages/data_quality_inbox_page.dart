@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassi
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
     qualityUnitFormattersFor(UnitFormatter(ref.watch(settingsProvider)));
@@ -234,6 +235,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               .read(diveSplitServiceProvider)
               .split(diveId: diveId, sourceId: sourceId);
           scheduleQualityScan([diveId, newId]);
+          scheduleSensorSummaryRefresh([diveId, newId], force: true);
         } catch (e) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),

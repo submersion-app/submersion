@@ -1480,11 +1480,19 @@ class SyncService {
           // append-only and use the blind-upsert merge path (no updatedAt
           // column: diveCustomFields, diveDataSources, siteSpecies,
           // mediaSpecies, fieldPresets). Two carry updatedAt and use the standard
-          // conflict-detection path (csvPresets, viewConfigs). FK ordering
+          // conflict-detection path (csvPresets, viewConfigs). importedFiles
+          // carries updatedAt and still blind-upserts: its id is the sha256
+          // of its bytes, so two devices holding the same id hold the same
+          // row and there is nothing to overlay or conflict over. FK ordering
           // is handled by the deferred-FK transaction wrapping this loop.
           (
             type: 'diveCustomFields',
             records: data.diveCustomFields,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'importedFiles',
+            records: data.importedFiles,
             hasUpdatedAt: false,
           ),
           (
@@ -1583,6 +1591,11 @@ class SyncService {
             type: 'equipmentObservations',
             records: data.equipmentObservations,
             hasUpdatedAt: true,
+          ),
+          (
+            type: 'equipmentFindings',
+            records: data.equipmentFindings,
+            hasUpdatedAt: false,
           ),
         ];
 
@@ -2322,8 +2335,13 @@ class SyncService {
     'emergencyChambers': true,
     'incidents': true,
     'equipmentObservations': true,
+    'equipmentFindings': false,
     'gasSwitches': false,
     'diveCustomFields': false,
+    // The id is the sha256 of the bytes, so the row is immutable and two
+    // devices that hold the same id hold the same row: nothing to overlay,
+    // nothing to raise a conflict card for (issue #478).
+    'importedFiles': false,
     'diveDataSources': false,
     'siteSpecies': false,
     'mediaSpecies': false,
@@ -2413,6 +2431,8 @@ class SyncService {
     // cylinder or computer (set null), so a missing parent must not drop it.
     'transmitters': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+      // v206: the transmitter gear item the entry is (condition phase 3b).
+      (field: 'transmitterEquipmentId', parent: 'equipment', nullable: true),
       (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
     ],
     // v202: a child item (O2 cell, battery) points at the item it is installed
@@ -2467,6 +2487,10 @@ class SyncService {
       (field: 'diverId', parent: 'divers', nullable: true),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'diveId', parent: 'dives', nullable: true),
+    ],
+    // v202: condition findings, write-once children of equipment.
+    'equipmentFindings': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
     'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],

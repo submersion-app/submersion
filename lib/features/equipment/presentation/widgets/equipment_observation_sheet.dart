@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/constants/observation_tag_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
@@ -69,6 +70,7 @@ Future<void> confirmDeleteObservation(
   );
   if (confirmed != true || !context.mounted) return;
   await ref.read(equipmentObservationRepositoryProvider).delete(observation.id);
+  scheduleConditionFindingsRefresh([observation.equipmentId]);
 }
 
 class _ObservationSheet extends ConsumerStatefulWidget {
@@ -241,6 +243,8 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
           ),
         );
       }
+      // Stored findings follow the write even with no item page open.
+      scheduleConditionFindingsRefresh([widget.equipment.id]);
       if (!mounted) return;
       _closeEditor();
     } catch (_) {

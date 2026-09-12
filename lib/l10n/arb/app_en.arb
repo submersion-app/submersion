@@ -1639,6 +1639,7 @@
   "preDive_runner_flag": "Flag",
   "preDive_runner_undo": "Reset to pending",
   "preDive_runner_serviceOverdue": "Service overdue",
+  "preDive_runner_conditionFindings": "Condition findings",
   "preDive_runner_addNote": "Add note",
   "preDive_runner_enterValue": "Enter value",
   "preDive_runner_cellInAir": "In air",
@@ -3833,7 +3834,7 @@
   "setup_welcome_skipSetup": "Skip setup",
   "setup_welcome_startFresh_subtitle": "Create your diver profile and configure the app",
   "setup_welcome_startFresh_title": "Set up a new profile",
-  "setup_welcome_subtitle": "Advanced dive logging and analytics",
+  "setup_welcome_subtitle": "Dive safe. Log everything.",
   "setup_welcome_title": "Welcome to Submersion",
   "siteMatchReview_title": "Match Sites",
   "siteMatchReview_diveNumber": "Dive #{number}",
@@ -9560,7 +9561,7 @@
   "planning_welcome_title": "Planning Tools",
   "settings_about_aboutSubmersion": "About Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Dive deeper.",
+  "settings_about_description": "Dive safe. Log everything.",
   "settings_about_header": "About",
   "settings_about_openSourceLicenses": "Open Source Licenses",
   "settings_about_reportIssue": "Report an Issue",
@@ -10299,6 +10300,7 @@
   "settings_conflict_ref_equipment": "Equipment",
   "settings_conflict_ref_equipmentSet": "Equipment set",
   "settings_conflict_ref_finding": "Finding",
+  "settings_conflict_ref_importedFile": "Imported file",
   "settings_conflict_ref_instructor": "Instructor",
   "settings_conflict_ref_linkedDive": "Linked dive",
   "settings_conflict_ref_media": "Media",
@@ -11368,6 +11370,38 @@
   "statistics_equipment_weightTrend_error": "Failed to load weight trend",
   "statistics_equipment_weightTrend_subtitle": "Total lead carried per dive",
   "statistics_equipment_weightTrend_title": "Weight Trend",
+  "statistics_equipment_exposure_title": "Exposure",
+  "statistics_equipment_exposure_error": "Failed to load exposure data",
+  "statistics_equipment_findings_error": "Failed to load condition findings",
+  "statistics_equipment_issues_error": "Failed to load reported issues",
+  "statistics_equipment_exposure_subtitle": "Totals per item with your thresholds",
+  "statistics_equipment_exposure_empty": "No dives with gear yet",
+  "statistics_equipment_findings_title": "Condition findings",
+  "statistics_equipment_findings_subtitle": "Open findings by rule",
+  "statistics_equipment_findings_subtitleAllDives": "Open findings by rule, across all dives",
+  "statistics_equipment_findings_empty": "No open findings",
+  "statistics_equipment_issues_title": "Reported issues",
+  "statistics_equipment_issues_subtitle": "Most frequent check-in tags",
+  "statistics_equipment_issues_empty": "No issues reported",
+  "statistics_equipment_countLabel_items": "items",
+  "statistics_equipment_countLabel_findings": "findings",
+  "statistics_equipment_countLabel_reports": "reports",
+  "statistics_equipment_exposureUnit_days": "Days",
+  "statistics_equipment_exposureUnit_dives": "Dives",
+  "statistics_equipment_countLabel_days": "days",
+  "statistics_equipment_countLabel_dives": "dives",
+  "statistics_equipment_countLabel_hours": "hours",
+  "statistics_equipment_countLabel_saltHours": "salt-water hours",
+  "statistics_equipment_countLabel_coldDives": "cold dives",
+  "statistics_equipment_countLabel_o2Hours": "high-O2 hours",
+  "statistics_equipment_countLabel_deepCycles": "deep dives",
+  "statistics_equipment_countLabel_cycles": "battery cycles",
+  "statistics_equipment_exposureUnit_hours": "Hours",
+  "statistics_equipment_exposureUnit_saltHours": "Salt-water hours",
+  "statistics_equipment_exposureUnit_coldDives": "Cold dives",
+  "statistics_equipment_exposureUnit_o2Hours": "High-O2 hours",
+  "statistics_equipment_exposureUnit_deepCycles": "Deep dives",
+  "statistics_equipment_exposureUnit_cycles": "Battery cycles",
   "statistics_error_loadingStatistics": "Error loading statistics",
   "statistics_filterBar_clear": "Clear filter",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
@@ -12856,6 +12890,119 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_hint_cabinType": "e.g. Deluxe Double",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Planning",
+  "trips_edit_label_expectedDives": "Expected dives",
+  "trips_edit_hint_expectedDives": "Leave empty to estimate from your recent trips",
+  "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
+  "trips_edit_hint_expectedRuntime": "Leave empty to estimate from your recent rebreather dives",
+  "trips_scrubber_title": "Scrubber margin",
+  "trips_scrubber_asOfStart": "as of {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min left before the trip (rated {rated} min, {consumed} min used, no repack recorded)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} expected dive} other{{dives} expected dives}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(from your last trip)} other{(from your last {n} trips)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(set on this trip)",
+  "trips_scrubber_perDive": "{minutes} min per dive",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(from your last rebreather dive)} other{(from your last {n} rebreather dives)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min expected use",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min margin after the trip",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.",
+  "trips_scrubber_noRating": "No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.",
+  "trips_scrubber_bannerMargin": "{minutes} min scrubber margin",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreathers, lowest {minutes} min scrubber margin",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_sectionTitle_embarkDisembark": "Embark / Disembark",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_hint_embarkPort": "e.g. Hurghada Marina",
@@ -15856,6 +16003,38 @@
       }
     }
   },
+  "diveLog_detail_menu_resyncImportedFile": "Resync from original file",
+  "@diveLog_detail_menu_resyncImportedFile": {
+    "description": "Menu item to re-parse a file-imported dive from its originally stored file"
+  },
+  "diveLog_detail_resyncSuccess": "Dive updated from the original file",
+  "@diveLog_detail_resyncSuccess": {
+    "description": "Snackbar shown after a successful resync"
+  },
+  "diveLog_detail_resyncFailed_diveMissing": "Could not resync: this dive no longer exists",
+  "@diveLog_detail_resyncFailed_diveMissing": {
+    "description": "Snackbar shown when a resync cannot run because the dive was deleted meanwhile"
+  },
+  "diveLog_detail_resyncFailed_noStoredFile": "Could not resync: no original file is stored for this dive",
+  "@diveLog_detail_resyncFailed_noStoredFile": {
+    "description": "Snackbar shown when a resync cannot run because no original file is stored for the dive"
+  },
+  "diveLog_detail_resyncFailed_unsupportedFormat": "Could not resync: this file format is not supported",
+  "@diveLog_detail_resyncFailed_unsupportedFormat": {
+    "description": "Snackbar shown when a resync cannot run because the stored file's format has no parser"
+  },
+  "diveLog_detail_resyncFailed_storedFileMissing": "Could not resync: the original file is missing from this device",
+  "@diveLog_detail_resyncFailed_storedFileMissing": {
+    "description": "Snackbar shown when a resync cannot run because the stored original file is gone from disk"
+  },
+  "diveLog_detail_resyncFailed_noMatchingDive": "Could not resync: the original file no longer contains a matching dive",
+  "@diveLog_detail_resyncFailed_noMatchingDive": {
+    "description": "Snackbar shown when the re-parsed original file no longer contains a dive matching this one"
+  },
+  "diveLog_detail_resyncFailed_unexpectedError": "Could not resync: an unexpected error occurred while reading the original file",
+  "@diveLog_detail_resyncFailed_unexpectedError": {
+    "description": "Snackbar shown when reading or parsing the stored original file threw"
+  },
   "universalImport_label_replaceSource": "Replace Source",
   "@universalImport_label_replaceSource": {
     "description": "Label for the replace source duplicate action"
@@ -17241,6 +17420,359 @@
   "settings_section_equipmentCondition_title": "Equipment condition",
   "settings_section_equipmentCondition_subtitle": "Exposure thresholds for service clocks",
   "equipmentConditionSettings_title": "Equipment condition",
+  "equipmentCondition_children_title": "Installed parts",
+  "equipmentCondition_children_slot": "Slot {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Installed {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{today} =1{1 day ago} other{{days} days ago}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 month ago} other{{months} months ago}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Replace",
+  "equipmentCondition_children_open": "Open",
+  "equipmentCondition_children_replaceTitle": "Replace {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} is retired today and a new {type} takes its place in the same slot. Serial and notes start empty.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Replace",
+  "equipmentCondition_children_replaceCancel": "Cancel",
+  "equipmentCondition_children_replaced": "{name} replaced",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "No cells or batteries recorded",
+  "equipmentCondition_children_add": "Add",
+  "equipmentCondition_findings_title": "Condition findings",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 finding} other{{count} findings}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Evidence dives",
+  "equipmentCondition_findings_dismiss": "Dismiss",
+  "equipmentCondition_findings_restore": "Restore",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Evidence dives",
+  "equipmentCondition_evidence_dive": "Dive {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Dive",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "Cell output per dive",
+  "equipmentCondition_trend_title_gap": "Transmitter dropouts per dive",
+  "equipmentCondition_trend_title_scrubber": "Scrubber use per dive",
+  "equipmentCondition_trend_title_temperature": "Minimum temperature per dive",
+  "equipmentCondition_trend_cell": "Cell {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Dives with an issue",
+  "equipmentCondition_trend_scrubber": "Scrubber minutes",
+  "equipmentCondition_trend_gap": "Dropout share",
+  "equipmentCondition_trend_temperature": "Minimum temperature",
+  "equipmentCondition_trend_axis_minutes": "min",
+  "equipmentCondition_exposure_title": "Exposure",
+  "equipmentCondition_exposure_empty": "No dives with this item yet",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 dive} other{{n} dives}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 dive} other{{n} dives}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} hours",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} salt-water hours",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 cold dive} other{{n} cold dives}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} high-O2 hours",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 deep dive} other{{n} deep dives}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 battery cycle} other{{n} battery cycles}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "Cell {slot} output fell {percent} percent across {n} dives since {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "Cell {slot} output is {gain} mV per bar over the last {n} dives",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "Cell {slot} disagreed with its peers by up to {bar} bar on {count} of the last {n} dives",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "Cell {slot} read low at high ppO2 on {count} of the last {n} dives, up to {percent} percent of samples",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "Pressure dropped out for {recent} percent of the last 5 dives, up from {prior} percent over the {priorCount} before",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "Pressure dropped out for {recent} percent of the last {n} dives on average, {count} of them above 10 percent",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} reported {count} times in the last {n} dives",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} of {totalIssue} dives with an issue were colder than {threshold}, over {n} dives with this item",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} of {totalIssue} dives with an issue went beyond {threshold}, over {n} dives with this item",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 incident names this item} other{{count} incidents name this item}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 dive} other{{n} dives}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Exposure thresholds",
   "equipmentConditionSettings_thresholdsHelp": "A dive counts as cold, deep or high-O2 for service clocks when it crosses these lines.",
   "equipmentConditionSettings_coldLabel": "Cold water below",
@@ -17264,6 +17796,17 @@
     }
   },
   "equipmentConditionSettings_rebuild_done": "Sensor summaries rebuilt",
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 dive could not be summarised} other{{dives} dives could not be summarised}}; condition findings could not be refreshed for {items, plural, =1{1 item} other{{items} items}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_doneWithErrors": "Sensor summaries rebuilt; {count, plural, =1{1 dive could not be summarised} other{{count} dives could not be summarised}}",
   "@equipmentConditionSettings_rebuild_doneWithErrors": {
     "placeholders": {
@@ -17272,7 +17815,28 @@
       }
     }
   },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Sensor summaries rebuilt; condition findings could not be refreshed for {count, plural, =1{1 item} other{{count} items}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentConditionSettings_rebuild_failed": "Could not rebuild the sensor summaries.",
+  "equipmentConditionSettings_masterToggle": "Condition findings",
+  "equipmentConditionSettings_masterToggle_subtitle": "Report trends in cell output, transmitter dropouts and reported issues, with the numbers behind them",
+  "equipmentConditionSettings_rulesHeader": "Rules",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "Cell output declining",
+  "equipmentConditionSettings_rule_cellOutputLow": "Cell output low",
+  "equipmentConditionSettings_rule_cellDivergent": "Cell disagrees with its peers",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "Cell current-limited at high ppO2",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "Transmitter dropouts rising",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "Transmitter dropouts high",
+  "equipmentConditionSettings_rule_issueRecurring": "Recurring issue",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "Issues on cold dives",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "Issues on deep dives",
+  "equipmentConditionSettings_rule_incidentLinked": "Linked incidents",
   "equipmentObservation_tag_freeFlow": "Free flow",
   "equipmentObservation_tag_hardBreathing": "Hard breathing",
   "equipmentObservation_tag_wetBreathing": "Wet breathing",
@@ -22984,6 +23548,7 @@
   "settings_storageUsage_group_backups": "Backups",
   "settings_storageUsage_group_temporary": "Temporary Files",
   "settings_storageUsage_group_exports": "Exported Files",
+  "settings_storageUsage_group_importedFiles": "Raw imported data",
   "settings_storageUsage_category_database": "Dive log database",
   "settings_storageUsage_category_localCache": "Local cache database",
   "settings_storageUsage_category_mediaCacheOriginals": "Original photos and videos",
@@ -22998,6 +23563,7 @@
   "settings_storageUsage_category_backups": "Backup files",
   "settings_storageUsage_category_temporary": "Temporary files",
   "settings_storageUsage_category_exports": "Exported files",
+  "settings_storageUsage_category_importedFiles": "Imported logbook files",
   "profilePhoto_sheet_title": "Profile Photo",
   "profilePhoto_source_camera": "Take Photo",
   "profilePhoto_source_library": "Choose from Library",
@@ -23180,6 +23746,7 @@
   "transmitters_field_channel": "Channel",
   "transmitters_field_role": "Role",
   "transmitters_field_gear": "Cylinder from gear",
+  "transmitters_field_transmitterGear": "Transmitter from gear",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "None",
   "transmitters_validation_key": "Enter a transmitter serial, or pick a dive computer and channel",
@@ -23252,13 +23819,11 @@
   "enum_equipmentItemSortField_purchaseDate": "Purchase date",
   "enum_equipmentItemSortField_dateAdded": "Date added",
   "enum_equipmentItemSortField_lastServiceDate": "Last service",
-  "equipment_arrange_title": "Arrange gear",
   "equipment_arrange_groupByType": "Group by type",
   "equipment_arrange_groupByTypeSubtitle": "Show a heading for each kind of gear",
   "equipment_arrange_typeOrderLabel": "Order types by",
   "equipment_arrange_itemOrderLabel": "Then by",
   "equipment_arrange_itemOrderLabelFlat": "Sort by",
-  "equipment_arrange_tooltip": "Arrange gear",
   "equipment_arrange_reset": "Reset to defaults",
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",

@@ -1,6 +1,6 @@
 # Submersion
 
-> **Open-source dive logging for everyone.** Track your dives, manage your gear, analyze your profiles, and own your data.
+> **Dive safe. Log everything.** Track your dives, manage your gear, analyze your profiles, and own your data.
 
 <div class="screenshot-placeholder">
   <strong>App Screenshot</strong><br>

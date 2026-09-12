@@ -10,6 +10,7 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -52,9 +53,19 @@ class QualityRepairExecutor {
   final ProfileRepairService _profiles;
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// Queues the targeted quality rescan and a forced rebuild of the
+  /// dives' sensor summaries, which the condition engine reads. Forced
+  /// because a repair (or its undo) can rewrite a profile or pressure
+  /// series without touching the dive's updated_at, which is what marks a
+  /// stored summary current.
+  static void _rescan(Iterable<String> diveIds) {
+    scheduleQualityScan(diveIds);
+    scheduleSensorSummaryRefresh(diveIds, force: true);
+  }
+
   Future<void> _finish(String findingId, Iterable<String> affected) async {
     await _findings.setStatus(findingId, QualityStatus.resolved);
-    scheduleQualityScan(affected);
+    _rescan(affected);
   }
 
   /// Dives sharing this dive's importId (for "shift the whole import").
@@ -84,7 +95,7 @@ class QualityRepairExecutor {
     return RepairResult.applied(() async {
       await _db.transaction(() => _diveRepo.restoreDiveTimes(snapshot));
       SyncEventBus.notifyLocalChange();
-      scheduleQualityScan(diveIds);
+      _rescan(diveIds);
     });
   }
 
@@ -111,7 +122,7 @@ class QualityRepairExecutor {
     await _finish(findingId, [diveId]);
     return RepairResult.applied(() async {
       await _profiles.undo(diveId); // restoreOriginalProfile notifies
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     });
   }
 
@@ -150,7 +161,7 @@ class QualityRepairExecutor {
         ),
       );
       SyncEventBus.notifyLocalChange();
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     });
   }
 
@@ -194,7 +205,7 @@ class QualityRepairExecutor {
     await _finish(findingId, [diveId]);
     return RepairResult.applied(() async {
       await write(prior);
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     });
   }
 
@@ -225,7 +236,7 @@ class QualityRepairExecutor {
         ),
       );
       SyncEventBus.notifyLocalChange();
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     });
   }
 
@@ -257,7 +268,7 @@ class QualityRepairExecutor {
     return RepairResult.applied(() async {
       await write(prior);
       SyncEventBus.notifyLocalChange();
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     });
   }
 
@@ -285,7 +296,7 @@ class QualityRepairExecutor {
         ),
       );
       SyncEventBus.notifyLocalChange();
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     });
   }
 
@@ -313,7 +324,7 @@ class QualityRepairExecutor {
         ),
       );
       SyncEventBus.notifyLocalChange();
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     });
   }
 
@@ -347,7 +358,7 @@ class QualityRepairExecutor {
     await _finish(findingId, [keepDiveId, deleteDiveId]);
     return RepairResult.applied(() async {
       await _diveRepo.createDive(snapshot);
-      scheduleQualityScan([keepDiveId, deleteDiveId]);
+      _rescan([keepDiveId, deleteDiveId]);
     });
   }
 
@@ -368,7 +379,7 @@ class QualityRepairExecutor {
         ),
       );
       SyncEventBus.notifyLocalChange();
-      scheduleQualityScan([diveId]);
+      _rescan([diveId]);
     }
 
     await run();

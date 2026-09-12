@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -242,6 +243,14 @@ class AppSettings {
   final double coldWaterThresholdC;
   final double deepDiveThresholdM;
   final double highO2ThresholdPercent;
+
+  /// Master toggle for condition findings (v206). Off: stored findings are
+  /// still shown, nothing new is computed.
+  final bool conditionEngineEnabled;
+
+  /// ConditionRuleId.dbValue strings whose findings are hidden in the UI.
+  /// Display-time only: the engine always runs every rule.
+  final Set<String> conditionDisabledRules;
 
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
@@ -558,6 +567,8 @@ class AppSettings {
     this.coldWaterThresholdC = 10.0,
     this.deepDiveThresholdM = 30.0,
     this.highO2ThresholdPercent = 40.0,
+    this.conditionEngineEnabled = true,
+    this.conditionDisabledRules = const {},
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -731,6 +742,8 @@ class AppSettings {
     double? coldWaterThresholdC,
     double? deepDiveThresholdM,
     double? highO2ThresholdPercent,
+    bool? conditionEngineEnabled,
+    Set<String>? conditionDisabledRules,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -879,6 +892,10 @@ class AppSettings {
       deepDiveThresholdM: deepDiveThresholdM ?? this.deepDiveThresholdM,
       highO2ThresholdPercent:
           highO2ThresholdPercent ?? this.highO2ThresholdPercent,
+      conditionEngineEnabled:
+          conditionEngineEnabled ?? this.conditionEngineEnabled,
+      conditionDisabledRules:
+          conditionDisabledRules ?? this.conditionDisabledRules,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null
@@ -1679,6 +1696,25 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setConditionEngineEnabled(bool value) async {
+    state = state.copyWith(conditionEngineEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setConditionRuleEnabled(
+    ConditionRuleId rule,
+    bool enabled,
+  ) async {
+    final rules = {...state.conditionDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(conditionDisabledRules: rules);
+    await _saveSettings();
+  }
+
   Future<void> setNoFlyPreset(NoFlyPreset preset) async {
     state = state.copyWith(noFlyPreset: preset);
     await _saveSettings();
@@ -2316,6 +2352,10 @@ final safetyReviewEnabledProvider = Provider<bool>((ref) {
 /// the detail section stay aligned.
 final safetyReviewDisabledRulesProvider = Provider<Set<String>>((ref) {
   return ref.watch(settingsProvider.select((s) => s.safetyReviewDisabledRules));
+});
+
+final conditionEngineEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.conditionEngineEnabled));
 });
 
 final showAscentRateColorsProvider = Provider<bool>((ref) {

@@ -110,24 +110,17 @@ class NotificationScheduler {
     final records = await _serviceRecordRepository.getRecordsForEquipment(
       item.id,
     );
-    final parentId = item.parentEquipmentId;
-    final parent = parentId == null
-        ? null
-        : await _equipmentRepository.getEquipmentById(parentId);
-    final children = await _equipmentRepository.getChildEquipment(item.id);
-    final isRebreather =
-        item.type == EquipmentType.rebreather ||
-        parent?.type == EquipmentType.rebreather;
-    final usage = await _equipmentRepository.getExposureSamplesForEquipment(
-      item.id,
-      parentEquipmentId: parentId,
-      installedSince: item.installedDate,
-      rebreatherContact: isRebreather,
-    );
+    // The repository's one wiring, shared with the in-app clocks, so a
+    // reminder fires on exactly the usage the clock shows: fitted parts
+    // only, and a replaced part's dives stop at its successor.
+    final exposure = await _equipmentRepository.getItemExposure(item);
+    final usage = exposure.samples;
     final classifier = ExposureClassifier(
       thresholds: exposureThresholdsFromSettings(settings),
-      loopTimeOnly: isRebreather,
-      hasBatteryChild: children.any((c) => c.type == EquipmentType.battery),
+      loopTimeOnly: exposure.isRebreather,
+      hasBatteryChild: exposure.fittedChildren.any(
+        (c) => c.type == EquipmentType.battery,
+      ),
     );
     final window = settings.serviceReminderDays.isEmpty
         ? 30

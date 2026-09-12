@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
@@ -23,6 +24,7 @@ import '../../../helpers/test_database.dart';
 ///   - ViewConfigs: per-diver/view-mode saved configurations
 ///   - FieldPresets: per-diver/view-mode saved field-mapping presets
 ///   - DiveDataSources: raw dive-data lineage (incl. fingerprint BLOBs)
+///   - ImportedFiles: the original logbook file a dive was imported from
 void main() {
   group('Extra entities round-trip', () {
     late FakeCloudStorageProvider cloud;
@@ -256,6 +258,50 @@ void main() {
         expect(restoredBytes, [0x01, 0x02, 0x03, 0xFE, 0xFF]);
       },
     );
+
+    test('ImportedFiles round-trips A -> B with the file intact', () async {
+      // The stored logbook is the whole point of the feature reaching a
+      // diver's other devices (issue #478): a dive whose reference arrives
+      // without its bytes cannot be resynced there.
+      final serializer = SyncDataSerializer();
+      final diveRepo = DiveRepository();
+      final importedFiles = ImportedFileRepository();
+
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-if-1', diveNumber: 104),
+      );
+      final fileBytes = Uint8List.fromList(
+        utf8.encode('<uddf>${'logbook ' * 200}</uddf>'),
+      );
+      final storedId = await importedFiles.store(
+        bytes: fileBytes,
+        fileName: 'logbook.uddf',
+      );
+      await serializer.upsertRecord('diveDataSources', {
+        'id': 'ds-if-1',
+        'diveId': 'dive-if-1',
+        'isPrimary': true,
+        'sourceFileFormat': 'uddf',
+        'importedFileId': storedId,
+        'importedAt': 1700000000000,
+        'createdAt': 1700000000000,
+      });
+
+      await seedPeerLog(cloud, 'device-a');
+      expect(await ImportedFileRepository().exists(storedId), isFalse);
+
+      final pull = await buildService().performSync();
+      expect(pull.status, isNot(SyncResultStatus.error));
+
+      expect(
+        await ImportedFileRepository().read(storedId),
+        fileBytes,
+        reason: 'the compressed blob must survive the base64 round trip',
+      );
+      final source = await serializer.fetchRecord('diveDataSources', 'ds-if-1');
+      expect(source, isNotNull);
+      expect(source!['importedFileId'], storedId);
+    });
 
     test('a DiveDataSources payload from a pre-v159 peer, with no '
         'timeOffsetSeconds key at all, still applies (#1177)', () async {

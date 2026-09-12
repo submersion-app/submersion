@@ -16,6 +16,7 @@ import 'package:submersion/features/data_quality/presentation/providers/quality_
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -251,6 +252,24 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       rules.add(rule.dbValue);
     }
     state = state.copyWith(safetyReviewDisabledRules: rules);
+  }
+
+  @override
+  Future<void> setConditionEngineEnabled(bool value) async =>
+      state = state.copyWith(conditionEngineEnabled: value);
+
+  @override
+  Future<void> setConditionRuleEnabled(
+    ConditionRuleId rule,
+    bool enabled,
+  ) async {
+    final rules = {...state.conditionDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(conditionDisabledRules: rules);
   }
 
   @override

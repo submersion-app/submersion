@@ -2618,6 +2618,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'פג תוקף הטיפול';
 
   @override
+  String get preDive_runner_conditionFindings => 'ממצאי מצב';
+
+  @override
   String get preDive_runner_addNote => 'הוסף הערה';
 
   @override
@@ -6852,7 +6855,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'הגדרת פרופיל חדש';
 
   @override
-  String get setup_welcome_subtitle => 'רישום וניתוח צלילה מתקדם';
+  String get setup_welcome_subtitle => 'צללו בבטחה. רשמו הכול.';
 
   @override
   String get setup_welcome_title => 'ברוכים הבאים ל-Submersion';
@@ -15309,8 +15312,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description =>
-      'עקוב אחר הצלילות שלך, נהל ציוד וחקור אתרי צלילה.';
+  String get settings_about_description => 'צללו בבטחה. רשמו הכול.';
 
   @override
   String get settings_about_header => 'אודות';
@@ -16844,6 +16846,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'ממצא';
+
+  @override
+  String get settings_conflict_ref_importedFile => 'קובץ מיובא';
 
   @override
   String get settings_conflict_ref_instructor => 'מדריך';
@@ -18595,6 +18600,105 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_equipment_weightTrend_title => 'מגמת משקל';
+
+  @override
+  String get statistics_equipment_exposure_title => 'חשיפה';
+
+  @override
+  String get statistics_equipment_exposure_error => 'טעינת נתוני החשיפה נכשלה';
+
+  @override
+  String get statistics_equipment_findings_error => 'טעינת ממצאי המצב נכשלה';
+
+  @override
+  String get statistics_equipment_issues_error => 'טעינת התקלות שדווחו נכשלה';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'סיכומים לכל פריט לפי הספים שלך';
+
+  @override
+  String get statistics_equipment_exposure_empty => 'אין עדיין צלילות עם ציוד';
+
+  @override
+  String get statistics_equipment_findings_title => 'ממצאי מצב';
+
+  @override
+  String get statistics_equipment_findings_subtitle => 'ממצאים פתוחים לפי כלל';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'ממצאים פתוחים לפי כלל, בכל הצלילות';
+
+  @override
+  String get statistics_equipment_findings_empty => 'אין ממצאים פתוחים';
+
+  @override
+  String get statistics_equipment_issues_title => 'תקלות שדווחו';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'תגיות הבדיקה הנפוצות ביותר';
+
+  @override
+  String get statistics_equipment_issues_empty => 'לא דווחו תקלות';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'פריטים';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'ממצאים';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'דיווחים';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => 'ימים';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'צלילות';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'ימים';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'צלילות';
+
+  @override
+  String get statistics_equipment_countLabel_hours => 'שעות';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'שעות במים מלוחים';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'צלילות קרות';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'שעות ב-O2 גבוה';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'צלילות עמוקות';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'מחזורי סוללה';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'שעות';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'שעות במים מלוחים';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'צלילות קרות';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'שעות ב-O2 גבוה';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'צלילות עמוקות';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'מחזורי סוללה';
 
   @override
   String get statistics_error_loadingStatistics => 'שגיאה בטעינת סטטיסטיקות';
@@ -21025,6 +21129,119 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
+
+  @override
+  String get trips_edit_sectionTitle_planning => 'תכנון';
+
+  @override
+  String get trips_edit_label_expectedDives => 'צלילות צפויות';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'השאר ריק כדי להעריך מהטיולים האחרונים שלך';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'זמן ריצה צפוי לכל צלילה (דקות)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'השאר ריק כדי להעריך מצלילות הריברידר האחרונות שלך';
+
+  @override
+  String get trips_scrubber_title => 'מרווח הסופג';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'נכון ל-$date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו מאז המילוי האחרון)';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו, לא נרשם מילוי)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות צפויות',
+      one: 'צלילה צפויה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(לפי $n הטיולים האחרונים שלך)',
+      one: '(לפי הטיול האחרון שלך)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(הוגדר בטיול זה)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes דק\' לכל צלילה';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(לפי $n צלילות הריברידר האחרונות שלך)',
+      one: '(לפי צלילת הריברידר האחרונה שלך)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes דק\' שימוש צפוי';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes דק\' מרווח אחרי הטיול';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'מתחת ל-20 אחוז מהמשך הנקוב. תכננו מילוי או קחו סופג רזרבי.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'אין משך נקוב לריברידר זה; הוסיפו את משך הסופג למאפיינים או לוח זמנים למילוי.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes דק\' מרווח סופג';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count ריברידרים, מרווח הסופג הנמוך ביותר $minutes דק\'';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
@@ -24191,6 +24408,37 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'סנכרן מחדש מהקובץ המקורי';
+
+  @override
+  String get diveLog_detail_resyncSuccess => 'הצלילה עודכנה מהקובץ המקורי';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'לא ניתן היה לסנכרן מחדש: הצלילה הזו כבר לא קיימת';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'לא ניתן היה לסנכרן מחדש: לא נשמר קובץ מקורי לצלילה הזו';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'לא ניתן היה לסנכרן מחדש: תבנית הקובץ הזו אינה נתמכת';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'לא ניתן היה לסנכרן מחדש: הקובץ המקורי אינו נמצא במכשיר הזה';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי';
+
+  @override
   String get universalImport_label_replaceSource => 'החלף מקור';
 
   @override
@@ -26376,6 +26624,342 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'מצב הציוד';
 
   @override
+  String get equipmentCondition_children_title => 'חלקים מותקנים';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'חריץ $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'הותקן ב-$date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'לפני $days ימים',
+      one: 'לפני יום',
+      zero: 'היום',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'לפני $months חודשים',
+      one: 'לפני חודש',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'החלפה';
+
+  @override
+  String get equipmentCondition_children_open => 'פתיחה';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'להחליף את $name?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name יוצא משימוש היום ו$type חדש תופס את מקומו באותו חריץ. המספר הסידורי וההערות מתחילים ריקים.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'החלפה';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'ביטול';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name הוחלף';
+  }
+
+  @override
+  String get equipmentCondition_children_empty => 'לא נרשמו תאים או סוללות';
+
+  @override
+  String get equipmentCondition_children_add => 'הוספה';
+
+  @override
+  String get equipmentCondition_findings_title => 'ממצאי מצב';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ממצאים',
+      one: 'ממצא אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'צלילות הראיה';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'התעלמות';
+
+  @override
+  String get equipmentCondition_findings_restore => 'שחזור';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג $count ממצאים שהוסתרו',
+      one: 'הצג ממצא אחד שהוסתר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'צלילות הראיה';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'צלילה $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'צלילה';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n דק\'';
+  }
+
+  @override
+  String get equipmentCondition_trend_title_cellGain => 'פלט התאים לכל צלילה';
+
+  @override
+  String get equipmentCondition_trend_title_gap => 'נפילות המשדר לכל צלילה';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber => 'שימוש בסופג לכל צלילה';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'טמפרטורה מזערית לכל צלילה';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'תא $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'צלילות עם תקלה';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'דקות סופג';
+
+  @override
+  String get equipmentCondition_trend_gap => 'שיעור הנפילות';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'טמפרטורה מזערית';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'דק\'';
+
+  @override
+  String get equipmentCondition_exposure_title => 'חשיפה';
+
+  @override
+  String get equipmentCondition_exposure_empty => 'אין עדיין צלילות עם פריט זה';
+
+  @override
+  String equipmentCondition_exposure_footer(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
+  String equipmentCondition_exposure_dives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_hours(String n) {
+    return '$n שעות';
+  }
+
+  @override
+  String equipmentCondition_exposure_saltHours(String n) {
+    return '$n שעות במים מלוחים';
+  }
+
+  @override
+  String equipmentCondition_exposure_coldDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n צלילות קרות',
+      one: 'צלילה קרה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_o2Hours(String n) {
+    return '$n שעות ב-O2 גבוה';
+  }
+
+  @override
+  String equipmentCondition_exposure_deepCycles(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n צלילות עמוקות',
+      one: 'צלילה עמוקה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_cycles(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n מחזורי סוללה',
+      one: 'מחזור סוללה אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'פלט תא $slot ירד ב-$percent אחוזים לאורך $n צלילות מאז $since';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'פלט תא $slot הוא $gain mV לבר ב-$n הצלילות האחרונות';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'תא $slot חרג מהאחרים בעד $bar בר ב-$count מתוך $n הצלילות האחרונות';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'תא $slot קרא נמוך ב-ppO2 גבוה ב-$count מתוך $n הצלילות האחרונות, עד $percent אחוזים מהדגימות';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'קריאת הלחץ נפלה ב-$recent אחוזים מ-5 הצלילות האחרונות, לעומת $prior אחוזים ב-$priorCount שלפניהן';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'קריאת הלחץ נפלה בממוצע ב-$recent אחוזים מ-$n הצלילות האחרונות, $count מהן מעל 10 אחוזים';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag דווח $count פעמים ב-$n הצלילות האחרונות';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue מתוך $totalIssue צלילות עם תקלה היו קרות מ-$threshold, מתוך $n צלילות עם פריט זה';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue מתוך $totalIssue צלילות עם תקלה היו עמוקות מ-$threshold, מתוך $n צלילות עם פריט זה';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אירועים מזכירים פריט זה',
+      one: 'אירוע אחד מזכיר פריט זה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader => 'ספי חשיפה';
 
   @override
@@ -26423,6 +27007,26 @@ class AppLocalizationsHe extends AppLocalizations {
       'סיכומי החיישנים נבנו מחדש';
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות לא ניתן היה לסכם',
+      one: 'צלילה אחת לא ניתן היה לסכם',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: 'לא ניתן היה לרענן את ממצאי המצב של $items פריטי ציוד',
+      one: 'לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד',
+    );
+    return '$_temp0; $_temp1';
+  }
+
+  @override
   String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26434,8 +27038,67 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לרענן את ממצאי המצב של $count פריטי ציוד',
+      one: 'לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד',
+    );
+    return 'סיכומי החיישנים נבנו מחדש; $_temp0';
+  }
+
+  @override
   String get equipmentConditionSettings_rebuild_failed =>
       'לא ניתן היה לבנות מחדש את סיכומי החיישנים.';
+
+  @override
+  String get equipmentConditionSettings_masterToggle => 'ממצאי מצב';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'מדווח על מגמות בפלט התאים, בנפילות המשדר ובתקלות שדווחו, עם המספרים שמאחוריהן';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'כללים';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'פלט התא יורד';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow => 'פלט התא נמוך';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'התא חורג מהאחרים';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'התא מוגבל זרם ב-ppO2 גבוה';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'נפילות המשדר במגמת עלייה';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'נפילות המשדר רבות';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring => 'תקלה חוזרת';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'תקלות בצלילות קרות';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'תקלות בצלילות עמוקות';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'אירועים מקושרים';
 
   @override
   String get equipmentObservation_tag_freeFlow => 'זרימה חופשית';
@@ -37270,6 +37933,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'קבצים שיוצאו';
 
   @override
+  String get settings_storageUsage_group_importedFiles => 'נתוני ייבוא גולמיים';
+
+  @override
   String get settings_storageUsage_category_database =>
       'מסד נתונים של יומן הצלילה';
 
@@ -37319,6 +37985,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'קבצים שיוצאו';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'קובצי הייבוא המקוריים';
 
   @override
   String get profilePhoto_sheet_title => 'תמונת פרופיל';
@@ -37605,6 +38275,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_field_gear => 'מיכל מהציוד';
 
   @override
+  String get transmitters_field_transmitterGear => 'משדר מהציוד';
+
+  @override
   String get transmitters_field_material => 'חומר';
 
   @override
@@ -37792,9 +38465,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'טיפול אחרון';
 
   @override
-  String get equipment_arrange_title => 'סידור הציוד';
-
-  @override
   String get equipment_arrange_groupByType => 'קיבוץ לפי סוג';
 
   @override
@@ -37808,9 +38478,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'מיון לפי';
-
-  @override
-  String get equipment_arrange_tooltip => 'סידור הציוד';
 
   @override
   String get equipment_arrange_reset => 'איפוס לברירת המחדל';

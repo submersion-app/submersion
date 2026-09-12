@@ -236,7 +236,7 @@ def create_icon_no_rounded_corners(size):
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)
+    project_root = os.path.dirname(os.path.dirname(script_dir))
     assets_dir = os.path.join(project_root, 'assets', 'icon')
     os.makedirs(assets_dir, exist_ok=True)
 

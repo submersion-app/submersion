@@ -1,5 +1,13 @@
 /// Where a storage category is shown on the usage page.
-enum StorageGroup { appData, mediaCache, caches, backups, temporary, exports }
+enum StorageGroup {
+  appData,
+  mediaCache,
+  caches,
+  backups,
+  temporary,
+  exports,
+  importedFiles,
+}
 
 /// Stable category ids.
 ///
@@ -22,6 +30,7 @@ abstract final class StorageCategoryId {
   static const backups = 'backups';
   static const temporary = 'temporary';
   static const exports = 'exports';
+  static const importedFiles = 'importedFiles';
 }
 
 /// One place on disk where the app accumulates bytes.

@@ -21,6 +21,7 @@ class StorageInventory {
     required Future<int> Function(MediaCacheKind kind) mediaCacheBytes,
     required Future<double?> Function() mapTileKibibytes,
     required Future<Directory> Function() networkImageDirectory,
+    required Future<int> Function() importedFileBytes,
   }) : _supportDirectory = supportDirectory,
        _documentsDirectory = documentsDirectory,
        _temporaryDirectory = temporaryDirectory,
@@ -28,7 +29,8 @@ class StorageInventory {
        _backupsDirectoryPath = backupsDirectoryPath,
        _mediaCacheBytes = mediaCacheBytes,
        _mapTileKibibytes = mapTileKibibytes,
-       _networkImageDirectory = networkImageDirectory;
+       _networkImageDirectory = networkImageDirectory,
+       _importedFileBytes = importedFileBytes;
 
   final Future<Directory> Function() _supportDirectory;
   final Future<Directory> Function() _documentsDirectory;
@@ -38,6 +40,7 @@ class StorageInventory {
   final Future<int> Function(MediaCacheKind kind) _mediaCacheBytes;
   final Future<double?> Function() _mapTileKibibytes;
   final Future<Directory> Function() _networkImageDirectory;
+  final Future<int> Function() _importedFileBytes;
 
   static const _appDir = 'Submersion';
   static const _localCacheDb = 'submersion_local.db';
@@ -118,6 +121,11 @@ class StorageInventory {
       id: StorageCategoryId.exports,
       group: StorageGroup.exports,
       measure: _measureExports,
+    ),
+    StorageCategory(
+      id: StorageCategoryId.importedFiles,
+      group: StorageGroup.importedFiles,
+      measure: _measureImportedFiles,
     ),
   ];
 
@@ -210,4 +218,12 @@ class StorageInventory {
       exclude: (name) => name.startsWith(dbName),
     );
   }
+
+  /// The original logbook files a diver has imported, kept so a future
+  /// parser fix can be applied to a dive already imported without
+  /// re-picking the file. They live in the database rather than on disk
+  /// (issue #478), so this measures the `imported_files` rows at rest; the
+  /// bytes are counted here AND inside the database row above, which is the
+  /// honest answer to "how much of my database is this feature".
+  Future<int?> _measureImportedFiles() => _importedFileBytes();
 }

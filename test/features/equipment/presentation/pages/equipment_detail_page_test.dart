@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
@@ -22,6 +30,16 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
+  // Dates format through the process-global Intl.defaultLocale, which
+  // MaterialApp.locale does not set; pin it so the English month names
+  // in these expectations hold on any host.
+  late String? savedIntlLocale;
+  setUp(() {
+    savedIntlLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = savedIntlLocale);
+
   group('EquipmentDetailPage desktop redirect', () {
     const equipment = EquipmentItem(
       id: 'equip-1',
@@ -74,6 +92,23 @@ void main() {
                 equipment.id,
               ).overrideWith((ref) async => 0),
               equipmentComponentsProvider(
+                equipment.id,
+              ).overrideWith((ref) async => const []),
+              equipmentExposureTotalsProvider(
+                equipment.id,
+              ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+              equipmentConditionProvider(
+                equipment.id,
+              ).overrideWith((ref) async => const []),
+              conditionTrendProvider((
+                equipmentId: equipment.id,
+                kind: null,
+              )).overrideWith((ref) async => null),
+              conditionTrendProvider((
+                equipmentId: equipment.id,
+                kind: ConditionTrendKind.scrubberMinutes,
+              )).overrideWith((ref) async => null),
+              childEquipmentProvider(
                 equipment.id,
               ).overrideWith((ref) async => const []),
               observationsForEquipmentProvider(
@@ -141,6 +176,23 @@ void main() {
               equipment.id,
             ).overrideWith((ref) async => 0),
             equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentExposureTotalsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+            equipmentConditionProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: null,
+            )).overrideWith((ref) async => null),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: ConditionTrendKind.scrubberMinutes,
+            )).overrideWith((ref) async => null),
+            childEquipmentProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
             observationsForEquipmentProvider(
@@ -217,6 +269,23 @@ void main() {
             equipmentComponentsProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
+            equipmentExposureTotalsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+            equipmentConditionProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: null,
+            )).overrideWith((ref) async => null),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: ConditionTrendKind.scrubberMinutes,
+            )).overrideWith((ref) async => null),
+            childEquipmentProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
             observationsForEquipmentProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
@@ -274,6 +343,23 @@ void main() {
               equipment.id,
             ).overrideWith((ref) async => 0),
             equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentExposureTotalsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+            equipmentConditionProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: null,
+            )).overrideWith((ref) async => null),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: ConditionTrendKind.scrubberMinutes,
+            )).overrideWith((ref) async => null),
+            childEquipmentProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
             observationsForEquipmentProvider(
@@ -458,6 +544,23 @@ void main() {
             equipmentComponentsProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
+            equipmentExposureTotalsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => EquipmentExposureTotals.empty),
+            equipmentConditionProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: null,
+            )).overrideWith((ref) async => null),
+            conditionTrendProvider((
+              equipmentId: equipment.id,
+              kind: ConditionTrendKind.scrubberMinutes,
+            )).overrideWith((ref) async => null),
+            childEquipmentProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
             observationsForEquipmentProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
@@ -576,6 +679,131 @@ void main() {
         find.byKey(const ValueKey('equipment-detail-web-link')),
         findsNothing,
       );
+    });
+  });
+
+  group('condition section (phase 4a)', () {
+    const ccr = EquipmentItem(
+      id: 'ccr-1',
+      name: 'My CCR',
+      type: EquipmentType.rebreather,
+    );
+    const mask = EquipmentItem(
+      id: 'mask-1',
+      name: 'Mask',
+      type: EquipmentType.mask,
+    );
+    final evidence = FindingEvidence(
+      n: 3,
+      windowStart: DateTime(2026, 3, 3),
+      windowEnd: DateTime(2026, 6, 9),
+      values: const {'count': 2},
+    );
+
+    Future<void> pumpItem(
+      WidgetTester tester,
+      EquipmentItem item, {
+      List<EquipmentFinding> findings = const [],
+      List<EquipmentItem> children = const [],
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 4000);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            equipmentItemProvider(item.id).overrideWith((ref) async => item),
+            equipmentDiveCountProvider(item.id).overrideWith((ref) async => 3),
+            equipmentTripCountProvider(item.id).overrideWith((ref) async => 0),
+            equipmentComponentsProvider(
+              item.id,
+            ).overrideWith((ref) async => const []),
+            observationsForEquipmentProvider(
+              item.id,
+            ).overrideWith((ref) async => const []),
+            equipmentWorstClockProvider.overrideWith((ref) async => {}),
+            serviceRecordNotifierProvider(
+              item.id,
+            ).overrideWith((ref) => _MockServiceRecordNotifier()),
+            equipmentExposureTotalsProvider(item.id).overrideWith(
+              (ref) async => EquipmentExposureTotals(
+                byUnit: const {ExposureUnit.dives: 3},
+                diveCount: 3,
+                firstDive: DateTime(2026, 1, 1),
+                lastDive: DateTime(2026, 6, 9),
+              ),
+            ),
+            equipmentConditionProvider(
+              item.id,
+            ).overrideWith((ref) async => findings),
+            conditionTrendProvider((
+              equipmentId: item.id,
+              kind: null,
+            )).overrideWith((ref) async => null),
+            conditionTrendProvider((
+              equipmentId: item.id,
+              kind: ConditionTrendKind.scrubberMinutes,
+            )).overrideWith((ref) async => null),
+            childEquipmentProvider(
+              item.id,
+            ).overrideWith((ref) async => children),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: EquipmentDetailPage(equipmentId: item.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a rebreather shows exposure, findings and installed parts', (
+      tester,
+    ) async {
+      await pumpItem(
+        tester,
+        ccr,
+        findings: [
+          EquipmentFinding(
+            id: 'cf_ccr-1_incidentLinked',
+            equipmentId: ccr.id,
+            ruleId: ConditionRuleId.incidentLinked,
+            severity: ConditionSeverity.info,
+            evidence: evidence,
+            evidenceFingerprint: evidenceFingerprint(evidence),
+            engineVersion: 1,
+            createdAt: DateTime(2026),
+          ),
+        ],
+        children: const [
+          EquipmentItem(
+            id: 'cell-1',
+            name: 'Cell 1',
+            type: EquipmentType.o2Cell,
+            parentEquipmentId: 'ccr-1',
+          ),
+        ],
+      );
+      expect(find.text('Exposure'), findsOneWidget);
+      expect(find.text('3 dives, Jan 1 - Jun 9, 2026'), findsOneWidget);
+      expect(find.text('Condition findings'), findsOneWidget);
+      expect(find.text('2 incidents name this item'), findsOneWidget);
+      expect(find.text('Installed parts'), findsOneWidget);
+      expect(find.text('Cell 1'), findsOneWidget);
+    });
+
+    testWidgets('a mask shows exposure but no installed parts', (tester) async {
+      await pumpItem(tester, mask);
+      expect(find.text('Exposure'), findsOneWidget);
+      expect(find.text('Installed parts'), findsNothing);
+      expect(find.text('Condition findings'), findsNothing);
     });
   });
 }

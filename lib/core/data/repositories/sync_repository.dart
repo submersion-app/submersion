@@ -51,6 +51,7 @@ class SyncRepository {
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),
     'itineraryDays': (table: 'trip_itinerary_days', pk: 'id'),
     'tripDayWeather': (table: 'trip_day_weather', pk: 'id'),
+    'importedFiles': (table: 'imported_files', pk: 'id'),
     'diveProfileSeries': (table: 'dive_profile_series', pk: 'id'),
     'tankPressureSeries': (table: 'tank_pressure_series', pk: 'id'),
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
@@ -121,6 +122,8 @@ class SyncRepository {
     // findings phase; registering the clock target now keeps the hlc census
     // honest about the table carrying a clock column.
     'equipmentObservations': (table: 'equipment_observations', pk: 'id'),
+    // equipment_findings has no hlc (it rides on the equipment row's clock)
+    // and equipment_condition_reviews is device-local: neither belongs here.
     'mediaSmartAlbums': (table: 'media_smart_albums', pk: 'id'),
     // v210: the children exported through their parent
     // (SyncDataSerializer.parentGatedChildEntities). Their merge refuses a
@@ -636,12 +639,18 @@ class SyncRepository {
       timestamp: 'created_at',
       filter: null,
     ),
-    // The packed sample series (schema v182). A row can reach these tables
-    // unstamped two ways: the v182 pack runs on a device that had no clock
-    // to advance yet, and any series write whose sync bookkeeping did not
-    // land. Without an entry here such a row is invisible to the
-    // incremental export forever, because NULL never passes the strict
-    // watermark comparison.
+    // The packed sample series (schema v182) and the stored logbook files
+    // (v208, issue #478). A row can reach these tables unstamped two ways:
+    // the v182 pack runs on a device that had no clock to advance yet, and
+    // any write whose sync bookkeeping did not land. Without an entry here
+    // such a row is invisible to the incremental export forever, because NULL
+    // never passes the strict watermark comparison.
+    (
+      entityType: 'importedFiles',
+      table: 'imported_files',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
     (
       entityType: 'diveProfileSeries',
       table: 'dive_profile_series',

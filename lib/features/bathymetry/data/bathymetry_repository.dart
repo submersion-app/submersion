@@ -39,7 +39,15 @@ class BathymetryRepository {
   /// rows never expire, so without this every already-visited site would
   /// keep serving the grid its old resolver chose. Old rows go inert, the
   /// same way the 4 km rows did when the span went to 8 km.
-  static const String selectionGeneration = 'v2';
+  ///
+  /// v4 here (skipping past #1756's v3, which this branch predates) so an
+  /// install that already visited #1756 -- and so already holds a v3 outer
+  /// row -- is still forced back through the resolver once this release's
+  /// inner swiss_bathy_tile_cache reference-level fix ships (Copilot
+  /// review): an unchanged v3 row would otherwise keep being served
+  /// straight from the outer cache and never reach the now-fixed inner
+  /// validation in SwissBathyTileCacheRepository.read.
+  static const String selectionGeneration = 'v4';
   static const double quantumDeg = 0.02;
 
   final LocalCacheDatabase _db;
@@ -75,14 +83,27 @@ class BathymetryRepository {
     // differently must miss the old rows and refetch. Stale rows are inert
     // leftovers in this local-only cache.
     final span = BathymetryResolver.defaultSpanMeters.round();
-    if (quantumDegFor(c) <= 0) {
+    final lake = findSwissLake(c);
+    if (lake != null) {
+      // The lake's OWN mean level rides along in the key, not just
+      // selectionGeneration: _load returns a matching outer row before the
+      // resolver -- and so before SwissBathyTileCacheRepository.read's own
+      // reference-level check -- ever runs again, so a FUTURE correction
+      // to this lake's documented level (independent of any code change,
+      // and so not covered by any one-time generation bump) would
+      // otherwise keep serving the outer cache's stale depths forever
+      // (Copilot review). Folding the level in here means only the
+      // coordinates of the ACTUALLY corrected lake miss, not the whole
+      // cache, and needs no manual bump at all going forward.
+      //
       // Raw coordinate, not a quantized cell corner: needs enough decimals
       // to actually distinguish nearby sites (2 decimals is ~1 km at these
       // latitudes -- exactly the coalescing this branch exists to avoid).
       // See the class doc for the cache-coalescing this gives up, and why
       // that is deferred to issue #1511.
       return '${c.latitude.toStringAsFixed(6)},'
-          '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration';
+          '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration'
+          '@${lake.meanLevelMeters}';
     }
     final q = quantize(c);
     return '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}'

@@ -4216,7 +4216,10 @@ void main() {
         expect(bars.length, greaterThanOrEqualTo(3));
 
         // Drive the touch pipeline directly: three depth bands under the cursor
-        // at distinct interior samples (barIndex 0/1/2).
+        // at distinct interior samples (barIndex 0/1/2), plus another line.
+        // fl_chart only asks for indicators on spots it reported touched, so
+        // the other line's spot is part of the response too.
+        final overlay = LineChartBarData(spots: const [FlSpot(0, 0)]);
         data.lineTouchData.touchCallback!(
           FlPanDownEvent(DragDownDetails()),
           LineTouchResponse(
@@ -4226,6 +4229,7 @@ void main() {
               TouchLineBarSpot(bars[0], 0, bars[0].spots[1], 0),
               TouchLineBarSpot(bars[1], 1, bars[1].spots[1], 0),
               TouchLineBarSpot(bars[2], 2, bars[2].spots[1], 0),
+              TouchLineBarSpot(overlay, bars.length, overlay.spots[0], 0),
             ],
           ),
         );
@@ -4237,7 +4241,6 @@ void main() {
         expect(indicator(bars[1], const [1]).single, isNull);
         expect(indicator(bars[2], const [1]).single, isNull);
         // A line whose sample is not the resolved point keeps its dot.
-        final overlay = LineChartBarData(spots: const [FlSpot(0, 0)]);
         expect(
           indicator(overlay, const [0]).single,
           isNotNull,
@@ -4267,6 +4270,38 @@ void main() {
       expect(() => indicator(bar, [bar.spots.length + 685]), returnsNormally);
       expect(indicator(bar, [bar.spots.length + 685]).single, isNull);
       expect(indicator(bar, const [-1]).single, isNull);
+    });
+
+    testWidgets('touched spot indicator skips an index that went stale', (
+      tester,
+    ) async {
+      // Regression: fl_chart keeps a touched spot's index across rebuilds.
+      // Once the series under it is rebuilt with different spots (zoomed
+      // analysis curves re-decimate as a pan crosses a bucket), the index
+      // names another sample, and the marker was drawn at the wrong time,
+      // splitting away from the cursor. Only the touched spot is drawn.
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(profile: profile, ascentRates: const []),
+      );
+      await tester.pumpAndSettle();
+
+      final data = primaryChartData(tester);
+      final bar = data.lineBarsData.first;
+      data.lineTouchData.touchCallback!(
+        FlPanDownEvent(DragDownDetails()),
+        LineTouchResponse(
+          touchLocation: Offset.zero,
+          touchChartCoordinate: Offset.zero,
+          lineBarSpots: <TouchLineBarSpot>[
+            TouchLineBarSpot(bar, 0, bar.spots[5], 5),
+          ],
+        ),
+      );
+
+      final indicator = data.lineTouchData.getTouchedSpotIndicator;
+      expect(indicator(bar, const [5]).single, isNotNull);
+      expect(indicator(bar, const [6]).single, isNull);
     });
 
     testWidgets('tooltip builds when hovering a non-first velocity segment', (

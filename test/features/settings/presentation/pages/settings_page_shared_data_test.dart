@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -245,6 +246,24 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       rules.add(rule.dbValue);
     }
     state = state.copyWith(safetyReviewDisabledRules: rules);
+  }
+
+  @override
+  Future<void> setConditionEngineEnabled(bool value) async =>
+      state = state.copyWith(conditionEngineEnabled: value);
+
+  @override
+  Future<void> setConditionRuleEnabled(
+    ConditionRuleId rule,
+    bool enabled,
+  ) async {
+    final rules = {...state.conditionDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(conditionDisabledRules: rules);
   }
 
   @override

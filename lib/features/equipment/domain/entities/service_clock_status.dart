@@ -12,6 +12,9 @@ enum ServiceClockSeverity { ok, dueSoon, overdue }
 /// a dive logged without a profile or water type still counts a dive and
 /// its hours.
 class EquipmentExposureSample extends Equatable {
+  /// The dive this sample came from (condition phase 3b). Empty only for
+  /// hand-built samples in older tests; the query always fills it.
+  final String diveId;
   final DateTime date;
   final int durationSeconds;
   final DiveMode diveMode;
@@ -27,7 +30,12 @@ class EquipmentExposureSample extends Equatable {
   /// dive, or null when the link path carries no gas (a mask, a fin).
   final double? contactO2Fraction;
 
+  /// The dive's `updated_at` (condition phase 3b), so the condition input
+  /// fingerprint changes whenever any sample's dive changed.
+  final int updatedAt;
+
   const EquipmentExposureSample({
+    this.diveId = '',
     required this.date,
     required this.durationSeconds,
     this.diveMode = DiveMode.oc,
@@ -35,12 +43,14 @@ class EquipmentExposureSample extends Equatable {
     this.minTemperature,
     this.waterType,
     this.contactO2Fraction,
+    this.updatedAt = 0,
   });
 
   double get durationHours => durationSeconds / 3600.0;
 
   @override
   List<Object?> get props => [
+    diveId,
     date,
     durationSeconds,
     diveMode,
@@ -48,6 +58,7 @@ class EquipmentExposureSample extends Equatable {
     minTemperature,
     waterType,
     contactO2Fraction,
+    updatedAt,
   ];
 }
 

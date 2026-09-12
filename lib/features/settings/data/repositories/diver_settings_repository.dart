@@ -127,6 +127,10 @@ class DiverSettingsRepository {
               coldWaterThresholdC: Value(s.coldWaterThresholdC),
               deepDiveThresholdM: Value(s.deepDiveThresholdM),
               highO2ThresholdPercent: Value(s.highO2ThresholdPercent),
+              conditionEngineEnabled: Value(s.conditionEngineEnabled),
+              conditionDisabledRules: Value(
+                _encodeDisabledRules(s.conditionDisabledRules),
+              ),
               hiddenChamberIds: Value(_encodeDisabledRules(s.hiddenChamberIds)),
               emergencyRegion: Value(s.emergencyRegion),
               showAscentRateColors: Value(s.showAscentRateColors),
@@ -301,6 +305,10 @@ class DiverSettingsRepository {
           coldWaterThresholdC: Value(settings.coldWaterThresholdC),
           deepDiveThresholdM: Value(settings.deepDiveThresholdM),
           highO2ThresholdPercent: Value(settings.highO2ThresholdPercent),
+          conditionEngineEnabled: Value(settings.conditionEngineEnabled),
+          conditionDisabledRules: Value(
+            _encodeDisabledRules(settings.conditionDisabledRules),
+          ),
           hiddenChamberIds: Value(
             _encodeDisabledRules(settings.hiddenChamberIds),
           ),
@@ -525,6 +533,8 @@ class DiverSettingsRepository {
       coldWaterThresholdC: row.coldWaterThresholdC,
       deepDiveThresholdM: row.deepDiveThresholdM,
       highO2ThresholdPercent: row.highO2ThresholdPercent,
+      conditionEngineEnabled: row.conditionEngineEnabled,
+      conditionDisabledRules: _decodeDisabledRules(row.conditionDisabledRules),
       hiddenChamberIds: _decodeDisabledRules(row.hiddenChamberIds),
       emergencyRegion: row.emergencyRegion,
       showAscentRateColors: row.showAscentRateColors,

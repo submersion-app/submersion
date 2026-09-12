@@ -114,10 +114,20 @@ void main() {
       base.data.equipmentObservations.map((r) => r['id']),
       contains(created.id),
     );
-    // A watermark newer than every clock exports nothing.
+    // An old watermark (canonical form: zero-padded millis, counter, node)
+    // exports the row; one newer than every clock exports nothing.
+    final since = await serializer.exportChangeset(
+      deviceId: 'dev',
+      hlcWatermark: '000000000000000:000000:0',
+      deletions: const [],
+    );
+    expect(
+      since.data.equipmentObservations.map((r) => r['id']),
+      contains(created.id),
+    );
     final later = await serializer.exportChangeset(
       deviceId: 'dev',
-      hlcWatermark: '9999-12-31T23:59:59.999Z-9999-zzzz',
+      hlcWatermark: '999999999999999:999999:z',
       deletions: const [],
     );
     expect(later.data.equipmentObservations, isEmpty);
