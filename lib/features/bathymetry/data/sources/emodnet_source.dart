@@ -52,6 +52,13 @@ class EmodnetSource implements BathymetrySource {
   @override
   bool get global => false;
 
+  /// See [BathymetrySource.minKnownFraction]'s doc -- this is the source
+  /// (its Caribbean tile: 99.96% wet on 48% coverage) the floor was
+  /// originally written to guard against, so it keeps the resolver's
+  /// original default rather than being exempted like swissBATHY3D.
+  @override
+  double get minKnownFraction => 0.60;
+
   static bool _inBox(GeoPoint p, _Box b) =>
       p.latitude >= b.minLat &&
       p.latitude <= b.maxLat &&
