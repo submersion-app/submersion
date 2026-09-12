@@ -114,6 +114,78 @@ void main() {
     });
   });
 
+  group('windowBars straight spans', () {
+    // A straight, dot-less series can be cut exactly: its segments crossing
+    // the window edges are clipped to them, so even a two-point span over
+    // the whole dive (the O2 cell rug) stays about one window wide.
+    LineChartBarData straight(List<FlSpot> spots) =>
+        LineChartBarData(spots: spots, dotData: const FlDotData(show: false));
+
+    test('clips a two-point span that brackets the window to its edges', () {
+      final rug = straight(const [FlSpot(0, 7), FlSpot(100, 7)]);
+
+      final w = windowBars([rug], minX: 40, maxX: 50, chartMinY: -1000);
+
+      expect(w.bars.single.spots, const [FlSpot(40, 7), FlSpot(50, 7)]);
+      expect(w.offsets, [0]);
+    });
+
+    test('clips the segments crossing each edge on their own line', () {
+      final line = straight([
+        for (var i = 0; i <= 100; i += 10) FlSpot(i.toDouble(), i * 2.0),
+      ]);
+
+      final w = windowBars([line], minX: 42, maxX: 58, chartMinY: -1000);
+
+      final spots = w.bars.single.spots;
+      expect(spots.first.x, 42);
+      expect(spots.first.y, closeTo(84, 1e-9));
+      expect(spots[1], const FlSpot(50, 100));
+      expect(spots.last.x, 58);
+      expect(spots.last.y, closeTo(116, 1e-9));
+      expect(spots, hasLength(3));
+      expect(w.offsets, [4]);
+    });
+
+    test('keeps a neighbour whose segment is broken by a gap', () {
+      final gappy = straight(const [
+        FlSpot(0, 0),
+        FlSpot(30, 30),
+        FlSpot.nullSpot,
+        FlSpot(45, 45),
+        FlSpot(60, 60),
+      ]);
+
+      final w = windowBars([gappy], minX: 40, maxX: 50, chartMinY: -1000);
+
+      // No line joins 30 to 45, so 30 must not be dragged to the edge.
+      expect(w.bars.single.spots.first, const FlSpot(30, 30));
+      expect(w.bars.single.spots.last, const FlSpot(50, 50));
+    });
+
+    test('leaves points alone on a series that draws its dots', () {
+      final dotted = LineChartBarData(
+        spots: const [FlSpot(0, 7), FlSpot(100, 7)],
+      );
+
+      final w = windowBars([dotted], minX: 40, maxX: 50, chartMinY: -1000);
+
+      expect(identical(w.bars.single, dotted), isTrue);
+    });
+
+    test('leaves points alone on a curved series', () {
+      final curved = LineChartBarData(
+        spots: const [FlSpot(0, 7), FlSpot(100, 7)],
+        isCurved: true,
+        dotData: const FlDotData(show: false),
+      );
+
+      final w = windowBars([curved], minX: 40, maxX: 50, chartMinY: -1000);
+
+      expect(identical(w.bars.single, curved), isTrue);
+    });
+  });
+
   group('windowBars fill gradient', () {
     // fl_chart sizes a below-area gradient to the bar's own bounds: its most
     // left/right spots across, and from its topmost spot down to the chart's

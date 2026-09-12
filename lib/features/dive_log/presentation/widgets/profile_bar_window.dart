@@ -58,20 +58,68 @@ WindowedBars windowBars(
   final out = <LineChartBarData>[];
   final offsets = <int>[];
   for (final bar in bars) {
-    final range = _windowRange(bar.spots, minX, maxX, margin);
+    final clip = _canClipAtEdges(bar);
+    final range = _windowRange(bar.spots, minX, maxX, clip ? 1 : margin);
+    final kept = range == null
+        ? null
+        : bar.spots.sublist(range.start, range.end + 1);
+    final spots = kept != null && clip
+        ? _clippedToEdges(kept, minX, maxX)
+        : kept;
     if (range == null ||
-        (range.start == 0 && range.end == bar.spots.length - 1)) {
+        (range.start == 0 &&
+            range.end == bar.spots.length - 1 &&
+            identical(spots, kept))) {
       out.add(bar);
       offsets.add(0);
     } else {
-      final cut = bar.copyWith(
-        spots: bar.spots.sublist(range.start, range.end + 1),
-      );
+      final cut = bar.copyWith(spots: spots);
       out.add(_remappedFill(bar, cut, chartMinY));
       offsets.add(range.start);
     }
   }
   return WindowedBars(out, offsets);
+}
+
+/// Whether [bar]'s edge samples can be moved onto the window edges without
+/// changing what is drawn: a straight line joins its samples (no curve, whose
+/// shape depends on the samples either side, and no steps), and no dots mark
+/// where the samples are.
+bool _canClipAtEdges(LineChartBarData bar) =>
+    !bar.isCurved && !bar.isStepLineChart && !bar.dotData.show;
+
+/// [spots] with a first sample left of [minX], and a last one right of
+/// [maxX], moved along their segment onto that edge. A span from a
+/// full-dive series (the O2 cell rug is two points, start to end) would
+/// otherwise stay the width of the whole dive. A sample whose neighbour is a
+/// gap has no segment into the window and stays put. Only the end samples
+/// move, so spot indices into the cut are unchanged.
+List<FlSpot> _clippedToEdges(List<FlSpot> spots, double minX, double maxX) {
+  if (spots.length < 2) return spots;
+  FlSpot onEdge(FlSpot from, FlSpot to, double x) =>
+      FlSpot(x, from.y + (to.y - from.y) * (x - from.x) / (to.x - from.x));
+
+  final first = spots.first;
+  final second = spots[1];
+  final last = spots.last;
+  final beforeLast = spots[spots.length - 2];
+  final clipFirst =
+      !first.isNull() && !second.isNull() && first.x < minX && second.x > minX;
+  final clipLast =
+      !last.isNull() &&
+      !beforeLast.isNull() &&
+      last.x > maxX &&
+      beforeLast.x < maxX;
+  if (!clipFirst && !clipLast) return spots;
+  return [
+    for (var i = 0; i < spots.length; i++)
+      if (i == 0 && clipFirst)
+        onEdge(first, second, minX)
+      else if (i == spots.length - 1 && clipLast)
+        onEdge(beforeLast, last, maxX)
+      else
+        spots[i],
+  ];
 }
 
 /// [cut] with its below-area gradient moved back to where it sat on [source].
