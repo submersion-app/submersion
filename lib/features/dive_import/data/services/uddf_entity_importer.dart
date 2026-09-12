@@ -1768,6 +1768,7 @@ class UddfEntityImporter {
     final diveIdByIndex = <int, String>{};
     final diveIdBySourceUuid = <String, String>{};
     final inlineBuddyIds = <String>{};
+    final roleExists = <String, bool>{};
 
     // Sort selected indices by dateTime (oldest first) for sequential
     // numbering. An undated dive is stored at [now] further down, so it has
@@ -2378,6 +2379,8 @@ class UddfEntityImporter {
         diverId,
         buddyIdMapping,
         repos.buddyRepository,
+        roleRepository: repos.diveRoleRepository,
+        roleExists: roleExists,
       );
       inlineBuddyIds.addAll(linkedIds);
 
@@ -2686,8 +2689,10 @@ class UddfEntityImporter {
     String diveId,
     String diverId,
     Map<String, String> buddyIdMapping,
-    BuddyRepository repository,
-  ) async {
+    BuddyRepository repository, {
+    DiveRoleRepository? roleRepository,
+    required Map<String, bool> roleExists,
+  }) async {
     // Link referenced buddies (from pre-imported buddy entities)
     final buddyRefsValue = diveData['buddyRefs'];
     final buddyRefs = buddyRefsValue is List
@@ -2745,7 +2750,42 @@ class UddfEntityImporter {
       inlineIds.add(guide.id);
     }
 
+    // Exact roles from Submersion's private <buddyroles> block (issue
+    // #1737). Applied last: addBuddyToDive keeps one row per person, so
+    // these override any role inferred from the standard elements. A role
+    // this database lacks can only be a custom role whose definition never
+    // arrived, which the standard elements carried as a plain buddy.
+    final roleRefsValue = diveData['buddyRoleRefs'];
+    final roleRefs = roleRefsValue is List ? roleRefsValue : const [];
+    for (final entry in roleRefs) {
+      if (entry is! Map) continue;
+      final buddyRef = entry['buddyRef'];
+      final roleId = entry['roleId'];
+      if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
+      final newBuddyId = buddyIdMapping[buddyRef];
+      if (newBuddyId == null) continue;
+      final known = await _roleExists(roleId, roleRepository, roleExists);
+      await repository.addBuddyToDive(
+        diveId,
+        newBuddyId,
+        known ? roleId : DiveRole.buddyId,
+      );
+    }
+
     return inlineIds;
+  }
+
+  /// Whether [roleId] names a role in this database: built in, or custom
+  /// and already present or restored ahead of the dives. Memoized in
+  /// [cache] across one import.
+  Future<bool> _roleExists(
+    String roleId,
+    DiveRoleRepository? repository,
+    Map<String, bool> cache,
+  ) async {
+    if (DiveRole.builtInIds.contains(roleId)) return true;
+    if (repository == null) return false;
+    return cache[roleId] ??= await repository.getDiveRoleById(roleId) != null;
   }
 
   Future<void> _linkTagsToDive(

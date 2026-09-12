@@ -1375,6 +1375,12 @@ class UniversalAdapter implements ImportSourceAdapter {
       equipmentSets: payload.entitiesOf(ui.ImportEntityType.equipmentSets),
       courses: payload.entitiesOf(ui.ImportEntityType.courses),
       serviceRecords: payload.entitiesOf(ui.ImportEntityType.serviceRecords),
+      customDiveRoles: [
+        for (final role
+            in (payload.metadata[ImportPayload.customDiveRolesKey] as List?) ??
+                const [])
+          if (role is Map<String, dynamic>) role,
+      ],
     );
   }
 }

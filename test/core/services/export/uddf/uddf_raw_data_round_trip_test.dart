@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain_dive;
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -41,6 +42,7 @@ ImportRepositories buildRepositories() => ImportRepositories(
   certificationRepository: CertificationRepository(),
   tagRepository: TagRepository(),
   diveTypeRepository: DiveTypeRepository(),
+  diveRoleRepository: DiveRoleRepository(),
   siteRepository: SiteRepository(),
   diveRepository: DiveRepository(),
   tankPressureRepository: TankPressureRepository(),

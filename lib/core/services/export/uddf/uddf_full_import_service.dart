@@ -5,6 +5,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
+import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
@@ -452,6 +453,29 @@ class UddfFullImportService {
           }
         }
 
+        // Exact per-dive roles (issue #1737), matched the same way. Parsed
+        // after <diveroles>, so a custom role the file declares is known.
+        final buddyRolesSection = submersionElement
+            .findElements('buddyroles')
+            .firstOrNull;
+        if (buddyRolesSection != null) {
+          final byDive = UddfBuddyRoles.parse(buddyRolesSection);
+          final declaredRoleIds = {
+            for (final role in customDiveRoles)
+              if (role['id'] is String) role['id'] as String,
+          };
+          for (final dive in dives) {
+            final rows = byDive[dive['sourceUuid']];
+            if (rows == null || rows.isEmpty) continue;
+            UddfBuddyRoles.applyExactRoles(
+              dive,
+              rows,
+              declaredBuddies: buddyMap.keys.toSet(),
+              declaredRoleIds: declaredRoleIds,
+            );
+          }
+        }
+
         // Parse courses
         final coursesSection = submersionElement
             .findElements('courses')
@@ -489,6 +513,12 @@ class UddfFullImportService {
           }
         }
       }
+    }
+
+    // Every source of role links has now been read, so each person can be
+    // left holding exactly one role per dive.
+    for (final dive in dives) {
+      UddfBuddyRoles.settle(dive, buddyMap);
     }
 
     _applyTripDateRanges(trips, dives);
@@ -954,10 +984,15 @@ class UddfFullImportService {
         .findElements('informationbeforedive')
         .firstOrNull;
     if (beforeElement != null) {
-      diveData['diveMaster'] = UddfImportParsers.getElementText(
+      // The names in <divemaster> become dive guide links rather than
+      // free text on the dive (issue #1737).
+      final leaderNames = UddfImportParsers.getElementText(
         beforeElement,
         'divemaster',
       );
+      if (leaderNames != null) {
+        UddfBuddyRoles.recordLeaderText(diveData, leaderNames);
+      }
 
       final diveTypeElements = beforeElement.findElements('divetype').toList();
       if (diveTypeElements.isNotEmpty) {
