@@ -232,9 +232,9 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
                 urlTemplate: ref.watch(mapTileUrlProvider),
                 userAgentPackageName: 'app.submersion',
                 maxZoom: ref.watch(mapTileMaxZoomProvider),
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider()
-                    : null,
+                tileProvider: TileCacheService.instance.tileProviderFor(
+                  urlTemplate: ref.watch(mapTileUrlProvider),
+                ),
               ),
               MarkerClusterLayerWidget(
                 options: MarkerClusterLayerOptions(

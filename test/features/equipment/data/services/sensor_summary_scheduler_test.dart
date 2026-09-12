@@ -193,16 +193,25 @@ void main() {
     fail('the scheduler kept queueing batches');
   }
 
-  Future<void> linkRegToD1() => db
-      .into(db.diveEquipment)
-      .insert(DiveEquipmentCompanion.insert(diveId: 'd1', equipmentId: 'reg'));
+  /// Links the gear to d1 as a rebreather: only gear a summary rule reads
+  /// (a cell, rebreather or transmitter) asks for missing summaries.
+  Future<void> linkSensorGearToD1() async {
+    await (db.update(db.equipment)..where((e) => e.id.equals('reg'))).write(
+      const EquipmentCompanion(type: Value('rebreather')),
+    );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'd1', equipmentId: 'reg'),
+        );
+  }
 
   test('a findings request queues the summaries its gear is missing', () async {
     // A check-in on gear whose dive has no sensor summary yet: the refresh
     // can only save the non-sensor findings and records no marker, so the
     // queue has to build the summary, after which the batch's pass over
     // active gear completes the review.
-    await linkRegToD1();
+    await linkSensorGearToD1();
     scheduleConditionFindingsRefresh(['reg']);
     await drain();
     expect(visited, ['d1']);
@@ -225,7 +234,7 @@ void main() {
               throw StateError('corrupt profile');
             },
           );
-      await linkRegToD1();
+      await linkSensorGearToD1();
       scheduleConditionFindingsRefresh(['reg']);
       // Returns at all only if the requests stop.
       await drain();

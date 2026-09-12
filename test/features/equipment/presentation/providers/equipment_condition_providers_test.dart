@@ -316,10 +316,10 @@ void main() {
     final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});
     addTearDown(sub.close);
     await read();
-    // Without the summary the first review is partial: no marker, so the
-    // finding it writes triggers one more pass, which writes nothing.
+    // No rule reads a regulator's summaries, so its first review is
+    // complete without one and asks for none.
     final settled = await untilSettled();
-    expect(summariesRequested, {'d1'});
+    expect(summariesRequested, isEmpty);
     await db
         .into(db.diveSensorSummaries)
         .insert(
@@ -523,6 +523,85 @@ void main() {
     );
     final rows = await db.select(db.equipmentFindings).get();
     expect(rows.where((r) => r.ruleId == 'cellOutputLow'), isEmpty);
+  });
+
+  test('an item no summary rule reads is reviewed without them', () async {
+    // Only cells, rebreathers and transmitters have summary rules. A
+    // regulator waiting on summaries it never reads recorded no marker and
+    // asked for them again on every pass.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: 1000,
+            createdAt: 1000,
+            updatedAt: 1000,
+          ),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'd1', equipmentId: 'reg'),
+        );
+    await read();
+    expect(summariesRequested, isEmpty);
+    expect(
+      await EquipmentFindingsRepository(db: db).getReview('reg'),
+      isNotNull,
+    );
+  });
+
+  test('a type change drops the sensor findings the old type made', () async {
+    // A rebreather's cell finding, then the item becomes a regulator with a
+    // dive not yet summarised. No rule of the new type reads summaries, so
+    // the old finding must not be kept waiting for them.
+    await ccrWithDive(summaryStamp: 5);
+    EquipmentConditionRefresher refresher(EquipmentConditionEngine engine) =>
+        EquipmentConditionRefresher(
+          equipment: EquipmentRepository(),
+          observations: observations,
+          incidents: incidents,
+          transmitters: TransmitterRepository(),
+          summaries: DiveSensorSummaryRepository(db: db),
+          findings: EquipmentFindingsRepository(db: db),
+          engine: engine,
+        );
+    Future<List<EquipmentFinding>> refresh(EquipmentConditionEngine e) async =>
+        (await refresher(e).ensureCurrent(
+          'ccr',
+          thresholds: ExposureThresholds.defaults,
+          engineEnabled: true,
+        ))!;
+    expect(
+      (await refresh(_EmitsCellFinding())).map((f) => f.ruleId),
+      contains(ConditionRuleId.cellOutputLow),
+    );
+    await (db.update(db.equipment)..where((e) => e.id.equals('ccr'))).write(
+      const EquipmentCompanion(type: Value('regulator'), updatedAt: Value(9)),
+    );
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'unsummarised',
+            diveDateTime: DateTime.utc(2026, 2, 1).millisecondsSinceEpoch,
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'unsummarised',
+            equipmentId: 'ccr',
+          ),
+        );
+    expect(
+      (await refresh(const EquipmentConditionEngine())).map((f) => f.ruleId),
+      isNot(contains(ConditionRuleId.cellOutputLow)),
+    );
   });
 
   test('incident dives count towards clearing a dismissal', () async {
