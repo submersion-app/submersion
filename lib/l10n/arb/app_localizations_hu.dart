@@ -17763,6 +17763,44 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_googlePhotos_title => 'Google Photos';
+
+  @override
+  String get settings_googlePhotos_subtitle =>
+      'Fotók importálása a Google Photosból és merülésekhez rendelése';
+
+  @override
+  String get settings_googlePhotos_connect => 'Google Photos csatlakoztatása';
+
+  @override
+  String settings_googlePhotos_connected(String name) {
+    return 'Csatlakozva mint $name';
+  }
+
+  @override
+  String settings_googlePhotos_connectFailed(String error) {
+    return 'Nem sikerült csatlakozni a Google Photoshoz: $error';
+  }
+
+  @override
+  String get settings_googlePhotos_needsReauth => 'Újracsatlakozás szükséges';
+
+  @override
+  String get settings_googlePhotos_disconnect => 'Leválasztás';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmTitle =>
+      'Leválasztod a Google Photost?';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmBody =>
+      'A már importált fotók a merüléseidnél maradnak, és továbbra is a médiatárolóból jelennek meg. Bármikor újracsatlakozhatsz, hogy továbbiakat importálj.';
+
+  @override
+  String get settings_googlePhotos_unconfigured =>
+      'A Google Photos nem érhető el ebben a buildben.';
+
+  @override
   String get settings_lightroom_clientId_label => 'Adobe kliensazonosító';
 
   @override

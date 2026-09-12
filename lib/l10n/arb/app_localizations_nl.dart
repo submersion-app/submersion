@@ -17670,6 +17670,44 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_googlePhotos_title => 'Google Photos';
+
+  @override
+  String get settings_googlePhotos_subtitle =>
+      'Foto\'s uit Google Photos importeren en aan duiken koppelen';
+
+  @override
+  String get settings_googlePhotos_connect => 'Google Photos koppelen';
+
+  @override
+  String settings_googlePhotos_connected(String name) {
+    return 'Verbonden als $name';
+  }
+
+  @override
+  String settings_googlePhotos_connectFailed(String error) {
+    return 'Kan geen verbinding maken met Google Photos: $error';
+  }
+
+  @override
+  String get settings_googlePhotos_needsReauth => 'Opnieuw verbinden vereist';
+
+  @override
+  String get settings_googlePhotos_disconnect => 'Ontkoppelen';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmTitle =>
+      'Google Photos ontkoppelen?';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmBody =>
+      'Foto\'s die je al hebt geïmporteerd blijven bij je duiken en worden nog steeds weergegeven vanuit de mediaopslag. Je kunt op elk moment opnieuw verbinden om meer te importeren.';
+
+  @override
+  String get settings_googlePhotos_unconfigured =>
+      'Google Photos is niet beschikbaar in deze build.';
+
+  @override
   String get settings_lightroom_clientId_label => 'Adobe client-ID';
 
   @override

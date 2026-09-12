@@ -17494,6 +17494,44 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_googlePhotos_title => 'Google Photos';
+
+  @override
+  String get settings_googlePhotos_subtitle =>
+      'استيراد الصور من Google Photos وربطها بالغطسات';
+
+  @override
+  String get settings_googlePhotos_connect => 'ربط Google Photos';
+
+  @override
+  String settings_googlePhotos_connected(String name) {
+    return 'متصل باسم $name';
+  }
+
+  @override
+  String settings_googlePhotos_connectFailed(String error) {
+    return 'تعذّر الاتصال بـ Google Photos: $error';
+  }
+
+  @override
+  String get settings_googlePhotos_needsReauth => 'يلزم إعادة الاتصال';
+
+  @override
+  String get settings_googlePhotos_disconnect => 'قطع الاتصال';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmTitle =>
+      'قطع الاتصال بـ Google Photos؟';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmBody =>
+      'تبقى الصور التي استوردتها بالفعل في غطساتك وتستمر في الظهور من مخزن الوسائط. يمكنك إعادة الاتصال في أي وقت لاستيراد المزيد.';
+
+  @override
+  String get settings_googlePhotos_unconfigured =>
+      '‏Google Photos غير متاح في هذا الإصدار.';
+
+  @override
   String get settings_lightroom_clientId_label => 'معرّف عميل Adobe';
 
   @override

@@ -93,6 +93,7 @@ import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/pages/google_photos_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
@@ -1215,6 +1216,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 redirect: (context, state) =>
                     lightroomUiEnabled ? null : '/settings/media-sources',
                 builder: (context, state) => const LightroomSettingsPage(),
+              ),
+              // Google Photos connector, hidden until the OAuth client
+              // exists (googlePhotosUiEnabled). The route stays defined so a
+              // stale deep link degrades to the media sources page.
+              GoRoute(
+                path: 'google-photos',
+                name: 'googlePhotos',
+                redirect: (context, state) =>
+                    googlePhotosUiEnabled ? null : '/settings/media-sources',
+                builder: (context, state) => const GooglePhotosSettingsPage(),
               ),
               GoRoute(
                 path: 'photos-media',

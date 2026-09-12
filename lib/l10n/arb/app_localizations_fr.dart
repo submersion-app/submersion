@@ -17881,6 +17881,44 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_googlePhotos_title => 'Google Photos';
+
+  @override
+  String get settings_googlePhotos_subtitle =>
+      'Importer des photos depuis Google Photos et les associer aux plongées';
+
+  @override
+  String get settings_googlePhotos_connect => 'Connecter Google Photos';
+
+  @override
+  String settings_googlePhotos_connected(String name) {
+    return 'Connecté en tant que $name';
+  }
+
+  @override
+  String settings_googlePhotos_connectFailed(String error) {
+    return 'Impossible de se connecter à Google Photos : $error';
+  }
+
+  @override
+  String get settings_googlePhotos_needsReauth => 'Reconnexion nécessaire';
+
+  @override
+  String get settings_googlePhotos_disconnect => 'Déconnecter';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmTitle =>
+      'Déconnecter Google Photos ?';
+
+  @override
+  String get settings_googlePhotos_disconnect_confirmBody =>
+      'Les photos déjà importées restent sur vos plongées et continuent de s\'afficher depuis le stockage média. Vous pouvez vous reconnecter à tout moment pour en importer d\'autres.';
+
+  @override
+  String get settings_googlePhotos_unconfigured =>
+      'Google Photos n\'est pas disponible dans cette version.';
+
+  @override
   String get settings_lightroom_clientId_label => 'ID client Adobe';
 
   @override

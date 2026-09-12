@@ -29329,6 +29329,66 @@ abstract class AppLocalizations {
   /// **'Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Enter your credential\'s redirect URI below — Native App credentials use a custom scheme — or leave it blank to use {redirectUri}.'**
   String settings_lightroom_clientId_help(String redirectUri);
 
+  /// No description provided for @settings_googlePhotos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Photos'**
+  String get settings_googlePhotos_title;
+
+  /// No description provided for @settings_googlePhotos_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import photos from Google Photos and link them to dives'**
+  String get settings_googlePhotos_subtitle;
+
+  /// No description provided for @settings_googlePhotos_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Google Photos'**
+  String get settings_googlePhotos_connect;
+
+  /// No description provided for @settings_googlePhotos_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected as {name}'**
+  String settings_googlePhotos_connected(String name);
+
+  /// No description provided for @settings_googlePhotos_connectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to Google Photos: {error}'**
+  String settings_googlePhotos_connectFailed(String error);
+
+  /// No description provided for @settings_googlePhotos_needsReauth.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect needed'**
+  String get settings_googlePhotos_needsReauth;
+
+  /// No description provided for @settings_googlePhotos_disconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get settings_googlePhotos_disconnect;
+
+  /// No description provided for @settings_googlePhotos_disconnect_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect Google Photos?'**
+  String get settings_googlePhotos_disconnect_confirmTitle;
+
+  /// No description provided for @settings_googlePhotos_disconnect_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos you have already imported stay on your dives and keep displaying from the media store. You can reconnect any time to import more.'**
+  String get settings_googlePhotos_disconnect_confirmBody;
+
+  /// No description provided for @settings_googlePhotos_unconfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Photos is not available in this build.'**
+  String get settings_googlePhotos_unconfigured;
+
   /// No description provided for @settings_lightroom_clientId_label.
   ///
   /// In en, this message translates to:
