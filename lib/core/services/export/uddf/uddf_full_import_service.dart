@@ -954,6 +954,38 @@ class UddfFullImportService {
     return site;
   }
 
+  /// Pairs the inline `<buddy>` [name] on one dive with a declared person
+  /// ([buddies], keyed by `<buddy id>`), case-insensitively, and returns
+  /// whether it found one.
+  ///
+  /// Submersion's export links each participant and also names them
+  /// inline, so a name first pairs with a person the dive already links
+  /// ([buddyRefs]) and no earlier name took ([paired]); otherwise it would
+  /// come back as a second, unmatched person (#1806). Only then does it
+  /// link a declared person the dive does not link yet, as third-party
+  /// files may name people inline only.
+  static bool _pairInlineBuddy(
+    String name,
+    Map<String, Map<String, dynamic>> buddies,
+    List<String> buddyRefs,
+    Set<String> paired,
+  ) {
+    final key = name.toLowerCase();
+    final namesakes = [
+      for (final entry in buddies.entries)
+        if ((entry.value['name'] as String?)?.toLowerCase() == key) entry.key,
+    ];
+    final linked = namesakes
+        .where((ref) => buddyRefs.contains(ref) && !paired.contains(ref))
+        .firstOrNull;
+    final ref =
+        linked ?? namesakes.where((r) => !buddyRefs.contains(r)).firstOrNull;
+    if (ref == null) return false;
+    if (linked == null) buddyRefs.add(ref);
+    paired.add(ref);
+    return true;
+  }
+
   Map<String, dynamic> _parseFullDive(
     XmlElement diveElement,
     Map<String, Map<String, dynamic>> sites,
@@ -978,6 +1010,10 @@ class UddfFullImportService {
     if (diveId != null && diveId.isNotEmpty) {
       diveData['sourceUuid'] = diveId;
     }
+
+    // Declared people an inline <buddy> name has already paired with (see
+    // _pairInlineBuddy), shared by the before- and after-dive passes.
+    final pairedInline = <String>{};
 
     // Parse additional fields from informationbeforedive
     final beforeElement = diveElement
@@ -1117,18 +1153,12 @@ class UddfFullImportService {
             lastName,
           ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
           if (buddyName.isNotEmpty) {
-            // Find matching buddy record by name
-            bool found = false;
-            for (final entry in buddies.entries) {
-              final recordName = entry.value['name'] as String?;
-              if (recordName != null &&
-                  recordName.toLowerCase() == buddyName.toLowerCase() &&
-                  !buddyRefs.contains(entry.key)) {
-                buddyRefs.add(entry.key);
-                found = true;
-                break;
-              }
-            }
+            final found = _pairInlineBuddy(
+              buddyName,
+              buddies,
+              buddyRefs,
+              pairedInline,
+            );
             // Track unmatched names to create buddies during import
             if (!found && !unmatchedBuddyNames.contains(buddyName)) {
               unmatchedBuddyNames.add(buddyName);
@@ -1309,18 +1339,12 @@ class UddfFullImportService {
             lastName,
           ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
           if (buddyName.isNotEmpty) {
-            // Find matching buddy record by name
-            bool found = false;
-            for (final entry in buddies.entries) {
-              final recordName = entry.value['name'] as String?;
-              if (recordName != null &&
-                  recordName.toLowerCase() == buddyName.toLowerCase() &&
-                  !buddyRefs.contains(entry.key)) {
-                buddyRefs.add(entry.key);
-                found = true;
-                break;
-              }
-            }
+            final found = _pairInlineBuddy(
+              buddyName,
+              buddies,
+              buddyRefs,
+              pairedInline,
+            );
             // Track unmatched names to create buddies during import
             if (!found && !unmatchedBuddyNames.contains(buddyName)) {
               unmatchedBuddyNames.add(buddyName);

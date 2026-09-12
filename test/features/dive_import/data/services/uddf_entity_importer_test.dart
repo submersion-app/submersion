@@ -279,6 +279,13 @@ void main() {
   });
 
   group('Import dive roles', () {
+    setUp(() {
+      when(
+        mockDiveRoleRepo.getAllDiveRoles(diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => []);
+      when(mockDiveRoleRepo.getDiveRoleById(any)).thenAnswer((_) async => null);
+    });
+
     test('restores custom roles preserving ids, skipping built-ins and '
         'invalid rows', () async {
       when(
@@ -1731,7 +1738,10 @@ void main() {
         updatedAt: now,
       );
       when(
-        mockBuddyRepo.findOrCreateByName('Charlie'),
+        mockBuddyRepo.findOrCreateByName(
+          'Charlie',
+          diverId: anyNamed('diverId'),
+        ),
       ).thenAnswer((_) async => inlineBuddy);
       when(
         mockBuddyRepo.addBuddyToDive(any, any, any),
@@ -1759,7 +1769,9 @@ void main() {
 
       // Inline buddy counted in buddies total
       expect(result.buddies, 1);
-      verify(mockBuddyRepo.findOrCreateByName('Charlie')).called(1);
+      verify(
+        mockBuddyRepo.findOrCreateByName('Charlie', diverId: diverId),
+      ).called(1);
     });
 
     test('links tags to dive', () async {
