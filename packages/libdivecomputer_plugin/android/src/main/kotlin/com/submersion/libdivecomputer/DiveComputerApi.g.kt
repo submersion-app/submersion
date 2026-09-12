@@ -255,7 +255,14 @@ data class ProfileSample (
 data class GasMix (
   val index: Long,
   val o2Percent: Double,
-  val hePercent: Double
+  val hePercent: Double,
+  /**
+   * Gas usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+   * 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+   * Set on the gas mix itself, so it is available even when the mix has no
+   * tank/transmitter record.
+   */
+  val usage: Long? = null
 )
  {
   companion object {
@@ -263,7 +270,8 @@ data class GasMix (
       val index = pigeonVar_list[0] as Long
       val o2Percent = pigeonVar_list[1] as Double
       val hePercent = pigeonVar_list[2] as Double
-      return GasMix(index, o2Percent, hePercent)
+      val usage = pigeonVar_list[3] as Long?
+      return GasMix(index, o2Percent, hePercent, usage)
     }
   }
   fun toList(): List<Any?> {
@@ -271,6 +279,7 @@ data class GasMix (
       index,
       o2Percent,
       hePercent,
+      usage,
     )
   }
 }

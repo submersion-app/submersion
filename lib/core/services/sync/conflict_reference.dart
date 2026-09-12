@@ -90,6 +90,7 @@ class ConflictReferenceResolver {
     'configId': 'cylinderConfigs',
     'computerId': 'diveComputers',
     'sourceId': 'diveDataSources',
+    'importedFileId': 'importedFiles',
     'tankId': 'diveTanks',
     'switchToTankId': 'divePlanTanks',
     'planId': 'divePlans',
@@ -132,6 +133,7 @@ class ConflictReferenceResolver {
     'presetName',
     'templateName',
     'sourceFileName',
+    'fileName',
     'caption',
     'originalFilename',
   ];

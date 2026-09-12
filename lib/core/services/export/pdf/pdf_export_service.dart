@@ -186,10 +186,16 @@ class PdfExportService {
 
     // The printed logbook follows the diver's gear arrangement (#1486,
     // #1576). Read here rather than threaded through every caller, matching
-    // how this method already reaches for SignatureStorageService.
-    final gearArrangement =
-        await AppSettingsRepository().getEquipmentArrangement() ??
-        EquipmentArrangement.defaults;
+    // how this method already reaches for SignatureStorageService. A read
+    // that fails throws; the export still prints, in the default order.
+    EquipmentArrangement gearArrangement;
+    try {
+      gearArrangement =
+          await AppSettingsRepository().getEquipmentArrangement() ??
+          EquipmentArrangement.defaults;
+    } catch (_) {
+      gearArrangement = EquipmentArrangement.defaults;
+    }
 
     final builder = PdfTemplateFactory().getBuilder(options.template);
     final pdfBytes = await builder.buildPdf(

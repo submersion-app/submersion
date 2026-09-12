@@ -320,4 +320,66 @@ void main() {
       isEmpty,
     );
   });
+
+  group('compareItems override (the Equipment page)', () {
+    // The Equipment page keeps its own item sort, which includes Service Due,
+    // but shares the type axis with every other gear surface. Its comparator
+    // replaces the arrangement's item sort; the type axis is untouched.
+    int byNameDescending(EquipmentItem a, EquipmentItem b) =>
+        b.name.compareTo(a.name);
+
+    test('orders items inside each group, headers still by type order', () {
+      final groups = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults,
+        typeLabel: english,
+        compareItems: byNameDescending,
+      );
+
+      expect(groups.map((g) => g.type).toList(), [
+        EquipmentType.bcd,
+        EquipmentType.regulator,
+        EquipmentType.tank,
+      ]);
+      expect(groups[1].items.map((i) => i.name).toList(), [
+        'Aqualung',
+        'Apeks',
+      ]);
+    });
+
+    test('orders a flat list after the type axis', () {
+      final groups = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults.copyWith(groupByType: false),
+        typeLabel: english,
+        compareItems: byNameDescending,
+      );
+
+      expect(groups.single.type, isNull);
+      expect(groups.single.items.map((i) => i.name).toList(), [
+        'Zeagle', // BCD
+        'Aqualung', // Regulator
+        'Apeks', // Regulator
+        'Faber', // Tank
+      ]);
+    });
+
+    test('alone orders the list when nothing orders the types', () {
+      final groups = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.none,
+        ),
+        typeLabel: english,
+        compareItems: byNameDescending,
+      );
+
+      expect(groups.single.items.map((i) => i.name).toList(), [
+        'Zeagle',
+        'Faber',
+        'Aqualung',
+        'Apeks',
+      ]);
+    });
+  });
 }

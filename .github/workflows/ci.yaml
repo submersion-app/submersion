@@ -134,12 +134,6 @@ jobs:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
@@ -155,6 +149,33 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      # build_runner keeps its incremental state (asset graph, compiled build
+      # script, hidden outputs) in .dart_tool/build, and restoring a recent
+      # copy turns a ~350s full build into a ~45-70s incremental one. The pub
+      # cache above also carries a .dart_tool/build, but its key only changes
+      # with pubspec.lock and an exact hit is never re-saved, so that copy
+      # drifts further behind main with every merge (hits measured 43s to
+      # 325s). Drop it and restore a per-commit copy instead: every run saves
+      # its own state (~12 MB compressed) and restore-keys picks the newest one
+      # for the same lockfile and SDK, preferring this PR's own ref, then main.
+      # A lockfile or SDK change starts cold, as build_runner would discard
+      # the graph anyway.
+      # The generated sources themselves (*.g.dart etc., gitignored) are NOT
+      # cached and a fresh checkout has none of them; build_runner rewrites
+      # missing outputs from the restored graph. The old pub-cache path relied
+      # on the same thing: run 34671403450 restored only the graph, wrote 104
+      # outputs in 43s, packaged all 40 generated files and passed.
+      - name: Drop stale build_runner state from the pub cache
+        run: rm -rf .dart_tool/build
+
+      - name: Cache build_runner state
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.dart_tool/build
+          key: build-runner-${{ runner.os }}-${{ steps.flutter-ver.outputs.version }}-${{ hashFiles('pubspec.lock', 'build.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            build-runner-${{ runner.os }}-${{ steps.flutter-ver.outputs.version }}-${{ hashFiles('pubspec.lock', 'build.yaml') }}-
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
@@ -198,12 +219,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -280,11 +295,15 @@ jobs:
         # already fans out ~10-11 non-test jobs (analyze + 5 builds + scripts +
         # timezone + integration) that share the pool AND gate ci-success, so
         # oversharding queues the builds and makes total CI slower, not
-        # faster. 8 keeps us under the cap while roughly halving test
-        # wall-clock.
-        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+        # faster. The org is on GitHub Team (60 concurrent jobs; it was 8
+        # shards under Free's 20). Each shard pays ~4s per test file (almost
+        # all of it load + coverage, not assertions) plus ~2 min of fixed
+        # setup, so at ~3000 files 16 shards bring a shard to ~14 min, under
+        # the ~19 min Android build that then sets the critical path. More
+        # shards would not shorten CI until that build does.
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     env:
-      TOTAL_SHARDS: 8
+      TOTAL_SHARDS: 16
     steps:
       - uses: actions/checkout@v7
         with:
@@ -299,12 +318,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -403,12 +416,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -558,6 +565,35 @@ jobs:
           python3 -m pip install shapely
           python3 scripts/sea_area_harvester_test.py
 
+      - name: Run brand asset generator tests
+        # The generator draws the social card, banners, lockups and logo mark
+        # from code. Pillow is installed with the same retry as coverage.py;
+        # the tests fail rather than skip without it, so this step cannot go
+        # green having tested nothing. It runs before the dive site step,
+        # whose unretried `pip install -r scripts/requirements.txt` would
+        # otherwise be the one downloading Pillow (it is listed there too). Text needs Pillow's RAQM layout, which
+        # loads the system libfribidi; install it if the runner lacks it.
+        # layout_test.py needs no Pillow.
+        run: |
+          for attempt in 1 2 3; do
+            if python3 -m pip install 'Pillow>=10.1'; then
+              break
+            fi
+            echo "::warning::pip install Pillow failed (attempt $attempt/3)"
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            else
+              echo "::error::pip install Pillow failed after 3 attempts"
+              exit 1
+            fi
+          done
+          if ! python3 -c "from PIL import features; raise SystemExit(not features.check('raqm'))"; then
+            sudo apt-get update
+            sudo apt-get install -y libfribidi0
+          fi
+          python3 scripts/brand/layout_test.py
+          python3 scripts/brand/generate_brand_assets_test.py
+
       - name: Run dive site harvester tests
         # The harvester stamps the bundled dive site and dive centre assets.
         # Its dependency set is the one scripts/requirements.txt declares;
@@ -648,12 +684,6 @@ jobs:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
@@ -725,12 +755,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -808,12 +832,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -942,12 +960,6 @@ jobs:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
@@ -1064,12 +1076,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -1214,12 +1220,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6

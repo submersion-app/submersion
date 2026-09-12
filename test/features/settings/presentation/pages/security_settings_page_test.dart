@@ -92,6 +92,36 @@ void main() {
     }
   }
 
+  /// [settle], but runs until [condition] holds instead of for a fixed
+  /// count, failing with [awaiting] if it never does.
+  ///
+  /// Use this after any step that runs a keyslot operation. Each iteration
+  /// advances the flow by at most one real-I/O hop (a sidecar read or write
+  /// continuation only runs on the next pump), so a flow needs a fixed number
+  /// of iterations even on an idle machine: regenerating the recovery code
+  /// needs 15 of settle's 20. On a contended CI runner some windows see no
+  /// I/O complete, and a fixed count then runs out before the result
+  /// mounts. The cap bounds iterations, not hops: no flow here needs more
+  /// than 15 hops, and the rest of the 400 is headroom for those empty
+  /// windows, so do not lower it toward the hop count. Only a result that
+  /// never arrives should reach it.
+  Future<void> settleUntil(
+    WidgetTester tester,
+    bool Function() condition, {
+    required String awaiting,
+  }) async {
+    const cap = 400;
+    for (var i = 0; i < cap && !condition(); i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 25)),
+      );
+      await tester.pump();
+    }
+    if (!condition()) {
+      fail('Timed out after $cap settle iterations awaiting $awaiting');
+    }
+  }
+
   Future<void> pumpPage(WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -170,7 +200,11 @@ void main() {
       await tester.enterText(fields.at(0), 'encrypt-only');
       await tester.enterText(fields.at(1), 'encrypt-only');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => find.text('I saved my recovery code').evaluate().isNotEmpty,
+        awaiting: 'the recovery code step',
+      );
       await tester.tap(find.text('I saved my recovery code'));
       await tester.pump();
       await tester.tap(find.widgetWithText(FilledButton, 'Done'));
@@ -207,7 +241,11 @@ void main() {
 
       await tester.enterText(find.byType(TextField), 'existing-encryption-pw');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => find.text('Encrypt database?').evaluate().isNotEmpty,
+        awaiting: 'the encryption confirmation',
+      );
 
       expect(find.text('Encrypt database?'), findsOneWidget);
       expect(DatabaseSecurityService.instance.appLockEnabled, false);
@@ -265,7 +303,11 @@ void main() {
 
       await tester.enterText(find.byType(TextField), 'existing-pw');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => DatabaseSecurityService.instance.appLockEnabled,
+        awaiting: 'app lock to turn on',
+      );
 
       expect(DatabaseSecurityService.instance.appLockEnabled, true);
     },
@@ -324,12 +366,23 @@ void main() {
       await tester.enterText(fields.at(1), 'brand-new-pw');
       await tester.enterText(fields.at(2), 'brand-new-pw');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => find.text('Incorrect password.').evaluate().isNotEmpty,
+        awaiting: 'the wrong-password error',
+      );
       expect(find.text('Incorrect password.'), findsOneWidget);
 
       await tester.enterText(fields.at(0), 'original');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      // The dialog pops only after the rewrap is written. A popped route
+      // stays mounted (pump() never advances its exit animation) but stops
+      // taking pointers, so hit-testability marks the pop.
+      await settleUntil(
+        tester,
+        () => find.byType(AlertDialog).hitTestable().evaluate().isEmpty,
+        awaiting: 'the change password dialog to close',
+      );
 
       // The credential actually changed: old rejected, new accepted.
       // runAsync: the unwrap runs Argon2id, which cannot make progress on
@@ -383,7 +436,11 @@ void main() {
       await settle(tester);
       await tester.enterText(find.byType(TextField), 'pw-for-recovery');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => find.text('Your recovery code').evaluate().isNotEmpty,
+        awaiting: 'the recovery code dialog',
+      );
 
       expect(find.text('Your recovery code'), findsOneWidget);
       final codeText = tester
@@ -417,7 +474,11 @@ void main() {
       await settle(tester);
       await tester.enterText(find.byType(TextField), 'wrong-pw');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => find.text('Incorrect password.').evaluate().isNotEmpty,
+        awaiting: 'the wrong-password error',
+      );
 
       expect(find.text('Incorrect password.'), findsOneWidget);
       expect(find.text('Your recovery code'), findsNothing);
@@ -438,7 +499,11 @@ void main() {
       await settle(tester);
       await tester.enterText(find.byType(TextField), 'keep-encryption');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => find.text('Turn off App Lock?').evaluate().isNotEmpty,
+        awaiting: 'the turn-off confirmation',
+      );
 
       expect(find.text('Turn off App Lock?'), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, 'Turn off'));
@@ -460,7 +525,11 @@ void main() {
       // Password gate first.
       await tester.enterText(find.byType(TextField), 'to-be-removed');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-      await settle(tester);
+      await settleUntil(
+        tester,
+        () => find.text('Turn off App Lock?').evaluate().isNotEmpty,
+        awaiting: 'the turn-off confirmation',
+      );
 
       // Then an explicit confirmation.
       expect(find.text('Turn off App Lock?'), findsOneWidget);

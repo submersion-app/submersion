@@ -173,10 +173,12 @@
   "common_action_dismiss": "Ignora",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Aggiungi componente",
+  "equipment_components_containsSection": "Contiene",
   "equipment_components_count": "{count, plural, =1{1 componente} other{{count} componenti}}",
   "equipment_components_cycleError": "Quell'articolo contiene già questo, quindi non può essere aggiunto come componente.",
   "equipment_components_editRole": "Modifica ruolo",
   "equipment_components_empty": "Nessun componente. Aggiungi le parti che compongono questo articolo.",
+  "equipment_components_emptyLeaf": "Nessuna parte propria. Aggiungile se questo articolo è composto da altri.",
   "equipment_components_historyAlsoPast": "{count, plural, =1{Aggiorna anche 1 immersione} other{Aggiorna anche {count} immersioni}}",
   "equipment_components_historyAskAdded": "Aggiungere la nuova parte anche a quelle immersioni o solo da ora in poi?",
   "equipment_components_historyAskRemoved": "Rimuovere la parte anche da quelle immersioni o solo da ora in poi?",
@@ -186,6 +188,8 @@
   "equipment_components_historyTitle": "Aggiornare le immersioni passate?",
   "equipment_components_partOf": "Parte di {name}",
   "equipment_components_partOfCount": "{count, plural, =1{Parte di 1 assieme} other{Parte di {count} assiemi}}",
+  "equipment_components_partOfSection": "Parte di",
+  "equipment_components_partOfSubtitle": "{role}, in {rigs}",
   "equipment_components_pickerConfirm": "{count, plural, =0{Aggiungi} =1{Aggiungi 1} other{Aggiungi {count}}}",
   "equipment_components_pickerEmpty": "Nessun'altra attrezzatura attiva può essere aggiunta qui.",
   "equipment_components_pickerReplaceConfirm": "Sostituisci",
@@ -311,6 +315,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Solo immersioni senza bombola esistente",
   "diveLog_bulkEdit_confirmTitle": "Applicare le modifiche?",
   "diveLog_bulkEdit_confirmApply": "Applica",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Aggiunta a 1 immersione} other{Aggiunta a tutte le {count} immersioni}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Rimozione da 1 immersione} other{Rimozione da tutte le {count} immersioni}}",
   "diveLog_bulkEdit_nothingSelected": "Attiva almeno un campo per applicare le modifiche.",
   "diveLog_bulkEdit_applied": "{count} immersioni aggiornate",
   "settings_cloudSync_error_icloudSignedOut": "iCloud non è disponibile. Accedi a iCloud nelle impostazioni del dispositivo.",
@@ -498,7 +504,7 @@
   "setup_welcome_skipSetup": "Salta configurazione",
   "setup_welcome_startFresh_subtitle": "Crea il tuo profilo subacqueo e configura l'app",
   "setup_welcome_startFresh_title": "Configura un nuovo profilo",
-  "setup_welcome_subtitle": "Registrazione e analisi avanzata delle immersioni",
+  "setup_welcome_subtitle": "Immergiti in sicurezza. Registra tutto.",
   "setup_welcome_title": "Benvenuto in Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -1054,6 +1060,7 @@
   "preDive_runner_flag": "Segnala",
   "preDive_runner_undo": "Reimposta come in sospeso",
   "preDive_runner_serviceOverdue": "Manutenzione scaduta",
+  "preDive_runner_conditionFindings": "Rilievi sullo stato",
   "preDive_runner_addNote": "Aggiungi nota",
   "preDive_runner_enterValue": "Inserisci valore",
   "preDive_runner_cellInAir": "In aria",
@@ -3660,6 +3667,7 @@
   "equipment_detail_editTooltipShort": "Modifica",
   "equipment_detail_errorMessage": "Errore: {error}",
   "equipment_detail_errorTitle": "Errore",
+  "equipment_detail_installedInLabel": "Installato in",
   "equipment_detail_lastServiceLabel": "Ultima manutenzione",
   "equipment_detail_loadingTitle": "Caricamento...",
   "equipment_detail_modelLabel": "Modello",
@@ -3668,6 +3676,17 @@
   "equipment_detail_notFoundTitle": "Attrezzatura non trovata",
   "equipment_detail_notesTitle": "Note",
   "equipment_detail_ownedForLabel": "Posseduto da",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Data di acquisto",
   "equipment_detail_purchasePriceLabel": "Prezzo di acquisto",
   "equipment_detail_retiredChip": "Ritirato",
@@ -3685,6 +3704,7 @@
   "equipment_serviceClocks_unconfigured": "Nessun intervallo impostato - tocca per configurare",
   "equipment_serviceClocks_dueOn": "Scade il {date}",
   "equipment_serviceClocks_overdueSince": "In ritardo dal {date}",
+  "equipment_serviceClocks_countingSince": "Conteggio dal {date}",
   "equipment_serviceClocks_overdue": "In ritardo",
   "equipment_serviceClocks_divesLeft": "{remaining} immersioni rimanenti su {total}",
   "cylinderConfigs_title": "Configurazioni bombole",
@@ -3793,7 +3813,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervallo (cicli di batteria)",
   "equipment_scheduleDialog_inheritHint": "Predefinito: {value}",
   "equipment_scheduleDialog_anchorDate": "Data di riferimento",
-  "equipment_scheduleDialog_anchorHint": "Usata quando non esiste ancora alcuna registrazione di manutenzione di questo tipo",
+  "equipment_scheduleDialog_anchorHint": "Il contatore parte da questa data finché non registri una manutenzione più recente.",
   "equipment_scheduleDialog_clearAnchor": "Cancella data di riferimento",
   "equipment_scheduleDialog_save": "Salva",
   "equipment_scheduleDialog_cancel": "Annulla",
@@ -3835,6 +3855,7 @@
   "equipment_detail_tripsCountSingular": "{count} viaggio",
   "equipment_detail_tripsLabel": "Viaggi",
   "equipment_detail_tripsSemanticLabel": "Visualizza viaggi con questa attrezzatura",
+  "equipment_detail_wasInstalledInLabel": "Era installato in",
   "equipment_edit_appBar_editTitle": "Modifica attrezzatura",
   "equipment_edit_appBar_newTitle": "Nuova attrezzatura",
   "equipment_edit_appBar_saveButton": "Salva",
@@ -4875,7 +4896,7 @@
   "planning_welcome_title": "Strumenti di pianificazione",
   "settings_about_aboutSubmersion": "Informazioni su Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Registra le tue immersioni, gestisci l'attrezzatura ed esplora i siti di immersione.",
+  "settings_about_description": "Immergiti in sicurezza. Registra tutto.",
   "settings_about_header": "Informazioni",
   "settings_about_openSourceLicenses": "Licenze open source",
   "settings_about_reportIssue": "Segnala un problema",
@@ -5122,6 +5143,7 @@
   "settings_conflict_ref_equipment": "Attrezzatura",
   "settings_conflict_ref_equipmentSet": "Set di attrezzatura",
   "settings_conflict_ref_finding": "Rilievo",
+  "settings_conflict_ref_importedFile": "File importato",
   "settings_conflict_ref_instructor": "Istruttore",
   "settings_conflict_ref_linkedDive": "Immersione collegata",
   "settings_conflict_ref_media": "Media",
@@ -5676,6 +5698,38 @@
   "statistics_equipment_weightTrend_error": "Impossibile caricare la tendenza della zavorra",
   "statistics_equipment_weightTrend_subtitle": "Piombo totale per immersione",
   "statistics_equipment_weightTrend_title": "Tendenza zavorra",
+  "statistics_equipment_exposure_title": "Esposizione",
+  "statistics_equipment_exposure_error": "Impossibile caricare i dati di esposizione",
+  "statistics_equipment_findings_error": "Impossibile caricare i rilievi sullo stato",
+  "statistics_equipment_issues_error": "Impossibile caricare i problemi segnalati",
+  "statistics_equipment_exposure_subtitle": "Totali per articolo con le tue soglie",
+  "statistics_equipment_exposure_empty": "Ancora nessuna immersione con attrezzatura",
+  "statistics_equipment_findings_title": "Rilievi sullo stato",
+  "statistics_equipment_findings_subtitle": "Rilievi aperti per regola",
+  "statistics_equipment_findings_subtitleAllDives": "Rilievi aperti per regola, su tutte le immersioni",
+  "statistics_equipment_findings_empty": "Nessun rilievo aperto",
+  "statistics_equipment_issues_title": "Problemi segnalati",
+  "statistics_equipment_issues_subtitle": "Tag di controllo più frequenti",
+  "statistics_equipment_issues_empty": "Nessun problema segnalato",
+  "statistics_equipment_countLabel_items": "articoli",
+  "statistics_equipment_countLabel_findings": "rilievi",
+  "statistics_equipment_countLabel_reports": "segnalazioni",
+  "statistics_equipment_exposureUnit_days": "Giorni",
+  "statistics_equipment_exposureUnit_dives": "Immersioni",
+  "statistics_equipment_countLabel_days": "giorni",
+  "statistics_equipment_countLabel_dives": "immersioni",
+  "statistics_equipment_countLabel_hours": "ore",
+  "statistics_equipment_countLabel_saltHours": "ore in acqua salata",
+  "statistics_equipment_countLabel_coldDives": "immersioni fredde",
+  "statistics_equipment_countLabel_o2Hours": "ore ad alto O2",
+  "statistics_equipment_countLabel_deepCycles": "immersioni profonde",
+  "statistics_equipment_countLabel_cycles": "cicli batteria",
+  "statistics_equipment_exposureUnit_hours": "Ore",
+  "statistics_equipment_exposureUnit_saltHours": "Ore in acqua salata",
+  "statistics_equipment_exposureUnit_coldDives": "Immersioni fredde",
+  "statistics_equipment_exposureUnit_o2Hours": "Ore ad alto O2",
+  "statistics_equipment_exposureUnit_deepCycles": "Immersioni profonde",
+  "statistics_equipment_exposureUnit_cycles": "Cicli batteria",
   "statistics_error_loadingStatistics": "Errore nel caricamento delle statistiche",
   "statistics_filterBar_clear": "Cancella filtro",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 immersione} other{{count} immersioni}}",
@@ -5967,6 +6021,8 @@
   "importWizard_photos_destinationUnwritable": "Impossibile scrivere in questa cartella. Scegline un'altra.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 immersione precedente ignorata — già nel tuo libro} other{{count} immersioni precedenti ignorate — già nel tuo libro}}",
   "tags_hint_addTags": "Aggiungi tag...",
+  "tags_manage_autoTagImports": "Tagga automaticamente le importazioni",
+  "tags_manage_autoTagImports_subtitle": "Ogni nuova importazione inizia con un tag che indica l'origine e la data. Puoi modificarlo per una singola importazione nelle opzioni di quell'importazione.",
   "tags_manage_bulkDeleteMessage": "Questi tag verranno rimossi da {diveCount, plural, =0{0 immersioni} =1{1 immersione} other{{diveCount} immersioni}} in totale. Questa azione non puo essere annullata.",
   "tags_manage_bulkDeleteTitle": "Eliminare {count} tag?",
   "tags_manage_colorLabel": "Colore",
@@ -5976,6 +6032,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 immersioni} =1{1 immersione} other{{count} immersioni}}",
   "tags_manage_editTitle": "Modifica tag",
   "tags_manage_emptyState": "Nessun tag ancora. Creane uno per iniziare.",
+  "tags_manage_importsSection": "Importazioni",
   "tags_manage_mergeAction": "Unisci",
   "tags_manage_mergeAffectedDives": "Questo influenzera {count, plural, =0{0 immersioni} =1{1 immersione} other{{count} immersioni}} in totale.",
   "tags_manage_mergeKeepFrom": "Oppure mantieni il nome da:",
@@ -6163,15 +6220,18 @@
   "transfer_csvExport_dataTypeHeader": "Tipo di dati",
   "transfer_csvExport_descriptionDives": "Esporta tutti i registri immersione come foglio di calcolo",
   "transfer_csvExport_descriptionEquipment": "Esporta inventario attrezzatura e informazioni sulla manutenzione",
+  "transfer_csvExport_descriptionObservations": "Ogni controllo OK e ogni problema segnalato, con immersione, etichette e nota",
   "transfer_csvExport_descriptionSites": "Esporta località e dettagli dei siti di immersione",
   "transfer_csvExport_dialogTitle": "Esporta CSV",
   "transfer_csvExport_exportButton": "Esporta CSV",
   "transfer_csvExport_optionDivesTitle": "CSV Immersioni",
   "transfer_csvExport_optionEquipmentTitle": "CSV Attrezzatura",
+  "transfer_csvExport_optionObservationsTitle": "CSV dei controlli attrezzatura",
   "transfer_csvExport_optionSitesTitle": "CSV Siti",
   "transfer_csvExport_semanticLabel": "Esporta {typeName}",
   "transfer_csvExport_typeDives": "Immersioni",
   "transfer_csvExport_typeEquipment": "Attrezzatura",
+  "transfer_csvExport_typeObservations": "Controlli attrezzatura",
   "transfer_csvExport_typeSites": "Siti",
   "transfer_detail_backTooltip": "Torna al trasferimento",
   "transfer_export_aboutContent": "Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV possono essere aperti nelle applicazioni di fogli di calcolo.",
@@ -6187,6 +6247,10 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Esportazione multi-formato",
   "transfer_export_optionSaveSubtitle": "Scegli dove salvare sul tuo dispositivo",
+  "transfer_export_includeGear": "Includi l'attrezzatura",
+  "transfer_export_includeGearSubtitle": "Aggiunge l'attrezzatura e il computer subacqueo usati in ogni immersione. I dettagli di acquisto sono esclusi.",
+  "transfer_export_includeParticipants": "Includi i partecipanti",
+  "transfer_export_includeParticipantsSubtitle": "Aggiunge compagni, guide e i loro ruoli in ogni immersione, con nome e brevetto. I recapiti sono esclusi.",
   "transfer_export_includeRawData": "Includi i dati grezzi del computer subacqueo",
   "transfer_export_includeRawDataSubtitle": "Conserva i byte originali del tuo computer subacqueo così il file può essere rianalizzato in seguito. Aumenta la dimensione del file.",
   "transfer_export_optionSaveTitle": "Salva su file",
@@ -6325,6 +6389,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Pianificazione",
+  "trips_edit_label_expectedDives": "Immersioni previste",
+  "trips_edit_hint_expectedDives": "Lascia vuoto per stimare dai tuoi viaggi recenti",
+  "trips_edit_label_expectedRuntime": "Durata prevista per immersione (minuti)",
+  "trips_edit_hint_expectedRuntime": "Lascia vuoto per stimare dalle tue immersioni in rebreather recenti",
+  "trips_scrubber_title": "Margine della calce",
+  "trips_scrubber_asOfStart": "al {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min rimasti prima del viaggio (nominale {rated} min, {consumed} min usati dall'ultimo ricambio)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min rimasti prima del viaggio (nominale {rated} min, {consumed} min usati, nessun ricambio registrato)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} immersione prevista} other{{dives} immersioni previste}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(dal tuo ultimo viaggio)} other{(dai tuoi ultimi {n} viaggi)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(impostato su questo viaggio)",
+  "trips_scrubber_perDive": "{minutes} min per immersione",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(dalla tua ultima immersione in rebreather)} other{(dalle tue ultime {n} immersioni in rebreather)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min di uso previsto",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min di margine dopo il viaggio",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Sotto il 20 per cento della durata nominale. Pianifica un ricambio o porta calce di scorta.",
+  "trips_scrubber_noRating": "Nessuna durata nominale su questo rebreather; aggiungi la durata della calce ai suoi attributi o una pianificazione di ricambio.",
+  "trips_scrubber_bannerMargin": "{minutes} min di margine della calce",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreather, il margine più basso è {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data di fine",
@@ -7113,11 +7290,21 @@
   "universalImport_label_options": "Opzioni",
   "universalImport_label_photosAttached": "Foto allegate",
   "universalImport_label_photosUnmatched": "Foto senza immersione corrispondente",
+  "diveLog_detail_menu_resyncImportedFile": "Risincronizza dal file originale",
+  "diveLog_detail_resyncSuccess": "Immersione aggiornata dal file originale",
+  "diveLog_detail_resyncFailed_diveMissing": "Impossibile risincronizzare: questa immersione non esiste più",
+  "diveLog_detail_resyncFailed_noStoredFile": "Impossibile risincronizzare: per questa immersione non è stato salvato alcun file originale",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "Impossibile risincronizzare: questo formato di file non è supportato",
+  "diveLog_detail_resyncFailed_storedFileMissing": "Impossibile risincronizzare: il file originale non è più presente su questo dispositivo",
+  "diveLog_detail_resyncFailed_noMatchingDive": "Impossibile risincronizzare: il file originale non contiene più un'immersione corrispondente",
+  "diveLog_detail_resyncFailed_unexpectedError": "Impossibile risincronizzare: si è verificato un errore imprevisto durante la lettura del file originale",
   "universalImport_label_replaceSource": "Sostituisci sorgente",
   "universalImport_label_replaceSourceSubtitle": "Aggiorna dallo stesso computer",
   "universalImport_label_replacedSourceData": "Dati sorgente sostituiti",
   "universalImport_label_retainDiveNumbers": "Mantieni i numeri di immersione di origine",
   "universalImport_label_retainDiveNumbersSubtitle": "Usa i numeri di immersione dal file importato invece di assegnarli automaticamente",
+  "universalImport_label_autoTagThisImport": "Tagga automaticamente questa importazione",
+  "universalImport_label_autoTagThisImportSubtitle": "Parte dalla tua preferenza salvata nelle impostazioni Tag. Modificarla qui riguarda solo questa importazione.",
   "universalImport_title_importOptions": "Opzioni di importazione",
   "universalImport_title_noDivesImported": "Nessuna immersione importata",
   "universalImport_title_successConsolidated": "Consolidamento riuscito",
@@ -8182,6 +8369,10 @@
   "incidentEdit_lessonsLearned": "Cosa aiuterebbe la prossima volta (facoltativo)",
   "incidentEdit_save": "Salva",
   "incidentEdit_privacyNote": "I rapporti di quasi incidente si sincronizzano tra i tuoi dispositivi e sono inclusi nei backup, ma mai nelle esportazioni o nelle pagine condivise del logbook.",
+  "incidentEdit_equipment": "Attrezzatura coinvolta",
+  "incidentEdit_equipment_none": "Nessuna",
+  "incidentEdit_equipment_onThisDive": "In questa immersione",
+  "incidentEdit_equipment_allGear": "Tutta l'attrezzatura",
   "incidentCategory_buoyancy": "Assetto",
   "incidentCategory_gasSupply": "Erogazione gas",
   "incidentCategory_equipment": "Attrezzatura",
@@ -8208,6 +8399,359 @@
   "settings_section_equipmentCondition_title": "Stato dell'attrezzatura",
   "settings_section_equipmentCondition_subtitle": "Soglie di esposizione per i contatori di manutenzione",
   "equipmentConditionSettings_title": "Stato dell'attrezzatura",
+  "equipmentCondition_children_title": "Parti installate",
+  "equipmentCondition_children_slot": "Slot {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Installato il {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{oggi} =1{1 giorno fa} other{{days} giorni fa}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 mese fa} other{{months} mesi fa}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Sostituisci",
+  "equipmentCondition_children_open": "Apri",
+  "equipmentCondition_children_replaceTitle": "Sostituire {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} viene ritirato oggi e un nuovo elemento di tipo {type} ne prende il posto nello stesso slot. Numero di serie e note partono vuoti.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Sostituisci",
+  "equipmentCondition_children_replaceCancel": "Annulla",
+  "equipmentCondition_children_replaced": "{name} sostituito",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Nessuna cella o batteria registrata",
+  "equipmentCondition_children_add": "Aggiungi",
+  "equipmentCondition_findings_title": "Rilievi sullo stato",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 rilievo} other{{count} rilievi}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Immersioni a supporto",
+  "equipmentCondition_findings_dismiss": "Ignora",
+  "equipmentCondition_findings_restore": "Ripristina",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Mostra 1 ignorato} other{Mostra {count} ignorati}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Immersioni a supporto",
+  "equipmentCondition_evidence_dive": "Immersione {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Immersione",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "Uscita delle celle per immersione",
+  "equipmentCondition_trend_title_gap": "Perdite di segnale del trasmettitore per immersione",
+  "equipmentCondition_trend_title_scrubber": "Uso della calce per immersione",
+  "equipmentCondition_trend_title_temperature": "Temperatura minima per immersione",
+  "equipmentCondition_trend_cell": "Cella {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Immersioni con un problema",
+  "equipmentCondition_trend_scrubber": "Minuti di calce",
+  "equipmentCondition_trend_gap": "Quota di perdite",
+  "equipmentCondition_trend_temperature": "Temperatura minima",
+  "equipmentCondition_trend_axis_minutes": "min",
+  "equipmentCondition_exposure_title": "Esposizione",
+  "equipmentCondition_exposure_empty": "Ancora nessuna immersione con questo articolo",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 immersione} other{{n} immersioni}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 immersione} other{{n} immersioni}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} ore",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} ore in acqua salata",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 immersione fredda} other{{n} immersioni fredde}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} ore ad alto O2",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 immersione profonda} other{{n} immersioni profonde}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 ciclo batteria} other{{n} cicli batteria}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "L'uscita della cella {slot} è calata del {percent} per cento in {n} immersioni dal {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "L'uscita della cella {slot} è di {gain} mV per bar nelle ultime {n} immersioni",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "La cella {slot} ha discordato dalle altre fino a {bar} bar in {count} delle ultime {n} immersioni",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "La cella {slot} ha letto basso ad alta ppO2 in {count} delle ultime {n} immersioni, fino al {percent} per cento dei campioni",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "La pressione è mancata per il {recent} per cento delle ultime 5 immersioni, contro il {prior} per cento nelle {priorCount} precedenti",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "La pressione è mancata in media per il {recent} per cento delle ultime {n} immersioni, {count} delle quali oltre il 10 per cento",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} segnalato {count} volte nelle ultime {n} immersioni",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} di {totalIssue} immersioni con problemi erano più fredde di {threshold}, su {n} immersioni con questo articolo",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} di {totalIssue} immersioni con problemi andavano oltre {threshold}, su {n} immersioni con questo articolo",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 incidente cita questo articolo} other{{count} incidenti citano questo articolo}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 immersione} other{{n} immersioni}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Soglie di esposizione",
   "equipmentConditionSettings_thresholdsHelp": "Un'immersione conta come fredda, profonda o ad alto O2 per i contatori di manutenzione quando supera queste soglie.",
   "equipmentConditionSettings_coldLabel": "Acqua fredda sotto",
@@ -8215,6 +8759,138 @@
   "equipmentConditionSettings_o2Label": "Miscela ad alto O2 oltre (% O2)",
   "equipmentConditionSettings_invalid": "Inserisci un numero",
   "equipmentConditionSettings_saveFailed": "Salvataggio non riuscito. Riprova.",
+  "equipmentConditionSettings_sensorHeader": "Riepiloghi dei sensori",
+  "equipmentConditionSettings_sensorHelp": "Il profilo di ogni immersione viene riepilogato una volta per l'uscita delle celle, le perdite del trasmettitore e l'uso del filtro. Le immersioni nuove e modificate si riepilogano da sole.",
+  "equipmentConditionSettings_rebuild": "Ricostruisci i riepiloghi dei sensori",
+  "equipmentConditionSettings_rebuild_subtitle": "Ricalcola il riepilogo di ogni immersione dal suo profilo",
+  "equipmentConditionSettings_rebuild_progress": "Riepilogate {done} di {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Riepiloghi dei sensori ricostruiti",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Riepiloghi dei sensori ricostruiti; {count, plural, =1{1 immersione non è stata riepilogata} other{{count} immersioni non sono state riepilogate}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 immersione non è stata riepilogata} other{{dives} immersioni non sono state riepilogate}}; non è stato possibile aggiornare i rilievi sullo stato di {items, plural, =1{1 elemento dell'attrezzatura} other{{items} elementi dell'attrezzatura}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Riepiloghi dei sensori ricostruiti; non è stato possibile aggiornare i rilievi sullo stato di {count, plural, =1{1 elemento dell'attrezzatura} other{{count} elementi dell'attrezzatura}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "Impossibile ricostruire i riepiloghi dei sensori.",
+  "equipmentConditionSettings_masterToggle": "Rilievi sullo stato",
+  "equipmentConditionSettings_masterToggle_subtitle": "Segnala le tendenze dell'uscita delle celle, delle perdite di segnale del trasmettitore e dei problemi registrati, con i numeri a supporto",
+  "equipmentConditionSettings_rulesHeader": "Regole",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "Uscita della cella in calo",
+  "equipmentConditionSettings_rule_cellOutputLow": "Uscita della cella bassa",
+  "equipmentConditionSettings_rule_cellDivergent": "La cella discorda dalle altre",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "Cella limitata in corrente ad alta ppO2",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "Perdite di segnale del trasmettitore in aumento",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "Perdite di segnale del trasmettitore elevate",
+  "equipmentConditionSettings_rule_issueRecurring": "Problema ricorrente",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "Problemi nelle immersioni fredde",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "Problemi nelle immersioni profonde",
+  "equipmentConditionSettings_rule_incidentLinked": "Incidenti collegati",
+  "equipmentObservation_tag_freeFlow": "Erogazione continua",
+  "equipmentObservation_tag_hardBreathing": "Respirazione dura",
+  "equipmentObservation_tag_wetBreathing": "Respirazione umida",
+  "equipmentObservation_tag_leak": "Perdita",
+  "equipmentObservation_tag_hoseDamage": "Frusta danneggiata",
+  "equipmentObservation_tag_inflatorStuck": "Inflator bloccato",
+  "equipmentObservation_tag_inflatorSlow": "Inflator lento",
+  "equipmentObservation_tag_bladderLeak": "Perdita del sacco",
+  "equipmentObservation_tag_dumpLeak": "Perdita dello scarico",
+  "equipmentObservation_tag_leakNeck": "Perdita al collo",
+  "equipmentObservation_tag_leakWrist": "Perdita al polso",
+  "equipmentObservation_tag_leakZip": "Perdita alla cerniera",
+  "equipmentObservation_tag_leakBoot": "Perdita al calzare",
+  "equipmentObservation_tag_leakValve": "Perdita della valvola",
+  "equipmentObservation_tag_leakSeam": "Perdita della cucitura",
+  "equipmentObservation_tag_tear": "Strappo",
+  "equipmentObservation_tag_seamFailure": "Cucitura aperta",
+  "equipmentObservation_tag_dim": "Fioco",
+  "equipmentObservation_tag_died": "Spento",
+  "equipmentObservation_tag_flooded": "Allagato",
+  "equipmentObservation_tag_switchFault": "Guasto interruttore",
+  "equipmentObservation_tag_batteryLow": "Batteria scarica",
+  "equipmentObservation_tag_screenFault": "Guasto schermo",
+  "equipmentObservation_tag_connectionFault": "Guasto connessione",
+  "equipmentObservation_tag_dropout": "Perdita di segnale",
+  "equipmentObservation_tag_cellWarning": "Avviso cella",
+  "equipmentObservation_tag_loopLeak": "Perdita del loop",
+  "equipmentObservation_tag_solenoidFault": "Guasto solenoide",
+  "equipmentObservation_tag_scrubberBreakthrough": "Esaurimento del filtro",
+  "equipmentObservation_tag_slowResponse": "Risposta lenta",
+  "equipmentObservation_tag_erratic": "Erratico",
+  "equipmentObservation_tag_lowCapacity": "Capacità ridotta",
+  "equipmentObservation_tag_propFault": "Guasto elica",
+  "equipmentObservation_tag_strapBroke": "Cinghia rotta",
+  "equipmentObservation_tag_other": "Altro",
+  "equipmentObservation_status_ok": "OK",
+  "equipmentObservation_status_issue": "Problema",
+  "equipmentObservation_sheet_title": "Controllo: {item}",
+  "@equipmentObservation_sheet_title": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentObservation_sheet_empty": "Nessun controllo in questa immersione.",
+  "equipmentObservation_sheet_emptyBench": "Nessun controllo.",
+  "equipmentObservation_sheet_add": "Aggiungi controllo",
+  "equipmentObservation_sheet_edit": "Modifica controllo",
+  "equipmentObservation_sheet_delete": "Elimina controllo",
+  "equipmentObservation_sheet_deleteConfirm": "Eliminare questo controllo?",
+  "equipmentObservation_sheet_noteLabel": "Nota",
+  "equipmentObservation_sheet_tagsLabel": "Cosa è successo",
+  "equipmentObservation_sheet_dateLabel": "Osservato",
+  "equipmentObservation_sheet_diveLabel": "Immersione",
+  "equipmentObservation_sheet_noDive": "Nessuna immersione (banco)",
+  "equipmentObservation_sheet_pickDive": "Scegli un'immersione",
+  "equipmentObservation_sheet_save": "Salva",
+  "equipmentObservation_sheet_cancel": "Annulla",
+  "equipmentObservation_sheet_tagRequired": "Scegli almeno un'etichetta per un problema",
+  "equipmentObservation_chip_ok": "Controllato, OK",
+  "equipmentObservation_chip_issue": "Problema segnalato",
+  "equipmentObservation_chip_none": "Controlla",
+  "equipmentObservation_card_title": "Controlli",
+  "equipmentObservation_card_empty": "Nessun controllo registrato per questo elemento.",
+  "equipmentObservation_card_add": "Aggiungi controllo",
+  "equipmentObservation_card_onDive": "Immersione n. {number}",
+  "@equipmentObservation_card_onDive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentObservation_card_bench": "Banco",
   "dataQuality_inbox_title": "Qualità dei dati",
   "dataQuality_dive_unknown": "Dettagli dell'immersione non disponibili",
   "dataQuality_dive_number": "#{number}",
@@ -8294,6 +8970,20 @@
   "dataQuality_deleteDuplicate_body": "Entrambe sono state registrate dallo stesso computer subacqueo. La copia con meno dati dell'immersione verrà eliminata. Potrai annullare in seguito.",
   "dataQuality_deleteDuplicate_keep": "Mantieni: {dive}",
   "dataQuality_deleteDuplicate_delete": "Elimina: {dive}",
+  "dataQuality_deleteDuplicate_carries": "Questa copia contiene anche: {items}",
+  "dataQuality_carries_gear": "{count, plural, one{1 attrezzatura} other{{count} attrezzature}}",
+  "dataQuality_carries_weights": "{count, plural, one{1 zavorra} other{{count} zavorre}}",
+  "dataQuality_carries_buddies": "{count, plural, one{1 compagno} other{{count} compagni}}",
+  "dataQuality_carries_tags": "{count, plural, one{1 etichetta} other{{count} etichette}}",
+  "dataQuality_carries_media": "{count, plural, one{1 foto o video} other{{count} foto o video}}",
+  "dataQuality_carries_attachments": "{count, plural, one{1 allegato} other{{count} allegati}}",
+  "dataQuality_carries_customFields": "{count, plural, one{1 campo personalizzato} other{{count} campi personalizzati}}",
+  "dataQuality_carries_rating": "una valutazione",
+  "dataQuality_carries_favorite": "un preferito",
+  "dataQuality_carries_site": "un sito",
+  "dataQuality_carries_trip": "un viaggio",
+  "dataQuality_carries_diveCenter": "un diving center",
+  "dataQuality_carries_course": "un corso",
   "dataQuality_repairLabel_combine": "Unisci in un'immersione",
   "dataQuality_repairLabel_despike": "Rimuovi picco",
   "dataQuality_repairLabel_clampNegative": "Azzera le profondità sopra la superficie",
@@ -10765,6 +11455,7 @@
   "settings_export_progress_divesCsv": "Esportazione delle immersioni in CSV...",
   "settings_export_progress_sitesCsv": "Esportazione dei siti in CSV...",
   "settings_export_progress_equipmentCsv": "Esportazione dell’attrezzatura in CSV...",
+  "settings_export_progress_observationsCsv": "Esportazione dei controlli attrezzatura in CSV...",
   "settings_export_progress_pdf": "Generazione del logbook PDF...",
   "settings_export_progress_loadingSignatures": "Caricamento delle firme...",
   "settings_export_progress_loadingProfiles": "Caricamento dei profili di immersione...",
@@ -10783,6 +11474,7 @@
   "settings_export_progress_preparingDivesCsv": "Preparazione del CSV immersioni...",
   "settings_export_progress_preparingSitesCsv": "Preparazione del CSV siti...",
   "settings_export_progress_preparingEquipmentCsv": "Preparazione del CSV attrezzatura...",
+  "settings_export_progress_preparingObservationsCsv": "Preparazione del CSV dei controlli attrezzatura...",
   "settings_export_progress_preparingUddf": "Preparazione del file UDDF...",
   "settings_export_progress_preparingPdf": "Preparazione del PDF...",
   "settings_export_progress_selectingBackup": "Selezione del file di backup...",
@@ -10790,6 +11482,7 @@
   "settings_export_empty_dives": "Nessuna immersione da esportare",
   "settings_export_empty_sites": "Nessun sito da esportare",
   "settings_export_empty_equipment": "Nessuna attrezzatura da esportare",
+  "settings_export_empty_observations": "Nessun controllo attrezzatura da esportare",
   "settings_export_empty_data": "Nessun dato da esportare",
   "settings_export_empty_diveSites": "Nessun sito di immersione da esportare",
   "settings_export_saveFailed": "Salvataggio non riuscito: {error}",
@@ -10800,6 +11493,7 @@
   "settings_export_success_dives": "Immersioni esportate con successo",
   "settings_export_success_sites": "Siti esportati con successo",
   "settings_export_success_equipment": "Attrezzatura esportata con successo",
+  "settings_export_success_observations": "Controlli attrezzatura esportati",
   "settings_export_success_pdf": "Logbook PDF generato con successo",
   "settings_export_success_uddf": "File UDDF generato con successo",
   "settings_export_success_excel": "File Excel esportato con successo",
@@ -10809,6 +11503,7 @@
   "settings_export_saved_divesCsv": "CSV immersioni salvato con successo",
   "settings_export_saved_sitesCsv": "CSV siti salvato con successo",
   "settings_export_saved_equipmentCsv": "CSV attrezzatura salvato con successo",
+  "settings_export_saved_observationsCsv": "CSV dei controlli attrezzatura salvato",
   "settings_export_saved_uddf": "File UDDF salvato con successo",
   "settings_export_saved_pdf": "PDF salvato con successo",
   "settings_export_saved_backup": "Backup salvato con successo",
@@ -10818,6 +11513,10 @@
   "settings_export_cancelled_restore": "Ripristino annullato",
   "settings_export_pdfDocumentTitle": "Diario delle immersioni",
   "settings_export_saveBackupDialogTitle": "Salva backup",
+  "settings_export_saveDivesCsvDialogTitle": "Salva CSV immersioni",
+  "settings_export_saveSitesCsvDialogTitle": "Salva CSV siti",
+  "settings_export_saveEquipmentCsvDialogTitle": "Salva CSV attrezzatura",
+  "settings_export_saveObservationsCsvDialogTitle": "Salva CSV dei controlli attrezzatura",
   "backup_operation_created": "Backup creato: {size}",
   "backup_operation_backupFailed": "Backup non riuscito: {error}",
   "backup_operation_restoring": "Ripristino del backup in corso...",
@@ -11078,6 +11777,7 @@
   "settings_storageUsage_group_backups": "Backup",
   "settings_storageUsage_group_temporary": "File temporanei",
   "settings_storageUsage_group_exports": "File esportati",
+  "settings_storageUsage_group_importedFiles": "Dati grezzi importati",
   "settings_storageUsage_category_database": "Database del diario immersioni",
   "settings_storageUsage_category_localCache": "Database di cache locale",
   "settings_storageUsage_category_mediaCacheOriginals": "Foto e video originali",
@@ -11092,6 +11792,7 @@
   "settings_storageUsage_category_backups": "File di backup",
   "settings_storageUsage_category_temporary": "File temporanei",
   "settings_storageUsage_category_exports": "File esportati",
+  "settings_storageUsage_category_importedFiles": "File di importazione originali",
   "profilePhoto_sheet_title": "Foto del profilo",
   "profilePhoto_source_camera": "Scatta foto",
   "profilePhoto_source_library": "Scegli dalla libreria",
@@ -11156,6 +11857,7 @@
   "transmitters_field_channel": "Canale",
   "transmitters_field_role": "Ruolo",
   "transmitters_field_gear": "Bombola dall'attrezzatura",
+  "transmitters_field_transmitterGear": "Trasmettitore dall’attrezzatura",
   "transmitters_field_material": "Materiale",
   "transmitters_gear_none": "Nessuna",
   "transmitters_validation_key": "Inserisci un numero di serie oppure scegli computer e canale",
@@ -11202,13 +11904,11 @@
   "enum_equipmentItemSortField_purchaseDate": "Data di acquisto",
   "enum_equipmentItemSortField_dateAdded": "Data di inserimento",
   "enum_equipmentItemSortField_lastServiceDate": "Ultima revisione",
-  "equipment_arrange_title": "Disponi l'attrezzatura",
   "equipment_arrange_groupByType": "Raggruppa per tipo",
   "equipment_arrange_groupByTypeSubtitle": "Mostra un'intestazione per ogni tipo di attrezzatura",
   "equipment_arrange_typeOrderLabel": "Ordina i tipi per",
   "equipment_arrange_itemOrderLabel": "Poi per",
   "equipment_arrange_itemOrderLabelFlat": "Ordina per",
-  "equipment_arrange_tooltip": "Disponi l'attrezzatura",
   "equipment_arrange_reset": "Ripristina predefiniti",
   "equipment_arrange_saveFailed": "Impossibile salvare la disposizione",
   "settings_appearance_gearArrangement": "Disposizione dell'attrezzatura",

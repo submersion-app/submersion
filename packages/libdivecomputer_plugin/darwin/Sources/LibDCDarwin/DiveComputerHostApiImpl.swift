@@ -867,7 +867,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 gasMixes.append(GasMix(
                     index: Int64(i),
                     o2Percent: gm.oxygen * 100.0,
-                    hePercent: gm.helium * 100.0
+                    hePercent: gm.helium * 100.0,
+                    usage: gm.usage == 0 ? nil : Int64(gm.usage)
                 ))
             }
         }

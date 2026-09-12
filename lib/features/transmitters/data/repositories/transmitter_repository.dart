@@ -59,6 +59,19 @@ class TransmitterRepository {
     return row == null ? null : _map(row);
   }
 
+  /// The normalised serials of every registry row that names [equipmentId]
+  /// as its transmitter gear item (condition phase 3b): the condition engine
+  /// keys a transmitter item's gap entries on them. Not the row's
+  /// equipmentId, which is the cylinder it feeds.
+  Future<Set<String>> getSerialsForEquipment(String equipmentId) async {
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.transmitterEquipmentId.equals(equipmentId))).get();
+    return {
+      for (final r in rows) ?normalizeTransmitterSerial(r.transmitterSerial),
+    };
+  }
+
   Future<Transmitter> create(Transmitter t) async {
     final normalized = _normalized(
       t,
@@ -86,6 +99,47 @@ class TransmitterRepository {
   Future<void> _rescanAffectedDives(Transmitter t) async {
     final affected = (await _tanksForEntry(t)).map((r) => r.diveId).toSet();
     if (affected.isNotEmpty) scheduleQualityScan(affected);
+  }
+
+  /// Clears every registry link to [equipmentId], as the cylinder an entry
+  /// feeds or the transmitter item it is, and stages each changed row. Call
+  /// it before the item is deleted: ON DELETE SET NULL would clear the link
+  /// too, but moves no clock and stages nothing, so a peer would keep it.
+  Future<void> unlinkFromDeletedEquipment(String equipmentId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      final rows =
+          await (_db.select(_db.transmitters)..where(
+                (t) =>
+                    t.equipmentId.equals(equipmentId) |
+                    t.transmitterEquipmentId.equals(equipmentId),
+              ))
+              .get();
+      if (rows.isEmpty) return;
+      await (_db.update(
+        _db.transmitters,
+      )..where((t) => t.equipmentId.equals(equipmentId))).write(
+        TransmittersCompanion(
+          equipmentId: const Value(null),
+          updatedAt: Value(now),
+        ),
+      );
+      await (_db.update(
+        _db.transmitters,
+      )..where((t) => t.transmitterEquipmentId.equals(equipmentId))).write(
+        TransmittersCompanion(
+          transmitterEquipmentId: const Value(null),
+          updatedAt: Value(now),
+        ),
+      );
+      for (final row in rows) {
+        await _syncRepository.markRecordPending(
+          entityType: _entity,
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    });
   }
 
   Future<void> update(Transmitter t) async {
@@ -327,6 +381,7 @@ class TransmitterRepository {
     tankMaterial: Value(t.material?.name),
     presetName: Value(t.presetName),
     equipmentId: Value(t.equipmentId),
+    transmitterEquipmentId: Value(t.transmitterEquipmentId),
     createdAt: createdAt != null ? Value(createdAt) : const Value.absent(),
     updatedAt: Value(now),
   );
@@ -352,6 +407,7 @@ class TransmitterRepository {
           ),
     presetName: r.presetName,
     equipmentId: r.equipmentId,
+    transmitterEquipmentId: r.transmitterEquipmentId,
     createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
   );

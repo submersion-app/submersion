@@ -99,6 +99,14 @@ void main() {
           (type: 'diveWeights', table: db.diveWeights.actualTableName),
           (type: 'diveSites', table: db.diveSites.actualTableName),
           (type: 'equipment', table: db.equipment.actualTableName),
+          (
+            type: 'equipmentObservations',
+            table: db.equipmentObservations.actualTableName,
+          ),
+          (
+            type: 'equipmentFindings',
+            table: db.equipmentFindings.actualTableName,
+          ),
           (type: 'equipmentSets', table: db.equipmentSets.actualTableName),
           (type: 'media', table: db.media.actualTableName),
           (type: 'buddies', table: db.buddies.actualTableName),

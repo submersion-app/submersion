@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -12,6 +13,10 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -30,6 +35,7 @@ DiveTank _makeTank({
   GasMix gasMix = const GasMix(o2: 32),
   String? computerId,
   String? transmitterSerial,
+  String? equipmentId,
 }) {
   return DiveTank(
     id: id,
@@ -40,6 +46,7 @@ DiveTank _makeTank({
     gasMix: gasMix,
     computerId: computerId,
     transmitterSerial: transmitterSerial,
+    equipmentId: equipmentId,
   );
 }
 
@@ -103,6 +110,8 @@ Widget _buildCard({
   GasConsumptionDisplay display = GasConsumptionDisplay.sac,
   VisualDensity? visualDensity,
   List<Transmitter> registry = const [],
+  List<dynamic> extraOverrides = const [],
+  Locale? locale,
 }) {
   final card = CylindersCard(
     dive: dive,
@@ -133,11 +142,13 @@ Widget _buildCard({
   );
   return testAppRouter(
     router: router,
+    locale: locale,
     overrides: [
       cylinderSacProvider.overrideWith((ref, id) async => cylinderSacs),
       tankPressuresProvider.overrideWith((ref, id) async => tankPressures),
       diveDataSourcesProvider.overrideWith((ref, id) async => dataSources),
       transmittersProvider.overrideWith((ref) async => registry),
+      ...extraOverrides,
     ],
   );
 }
@@ -196,6 +207,25 @@ void main() {
       // gasUsedLiters = (200 - 50) * 11.1 = 1665 L, shown in the subtitle
       // beside the pressure drop it restates.
       expect(find.textContaining('(150 bar / 1665 L used)'), findsOneWidget);
+    });
+
+    testWidgets('a linked cylinder whose item does not resolve keeps its SAC '
+        'block', (tester) async {
+      // Only the check-in chip depends on the linked item; while it loads,
+      // or for a link to an item this device no longer has, the SAC block
+      // must still show.
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(equipmentId: 'gone')]),
+          cylinderSacs: [_makeSac()],
+          extraOverrides: [
+            equipmentItemProvider('gone').overrideWith((ref) async => null),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
     });
 
     testWidgets('omits the SAC block when SAC is not computable', (
@@ -281,30 +311,186 @@ void main() {
       expect(find.text('RMV 22.2 L/min'), findsOneWidget);
     });
 
-    testWidgets('both fits its two trailing lanes at desktop density', (
+    testWidgets('the tank icon stays level with the name on a row with rates', (
       tester,
     ) async {
-      // The trailing block lives in a ListTile slot whose height the tile
-      // caps at 56px minus the density adjustment. Desktop defaults to
-      // compact, making that 48px: exactly 8px short of the three lines
-      // Both used to render (SAC, RMV, gas used), which is what the macOS
-      // screenshot run reported. Widget tests run at standard density, so
-      // the default harness never saw it. The gas used now lives in the
-      // subtitle, so the slot holds only the two lanes.
+      // The rates add a subtitle row, so the tile is tall. ListTile's M3
+      // alignment centres leading and trailing on the whole tile unless
+      // isThreeLine is set, which left the icon floating below the name.
       await tester.pumpWidget(
         _buildCard(
           dive: _makeDive([_makeTank()]),
           cylinderSacs: [_makeSac()],
           display: GasConsumptionDisplay.both,
-          visualDensity: VisualDensity.compact,
         ),
       );
       await tester.pumpAndSettle();
 
+      final iconTop = tester.getTopLeft(find.byIcon(MdiIcons.divingScubaTank));
+      final nameTop = tester.getTopLeft(find.text('Tank 1 (EAN32)'));
+      expect((iconTop.dy - nameTop.dy).abs(), lessThan(8));
+    });
+
+    testWidgets('both fits everything at desktop density', (tester) async {
+      // ListTile caps the trailing slot's height at 56px minus the density
+      // adjustment. Desktop defaults to compact, making that 48px, which the
+      // macOS screenshot run found too short for the lines trailing used to
+      // hold. Widget tests run at standard density, so the default harness
+      // never saw it. This row carries all of it at once (source badge, both
+      // lanes, gas used, check-in button); a vertical overflow anywhere
+      // would fail the test through FlutterError.
+      final item = EquipmentItem(
+        id: 'al80',
+        name: 'AL80 #4',
+        type: EquipmentType.tank,
+        createdAt: DateTime(2026),
+      );
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(computerId: 'comp-1', equipmentId: 'al80'),
+          ]),
+          cylinderSacs: [_makeSac()],
+          dataSources: [
+            _makeSource(
+              id: 'src-1',
+              computerId: 'comp-1',
+              isPrimary: true,
+              computerModel: 'Perdix 2',
+            ),
+            _makeSource(id: 'src-2', computerId: 'comp-2'),
+          ],
+          display: GasConsumptionDisplay.both,
+          visualDensity: VisualDensity.compact,
+          extraOverrides: [
+            equipmentItemProvider('al80').overrideWith((ref) async => item),
+            observationsForDiveProvider(
+              'dive-1',
+            ).overrideWith((ref) async => const []),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Perdix 2'), findsOneWidget);
       expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
       expect(find.text('RMV 22.2 L/min'), findsOneWidget);
       expect(find.textContaining('(150 bar / 1665 L used)'), findsOneWidget);
+      expect(find.byType(ObservationStatusChip), findsOneWidget);
     });
+
+    group('on a narrow card', () {
+      // ListTile lays trailing out against the full tile width and gives the
+      // title what is left (#935). With the rates in trailing, Both left the
+      // tank name about 20px of a 300px tile, on a phone or half of a paired
+      // row. The test font sets every glyph a full em wide, so 150px is a
+      // floor for "has room", not the width a real font needs.
+      Future<void> pumpNarrow(
+        WidgetTester tester, {
+        DiveTank? tank,
+        Locale? locale,
+        List<dynamic> extraOverrides = const [],
+      }) async {
+        await tester.binding.setSurfaceSize(const Size(340, 800));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.pumpWidget(
+          _buildCard(
+            dive: _makeDive([tank ?? _makeTank()]),
+            cylinderSacs: [_makeSac()],
+            display: GasConsumptionDisplay.both,
+            // Pinned, so the English finders do not depend on the host.
+            locale: locale ?? const Locale('en'),
+            extraOverrides: extraOverrides,
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('the tank name keeps its width beside both rates', (
+        tester,
+      ) async {
+        await pumpNarrow(tester);
+
+        expect(
+          tester.getSize(find.text('Tank 1 (EAN32)')).width,
+          greaterThan(150),
+        );
+        expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
+        expect(find.text('RMV 22.2 L/min'), findsOneWidget);
+      });
+
+      testWidgets('the tank name keeps its width in German', (tester) async {
+        // "Druckverbrauch" is the #935 shape: a translated lane label far
+        // wider than the English "SAC".
+        await pumpNarrow(tester, locale: const Locale('de'));
+
+        expect(
+          tester.getSize(find.text('Flasche 1 (EAN32)')).width,
+          greaterThan(150),
+        );
+        expect(find.textContaining('Druckverbrauch '), findsOneWidget);
+        expect(find.textContaining('AMV '), findsOneWidget);
+      });
+
+      testWidgets('a linked cylinder keeps its check-in button and the name '
+          'keeps its width', (tester) async {
+        // The check-in button is the one widget trailing still holds, so the
+        // tank has no volume and so no volume chip: the name has the title
+        // row to itself, and what is measured is only what trailing leaves.
+        // The rates still come from the SAC fixture's own cylinder volume.
+        final item = EquipmentItem(
+          id: 'al80',
+          name: 'AL80 #4',
+          type: EquipmentType.tank,
+          createdAt: DateTime(2026),
+        );
+        await pumpNarrow(
+          tester,
+          tank: _makeTank(equipmentId: 'al80', volume: null),
+          extraOverrides: [
+            equipmentItemProvider('al80').overrideWith((ref) async => item),
+            observationsForDiveProvider(
+              'dive-1',
+            ).overrideWith((ref) async => const []),
+          ],
+        );
+
+        expect(find.byType(ObservationStatusChip), findsOneWidget);
+        expect(
+          tester.getSize(find.text('Tank 1 (EAN32)')).width,
+          greaterThan(150),
+        );
+        expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
+        expect(find.text('RMV 22.2 L/min'), findsOneWidget);
+      });
+    });
+
+    testWidgets(
+      'a narrow card fits the title and volume chip beside the rates',
+      (tester) async {
+        // ListTile lays out the trailing rates first and gives the title what
+        // is left. On a phone, or half of a 700px pane, that can be too little
+        // for the tank name and the volume chip on one line, and the chip,
+        // which cannot shrink, overflowed the title row. The test font sets
+        // every glyph a full em wide, so this width exaggerates the squeeze;
+        // it is the overflow, not the title's width, that is asserted.
+        await tester.binding.setSurfaceSize(const Size(340, 800));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          _buildCard(
+            dive: _makeDive([_makeTank()]),
+            cylinderSacs: [_makeSac()],
+            display: GasConsumptionDisplay.both,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Tank 1 (EAN32)'), findsOneWidget);
+        expect(find.text('11.1 L'), findsOneWidget);
+      },
+    );
 
     testWidgets('both omits the RMV line for a cylinder without a volume', (
       tester,

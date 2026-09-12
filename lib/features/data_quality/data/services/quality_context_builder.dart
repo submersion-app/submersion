@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
+import 'package:submersion/features/data_quality/data/services/diver_data_sql.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -156,45 +157,6 @@ class QualityContextBuilder {
     );
   }
 
-  /// Whether a `dives` row reachable as `dives` in the enclosing query
-  /// carries anything the diver put there themselves, as a 1/0 expression.
-  ///
-  /// The scalar columns and the seven child tables are the ones a dive
-  /// computer download never fills in; tanks, dive types, profile series and
-  /// their events are deliberately absent because every download produces
-  /// them, so their presence says nothing about whether a human has worked on
-  /// the dive. `OR` short-circuits, so a dive the diver has annotated stops
-  /// at its first hit instead of running all fourteen tests.
-  static const _diverDataSql =
-      "(dives.notes IS NOT NULL AND TRIM(dives.notes) != '') "
-      'OR dives.rating IS NOT NULL '
-      'OR dives.is_favorite = 1 '
-      'OR dives.site_id IS NOT NULL '
-      'OR dives.trip_id IS NOT NULL '
-      'OR dives.dive_center_id IS NOT NULL '
-      'OR dives.course_id IS NOT NULL '
-      'OR EXISTS (SELECT 1 FROM dive_equipment c WHERE c.dive_id = dives.id) '
-      'OR EXISTS (SELECT 1 FROM dive_buddies c WHERE c.dive_id = dives.id) '
-      'OR EXISTS (SELECT 1 FROM dive_tags c WHERE c.dive_id = dives.id) '
-      'OR EXISTS (SELECT 1 FROM dive_weights c WHERE c.dive_id = dives.id) '
-      'OR EXISTS (SELECT 1 FROM dive_custom_fields c '
-      'WHERE c.dive_id = dives.id) '
-      'OR EXISTS (SELECT 1 FROM sightings c WHERE c.dive_id = dives.id) '
-      'OR EXISTS (SELECT 1 FROM media c WHERE c.dive_id = dives.id)';
-
-  /// Every table [_diverDataSql] reads, so a write to any of them invalidates
-  /// a query that carries the fragment.
-  Set<ResultSetImplementation<dynamic, dynamic>> get _diverDataTables => {
-    _db.dives,
-    _db.diveEquipment,
-    _db.diveBuddies,
-    _db.diveTags,
-    _db.diveWeights,
-    _db.diveCustomFields,
-    _db.sightings,
-    _db.media,
-  };
-
   /// [DiveQualityContext.carriesDiverData] for one dive. Read through the same
   /// fragment the neighbor query uses so a duplicate pair's two sides are
   /// measured identically; null when the row is gone, which leaves the
@@ -202,10 +164,10 @@ class QualityContextBuilder {
   Future<bool?> _carriesDiverData(String diveId) async {
     final rows = await _db
         .customSelect(
-          'SELECT ($_diverDataSql) AS carries_diver_data '
+          'SELECT ($kDiverDataExistsSql) AS carries_diver_data '
           'FROM dives WHERE id = ?1',
           variables: [Variable.withString(diveId)],
-          readsFrom: _diverDataTables,
+          readsFrom: diverDataTables(_db),
         )
         .get();
     if (rows.isEmpty) return null;
@@ -249,7 +211,7 @@ class QualityContextBuilder {
           // Projected here rather than looked up per neighbor: the scan
           // resolves this window for every dive in the library, and a second
           // round trip per neighbor would be an N+1 (#1720).
-          '($_diverDataSql) AS carries_diver_data '
+          '($kDiverDataExistsSql) AS carries_diver_data '
           'FROM dives WHERE id != ?1 AND diver_id IS ?2 '
           'AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4 '
           'ORDER BY COALESCE(entry_time, dive_date_time) ASC',
@@ -259,7 +221,7 @@ class QualityContextBuilder {
             Variable.withInt(entry.millisecondsSinceEpoch - windowMs),
             Variable.withInt(exit.millisecondsSinceEpoch + windowMs),
           ],
-          readsFrom: {..._diverDataTables, _db.diveProfileSeries},
+          readsFrom: {...diverDataTables(_db), _db.diveProfileSeries},
         )
         .get();
     final out = <QualityNeighbor>[];

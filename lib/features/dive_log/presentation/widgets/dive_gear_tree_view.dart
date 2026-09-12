@@ -23,12 +23,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// loose or assembly, is removed through [onRemoveSubtree] (a loose row is
 /// a one-row subtree); a part beneath an assembly through [onRemovePart];
 /// a whole band through [onRemoveSet], which only affects the band header.
+///
+/// [rowTrailing] adds a widget at the start of every row's trailing edge,
+/// parts included; the detail page uses it for the check-in chip.
 class DiveGearTreeView extends ConsumerStatefulWidget {
   final List<GearLink> links;
   final void Function(EquipmentItem item)? onTap;
   final void Function(String setId)? onRemoveSet;
   final void Function(String equipmentId)? onRemoveSubtree;
   final void Function(String equipmentId)? onRemovePart;
+  final Widget Function(EquipmentItem item)? rowTrailing;
 
   const DiveGearTreeView({
     super.key,
@@ -37,6 +41,7 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
     this.onRemoveSet,
     this.onRemoveSubtree,
     this.onRemovePart,
+    this.rowTrailing,
   });
 
   @override
@@ -154,6 +159,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (widget.rowTrailing case final trailing?) trailing(item),
               // Redundant under a group heading, which already names the
               // type, and for a part, whose parent row says what it is.
               if (depth == 0 && showType)

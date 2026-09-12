@@ -16,7 +16,11 @@ import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -1757,5 +1761,79 @@ void main() {
         expect(find.text('Night'), findsOneWidget);
       },
     );
+  });
+
+  group('gear check-in chips (condition phase 3a)', () {
+    final reg = EquipmentItem(
+      id: 'reg',
+      name: 'Apeks XTX',
+      type: EquipmentType.regulator,
+      createdAt: DateTime(2026),
+    );
+    final cylinder = EquipmentItem(
+      id: 'al80',
+      name: 'AL80 #4',
+      type: EquipmentType.tank,
+      createdAt: DateTime(2026),
+    );
+    final dive = Dive(
+      id: 'chip-dive',
+      diveNumber: 7,
+      dateTime: DateTime(2026, 3, 28, 10),
+      maxDepth: 20.0,
+      bottomTime: const Duration(minutes: 40),
+      gear: [GearLink(item: reg)],
+      tanks: const [
+        DiveTank(
+          id: 't1',
+          equipmentId: 'al80',
+          startPressure: 200,
+          endPressure: 80,
+        ),
+      ],
+    );
+
+    Future<void> pumpChips(WidgetTester tester) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveProvider(dive.id).overrideWith((ref) async => dive),
+            diveDataSourcesProvider(
+              dive.id,
+            ).overrideWith((ref) async => <DiveDataSource>[]),
+            observationsForDiveProvider(
+              dive.id,
+            ).overrideWith((ref) async => const []),
+            equipmentItemProvider('al80').overrideWith((ref) async => cylinder),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the gear row and the linked cylinder row each carry a chip', (
+      tester,
+    ) async {
+      await pumpChips(tester);
+      expect(find.byType(ObservationStatusChip), findsNWidgets(2));
+    });
+
+    testWidgets('tapping the gear row chip opens the check-in sheet', (
+      tester,
+    ) async {
+      await pumpChips(tester);
+      await tester.ensureVisible(find.byType(ObservationStatusChip).first);
+      await tester.tap(find.byType(ObservationStatusChip).first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Check-in: '), findsOneWidget);
+    });
   });
 }

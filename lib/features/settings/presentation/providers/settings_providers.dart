@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -243,6 +244,14 @@ class AppSettings {
   final double deepDiveThresholdM;
   final double highO2ThresholdPercent;
 
+  /// Master toggle for condition findings (v206). Off: stored findings are
+  /// still shown, nothing new is computed.
+  final bool conditionEngineEnabled;
+
+  /// ConditionRuleId.dbValue strings whose findings are hidden in the UI.
+  /// Display-time only: the engine always runs every rule.
+  final Set<String> conditionDisabledRules;
+
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
 
@@ -313,6 +322,14 @@ class AppSettings {
   /// Fold consecutive same-trip dives under a trip header in the dive list
   /// (issue #1193). Applies to the card view modes only; the table ignores it.
   final bool groupTripsInDiveList;
+
+  /// Pre-populate every new import session with a "{source} Import {date}"
+  /// tag (issue #998). Read by the import wizard when it enters the review
+  /// step, for every source alike (dive computer, file-based, cloud). This
+  /// only seeds the starting state -- the review step's Import Options sheet
+  /// lets the diver override it for that one import without changing this
+  /// default.
+  final bool autoTagImports;
 
   /// Which layout to use for the site list
   final ListViewMode siteListViewMode;
@@ -558,6 +575,8 @@ class AppSettings {
     this.coldWaterThresholdC = 10.0,
     this.deepDiveThresholdM = 30.0,
     this.highO2ThresholdPercent = 40.0,
+    this.conditionEngineEnabled = true,
+    this.conditionDisabledRules = const {},
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -581,6 +600,7 @@ class AppSettings {
     this.cardColorAttribute = CardColorAttribute.none,
     this.diveListViewMode = ListViewMode.detailed,
     this.groupTripsInDiveList = false,
+    this.autoTagImports = true,
     this.siteListViewMode = ListViewMode.detailed,
     this.tripListViewMode = ListViewMode.detailed,
     this.equipmentListViewMode = ListViewMode.detailed,
@@ -731,6 +751,8 @@ class AppSettings {
     double? coldWaterThresholdC,
     double? deepDiveThresholdM,
     double? highO2ThresholdPercent,
+    bool? conditionEngineEnabled,
+    Set<String>? conditionDisabledRules,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -753,6 +775,7 @@ class AppSettings {
     CardColorAttribute? cardColorAttribute,
     ListViewMode? diveListViewMode,
     bool? groupTripsInDiveList,
+    bool? autoTagImports,
     ListViewMode? siteListViewMode,
     ListViewMode? tripListViewMode,
     ListViewMode? equipmentListViewMode,
@@ -879,6 +902,10 @@ class AppSettings {
       deepDiveThresholdM: deepDiveThresholdM ?? this.deepDiveThresholdM,
       highO2ThresholdPercent:
           highO2ThresholdPercent ?? this.highO2ThresholdPercent,
+      conditionEngineEnabled:
+          conditionEngineEnabled ?? this.conditionEngineEnabled,
+      conditionDisabledRules:
+          conditionDisabledRules ?? this.conditionDisabledRules,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null
@@ -903,6 +930,7 @@ class AppSettings {
       cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
       groupTripsInDiveList: groupTripsInDiveList ?? this.groupTripsInDiveList,
+      autoTagImports: autoTagImports ?? this.autoTagImports,
       siteListViewMode: siteListViewMode ?? this.siteListViewMode,
       tripListViewMode: tripListViewMode ?? this.tripListViewMode,
       equipmentListViewMode:
@@ -1679,6 +1707,25 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setConditionEngineEnabled(bool value) async {
+    state = state.copyWith(conditionEngineEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setConditionRuleEnabled(
+    ConditionRuleId rule,
+    bool enabled,
+  ) async {
+    final rules = {...state.conditionDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(conditionDisabledRules: rules);
+    await _saveSettings();
+  }
+
   Future<void> setNoFlyPreset(NoFlyPreset preset) async {
     state = state.copyWith(noFlyPreset: preset);
     await _saveSettings();
@@ -1800,6 +1847,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setGroupTripsInDiveList(bool value) async {
     state = state.copyWith(groupTripsInDiveList: value);
+    await _saveSettings();
+  }
+
+  /// Waits for [initialLoad] first: until the diver's row lands, [state]
+  /// holds the defaults, and a switch flipped on the tag management screen
+  /// in that window would be overwritten when the load replaces [state],
+  /// silently undoing the diver's choice (issue #998). A failed load is
+  /// already logged by the constructor and leaves the defaults in place,
+  /// so the change still applies on top of them.
+  Future<void> setAutoTagImports(bool value) async {
+    try {
+      await _initialLoad;
+    } catch (_) {
+      // See the doc comment: already logged, defaults are the fallback.
+    }
+    if (!mounted) return;
+    state = state.copyWith(autoTagImports: value);
     await _saveSettings();
   }
 
@@ -2316,6 +2380,10 @@ final safetyReviewEnabledProvider = Provider<bool>((ref) {
 /// the detail section stay aligned.
 final safetyReviewDisabledRulesProvider = Provider<Set<String>>((ref) {
   return ref.watch(settingsProvider.select((s) => s.safetyReviewDisabledRules));
+});
+
+final conditionEngineEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.conditionEngineEnabled));
 });
 
 final showAscentRateColorsProvider = Provider<bool>((ref) {

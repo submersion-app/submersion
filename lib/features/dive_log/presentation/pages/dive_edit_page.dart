@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -86,6 +87,7 @@ import 'package:submersion/features/weight_presets/presentation/providers/weight
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/weight_preset_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_change_summary.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
@@ -1011,6 +1013,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   List<BulkMembershipItem> _equipmentMembers = [];
   MembershipDelta _equipmentDelta = MembershipDelta.empty;
 
+  /// The last "Use Set" instruction to the equipment editor: every item of the
+  /// set goes on all the selected dives (#1754). The serial makes each
+  /// application a fresh request, even for the same set.
+  ({int serial, Set<String> ids})? _equipmentEnsureOn;
+
   Map<String, int> _tagCounts = {};
   List<BulkMembershipItem> _tagMembers = [];
   MembershipDelta _tagDelta = MembershipDelta.empty;
@@ -1417,6 +1424,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             label: Text(l10n.diveLog_edit_useSet),
           ),
           onChanged: (d) => setState(() => _equipmentDelta = d),
+          ensureOn: _equipmentEnsureOn,
           // Assembly and part-of chips, as on the equipment list (#1487).
           trailingBuilder: (item) => AssemblyChips(itemId: item.id),
         ),
@@ -1939,12 +1947,51 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         : 0;
     if (!mounted) return;
 
+    // Name every membership change up front: a stray removal otherwise lands
+    // on every selected dive with nothing but "Apply changes?" to warn (#1754).
+    final changes = summarizeBulkMembership([
+      (
+        title: l10n.diveLog_edit_section_tags,
+        delta: _tagDelta,
+        members: _tagMembers,
+      ),
+      (
+        title: l10n.diveLog_edit_label_diveTypes,
+        delta: _diveTypeDelta,
+        members: _diveTypeMembers,
+      ),
+      (
+        title: l10n.diveLog_edit_section_equipment,
+        delta: _equipmentDelta,
+        members: _equipmentMembers,
+      ),
+      (
+        title: l10n.diveLog_edit_group_buddies,
+        delta: _buddyDelta,
+        members: _buddyMembers,
+      ),
+    ]);
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.diveLog_bulkEdit_confirmTitle),
-        content: skipped > 0
-            ? Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped))
+        content: skipped > 0 || changes.isNotEmpty
+            ? SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (changes.isNotEmpty)
+                      BulkChangeSummary(
+                        sections: changes,
+                        totalDives: ids.length,
+                      ),
+                    if (skipped > 0)
+                      Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped)),
+                  ],
+                ),
+              )
             : null,
         actions: [
           TextButton(
@@ -1973,6 +2020,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
       // Queue a data-quality rescan of the edited dives (fire-and-forget).
       scheduleQualityScan(ids);
+      scheduleSensorSummaryRefresh(ids);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
@@ -3302,7 +3350,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               onPressed: _showEquipmentPicker,
             ),
             FormOverlineAction(
-              label: context.l10n.equipment_arrange_title,
+              label: context.l10n.equipment_list_sortTooltip,
               icon: Icons.sort,
               onPressed: () => showEquipmentArrangeSheet(context),
             ),
@@ -3611,6 +3659,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       icon: equipmentTypeIcon(item.type),
                     ),
               ];
+              // Rows already listed keep whatever the user set them to, so
+              // appending alone would let an unchecked row remove a set item
+              // from every dive (#1754). Switch the whole set on.
+              _equipmentEnsureOn = (
+                serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
+                ids: {for (final item in items) item.id},
+              );
             });
             Navigator.of(context).pop();
           },
@@ -5310,6 +5365,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Queue a data-quality rescan of the saved dive (fire-and-forget).
       if (savedDiveId != null) {
         scheduleQualityScan([savedDiveId]);
+        scheduleSensorSummaryRefresh([savedDiveId]);
       }
 
       if (mounted && savedDiveId != null) {

@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_session_store.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_dive_summary.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
@@ -408,6 +409,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     }
 
     scheduleQualityScan(importedDiveIds);
+    scheduleSensorSummaryRefresh(importedDiveIds);
 
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},

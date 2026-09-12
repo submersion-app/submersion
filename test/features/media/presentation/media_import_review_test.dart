@@ -269,6 +269,9 @@ void main() {
             ]),
           ),
           currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => 'diver-1',
+          ),
         ],
       ),
     );

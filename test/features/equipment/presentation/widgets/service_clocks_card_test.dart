@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -10,6 +11,19 @@ import 'package:submersion/features/equipment/presentation/widgets/service_clock
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
+  // formatDate resolves DateFormat against Intl.defaultLocale, a process
+  // global the app assigns from the diver's locale and a widget test never
+  // sets (MaterialApp.locale does not touch it). Pin it so the date strings
+  // asserted below do not rest on the machine default or a prior test.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   final t0 = DateTime(2025, 1, 1);
   final now = DateTime(2026, 7, 16);
 
@@ -102,6 +116,16 @@ void main() {
     expect(find.text('Visual inspection (VIP)'), findsOneWidget);
     expect(find.textContaining('Overdue since'), findsOneWidget);
     expect(find.textContaining('Due '), findsOneWidget);
+  });
+
+  testWidgets('each clock says which date it counts from', (tester) async {
+    // A baseline date, a service record, the purchase date and the date
+    // the item was added can each start a clock; without this line a
+    // diver cannot tell which one did.
+    await tester.pumpWidget(buildCard());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Counting since Jan 1, 2025'), findsNWidgets(2));
   });
 
   testWidgets('Add clock sheet lists only unattached kinds', (tester) async {

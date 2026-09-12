@@ -173,10 +173,12 @@
   "common_action_dismiss": "Verwerfen",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Komponente hinzufügen",
+  "equipment_components_containsSection": "Enthält",
   "equipment_components_count": "{count, plural, =1{1 Komponente} other{{count} Komponenten}}",
   "equipment_components_cycleError": "Dieser Gegenstand enthält diesen bereits, daher kann er nicht als Komponente hinzugefügt werden.",
   "equipment_components_editRole": "Rolle bearbeiten",
   "equipment_components_empty": "Keine Komponenten. Füge die Teile hinzu, aus denen dieser Gegenstand besteht.",
+  "equipment_components_emptyLeaf": "Keine eigenen Teile. Füge sie hinzu, wenn dieser Gegenstand aus anderen besteht.",
   "equipment_components_historyAlsoPast": "{count, plural, =1{Auch 1 Tauchgang aktualisieren} other{Auch {count} Tauchgänge aktualisieren}}",
   "equipment_components_historyAskAdded": "Das neue Teil auch dort hinzufügen oder nur ab jetzt?",
   "equipment_components_historyAskRemoved": "Das Teil auch dort entfernen oder nur ab jetzt?",
@@ -186,6 +188,8 @@
   "equipment_components_historyTitle": "Vergangene Tauchgänge aktualisieren?",
   "equipment_components_partOf": "Teil von {name}",
   "equipment_components_partOfCount": "{count, plural, =1{Teil von 1 Baugruppe} other{Teil von {count} Baugruppen}}",
+  "equipment_components_partOfSection": "Teil von",
+  "equipment_components_partOfSubtitle": "{role}, in {rigs}",
   "equipment_components_pickerConfirm": "{count, plural, =0{Hinzufügen} =1{1 hinzufügen} other{{count} hinzufügen}}",
   "equipment_components_pickerEmpty": "Keine weitere aktive Ausrüstung kann hier hinzugefügt werden.",
   "equipment_components_pickerReplaceConfirm": "Ersetzen",
@@ -311,6 +315,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Nur Tauchgänge ohne vorhandene Flasche",
   "diveLog_bulkEdit_confirmTitle": "Änderungen anwenden?",
   "diveLog_bulkEdit_confirmApply": "Anwenden",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Wird zu 1 Tauchgang hinzugefügt} other{Wird zu allen {count} Tauchgängen hinzugefügt}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Wird von 1 Tauchgang entfernt} other{Wird von allen {count} Tauchgängen entfernt}}",
   "diveLog_bulkEdit_nothingSelected": "Aktiviere mindestens ein Feld, um Änderungen anzuwenden.",
   "diveLog_bulkEdit_applied": "{count} Tauchgänge aktualisiert",
   "settings_cloudSync_error_icloudSignedOut": "iCloud ist nicht verfügbar. Bitte melde dich in den Geräteeinstellungen bei iCloud an.",
@@ -498,7 +504,7 @@
   "setup_welcome_skipSetup": "Einrichtung überspringen",
   "setup_welcome_startFresh_subtitle": "Taucherprofil erstellen und die App einrichten",
   "setup_welcome_startFresh_title": "Neues Profil einrichten",
-  "setup_welcome_subtitle": "Erweiterte Tauchprotokollierung und -analyse",
+  "setup_welcome_subtitle": "Sicher tauchen. Alles erfassen.",
   "setup_welcome_title": "Willkommen bei Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -1054,6 +1060,7 @@
   "preDive_runner_flag": "Markieren",
   "preDive_runner_undo": "Auf ausstehend zurücksetzen",
   "preDive_runner_serviceOverdue": "Wartung überfällig",
+  "preDive_runner_conditionFindings": "Zustandsbefunde",
   "preDive_runner_addNote": "Notiz hinzufügen",
   "preDive_runner_enterValue": "Wert eingeben",
   "preDive_runner_cellInAir": "In Luft",
@@ -3744,6 +3751,7 @@
   "equipment_detail_editTooltipShort": "Bearbeiten",
   "equipment_detail_errorMessage": "Fehler: {error}",
   "equipment_detail_errorTitle": "Fehler",
+  "equipment_detail_installedInLabel": "Eingebaut in",
   "equipment_detail_lastServiceLabel": "Letzte Wartung",
   "equipment_detail_loadingTitle": "Wird geladen...",
   "equipment_detail_modelLabel": "Modell",
@@ -3752,6 +3760,17 @@
   "equipment_detail_notFoundTitle": "Ausrüstung nicht gefunden",
   "equipment_detail_notesTitle": "Notizen",
   "equipment_detail_ownedForLabel": "Im Besitz seit",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Kaufdatum",
   "equipment_detail_purchasePriceLabel": "Kaufpreis",
   "equipment_detail_retiredChip": "Ausgemustert",
@@ -3769,6 +3788,7 @@
   "equipment_serviceClocks_unconfigured": "Kein Intervall festgelegt - zum Konfigurieren tippen",
   "equipment_serviceClocks_dueOn": "Fällig am {date}",
   "equipment_serviceClocks_overdueSince": "Überfällig seit {date}",
+  "equipment_serviceClocks_countingSince": "Zählt seit {date}",
   "equipment_serviceClocks_overdue": "Überfällig",
   "equipment_serviceClocks_divesLeft": "{remaining} von {total} Tauchgängen übrig",
   "cylinderConfigs_title": "Flaschenkonfigurationen",
@@ -3877,7 +3897,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervall (Batteriezyklen)",
   "equipment_scheduleDialog_inheritHint": "Standard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referenzdatum",
-  "equipment_scheduleDialog_anchorHint": "Wird verwendet, solange noch kein Wartungseintrag dieser Art vorliegt",
+  "equipment_scheduleDialog_anchorHint": "Die Uhr zählt ab diesem Datum, bis eine neuere Wartung erfasst wird.",
   "equipment_scheduleDialog_clearAnchor": "Referenzdatum löschen",
   "equipment_scheduleDialog_save": "Speichern",
   "equipment_scheduleDialog_cancel": "Abbrechen",
@@ -3919,6 +3939,7 @@
   "equipment_detail_tripsCountSingular": "{count} Reise",
   "equipment_detail_tripsLabel": "Reisen",
   "equipment_detail_tripsSemanticLabel": "Reisen mit dieser Ausrüstung anzeigen",
+  "equipment_detail_wasInstalledInLabel": "War eingebaut in",
   "equipment_edit_appBar_editTitle": "Ausrüstung bearbeiten",
   "equipment_edit_appBar_newTitle": "Neue Ausrüstung",
   "equipment_edit_appBar_saveButton": "Speichern",
@@ -4959,7 +4980,7 @@
   "planning_welcome_title": "Planungswerkzeuge",
   "settings_about_aboutSubmersion": "Über Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Verfolgen Sie Ihre Tauchgänge, verwalten Sie Ausrüstung und erkunden Sie Tauchplätze.",
+  "settings_about_description": "Sicher tauchen. Alles erfassen.",
   "settings_about_header": "Über",
   "settings_about_openSourceLicenses": "Open-Source-Lizenzen",
   "settings_about_reportIssue": "Problem melden",
@@ -5206,6 +5227,7 @@
   "settings_conflict_ref_equipment": "Ausrüstung",
   "settings_conflict_ref_equipmentSet": "Ausrüstungsset",
   "settings_conflict_ref_finding": "Befund",
+  "settings_conflict_ref_importedFile": "Importierte Datei",
   "settings_conflict_ref_instructor": "Instructor",
   "settings_conflict_ref_linkedDive": "Verknüpfter Tauchgang",
   "settings_conflict_ref_media": "Medien",
@@ -5764,6 +5786,38 @@
   "statistics_equipment_weightTrend_error": "Gewichtstrend konnte nicht geladen werden",
   "statistics_equipment_weightTrend_subtitle": "Gesamtes Blei pro Tauchgang",
   "statistics_equipment_weightTrend_title": "Gewichtstrend",
+  "statistics_equipment_exposure_title": "Belastung",
+  "statistics_equipment_exposure_error": "Belastungsdaten konnten nicht geladen werden",
+  "statistics_equipment_findings_error": "Zustandsbefunde konnten nicht geladen werden",
+  "statistics_equipment_issues_error": "Gemeldete Probleme konnten nicht geladen werden",
+  "statistics_equipment_exposure_subtitle": "Summen je Teil mit deinen Schwellen",
+  "statistics_equipment_exposure_empty": "Noch keine Tauchgänge mit Ausrüstung",
+  "statistics_equipment_findings_title": "Zustandsbefunde",
+  "statistics_equipment_findings_subtitle": "Offene Befunde je Regel",
+  "statistics_equipment_findings_subtitleAllDives": "Offene Befunde je Regel, über alle Tauchgänge",
+  "statistics_equipment_findings_empty": "Keine offenen Befunde",
+  "statistics_equipment_issues_title": "Gemeldete Probleme",
+  "statistics_equipment_issues_subtitle": "Häufigste Check-in-Tags",
+  "statistics_equipment_issues_empty": "Keine Probleme gemeldet",
+  "statistics_equipment_countLabel_items": "Teile",
+  "statistics_equipment_countLabel_findings": "Befunde",
+  "statistics_equipment_countLabel_reports": "Meldungen",
+  "statistics_equipment_exposureUnit_days": "Tage",
+  "statistics_equipment_exposureUnit_dives": "Tauchgänge",
+  "statistics_equipment_countLabel_days": "Tage",
+  "statistics_equipment_countLabel_dives": "Tauchgänge",
+  "statistics_equipment_countLabel_hours": "Stunden",
+  "statistics_equipment_countLabel_saltHours": "Salzwasserstunden",
+  "statistics_equipment_countLabel_coldDives": "kalte Tauchgänge",
+  "statistics_equipment_countLabel_o2Hours": "Stunden mit hohem O2",
+  "statistics_equipment_countLabel_deepCycles": "tiefe Tauchgänge",
+  "statistics_equipment_countLabel_cycles": "Akkuzyklen",
+  "statistics_equipment_exposureUnit_hours": "Stunden",
+  "statistics_equipment_exposureUnit_saltHours": "Salzwasserstunden",
+  "statistics_equipment_exposureUnit_coldDives": "Kalte Tauchgänge",
+  "statistics_equipment_exposureUnit_o2Hours": "Stunden mit hohem O2",
+  "statistics_equipment_exposureUnit_deepCycles": "Tiefe Tauchgänge",
+  "statistics_equipment_exposureUnit_cycles": "Akkuzyklen",
   "statistics_error_loadingStatistics": "Fehler beim Laden der Statistiken",
   "statistics_filterBar_clear": "Filter zurücksetzen",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
@@ -6055,6 +6109,8 @@
   "importWizard_photos_destinationUnwritable": "In diesen Ordner kann nicht geschrieben werden. Wählen Sie einen anderen.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 älterer Tauchgang übersprungen — bereits in deinem Logbuch} other{{count} ältere Tauchgänge übersprungen — bereits in deinem Logbuch}}",
   "tags_hint_addTags": "Tags hinzufügen...",
+  "tags_manage_autoTagImports": "Importe automatisch taggen",
+  "tags_manage_autoTagImports_subtitle": "Jeder neue Import startet mit einem Tag, das Quelle und Datum nennt. Für einen einzelnen Import lässt sich dies in dessen Import-Optionen ändern.",
   "tags_manage_bulkDeleteMessage": "Diese Tags werden von insgesamt {diveCount, plural, =0{0 Tauchgängen} =1{1 Tauchgang} other{{diveCount} Tauchgängen}} entfernt. Dies kann nicht rückgängig gemacht werden.",
   "tags_manage_bulkDeleteTitle": "{count} Tags löschen?",
   "tags_manage_colorLabel": "Farbe",
@@ -6064,6 +6120,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 Tauchgänge} =1{1 Tauchgang} other{{count} Tauchgänge}}",
   "tags_manage_editTitle": "Tag bearbeiten",
   "tags_manage_emptyState": "Noch keine Tags. Erstellen Sie einen, um zu beginnen.",
+  "tags_manage_importsSection": "Import",
   "tags_manage_mergeAction": "Zusammenführen",
   "tags_manage_mergeAffectedDives": "Dies betrifft insgesamt {count, plural, =0{0 Tauchgänge} =1{1 Tauchgang} other{{count} Tauchgänge}}.",
   "tags_manage_mergeKeepFrom": "Oder Namen übernehmen von:",
@@ -6251,15 +6308,18 @@
   "transfer_csvExport_dataTypeHeader": "Datentyp",
   "transfer_csvExport_descriptionDives": "Alle Tauchprotokolle als Tabelle exportieren",
   "transfer_csvExport_descriptionEquipment": "Ausrüstungsinventar und Serviceinformationen exportieren",
+  "transfer_csvExport_descriptionObservations": "Jede OK-Prüfung und jedes gemeldete Problem mit Tauchgang, Schlagwörtern und Notiz",
   "transfer_csvExport_descriptionSites": "Tauchplatzstandorte und Details exportieren",
   "transfer_csvExport_dialogTitle": "CSV exportieren",
   "transfer_csvExport_exportButton": "CSV exportieren",
   "transfer_csvExport_optionDivesTitle": "Tauchgänge CSV",
   "transfer_csvExport_optionEquipmentTitle": "Ausrüstung CSV",
+  "transfer_csvExport_optionObservationsTitle": "Ausrüstungs-Check-ins als CSV",
   "transfer_csvExport_optionSitesTitle": "Tauchplätze CSV",
   "transfer_csvExport_semanticLabel": "{typeName} exportieren",
   "transfer_csvExport_typeDives": "Tauchgänge",
   "transfer_csvExport_typeEquipment": "Ausrüstung",
+  "transfer_csvExport_typeObservations": "Ausrüstungs-Check-ins",
   "transfer_csvExport_typeSites": "Tauchplätze",
   "transfer_detail_backTooltip": "Zurück zur Übertragung",
   "transfer_export_aboutContent": "Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV-Dateien können in Tabellenkalkulationen geöffnet werden.",
@@ -6275,6 +6335,10 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Multi-Format-Export",
   "transfer_export_optionSaveSubtitle": "Speicherort auf Ihrem Gerät wählen",
+  "transfer_export_includeGear": "Ausrüstung einschließen",
+  "transfer_export_includeGearSubtitle": "Fügt die bei jedem Tauchgang verwendete Ausrüstung und den Tauchcomputer hinzu. Kaufdetails werden weggelassen.",
+  "transfer_export_includeParticipants": "Tauchgangsteilnehmer einschließen",
+  "transfer_export_includeParticipantsSubtitle": "Fügt Tauchpartner, Guides und ihre Rollen bei jedem Tauchgang hinzu, mit Name und Brevet. Kontaktdaten werden weggelassen.",
   "transfer_export_includeRawData": "Rohdaten des Tauchcomputers einschließen",
   "transfer_export_includeRawDataSubtitle": "Behält die Originaldaten deines Tauchcomputers, damit die Datei später neu ausgewertet werden kann. Vergrößert die Datei.",
   "transfer_export_optionSaveTitle": "In Datei speichern",
@@ -6413,6 +6477,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Planung",
+  "trips_edit_label_expectedDives": "Erwartete Tauchgänge",
+  "trips_edit_hint_expectedDives": "Leer lassen, um aus deinen letzten Reisen zu schätzen",
+  "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
+  "trips_edit_hint_expectedRuntime": "Leer lassen, um aus deinen letzten Rebreather-Tauchgängen zu schätzen",
+  "trips_scrubber_title": "Atemkalkreserve",
+  "trips_scrubber_asOfStart": "Stand {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min übrig vor der Reise (nominell {rated} min, {consumed} min seit dem letzten Wechsel verbraucht)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min übrig vor der Reise (nominell {rated} min, {consumed} min verbraucht, kein Wechsel erfasst)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} erwarteter Tauchgang} other{{dives} erwartete Tauchgänge}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(aus deiner letzten Reise)} other{(aus deinen letzten {n} Reisen)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(auf dieser Reise festgelegt)",
+  "trips_scrubber_perDive": "{minutes} min je Tauchgang",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(aus deinem letzten Rebreather-Tauchgang)} other{(aus deinen letzten {n} Rebreather-Tauchgängen)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min erwarteter Verbrauch",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min Reserve nach der Reise",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Unter 20 Prozent der nominellen Dauer. Plane einen Wechsel oder nimm Ersatzkalk mit.",
+  "trips_scrubber_noRating": "Für diesen Rebreather ist keine nominelle Dauer hinterlegt; trage die Atemkalkdauer in den Attributen ein oder lege einen Wechselplan an.",
+  "trips_scrubber_bannerMargin": "{minutes} min Atemkalkreserve",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} Rebreather, niedrigste Atemkalkreserve {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Enddatum",
@@ -7113,11 +7290,21 @@
   "universalImport_label_options": "Optionen",
   "universalImport_label_photosAttached": "Fotos angehängt",
   "universalImport_label_photosUnmatched": "Fotos keinem Tauchgang zugeordnet",
+  "diveLog_detail_menu_resyncImportedFile": "Erneut aus Originaldatei synchronisieren",
+  "diveLog_detail_resyncSuccess": "Tauchgang aus der Originaldatei aktualisiert",
+  "diveLog_detail_resyncFailed_diveMissing": "Resynchronisierung fehlgeschlagen: Dieser Tauchgang existiert nicht mehr",
+  "diveLog_detail_resyncFailed_noStoredFile": "Resynchronisierung fehlgeschlagen: Für diesen Tauchgang ist keine Originaldatei gespeichert",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "Resynchronisierung fehlgeschlagen: Dieses Dateiformat wird nicht unterstützt",
+  "diveLog_detail_resyncFailed_storedFileMissing": "Resynchronisierung fehlgeschlagen: Die Originaldatei ist auf diesem Gerät nicht mehr vorhanden",
+  "diveLog_detail_resyncFailed_noMatchingDive": "Resynchronisierung fehlgeschlagen: Die Originaldatei enthält keinen passenden Tauchgang mehr",
+  "diveLog_detail_resyncFailed_unexpectedError": "Resynchronisierung fehlgeschlagen: Beim Lesen der Originaldatei ist ein unerwarteter Fehler aufgetreten",
   "universalImport_label_replaceSource": "Quelle ersetzen",
   "universalImport_label_replaceSourceSubtitle": "Vom selben Computer aktualisieren",
   "universalImport_label_replacedSourceData": "Quelldaten ersetzt",
   "universalImport_label_retainDiveNumbers": "Tauchgangsnummern aus Quelle beibehalten",
   "universalImport_label_retainDiveNumbersSubtitle": "Tauchgangsnummern aus der importierten Datei verwenden, statt automatisch zuzuweisen",
+  "universalImport_label_autoTagThisImport": "Diesen Import automatisch taggen",
+  "universalImport_label_autoTagThisImportSubtitle": "Startet mit deiner gespeicherten Einstellung unter Tags. Eine Änderung hier gilt nur für diesen Import.",
   "universalImport_title_importOptions": "Importoptionen",
   "universalImport_title_noDivesImported": "Keine Tauchgänge importiert",
   "universalImport_title_successConsolidated": "Erfolgreich konsolidiert",
@@ -8182,6 +8369,10 @@
   "incidentEdit_lessonsLearned": "Was beim nächsten Mal helfen würde (optional)",
   "incidentEdit_save": "Speichern",
   "incidentEdit_privacyNote": "Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.",
+  "incidentEdit_equipment": "Beteiligte Ausrüstung",
+  "incidentEdit_equipment_none": "Keine",
+  "incidentEdit_equipment_onThisDive": "Bei diesem Tauchgang",
+  "incidentEdit_equipment_allGear": "Gesamte Ausrüstung",
   "incidentCategory_buoyancy": "Tarierung",
   "incidentCategory_gasSupply": "Gasversorgung",
   "incidentCategory_equipment": "Ausrüstung",
@@ -8208,6 +8399,359 @@
   "settings_section_equipmentCondition_title": "Ausrüstungszustand",
   "settings_section_equipmentCondition_subtitle": "Belastungsgrenzen für Wartungsuhren",
   "equipmentConditionSettings_title": "Ausrüstungszustand",
+  "equipmentCondition_children_title": "Eingebaute Teile",
+  "equipmentCondition_children_slot": "Steckplatz {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Eingebaut am {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{heute} =1{vor 1 Tag} other{vor {days} Tagen}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{vor 1 Monat} other{vor {months} Monaten}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Ersetzen",
+  "equipmentCondition_children_open": "Öffnen",
+  "equipmentCondition_children_replaceTitle": "{name} ersetzen?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} wird heute stillgelegt und ein neues Teil vom Typ {type} übernimmt denselben Steckplatz. Seriennummer und Notizen beginnen leer.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Ersetzen",
+  "equipmentCondition_children_replaceCancel": "Abbrechen",
+  "equipmentCondition_children_replaced": "{name} ersetzt",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Keine Zellen oder Akkus erfasst",
+  "equipmentCondition_children_add": "Hinzufügen",
+  "equipmentCondition_findings_title": "Zustandsbefunde",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 Befund} other{{count} Befunde}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Belegtauchgänge",
+  "equipmentCondition_findings_dismiss": "Verwerfen",
+  "equipmentCondition_findings_restore": "Wiederherstellen",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{1 verworfenen anzeigen} other{{count} verworfene anzeigen}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Belegtauchgänge",
+  "equipmentCondition_evidence_dive": "Tauchgang {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Tauchgang",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "Zellenausgang je Tauchgang",
+  "equipmentCondition_trend_title_gap": "Senderaussetzer je Tauchgang",
+  "equipmentCondition_trend_title_scrubber": "Atemkalkverbrauch je Tauchgang",
+  "equipmentCondition_trend_title_temperature": "Mindesttemperatur je Tauchgang",
+  "equipmentCondition_trend_cell": "Zelle {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Tauchgänge mit Problem",
+  "equipmentCondition_trend_scrubber": "Atemkalkminuten",
+  "equipmentCondition_trend_gap": "Aussetzeranteil",
+  "equipmentCondition_trend_temperature": "Mindesttemperatur",
+  "equipmentCondition_trend_axis_minutes": "min",
+  "equipmentCondition_exposure_title": "Belastung",
+  "equipmentCondition_exposure_empty": "Noch keine Tauchgänge mit diesem Teil",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 Tauchgang} other{{n} Tauchgänge}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 Tauchgang} other{{n} Tauchgänge}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} Stunden",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} Salzwasserstunden",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 kalter Tauchgang} other{{n} kalte Tauchgänge}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} Stunden mit hohem O2",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 tiefer Tauchgang} other{{n} tiefe Tauchgänge}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 Akkuzyklus} other{{n} Akkuzyklen}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "Der Ausgang von Zelle {slot} fiel über {n} Tauchgänge seit dem {since} um {percent} Prozent",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "Der Ausgang von Zelle {slot} liegt in den letzten {n} Tauchgängen bei {gain} mV pro bar",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "Zelle {slot} wich bei {count} der letzten {n} Tauchgänge um bis zu {bar} bar von den anderen ab",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "Zelle {slot} las bei hohem ppO2 in {count} der letzten {n} Tauchgänge zu niedrig, bei bis zu {percent} Prozent der Messwerte",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "Der Druck fiel bei {recent} Prozent der letzten 5 Tauchgänge aus, zuvor bei {prior} Prozent der {priorCount} davor",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "Der Druck fiel im Schnitt bei {recent} Prozent der letzten {n} Tauchgänge aus, bei {count} davon über 10 Prozent",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} in den letzten {n} Tauchgängen {count}-mal gemeldet",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} von {totalIssue} Tauchgängen mit Problemen waren kälter als {threshold}, über {n} Tauchgänge mit diesem Teil",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} von {totalIssue} Tauchgängen mit Problemen gingen tiefer als {threshold}, über {n} Tauchgänge mit diesem Teil",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 Vorfall nennt dieses Teil} other{{count} Vorfälle nennen dieses Teil}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 Tauchgang} other{{n} Tauchgänge}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Belastungsgrenzen",
   "equipmentConditionSettings_thresholdsHelp": "Ein Tauchgang zählt für Wartungsuhren als kalt, tief oder O2-reich, wenn er diese Grenzen überschreitet.",
   "equipmentConditionSettings_coldLabel": "Kaltwasser unter",
@@ -8215,6 +8759,138 @@
   "equipmentConditionSettings_o2Label": "O2-reiches Gemisch über (% O2)",
   "equipmentConditionSettings_invalid": "Bitte eine Zahl eingeben",
   "equipmentConditionSettings_saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+  "equipmentConditionSettings_sensorHeader": "Sensorzusammenfassungen",
+  "equipmentConditionSettings_sensorHelp": "Das Profil jedes Tauchgangs wird einmal für Zellenausgang, Sender-Aussetzer und Scrubber-Verbrauch zusammengefasst. Neue und bearbeitete Tauchgänge werden automatisch erfasst.",
+  "equipmentConditionSettings_rebuild": "Sensorzusammenfassungen neu erstellen",
+  "equipmentConditionSettings_rebuild_subtitle": "Die Zusammenfassung jedes Tauchgangs aus seinem Profil neu berechnen",
+  "equipmentConditionSettings_rebuild_progress": "{done} von {total} zusammengefasst",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Sensorzusammenfassungen neu erstellt",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Sensorzusammenfassungen neu erstellt; {count, plural, =1{1 Tauchgang konnte nicht zusammengefasst werden} other{{count} Tauchgänge konnten nicht zusammengefasst werden}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 Tauchgang konnte nicht zusammengefasst werden} other{{dives} Tauchgänge konnten nicht zusammengefasst werden}}; Zustandsbefunde für {items, plural, =1{1 Ausrüstungsteil} other{{items} Ausrüstungsteile}} konnten nicht aktualisiert werden",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Sensorzusammenfassungen neu erstellt; Zustandsbefunde für {count, plural, =1{1 Ausrüstungsteil} other{{count} Ausrüstungsteile}} konnten nicht aktualisiert werden",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "Die Sensorzusammenfassungen konnten nicht neu erstellt werden.",
+  "equipmentConditionSettings_masterToggle": "Zustandsbefunde",
+  "equipmentConditionSettings_masterToggle_subtitle": "Meldet Trends bei Zellenausgang, Senderaussetzern und gemeldeten Problemen, mit den Zahlen dahinter",
+  "equipmentConditionSettings_rulesHeader": "Regeln",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "Zellenausgang sinkt",
+  "equipmentConditionSettings_rule_cellOutputLow": "Zellenausgang niedrig",
+  "equipmentConditionSettings_rule_cellDivergent": "Zelle weicht von den anderen ab",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "Zelle strombegrenzt bei hohem ppO2",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "Senderaussetzer nehmen zu",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "Senderaussetzer hoch",
+  "equipmentConditionSettings_rule_issueRecurring": "Wiederkehrendes Problem",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "Probleme bei kalten Tauchgängen",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "Probleme bei tiefen Tauchgängen",
+  "equipmentConditionSettings_rule_incidentLinked": "Verknüpfte Vorfälle",
+  "equipmentObservation_tag_freeFlow": "Abblasen",
+  "equipmentObservation_tag_hardBreathing": "Schwer atmend",
+  "equipmentObservation_tag_wetBreathing": "Nass atmend",
+  "equipmentObservation_tag_leak": "Leck",
+  "equipmentObservation_tag_hoseDamage": "Schlauchschaden",
+  "equipmentObservation_tag_inflatorStuck": "Inflator klemmt",
+  "equipmentObservation_tag_inflatorSlow": "Inflator langsam",
+  "equipmentObservation_tag_bladderLeak": "Blasenleck",
+  "equipmentObservation_tag_dumpLeak": "Ablassventil undicht",
+  "equipmentObservation_tag_leakNeck": "Halsmanschette undicht",
+  "equipmentObservation_tag_leakWrist": "Armmanschette undicht",
+  "equipmentObservation_tag_leakZip": "Reißverschluss undicht",
+  "equipmentObservation_tag_leakBoot": "Füßling undicht",
+  "equipmentObservation_tag_leakValve": "Ventil undicht",
+  "equipmentObservation_tag_leakSeam": "Naht undicht",
+  "equipmentObservation_tag_tear": "Riss",
+  "equipmentObservation_tag_seamFailure": "Naht aufgegangen",
+  "equipmentObservation_tag_dim": "Schwach",
+  "equipmentObservation_tag_died": "Ausgefallen",
+  "equipmentObservation_tag_flooded": "Geflutet",
+  "equipmentObservation_tag_switchFault": "Schalterfehler",
+  "equipmentObservation_tag_batteryLow": "Batterie schwach",
+  "equipmentObservation_tag_screenFault": "Displayfehler",
+  "equipmentObservation_tag_connectionFault": "Verbindungsfehler",
+  "equipmentObservation_tag_dropout": "Aussetzer",
+  "equipmentObservation_tag_cellWarning": "Zellenwarnung",
+  "equipmentObservation_tag_loopLeak": "Kreislauf undicht",
+  "equipmentObservation_tag_solenoidFault": "Magnetventilfehler",
+  "equipmentObservation_tag_scrubberBreakthrough": "Scrubber-Durchbruch",
+  "equipmentObservation_tag_slowResponse": "Träge Reaktion",
+  "equipmentObservation_tag_erratic": "Sprunghaft",
+  "equipmentObservation_tag_lowCapacity": "Geringe Kapazität",
+  "equipmentObservation_tag_propFault": "Propellerfehler",
+  "equipmentObservation_tag_strapBroke": "Band gerissen",
+  "equipmentObservation_tag_other": "Sonstiges",
+  "equipmentObservation_status_ok": "OK",
+  "equipmentObservation_status_issue": "Problem",
+  "equipmentObservation_sheet_title": "Check-in: {item}",
+  "@equipmentObservation_sheet_title": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentObservation_sheet_empty": "Noch keine Check-ins zu diesem Tauchgang.",
+  "equipmentObservation_sheet_emptyBench": "Noch keine Check-ins.",
+  "equipmentObservation_sheet_add": "Check-in hinzufügen",
+  "equipmentObservation_sheet_edit": "Check-in bearbeiten",
+  "equipmentObservation_sheet_delete": "Check-in löschen",
+  "equipmentObservation_sheet_deleteConfirm": "Diesen Check-in löschen?",
+  "equipmentObservation_sheet_noteLabel": "Notiz",
+  "equipmentObservation_sheet_tagsLabel": "Was ist passiert",
+  "equipmentObservation_sheet_dateLabel": "Beobachtet",
+  "equipmentObservation_sheet_diveLabel": "Tauchgang",
+  "equipmentObservation_sheet_noDive": "Kein Tauchgang (Werkbank)",
+  "equipmentObservation_sheet_pickDive": "Tauchgang wählen",
+  "equipmentObservation_sheet_save": "Speichern",
+  "equipmentObservation_sheet_cancel": "Abbrechen",
+  "equipmentObservation_sheet_tagRequired": "Wähle für ein Problem mindestens ein Schlagwort",
+  "equipmentObservation_chip_ok": "Geprüft, OK",
+  "equipmentObservation_chip_issue": "Problem gemeldet",
+  "equipmentObservation_chip_none": "Einchecken",
+  "equipmentObservation_card_title": "Check-ins",
+  "equipmentObservation_card_empty": "Keine Check-ins zu diesem Teil erfasst.",
+  "equipmentObservation_card_add": "Check-in hinzufügen",
+  "equipmentObservation_card_onDive": "Tauchgang Nr. {number}",
+  "@equipmentObservation_card_onDive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentObservation_card_bench": "Werkbank",
   "dataQuality_inbox_title": "Datenqualität",
   "dataQuality_dive_unknown": "Tauchgangsdetails nicht verfügbar",
   "dataQuality_dive_number": "#{number}",
@@ -8294,6 +8970,20 @@
   "dataQuality_deleteDuplicate_body": "Beide wurden vom selben Tauchcomputer aufgezeichnet. Die Kopie mit weniger Tauchgangsdaten wird gelöscht. Sie können dies anschließend rückgängig machen.",
   "dataQuality_deleteDuplicate_keep": "Behalten: {dive}",
   "dataQuality_deleteDuplicate_delete": "Löschen: {dive}",
+  "dataQuality_deleteDuplicate_carries": "Diese Kopie enthält außerdem: {items}",
+  "dataQuality_carries_gear": "{count, plural, one{1 Ausrüstungsteil} other{{count} Ausrüstungsteile}}",
+  "dataQuality_carries_weights": "{count, plural, one{1 Bleimenge} other{{count} Bleimengen}}",
+  "dataQuality_carries_buddies": "{count, plural, one{1 Buddy} other{{count} Buddys}}",
+  "dataQuality_carries_tags": "{count, plural, one{1 Tag} other{{count} Tags}}",
+  "dataQuality_carries_media": "{count, plural, one{1 Foto oder Video} other{{count} Fotos oder Videos}}",
+  "dataQuality_carries_attachments": "{count, plural, one{1 Anhang} other{{count} Anhänge}}",
+  "dataQuality_carries_customFields": "{count, plural, one{1 eigenes Feld} other{{count} eigene Felder}}",
+  "dataQuality_carries_rating": "eine Bewertung",
+  "dataQuality_carries_favorite": "eine Favoritenmarkierung",
+  "dataQuality_carries_site": "einen Tauchplatz",
+  "dataQuality_carries_trip": "eine Reise",
+  "dataQuality_carries_diveCenter": "eine Tauchbasis",
+  "dataQuality_carries_course": "einen Kurs",
   "dataQuality_repairLabel_combine": "Zu einem Tauchgang kombinieren",
   "dataQuality_repairLabel_despike": "Ausreißer entfernen",
   "dataQuality_repairLabel_clampNegative": "Tiefen über der Oberfläche begrenzen",
@@ -10765,6 +11455,7 @@
   "settings_export_progress_divesCsv": "Tauchgänge werden nach CSV exportiert...",
   "settings_export_progress_sitesCsv": "Tauchplätze werden nach CSV exportiert...",
   "settings_export_progress_equipmentCsv": "Ausrüstung wird nach CSV exportiert...",
+  "settings_export_progress_observationsCsv": "Ausrüstungs-Check-ins werden als CSV exportiert...",
   "settings_export_progress_pdf": "PDF-Logbuch wird erstellt...",
   "settings_export_progress_loadingSignatures": "Signaturen werden geladen...",
   "settings_export_progress_loadingProfiles": "Tauchprofile werden geladen...",
@@ -10783,6 +11474,7 @@
   "settings_export_progress_preparingDivesCsv": "Tauchgänge-CSV wird vorbereitet...",
   "settings_export_progress_preparingSitesCsv": "Tauchplätze-CSV wird vorbereitet...",
   "settings_export_progress_preparingEquipmentCsv": "Ausrüstungs-CSV wird vorbereitet...",
+  "settings_export_progress_preparingObservationsCsv": "CSV der Ausrüstungs-Check-ins wird vorbereitet...",
   "settings_export_progress_preparingUddf": "UDDF-Datei wird vorbereitet...",
   "settings_export_progress_preparingPdf": "PDF wird vorbereitet...",
   "settings_export_progress_selectingBackup": "Sicherungsdatei wird ausgewählt...",
@@ -10790,6 +11482,7 @@
   "settings_export_empty_dives": "Keine Tauchgänge zum Exportieren",
   "settings_export_empty_sites": "Keine Tauchplätze zum Exportieren",
   "settings_export_empty_equipment": "Keine Ausrüstung zum Exportieren",
+  "settings_export_empty_observations": "Keine Ausrüstungs-Check-ins zum Exportieren",
   "settings_export_empty_data": "Keine Daten zum Exportieren",
   "settings_export_empty_diveSites": "Keine Tauchplätze zum Exportieren",
   "settings_export_saveFailed": "Speichern fehlgeschlagen: {error}",
@@ -10800,6 +11493,7 @@
   "settings_export_success_dives": "Tauchgänge erfolgreich exportiert",
   "settings_export_success_sites": "Tauchplätze erfolgreich exportiert",
   "settings_export_success_equipment": "Ausrüstung erfolgreich exportiert",
+  "settings_export_success_observations": "Ausrüstungs-Check-ins exportiert",
   "settings_export_success_pdf": "PDF-Logbuch erfolgreich erstellt",
   "settings_export_success_uddf": "UDDF-Datei erfolgreich erstellt",
   "settings_export_success_excel": "Excel-Datei erfolgreich exportiert",
@@ -10809,6 +11503,7 @@
   "settings_export_saved_divesCsv": "Tauchgänge-CSV erfolgreich gespeichert",
   "settings_export_saved_sitesCsv": "Tauchplätze-CSV erfolgreich gespeichert",
   "settings_export_saved_equipmentCsv": "Ausrüstungs-CSV erfolgreich gespeichert",
+  "settings_export_saved_observationsCsv": "CSV der Ausrüstungs-Check-ins gespeichert",
   "settings_export_saved_uddf": "UDDF-Datei erfolgreich gespeichert",
   "settings_export_saved_pdf": "PDF erfolgreich gespeichert",
   "settings_export_saved_backup": "Sicherung erfolgreich gespeichert",
@@ -10818,6 +11513,10 @@
   "settings_export_cancelled_restore": "Wiederherstellung abgebrochen",
   "settings_export_pdfDocumentTitle": "Tauchlogbuch",
   "settings_export_saveBackupDialogTitle": "Sicherung speichern",
+  "settings_export_saveDivesCsvDialogTitle": "Tauchgänge-CSV speichern",
+  "settings_export_saveSitesCsvDialogTitle": "Tauchplätze-CSV speichern",
+  "settings_export_saveEquipmentCsvDialogTitle": "Ausrüstungs-CSV speichern",
+  "settings_export_saveObservationsCsvDialogTitle": "CSV der Ausrüstungs-Check-ins speichern",
   "backup_operation_created": "Sicherung erstellt: {size}",
   "backup_operation_backupFailed": "Sicherung fehlgeschlagen: {error}",
   "backup_operation_restoring": "Sicherung wird wiederhergestellt...",
@@ -11078,6 +11777,7 @@
   "settings_storageUsage_group_backups": "Sicherungen",
   "settings_storageUsage_group_temporary": "Temporäre Dateien",
   "settings_storageUsage_group_exports": "Exportierte Dateien",
+  "settings_storageUsage_group_importedFiles": "Importierte Rohdaten",
   "settings_storageUsage_category_database": "Tauchbuch-Datenbank",
   "settings_storageUsage_category_localCache": "Lokale Cache-Datenbank",
   "settings_storageUsage_category_mediaCacheOriginals": "Original-Fotos und -Videos",
@@ -11092,6 +11792,7 @@
   "settings_storageUsage_category_backups": "Sicherungsdateien",
   "settings_storageUsage_category_temporary": "Temporäre Dateien",
   "settings_storageUsage_category_exports": "Exportierte Dateien",
+  "settings_storageUsage_category_importedFiles": "Original-Importdateien",
   "profilePhoto_sheet_title": "Profilfoto",
   "profilePhoto_source_camera": "Foto aufnehmen",
   "profilePhoto_source_library": "Aus Mediathek wählen",
@@ -11156,6 +11857,7 @@
   "transmitters_field_channel": "Kanal",
   "transmitters_field_role": "Rolle",
   "transmitters_field_gear": "Flasche aus der Ausrüstung",
+  "transmitters_field_transmitterGear": "Sender aus der Ausrüstung",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "Keine",
   "transmitters_validation_key": "Gib eine Seriennummer ein oder wähle Tauchcomputer und Kanal",
@@ -11202,13 +11904,11 @@
   "enum_equipmentItemSortField_purchaseDate": "Kaufdatum",
   "enum_equipmentItemSortField_dateAdded": "Hinzugefügt am",
   "enum_equipmentItemSortField_lastServiceDate": "Letzte Wartung",
-  "equipment_arrange_title": "Ausrüstung anordnen",
   "equipment_arrange_groupByType": "Nach Typ gruppieren",
   "equipment_arrange_groupByTypeSubtitle": "Für jede Ausrüstungsart eine Überschrift anzeigen",
   "equipment_arrange_typeOrderLabel": "Typen ordnen nach",
   "equipment_arrange_itemOrderLabel": "Danach nach",
   "equipment_arrange_itemOrderLabelFlat": "Sortieren nach",
-  "equipment_arrange_tooltip": "Ausrüstung anordnen",
   "equipment_arrange_reset": "Auf Standard zurücksetzen",
   "equipment_arrange_saveFailed": "Anordnung konnte nicht gespeichert werden",
   "settings_appearance_gearArrangement": "Ausrüstungsanordnung",

@@ -54,6 +54,10 @@ const List<DiveDetailSectionPair> kDiveDetailSectionPairs = [
     stretch: true,
   ),
   DiveDetailSectionPair(
+    DiveDetailSectionId.tanks,
+    DiveDetailSectionId.sacSegments,
+  ),
+  DiveDetailSectionPair(
     DiveDetailSectionId.details,
     DiveDetailSectionId.environment,
   ),
@@ -61,7 +65,10 @@ const List<DiveDetailSectionPair> kDiveDetailSectionPairs = [
     DiveDetailSectionId.surfaceGps,
     DiveDetailSectionId.tide,
   ),
-  DiveDetailSectionPair(DiveDetailSectionId.tanks, DiveDetailSectionId.weights),
+  DiveDetailSectionPair(
+    DiveDetailSectionId.weights,
+    DiveDetailSectionId.buoyancy,
+  ),
   DiveDetailSectionPair(
     DiveDetailSectionId.buddies,
     DiveDetailSectionId.signatures,

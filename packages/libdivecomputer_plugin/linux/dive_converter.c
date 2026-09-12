@@ -165,11 +165,15 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
     // Convert gas mixes.
     FlValue* gas_mixes = fl_value_new_list();
     for (unsigned int i = 0; i < dive->gasmix_count; i++) {
+        int64_t gm_usage_val = (int64_t)dive->gasmixes[i].usage;
+        int64_t* gm_usage = (dive->gasmixes[i].usage == 0) ? NULL : &gm_usage_val;
+
         LibdivecomputerPluginGasMix* mix =
             libdivecomputer_plugin_gas_mix_new(
                 (int64_t)i,
                 dive->gasmixes[i].oxygen * 100.0,
-                dive->gasmixes[i].helium * 100.0);
+                dive->gasmixes[i].helium * 100.0,
+                gm_usage);
         fl_value_append_take(
             gas_mixes,
             fl_value_new_custom_object(133, G_OBJECT(mix)));

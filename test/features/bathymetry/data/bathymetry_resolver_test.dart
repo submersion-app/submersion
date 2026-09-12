@@ -36,6 +36,8 @@ class FakeSource implements BathymetrySource {
   final String id;
   @override
   final bool global;
+  @override
+  final double minKnownFraction;
   final bool coversIt;
   final BathymetryGrid? result; // null => throw transient
   final double cellSizeMeters;
@@ -45,6 +47,7 @@ class FakeSource implements BathymetrySource {
   FakeSource(
     this.id, {
     this.global = true,
+    this.minKnownFraction = 0.60,
     this.coversIt = true,
     this.result,
     this.cellSizeMeters = 100,
@@ -71,6 +74,8 @@ class _ErrorSource implements BathymetrySource {
   @override
   bool get global => true;
   @override
+  double get minKnownFraction => 0.60;
+  @override
   Future<SourceCapability?> probe(GeoPoint center) async =>
       const SourceCapability(cellSizeMeters: 100, detail: 'boom');
   @override
@@ -84,6 +89,8 @@ class _ThrowingProbeSource implements BathymetrySource {
   String get id => 'probe-boom';
   @override
   bool get global => false;
+  @override
+  double get minKnownFraction => 0.60;
   @override
   Future<SourceCapability?> probe(GeoPoint center) async =>
       throw StateError('probe exploded');
@@ -212,6 +219,27 @@ void main() {
       expect(res.definitive, isFalse);
     },
   );
+
+  test('the known-cell floor is per-source: a source with a lower floor '
+      'accepts a grid the default 60% floor would reject (regression: '
+      'swissBATHY3D coordinates near a narrow lake -- e.g. Betlis on '
+      'Walensee -- legitimately fill only a small fraction of an 8 km '
+      'square request, and were silently rejected by the one-size-fits-'
+      'all floor with no visible reason before this)', () async {
+    // Same 40%-known shape as the "mostly-empty ... fails" test above, but
+    // this source declares a 0.0 floor (matching SwissBathy3dSource's own
+    // override) instead of the FakeSource default of 0.60.
+    final holey = <double?>[
+      50.0, null, 50.0, null, 50.0, null, 50.0, null, null, null, //
+    ];
+    final a = FakeSource(
+      'swissbathy3d-like',
+      minKnownFraction: 0.0,
+      result: gridOf(holey, 'a'),
+    );
+    final res = await BathymetryResolver(sources: [a]).resolve(p);
+    expect(res.grid!.sourceId, 'a');
+  });
 
   test('a materially finer source preempts the declared order', () async {
     // 10 m against 100 m is a factor of 10, well past preemptionFactor.

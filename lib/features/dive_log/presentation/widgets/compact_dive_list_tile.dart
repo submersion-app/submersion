@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badg
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 
 /// Two-line compact card tile for the dive list.
@@ -287,14 +288,14 @@ class CompactDiveListTile extends ConsumerWidget {
                   // Line 1: dive number, title slot, date slot, chevron
                   Row(
                     children: [
-                      SizedBox(
-                        width: 36,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: SelectionLeading(
-                            isSelectionMode: isSelectionMode,
-                            isChecked: isChecked,
-                            onChanged: (_) => onTap?.call(),
+                      SelectionLeading(
+                        isSelectionMode: isSelectionMode,
+                        isChecked: isChecked,
+                        onChanged: (_) => onTap?.call(),
+                        child: SizedBox(
+                          width: 36,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
@@ -362,8 +363,9 @@ class CompactDiveListTile extends ConsumerWidget {
                     ],
                   ),
                   // Line 2: stat1 and stat2 slots
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 44),
+                  SelectionInset(
+                    isSelectionMode: isSelectionMode,
+                    start: 44,
                     child: Row(
                       children: [
                         ExcludeSemantics(

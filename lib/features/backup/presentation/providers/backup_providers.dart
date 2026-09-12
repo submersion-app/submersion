@@ -19,6 +19,7 @@ import 'package:submersion/features/backup/domain/entities/backup_settings.dart'
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/providers/post_restore_safety_review.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -355,6 +356,10 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       );
       await _syncActiveDiverAfterRestore();
       await _runPostRestoreSafetyReview();
+      // The restored library carries its own summary rows, or none; either
+      // way a stale sweep brings them up to this build. Runs in the
+      // background so the restore barrier does not wait on it.
+      SensorSummaryScheduler.instance.scheduleStaleSweep();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
       );
@@ -552,6 +557,10 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       );
       await _syncActiveDiverAfterRestore();
       await _runPostRestoreSafetyReview();
+      // The restored library carries its own summary rows, or none; either
+      // way a stale sweep brings them up to this build. Runs in the
+      // background so the restore barrier does not wait on it.
+      SensorSummaryScheduler.instance.scheduleStaleSweep();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
       );

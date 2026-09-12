@@ -48,6 +48,9 @@ class Incident extends Equatable {
   final String id;
   final String? diverId;
   final String? diveId;
+
+  /// v202: the item an equipment incident attributes to (condition phase 3a).
+  final String? equipmentId;
   final DateTime occurredAt;
   final IncidentCategory category;
   final IncidentSeverity severity;
@@ -61,6 +64,7 @@ class Incident extends Equatable {
     required this.id,
     this.diverId,
     this.diveId,
+    this.equipmentId,
     required this.occurredAt,
     required this.category,
     required this.severity,
@@ -76,6 +80,8 @@ class Incident extends Equatable {
     String? diverId,
     String? diveId,
     bool clearDiveId = false,
+    String? equipmentId,
+    bool clearEquipmentId = false,
     DateTime? occurredAt,
     IncidentCategory? category,
     IncidentSeverity? severity,
@@ -89,6 +95,7 @@ class Incident extends Equatable {
       id: id ?? this.id,
       diverId: diverId ?? this.diverId,
       diveId: clearDiveId ? null : (diveId ?? this.diveId),
+      equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
       occurredAt: occurredAt ?? this.occurredAt,
       category: category ?? this.category,
       severity: severity ?? this.severity,
@@ -105,6 +112,7 @@ class Incident extends Equatable {
     id,
     diverId,
     diveId,
+    equipmentId,
     occurredAt,
     category,
     severity,

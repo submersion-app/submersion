@@ -52,6 +52,10 @@ class PayloadMerger {
   static const _gearLinkRefFields = ['itemRef', 'viaRef', 'setRef'];
   static const _componentRefFields = ['componentRef'];
 
+  /// Reference field inside a dive's `buddyRoleRefs` entries (issue #1737):
+  /// the person holding each exact role.
+  static const _buddyRoleRefFields = ['buddyRef'];
+
   /// Rewrites the string reference [fields] of every map in [item]'s
   /// [key] list through [rewrite], copying rather than mutating the
   /// nested maps. A null reference stays null; a map without the list is
@@ -93,9 +97,19 @@ class PayloadMerger {
     final aliases = <String, String>{};
     // entity type -> fold key -> surviving map (already in `entities`)
     final survivors = <ImportEntityType, Map<String, Map<String, dynamic>>>{};
+    // Custom dive role definitions by id (issue #1737). Ids are device-minted
+    // UUIDs referenced verbatim by dive links, so they are never namespaced,
+    // and the same id in two files is the same role.
+    final customDiveRoles = <String, Map<String, dynamic>>{};
 
     for (final input in inputs) {
       warnings.addAll(input.payload.warnings);
+      final roles = input.payload.metadata[ImportPayload.customDiveRolesKey];
+      for (final role in roles is List ? roles : const []) {
+        if (role is Map<String, dynamic> && role['id'] is String) {
+          customDiveRoles.putIfAbsent(role['id'] as String, () => role);
+        }
+      }
 
       // Dives are appended without folding, so each file's dive indices shift
       // by the number of dives already collected. Captured BEFORE this input's
@@ -170,6 +184,8 @@ class PayloadMerger {
       metadata: {
         'batchFileCount': inputs.length,
         'sourceFiles': [for (final i in inputs) i.fileName],
+        if (customDiveRoles.isNotEmpty)
+          ImportPayload.customDiveRolesKey: customDiveRoles.values.toList(),
       },
     );
   }
@@ -219,6 +235,12 @@ class PayloadMerger {
         item,
         'gearLinks',
         _gearLinkRefFields,
+        (ref) => '$fileId:$ref',
+      );
+      _rewriteNested(
+        item,
+        'buddyRoleRefs',
+        _buddyRoleRefFields,
         (ref) => '$fileId:$ref',
       );
     }
@@ -310,6 +332,7 @@ class PayloadMerger {
         }
       }
       _rewriteNested(dive, 'gearLinks', _gearLinkRefFields, resolve);
+      _rewriteNested(dive, 'buddyRoleRefs', _buddyRoleRefFields, resolve);
     }
 
     for (final item in entities[ImportEntityType.equipment] ?? const []) {

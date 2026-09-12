@@ -5,7 +5,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 enum CsvExportType {
   dives,
   sites,
-  equipment;
+  equipment,
+  observations;
 
   String localizedDisplayName(BuildContext context) {
     switch (this) {
@@ -15,6 +16,8 @@ enum CsvExportType {
         return context.l10n.transfer_csvExport_typeSites;
       case CsvExportType.equipment:
         return context.l10n.transfer_csvExport_typeEquipment;
+      case CsvExportType.observations:
+        return context.l10n.transfer_csvExport_typeObservations;
     }
   }
 
@@ -26,6 +29,8 @@ enum CsvExportType {
         return context.l10n.transfer_csvExport_descriptionSites;
       case CsvExportType.equipment:
         return context.l10n.transfer_csvExport_descriptionEquipment;
+      case CsvExportType.observations:
+        return context.l10n.transfer_csvExport_descriptionObservations;
     }
   }
 
@@ -37,6 +42,8 @@ enum CsvExportType {
         return Icons.location_on;
       case CsvExportType.equipment:
         return Icons.build;
+      case CsvExportType.observations:
+        return Icons.fact_check;
     }
   }
 }

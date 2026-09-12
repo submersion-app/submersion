@@ -173,10 +173,12 @@
   "common_action_dismiss": "Sluiten",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Onderdeel toevoegen",
+  "equipment_components_containsSection": "Bevat",
   "equipment_components_count": "{count, plural, =1{1 onderdeel} other{{count} onderdelen}}",
   "equipment_components_cycleError": "Dat item bevat dit item al, dus het kan niet als onderdeel worden toegevoegd.",
   "equipment_components_editRole": "Rol bewerken",
   "equipment_components_empty": "Geen onderdelen. Voeg de delen toe waaruit dit item is opgebouwd.",
+  "equipment_components_emptyLeaf": "Geen eigen onderdelen. Voeg ze toe als dit item uit andere is opgebouwd.",
   "equipment_components_historyAlsoPast": "{count, plural, =1{Ook 1 duik bijwerken} other{Ook {count} duiken bijwerken}}",
   "equipment_components_historyAskAdded": "Het nieuwe onderdeel ook aan die duiken toevoegen, of alleen vanaf nu?",
   "equipment_components_historyAskRemoved": "Het onderdeel ook van die duiken verwijderen, of alleen vanaf nu?",
@@ -186,6 +188,8 @@
   "equipment_components_historyTitle": "Eerdere duiken bijwerken?",
   "equipment_components_partOf": "Onderdeel van {name}",
   "equipment_components_partOfCount": "{count, plural, =1{Onderdeel van 1 samenstel} other{Onderdeel van {count} samenstellen}}",
+  "equipment_components_partOfSection": "Onderdeel van",
+  "equipment_components_partOfSubtitle": "{role}, in {rigs}",
   "equipment_components_pickerConfirm": "{count, plural, =0{Toevoegen} =1{1 toevoegen} other{{count} toevoegen}}",
   "equipment_components_pickerEmpty": "Er is geen andere actieve uitrusting die hier kan worden toegevoegd.",
   "equipment_components_pickerReplaceConfirm": "Vervangen",
@@ -311,6 +315,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Alleen duiken zonder bestaande fles",
   "diveLog_bulkEdit_confirmTitle": "Wijzigingen toepassen?",
   "diveLog_bulkEdit_confirmApply": "Toepassen",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Toevoegen aan 1 duik} other{Toevoegen aan alle {count} duiken}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Verwijderen van 1 duik} other{Verwijderen van alle {count} duiken}}",
   "diveLog_bulkEdit_nothingSelected": "Schakel minstens één veld in om wijzigingen toe te passen.",
   "diveLog_bulkEdit_applied": "{count} duiken bijgewerkt",
   "settings_cloudSync_error_icloudSignedOut": "iCloud is niet beschikbaar. Log in bij iCloud in de instellingen van je apparaat.",
@@ -498,7 +504,7 @@
   "setup_welcome_skipSetup": "Installatie overslaan",
   "setup_welcome_startFresh_subtitle": "Maak je duikersprofiel en stel de app in",
   "setup_welcome_startFresh_title": "Een nieuw profiel instellen",
-  "setup_welcome_subtitle": "Geavanceerd duiklogboek en analyse",
+  "setup_welcome_subtitle": "Duik veilig. Log alles.",
   "setup_welcome_title": "Welkom bij Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -1054,6 +1060,7 @@
   "preDive_runner_flag": "Markeren",
   "preDive_runner_undo": "Terugzetten naar openstaand",
   "preDive_runner_serviceOverdue": "Onderhoud verlopen",
+  "preDive_runner_conditionFindings": "Conditiebevindingen",
   "preDive_runner_addNote": "Notitie toevoegen",
   "preDive_runner_enterValue": "Waarde invoeren",
   "preDive_runner_cellInAir": "In lucht",
@@ -3744,6 +3751,7 @@
   "equipment_detail_editTooltipShort": "Bewerken",
   "equipment_detail_errorMessage": "Fout: {error}",
   "equipment_detail_errorTitle": "Fout",
+  "equipment_detail_installedInLabel": "Geplaatst in",
   "equipment_detail_lastServiceLabel": "Laatste service",
   "equipment_detail_loadingTitle": "Laden...",
   "equipment_detail_modelLabel": "Model",
@@ -3752,6 +3760,17 @@
   "equipment_detail_notFoundTitle": "Uitrusting niet gevonden",
   "equipment_detail_notesTitle": "Notities",
   "equipment_detail_ownedForLabel": "In bezit sinds",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Aankoopdatum",
   "equipment_detail_purchasePriceLabel": "Aankoopprijs",
   "equipment_detail_retiredChip": "Buiten gebruik",
@@ -3769,6 +3788,7 @@
   "equipment_serviceClocks_unconfigured": "Geen interval ingesteld - tik om te configureren",
   "equipment_serviceClocks_dueOn": "Vervalt op {date}",
   "equipment_serviceClocks_overdueSince": "Achterstallig sinds {date}",
+  "equipment_serviceClocks_countingSince": "Telt sinds {date}",
   "equipment_serviceClocks_overdue": "Te laat",
   "equipment_serviceClocks_divesLeft": "{remaining} van {total} duiken resterend",
   "cylinderConfigs_title": "Flesconfiguraties",
@@ -3877,7 +3897,7 @@
   "equipment_scheduleDialog_intervalCycles": "Interval (batterijcycli)",
   "equipment_scheduleDialog_inheritHint": "Standaard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referentiedatum",
-  "equipment_scheduleDialog_anchorHint": "Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat",
+  "equipment_scheduleDialog_anchorHint": "De klok telt vanaf deze datum tot je een nieuwere service vastlegt.",
   "equipment_scheduleDialog_clearAnchor": "Referentiedatum wissen",
   "equipment_scheduleDialog_save": "Opslaan",
   "equipment_scheduleDialog_cancel": "Annuleren",
@@ -3919,6 +3939,7 @@
   "equipment_detail_tripsCountSingular": "{count} reis",
   "equipment_detail_tripsLabel": "Reizen",
   "equipment_detail_tripsSemanticLabel": "Bekijk reizen met deze uitrusting",
+  "equipment_detail_wasInstalledInLabel": "Was geplaatst in",
   "equipment_edit_appBar_editTitle": "Uitrusting bewerken",
   "equipment_edit_appBar_newTitle": "Nieuwe uitrusting",
   "equipment_edit_appBar_saveButton": "Opslaan",
@@ -4959,7 +4980,7 @@
   "planning_welcome_title": "Planningstools",
   "settings_about_aboutSubmersion": "Over Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Houd je duiken bij, beheer uitrusting en verken duikstekken.",
+  "settings_about_description": "Duik veilig. Log alles.",
   "settings_about_header": "Over",
   "settings_about_openSourceLicenses": "Open source-licenties",
   "settings_about_reportIssue": "Probleem melden",
@@ -5206,6 +5227,7 @@
   "settings_conflict_ref_equipment": "Uitrusting",
   "settings_conflict_ref_equipmentSet": "Uitrustingsset",
   "settings_conflict_ref_finding": "Bevinding",
+  "settings_conflict_ref_importedFile": "Geïmporteerd bestand",
   "settings_conflict_ref_instructor": "Instructeur",
   "settings_conflict_ref_linkedDive": "Gekoppelde duik",
   "settings_conflict_ref_media": "Media",
@@ -5764,6 +5786,38 @@
   "statistics_equipment_weightTrend_error": "Kan gewichtstrend niet laden",
   "statistics_equipment_weightTrend_subtitle": "Totaal lood per duik",
   "statistics_equipment_weightTrend_title": "Gewichtstrend",
+  "statistics_equipment_exposure_title": "Blootstelling",
+  "statistics_equipment_exposure_error": "Kan blootstellingsgegevens niet laden",
+  "statistics_equipment_findings_error": "Kan conditiebevindingen niet laden",
+  "statistics_equipment_issues_error": "Kan gemelde problemen niet laden",
+  "statistics_equipment_exposure_subtitle": "Totalen per item met jouw drempels",
+  "statistics_equipment_exposure_empty": "Nog geen duiken met uitrusting",
+  "statistics_equipment_findings_title": "Conditiebevindingen",
+  "statistics_equipment_findings_subtitle": "Open bevindingen per regel",
+  "statistics_equipment_findings_subtitleAllDives": "Open bevindingen per regel, over alle duiken",
+  "statistics_equipment_findings_empty": "Geen open bevindingen",
+  "statistics_equipment_issues_title": "Gemelde problemen",
+  "statistics_equipment_issues_subtitle": "Meest voorkomende check-in-tags",
+  "statistics_equipment_issues_empty": "Geen problemen gemeld",
+  "statistics_equipment_countLabel_items": "items",
+  "statistics_equipment_countLabel_findings": "bevindingen",
+  "statistics_equipment_countLabel_reports": "meldingen",
+  "statistics_equipment_exposureUnit_days": "Dagen",
+  "statistics_equipment_exposureUnit_dives": "Duiken",
+  "statistics_equipment_countLabel_days": "dagen",
+  "statistics_equipment_countLabel_dives": "duiken",
+  "statistics_equipment_countLabel_hours": "uur",
+  "statistics_equipment_countLabel_saltHours": "uur in zout water",
+  "statistics_equipment_countLabel_coldDives": "koude duiken",
+  "statistics_equipment_countLabel_o2Hours": "uur met hoog O2",
+  "statistics_equipment_countLabel_deepCycles": "diepe duiken",
+  "statistics_equipment_countLabel_cycles": "batterijcycli",
+  "statistics_equipment_exposureUnit_hours": "Uur",
+  "statistics_equipment_exposureUnit_saltHours": "Uur in zout water",
+  "statistics_equipment_exposureUnit_coldDives": "Koude duiken",
+  "statistics_equipment_exposureUnit_o2Hours": "Uur met hoog O2",
+  "statistics_equipment_exposureUnit_deepCycles": "Diepe duiken",
+  "statistics_equipment_exposureUnit_cycles": "Batterijcycli",
   "statistics_error_loadingStatistics": "Fout bij laden van statistieken",
   "statistics_filterBar_clear": "Filter wissen",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 duik} other{{count} duiken}}",
@@ -6055,6 +6109,8 @@
   "importWizard_photos_destinationUnwritable": "In die map kan niet worden geschreven. Kies een andere.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 oudere duik overgeslagen — al in je logboek} other{{count} oudere duiken overgeslagen — al in je logboek}}",
   "tags_hint_addTags": "Tags toevoegen...",
+  "tags_manage_autoTagImports": "Imports automatisch taggen",
+  "tags_manage_autoTagImports_subtitle": "Elke nieuwe import begint met een tag die de bron en datum vermeldt. Dit kan voor één import worden aangepast in de opties van die import.",
   "tags_manage_bulkDeleteMessage": "Deze tags worden verwijderd van in totaal {diveCount, plural, =0{0 duiken} =1{1 duik} other{{diveCount} duiken}}. Dit kan niet ongedaan worden gemaakt.",
   "tags_manage_bulkDeleteTitle": "{count} tags verwijderen?",
   "tags_manage_colorLabel": "Kleur",
@@ -6064,6 +6120,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 duiken} =1{1 duik} other{{count} duiken}}",
   "tags_manage_editTitle": "Tag bewerken",
   "tags_manage_emptyState": "Nog geen tags. Maak er een aan om te beginnen.",
+  "tags_manage_importsSection": "Imports",
   "tags_manage_mergeAction": "Samenvoegen",
   "tags_manage_mergeAffectedDives": "Dit heeft betrekking op in totaal {count, plural, =0{0 duiken} =1{1 duik} other{{count} duiken}}.",
   "tags_manage_mergeKeepFrom": "Of naam overnemen van:",
@@ -6251,15 +6308,18 @@
   "transfer_csvExport_dataTypeHeader": "Gegevenstype",
   "transfer_csvExport_descriptionDives": "Exporteer alle duiklogs als spreadsheet",
   "transfer_csvExport_descriptionEquipment": "Exporteer uitrustingsinventaris en onderhoudsinformatie",
+  "transfer_csvExport_descriptionObservations": "Elke OK-controle en elk gemeld probleem, met duik, labels en notitie",
   "transfer_csvExport_descriptionSites": "Exporteer duiksteklocaties en details",
   "transfer_csvExport_dialogTitle": "CSV exporteren",
   "transfer_csvExport_exportButton": "CSV exporteren",
   "transfer_csvExport_optionDivesTitle": "Duiken CSV",
   "transfer_csvExport_optionEquipmentTitle": "Uitrusting CSV",
+  "transfer_csvExport_optionObservationsTitle": "CSV van uitrusting-check-ins",
   "transfer_csvExport_optionSitesTitle": "Duikstekken CSV",
   "transfer_csvExport_semanticLabel": "Exporteer {typeName}",
   "transfer_csvExport_typeDives": "Duiken",
   "transfer_csvExport_typeEquipment": "Uitrusting",
+  "transfer_csvExport_typeObservations": "Uitrusting-check-ins",
   "transfer_csvExport_typeSites": "Duikstekken",
   "transfer_detail_backTooltip": "Terug naar overdracht",
   "transfer_export_aboutContent": "Exporteer je duikgegevens in verschillende formaten. PDF maakt een afdrukbaar logboek. UDDF is een universeel formaat dat compatibel is met de meeste duiklogsoftware. CSV-bestanden kunnen worden geopend in spreadsheetapplicaties.",
@@ -6275,6 +6335,10 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Multi-formaat export",
   "transfer_export_optionSaveSubtitle": "Kies waar je wilt opslaan op je apparaat",
+  "transfer_export_includeGear": "Uitrusting opnemen",
+  "transfer_export_includeGearSubtitle": "Voegt de uitrusting en duikcomputer toe die bij elke duik zijn gebruikt. Aankoopgegevens worden weggelaten.",
+  "transfer_export_includeParticipants": "Deelnemers opnemen",
+  "transfer_export_includeParticipantsSubtitle": "Voegt buddies, gidsen en hun rollen bij elke duik toe, met naam en brevet. Contactgegevens worden weggelaten.",
   "transfer_export_includeRawData": "Ruwe duikcomputergegevens opnemen",
   "transfer_export_includeRawDataSubtitle": "Bewaart de originele bytes van je duikcomputer zodat het bestand later opnieuw kan worden verwerkt. Maakt het bestand groter.",
   "transfer_export_optionSaveTitle": "Opslaan als bestand",
@@ -6413,6 +6477,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Planning",
+  "trips_edit_label_expectedDives": "Verwachte duiken",
+  "trips_edit_hint_expectedDives": "Laat leeg om te schatten op basis van je recente reizen",
+  "trips_edit_label_expectedRuntime": "Verwachte looptijd per duik (minuten)",
+  "trips_edit_hint_expectedRuntime": "Laat leeg om te schatten op basis van je recente rebreatherduiken",
+  "trips_scrubber_title": "Scrubbermarge",
+  "trips_scrubber_asOfStart": "per {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min over voor de reis (nominaal {rated} min, {consumed} min gebruikt sinds de laatste vulling)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min over voor de reis (nominaal {rated} min, {consumed} min gebruikt, geen vulling vastgelegd)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} verwachte duik} other{{dives} verwachte duiken}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(uit je laatste reis)} other{(uit je laatste {n} reizen)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(ingesteld op deze reis)",
+  "trips_scrubber_perDive": "{minutes} min per duik",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(uit je laatste rebreatherduik)} other{(uit je laatste {n} rebreatherduiken)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min verwacht gebruik",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min marge na de reis",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Onder 20 procent van de nominale duur. Plan een vulling of neem reservekalk mee.",
+  "trips_scrubber_noRating": "Geen nominale duur op deze rebreather; voeg de scrubberduur toe aan de attributen of maak een vulschema.",
+  "trips_scrubber_bannerMargin": "{minutes} min scrubbermarge",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreathers, laagste scrubbermarge {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Einddatum",
@@ -7113,11 +7290,21 @@
   "universalImport_label_options": "Opties",
   "universalImport_label_photosAttached": "Foto's bijgevoegd",
   "universalImport_label_photosUnmatched": "Foto's niet aan een duik gekoppeld",
+  "diveLog_detail_menu_resyncImportedFile": "Opnieuw synchroniseren vanuit origineel bestand",
+  "diveLog_detail_resyncSuccess": "Duik bijgewerkt vanuit het originele bestand",
+  "diveLog_detail_resyncFailed_diveMissing": "Kan niet opnieuw synchroniseren: deze duik bestaat niet meer",
+  "diveLog_detail_resyncFailed_noStoredFile": "Kan niet opnieuw synchroniseren: er is geen origineel bestand opgeslagen voor deze duik",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "Kan niet opnieuw synchroniseren: deze bestandsindeling wordt niet ondersteund",
+  "diveLog_detail_resyncFailed_storedFileMissing": "Kan niet opnieuw synchroniseren: het originele bestand staat niet meer op dit apparaat",
+  "diveLog_detail_resyncFailed_noMatchingDive": "Kan niet opnieuw synchroniseren: het originele bestand bevat geen overeenkomende duik meer",
+  "diveLog_detail_resyncFailed_unexpectedError": "Kan niet opnieuw synchroniseren: er is een onverwachte fout opgetreden bij het lezen van het originele bestand",
   "universalImport_label_replaceSource": "Bron vervangen",
   "universalImport_label_replaceSourceSubtitle": "Bijwerken vanaf dezelfde computer",
   "universalImport_label_replacedSourceData": "Brongegevens vervangen",
   "universalImport_label_retainDiveNumbers": "Duiknummers van bron behouden",
   "universalImport_label_retainDiveNumbersSubtitle": "Gebruik de duiknummers uit het geïmporteerde bestand in plaats van automatisch toewijzen",
+  "universalImport_label_autoTagThisImport": "Deze import automatisch taggen",
+  "universalImport_label_autoTagThisImportSubtitle": "Begint met je opgeslagen voorkeur in de Tags-instellingen. Dit hier wijzigen geldt alleen voor deze import.",
   "universalImport_title_importOptions": "Importopties",
   "universalImport_title_noDivesImported": "Geen duiken geïmporteerd",
   "universalImport_title_successConsolidated": "Succesvol geconsolideerd",
@@ -8182,6 +8369,10 @@
   "incidentEdit_lessonsLearned": "Wat de volgende keer zou helpen (optioneel)",
   "incidentEdit_save": "Opslaan",
   "incidentEdit_privacyNote": "Bijna-ongevalrapporten synchroniseren tussen je apparaten en zitten in je back-ups, maar nooit in exports of gedeelde logboekpagina's.",
+  "incidentEdit_equipment": "Betrokken uitrusting",
+  "incidentEdit_equipment_none": "Geen",
+  "incidentEdit_equipment_onThisDive": "Bij deze duik",
+  "incidentEdit_equipment_allGear": "Alle uitrusting",
   "incidentCategory_buoyancy": "Trim/drijfvermogen",
   "incidentCategory_gasSupply": "Gastoevoer",
   "incidentCategory_equipment": "Uitrusting",
@@ -8208,6 +8399,359 @@
   "settings_section_equipmentCondition_title": "Staat van uitrusting",
   "settings_section_equipmentCondition_subtitle": "Blootstellingsdrempels voor onderhoudsklokken",
   "equipmentConditionSettings_title": "Staat van uitrusting",
+  "equipmentCondition_children_title": "Geplaatste onderdelen",
+  "equipmentCondition_children_slot": "Slot {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Geplaatst op {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{vandaag} =1{1 dag geleden} other{{days} dagen geleden}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 maand geleden} other{{months} maanden geleden}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Vervangen",
+  "equipmentCondition_children_open": "Openen",
+  "equipmentCondition_children_replaceTitle": "{name} vervangen?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} wordt vandaag buiten gebruik gesteld en een nieuwe {type} neemt dezelfde slot in. Serienummer en notities beginnen leeg.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Vervangen",
+  "equipmentCondition_children_replaceCancel": "Annuleren",
+  "equipmentCondition_children_replaced": "{name} vervangen",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Geen cellen of batterijen vastgelegd",
+  "equipmentCondition_children_add": "Toevoegen",
+  "equipmentCondition_findings_title": "Conditiebevindingen",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 bevinding} other{{count} bevindingen}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Bewijsduiken",
+  "equipmentCondition_findings_dismiss": "Negeren",
+  "equipmentCondition_findings_restore": "Herstellen",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Toon 1 genegeerde} other{Toon {count} genegeerde}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Bewijsduiken",
+  "equipmentCondition_evidence_dive": "Duik {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Duik",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "Celuitvoer per duik",
+  "equipmentCondition_trend_title_gap": "Zenderuitval per duik",
+  "equipmentCondition_trend_title_scrubber": "Scrubbergebruik per duik",
+  "equipmentCondition_trend_title_temperature": "Minimumtemperatuur per duik",
+  "equipmentCondition_trend_cell": "Cel {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Duiken met een probleem",
+  "equipmentCondition_trend_scrubber": "Scrubberminuten",
+  "equipmentCondition_trend_gap": "Aandeel uitval",
+  "equipmentCondition_trend_temperature": "Minimumtemperatuur",
+  "equipmentCondition_trend_axis_minutes": "min",
+  "equipmentCondition_exposure_title": "Blootstelling",
+  "equipmentCondition_exposure_empty": "Nog geen duiken met dit item",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 duik} other{{n} duiken}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 duik} other{{n} duiken}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} uur",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} uur in zout water",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 koude duik} other{{n} koude duiken}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} uur met hoog O2",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 diepe duik} other{{n} diepe duiken}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 batterijcyclus} other{{n} batterijcycli}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "De uitvoer van cel {slot} daalde {percent} procent over {n} duiken sinds {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "De uitvoer van cel {slot} is {gain} mV per bar over de laatste {n} duiken",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "Cel {slot} week bij {count} van de laatste {n} duiken tot {bar} bar af van de andere",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "Cel {slot} las bij hoge ppO2 te laag bij {count} van de laatste {n} duiken, tot {percent} procent van de metingen",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "De druk viel weg tijdens {recent} procent van de laatste 5 duiken, tegen {prior} procent over de {priorCount} daarvoor",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "De druk viel gemiddeld weg tijdens {recent} procent van de laatste {n} duiken, bij {count} ervan boven 10 procent",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} {count} keer gemeld in de laatste {n} duiken",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} van {totalIssue} duiken met een probleem waren kouder dan {threshold}, over {n} duiken met dit item",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} van {totalIssue} duiken met een probleem gingen dieper dan {threshold}, over {n} duiken met dit item",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 incident noemt dit item} other{{count} incidenten noemen dit item}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 duik} other{{n} duiken}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Blootstellingsdrempels",
   "equipmentConditionSettings_thresholdsHelp": "Een duik telt voor onderhoudsklokken als koud, diep of met hoog O2 wanneer hij deze grenzen overschrijdt.",
   "equipmentConditionSettings_coldLabel": "Koud water onder",
@@ -8215,6 +8759,138 @@
   "equipmentConditionSettings_o2Label": "Mengsel met hoog O2 boven (% O2)",
   "equipmentConditionSettings_invalid": "Voer een getal in",
   "equipmentConditionSettings_saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+  "equipmentConditionSettings_sensorHeader": "Sensorsamenvattingen",
+  "equipmentConditionSettings_sensorHelp": "Het profiel van elke duik wordt eenmaal samengevat voor celuitvoer, zenderuitval en scrubbergebruik. Nieuwe en bewerkte duiken worden vanzelf samengevat.",
+  "equipmentConditionSettings_rebuild": "Sensorsamenvattingen opnieuw opbouwen",
+  "equipmentConditionSettings_rebuild_subtitle": "De samenvatting van elke duik opnieuw berekenen uit het profiel",
+  "equipmentConditionSettings_rebuild_progress": "{done} van {total} samengevat",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Sensorsamenvattingen opnieuw opgebouwd",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Sensorsamenvattingen opnieuw opgebouwd; {count, plural, =1{1 duik kon niet worden samengevat} other{{count} duiken konden niet worden samengevat}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 duik kon niet worden samengevat} other{{dives} duiken konden niet worden samengevat}}; conditiebevindingen voor {items, plural, =1{1 uitrustingsstuk} other{{items} uitrustingsstukken}} konden niet worden bijgewerkt",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Sensorsamenvattingen opnieuw opgebouwd; conditiebevindingen voor {count, plural, =1{1 uitrustingsstuk} other{{count} uitrustingsstukken}} konden niet worden bijgewerkt",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "De sensorsamenvattingen konden niet opnieuw worden opgebouwd.",
+  "equipmentConditionSettings_masterToggle": "Conditiebevindingen",
+  "equipmentConditionSettings_masterToggle_subtitle": "Meldt trends in celuitvoer, zenderuitval en gemelde problemen, met de cijfers erachter",
+  "equipmentConditionSettings_rulesHeader": "Regels",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "Celuitvoer daalt",
+  "equipmentConditionSettings_rule_cellOutputLow": "Celuitvoer laag",
+  "equipmentConditionSettings_rule_cellDivergent": "Cel wijkt af van de andere",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "Cel stroombegrensd bij hoge ppO2",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "Zenderuitval neemt toe",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "Zenderuitval hoog",
+  "equipmentConditionSettings_rule_issueRecurring": "Terugkerend probleem",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "Problemen bij koude duiken",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "Problemen bij diepe duiken",
+  "equipmentConditionSettings_rule_incidentLinked": "Gekoppelde incidenten",
+  "equipmentObservation_tag_freeFlow": "Vrije flow",
+  "equipmentObservation_tag_hardBreathing": "Zwaar ademen",
+  "equipmentObservation_tag_wetBreathing": "Nat ademen",
+  "equipmentObservation_tag_leak": "Lek",
+  "equipmentObservation_tag_hoseDamage": "Slangschade",
+  "equipmentObservation_tag_inflatorStuck": "Inflator zit vast",
+  "equipmentObservation_tag_inflatorSlow": "Inflator traag",
+  "equipmentObservation_tag_bladderLeak": "Blaaslek",
+  "equipmentObservation_tag_dumpLeak": "Dumpventiel lekt",
+  "equipmentObservation_tag_leakNeck": "Nekseal lekt",
+  "equipmentObservation_tag_leakWrist": "Polsseal lekt",
+  "equipmentObservation_tag_leakZip": "Rits lekt",
+  "equipmentObservation_tag_leakBoot": "Laars lekt",
+  "equipmentObservation_tag_leakValve": "Ventiel lekt",
+  "equipmentObservation_tag_leakSeam": "Naad lekt",
+  "equipmentObservation_tag_tear": "Scheur",
+  "equipmentObservation_tag_seamFailure": "Naad losgelaten",
+  "equipmentObservation_tag_dim": "Zwak",
+  "equipmentObservation_tag_died": "Uitgevallen",
+  "equipmentObservation_tag_flooded": "Ondergelopen",
+  "equipmentObservation_tag_switchFault": "Schakelaarstoring",
+  "equipmentObservation_tag_batteryLow": "Batterij bijna leeg",
+  "equipmentObservation_tag_screenFault": "Schermstoring",
+  "equipmentObservation_tag_connectionFault": "Verbindingsstoring",
+  "equipmentObservation_tag_dropout": "Signaaluitval",
+  "equipmentObservation_tag_cellWarning": "Celwaarschuwing",
+  "equipmentObservation_tag_loopLeak": "Loop lekt",
+  "equipmentObservation_tag_solenoidFault": "Solenoïdestoring",
+  "equipmentObservation_tag_scrubberBreakthrough": "Scrubber doorgeslagen",
+  "equipmentObservation_tag_slowResponse": "Trage reactie",
+  "equipmentObservation_tag_erratic": "Grillig",
+  "equipmentObservation_tag_lowCapacity": "Lage capaciteit",
+  "equipmentObservation_tag_propFault": "Schroefstoring",
+  "equipmentObservation_tag_strapBroke": "Band gebroken",
+  "equipmentObservation_tag_other": "Overig",
+  "equipmentObservation_status_ok": "OK",
+  "equipmentObservation_status_issue": "Probleem",
+  "equipmentObservation_sheet_title": "Check-in: {item}",
+  "@equipmentObservation_sheet_title": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentObservation_sheet_empty": "Nog geen check-ins bij deze duik.",
+  "equipmentObservation_sheet_emptyBench": "Nog geen check-ins.",
+  "equipmentObservation_sheet_add": "Check-in toevoegen",
+  "equipmentObservation_sheet_edit": "Check-in bewerken",
+  "equipmentObservation_sheet_delete": "Check-in verwijderen",
+  "equipmentObservation_sheet_deleteConfirm": "Deze check-in verwijderen?",
+  "equipmentObservation_sheet_noteLabel": "Notitie",
+  "equipmentObservation_sheet_tagsLabel": "Wat er gebeurde",
+  "equipmentObservation_sheet_dateLabel": "Waargenomen",
+  "equipmentObservation_sheet_diveLabel": "Duik",
+  "equipmentObservation_sheet_noDive": "Geen duik (werkbank)",
+  "equipmentObservation_sheet_pickDive": "Kies een duik",
+  "equipmentObservation_sheet_save": "Opslaan",
+  "equipmentObservation_sheet_cancel": "Annuleren",
+  "equipmentObservation_sheet_tagRequired": "Kies minstens één label voor een probleem",
+  "equipmentObservation_chip_ok": "Gecontroleerd, OK",
+  "equipmentObservation_chip_issue": "Probleem gemeld",
+  "equipmentObservation_chip_none": "Inchecken",
+  "equipmentObservation_card_title": "Check-ins",
+  "equipmentObservation_card_empty": "Geen check-ins vastgelegd voor dit item.",
+  "equipmentObservation_card_add": "Check-in toevoegen",
+  "equipmentObservation_card_onDive": "Duik nr. {number}",
+  "@equipmentObservation_card_onDive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentObservation_card_bench": "Werkbank",
   "dataQuality_inbox_title": "Datakwaliteit",
   "dataQuality_dive_unknown": "Duikgegevens niet beschikbaar",
   "dataQuality_dive_number": "#{number}",
@@ -8294,6 +8970,20 @@
   "dataQuality_deleteDuplicate_body": "Beide zijn door dezelfde duikcomputer opgenomen. De kopie met minder duikgegevens wordt verwijderd. Je kunt dit daarna ongedaan maken.",
   "dataQuality_deleteDuplicate_keep": "Behouden: {dive}",
   "dataQuality_deleteDuplicate_delete": "Verwijderen: {dive}",
+  "dataQuality_deleteDuplicate_carries": "Deze kopie bevat ook: {items}",
+  "dataQuality_carries_gear": "{count, plural, one{1 uitrustingsstuk} other{{count} uitrustingsstukken}}",
+  "dataQuality_carries_weights": "{count, plural, one{1 loodgewicht} other{{count} loodgewichten}}",
+  "dataQuality_carries_buddies": "{count, plural, one{1 buddy} other{{count} buddy's}}",
+  "dataQuality_carries_tags": "{count, plural, one{1 label} other{{count} labels}}",
+  "dataQuality_carries_media": "{count, plural, one{1 foto of video} other{{count} foto's of video's}}",
+  "dataQuality_carries_attachments": "{count, plural, one{1 bijlage} other{{count} bijlagen}}",
+  "dataQuality_carries_customFields": "{count, plural, one{1 eigen veld} other{{count} eigen velden}}",
+  "dataQuality_carries_rating": "een beoordeling",
+  "dataQuality_carries_favorite": "een favoriet",
+  "dataQuality_carries_site": "een duikstek",
+  "dataQuality_carries_trip": "een reis",
+  "dataQuality_carries_diveCenter": "een duikcentrum",
+  "dataQuality_carries_course": "een cursus",
   "dataQuality_repairLabel_combine": "Samenvoegen tot één duik",
   "dataQuality_repairLabel_despike": "Piek verwijderen",
   "dataQuality_repairLabel_clampNegative": "Diepten boven het oppervlak begrenzen",
@@ -10765,6 +11455,7 @@
   "settings_export_progress_divesCsv": "Duiken exporteren naar CSV...",
   "settings_export_progress_sitesCsv": "Duikstekken exporteren naar CSV...",
   "settings_export_progress_equipmentCsv": "Uitrusting exporteren naar CSV...",
+  "settings_export_progress_observationsCsv": "Uitrusting-check-ins exporteren naar CSV...",
   "settings_export_progress_pdf": "PDF-logboek genereren...",
   "settings_export_progress_loadingSignatures": "Handtekeningen laden...",
   "settings_export_progress_loadingProfiles": "Duikprofielen laden...",
@@ -10783,6 +11474,7 @@
   "settings_export_progress_preparingDivesCsv": "Duiken-CSV voorbereiden...",
   "settings_export_progress_preparingSitesCsv": "Duikstekken-CSV voorbereiden...",
   "settings_export_progress_preparingEquipmentCsv": "Uitrusting-CSV voorbereiden...",
+  "settings_export_progress_preparingObservationsCsv": "CSV van uitrusting-check-ins voorbereiden...",
   "settings_export_progress_preparingUddf": "UDDF-bestand voorbereiden...",
   "settings_export_progress_preparingPdf": "PDF voorbereiden...",
   "settings_export_progress_selectingBackup": "Back-upbestand selecteren...",
@@ -10790,6 +11482,7 @@
   "settings_export_empty_dives": "Geen duiken om te exporteren",
   "settings_export_empty_sites": "Geen duikstekken om te exporteren",
   "settings_export_empty_equipment": "Geen uitrusting om te exporteren",
+  "settings_export_empty_observations": "Geen uitrusting-check-ins om te exporteren",
   "settings_export_empty_data": "Geen gegevens om te exporteren",
   "settings_export_empty_diveSites": "Geen duikstekken om te exporteren",
   "settings_export_saveFailed": "Opslaan mislukt: {error}",
@@ -10800,6 +11493,7 @@
   "settings_export_success_dives": "Duiken succesvol geëxporteerd",
   "settings_export_success_sites": "Duikstekken succesvol geëxporteerd",
   "settings_export_success_equipment": "Uitrusting succesvol geëxporteerd",
+  "settings_export_success_observations": "Uitrusting-check-ins geëxporteerd",
   "settings_export_success_pdf": "PDF-logboek succesvol gegenereerd",
   "settings_export_success_uddf": "UDDF-bestand succesvol gegenereerd",
   "settings_export_success_excel": "Excel-bestand succesvol geëxporteerd",
@@ -10809,6 +11503,7 @@
   "settings_export_saved_divesCsv": "Duiken-CSV succesvol opgeslagen",
   "settings_export_saved_sitesCsv": "Duikstekken-CSV succesvol opgeslagen",
   "settings_export_saved_equipmentCsv": "Uitrusting-CSV succesvol opgeslagen",
+  "settings_export_saved_observationsCsv": "CSV van uitrusting-check-ins opgeslagen",
   "settings_export_saved_uddf": "UDDF-bestand succesvol opgeslagen",
   "settings_export_saved_pdf": "PDF succesvol opgeslagen",
   "settings_export_saved_backup": "Back-up succesvol opgeslagen",
@@ -10818,6 +11513,10 @@
   "settings_export_cancelled_restore": "Herstellen geannuleerd",
   "settings_export_pdfDocumentTitle": "Duiklogboek",
   "settings_export_saveBackupDialogTitle": "Back-up opslaan",
+  "settings_export_saveDivesCsvDialogTitle": "Duiken-CSV opslaan",
+  "settings_export_saveSitesCsvDialogTitle": "Duikstekken-CSV opslaan",
+  "settings_export_saveEquipmentCsvDialogTitle": "Uitrusting-CSV opslaan",
+  "settings_export_saveObservationsCsvDialogTitle": "CSV van uitrusting-check-ins opslaan",
   "backup_operation_created": "Back-up gemaakt: {size}",
   "backup_operation_backupFailed": "Back-up mislukt: {error}",
   "backup_operation_restoring": "Back-up herstellen...",
@@ -11078,6 +11777,7 @@
   "settings_storageUsage_group_backups": "Back-ups",
   "settings_storageUsage_group_temporary": "Tijdelijke bestanden",
   "settings_storageUsage_group_exports": "Geëxporteerde bestanden",
+  "settings_storageUsage_group_importedFiles": "Ruwe importgegevens",
   "settings_storageUsage_category_database": "Duiklogboekdatabase",
   "settings_storageUsage_category_localCache": "Lokale cachedatabase",
   "settings_storageUsage_category_mediaCacheOriginals": "Originele foto's en video's",
@@ -11092,6 +11792,7 @@
   "settings_storageUsage_category_backups": "Back-upbestanden",
   "settings_storageUsage_category_temporary": "Tijdelijke bestanden",
   "settings_storageUsage_category_exports": "Geëxporteerde bestanden",
+  "settings_storageUsage_category_importedFiles": "Originele importbestanden",
   "profilePhoto_sheet_title": "Profielfoto",
   "profilePhoto_source_camera": "Foto maken",
   "profilePhoto_source_library": "Kies uit bibliotheek",
@@ -11156,6 +11857,7 @@
   "transmitters_field_channel": "Kanaal",
   "transmitters_field_role": "Rol",
   "transmitters_field_gear": "Fles uit uitrusting",
+  "transmitters_field_transmitterGear": "Zender uit uitrusting",
   "transmitters_field_material": "Materiaal",
   "transmitters_gear_none": "Geen",
   "transmitters_validation_key": "Voer een serienummer in, of kies een duikcomputer en kanaal",
@@ -11202,13 +11904,11 @@
   "enum_equipmentItemSortField_purchaseDate": "Aankoopdatum",
   "enum_equipmentItemSortField_dateAdded": "Datum toegevoegd",
   "enum_equipmentItemSortField_lastServiceDate": "Laatste onderhoud",
-  "equipment_arrange_title": "Uitrusting ordenen",
   "equipment_arrange_groupByType": "Groeperen op type",
   "equipment_arrange_groupByTypeSubtitle": "Toon een kop voor elk type uitrusting",
   "equipment_arrange_typeOrderLabel": "Typen ordenen op",
   "equipment_arrange_itemOrderLabel": "Daarna op",
   "equipment_arrange_itemOrderLabelFlat": "Sorteren op",
-  "equipment_arrange_tooltip": "Uitrusting ordenen",
   "equipment_arrange_reset": "Standaardwaarden herstellen",
   "equipment_arrange_saveFailed": "Kan de ordening niet opslaan",
   "settings_appearance_gearArrangement": "Ordening van uitrusting",

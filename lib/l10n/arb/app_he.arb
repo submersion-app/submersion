@@ -173,10 +173,12 @@
   "common_action_dismiss": "התעלם",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "הוספת רכיב",
+  "equipment_components_containsSection": "מכיל",
   "equipment_components_count": "{count, plural, =1{רכיב אחד} other{{count} רכיבים}}",
   "equipment_components_cycleError": "הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.",
   "equipment_components_editRole": "עריכת תפקיד",
   "equipment_components_empty": "אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.",
+  "equipment_components_emptyLeaf": "אין לו חלקים משלו. הוסיפו אותם אם הפריט מורכב מפריטים אחרים.",
   "equipment_components_historyAlsoPast": "{count, plural, =1{לעדכן גם צלילה אחת} other{לעדכן גם {count} צלילות}}",
   "equipment_components_historyAskAdded": "להוסיף את החלק החדש גם לצלילות האלה, או רק מעכשיו?",
   "equipment_components_historyAskRemoved": "להסיר את החלק גם מהצלילות האלה, או רק מעכשיו?",
@@ -186,6 +188,8 @@
   "equipment_components_historyTitle": "לעדכן צלילות קודמות?",
   "equipment_components_partOf": "חלק מ-{name}",
   "equipment_components_partOfCount": "{count, plural, =1{חלק ממכלול אחד} other{חלק מ-{count} מכלולים}}",
+  "equipment_components_partOfSection": "חלק מתוך",
+  "equipment_components_partOfSubtitle": "{role}, ב-{rigs}",
   "equipment_components_pickerConfirm": "{count, plural, =0{הוספה} =1{הוספת 1} other{הוספת {count}}}",
   "equipment_components_pickerEmpty": "אין ציוד פעיל נוסף שאפשר להוסיף כאן.",
   "equipment_components_pickerReplaceConfirm": "החלפה",
@@ -311,6 +315,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "רק צלילות ללא מכל קיים",
   "diveLog_bulkEdit_confirmTitle": "להחיל שינויים?",
   "diveLog_bulkEdit_confirmApply": "החל",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{מוסיף לצלילה אחת} other{מוסיף לכל {count} הצלילות}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{מסיר מצלילה אחת} other{מסיר מכל {count} הצלילות}}",
   "diveLog_bulkEdit_nothingSelected": "הפעל לפחות שדה אחד כדי להחיל שינויים.",
   "diveLog_bulkEdit_applied": "{count} צלילות עודכנו",
   "settings_cloudSync_error_icloudSignedOut": "iCloud אינו זמין. היכנס ל-iCloud דרך הגדרות המכשיר.",
@@ -498,7 +504,7 @@
   "setup_welcome_skipSetup": "דילוג על ההגדרה",
   "setup_welcome_startFresh_subtitle": "צרו פרופיל צולל והגדירו את האפליקציה",
   "setup_welcome_startFresh_title": "הגדרת פרופיל חדש",
-  "setup_welcome_subtitle": "רישום וניתוח צלילה מתקדם",
+  "setup_welcome_subtitle": "צללו בבטחה. רשמו הכול.",
   "setup_welcome_title": "ברוכים הבאים ל-Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -1054,6 +1060,7 @@
   "preDive_runner_flag": "סמן בדגל",
   "preDive_runner_undo": "אפס לממתין",
   "preDive_runner_serviceOverdue": "פג תוקף הטיפול",
+  "preDive_runner_conditionFindings": "ממצאי מצב",
   "preDive_runner_addNote": "הוסף הערה",
   "preDive_runner_enterValue": "הזן ערך",
   "preDive_runner_cellInAir": "באוויר",
@@ -3660,6 +3667,7 @@
   "equipment_detail_editTooltipShort": "ערוך",
   "equipment_detail_errorMessage": "שגיאה: {error}",
   "equipment_detail_errorTitle": "שגיאה",
+  "equipment_detail_installedInLabel": "מותקן ב",
   "equipment_detail_lastServiceLabel": "טיפול אחרון",
   "equipment_detail_loadingTitle": "טוען...",
   "equipment_detail_modelLabel": "דגם",
@@ -3668,6 +3676,17 @@
   "equipment_detail_notFoundTitle": "הציוד לא נמצא",
   "equipment_detail_notesTitle": "הערות",
   "equipment_detail_ownedForLabel": "בבעלות",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "תאריך רכישה",
   "equipment_detail_purchasePriceLabel": "מחיר רכישה",
   "equipment_detail_retiredChip": "הוצא משימוש",
@@ -3685,6 +3704,7 @@
   "equipment_serviceClocks_unconfigured": "לא הוגדר מרווח - הקישו כדי להגדיר",
   "equipment_serviceClocks_dueOn": "לביצוע עד {date}",
   "equipment_serviceClocks_overdueSince": "באיחור מאז {date}",
+  "equipment_serviceClocks_countingSince": "נספר מאז {date}",
   "equipment_serviceClocks_overdue": "באיחור",
   "equipment_serviceClocks_divesLeft": "נותרו {remaining} מתוך {total} צלילות",
   "cylinderConfigs_title": "תצורות בלונים",
@@ -3793,7 +3813,7 @@
   "equipment_scheduleDialog_intervalCycles": "מרווח (מחזורי סוללה)",
   "equipment_scheduleDialog_inheritHint": "ברירת מחדל: {value}",
   "equipment_scheduleDialog_anchorDate": "תאריך בסיס",
-  "equipment_scheduleDialog_anchorHint": "בשימוש כאשר עדיין אין רשומת טיפול מסוג זה",
+  "equipment_scheduleDialog_anchorHint": "השעון סופר מתאריך זה עד שתתעד טיפול חדש יותר.",
   "equipment_scheduleDialog_clearAnchor": "ניקוי תאריך הבסיס",
   "equipment_scheduleDialog_save": "שמירה",
   "equipment_scheduleDialog_cancel": "ביטול",
@@ -3835,6 +3855,7 @@
   "equipment_detail_tripsCountSingular": "{count} טיול",
   "equipment_detail_tripsLabel": "טיולים",
   "equipment_detail_tripsSemanticLabel": "צפה בטיולים המשתמשים בציוד זה",
+  "equipment_detail_wasInstalledInLabel": "היה מותקן ב",
   "equipment_edit_appBar_editTitle": "ערוך ציוד",
   "equipment_edit_appBar_newTitle": "ציוד חדש",
   "equipment_edit_appBar_saveButton": "שמור",
@@ -4875,7 +4896,7 @@
   "planning_welcome_title": "כלי תכנון",
   "settings_about_aboutSubmersion": "אודות Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "עקוב אחר הצלילות שלך, נהל ציוד וחקור אתרי צלילה.",
+  "settings_about_description": "צללו בבטחה. רשמו הכול.",
   "settings_about_header": "אודות",
   "settings_about_openSourceLicenses": "רישיונות קוד פתוח",
   "settings_about_reportIssue": "דווח על בעיה",
@@ -5210,6 +5231,7 @@
   "settings_conflict_ref_equipment": "ציוד",
   "settings_conflict_ref_equipmentSet": "סט ציוד",
   "settings_conflict_ref_finding": "ממצא",
+  "settings_conflict_ref_importedFile": "קובץ מיובא",
   "settings_conflict_ref_instructor": "מדריך",
   "settings_conflict_ref_linkedDive": "צלילה מקושרת",
   "settings_conflict_ref_media": "מדיה",
@@ -5764,6 +5786,38 @@
   "statistics_equipment_weightTrend_error": "שגיאה בטעינת מגמת משקל",
   "statistics_equipment_weightTrend_subtitle": "סך המשקולות לכל צלילה",
   "statistics_equipment_weightTrend_title": "מגמת משקל",
+  "statistics_equipment_exposure_title": "חשיפה",
+  "statistics_equipment_exposure_error": "טעינת נתוני החשיפה נכשלה",
+  "statistics_equipment_findings_error": "טעינת ממצאי המצב נכשלה",
+  "statistics_equipment_issues_error": "טעינת התקלות שדווחו נכשלה",
+  "statistics_equipment_exposure_subtitle": "סיכומים לכל פריט לפי הספים שלך",
+  "statistics_equipment_exposure_empty": "אין עדיין צלילות עם ציוד",
+  "statistics_equipment_findings_title": "ממצאי מצב",
+  "statistics_equipment_findings_subtitle": "ממצאים פתוחים לפי כלל",
+  "statistics_equipment_findings_subtitleAllDives": "ממצאים פתוחים לפי כלל, בכל הצלילות",
+  "statistics_equipment_findings_empty": "אין ממצאים פתוחים",
+  "statistics_equipment_issues_title": "תקלות שדווחו",
+  "statistics_equipment_issues_subtitle": "תגיות הבדיקה הנפוצות ביותר",
+  "statistics_equipment_issues_empty": "לא דווחו תקלות",
+  "statistics_equipment_countLabel_items": "פריטים",
+  "statistics_equipment_countLabel_findings": "ממצאים",
+  "statistics_equipment_countLabel_reports": "דיווחים",
+  "statistics_equipment_exposureUnit_days": "ימים",
+  "statistics_equipment_exposureUnit_dives": "צלילות",
+  "statistics_equipment_countLabel_days": "ימים",
+  "statistics_equipment_countLabel_dives": "צלילות",
+  "statistics_equipment_countLabel_hours": "שעות",
+  "statistics_equipment_countLabel_saltHours": "שעות במים מלוחים",
+  "statistics_equipment_countLabel_coldDives": "צלילות קרות",
+  "statistics_equipment_countLabel_o2Hours": "שעות ב-O2 גבוה",
+  "statistics_equipment_countLabel_deepCycles": "צלילות עמוקות",
+  "statistics_equipment_countLabel_cycles": "מחזורי סוללה",
+  "statistics_equipment_exposureUnit_hours": "שעות",
+  "statistics_equipment_exposureUnit_saltHours": "שעות במים מלוחים",
+  "statistics_equipment_exposureUnit_coldDives": "צלילות קרות",
+  "statistics_equipment_exposureUnit_o2Hours": "שעות ב-O2 גבוה",
+  "statistics_equipment_exposureUnit_deepCycles": "צלילות עמוקות",
+  "statistics_equipment_exposureUnit_cycles": "מחזורי סוללה",
   "statistics_error_loadingStatistics": "שגיאה בטעינת סטטיסטיקות",
   "statistics_filterBar_clear": "ניקוי מסנן",
   "statistics_filterBar_diveCount": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
@@ -6055,6 +6109,8 @@
   "importWizard_photos_destinationUnwritable": "לא ניתן לכתוב לתיקייה זו. בחרו תיקייה אחרת.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{צלילה ישנה אחת דולגה — כבר ביומן שלך} other{{count} צלילות ישנות דולגו — כבר ביומן שלך}}",
   "tags_hint_addTags": "הוסף תגיות...",
+  "tags_manage_autoTagImports": "תיוג אוטומטי של ייבואים",
+  "tags_manage_autoTagImports_subtitle": "כל ייבוא חדש מתחיל עם תגית הנושאת את שם המקור והתאריך. אפשר לשנות זאת לייבוא בודד באפשרויות אותו ייבוא.",
   "tags_manage_bulkDeleteMessage": "תגיות אלו יוסרו מ-{diveCount, plural, =0{0 צלילות} =1{צלילה אחת} other{{diveCount} צלילות}} בסך הכל. לא ניתן לבטל פעולה זו.",
   "tags_manage_bulkDeleteTitle": "למחוק {count} תגיות?",
   "tags_manage_colorLabel": "צבע",
@@ -6064,6 +6120,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 צלילות} =1{צלילה אחת} other{{count} צלילות}}",
   "tags_manage_editTitle": "ערוך תגית",
   "tags_manage_emptyState": "אין עדיין תגיות. צור אחת כדי להתחיל.",
+  "tags_manage_importsSection": "ייבוא",
   "tags_manage_mergeAction": "מיזוג",
   "tags_manage_mergeAffectedDives": "פעולה זו תשפיע על {count, plural, =0{0 צלילות} =1{צלילה אחת} other{{count} צלילות}} בסך הכל.",
   "tags_manage_mergeKeepFrom": "או שמור שם מ:",
@@ -6251,15 +6308,18 @@
   "transfer_csvExport_dataTypeHeader": "סוג נתונים",
   "transfer_csvExport_descriptionDives": "ייצא את כל יומני הצלילה כגיליון אלקטרוני",
   "transfer_csvExport_descriptionEquipment": "ייצא מלאי ציוד ופרטי תחזוקה",
+  "transfer_csvExport_descriptionObservations": "כל בדיקה תקינה וכל בעיה שדווחה, עם הצלילה, התגיות וההערה",
   "transfer_csvExport_descriptionSites": "ייצא מיקומי אתרי צלילה ופרטים",
   "transfer_csvExport_dialogTitle": "ייצוא CSV",
   "transfer_csvExport_exportButton": "ייצא CSV",
   "transfer_csvExport_optionDivesTitle": "CSV צלילות",
   "transfer_csvExport_optionEquipmentTitle": "CSV ציוד",
+  "transfer_csvExport_optionObservationsTitle": "CSV של בדיקות ציוד",
   "transfer_csvExport_optionSitesTitle": "CSV אתרים",
   "transfer_csvExport_semanticLabel": "ייצא {typeName}",
   "transfer_csvExport_typeDives": "צלילות",
   "transfer_csvExport_typeEquipment": "ציוד",
+  "transfer_csvExport_typeObservations": "בדיקות ציוד",
   "transfer_csvExport_typeSites": "אתרים",
   "transfer_detail_backTooltip": "חזרה להעברה",
   "transfer_export_aboutContent": "ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ביישומי גיליונות אלקטרוניים.",
@@ -6275,6 +6335,10 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "ייצוא רב-פורמטי",
   "transfer_export_optionSaveSubtitle": "בחר היכן לשמור במכשיר שלך",
+  "transfer_export_includeGear": "כלול ציוד",
+  "transfer_export_includeGearSubtitle": "מוסיף את הציוד ואת מחשב הצלילה ששימשו בכל צלילה. פרטי הרכישה אינם נכללים.",
+  "transfer_export_includeParticipants": "כלול משתתפי צלילה",
+  "transfer_export_includeParticipantsSubtitle": "מוסיף שותפים, מדריכים ואת תפקידיהם בכל צלילה, לפי שם והסמכה. פרטי הקשר אינם נכללים.",
   "transfer_export_includeRawData": "כלול נתונים גולמיים ממחשב הצלילה",
   "transfer_export_includeRawDataSubtitle": "שומר את הנתונים המקוריים ממחשב הצלילה כדי שניתן יהיה לנתח את הקובץ מחדש בהמשך. מגדיל את הקובץ.",
   "transfer_export_optionSaveTitle": "שמור לקובץ",
@@ -6413,6 +6477,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "תכנון",
+  "trips_edit_label_expectedDives": "צלילות צפויות",
+  "trips_edit_hint_expectedDives": "השאר ריק כדי להעריך מהטיולים האחרונים שלך",
+  "trips_edit_label_expectedRuntime": "זמן ריצה צפוי לכל צלילה (דקות)",
+  "trips_edit_hint_expectedRuntime": "השאר ריק כדי להעריך מצלילות הריברידר האחרונות שלך",
+  "trips_scrubber_title": "מרווח הסופג",
+  "trips_scrubber_asOfStart": "נכון ל-{date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} דק' נותרו לפני הטיול (נקוב {rated} דק', {consumed} דק' נוצלו מאז המילוי האחרון)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} דק' נותרו לפני הטיול (נקוב {rated} דק', {consumed} דק' נוצלו, לא נרשם מילוי)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{צלילה צפויה אחת} other{{dives} צלילות צפויות}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(לפי הטיול האחרון שלך)} other{(לפי {n} הטיולים האחרונים שלך)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(הוגדר בטיול זה)",
+  "trips_scrubber_perDive": "{minutes} דק' לכל צלילה",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(לפי צלילת הריברידר האחרונה שלך)} other{(לפי {n} צלילות הריברידר האחרונות שלך)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} דק' שימוש צפוי",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} דק' מרווח אחרי הטיול",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "מתחת ל-20 אחוז מהמשך הנקוב. תכננו מילוי או קחו סופג רזרבי.",
+  "trips_scrubber_noRating": "אין משך נקוב לריברידר זה; הוסיפו את משך הסופג למאפיינים או לוח זמנים למילוי.",
+  "trips_scrubber_bannerMargin": "{minutes} דק' מרווח סופג",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} ריברידרים, מרווח הסופג הנמוך ביותר {minutes} דק'",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "תאריך סיום",
@@ -7113,11 +7290,21 @@
   "universalImport_label_options": "אפשרויות",
   "universalImport_label_photosAttached": "תמונות שצורפו",
   "universalImport_label_photosUnmatched": "תמונות ללא צלילה תואמת",
+  "diveLog_detail_menu_resyncImportedFile": "סנכרן מחדש מהקובץ המקורי",
+  "diveLog_detail_resyncSuccess": "הצלילה עודכנה מהקובץ המקורי",
+  "diveLog_detail_resyncFailed_diveMissing": "לא ניתן היה לסנכרן מחדש: הצלילה הזו כבר לא קיימת",
+  "diveLog_detail_resyncFailed_noStoredFile": "לא ניתן היה לסנכרן מחדש: לא נשמר קובץ מקורי לצלילה הזו",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "לא ניתן היה לסנכרן מחדש: תבנית הקובץ הזו אינה נתמכת",
+  "diveLog_detail_resyncFailed_storedFileMissing": "לא ניתן היה לסנכרן מחדש: הקובץ המקורי אינו נמצא במכשיר הזה",
+  "diveLog_detail_resyncFailed_noMatchingDive": "לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת",
+  "diveLog_detail_resyncFailed_unexpectedError": "לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי",
   "universalImport_label_replaceSource": "החלף מקור",
   "universalImport_label_replaceSourceSubtitle": "עדכן מאותו מחשב",
   "universalImport_label_replacedSourceData": "נתוני מקור הוחלפו",
   "universalImport_label_retainDiveNumbers": "שמור על מספרי הצלילה מהמקור",
   "universalImport_label_retainDiveNumbersSubtitle": "השתמש במספרי הצלילה מהקובץ המיובא במקום להקצות אוטומטית",
+  "universalImport_label_autoTagThisImport": "תיוג אוטומטי של ייבוא זה",
+  "universalImport_label_autoTagThisImportSubtitle": "מתחיל מההעדפה השמורה שלך בהגדרות התגיות. שינוי כאן משפיע רק על ייבוא זה.",
   "universalImport_title_importOptions": "אפשרויות ייבוא",
   "universalImport_title_noDivesImported": "לא יובאו צלילות",
   "universalImport_title_successConsolidated": "אוחדו בהצלחה",
@@ -8182,6 +8369,10 @@
   "incidentEdit_lessonsLearned": "מה יעזור בפעם הבאה (אופציונלי)",
   "incidentEdit_save": "שמור",
   "incidentEdit_privacyNote": "דוחות כמעט-תאונה מסתנכרנים בין המכשירים שלך ונכללים בגיבויים, אך לעולם לא בייצוא או בדפי יומן משותפים.",
+  "incidentEdit_equipment": "ציוד מעורב",
+  "incidentEdit_equipment_none": "ללא",
+  "incidentEdit_equipment_onThisDive": "בצלילה זו",
+  "incidentEdit_equipment_allGear": "כל הציוד",
   "incidentCategory_buoyancy": "ציפה",
   "incidentCategory_gasSupply": "אספקת גז",
   "incidentCategory_equipment": "ציוד",
@@ -8208,6 +8399,359 @@
   "settings_section_equipmentCondition_title": "מצב הציוד",
   "settings_section_equipmentCondition_subtitle": "ספי חשיפה לשעוני תחזוקה",
   "equipmentConditionSettings_title": "מצב הציוד",
+  "equipmentCondition_children_title": "חלקים מותקנים",
+  "equipmentCondition_children_slot": "חריץ {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "הותקן ב-{date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{היום} =1{לפני יום} other{לפני {days} ימים}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{לפני חודש} other{לפני {months} חודשים}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "החלפה",
+  "equipmentCondition_children_open": "פתיחה",
+  "equipmentCondition_children_replaceTitle": "להחליף את {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} יוצא משימוש היום ו{type} חדש תופס את מקומו באותו חריץ. המספר הסידורי וההערות מתחילים ריקים.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "החלפה",
+  "equipmentCondition_children_replaceCancel": "ביטול",
+  "equipmentCondition_children_replaced": "{name} הוחלף",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "לא נרשמו תאים או סוללות",
+  "equipmentCondition_children_add": "הוספה",
+  "equipmentCondition_findings_title": "ממצאי מצב",
+  "equipmentCondition_findings_count": "{count, plural, =1{ממצא אחד} other{{count} ממצאים}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "צלילות הראיה",
+  "equipmentCondition_findings_dismiss": "התעלמות",
+  "equipmentCondition_findings_restore": "שחזור",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{הצג ממצא אחד שהוסתר} other{הצג {count} ממצאים שהוסתרו}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "צלילות הראיה",
+  "equipmentCondition_evidence_dive": "צלילה {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "צלילה",
+  "equipmentCondition_evidence_minutes": "{n} דק'",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "פלט התאים לכל צלילה",
+  "equipmentCondition_trend_title_gap": "נפילות המשדר לכל צלילה",
+  "equipmentCondition_trend_title_scrubber": "שימוש בסופג לכל צלילה",
+  "equipmentCondition_trend_title_temperature": "טמפרטורה מזערית לכל צלילה",
+  "equipmentCondition_trend_cell": "תא {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "צלילות עם תקלה",
+  "equipmentCondition_trend_scrubber": "דקות סופג",
+  "equipmentCondition_trend_gap": "שיעור הנפילות",
+  "equipmentCondition_trend_temperature": "טמפרטורה מזערית",
+  "equipmentCondition_trend_axis_minutes": "דק'",
+  "equipmentCondition_exposure_title": "חשיפה",
+  "equipmentCondition_exposure_empty": "אין עדיין צלילות עם פריט זה",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{צלילה אחת} other{{n} צלילות}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{צלילה אחת} other{{n} צלילות}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} שעות",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} שעות במים מלוחים",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{צלילה קרה אחת} other{{n} צלילות קרות}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} שעות ב-O2 גבוה",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{צלילה עמוקה אחת} other{{n} צלילות עמוקות}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{מחזור סוללה אחד} other{{n} מחזורי סוללה}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "פלט תא {slot} ירד ב-{percent} אחוזים לאורך {n} צלילות מאז {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "פלט תא {slot} הוא {gain} mV לבר ב-{n} הצלילות האחרונות",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "תא {slot} חרג מהאחרים בעד {bar} בר ב-{count} מתוך {n} הצלילות האחרונות",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "תא {slot} קרא נמוך ב-ppO2 גבוה ב-{count} מתוך {n} הצלילות האחרונות, עד {percent} אחוזים מהדגימות",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "קריאת הלחץ נפלה ב-{recent} אחוזים מ-5 הצלילות האחרונות, לעומת {prior} אחוזים ב-{priorCount} שלפניהן",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "קריאת הלחץ נפלה בממוצע ב-{recent} אחוזים מ-{n} הצלילות האחרונות, {count} מהן מעל 10 אחוזים",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} דווח {count} פעמים ב-{n} הצלילות האחרונות",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} מתוך {totalIssue} צלילות עם תקלה היו קרות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} מתוך {totalIssue} צלילות עם תקלה היו עמוקות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{אירוע אחד מזכיר פריט זה} other{{count} אירועים מזכירים פריט זה}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{צלילה אחת} other{{n} צלילות}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "ספי חשיפה",
   "equipmentConditionSettings_thresholdsHelp": "צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.",
   "equipmentConditionSettings_coldLabel": "מים קרים מתחת ל",
@@ -8215,6 +8759,138 @@
   "equipmentConditionSettings_o2Label": "תערובת בחמצן גבוה מעל (% O2)",
   "equipmentConditionSettings_invalid": "יש להזין מספר",
   "equipmentConditionSettings_saveFailed": "השמירה נכשלה. נסו שוב.",
+  "equipmentConditionSettings_sensorHeader": "סיכומי חיישנים",
+  "equipmentConditionSettings_sensorHelp": "פרופיל כל צלילה מסוכם פעם אחת עבור פלט התאים, נפילות המשדר ושימוש בסופג. צלילות חדשות ונערכות מסוכמות מעצמן.",
+  "equipmentConditionSettings_rebuild": "בנייה מחדש של סיכומי חיישנים",
+  "equipmentConditionSettings_rebuild_subtitle": "חישוב מחדש של סיכום כל צלילה מהפרופיל שלה",
+  "equipmentConditionSettings_rebuild_progress": "סוכמו {done} מתוך {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "סיכומי החיישנים נבנו מחדש",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "סיכומי החיישנים נבנו מחדש; {count, plural, =1{צלילה אחת לא ניתן היה לסכם} other{{count} צלילות לא ניתן היה לסכם}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{צלילה אחת לא ניתן היה לסכם} other{{dives} צלילות לא ניתן היה לסכם}}; {items, plural, =1{לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד} other{לא ניתן היה לרענן את ממצאי המצב של {items} פריטי ציוד}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "סיכומי החיישנים נבנו מחדש; {count, plural, =1{לא ניתן היה לרענן את ממצאי המצב של פריט ציוד אחד} other{לא ניתן היה לרענן את ממצאי המצב של {count} פריטי ציוד}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "לא ניתן היה לבנות מחדש את סיכומי החיישנים.",
+  "equipmentConditionSettings_masterToggle": "ממצאי מצב",
+  "equipmentConditionSettings_masterToggle_subtitle": "מדווח על מגמות בפלט התאים, בנפילות המשדר ובתקלות שדווחו, עם המספרים שמאחוריהן",
+  "equipmentConditionSettings_rulesHeader": "כללים",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "פלט התא יורד",
+  "equipmentConditionSettings_rule_cellOutputLow": "פלט התא נמוך",
+  "equipmentConditionSettings_rule_cellDivergent": "התא חורג מהאחרים",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "התא מוגבל זרם ב-ppO2 גבוה",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "נפילות המשדר במגמת עלייה",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "נפילות המשדר רבות",
+  "equipmentConditionSettings_rule_issueRecurring": "תקלה חוזרת",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "תקלות בצלילות קרות",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "תקלות בצלילות עמוקות",
+  "equipmentConditionSettings_rule_incidentLinked": "אירועים מקושרים",
+  "equipmentObservation_tag_freeFlow": "זרימה חופשית",
+  "equipmentObservation_tag_hardBreathing": "נשימה קשה",
+  "equipmentObservation_tag_wetBreathing": "נשימה רטובה",
+  "equipmentObservation_tag_leak": "דליפה",
+  "equipmentObservation_tag_hoseDamage": "נזק לצינור",
+  "equipmentObservation_tag_inflatorStuck": "מנפח תקוע",
+  "equipmentObservation_tag_inflatorSlow": "מנפח איטי",
+  "equipmentObservation_tag_bladderLeak": "דליפה בשלפוחית",
+  "equipmentObservation_tag_dumpLeak": "דליפה בשסתום פריקה",
+  "equipmentObservation_tag_leakNeck": "דליפה באטם הצוואר",
+  "equipmentObservation_tag_leakWrist": "דליפה באטם שורש כף היד",
+  "equipmentObservation_tag_leakZip": "דליפה ברוכסן",
+  "equipmentObservation_tag_leakBoot": "דליפה במגף",
+  "equipmentObservation_tag_leakValve": "דליפה בשסתום",
+  "equipmentObservation_tag_leakSeam": "דליפה בתפר",
+  "equipmentObservation_tag_tear": "קרע",
+  "equipmentObservation_tag_seamFailure": "תפר נפרם",
+  "equipmentObservation_tag_dim": "עמום",
+  "equipmentObservation_tag_died": "הפסיק לפעול",
+  "equipmentObservation_tag_flooded": "הוצף",
+  "equipmentObservation_tag_switchFault": "תקלת מתג",
+  "equipmentObservation_tag_batteryLow": "סוללה חלשה",
+  "equipmentObservation_tag_screenFault": "תקלת מסך",
+  "equipmentObservation_tag_connectionFault": "תקלת חיבור",
+  "equipmentObservation_tag_dropout": "נפילת אות",
+  "equipmentObservation_tag_cellWarning": "אזהרת תא",
+  "equipmentObservation_tag_loopLeak": "דליפה בלולאה",
+  "equipmentObservation_tag_solenoidFault": "תקלת סולנואיד",
+  "equipmentObservation_tag_scrubberBreakthrough": "פריצת סופג",
+  "equipmentObservation_tag_slowResponse": "תגובה איטית",
+  "equipmentObservation_tag_erratic": "לא יציב",
+  "equipmentObservation_tag_lowCapacity": "קיבולת נמוכה",
+  "equipmentObservation_tag_propFault": "תקלת מדחף",
+  "equipmentObservation_tag_strapBroke": "רצועה נקרעה",
+  "equipmentObservation_tag_other": "אחר",
+  "equipmentObservation_status_ok": "תקין",
+  "equipmentObservation_status_issue": "בעיה",
+  "equipmentObservation_sheet_title": "בדיקה: {item}",
+  "@equipmentObservation_sheet_title": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentObservation_sheet_empty": "עדיין אין בדיקות בצלילה זו.",
+  "equipmentObservation_sheet_emptyBench": "עדיין אין בדיקות.",
+  "equipmentObservation_sheet_add": "הוספת בדיקה",
+  "equipmentObservation_sheet_edit": "עריכת בדיקה",
+  "equipmentObservation_sheet_delete": "מחיקת בדיקה",
+  "equipmentObservation_sheet_deleteConfirm": "למחוק בדיקה זו?",
+  "equipmentObservation_sheet_noteLabel": "הערה",
+  "equipmentObservation_sheet_tagsLabel": "מה קרה",
+  "equipmentObservation_sheet_dateLabel": "נצפה",
+  "equipmentObservation_sheet_diveLabel": "צלילה",
+  "equipmentObservation_sheet_noDive": "ללא צלילה (שולחן עבודה)",
+  "equipmentObservation_sheet_pickDive": "בחירת צלילה",
+  "equipmentObservation_sheet_save": "שמירה",
+  "equipmentObservation_sheet_cancel": "ביטול",
+  "equipmentObservation_sheet_tagRequired": "בחרו לפחות תגית אחת לבעיה",
+  "equipmentObservation_chip_ok": "נבדק, תקין",
+  "equipmentObservation_chip_issue": "דווחה בעיה",
+  "equipmentObservation_chip_none": "בדיקה",
+  "equipmentObservation_card_title": "בדיקות",
+  "equipmentObservation_card_empty": "לא נרשמו בדיקות לפריט זה.",
+  "equipmentObservation_card_add": "הוספת בדיקה",
+  "equipmentObservation_card_onDive": "צלילה מס' {number}",
+  "@equipmentObservation_card_onDive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentObservation_card_bench": "שולחן עבודה",
   "dataQuality_inbox_title": "איכות הנתונים",
   "dataQuality_dive_unknown": "פרטי הצלילה אינם זמינים",
   "dataQuality_dive_number": "#{number}",
@@ -8294,6 +8970,20 @@
   "dataQuality_deleteDuplicate_body": "שניהם הוקלטו על ידי אותו מחשב צלילה. העותק עם פחות נתוני צלילה יימחק. ניתן לבטל זאת לאחר מכן.",
   "dataQuality_deleteDuplicate_keep": "לשמור: {dive}",
   "dataQuality_deleteDuplicate_delete": "למחוק: {dive}",
+  "dataQuality_deleteDuplicate_carries": "העותק הזה מכיל גם: {items}",
+  "dataQuality_carries_gear": "{count, plural, one{פריט ציוד אחד} other{{count} פריטי ציוד}}",
+  "dataQuality_carries_weights": "{count, plural, one{משקולת אחת} other{{count} משקולות}}",
+  "dataQuality_carries_buddies": "{count, plural, one{בן זוג אחד} other{{count} בני זוג}}",
+  "dataQuality_carries_tags": "{count, plural, one{תווית אחת} other{{count} תוויות}}",
+  "dataQuality_carries_media": "{count, plural, one{תמונה או סרטון אחד} other{{count} תמונות או סרטונים}}",
+  "dataQuality_carries_attachments": "{count, plural, one{קובץ מצורף אחד} other{{count} קבצים מצורפים}}",
+  "dataQuality_carries_customFields": "{count, plural, one{שדה מותאם אחד} other{{count} שדות מותאמים}}",
+  "dataQuality_carries_rating": "דירוג",
+  "dataQuality_carries_favorite": "סימון מועדף",
+  "dataQuality_carries_site": "אתר צלילה",
+  "dataQuality_carries_trip": "טיול",
+  "dataQuality_carries_diveCenter": "מרכז צלילה",
+  "dataQuality_carries_course": "קורס",
   "dataQuality_repairLabel_combine": "מיזוג לצלילה אחת",
   "dataQuality_repairLabel_despike": "הסרת הקפיצה",
   "dataQuality_repairLabel_clampNegative": "הגבלת עומקים מעל פני המים",
@@ -10765,6 +11455,7 @@
   "settings_export_progress_divesCsv": "מייצא צלילות ל-CSV...",
   "settings_export_progress_sitesCsv": "מייצא אתרים ל-CSV...",
   "settings_export_progress_equipmentCsv": "מייצא ציוד ל-CSV...",
+  "settings_export_progress_observationsCsv": "מייצא בדיקות ציוד ל-CSV...",
   "settings_export_progress_pdf": "יוצר יומן צלילות בפורמט PDF...",
   "settings_export_progress_loadingSignatures": "טוען חתימות...",
   "settings_export_progress_loadingProfiles": "טוען פרופילי צלילה...",
@@ -10783,6 +11474,7 @@
   "settings_export_progress_preparingDivesCsv": "מכין CSV של צלילות...",
   "settings_export_progress_preparingSitesCsv": "מכין CSV של אתרים...",
   "settings_export_progress_preparingEquipmentCsv": "מכין CSV של ציוד...",
+  "settings_export_progress_preparingObservationsCsv": "מכין CSV של בדיקות ציוד...",
   "settings_export_progress_preparingUddf": "מכין קובץ UDDF...",
   "settings_export_progress_preparingPdf": "מכין PDF...",
   "settings_export_progress_selectingBackup": "בוחר קובץ גיבוי...",
@@ -10790,6 +11482,7 @@
   "settings_export_empty_dives": "אין צלילות לייצוא",
   "settings_export_empty_sites": "אין אתרים לייצוא",
   "settings_export_empty_equipment": "אין ציוד לייצוא",
+  "settings_export_empty_observations": "אין בדיקות ציוד לייצוא",
   "settings_export_empty_data": "אין נתונים לייצוא",
   "settings_export_empty_diveSites": "אין אתרי צלילה לייצוא",
   "settings_export_saveFailed": "השמירה נכשלה: {error}",
@@ -10800,6 +11493,7 @@
   "settings_export_success_dives": "הצלילות יוצאו בהצלחה",
   "settings_export_success_sites": "האתרים יוצאו בהצלחה",
   "settings_export_success_equipment": "הציוד יוצא בהצלחה",
+  "settings_export_success_observations": "בדיקות הציוד יוצאו",
   "settings_export_success_pdf": "יומן הצלילות בפורמט PDF נוצר בהצלחה",
   "settings_export_success_uddf": "קובץ UDDF נוצר בהצלחה",
   "settings_export_success_excel": "קובץ Excel יוצא בהצלחה",
@@ -10809,6 +11503,7 @@
   "settings_export_saved_divesCsv": "CSV של הצלילות נשמר בהצלחה",
   "settings_export_saved_sitesCsv": "CSV של האתרים נשמר בהצלחה",
   "settings_export_saved_equipmentCsv": "CSV של הציוד נשמר בהצלחה",
+  "settings_export_saved_observationsCsv": "קובץ ה-CSV של בדיקות הציוד נשמר",
   "settings_export_saved_uddf": "קובץ UDDF נשמר בהצלחה",
   "settings_export_saved_pdf": "קובץ PDF נשמר בהצלחה",
   "settings_export_saved_backup": "הגיבוי נשמר בהצלחה",
@@ -10818,6 +11513,10 @@
   "settings_export_cancelled_restore": "השחזור בוטל",
   "settings_export_pdfDocumentTitle": "יומן צלילות",
   "settings_export_saveBackupDialogTitle": "שמירת גיבוי",
+  "settings_export_saveDivesCsvDialogTitle": "שמירת CSV של הצלילות",
+  "settings_export_saveSitesCsvDialogTitle": "שמירת CSV של האתרים",
+  "settings_export_saveEquipmentCsvDialogTitle": "שמירת CSV של הציוד",
+  "settings_export_saveObservationsCsvDialogTitle": "שמירת קובץ ה-CSV של בדיקות הציוד",
   "backup_operation_created": "נוצר גיבוי: {size}",
   "backup_operation_backupFailed": "הגיבוי נכשל: {error}",
   "backup_operation_restoring": "משחזר גיבוי...",
@@ -11078,6 +11777,7 @@
   "settings_storageUsage_group_backups": "גיבויים",
   "settings_storageUsage_group_temporary": "קבצים זמניים",
   "settings_storageUsage_group_exports": "קבצים שיוצאו",
+  "settings_storageUsage_group_importedFiles": "נתוני ייבוא גולמיים",
   "settings_storageUsage_category_database": "מסד נתונים של יומן הצלילה",
   "settings_storageUsage_category_localCache": "מסד נתונים של מטמון מקומי",
   "settings_storageUsage_category_mediaCacheOriginals": "תמונות וסרטונים מקוריים",
@@ -11092,6 +11792,7 @@
   "settings_storageUsage_category_backups": "קובצי גיבוי",
   "settings_storageUsage_category_temporary": "קבצים זמניים",
   "settings_storageUsage_category_exports": "קבצים שיוצאו",
+  "settings_storageUsage_category_importedFiles": "קובצי הייבוא המקוריים",
   "profilePhoto_sheet_title": "תמונת פרופיל",
   "profilePhoto_source_camera": "צילום תמונה",
   "profilePhoto_source_library": "בחירה מהספרייה",
@@ -11156,6 +11857,7 @@
   "transmitters_field_channel": "ערוץ",
   "transmitters_field_role": "תפקיד",
   "transmitters_field_gear": "מיכל מהציוד",
+  "transmitters_field_transmitterGear": "משדר מהציוד",
   "transmitters_field_material": "חומר",
   "transmitters_gear_none": "ללא",
   "transmitters_validation_key": "הזינו מספר סידורי, או בחרו מחשב צלילה וערוץ",
@@ -11202,13 +11904,11 @@
   "enum_equipmentItemSortField_purchaseDate": "תאריך רכישה",
   "enum_equipmentItemSortField_dateAdded": "תאריך הוספה",
   "enum_equipmentItemSortField_lastServiceDate": "טיפול אחרון",
-  "equipment_arrange_title": "סידור הציוד",
   "equipment_arrange_groupByType": "קיבוץ לפי סוג",
   "equipment_arrange_groupByTypeSubtitle": "הצגת כותרת לכל סוג ציוד",
   "equipment_arrange_typeOrderLabel": "מיון סוגים לפי",
   "equipment_arrange_itemOrderLabel": "ולאחר מכן לפי",
   "equipment_arrange_itemOrderLabelFlat": "מיון לפי",
-  "equipment_arrange_tooltip": "סידור הציוד",
   "equipment_arrange_reset": "איפוס לברירת המחדל",
   "equipment_arrange_saveFailed": "לא ניתן לשמור את הסידור",
   "settings_appearance_gearArrangement": "סידור הציוד",

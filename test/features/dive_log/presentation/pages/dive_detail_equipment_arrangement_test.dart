@@ -144,12 +144,16 @@ void main() {
     );
   });
 
-  testWidgets('the header action opens the arrange sheet', (tester) async {
+  testWidgets('the header Sort action opens the gear sort sheet', (
+    tester,
+  ) async {
     await open(tester, arrangement: EquipmentArrangement.defaults);
 
-    await tester.tap(find.byTooltip('Arrange gear'));
+    // The same Sort control the Equipment page offers.
+    await tester.tap(find.byTooltip('Sort'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Sort Equipment'), findsOneWidget);
     expect(find.text('Order types by'), findsOneWidget);
   });
 }

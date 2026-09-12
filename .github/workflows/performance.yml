@@ -48,12 +48,6 @@ jobs:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: stable
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:

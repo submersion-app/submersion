@@ -49,6 +49,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_diveComputer;
     case 'diveDataSources':
       return l10n.settings_conflict_ref_dataSource;
+    case 'importedFiles':
+      return l10n.settings_conflict_ref_importedFile;
     case 'diveTanks':
       return l10n.settings_conflict_ref_tank;
     case 'divePlanTanks':

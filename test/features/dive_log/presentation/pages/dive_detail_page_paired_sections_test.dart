@@ -10,11 +10,19 @@ import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -27,6 +35,8 @@ import 'package:submersion/features/signatures/presentation/providers/signature_
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../widgets/buoyancy_outcome_fixture.dart';
 
 typedef Override = riverpod.Override;
 
@@ -97,6 +107,14 @@ Finder _pairContaining(String label) => find.ancestor(
   matching: find.byType(ResponsiveSectionPair),
 );
 
+/// Top-left of the card holding [label].
+///
+/// Compares cards rather than titles where a header carries a button that
+/// sets its title lower than its neighbour's, as Buoyancy's does.
+Offset _cardTopLeft(WidgetTester tester, String label) => tester.getTopLeft(
+  find.ancestor(of: find.text(label), matching: find.byType(Card)).first,
+);
+
 /// A dive with environment data so the Environment (Conditions) card renders.
 Dive _diveWithConditions(String id) => Dive(
   id: id,
@@ -132,6 +150,75 @@ Dive _diveWithGasAndWeights(String id) => Dive(
     DiveWeight(id: 'w1', diveId: id, weightType: WeightType.belt, amountKg: 6),
   ],
 );
+
+/// A dive with a cylinder and a short profile, so the Cylinders card renders
+/// and Gas consumption by segment has a profile to segment.
+Dive _diveWithGasAndProfile(String id) => Dive(
+  id: id,
+  dateTime: DateTime(2026, 3, 15, 10, 0),
+  tanks: const [
+    DiveTank(
+      id: 't1',
+      name: 'AL80',
+      volume: 11.1,
+      workingPressure: 207,
+      startPressure: 200,
+      endPressure: 50,
+    ),
+  ],
+  profile: List.generate(
+    6,
+    (i) => DiveProfilePoint(
+      timestamp: i * 60,
+      depth: i < 3 ? i * 8.0 : (5 - i) * 8.0,
+    ),
+  ),
+);
+
+const _sacTitle = 'Gas consumption by segment';
+const _buoyancyTitle = 'BUOYANCY';
+
+/// One time-interval SAC segment, so the Gas consumption card has a row.
+final _sacAnalysis = ProfileAnalysis.empty().copyWith(
+  sacSegments: const [
+    SacSegment(
+      startTimestamp: 0,
+      endTimestamp: 300,
+      avgDepth: 18.0,
+      minDepth: 0.0,
+      maxDepth: 24.0,
+      sacRate: 0.8,
+      gasConsumed: 4.0,
+      segmentationType: SacSegmentationType.timeInterval,
+    ),
+  ],
+);
+
+/// Drives the Gas consumption card from [analysis]; null = no segments.
+///
+/// Time-interval segmentation reads the segments straight off the analysis,
+/// so no phase or gas-switch provider is in play.
+List<Override> _sacOverrides(Dive dive, ProfileAnalysis? analysis) => [
+  profileAnalysisProvider(dive.id).overrideWith((ref) async => analysis),
+  ..._sacSupportOverrides(dive),
+];
+
+/// Everything the Gas consumption card reads besides the analysis itself.
+List<Override> _sacSupportOverrides(Dive dive) => [
+  selectedSegmentationProvider.overrideWith(
+    (ref) => SacSegmentationType.timeInterval,
+  ),
+  gasSwitchesProvider(
+    dive.id,
+  ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+  sourceProfilesProvider(
+    dive.id,
+  ).overrideWith((ref) async => <String, SourceProfile>{}),
+];
+
+/// Overrides the buoyancy model for [dive]; [outcome] null = unmodelable.
+Override _buoyancyOverride(Dive dive, BuoyancyTwinOutcome? outcome) =>
+    buoyancyTwinProvider(dive.id).overrideWith((ref) async => outcome);
 
 TideRecord _tideRecord(String diveId) => TideRecord(
   id: 'tide-1',
@@ -570,139 +657,325 @@ void main() {
     });
   });
 
-  group('Cylinders + Weights pairing', () {
+  group('Cylinders + Gas consumption pairing', () {
     testWidgets('pairs side by side on a wide pane', (tester) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGasAndWeights('gas-weights-wide');
+      final dive = _diveWithGasAndProfile('gas-sac-wide');
       final settings = _settingsWithOrder([
         DiveDetailSectionId.tanks,
-        DiveDetailSectionId.weights,
+        DiveDetailSectionId.sacSegments,
       ]);
 
       await tester.pumpWidget(
         _buildTestWidget(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacOverrides(dive, _sacAnalysis),
+          ],
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.byType(ResponsiveSectionPair), findsOneWidget);
       expect(_pairContaining('Cylinders'), findsOneWidget);
-      expect(_pairContaining('Weight'), findsOneWidget);
+      expect(_pairContaining(_sacTitle), findsOneWidget);
 
       final cylPos = tester.getTopLeft(find.text('Cylinders'));
-      final weightPos = tester.getTopLeft(find.text('Weight'));
-      expect(cylPos.dx, lessThan(weightPos.dx));
-      expect((cylPos.dy - weightPos.dy).abs(), lessThan(4));
+      final sacPos = tester.getTopLeft(find.text(_sacTitle));
+      expect(cylPos.dx, lessThan(sacPos.dx));
+      expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
     });
 
-    testWidgets('pairs across an intervening Buoyancy section', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+    testWidgets('fits side by side at the 700px threshold', (tester) async {
+      // 732px pane => 700px content width, the narrowest the row renders at.
+      await tester.binding.setSurfaceSize(const Size(732, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGasAndWeights('gas-weights-gap');
-      // The pre-existing default order, which every upgrading user has saved.
+      final dive = _diveWithGasAndProfile('gas-sac-threshold');
       final settings = _settingsWithOrder([
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.buoyancy,
         DiveDetailSectionId.tanks,
+        DiveDetailSectionId.sacSegments,
       ]);
 
       await tester.pumpWidget(
         _buildTestWidget(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacOverrides(dive, _sacAnalysis),
+          ],
         ),
       );
       await tester.pumpAndSettle();
 
-      // Cylinders stays on the left even though Weights comes first in the
-      // saved order.
-      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
       final cylPos = tester.getTopLeft(find.text('Cylinders'));
-      final weightPos = tester.getTopLeft(find.text('Weight'));
-      expect(cylPos.dx, lessThan(weightPos.dx));
-      expect((cylPos.dy - weightPos.dy).abs(), lessThan(4));
+      final sacPos = tester.getTopLeft(find.text(_sacTitle));
+      expect(cylPos.dx, lessThan(sacPos.dx));
+      expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
+      expect(tester.takeException(), isNull);
     });
 
-    testWidgets('stacks on a narrow pane', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(700, 3000));
+    testWidgets('takes Gas consumption\'s slot in a saved order', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGasAndWeights('gas-weights-narrow');
+      final dive = _diveWithGasAndProfile('gas-sac-saved');
+      // The pre-existing default order: Gas consumption near the top,
+      // Cylinders below Details.
       final settings = _settingsWithOrder([
+        DiveDetailSectionId.sacSegments,
+        DiveDetailSectionId.details,
         DiveDetailSectionId.tanks,
-        DiveDetailSectionId.weights,
       ]);
 
       await tester.pumpWidget(
         _buildTestWidget(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacOverrides(dive, _sacAnalysis),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Cylinders stays on the left, and the row sits above Details.
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      final cylPos = tester.getTopLeft(find.text('Cylinders'));
+      final sacPos = tester.getTopLeft(find.text(_sacTitle));
+      expect(cylPos.dx, lessThan(sacPos.dx));
+      expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
+      expect(cylPos.dy, lessThan(tester.getTopLeft(find.text('Details')).dy));
+    });
+
+    testWidgets('stacks Cylinders directly above it on a narrow pane', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(700, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndProfile('gas-sac-narrow');
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.sacSegments,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacOverrides(dive, _sacAnalysis),
+          ],
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.byType(ResponsiveSectionPair), findsOneWidget);
       final cylY = tester.getTopLeft(find.text('Cylinders')).dy;
-      final weightY = tester.getTopLeft(find.text('Weight')).dy;
-      expect(cylY, lessThan(weightY));
+      final sacY = tester.getTopLeft(find.text(_sacTitle)).dy;
+      expect(cylY, lessThan(sacY));
     });
 
-    testWidgets('no pairing when the dive carries no weights', (tester) async {
+    testWidgets('keeps the row when the analysis briefly goes null', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = Dive(
-        id: 'gas-only',
-        dateTime: DateTime(2026, 3, 15, 10, 0),
-        tanks: const [
-          DiveTank(
-            id: 't1',
-            name: 'AL80',
-            volume: 11.1,
-            workingPressure: 207,
-            startPressure: 200,
-            endPressure: 50,
-          ),
-        ],
-      );
+      final dive = _diveWithGasAndProfile('gas-sac-transient');
+      // Starts good, then settles to null the way a mid-sync empty-profile
+      // read does. The card keeps its last good segments, so the pair must
+      // too, or the row would split while the card stayed.
+      final analysis = StateProvider<ProfileAnalysis?>((ref) => _sacAnalysis);
       final settings = _settingsWithOrder([
         DiveDetailSectionId.tanks,
-        DiveDetailSectionId.weights,
+        DiveDetailSectionId.sacSegments,
       ]);
 
       await tester.pumpWidget(
         _buildTestWidget(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacSupportOverrides(dive),
+            profileAnalysisProvider(
+              dive.id,
+            ).overrideWith((ref) async => ref.watch(analysis)),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      ).read(analysis.notifier).state = null;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      final cylPos = tester.getTopLeft(find.text('Cylinders'));
+      final sacPos = tester.getTopLeft(find.text(_sacTitle));
+      expect(cylPos.dx, lessThan(sacPos.dx));
+      expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
+    });
+
+    testWidgets('an analysis reload does not rebuild the page', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndProfile('gas-sac-reload');
+      final analysis = StateProvider<ProfileAnalysis?>((ref) => _sacAnalysis);
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.sacSegments,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacSupportOverrides(dive),
+            profileAnalysisProvider(
+              dive.id,
+            ).overrideWith((ref) async => ref.watch(analysis)),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+
+      // The pair gate is the page's only read of the analysis. A reload
+      // passes through loading; if the gate read that as "no segments" the
+      // whole page would rebuild twice into the same layout.
+      var pageRebuilds = 0;
+      debugOnRebuildDirtyWidget = (element, builtOnce) {
+        if (element.widget is DiveDetailPage) pageRebuilds++;
+      };
+      addTearDown(() => debugOnRebuildDirtyWidget = null);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      ).read(analysis.notifier).state = _sacAnalysis.copyWith(
+        sacSegments: [..._sacAnalysis.sacSegments!],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      expect(pageRebuilds, 0);
+    });
+
+    testWidgets('no pairing when the dive has no SAC segments', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndProfile('gas-no-sac');
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.sacSegments,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            ..._sacOverrides(dive, null),
+          ],
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.byType(ResponsiveSectionPair), findsNothing);
       expect(find.text('Cylinders'), findsOneWidget);
-      expect(find.text('Weight'), findsNothing);
+      expect(find.text(_sacTitle), findsNothing);
+    });
+  });
+
+  group('Weights + Buoyancy pairing', () {
+    testWidgets('pairs side by side on a wide pane', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights('weights-buoyancy-wide');
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.buoyancy,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      expect(_pairContaining('Weight'), findsOneWidget);
+      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
+
+      final weightPos = _cardTopLeft(tester, 'Weight');
+      final buoyancyPos = _cardTopLeft(tester, _buoyancyTitle);
+      expect(weightPos.dx, lessThan(buoyancyPos.dx));
+      expect((weightPos.dy - buoyancyPos.dy).abs(), lessThan(4));
     });
 
-    testWidgets('no pairing on a gauge dive, where Cylinders is hidden', (
+    testWidgets('fits side by side at the 700px threshold', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(732, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights('weights-buoyancy-threshold');
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.buoyancy,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final weightPos = _cardTopLeft(tester, 'Weight');
+      final buoyancyPos = _cardTopLeft(tester, _buoyancyTitle);
+      expect(weightPos.dx, lessThan(buoyancyPos.dx));
+      expect((weightPos.dy - buoyancyPos.dy).abs(), lessThan(4));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('keeps Weights on the left when Buoyancy is ordered first', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGasAndWeights(
-        'gauge-dive',
-      ).copyWith(diveMode: DiveMode.gauge);
+      final dive = _diveWithGasAndWeights('weights-buoyancy-reversed');
       final settings = _settingsWithOrder([
-        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.buoyancy,
         DiveDetailSectionId.weights,
       ]);
 
@@ -710,14 +983,107 @@ void main() {
         _buildTestWidget(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      final weightPos = _cardTopLeft(tester, 'Weight');
+      final buoyancyPos = _cardTopLeft(tester, _buoyancyTitle);
+      expect(weightPos.dx, lessThan(buoyancyPos.dx));
+      expect((weightPos.dy - buoyancyPos.dy).abs(), lessThan(4));
+    });
+
+    testWidgets('stacks Weights directly above Buoyancy on a narrow pane', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(700, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights('weights-buoyancy-narrow');
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.buoyancy,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      final weightY = tester.getTopLeft(find.text('Weight')).dy;
+      final buoyancyY = tester.getTopLeft(find.text(_buoyancyTitle)).dy;
+      expect(weightY, lessThan(buoyancyY));
+    });
+
+    testWidgets('no pairing when the buoyancy model has no result', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights('weights-no-buoyancy');
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.buoyancy,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, null),
+          ],
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.byType(ResponsiveSectionPair), findsNothing);
-      expect(find.text('Cylinders'), findsNothing);
       expect(find.text('Weight'), findsOneWidget);
+      expect(find.text(_buoyancyTitle), findsNothing);
+    });
+
+    testWidgets('no pairing when the dive carries no weights', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights(
+        'buoyancy-only',
+      ).copyWith(weights: const []);
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.buoyancy,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResponsiveSectionPair), findsNothing);
+      expect(find.text('Weight'), findsNothing);
+      expect(find.text(_buoyancyTitle), findsOneWidget);
     });
   });
 }

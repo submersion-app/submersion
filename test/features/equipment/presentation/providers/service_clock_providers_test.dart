@@ -1,6 +1,9 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart'
+    show ServiceRecordsCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -204,5 +207,62 @@ void main() {
     );
     expect(alerts.map((a) => a.status.kind.id), contains('hydro'));
     expect(alerts.map((a) => a.status.kind.id), isNot(contains('vip')));
+  });
+
+  test('tripServiceAlertsProvider refreshes when a service arrives by '
+      'sync', () async {
+    // A record applied by sync touches no equipment row, so only the
+    // service ledger's own change stream can clear a stale trip alert.
+    final diver = await seedCurrentDiver();
+    final tank = await seedTank(diver.id);
+    final now = DateTime.now();
+    final trip = await TripRepository().createTrip(
+      Trip(
+        id: '',
+        diverId: diver.id,
+        name: 'Bonaire',
+        startDate: now.add(const Duration(days: 10)),
+        endDate: now.add(const Duration(days: 17)),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    // A pre-v213 hydro baseline six years back: overdue, and any hydro
+    // record takes the clock over.
+    final hydro = (await scheduleRepo.getSchedulesForEquipment(
+      tank.id,
+    )).firstWhere((s) => s.serviceKindId == 'hydro');
+    await scheduleRepo.updateSchedule(
+      hydro.copyWith(anchorDate: now.subtract(const Duration(days: 2190))),
+    );
+
+    final container = makeContainer();
+    addTearDown(container.dispose);
+    final sub = container.listen(tripServiceAlertsProvider(trip.id), (_, _) {});
+    addTearDown(sub.close);
+    final before = await container.read(
+      tripServiceAlertsProvider(trip.id).future,
+    );
+    expect(before.map((a) => a.status.kind.id), contains('hydro'));
+
+    final ms = now.millisecondsSinceEpoch;
+    await DatabaseService.instance.database
+        .into(DatabaseService.instance.database.serviceRecords)
+        .insert(
+          ServiceRecordsCompanion.insert(
+            id: 'synced-hydro',
+            equipmentId: tank.id,
+            serviceCategory: ServiceCategory.inspection.name,
+            serviceDate: ms,
+            createdAt: ms,
+            updatedAt: ms,
+          ).copyWith(serviceKindId: const Value('hydro')),
+        );
+    await pumpEventQueue();
+
+    final after = await container.read(
+      tripServiceAlertsProvider(trip.id).future,
+    );
+    expect(after.map((a) => a.status.kind.id), isNot(contains('hydro')));
   });
 }

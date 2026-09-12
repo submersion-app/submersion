@@ -1086,9 +1086,10 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveGasmix(
     if (index < 0 || static_cast<unsigned int>(index) >= dive->gasmix_count) return nullptr;
 
     const libdc_gasmix_t *gm = &dive->gasmixes[index];
-    jdouble values[2] = { gm->oxygen, gm->helium };
-    jdoubleArray result = env->NewDoubleArray(2);
-    env->SetDoubleArrayRegion(result, 0, 2, values);
+    // Return [oxygen, helium, usage]. Positional: the Kotlin readers index it.
+    jdouble values[3] = { gm->oxygen, gm->helium, static_cast<jdouble>(gm->usage) };
+    jdoubleArray result = env->NewDoubleArray(3);
+    env->SetDoubleArrayRegion(result, 0, 3, values);
     return result;
 }
 
