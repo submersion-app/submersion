@@ -145,6 +145,27 @@ void main() {
     );
   });
 
+  test('a failing findings pass does not poison the queue', () async {
+    // The pass reads settings and gear; a throw there must be caught, or
+    // the queue's chained future fails and nothing runs until restart.
+    var broken = true;
+    SensorSummaryScheduler.instance.conditionInputsLoader = () async {
+      if (broken) throw StateError('settings unreadable');
+      return EquipmentFindingsPass.loadActiveDiverInputs();
+    };
+    SensorSummaryScheduler.instance.scheduleStaleSweep();
+    await SensorSummaryScheduler.instance.idle;
+    expect(await EquipmentFindingsRepository(db: db).getReview('reg'), isNull);
+
+    broken = false;
+    SensorSummaryScheduler.instance.scheduleStaleSweep();
+    await SensorSummaryScheduler.instance.idle;
+    expect(
+      await EquipmentFindingsRepository(db: db).getReview('reg'),
+      isNotNull,
+    );
+  });
+
   test('the findings pass is skipped when the engine is off', () async {
     SensorSummaryScheduler.instance.conditionInputsLoader = () async =>
         const ConditionPassInputs(

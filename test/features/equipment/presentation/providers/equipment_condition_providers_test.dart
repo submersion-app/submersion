@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -602,6 +603,44 @@ void main() {
       (await refresh(const EquipmentConditionEngine())).map((f) => f.ruleId),
       isNot(contains(ConditionRuleId.cellOutputLow)),
     );
+  });
+
+  testWidgets('dismissing a finding stores it and refreshes the item', (
+    tester,
+  ) async {
+    late WidgetRef widgetRef;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (context, ref, _) {
+            widgetRef = ref;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final finding = (await tester.runAsync(read))!.single;
+    expect(finding.dismissedAt, isNull);
+
+    await tester.runAsync(
+      () => setConditionFindingDismissed(
+        widgetRef,
+        finding: finding,
+        dismissed: true,
+      ),
+    );
+    // Invalidated, so the next read serves the dismissal, not the cache.
+    expect((await tester.runAsync(read))!.single.dismissedAt, isNotNull);
+
+    await tester.runAsync(
+      () => setConditionFindingDismissed(
+        widgetRef,
+        finding: finding,
+        dismissed: false,
+      ),
+    );
+    expect((await tester.runAsync(read))!.single.dismissedAt, isNull);
   });
 
   test('incident dives count towards clearing a dismissal', () async {

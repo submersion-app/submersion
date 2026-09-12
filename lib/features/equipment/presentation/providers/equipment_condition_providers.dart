@@ -33,7 +33,7 @@ final equipmentConditionRefresherProvider =
 /// The item's condition findings, computed when its inputs changed and
 /// served from the review marker otherwise. Null when the item does not
 /// exist. Hidden rules are NOT filtered here; the display layer filters
-/// through [conditionDisabledRulesProvider], like the safety review.
+/// by `AppSettings.conditionDisabledRules`, like the safety review.
 ///
 /// Self-invalidates on every stream an input can arrive through: the
 /// equipment and attribute tables (type, parent, cell slot, install
@@ -74,12 +74,6 @@ final equipmentConditionProvider =
         engineEnabled: ref.watch(conditionEngineEnabledProvider),
       );
     });
-
-/// The condition rule ids the diver has switched on, as stored dbValues.
-Set<String> enabledConditionRuleIds(AppSettings settings) => {
-  for (final rule in ConditionRuleId.values)
-    if (!settings.conditionDisabledRules.contains(rule.dbValue)) rule.dbValue,
-};
 
 /// Dismisses or restores a finding. The repository bumps the parent
 /// equipment row so the change syncs; the findings stream then refreshes
