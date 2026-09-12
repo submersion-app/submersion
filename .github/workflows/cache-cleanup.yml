@@ -10,6 +10,10 @@ name: PR cache cleanup
 # pull_request_target, not pull_request: a fork PR's pull_request token is
 # read-only, so it could not delete its own caches. This workflow never checks
 # out or runs PR code; it only calls the cache API for the PR's ref.
+#
+# pull_request_target also runs the workflow as it exists on main, so it only
+# covers PRs that close after this file lands there. Caches from PRs closed
+# before then are left to GitHub's LRU eviction, as they always were.
 on:
   pull_request_target:
     types: [closed]

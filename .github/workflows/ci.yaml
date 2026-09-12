@@ -161,6 +161,11 @@ jobs:
       # for the same lockfile and SDK, preferring this PR's own ref, then main.
       # A lockfile or SDK change starts cold, as build_runner would discard
       # the graph anyway.
+      # The generated sources themselves (*.g.dart etc., gitignored) are NOT
+      # cached and a fresh checkout has none of them; build_runner rewrites
+      # missing outputs from the restored graph. The old pub-cache path relied
+      # on the same thing: run 34671403450 restored only the graph, wrote 104
+      # outputs in 43s, packaged all 40 generated files and passed.
       - name: Drop stale build_runner state from the pub cache
         run: rm -rf .dart_tool/build
 
