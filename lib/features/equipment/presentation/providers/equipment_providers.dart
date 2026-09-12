@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/presentation/providers/exposure_th
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -729,6 +730,13 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final records = await ref
       .watch(serviceRecordRepositoryProvider)
       .getRecordsForEquipment(item.id);
+  // A transmitter's dives include the tanks that carried its registered
+  // serials, and assigning a serial writes only the registry.
+  if (item.type == EquipmentType.transmitter) {
+    ref.invalidateSelfWhen(
+      ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
+    );
+  }
   // The repository's one wiring, shared with the exposure card, the
   // reminders and the condition engine: fitted parts only, and a replaced
   // part's dives stop at its successor.

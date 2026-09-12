@@ -504,6 +504,21 @@ void main() {
     expect(engine.last!.summariesByDive.keys, ['loop']);
   });
 
+  test('a rebuilt summary recomputes the item', () async {
+    // A forced rebuild keeps the source stamp (the dive did not change)
+    // but can change the readings, so it must not leave the marker
+    // matching.
+    await ccrWithDive(summaryStamp: 5);
+    await container.read(equipmentConditionProvider('ccr').future);
+    final before = engine.calls;
+    await (db.update(db.diveSensorSummaries)
+          ..where((s) => s.diveId.equals('loop')))
+        .write(const DiveSensorSummariesCompanion(computedAt: Value(2)));
+    container.invalidate(equipmentConditionProvider('ccr'));
+    await container.read(equipmentConditionProvider('ccr').future);
+    expect(engine.calls, before + 1);
+  });
+
   test('while summaries are missing the sensor rules write nothing', () async {
     // Partial readings cannot be trusted either way: the rules neither
     // delete a finding nor write one until every summary is current.

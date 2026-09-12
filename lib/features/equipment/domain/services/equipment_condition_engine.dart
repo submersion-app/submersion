@@ -51,8 +51,8 @@ typedef _Point<T> = ({String diveId, DateTime date, T value});
 /// Pure and versioned: the ten spec rules over an item's evidence. Every
 /// window is "the last k dives that have the relevant data", never a
 /// calendar window, and every rule has a minimum n below which it is
-/// silent. Nothing here predicts anything; each finding carries the
-/// numbers it was built from.
+/// silent. Every finding describes dives already logged, never a future
+/// state, and carries the numbers it was built from.
 class EquipmentConditionEngine {
   static const int engineVersion = 1;
 
