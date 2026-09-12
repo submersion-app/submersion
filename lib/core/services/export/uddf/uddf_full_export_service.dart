@@ -464,6 +464,7 @@ class UddfFullExportService {
           dataSourceDumps: encodedById,
           components: components,
           gearLinkDives: dives,
+          diveBuddies: diveBuddies,
         );
 
         // The UDDF specification places <divecomputercontrol> last, so this
@@ -489,6 +490,9 @@ class UddfFullExportService {
   Future<String> generateAllDataXmlForTest({
     required List<Dive> dives,
     Diver? owner,
+    List<Buddy>? buddies,
+    Map<String, List<BuddyWithRole>>? diveBuddies,
+    List<DiveRole>? customDiveRoles,
     List<EquipmentItem>? equipment,
     List<EquipmentSet>? equipmentSets,
     List<EquipmentComponent>? components,
@@ -498,6 +502,9 @@ class UddfFullExportService {
   }) => _generateAllDataXml(
     dives: dives,
     owner: owner,
+    buddies: buddies,
+    diveBuddies: diveBuddies,
+    customDiveRoles: customDiveRoles,
     equipment: equipment,
     equipmentSets: equipmentSets,
     components: components,

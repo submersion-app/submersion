@@ -73,6 +73,8 @@ class UddfImportParser implements ImportParser {
         metadata: {
           'sourceApp': options?.sourceApp.displayName ?? 'UDDF',
           'summary': result.summary,
+          if (result.customDiveRoles.isNotEmpty)
+            ImportPayload.customDiveRolesKey: result.customDiveRoles,
         },
       );
     } on FormatException catch (e) {

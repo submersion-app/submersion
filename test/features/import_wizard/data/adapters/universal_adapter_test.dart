@@ -35,12 +35,14 @@ import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.d
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -2414,6 +2416,64 @@ void main() {
           expect(result.errorMessage, isNull);
         },
       );
+    });
+
+    testWidgets('custom dive roles in the metadata are restored', (
+      tester,
+    ) async {
+      // Issue #1737: a restored dive links people by custom role id, so
+      // the role definitions the file carried have to land as well.
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await tester.runAsync(() => DiverRepository().createDiver(_testDiver()));
+
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 3, 15, 10, 0),
+              'maxDepth': 20.0,
+              'runtime': const Duration(minutes: 30),
+            },
+          ],
+        },
+        metadata: {
+          ImportPayload.customDiveRolesKey: [
+            {
+              'id': 'custom-uuid',
+              'name': 'Photographer',
+              'sortOrder': 10,
+              'isBuiltIn': false,
+            },
+          ],
+        },
+      );
+
+      final mockTankPresetRepo = MockTankPresetRepository();
+      when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          mockTankPresetRepo: mockTankPresetRepo,
+        ),
+        callback: (adapter) async {
+          await tester.runAsync(() async {
+            final bundle = await adapter.buildBundle();
+            final result = await adapter.performImport(bundle, {
+              wizard.ImportEntityType.dives: {0},
+            }, {});
+            expect(result.errorMessage, isNull);
+          });
+        },
+      );
+
+      final role = await tester.runAsync(
+        () => DiveRoleRepository().getDiveRoleById('custom-uuid'),
+      );
+      expect(role?.name, 'Photographer');
     });
 
     testWidgets(
