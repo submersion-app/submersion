@@ -11494,6 +11494,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Telt sinds $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'Te laat';
 
   @override
@@ -11672,7 +11677,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat';
+      'De klok telt vanaf deze datum tot je een nieuwere service vastlegt.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Referentiedatum wissen';

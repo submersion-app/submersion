@@ -575,6 +575,9 @@ class ServiceRecordNotifier
   }
 
   Future<ServiceRecord> addRecord(ServiceRecord record) async {
+    // A newer service takes a clock over from its baseline by the shared
+    // rule (clockAnchorFromServices) without the baseline being erased, so
+    // deleting that service later hands the clock back to the baseline.
     final newRecord = await _repository.createRecord(record);
     await refresh();
     return newRecord;
@@ -719,6 +722,20 @@ final serviceDueSoonWindowDaysProvider = FutureProvider<int>((ref) async {
   return repository.getDueSoonWindowDays(diverId: validatedDiverId);
 });
 
+/// Re-evaluates a clock provider when a service record or a schedule
+/// changes by any route. The notifiers invalidate after their own writes,
+/// but a record or schedule applied by sync writes neither, and a service
+/// can move a clock's anchor (see `clockAnchorFromServices`). Rare writes,
+/// so cheap even for the list-wide evaluation.
+void _invalidateOnServiceLedgerChanges(Ref ref) {
+  ref.invalidateSelfWhen(
+    ref.watch(serviceRecordRepositoryProvider).watchServiceRecordsChanges(),
+  );
+  ref.invalidateSelfWhen(
+    ref.watch(serviceScheduleRepositoryProvider).watchSchedulesChanges(),
+  );
+}
+
 /// Evaluates every enabled clock on [item] at this moment. [siblings] is the
 /// active gear list when the caller already has it, so the parent and
 /// children lookups cost no query per item.
@@ -787,6 +804,7 @@ final serviceClockStatusesProvider =
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
       );
+      _invalidateOnServiceLedgerChanges(ref);
       final item = await repository.getEquipmentById(equipmentId);
       if (item == null) return const [];
       return _evaluateClocksFor(ref, item);
@@ -816,6 +834,7 @@ final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
   // unlike the dive detail stream (media ticks it), which would re-evaluate
   // every item's clocks far too often for a list-wide provider.
   ref.invalidateSelfWhen(repository.watchAttributeChanges());
+  _invalidateOnServiceLedgerChanges(ref);
 
   final items = await repository.getActiveEquipment(diverId: validatedDiverId);
   final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
@@ -895,6 +914,7 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
       validatedCurrentDiverIdProvider.future,
     );
     ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+    _invalidateOnServiceLedgerChanges(ref);
 
     final items = await repository.getActiveEquipment(
       diverId: validatedDiverId,

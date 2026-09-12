@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
@@ -126,10 +127,29 @@ Future<void> showScheduleOverrideDialog(
   required ServiceSchedule schedule,
   required ServiceKind kind,
 }) async {
+  // Only a baseline the clock still counts from is offered for editing. A
+  // later service (logged here, synced in, or written by an older build)
+  // takes the clock over while the stored date stays (so deleting that
+  // service restores it); showing that date would claim a start the clock
+  // no longer uses.
+  final records = await ref
+      .read(serviceRecordRepositoryProvider)
+      .getRecordsForEquipment(schedule.equipmentId);
+  final inEffect = baselineInEffect(
+    serviceKindId: schedule.serviceKindId,
+    baseline: schedule.anchorDate,
+    baselineSetAt: schedule.anchorSetAt,
+    records: records,
+  );
+  if (!context.mounted) return;
   await showDialog<void>(
     context: context,
-    builder: (context) =>
-        _ScheduleOverrideDialog(schedule: schedule, kind: kind, ref: ref),
+    builder: (context) => _ScheduleOverrideDialog(
+      schedule: schedule,
+      kind: kind,
+      ref: ref,
+      initialBaseline: inEffect ? schedule.anchorDate : null,
+    ),
   );
 }
 
@@ -138,10 +158,15 @@ class _ScheduleOverrideDialog extends ConsumerStatefulWidget {
   final ServiceKind kind;
   final WidgetRef ref;
 
+  /// The baseline the clock counts from, or null when it has none in
+  /// effect (see [baselineInEffect]).
+  final DateTime? initialBaseline;
+
   const _ScheduleOverrideDialog({
     required this.schedule,
     required this.kind,
     required this.ref,
+    required this.initialBaseline,
   });
 
   @override
@@ -167,6 +192,11 @@ class _ScheduleOverrideDialogState
 
   DateTime? _anchorDate;
 
+  /// Whether the diver chose a date in the picker, even the one already
+  /// shown: that is what setting a baseline means, and it stamps the set
+  /// time that lets the baseline outrank earlier records.
+  bool _baselinePicked = false;
+
   @override
   void initState() {
     super.initState();
@@ -185,7 +215,7 @@ class _ScheduleOverrideDialogState
       text: cost == null ? '' : formatDecimalForInput(cost),
     );
     _defaultCurrency = s.defaultCurrency;
-    _anchorDate = s.anchorDate;
+    _anchorDate = widget.initialBaseline;
     _exposure = {
       for (final unit in ExposureUnit.mapUnits)
         unit: TextEditingController(
@@ -346,7 +376,12 @@ class _ScheduleOverrideDialogState
                       firstDate: DateTime(1950),
                       lastDate: DateTime.now(),
                     );
-                    if (picked != null) setState(() => _anchorDate = picked);
+                    if (picked != null) {
+                      setState(() {
+                        _anchorDate = picked;
+                        _baselinePicked = true;
+                      });
+                    }
                   },
                   child: InputDecorator(
                     decoration: InputDecoration(
@@ -386,6 +421,27 @@ class _ScheduleOverrideDialogState
           onPressed: () async {
             if (!(_formKey.currentState?.validate() ?? true)) return;
             final schedule = widget.schedule;
+            // Stamps the baseline's set time when the date changed or was
+            // picked, so records logged before it cannot outrank it. A
+            // pre-v213 baseline shown here (only while no service of the kind
+            // exists, see baselineInEffect) is stamped too: that moves
+            // nothing now, and makes the hint's promise hold from here on.
+            // A baseline a later service took over is hidden, not dropped:
+            // left untouched it stays stored, so deleting that service hands
+            // the clock back to it.
+            final hiddenUntouched =
+                widget.initialBaseline == null &&
+                _anchorDate == null &&
+                !_baselinePicked;
+            final legacyInEffect =
+                widget.initialBaseline != null && schedule.anchorSetAt == null;
+            final baseline = hiddenUntouched
+                ? schedule
+                : schedule.withBaseline(
+                    _anchorDate,
+                    now: DateTime.now(),
+                    picked: _baselinePicked || legacyInEffect,
+                  );
             // copyWith cannot null a field; build the updated entity directly.
             final updated = ServiceSchedule(
               id: schedule.id,
@@ -399,7 +455,8 @@ class _ScheduleOverrideDialogState
               }),
               defaultCost: parseUserDecimal(_defaultCost.text),
               defaultCurrency: _defaultCurrency,
-              anchorDate: _anchorDate,
+              anchorDate: baseline.anchorDate,
+              anchorSetAt: baseline.anchorSetAt,
               enabled: schedule.enabled,
               createdAt: schedule.createdAt,
               updatedAt: schedule.updatedAt,

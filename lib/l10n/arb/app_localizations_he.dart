@@ -11321,6 +11321,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'נספר מאז $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'באיחור';
 
   @override
@@ -11495,7 +11500,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'בשימוש כאשר עדיין אין רשומת טיפול מסוג זה';
+      'השעון סופר מתאריך זה עד שתתעד טיפול חדש יותר.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'ניקוי תאריך הבסיס';

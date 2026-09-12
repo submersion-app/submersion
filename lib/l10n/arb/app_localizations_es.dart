@@ -11579,6 +11579,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Contando desde $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'Vencido';
 
   @override
@@ -11759,7 +11764,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Se usa cuando todavía no existe ningún registro de mantenimiento de este tipo';
+      'El reloj cuenta desde esta fecha hasta que registres un mantenimiento más reciente.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>
