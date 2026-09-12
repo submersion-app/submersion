@@ -1,6 +1,9 @@
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_source.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+const _log = LoggerService('BathymetryResolver');
 
 /// The outcome of walking the source tiers for one coordinate.
 ///
@@ -29,12 +32,6 @@ class BathymetryResolution {
 class BathymetryResolver {
   static const double minWetFraction = 0.10;
 
-  /// A grid must actually have readings. EMODnet's Caribbean tile answers
-  /// 99.96% wet on 48% coverage, and the missing half renders as a flat
-  /// slab at the waterline. Coverage that thin is not usable terrain, and
-  /// it is not an answer about the water either.
-  static const double minKnownFraction = 0.60;
-
   /// How much finer a source must be to jump ahead of the declared list
   /// order. Declared resolution is a claim, so only a MATERIAL difference
   /// may override the curated tier order: NOAA CUDEM at 3.4 m preempts
@@ -59,24 +56,45 @@ class BathymetryResolver {
     for (final source in ordered) {
       try {
         final grid = await source.fetch(center, spanMeters: defaultSpanMeters);
-        if (grid.knownFraction < minKnownFraction) {
+        if (grid.knownFraction < source.minKnownFraction) {
           // Nominally fine, actually absent. Deliberately NOT treated as a
           // dry answer: a grid this empty proves nothing about the water,
-          // and caching it as 'empty' would pin the cell forever.
+          // and caching it as 'empty' would pin the cell forever. The
+          // floor itself is per-source -- see [BathymetrySource.
+          // minKnownFraction]'s doc for why the same number is wrong for a
+          // regional, already-confirmed-covered source like swissBATHY3D.
+          _log.debug(
+            '${source.id} rejected at ${center.latitude},${center.longitude}: '
+            'knownFraction ${grid.knownFraction} < ${source.minKnownFraction}',
+          );
           continue;
         }
         if (grid.wetFraction >= minWetFraction) {
           return BathymetryResolution.ok(grid);
         }
+        _log.debug(
+          '${source.id} rejected at ${center.latitude},${center.longitude}: '
+          'wetFraction ${grid.wetFraction} < $minWetFraction',
+        );
         // A dry answer only proves "no water here" if the source actually
         // covers everywhere; a regional edge cell proves nothing.
         if (source.global) globalSourceSaidDry = true;
-      } on BathymetryFetchException {
+      } on BathymetryFetchException catch (e) {
         // Transient: fall through to the next source.
-      } catch (_) {
+        _log.warning(
+          '${source.id} fetch failed at ${center.latitude},${center.longitude}',
+          error: e,
+        );
+      } catch (e, stackTrace) {
         // A source blowing up with anything else (a TypeError from an
         // unexpected response shape, an ArgumentError) must not kill the
         // whole scene: treat it exactly like a transient failure.
+        _log.warning(
+          '${source.id} fetch threw unexpectedly at '
+          '${center.latitude},${center.longitude}',
+          error: e,
+          stackTrace: stackTrace,
+        );
       }
     }
     return globalSourceSaidDry

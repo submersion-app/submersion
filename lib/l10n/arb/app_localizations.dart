@@ -19288,6 +19288,12 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get equipment_detail_errorTitle;
 
+  /// No description provided for @equipment_detail_installedInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed in'**
+  String get equipment_detail_installedInLabel;
+
   /// No description provided for @equipment_detail_lastServiceLabel.
   ///
   /// In en, this message translates to:
@@ -19335,6 +19341,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Owned For'**
   String get equipment_detail_ownedForLabel;
+
+  /// No description provided for @equipment_detail_parentWithStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({status})'**
+  String equipment_detail_parentWithStatus(String name, String status);
 
   /// No description provided for @equipment_detail_purchaseDateLabel.
   ///
@@ -19959,6 +19971,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View trips using this equipment'**
   String get equipment_detail_tripsSemanticLabel;
+
+  /// No description provided for @equipment_detail_wasInstalledInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Was installed in'**
+  String get equipment_detail_wasInstalledInLabel;
 
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///
@@ -33492,6 +33510,24 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get tags_manage_title;
 
+  /// Section header above the auto-tag-imports switch on the tag management screen
+  ///
+  /// In en, this message translates to:
+  /// **'Imports'**
+  String get tags_manage_importsSection;
+
+  /// Switch title for auto-tagging every new import session
+  ///
+  /// In en, this message translates to:
+  /// **'Tag imports automatically'**
+  String get tags_manage_autoTagImports;
+
+  /// Switch subtitle for auto-tagging every new import session
+  ///
+  /// In en, this message translates to:
+  /// **'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.'**
+  String get tags_manage_autoTagImports_subtitle;
+
   /// No description provided for @tags_manage_searchHint.
   ///
   /// In en, this message translates to:
@@ -41108,6 +41144,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use dive numbers from the imported file instead of auto-assigning'**
   String get universalImport_label_retainDiveNumbersSubtitle;
+
+  /// Switch title for the session-only auto-tag override in the import options sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Tag this import automatically'**
+  String get universalImport_label_autoTagThisImport;
+
+  /// Switch subtitle for the session-only auto-tag override in the import options sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Starts from your saved preference in Tags settings. Changing it here only affects this import.'**
+  String get universalImport_label_autoTagThisImportSubtitle;
 
   /// Title shown when dives are successfully imported
   ///

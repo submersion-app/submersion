@@ -2115,6 +2115,15 @@ class DiverSettings extends Table {
   /// the list, so existing divers opt in rather than being reorganised.
   BoolColumn get groupTripsInDiveList =>
       boolean().withDefault(const Constant(false))();
+
+  /// Pre-populate every import with a "{source} Import {date}" tag (v211,
+  /// issue #998). On by default, matching the wizard's long-standing
+  /// behavior; divers who find the tags pile up too fast can turn this off
+  /// from the tag management screen. This is only the starting point for a
+  /// new import session -- the review step's Import Options sheet lets the
+  /// diver override it for that one import without touching this default.
+  BoolColumn get autoTagImports =>
+      boolean().withDefault(const Constant(true))();
   // List view modes for other features (v52)
   TextColumn get siteListViewMode =>
       text().withDefault(const Constant('detailed'))();
@@ -4649,10 +4658,14 @@ class AppDatabase extends _$AppDatabase {
     // parent, so a stale copy from a peer cannot overwrite a newer edit.
     // 209 is claimed by #1639, still open.
     210,
+    // v211: diver_settings.auto_tag_imports (issue #998). Additive defaulted
+    // boolean, no backfill. Renumbered from 208: main's own v208 (issue
+    // #478) and v210 (#1769) landed while this branch was open, and a rung
+    // at or below the shipped version never runs its onUpgrade step.
+    211,
     // v213: service_schedules.anchor_set_at, so a baseline date the diver
     // sets outranks the service records logged before it. Column-only, no
-    // backfill. 211 and 212 are claimed by #1639 (stop minimums, planner gas
-    // options), still open.
+    // backfill. 212 is claimed by #1639 (planner gas options), still open.
     213,
   ];
 
@@ -7900,6 +7913,22 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
       'INTEGER NOT NULL DEFAULT 0',
+    );
+  }
+
+  /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
+  /// Existing rows default to on, matching the wizard's prior behavior of
+  /// always pre-filling an import tag.
+  Future<void> _assertAutoTagImportsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('auto_tag_imports')) return;
+    await customStatement(
+      'ALTER TABLE diver_settings ADD COLUMN '
+      'auto_tag_imports INTEGER NOT NULL DEFAULT 1',
     );
   }
 
@@ -11856,6 +11885,15 @@ class AppDatabase extends _$AppDatabase {
           await _assertChildHlcColumns();
         }
         if (from < 210) await reportProgress();
+        // v211: diver_settings.auto_tag_imports (issue #998). Column-only
+        // rung, no backfill. Existing rows default to on, so a device that
+        // upgrades keeps auto-tagging its imports until the diver turns it
+        // off. Renumbered from 208: main's own v208 (issue #478) and v210
+        // (#1769) landed while this branch was open.
+        if (from < 211) {
+          await _assertAutoTagImportsColumn();
+        }
+        if (from < 211) await reportProgress();
         // v213: service_schedules.anchor_set_at. Column-only, no backfill:
         // a null keeps the pre-v213 rule for every existing baseline.
         if (from < 213) {
@@ -11864,6 +11902,9 @@ class AppDatabase extends _$AppDatabase {
         if (from < 213) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v211 backstop: re-assert diver_settings.auto_tag_imports.
+        await _assertAutoTagImportsColumn();
+
         // v210 backstop: the dive_tanks equipment link sets null on delete.
         // First, while foreign keys are still off: the rebuild it may do
         // drops the table, which with enforcement on would cascade into the

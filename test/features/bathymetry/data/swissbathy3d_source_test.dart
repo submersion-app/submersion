@@ -12,6 +12,7 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/utils/lv95_transform.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cache_repository.dart';
+import 'package:submersion/features/bathymetry/data/sources/swiss_lake_levels.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_stac_client.dart';
 import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
@@ -308,6 +309,86 @@ nodata_value -9999
       },
     );
 
+    test(
+      'a wide-span fetch converts each tile with ITS OWN lake\'s reference '
+      'level, not the fetch center\'s (regression: Rotsee vs. '
+      'Vierwaldstättersee, ~14.6 m depth error, Copilot review on #1756)',
+      () async {
+        // Real registered bboxes: Rotsee (a small, real, physically separate
+        // lake) sits entirely inside Vierwaldstättersee's bounding box, so a
+        // Rotsee-centered 8 km fetch reaches tiles that are genuinely
+        // Vierwaldstättersee, not Rotsee -- confirmed live via
+        // findSwissLake: tile 2666_1213 (this fetch's center) is Rotsee,
+        // tile 2666_1215 (2 km north, still within the requested span) is
+        // Vierwaldstättersee.
+        const rotseeTileE = 2666;
+        const rotseeTileN = 1213;
+        const vierwaldstaetterTileN = 1215;
+        final center = Lv95Transform.toWgs84(
+          (rotseeTileE + 0.5) * 1000,
+          (rotseeTileN + 0.5) * 1000,
+        );
+        final centerPoint = GeoPoint(center.latitude, center.longitude);
+        expect(findSwissLake(centerPoint)?.name, 'Rotsee');
+
+        // Both tiles carry the exact same raw LN02 elevation (400.0), so any
+        // difference in the resulting depth can only come from which lake's
+        // mean level was applied to convert it -- isolating the bug from
+        // every other moving part.
+        String tileAsc(int tileE, int tileN) =>
+            'ncols 2\n'
+            'nrows 2\n'
+            'xllcorner ${tileE * 1000}\n'
+            'yllcorner ${tileN * 1000}\n'
+            'cellsize 500\n'
+            'nodata_value -9999\n'
+            '400.0 400.0\n'
+            '400.0 400.0\n';
+
+        final source = buildSource((req) async {
+          if (req.url.path.endsWith('/items')) {
+            final bbox = _requestedBbox(req);
+            final centerLat = (bbox[1] + bbox[3]) / 2;
+            final isVierwaldstaetterTile =
+                centerLat >
+                Lv95Transform.toWgs84(
+                  (rotseeTileE + 0.5) * 1000,
+                  (rotseeTileN + 1.5) * 1000,
+                ).latitude;
+            final href = isVierwaldstaetterTile
+                ? 'https://example.org/vw_tile.zip'
+                : 'https://example.org/rotsee_tile.zip';
+            return http.Response(
+              jsonEncode({
+                'features': [
+                  {
+                    'bbox': bbox,
+                    'assets': {
+                      'grid': {'href': href},
+                    },
+                  },
+                ],
+              }),
+              200,
+            );
+          }
+          final body = req.url.path.endsWith('vw_tile.zip')
+              ? tileAsc(rotseeTileE, vierwaldstaetterTileN)
+              : tileAsc(rotseeTileE, rotseeTileN);
+          return http.Response.bytes(_zipOf('tile.asc', body), 200);
+        });
+
+        final grid = await source.fetch(centerPoint, spanMeters: 8000);
+
+        final depths = grid.depthsMeters.whereType<double>().toSet();
+        // Rotsee: 419.00 - 400.0. Vierwaldstättersee: 433.58 - 400.0. Before
+        // the fix, every tile used the center's Rotsee level, so only the
+        // first value would ever appear.
+        expect(depths, contains(closeTo(419.00 - 400.0, 1e-6)));
+        expect(depths, contains(closeTo(433.58 - 400.0, 1e-6)));
+      },
+    );
+
     test('multiple distinct tile coordinates that resolve to the same STAC '
         'asset href download and parse it only once', () async {
       // Regression test for the real Bug 12 symptom, reported via the
@@ -546,6 +627,149 @@ nodata_value -9999
       expect(secondGrid.depthAt(0, 0), isNot(firstGrid.depthAt(0, 0)));
       expect(thirdGrid.depthAt(0, 0), isNot(firstGrid.depthAt(0, 0)));
       expect(secondGrid.depthAt(0, 0), isNot(thirdGrid.depthAt(0, 0)));
+    });
+
+    test('only parses zip entries whose filename-declared tile is near the '
+        'requested one, never a distant entry that happens to share the '
+        'asset -- proven by giving the distant entry unparseable content '
+        'that would blow up the whole fetch if it were ever read', () async {
+      // Regression test for the selective-parse optimization added after a
+      // live measurement found a large lake's asset zip (Bodensee: 751
+      // entries, 237 MB) takes tens of seconds and ~1 GB of RAM to parse in
+      // full just to answer one 1-km tile's query. If the filename-based
+      // prefilter in extractGridZipTextsFiltered ever regresses to "parse
+      // everything regardless of name", this test fails loudly (a
+      // FormatException from the garbage entry) instead of silently, since
+      // functional correctness alone (Bug 15's test) cannot tell "parsed
+      // and discarded" apart from "never parsed".
+      const cellsPerTile = 4;
+      String row(double value) => List.filled(cellsPerTile, value).join(' ');
+      String tileAsc(int tileE, int tileN, double value) =>
+          'ncols $cellsPerTile\n'
+          'nrows $cellsPerTile\n'
+          'xllcorner ${tileE * 1000}\n'
+          'yllcorner ${tileN * 1000}\n'
+          'cellsize 250\n'
+          'nodata_value -9999\n'
+          '${List.filled(cellsPerTile, row(value)).join('\n')}\n';
+
+      var downloadCalls = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': [8.0, 46.0, 10.0, 48.0],
+                  'assets': {
+                    'grid': {'href': 'https://example.org/lake_wide.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        downloadCalls++;
+        return http.Response.bytes(
+          _zipOfMultiple({
+            // Matches the requested tile (2685_1240, see zurichseePoint's
+            // own tile fixture at the top of this file).
+            'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+              2685,
+              1240,
+              111.0,
+            ),
+            // 15 tiles away -- well outside the ±1 neighborhood -- and
+            // deliberately not valid ESRI ASCII grid content at all. If
+            // this entry is ever decompressed and handed to
+            // EsriAsciiGridParser.parseRaw, the whole fetch throws.
+            'swissBATHY3D_CHLV95_LN02_2700_1240.asc': 'not a valid grid at all',
+          }),
+          200,
+        );
+      });
+
+      final grid = await source.fetch(zurichseePoint, spanMeters: 100);
+
+      expect(downloadCalls, 1);
+      const referenceLevel = 405.92; // Zürichsee
+      expect(grid.depthAt(0, 0), closeTo(referenceLevel - 111.0, 1e-9));
+    });
+
+    test('two distinct tiles requested within one fetch() call that share an '
+        'asset href each resolve their own filename-filtered entry, not a '
+        'neighboring tile\'s (regression: sharing the FILTERED/parsed '
+        'result across tiles -- rather than just the downloaded bytes -- '
+        'would silently starve whichever tile\'s entry was not part of the '
+        'other\'s neighborhood)', () async {
+      const cellsPerTile = 4;
+      String row(double value) => List.filled(cellsPerTile, value).join(' ');
+      String tileAsc(int tileE, int tileN, double value) =>
+          'ncols $cellsPerTile\n'
+          'nrows $cellsPerTile\n'
+          'xllcorner ${tileE * 1000}\n'
+          'yllcorner ${tileN * 1000}\n'
+          'cellsize 250\n'
+          'nodata_value -9999\n'
+          '${List.filled(cellsPerTile, row(value)).join('\n')}\n';
+
+      var downloadCalls = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': [8.0, 46.0, 10.0, 48.0],
+                  'assets': {
+                    'grid': {'href': 'https://example.org/shared_lake.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        downloadCalls++;
+        return http.Response.bytes(
+          _zipOfMultiple({
+            'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+              2685,
+              1240,
+              111.0,
+            ),
+            // 3 tiles east: outside tile 2685's own ±1 neighborhood
+            // (2684-2686), so the pre-fix (sharing a single filtered
+            // result across every tile in the fetch) would have this
+            // entry available only to whichever tile's request happened
+            // to trigger the download first.
+            'swissBATHY3D_CHLV95_LN02_2688_1240.asc': tileAsc(
+              2688,
+              1240,
+              222.0,
+            ),
+          }),
+          200,
+        );
+      });
+
+      final center = Lv95Transform.toWgs84(2687000, 1240500);
+      // Wide enough to span both tile 2685 and tile 2688 (and the tiles in
+      // between/around them) in a single fetch() call, so both requests
+      // share one `sharedZipBytes` entry for this href.
+      await source.fetch(
+        GeoPoint(center.latitude, center.longitude),
+        spanMeters: 2400,
+      );
+      expect(downloadCalls, 1);
+
+      final tileCache = SwissBathyTileCacheRepository(db);
+      final west = await tileCache.read('2685_1240');
+      final east = await tileCache.read('2688_1240');
+      const referenceLevel = 405.92; // Zürichsee
+      expect(west!.grid.depthAt(0, 0), closeTo(referenceLevel - 111.0, 1e-9));
+      expect(east!.grid.depthAt(0, 0), closeTo(referenceLevel - 222.0, 1e-9));
     });
 
     test('falls through to the next STAC candidate when the first one\'s '
@@ -826,15 +1050,20 @@ nodata_value -9999
       expect(downloadCalls, 0);
     });
 
-    test('a transient failure on one tile does not sink neighboring tiles that '
-        'already succeeded', () async {
+    test('a transient failure on one tile fails the whole fetch, even when a '
+        'neighboring tile already succeeded, so the outer repository never '
+        'caches a partial grid as a complete, definitive answer (regression: '
+        'with minKnownFraction at 0.0, a span that mostly failed transiently '
+        'but had one wet tile survive would otherwise pass every floor and '
+        'get cached as "ok", permanently starving the failed tiles of a '
+        'retry -- Copilot review)', () async {
       // Same boundary point/span as the stitching test above: exactly two
-      // tiles. Tile A (west) always succeeds; tile B (east) always returns a
-      // server error, simulating the kind of one-off network hiccup that
-      // becomes likely once a single site view can span dozens of tiles.
-      // Routed by the request's own bbox rather than call order, since
-      // bounded-concurrency fetches no longer guarantee which tile's
-      // request lands first.
+      // tiles. Tile A (west) always succeeds; tile B (east) always
+      // returns a server error, simulating the kind of one-off network
+      // hiccup that becomes likely once a single site view can span
+      // dozens of tiles. Routed by the request's own bbox rather than
+      // call order, since bounded-concurrency fetches no longer guarantee
+      // which tile's request lands first.
       const boundaryPoint = GeoPoint(47.354865314, 8.563694834);
       final boundaryLon = Lv95Transform.toWgs84(2685000, 1245500).longitude;
       const tileAGrid = '''
@@ -847,14 +1076,28 @@ nodata_value -9999
 400.0 400.0
 400.0 400.0
 ''';
+      const tileBGrid = '''
+ncols 2
+nrows 2
+xllcorner 2685000
+yllcorner 1245000
+cellsize 500
+nodata_value -9999
+410.0 410.0
+410.0 410.0
+''';
 
       var itemCalls = 0;
+      var tileAItemCalls = 0;
+      var tileBItemCalls = 0;
+      var tileADownloads = 0;
       final source = buildSource((req) async {
         if (req.url.path.endsWith('/items')) {
           itemCalls++;
           final bbox = _requestedBbox(req);
           final centerLon = (bbox[0] + bbox[2]) / 2;
           if (centerLon < boundaryLon) {
+            tileAItemCalls++;
             return http.Response(
               jsonEncode({
                 'features': [
@@ -869,26 +1112,46 @@ nodata_value -9999
               200,
             );
           }
-          return http.Response('server error', 500);
+          tileBItemCalls++;
+          // Fails only on the first attempt -- a one-off network hiccup
+          // that has since recovered by the retry below.
+          if (tileBItemCalls == 1) return http.Response('server error', 500);
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': bbox,
+                  'assets': {
+                    'grid': {'href': 'https://example.org/tile_b.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
         }
+        if (req.url.path.endsWith('tile_b.zip')) {
+          return http.Response.bytes(_zipOf('tile.asc', tileBGrid), 200);
+        }
+        tileADownloads++;
         return http.Response.bytes(_zipOf('tile.asc', tileAGrid), 200);
       });
 
-      // Must not throw despite the second tile's 500: tile A's data is
-      // still returned instead of the whole fetch failing.
-      final grid = await source.fetch(boundaryPoint, spanMeters: 200);
-
+      await expectLater(
+        source.fetch(boundaryPoint, spanMeters: 200),
+        throwsA(isA<BathymetryFetchException>()),
+      );
       expect(itemCalls, 2);
-      expect(grid.rows, 2);
-      expect(grid.cols, 2);
-      expect(grid.depthAt(0, 0), closeTo(405.92 - 400.0, 1e-6));
+      expect(tileADownloads, 1);
 
-      // The failed tile was never cached as a definitive answer, so a
-      // later retry (e.g. once the network recovers) queries it again
-      // rather than being permanently stuck as "no data".
+      // Tile A's own success is still durably cached even though the
+      // overall fetch threw -- a retry only re-queries the tile that
+      // actually failed, not a full re-download of the whole span.
       final again = await source.fetch(boundaryPoint, spanMeters: 200);
-      expect(itemCalls, 3);
+      expect(tileAItemCalls, 1);
+      expect(tileADownloads, 1);
       expect(again.depthAt(0, 0), closeTo(405.92 - 400.0, 1e-6));
+      expect(again.depthAt(0, 2), closeTo(405.92 - 410.0, 1e-6));
     });
 
     test('throws when every tile in the span fails transiently, so the '
@@ -2172,6 +2435,9 @@ class _FakeFallbackSource implements BathymetrySource {
 
   @override
   bool get global => true;
+
+  @override
+  double get minKnownFraction => 0.60;
 
   @override
   Future<SourceCapability?> probe(GeoPoint center) async =>

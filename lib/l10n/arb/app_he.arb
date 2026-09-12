@@ -3663,6 +3663,7 @@
   "equipment_detail_editTooltipShort": "ערוך",
   "equipment_detail_errorMessage": "שגיאה: {error}",
   "equipment_detail_errorTitle": "שגיאה",
+  "equipment_detail_installedInLabel": "מותקן ב",
   "equipment_detail_lastServiceLabel": "טיפול אחרון",
   "equipment_detail_loadingTitle": "טוען...",
   "equipment_detail_modelLabel": "דגם",
@@ -3671,6 +3672,17 @@
   "equipment_detail_notFoundTitle": "הציוד לא נמצא",
   "equipment_detail_notesTitle": "הערות",
   "equipment_detail_ownedForLabel": "בבעלות",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "תאריך רכישה",
   "equipment_detail_purchasePriceLabel": "מחיר רכישה",
   "equipment_detail_retiredChip": "הוצא משימוש",
@@ -3839,6 +3851,7 @@
   "equipment_detail_tripsCountSingular": "{count} טיול",
   "equipment_detail_tripsLabel": "טיולים",
   "equipment_detail_tripsSemanticLabel": "צפה בטיולים המשתמשים בציוד זה",
+  "equipment_detail_wasInstalledInLabel": "היה מותקן ב",
   "equipment_edit_appBar_editTitle": "ערוך ציוד",
   "equipment_edit_appBar_newTitle": "ציוד חדש",
   "equipment_edit_appBar_saveButton": "שמור",
@@ -6082,6 +6095,8 @@
   "importWizard_photos_destinationUnwritable": "לא ניתן לכתוב לתיקייה זו. בחרו תיקייה אחרת.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{צלילה ישנה אחת דולגה — כבר ביומן שלך} other{{count} צלילות ישנות דולגו — כבר ביומן שלך}}",
   "tags_hint_addTags": "הוסף תגיות...",
+  "tags_manage_autoTagImports": "תיוג אוטומטי של ייבואים",
+  "tags_manage_autoTagImports_subtitle": "כל ייבוא חדש מתחיל עם תגית הנושאת את שם המקור והתאריך. אפשר לשנות זאת לייבוא בודד באפשרויות אותו ייבוא.",
   "tags_manage_bulkDeleteMessage": "תגיות אלו יוסרו מ-{diveCount, plural, =0{0 צלילות} =1{צלילה אחת} other{{diveCount} צלילות}} בסך הכל. לא ניתן לבטל פעולה זו.",
   "tags_manage_bulkDeleteTitle": "למחוק {count} תגיות?",
   "tags_manage_colorLabel": "צבע",
@@ -6091,6 +6106,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 צלילות} =1{צלילה אחת} other{{count} צלילות}}",
   "tags_manage_editTitle": "ערוך תגית",
   "tags_manage_emptyState": "אין עדיין תגיות. צור אחת כדי להתחיל.",
+  "tags_manage_importsSection": "ייבוא",
   "tags_manage_mergeAction": "מיזוג",
   "tags_manage_mergeAffectedDives": "פעולה זו תשפיע על {count, plural, =0{0 צלילות} =1{צלילה אחת} other{{count} צלילות}} בסך הכל.",
   "tags_manage_mergeKeepFrom": "או שמור שם מ:",
@@ -7269,6 +7285,8 @@
   "universalImport_label_replacedSourceData": "נתוני מקור הוחלפו",
   "universalImport_label_retainDiveNumbers": "שמור על מספרי הצלילה מהמקור",
   "universalImport_label_retainDiveNumbersSubtitle": "השתמש במספרי הצלילה מהקובץ המיובא במקום להקצות אוטומטית",
+  "universalImport_label_autoTagThisImport": "תיוג אוטומטי של ייבוא זה",
+  "universalImport_label_autoTagThisImportSubtitle": "מתחיל מההעדפה השמורה שלך בהגדרות התגיות. שינוי כאן משפיע רק על ייבוא זה.",
   "universalImport_title_importOptions": "אפשרויות ייבוא",
   "universalImport_title_noDivesImported": "לא יובאו צלילות",
   "universalImport_title_successConsolidated": "אוחדו בהצלחה",

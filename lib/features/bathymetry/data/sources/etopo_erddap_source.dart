@@ -33,6 +33,11 @@ class EtopoErddapSource implements BathymetrySource {
   @override
   bool get global => true;
 
+  /// See [BathymetrySource.minKnownFraction]'s doc: unchanged from the
+  /// resolver's original default for a global source.
+  @override
+  double get minKnownFraction => 0.60;
+
   static const double declaredCellSizeMeters = _resolutionMeters;
 
   @override

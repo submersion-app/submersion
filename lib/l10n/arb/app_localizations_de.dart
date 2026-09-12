@@ -11472,6 +11472,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Fehler';
 
   @override
+  String get equipment_detail_installedInLabel => 'Eingebaut in';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Letzte Wartung';
 
   @override
@@ -11495,6 +11498,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'Im Besitz seit';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Kaufdatum';
@@ -11900,6 +11908,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Reisen mit dieser Ausrüstung anzeigen';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'War eingebaut in';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Ausrüstung bearbeiten';
@@ -20315,6 +20326,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_manage_title => 'Tags';
 
   @override
+  String get tags_manage_importsSection => 'Import';
+
+  @override
+  String get tags_manage_autoTagImports => 'Importe automatisch taggen';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Jeder neue Import startet mit einem Tag, das Quelle und Datum nennt. Für einen einzelnen Import lässt sich dies in dessen Import-Optionen ändern.';
+
+  @override
   String get tags_manage_searchHint => 'Tags suchen...';
 
   @override
@@ -25035,6 +25056,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Tauchgangsnummern aus der importierten Datei verwenden, statt automatisch zuzuweisen';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Diesen Import automatisch taggen';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'Startet mit deiner gespeicherten Einstellung unter Tags. Eine Änderung hier gilt nur für diesen Import.';
 
   @override
   String get universalImport_title_successImported => 'Erfolgreich importiert';

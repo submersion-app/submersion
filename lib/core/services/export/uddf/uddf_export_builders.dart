@@ -130,21 +130,17 @@ class UddfExportBuilders {
   }) {
     // Separate buddies by role for UDDF export. Leaders map to UDDF leader
     // elements; every other role (including custom roles) exports as a plain
-    // buddy. Solo exports as neither.
-    const leaderRoleIds = {
-      DiveRole.diveGuideId,
-      DiveRole.diveMasterId,
-      DiveRole.instructorId,
-    };
+    // buddy. Solo exports as neither. The exact role of each person rides in
+    // the private <buddyroles> block (see buildApplicationData).
     final regularBuddies = diveBuddyList
         .where(
           (b) =>
-              !leaderRoleIds.contains(b.role.id) &&
+              !DiveRole.leaderIds.contains(b.role.id) &&
               b.role.id != DiveRole.soloId,
         )
         .toList();
     final guidesAndDivemasters = diveBuddyList
-        .where((b) => leaderRoleIds.contains(b.role.id))
+        .where((b) => DiveRole.leaderIds.contains(b.role.id))
         .toList();
 
     // Find the trip this dive belongs to
@@ -288,6 +284,7 @@ class UddfExportBuilders {
             if (dive.isPlanned) {
               builder.element('isplanned', nest: 'true');
             }
+            buildDiverRole(builder, dive);
             // Course association
             if (dive.courseId != null) {
               builder.element(
@@ -894,6 +891,18 @@ class UddfExportBuilders {
     );
   }
 
+  /// The logbook owner's own role on [dive] as a custom `<diverrole>`
+  /// element inside `informationbeforedive` (not UDDF standard). Holds the
+  /// dive role id verbatim; a custom role's definition travels in the
+  /// `<diveroles>` block of a full backup. Shared by the full and the
+  /// dives-only dive builders.
+  static void buildDiverRole(XmlBuilder builder, Dive dive) {
+    final roleId = dive.diverRoleId;
+    if (roleId != null && roleId.isNotEmpty) {
+      builder.element('diverrole', nest: roleId);
+    }
+  }
+
   static bool _hasProvenance(GearLink g) =>
       g.viaEquipmentId != null || g.viaSetId != null;
 
@@ -918,6 +927,7 @@ class UddfExportBuilders {
     Map<String, String?> dataSourceDumps = const {},
     List<EquipmentComponent>? components,
     List<Dive>? gearLinkDives,
+    Map<String, List<BuddyWithRole>>? diveBuddies,
   }) {
     // Gear provenance per dive (issue #1487): only rows attached through
     // an assembly or applied from a set are worth a link; the standard
@@ -926,10 +936,21 @@ class UddfExportBuilders {
       for (final d in gearLinkDives ?? const <Dive>[])
         if (d.gear.any(_hasProvenance)) d,
     ];
+    // Exact per-dive roles (issue #1737): the standard sections flatten
+    // every leader into <divemaster> text and every other role into a
+    // plain buddy link, so each row whose role is not plain buddy is
+    // recorded here to be restored exactly.
+    final roleRows = <String, List<BuddyWithRole>>{
+      for (final entry in (diveBuddies ?? const {}).entries)
+        if (entry.value.where((b) => b.role.id != DiveRole.buddyId).toList()
+            case final rows when rows.isNotEmpty)
+          entry.key: rows,
+    };
     final hasData =
         (equipment?.isNotEmpty ?? false) ||
         (components?.isNotEmpty ?? false) ||
         linkDives.isNotEmpty ||
+        roleRows.isNotEmpty ||
         (certifications?.isNotEmpty ?? false) ||
         (diveCenters?.isNotEmpty ?? false) ||
         (species?.isNotEmpty ?? false) ||
@@ -1489,6 +1510,31 @@ class UddfExportBuilders {
                                 'via': 'equip_${g.viaEquipmentId}',
                               if (g.viaSetId != null)
                                 'set': 'set_${g.viaSetId}',
+                            },
+                          );
+                        }
+                      },
+                    );
+                  }
+                },
+              );
+            }
+
+            if (roleRows.isNotEmpty) {
+              builder.element(
+                'buddyroles',
+                nest: () {
+                  for (final entry in roleRows.entries) {
+                    builder.element(
+                      'dive',
+                      attributes: {'ref': 'dive_${entry.key}'},
+                      nest: () {
+                        for (final row in entry.value) {
+                          builder.element(
+                            'buddy',
+                            attributes: {
+                              'ref': 'buddy_${row.buddy.id}',
+                              'role': row.role.id,
                             },
                           );
                         }

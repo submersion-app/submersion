@@ -1768,6 +1768,7 @@ class UddfEntityImporter {
     final diveIdByIndex = <int, String>{};
     final diveIdBySourceUuid = <String, String>{};
     final inlineBuddyIds = <String>{};
+    final roleExists = <String, bool>{};
 
     // Sort selected indices by dateTime (oldest first) for sequential
     // numbering. An undated dive is stored at [now] further down, so it has
@@ -2066,6 +2067,21 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
+      // The diver's own role. A custom role this diver lacks (its definition
+      // never arrived, or it belongs to another diver) leaves the dive with
+      // no role rather than one this diver's role list cannot resolve.
+      final diverRoleValue = diveData['diverRoleId'];
+      final diverRoleId =
+          diverRoleValue is String &&
+              diverRoleValue.isNotEmpty &&
+              await _roleExists(
+                diverRoleValue,
+                diverId,
+                repos.diveRoleRepository,
+                roleExists,
+              )
+          ? diverRoleValue
+          : null;
       final isFavorite = diveData['isFavorite'] as bool? ?? false;
       final excludedFromStats = diveData['excludedFromStats'] as bool? ?? false;
       final excludedFromGasStats =
@@ -2151,6 +2167,7 @@ class UddfEntityImporter {
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
+        diverRoleId: diverRoleId,
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
@@ -2378,6 +2395,8 @@ class UddfEntityImporter {
         diverId,
         buddyIdMapping,
         repos.buddyRepository,
+        roleRepository: repos.diveRoleRepository,
+        roleExists: roleExists,
       );
       inlineBuddyIds.addAll(linkedIds);
 
@@ -2686,8 +2705,10 @@ class UddfEntityImporter {
     String diveId,
     String diverId,
     Map<String, String> buddyIdMapping,
-    BuddyRepository repository,
-  ) async {
+    BuddyRepository repository, {
+    DiveRoleRepository? roleRepository,
+    required Map<String, bool> roleExists,
+  }) async {
     // Link referenced buddies (from pre-imported buddy entities)
     final buddyRefsValue = diveData['buddyRefs'];
     final buddyRefs = buddyRefsValue is List
@@ -2745,7 +2766,52 @@ class UddfEntityImporter {
       inlineIds.add(guide.id);
     }
 
+    // Exact roles from Submersion's private <buddyroles> block (issue
+    // #1737). Applied last: addBuddyToDive keeps one row per person, so
+    // these override any role inferred from the standard elements. A role
+    // this database lacks can only be a custom role whose definition never
+    // arrived, which the standard elements carried as a plain buddy.
+    final roleRefsValue = diveData['buddyRoleRefs'];
+    final roleRefs = roleRefsValue is List ? roleRefsValue : const [];
+    for (final entry in roleRefs) {
+      if (entry is! Map) continue;
+      final buddyRef = entry['buddyRef'];
+      final roleId = entry['roleId'];
+      if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
+      final newBuddyId = buddyIdMapping[buddyRef];
+      if (newBuddyId == null) continue;
+      final known = await _roleExists(
+        roleId,
+        diverId,
+        roleRepository,
+        roleExists,
+      );
+      await repository.addBuddyToDive(
+        diveId,
+        newBuddyId,
+        known ? roleId : DiveRole.buddyId,
+      );
+    }
+
     return inlineIds;
+  }
+
+  /// Whether [roleId] names a role [diverId] can use: built in, or one of
+  /// that diver's custom roles, already present or restored ahead of the
+  /// dives. Custom roles are diver-scoped, so another diver's role (its id
+  /// taken when that diver's backup is restored into this profile) does
+  /// not count: this diver's role list could only show its raw id.
+  /// Memoized in [cache] across one import, which has a single diver.
+  Future<bool> _roleExists(
+    String roleId,
+    String diverId,
+    DiveRoleRepository? repository,
+    Map<String, bool> cache,
+  ) async {
+    if (DiveRole.builtInIds.contains(roleId)) return true;
+    if (repository == null) return false;
+    return cache[roleId] ??=
+        (await repository.getDiveRoleById(roleId))?.diverId == diverId;
   }
 
   Future<void> _linkTagsToDive(

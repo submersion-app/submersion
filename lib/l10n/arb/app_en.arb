@@ -6509,6 +6509,7 @@
   "equipment_detail_editTooltipShort": "Edit",
   "equipment_detail_errorMessage": "Error: {error}",
   "equipment_detail_errorTitle": "Error",
+  "equipment_detail_installedInLabel": "Installed in",
   "equipment_detail_lastServiceLabel": "Last Service",
   "equipment_detail_loadingTitle": "Loading...",
   "equipment_detail_modelLabel": "Model",
@@ -6517,6 +6518,17 @@
   "equipment_detail_notFoundTitle": "Equipment Not Found",
   "equipment_detail_notesTitle": "Notes",
   "equipment_detail_ownedForLabel": "Owned For",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Purchase Date",
   "equipment_detail_purchasePriceLabel": "Purchase Price",
   "equipment_detail_retiredChip": "Retired",
@@ -6819,6 +6831,7 @@
   "equipment_detail_tripsCountSingular": "{count} trip",
   "equipment_detail_tripsLabel": "Trips",
   "equipment_detail_tripsSemanticLabel": "View trips using this equipment",
+  "equipment_detail_wasInstalledInLabel": "Was installed in",
   "equipment_edit_appBar_editTitle": "Edit Equipment",
   "equipment_edit_appBar_newTitle": "New Equipment",
   "equipment_edit_appBar_saveButton": "Save",
@@ -12383,6 +12396,18 @@
   },
   "tags_hint_addTags": "Add tags...",
   "tags_manage_title": "Tags",
+  "tags_manage_importsSection": "Imports",
+  "@tags_manage_importsSection": {
+    "description": "Section header above the auto-tag-imports switch on the tag management screen"
+  },
+  "tags_manage_autoTagImports": "Tag imports automatically",
+  "@tags_manage_autoTagImports": {
+    "description": "Switch title for auto-tagging every new import session"
+  },
+  "tags_manage_autoTagImports_subtitle": "Every new import starts with a tag naming the source and date. You can change this for a single import in that import's options.",
+  "@tags_manage_autoTagImports_subtitle": {
+    "description": "Switch subtitle for auto-tagging every new import session"
+  },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
   "@tags_manage_diveCount": {
@@ -16066,6 +16091,14 @@
   "universalImport_label_retainDiveNumbersSubtitle": "Use dive numbers from the imported file instead of auto-assigning",
   "@universalImport_label_retainDiveNumbersSubtitle": {
     "description": "Switch subtitle for retaining dive numbers"
+  },
+  "universalImport_label_autoTagThisImport": "Tag this import automatically",
+  "@universalImport_label_autoTagThisImport": {
+    "description": "Switch title for the session-only auto-tag override in the import options sheet"
+  },
+  "universalImport_label_autoTagThisImportSubtitle": "Starts from your saved preference in Tags settings. Changing it here only affects this import.",
+  "@universalImport_label_autoTagThisImportSubtitle": {
+    "description": "Switch subtitle for the session-only auto-tag override in the import options sheet"
   },
   "universalImport_title_successImported": "Successfully Imported",
   "@universalImport_title_successImported": {

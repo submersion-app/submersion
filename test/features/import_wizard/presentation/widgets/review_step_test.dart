@@ -124,6 +124,11 @@ Widget _buildReviewStep({
   return ProviderScope(
     overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: MaterialApp(
+      // flutter_test resolves against the HOST machine's locale list, so an
+      // unpinned MaterialApp renders translated on a non-English machine and
+      // every English literal this file matches on stops matching (issue
+      // #998 follow-up).
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: ReviewStep(onImport: onImport ?? () {})),
@@ -146,6 +151,11 @@ Widget _buildReviewStepWithProviders({
       tagsProvider.overrideWith((_) async => const []),
     ],
     child: MaterialApp(
+      // flutter_test resolves against the HOST machine's locale list, so an
+      // unpinned MaterialApp renders translated on a non-English machine and
+      // every English literal this file matches on stops matching (issue
+      // #998 follow-up).
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: ReviewStep(onImport: onImport ?? () {})),
@@ -925,7 +935,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Retain source dive numbers'), findsOneWidget);
-      expect(find.byType(SwitchListTile), findsOneWidget);
+      // Plus the auto-tag-this-import switch (issue #998 follow-up).
+      expect(find.byType(SwitchListTile), findsNWidgets(2));
     });
 
     testWidgets('toggling retain-dive-numbers switch updates notifier state', (
@@ -950,12 +961,106 @@ void main() {
 
       expect(notifier.state.retainSourceDiveNumbers, isFalse);
 
-      // Toggle the switch on.
-      await tester.tap(find.byType(Switch));
+      // Toggle the switch on. It's listed first in the sheet, ahead of the
+      // auto-tag-this-import switch (issue #998 follow-up).
+      await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
 
       expect(notifier.state.retainSourceDiveNumbers, isTrue);
     });
+
+    testWidgets('Import Options sheet auto-tag-this-import switch reflects the '
+        'default tag being present', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final bundle = _buildBundle(diveItems: [_item('Dive 1')]);
+
+      final adapter = _FakeAdapter();
+      final notifier = ImportWizardNotifier(adapter)
+        ..setBundle(bundle)
+        ..initializeDefaultTag(autoTagImports: true);
+
+      await tester.pumpWidget(
+        _buildReviewStepWithProviders(notifier: notifier, nextDiveNumber: 1),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Options'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tag this import automatically'), findsOneWidget);
+      final switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile).last,
+      );
+      expect(switchTile.value, isTrue);
+    });
+
+    testWidgets(
+      'toggling the auto-tag-this-import switch off removes the default '
+      'tag, without touching the setting',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final bundle = _buildBundle(diveItems: [_item('Dive 1')]);
+
+        final adapter = _FakeAdapter();
+        final notifier = ImportWizardNotifier(adapter)
+          ..setBundle(bundle)
+          ..initializeDefaultTag(autoTagImports: true);
+
+        await tester.pumpWidget(
+          _buildReviewStepWithProviders(notifier: notifier, nextDiveNumber: 1),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Options'));
+        await tester.pumpAndSettle();
+
+        expect(notifier.state.importTags, isNotEmpty);
+
+        // The auto-tag-this-import switch is listed after retain-dive-numbers.
+        await tester.tap(find.byType(Switch).last);
+        await tester.pumpAndSettle();
+
+        expect(notifier.state.importTags, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'toggling the auto-tag-this-import switch on re-adds the default tag',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final bundle = _buildBundle(diveItems: [_item('Dive 1')]);
+
+        final adapter = _FakeAdapter();
+        // Not initialized with the default tag -- simulates the setting
+        // being off when this import session started.
+        final notifier = ImportWizardNotifier(adapter)..setBundle(bundle);
+
+        await tester.pumpWidget(
+          _buildReviewStepWithProviders(notifier: notifier, nextDiveNumber: 1),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Options'));
+        await tester.pumpAndSettle();
+
+        expect(notifier.state.importTags, isEmpty);
+
+        await tester.tap(find.byType(Switch).last);
+        await tester.pumpAndSettle();
+
+        expect(notifier.state.importTags.length, equals(1));
+        expect(
+          notifier.state.importTags.first.name,
+          equals(adapter.defaultTagName),
+        );
+      },
+    );
   });
 
   // -------------------------------------------------------------------------

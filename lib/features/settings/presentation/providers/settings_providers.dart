@@ -323,6 +323,14 @@ class AppSettings {
   /// (issue #1193). Applies to the card view modes only; the table ignores it.
   final bool groupTripsInDiveList;
 
+  /// Pre-populate every new import session with a "{source} Import {date}"
+  /// tag (issue #998). Read by the import wizard when it enters the review
+  /// step, for every source alike (dive computer, file-based, cloud). This
+  /// only seeds the starting state -- the review step's Import Options sheet
+  /// lets the diver override it for that one import without changing this
+  /// default.
+  final bool autoTagImports;
+
   /// Which layout to use for the site list
   final ListViewMode siteListViewMode;
 
@@ -592,6 +600,7 @@ class AppSettings {
     this.cardColorAttribute = CardColorAttribute.none,
     this.diveListViewMode = ListViewMode.detailed,
     this.groupTripsInDiveList = false,
+    this.autoTagImports = true,
     this.siteListViewMode = ListViewMode.detailed,
     this.tripListViewMode = ListViewMode.detailed,
     this.equipmentListViewMode = ListViewMode.detailed,
@@ -766,6 +775,7 @@ class AppSettings {
     CardColorAttribute? cardColorAttribute,
     ListViewMode? diveListViewMode,
     bool? groupTripsInDiveList,
+    bool? autoTagImports,
     ListViewMode? siteListViewMode,
     ListViewMode? tripListViewMode,
     ListViewMode? equipmentListViewMode,
@@ -920,6 +930,7 @@ class AppSettings {
       cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
       groupTripsInDiveList: groupTripsInDiveList ?? this.groupTripsInDiveList,
+      autoTagImports: autoTagImports ?? this.autoTagImports,
       siteListViewMode: siteListViewMode ?? this.siteListViewMode,
       tripListViewMode: tripListViewMode ?? this.tripListViewMode,
       equipmentListViewMode:
@@ -1836,6 +1847,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setGroupTripsInDiveList(bool value) async {
     state = state.copyWith(groupTripsInDiveList: value);
+    await _saveSettings();
+  }
+
+  /// Waits for [initialLoad] first: until the diver's row lands, [state]
+  /// holds the defaults, and a switch flipped on the tag management screen
+  /// in that window would be overwritten when the load replaces [state],
+  /// silently undoing the diver's choice (issue #998). A failed load is
+  /// already logged by the constructor and leaves the defaults in place,
+  /// so the change still applies on top of them.
+  Future<void> setAutoTagImports(bool value) async {
+    try {
+      await _initialLoad;
+    } catch (_) {
+      // See the doc comment: already logged, defaults are the fallback.
+    }
+    if (!mounted) return;
+    state = state.copyWith(autoTagImports: value);
     await _saveSettings();
   }
 

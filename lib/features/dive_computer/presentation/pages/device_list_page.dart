@@ -16,6 +16,7 @@ import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/widgets/card_icon_label.dart';
 
 /// Page displaying a list of saved dive computers.
 class DeviceListPage extends ConsumerStatefulWidget {
@@ -466,37 +467,25 @@ class _ComputerCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
+                      // A Wrap, not a Row: the two stats drop onto their own
+                      // lines when a narrow card, or the checkbox column in
+                      // selection mode, leaves too little width for both.
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 4,
                         children: [
-                          Icon(
-                            Icons.scuba_diving,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            context.l10n.diveComputer_list_diveCount(
+                          CardIconLabel(
+                            icon: Icons.scuba_diving,
+                            text: context.l10n.diveComputer_list_diveCount(
                               computer.diveCount,
                             ),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
                           ),
-                          const SizedBox(width: 16),
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            formatLastDownload(
+                          CardIconLabel(
+                            icon: Icons.access_time,
+                            text: formatLastDownload(
                               context,
                               computer.lastDownload,
                               units: units,
-                            ),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],

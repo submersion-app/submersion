@@ -3747,6 +3747,7 @@
   "equipment_detail_editTooltipShort": "تعديل",
   "equipment_detail_errorMessage": "خطأ: {error}",
   "equipment_detail_errorTitle": "خطأ",
+  "equipment_detail_installedInLabel": "مركّب في",
   "equipment_detail_lastServiceLabel": "آخر صيانة",
   "equipment_detail_loadingTitle": "جارٍ التحميل...",
   "equipment_detail_modelLabel": "الطراز",
@@ -3755,6 +3756,17 @@
   "equipment_detail_notFoundTitle": "المعدات غير موجودة",
   "equipment_detail_notesTitle": "ملاحظات",
   "equipment_detail_ownedForLabel": "مدة الملكية",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "تاريخ الشراء",
   "equipment_detail_purchasePriceLabel": "سعر الشراء",
   "equipment_detail_retiredChip": "متقاعد",
@@ -3923,6 +3935,7 @@
   "equipment_detail_tripsCountSingular": "{count} رحلة",
   "equipment_detail_tripsLabel": "الرحلات",
   "equipment_detail_tripsSemanticLabel": "عرض الرحلات باستخدام هذه المعدات",
+  "equipment_detail_wasInstalledInLabel": "كان مركّبًا في",
   "equipment_edit_appBar_editTitle": "تعديل المعدات",
   "equipment_edit_appBar_newTitle": "معدات جديدة",
   "equipment_edit_appBar_saveButton": "حفظ",
@@ -6082,6 +6095,8 @@
   "importWizard_photos_destinationUnwritable": "لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{تم تخطي غطسة واحدة أقدم — موجودة بالفعل في سجلك} other{تم تخطي {count} غطسات أقدم — موجودة بالفعل في سجلك}}",
   "tags_hint_addTags": "إضافة وسوم...",
+  "tags_manage_autoTagImports": "وسم الاستيرادات تلقائيا",
+  "tags_manage_autoTagImports_subtitle": "يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.",
   "tags_manage_bulkDeleteMessage": "سيتم إزالة هذه الوسوم من {diveCount, plural, =0{0 غوصات} =1{غوصة واحدة} other{{diveCount} غوصة}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_bulkDeleteTitle": "حذف {count} وسم؟",
   "tags_manage_colorLabel": "اللون",
@@ -6091,6 +6106,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 غوصات} =1{غوصة واحدة} other{{count} غوصة}}",
   "tags_manage_editTitle": "تعديل الوسم",
   "tags_manage_emptyState": "لا توجد وسوم بعد. أنشئ واحداً للبدء.",
+  "tags_manage_importsSection": "الاستيراد",
   "tags_manage_mergeAction": "دمج",
   "tags_manage_mergeAffectedDives": "سيؤثر هذا على {count, plural, =0{0 غوصات} =1{غوصة واحدة} other{{count} غوصة}} إجمالاً.",
   "tags_manage_mergeKeepFrom": "أو الاحتفاظ بالاسم من:",
@@ -7269,6 +7285,8 @@
   "universalImport_label_replacedSourceData": "تم استبدال بيانات المصدر",
   "universalImport_label_retainDiveNumbers": "الاحتفاظ بأرقام الغطسات الأصلية",
   "universalImport_label_retainDiveNumbersSubtitle": "استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً",
+  "universalImport_label_autoTagThisImport": "وسم هذا الاستيراد تلقائيا",
+  "universalImport_label_autoTagThisImportSubtitle": "يبدأ من تفضيلك المحفوظ في إعدادات الوسوم. تغييره هنا يؤثر فقط على هذا الاستيراد.",
   "universalImport_title_importOptions": "خيارات الاستيراد",
   "universalImport_title_noDivesImported": "لم يتم استيراد أي غطسة",
   "universalImport_title_successConsolidated": "تم الدمج بنجاح",

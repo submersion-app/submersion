@@ -3747,6 +3747,7 @@
   "equipment_detail_editTooltipShort": "Bewerken",
   "equipment_detail_errorMessage": "Fout: {error}",
   "equipment_detail_errorTitle": "Fout",
+  "equipment_detail_installedInLabel": "Geplaatst in",
   "equipment_detail_lastServiceLabel": "Laatste service",
   "equipment_detail_loadingTitle": "Laden...",
   "equipment_detail_modelLabel": "Model",
@@ -3755,6 +3756,17 @@
   "equipment_detail_notFoundTitle": "Uitrusting niet gevonden",
   "equipment_detail_notesTitle": "Notities",
   "equipment_detail_ownedForLabel": "In bezit sinds",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Aankoopdatum",
   "equipment_detail_purchasePriceLabel": "Aankoopprijs",
   "equipment_detail_retiredChip": "Buiten gebruik",
@@ -3923,6 +3935,7 @@
   "equipment_detail_tripsCountSingular": "{count} reis",
   "equipment_detail_tripsLabel": "Reizen",
   "equipment_detail_tripsSemanticLabel": "Bekijk reizen met deze uitrusting",
+  "equipment_detail_wasInstalledInLabel": "Was geplaatst in",
   "equipment_edit_appBar_editTitle": "Uitrusting bewerken",
   "equipment_edit_appBar_newTitle": "Nieuwe uitrusting",
   "equipment_edit_appBar_saveButton": "Opslaan",
@@ -6082,6 +6095,8 @@
   "importWizard_photos_destinationUnwritable": "In die map kan niet worden geschreven. Kies een andere.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 oudere duik overgeslagen — al in je logboek} other{{count} oudere duiken overgeslagen — al in je logboek}}",
   "tags_hint_addTags": "Tags toevoegen...",
+  "tags_manage_autoTagImports": "Imports automatisch taggen",
+  "tags_manage_autoTagImports_subtitle": "Elke nieuwe import begint met een tag die de bron en datum vermeldt. Dit kan voor één import worden aangepast in de opties van die import.",
   "tags_manage_bulkDeleteMessage": "Deze tags worden verwijderd van in totaal {diveCount, plural, =0{0 duiken} =1{1 duik} other{{diveCount} duiken}}. Dit kan niet ongedaan worden gemaakt.",
   "tags_manage_bulkDeleteTitle": "{count} tags verwijderen?",
   "tags_manage_colorLabel": "Kleur",
@@ -6091,6 +6106,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 duiken} =1{1 duik} other{{count} duiken}}",
   "tags_manage_editTitle": "Tag bewerken",
   "tags_manage_emptyState": "Nog geen tags. Maak er een aan om te beginnen.",
+  "tags_manage_importsSection": "Imports",
   "tags_manage_mergeAction": "Samenvoegen",
   "tags_manage_mergeAffectedDives": "Dit heeft betrekking op in totaal {count, plural, =0{0 duiken} =1{1 duik} other{{count} duiken}}.",
   "tags_manage_mergeKeepFrom": "Of naam overnemen van:",
@@ -7269,6 +7285,8 @@
   "universalImport_label_replacedSourceData": "Brongegevens vervangen",
   "universalImport_label_retainDiveNumbers": "Duiknummers van bron behouden",
   "universalImport_label_retainDiveNumbersSubtitle": "Gebruik de duiknummers uit het geïmporteerde bestand in plaats van automatisch toewijzen",
+  "universalImport_label_autoTagThisImport": "Deze import automatisch taggen",
+  "universalImport_label_autoTagThisImportSubtitle": "Begint met je opgeslagen voorkeur in de Tags-instellingen. Dit hier wijzigen geldt alleen voor deze import.",
   "universalImport_title_importOptions": "Importopties",
   "universalImport_title_noDivesImported": "Geen duiken geïmporteerd",
   "universalImport_title_successConsolidated": "Succesvol geconsolideerd",
