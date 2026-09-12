@@ -77,6 +77,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -1692,32 +1693,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               : null,
           child: Stack(
             children: [
-              // Map background (decorative, non-interactive).
+              // Map background (decorative, non-interactive), faded into the
+              // card toward the bottom.
               Positioned.fill(
-                child: DiveLocationsMap(
-                  entry: entryLoc,
-                  exit: exitLoc,
-                  site: hasGps ? null : siteLoc,
-                  interactive: false,
-                  initialCenter: mapCenter,
-                  initialZoom: 12.0,
-                ),
-              ),
-              // Gradient overlay from top to bottom
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.3, 0.7, 1.0],
-                      colors: [
-                        cardColor.withValues(alpha: 0.3),
-                        cardColor.withValues(alpha: 0.6),
-                        cardColor.withValues(alpha: 0.85),
-                        cardColor,
-                      ],
-                    ),
+                child: HeaderMapBackdrop(
+                  fadeColor: cardColor,
+                  child: DiveLocationsMap(
+                    entry: entryLoc,
+                    exit: exitLoc,
+                    site: hasGps ? null : siteLoc,
+                    interactive: false,
+                    initialCenter: mapCenter,
+                    initialZoom: 12.0,
                   ),
                 ),
               ),
