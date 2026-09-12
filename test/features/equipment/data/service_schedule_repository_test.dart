@@ -258,7 +258,7 @@ void main() {
     });
 
     test('a baseline with no set time goes to any service', () async {
-      // The pre-v211 rule, under which any record outranks the baseline: a
+      // The pre-v213 rule, under which any record outranks the baseline: a
       // backdated service takes such a clock over too, so the baseline is
       // dead and must not linger in the dialog.
       final tank = await makeTank();

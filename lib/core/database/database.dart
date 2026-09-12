@@ -1515,8 +1515,8 @@ class ServiceSchedules extends Table {
   /// with no baseline: newest record, purchaseDate, then createdAt.
   IntColumn get anchorDate => integer().nullable()();
 
-  /// v211: when the diver set [anchorDate]. Null on every baseline set
-  /// before v211 (and on legacy clocks), which keeps the pre-v211 rule for
+  /// v213: when the diver set [anchorDate]. Null on every baseline set
+  /// before v213 (and on legacy clocks), which keeps the pre-v213 rule for
   /// them: any record of the kind outranks the baseline.
   IntColumn get anchorSetAt => integer().nullable()();
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
@@ -4079,7 +4079,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 211;
+  static const int currentSchemaVersion = 213;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4649,10 +4649,11 @@ class AppDatabase extends _$AppDatabase {
     // parent, so a stale copy from a peer cannot overwrite a newer edit.
     // 209 is claimed by #1639, still open.
     210,
-    // v211: service_schedules.anchor_set_at, so a baseline date the diver
+    // v213: service_schedules.anchor_set_at, so a baseline date the diver
     // sets outranks the service records logged before it. Column-only, no
-    // backfill. 209 is claimed by #1639, still open.
-    211,
+    // backfill. 211 and 212 are claimed by #1639 (stop minimums, planner gas
+    // options), still open.
+    213,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7090,10 +7091,10 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// Idempotent DDL for v211's `service_schedules.anchor_set_at`: when the
+  /// Idempotent DDL for v213's `service_schedules.anchor_set_at`: when the
   /// diver set the clock's baseline date. Null (every existing row) keeps
-  /// the pre-v211 rule, under which any record of the kind outranks the
-  /// baseline; see `clockAnchorFromServices`. Called from the v211
+  /// the pre-v213 rule, under which any record of the kind outranks the
+  /// baseline; see `clockAnchorFromServices`. Called from the v213
   /// onUpgrade block and the beforeOpen backstop. Self-guarding for partial
   /// fixture databases.
   Future<void> _assertServiceScheduleAnchorSetAtColumn() async {
@@ -11855,12 +11856,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertChildHlcColumns();
         }
         if (from < 210) await reportProgress();
-        // v211: service_schedules.anchor_set_at. Column-only, no backfill:
-        // a null keeps the pre-v211 rule for every existing baseline.
-        if (from < 211) {
+        // v213: service_schedules.anchor_set_at. Column-only, no backfill:
+        // a null keeps the pre-v213 rule for every existing baseline.
+        if (from < 213) {
           await _assertServiceScheduleAnchorSetAtColumn();
         }
-        if (from < 211) await reportProgress();
+        if (from < 213) await reportProgress();
       },
       beforeOpen: (details) async {
         // v210 backstop: the dive_tanks equipment link sets null on delete.
@@ -12110,7 +12111,7 @@ class AppDatabase extends _$AppDatabase {
         // self-heal).
         await _assertImportedFilesSchema();
 
-        // v211 backstop: re-assert service_schedules.anchor_set_at (same
+        // v213 backstop: re-assert service_schedules.anchor_set_at (same
         // parallel-branch version-collision self-heal). Every read of a
         // schedule selects it.
         await _assertServiceScheduleAnchorSetAtColumn();

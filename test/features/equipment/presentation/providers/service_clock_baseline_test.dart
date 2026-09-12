@@ -171,9 +171,34 @@ void main() {
       fiftyDaysAgo.month,
       fiftyDaysAgo.day,
     );
-    await ServiceRecordRepository().createRecord(regService(reg.id, serviced));
+    // An open clock: the card keeps the provider alive and must refresh
+    // on its own when the service lands, with no one invalidating it.
+    final sub = container.listen(
+      serviceClockStatusesProvider(reg.id),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+    expect((await regClock(reg.id)).anchor, yearAgo);
 
-    final clock = await regClock(reg.id);
+    // As sync applies it: straight into the table. Unlike the repository,
+    // that touches no equipment row, so nothing but the service ledger's
+    // own change stream can tell the clock to refresh.
+    final loggedAt = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.serviceRecords)
+        .insert(
+          ServiceRecordsCompanion.insert(
+            id: 'synced-service',
+            equipmentId: reg.id,
+            serviceCategory: ServiceCategory.annual.name,
+            serviceDate: serviced.millisecondsSinceEpoch,
+            createdAt: loggedAt,
+            updatedAt: loggedAt,
+          ).copyWith(serviceKindId: const Value('regulator-service')),
+        );
+    await pumpEventQueue();
+
+    final clock = await regClock(reg.id, fresh: false);
     expect(clock.schedule.anchorDate, yearAgo);
     expect(clock.anchor, serviced);
     expect(clock.usageByUnit[ExposureUnit.dives]!.since, 1);
@@ -181,7 +206,7 @@ void main() {
 
   test('a baseline set before this rule keeps the old one: any service of '
       'the kind wins', () async {
-    // No set time is how every pre-v211 baseline and legacy clock arrives,
+    // No set time is how every pre-v213 baseline and legacy clock arrives,
     // on every device; those clocks must read as they always have.
     final reg = await regulatorWithDives();
     await ServiceRecordRepository().createRecord(

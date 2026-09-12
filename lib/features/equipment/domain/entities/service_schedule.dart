@@ -28,7 +28,7 @@ class ServiceSchedule extends Equatable {
 
   /// When the diver set [anchorDate]. A record logged after this and dated
   /// on or after the baseline takes the clock back over. Null on baselines
-  /// set before v211 and on legacy clocks: any record of the kind wins then.
+  /// set before v213 and on legacy clocks: any record of the kind wins then.
   final DateTime? anchorSetAt;
   final bool enabled;
   final DateTime createdAt;
@@ -105,12 +105,17 @@ class ServiceSchedule extends Equatable {
   }
 
   /// This schedule with [baseline] as its baseline date, stamping
-  /// [anchorSetAt] with [now] when the date actually changes (so a save that
-  /// leaves the date alone does not let older records back in front of it)
-  /// and clearing both when [baseline] is null.
-  ServiceSchedule withBaseline(DateTime? baseline, {required DateTime now}) {
+  /// [anchorSetAt] with [now] when the date changes or the diver [picked] it
+  /// (so a save that merely leaves the date alone does not let older records
+  /// back in front of it, while re-picking a pre-v213 baseline moves it onto
+  /// the new rule) and clearing both when [baseline] is null.
+  ServiceSchedule withBaseline(
+    DateTime? baseline, {
+    required DateTime now,
+    bool picked = false,
+  }) {
     if (baseline == null) return copyWith(anchorDate: null, anchorSetAt: null);
-    if (baseline == anchorDate) return this;
+    if (baseline == anchorDate && !picked) return this;
     return copyWith(anchorDate: baseline, anchorSetAt: now);
   }
 

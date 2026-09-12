@@ -116,7 +116,7 @@ class ServiceScheduleRepository {
   /// date the clock no longer counts from. The clock itself does not depend
   /// on this: `clockAnchorFromServices` derives the same answer from the
   /// rows. A service dated on or after the baseline takes it over; so does
-  /// any service when the baseline carries no set time (the pre-v211 rule).
+  /// any service when the baseline carries no set time (the pre-v213 rule).
   /// A backdated service leaves a dated baseline in place.
   Future<void> clearAnchorsSupersededBy({
     required String equipmentId,

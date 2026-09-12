@@ -222,9 +222,9 @@ void main() {
       expect(statuses.single.anchor, DateTime(2026, 4, 1));
     });
 
-    test('a baseline with no set time keeps the pre-v211 rule: any record '
+    test('a baseline with no set time keeps the pre-v213 rule: any record '
         'of the kind wins', () {
-      // Every baseline set before v211, and every legacy clock, carries no
+      // Every baseline set before v213, and every legacy clock, carries no
       // set time; those clocks must read exactly as they did.
       final newer = regRun(
         records: [record('regulator-service', DateTime(2026, 1, 1))],
@@ -249,6 +249,54 @@ void main() {
         ],
       );
       expect(statuses.single.anchor, baseline);
+    });
+  });
+
+  group('baselineInEffect', () {
+    final baseline = DateTime(2025, 7, 1);
+    final setAt = DateTime(2026, 7, 15, 12);
+
+    bool inEffect(DateTime? setTime, List<ServiceRecord> records) =>
+        baselineInEffect(
+          serviceKindId: 'hydro',
+          baseline: baseline,
+          baselineSetAt: setTime,
+          records: records,
+        );
+
+    test('no baseline is never in effect', () {
+      expect(
+        baselineInEffect(
+          serviceKindId: 'hydro',
+          baseline: null,
+          baselineSetAt: null,
+          records: const [],
+        ),
+        isFalse,
+      );
+    });
+
+    test('a baseline outranks a record logged before it was set', () {
+      expect(
+        inEffect(setAt, [
+          record('hydro', DateTime(2026, 7, 1), loggedAt: DateTime(2026, 7, 1)),
+        ]),
+        isTrue,
+      );
+    });
+
+    test('a later record dated on or after it takes over', () {
+      expect(
+        inEffect(setAt, [
+          record('hydro', DateTime(2026, 1, 1), loggedAt: DateTime(2026, 8)),
+        ]),
+        isFalse,
+      );
+    });
+
+    test('a baseline with no set time goes to any record of the kind', () {
+      expect(inEffect(null, [record('hydro', DateTime(2020, 1, 1))]), isFalse);
+      expect(inEffect(null, [record('vip', DateTime(2020, 1, 1))]), isTrue);
     });
   });
 

@@ -157,7 +157,7 @@ Future<void> _expectRebuilt(AppDatabase db) async {
 
 void main() {
   test('v210 is in the ladder', () {
-    // Relaxed once v211 (service_schedules.anchor_set_at) landed on top; the
+    // Relaxed once v213 (service_schedules.anchor_set_at) landed on top; the
     // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(210));
     expect(AppDatabase.migrationVersions, contains(210));
