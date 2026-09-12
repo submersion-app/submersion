@@ -31,7 +31,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
 /// [DiveDetailSectionId.tanks] slot on the dive detail page. Per-tank SAC
 /// is shown whenever it is computable, regardless of tank count; the
-/// trailing block is omitted entirely when it is not.
+/// consumption row is omitted entirely when it is not.
 class CylindersCard extends ConsumerWidget {
   const CylindersCard({
     super.key,
@@ -150,9 +150,7 @@ class CylindersCard extends ConsumerWidget {
         ? pressures.$1! - pressures.$2!
         : null;
     // The pressure drop and the gas volume are one fact in two units, so
-    // they read together. It also keeps the trailing slot to the rates:
-    // ListTile caps leading and trailing at 56px minus the density
-    // adjustment, which is 48px on desktop, and three lines do not fit.
+    // they read together on one line.
     final gasUsedLiters = cylinderSac?.gasUsedLiters;
     final volumeUsed = gasUsedLiters != null
         ? ' / ${units.convertVolume(gasUsedLiters).round()} '
@@ -214,6 +212,7 @@ class CylindersCard extends ConsumerWidget {
             '$startP ${units.pressureSymbol} → '
             '$endP ${units.pressureSymbol}$used',
           ),
+          ?_consumptionRow(context.l10n, theme, cylinderSac, sourceName),
           Text(
             modMndText,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -247,37 +246,25 @@ class CylindersCard extends ConsumerWidget {
         ],
       ),
       isThreeLine: serial != null,
-      trailing: _trailingWithCheckIn(
-        context,
-        tank: tank,
-        block: _trailingBlock(context.l10n, theme, cylinderSac, sourceName),
-      ),
+      trailing: _checkInButton(tank),
     );
   }
 
   /// A cylinder that is a gear item (the registry wrote its equipment link)
-  /// gets the check-in chip ahead of the SAC block; any other cylinder keeps
-  /// the block alone. The item loads through its own provider so the row
-  /// never blocks on it.
-  Widget _trailingWithCheckIn(
-    BuildContext context, {
-    required DiveTank tank,
-    required Widget? block,
-  }) {
+  /// gets the check-in button; any other cylinder has no trailing widget.
+  /// Trailing holds only this fixed-width icon button: ListTile lays trailing
+  /// out first and gives the title what is left, so anything carrying text
+  /// there starves the tank name on a narrow card (#935). The item loads
+  /// through its own provider so the row never blocks on it.
+  Widget? _checkInButton(DiveTank tank) {
     final equipmentId = tank.equipmentId;
-    if (equipmentId == null) return block ?? const SizedBox.shrink();
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Consumer(
-          builder: (context, ref, _) {
-            final item = ref.watch(equipmentItemProvider(equipmentId)).value;
-            if (item == null) return const SizedBox.shrink();
-            return ObservationStatusChip(equipment: item, dive: dive);
-          },
-        ),
-        ?block,
-      ],
+    if (equipmentId == null) return null;
+    return Consumer(
+      builder: (context, ref, _) {
+        final item = ref.watch(equipmentItemProvider(equipmentId)).value;
+        if (item == null) return const SizedBox.shrink();
+        return ObservationStatusChip(equipment: item, dive: dive);
+      },
     );
   }
 
@@ -299,36 +286,32 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
-  /// Trailing column: attribution badge and one consumption line per
-  /// visible lane. Returns null when there is nothing to show so the tile
-  /// keeps its natural width. The gas used lives in the subtitle, beside
-  /// the pressure drop it restates: ListTile caps this slot at two lines on
-  /// desktop, and Both already needs both of them.
-  Widget? _trailingBlock(
+  /// Subtitle row under the pressure line: attribution badge and one
+  /// consumption item per visible lane, wrapping onto a second line when the
+  /// card is too narrow for them side by side. Returns null when there is
+  /// nothing to show.
+  Widget? _consumptionRow(
     AppLocalizations l10n,
     ThemeData theme,
     CylinderSac? cylinderSac,
     String? sourceName,
   ) {
-    final hasSac = cylinderSac != null && cylinderSac.hasValidSac;
-    if (!hasSac && sourceName == null) return null;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        if (sourceName != null) FieldAttributionBadge(sourceName: sourceName),
-        if (hasSac) ...[
-          for (final line in _consumptionLines(l10n, cylinderSac))
-            Text(
-              line,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-        ],
-      ],
+    final style = theme.textTheme.bodyMedium?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: theme.colorScheme.primary,
+    );
+    final children = [
+      if (sourceName != null) FieldAttributionBadge(sourceName: sourceName),
+      if (cylinderSac != null && cylinderSac.hasValidSac)
+        for (final line in _consumptionLines(l10n, cylinderSac))
+          Text(line, style: style),
+    ];
+    if (children.isEmpty) return null;
+    return Wrap(
+      spacing: 12,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: children,
     );
   }
 
