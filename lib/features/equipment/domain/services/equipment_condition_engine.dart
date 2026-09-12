@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 
 /// Everything the engine reads for one item. Built by the provider (or the
@@ -265,8 +266,12 @@ class EquipmentConditionEngine {
     );
 
     if (gains.length >= declineMinDives) {
-      final baseline = _median([for (final p in gains.take(5)) p.value]);
-      final recent = _median([for (final p in _lastN(gains, 5)) p.value]);
+      final baseline = DiveSensorSummaryService.median([
+        for (final p in gains.take(5)) p.value,
+      ]);
+      final recent = DiveSensorSummaryService.median([
+        for (final p in _lastN(gains, 5)) p.value,
+      ]);
       if (baseline > 0 &&
           recent <= (1 - declineFraction) * baseline + _epsilon) {
         findings.add(
@@ -281,7 +286,9 @@ class EquipmentConditionEngine {
     }
     if (gains.length >= lowMinDives) {
       final window = _lastN(gains, lowMinDives);
-      final recent = _median([for (final p in window) p.value]);
+      final recent = DiveSensorSummaryService.median([
+        for (final p in window) p.value,
+      ]);
       if (recent < lowGainMvPerBar - _epsilon) {
         findings.add(
           make(ConditionRuleId.cellOutputLow, window, recent, {
@@ -606,14 +613,6 @@ class EquipmentConditionEngine {
 
   static List<T> _lastN<T>(List<T> list, int n) =>
       list.length <= n ? list : list.sublist(list.length - n);
-
-  static double _median(List<double> values) {
-    final sorted = [...values]..sort();
-    final mid = sorted.length ~/ 2;
-    return sorted.length.isOdd
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2;
-  }
 
   static double _mean(List<double> values) =>
       values.isEmpty ? 0 : values.reduce((a, b) => a + b) / values.length;
