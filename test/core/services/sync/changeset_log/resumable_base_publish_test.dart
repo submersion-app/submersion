@@ -441,6 +441,13 @@ void main() {
 
       expect(result.kind, ChangesetWriteKind.base);
       expect(
+        result.snapshotAt,
+        isNull,
+        reason:
+            'a resumed export was read on an earlier attempt, so a pending '
+            'mark made since is not in it and must not be cleared',
+      );
+      expect(
         result.seq,
         pending.seq,
         reason:

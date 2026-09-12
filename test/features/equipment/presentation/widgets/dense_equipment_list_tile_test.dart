@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -26,6 +29,48 @@ EquipmentItem _makeItem({
 
 void main() {
   group('DenseEquipmentListTile', () {
+    testWidgets('a screen reader hears the condition badge', (tester) async {
+      // The badge is text and colour on screen. The row's Semantics label
+      // folds its children's text in, so a screen reader hears the badge
+      // after the name; this pins that, since hiding the status from
+      // semantics would leave the reader with the name alone.
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            conditionBadgeProvider.overrideWith(
+              (ref) async => {
+                'test-id': (
+                  severity: ConditionSeverity.significant,
+                  rule: ConditionRuleId.cellCurrentLimited,
+                ),
+              },
+            ),
+          ],
+          child: DenseEquipmentListTile(item: _makeItem(), onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final row = tester.getSemantics(find.byType(DenseEquipmentListTile));
+      final heard = <String>[];
+      void collect(SemanticsNode n) {
+        final d = n.getSemanticsData();
+        heard
+          ..add(d.label)
+          ..add(d.value);
+        n.visitChildren((c) {
+          collect(c);
+          return true;
+        });
+      }
+
+      collect(row);
+      final said = heard.where((s) => s.isNotEmpty).join(' | ');
+      expect(said, contains('Test Regulator'));
+      expect(said, contains('Cell current-limited at high ppO2'));
+      semantics.dispose();
+    });
+
     testWidgets('renders name and type label', (tester) async {
       await tester.pumpWidget(
         testApp(

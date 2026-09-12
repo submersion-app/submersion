@@ -335,6 +335,11 @@ class UddfExportService {
                                 nest: dive.entryMethod!.name,
                               );
                             }
+                            UddfExportBuilders.buildDiveGpsElements(
+                              builder,
+                              'entry',
+                              dive.entryLocation,
+                            );
                             if (options.includeParticipants) {
                               UddfParticipantWriters.writeLinks(
                                 builder,
@@ -552,6 +557,11 @@ class UddfExportService {
                                 nest: dive.exitMethod!.name,
                               );
                             }
+                            UddfExportBuilders.buildDiveGpsElements(
+                              builder,
+                              'exit',
+                              dive.exitLocation,
+                            );
                             // Weight system
                             if (dive.weightAmount != null) {
                               builder.element(

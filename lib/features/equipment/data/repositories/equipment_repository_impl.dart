@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
@@ -463,6 +464,7 @@ class EquipmentRepository {
   /// component rows are first-class synced children cascade-deleted by
   /// SQLite, but cascades emit no deletion-log entries, so each is
   /// tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
+  /// Cylinders linked to the item are cleared and staged for sync.
   Future<void> deleteEquipment(String id) async {
     try {
       _log.info('Deleting equipment: $id');
@@ -503,6 +505,11 @@ class EquipmentRepository {
         // Registry rows naming the item (as a cylinder or a transmitter)
         // stay; the link is staged, not just nulled.
         await TransmitterRepository().unlinkFromDeletedEquipment(id);
+        // Cylinders linked to this item, as their own gear or the regulator
+        // they were breathed from: cleared, and each tank staged for sync.
+        await clearCylinderGearLinks(_db, _syncRepository, [
+          id,
+        ], now: DateTime.now().millisecondsSinceEpoch);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -890,7 +897,14 @@ class EquipmentRepository {
         SELECT d.id AS dive_id,
                d.updated_at AS updated_at,
                d.dive_date_time AS date_ms,
-               COALESCE(d.runtime, d.bottom_time, 0) AS duration_sec,
+               -- The first positive length: a manual zero runtime beside
+               -- a real bottom time is no figure, and must not count the
+               -- dive as zero hours (or subtract any).
+               CASE
+                 WHEN d.runtime > 0 THEN d.runtime
+                 WHEN d.bottom_time > 0 THEN d.bottom_time
+                 ELSE 0
+               END AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,

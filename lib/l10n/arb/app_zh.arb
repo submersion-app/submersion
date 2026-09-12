@@ -1150,6 +1150,7 @@
   "preDive_runner_flag": "标记",
   "preDive_runner_undo": "重置为待办",
   "preDive_runner_serviceOverdue": "维护已逾期",
+  "preDive_runner_conditionFindings": "状态发现",
   "preDive_runner_addNote": "添加备注",
   "preDive_runner_enterValue": "输入数值",
   "preDive_runner_cellInAir": "空气中",
@@ -3891,6 +3892,7 @@
   "equipment_detail_editTooltipShort": "编辑",
   "equipment_detail_errorMessage": "错误： {error}",
   "equipment_detail_errorTitle": "错误",
+  "equipment_detail_installedInLabel": "安装于",
   "equipment_detail_lastServiceLabel": "最近维护",
   "equipment_detail_loadingTitle": "加载中...",
   "equipment_detail_modelLabel": "型号",
@@ -3899,6 +3901,17 @@
   "equipment_detail_notFoundTitle": "装备未找到",
   "equipment_detail_notesTitle": "备注",
   "equipment_detail_ownedForLabel": "拥有为",
+  "equipment_detail_parentWithStatus": "{name}（{status}）",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "购买日期",
   "equipment_detail_purchasePriceLabel": "购买价格",
   "equipment_detail_retiredChip": "已退役",
@@ -4066,6 +4079,7 @@
   "equipment_detail_tripsCountSingular": "{count} 旅行",
   "equipment_detail_tripsLabel": "旅行",
   "equipment_detail_tripsSemanticLabel": "查看使用此装备的旅行",
+  "equipment_detail_wasInstalledInLabel": "曾安装于",
   "equipment_edit_appBar_editTitle": "编辑装备",
   "equipment_edit_appBar_newTitle": "新建装备",
   "equipment_edit_appBar_saveButton": "保存",
@@ -5948,6 +5962,38 @@
   "statistics_equipment_weightTrend_error": "加载配重趋势失败",
   "statistics_equipment_weightTrend_subtitle": "每次潜水携带的总配重",
   "statistics_equipment_weightTrend_title": "配重趋势",
+  "statistics_equipment_exposure_title": "使用暴露",
+  "statistics_equipment_exposure_error": "无法加载使用暴露数据",
+  "statistics_equipment_findings_error": "无法加载状态发现",
+  "statistics_equipment_issues_error": "无法加载已报告的问题",
+  "statistics_equipment_exposure_subtitle": "按您的阈值统计每件装备的总量",
+  "statistics_equipment_exposure_empty": "尚无使用装备的潜水",
+  "statistics_equipment_findings_title": "状态发现",
+  "statistics_equipment_findings_subtitle": "按规则统计的未处理发现",
+  "statistics_equipment_findings_subtitleAllDives": "按规则统计的未处理发现（涵盖所有潜水）",
+  "statistics_equipment_findings_empty": "没有未处理的发现",
+  "statistics_equipment_issues_title": "已报告的问题",
+  "statistics_equipment_issues_subtitle": "最常见的检查标签",
+  "statistics_equipment_issues_empty": "未报告问题",
+  "statistics_equipment_countLabel_items": "件",
+  "statistics_equipment_countLabel_findings": "项",
+  "statistics_equipment_countLabel_reports": "条",
+  "statistics_equipment_exposureUnit_days": "天",
+  "statistics_equipment_exposureUnit_dives": "潜水",
+  "statistics_equipment_countLabel_days": "天",
+  "statistics_equipment_countLabel_dives": "潜水",
+  "statistics_equipment_countLabel_hours": "小时",
+  "statistics_equipment_countLabel_saltHours": "盐水小时",
+  "statistics_equipment_countLabel_coldDives": "冷水潜水",
+  "statistics_equipment_countLabel_o2Hours": "高氧小时",
+  "statistics_equipment_countLabel_deepCycles": "深潜",
+  "statistics_equipment_countLabel_cycles": "电池循环",
+  "statistics_equipment_exposureUnit_hours": "小时",
+  "statistics_equipment_exposureUnit_saltHours": "盐水小时",
+  "statistics_equipment_exposureUnit_coldDives": "冷水潜水",
+  "statistics_equipment_exposureUnit_o2Hours": "高氧小时",
+  "statistics_equipment_exposureUnit_deepCycles": "深潜",
+  "statistics_equipment_exposureUnit_cycles": "电池循环",
   "statistics_error_loadingStatistics": "加载统计数据时出错",
   "statistics_filterBar_clear": "清除筛选",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 次潜水} other{{count} 次潜水}}",
@@ -6599,6 +6645,119 @@
   "trips_edit_hint_vesselName": "例如：Ocean Explorer",
   "trips_edit_label_cabinType": "舱房类型",
   "trips_edit_label_capacity": "乘客容量",
+  "trips_edit_sectionTitle_planning": "计划",
+  "trips_edit_label_expectedDives": "预计潜水次数",
+  "trips_edit_hint_expectedDives": "留空则根据近期行程估算",
+  "trips_edit_label_expectedRuntime": "每次潜水预计运行时间（分钟）",
+  "trips_edit_hint_expectedRuntime": "留空则根据近期循环呼吸器潜水估算",
+  "trips_scrubber_title": "吸收剂余量",
+  "trips_scrubber_asOfStart": "截至 {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "行程前剩余 {minutes} 分钟（额定 {rated} 分钟，自上次更换以来已使用 {consumed} 分钟）",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "行程前剩余 {minutes} 分钟（额定 {rated} 分钟，已使用 {consumed} 分钟，未记录更换）",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, other{预计 {dives} 次潜水}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, other{（根据您最近 {n} 次行程）}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "（在本行程中设置）",
+  "trips_scrubber_perDive": "每次潜水 {minutes} 分钟",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, other{（根据您最近 {n} 次循环呼吸器潜水）}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "预计使用 {minutes} 分钟",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "行程后余量 {minutes} 分钟",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "低于额定时长的 20%。请安排更换或携带备用吸收剂。",
+  "trips_scrubber_noRating": "此呼吸器没有额定时长；请在属性中添加吸收剂时长或添加更换计划。",
+  "trips_scrubber_bannerMargin": "吸收剂余量 {minutes} 分钟",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} 台呼吸器，最低吸收剂余量 {minutes} 分钟",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "下船港口",
   "trips_edit_label_embarkPort": "登船港口",
   "trips_edit_label_endDate": "结束日期",

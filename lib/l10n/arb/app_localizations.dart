@@ -4421,6 +4421,12 @@ abstract class AppLocalizations {
   /// **'Service overdue'**
   String get preDive_runner_serviceOverdue;
 
+  /// No description provided for @preDive_runner_conditionFindings.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get preDive_runner_conditionFindings;
+
   /// No description provided for @preDive_runner_addNote.
   ///
   /// In en, this message translates to:
@@ -19282,6 +19288,12 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get equipment_detail_errorTitle;
 
+  /// No description provided for @equipment_detail_installedInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed in'**
+  String get equipment_detail_installedInLabel;
+
   /// No description provided for @equipment_detail_lastServiceLabel.
   ///
   /// In en, this message translates to:
@@ -19329,6 +19341,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Owned For'**
   String get equipment_detail_ownedForLabel;
+
+  /// No description provided for @equipment_detail_parentWithStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({status})'**
+  String equipment_detail_parentWithStatus(String name, String status);
 
   /// No description provided for @equipment_detail_purchaseDateLabel.
   ///
@@ -19947,6 +19965,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View trips using this equipment'**
   String get equipment_detail_tripsSemanticLabel;
+
+  /// No description provided for @equipment_detail_wasInstalledInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Was installed in'**
+  String get equipment_detail_wasInstalledInLabel;
 
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///
@@ -31488,6 +31512,198 @@ abstract class AppLocalizations {
   /// **'Weight Trend'**
   String get statistics_equipment_weightTrend_title;
 
+  /// No description provided for @statistics_equipment_exposure_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure'**
+  String get statistics_equipment_exposure_title;
+
+  /// No description provided for @statistics_equipment_exposure_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load exposure data'**
+  String get statistics_equipment_exposure_error;
+
+  /// No description provided for @statistics_equipment_findings_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load condition findings'**
+  String get statistics_equipment_findings_error;
+
+  /// No description provided for @statistics_equipment_issues_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load reported issues'**
+  String get statistics_equipment_issues_error;
+
+  /// No description provided for @statistics_equipment_exposure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals per item with your thresholds'**
+  String get statistics_equipment_exposure_subtitle;
+
+  /// No description provided for @statistics_equipment_exposure_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with gear yet'**
+  String get statistics_equipment_exposure_empty;
+
+  /// No description provided for @statistics_equipment_findings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get statistics_equipment_findings_title;
+
+  /// No description provided for @statistics_equipment_findings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open findings by rule'**
+  String get statistics_equipment_findings_subtitle;
+
+  /// No description provided for @statistics_equipment_findings_subtitleAllDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Open findings by rule, across all dives'**
+  String get statistics_equipment_findings_subtitleAllDives;
+
+  /// No description provided for @statistics_equipment_findings_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No open findings'**
+  String get statistics_equipment_findings_empty;
+
+  /// No description provided for @statistics_equipment_issues_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported issues'**
+  String get statistics_equipment_issues_title;
+
+  /// No description provided for @statistics_equipment_issues_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Most frequent check-in tags'**
+  String get statistics_equipment_issues_subtitle;
+
+  /// No description provided for @statistics_equipment_issues_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No issues reported'**
+  String get statistics_equipment_issues_empty;
+
+  /// No description provided for @statistics_equipment_countLabel_items.
+  ///
+  /// In en, this message translates to:
+  /// **'items'**
+  String get statistics_equipment_countLabel_items;
+
+  /// No description provided for @statistics_equipment_countLabel_findings.
+  ///
+  /// In en, this message translates to:
+  /// **'findings'**
+  String get statistics_equipment_countLabel_findings;
+
+  /// No description provided for @statistics_equipment_countLabel_reports.
+  ///
+  /// In en, this message translates to:
+  /// **'reports'**
+  String get statistics_equipment_countLabel_reports;
+
+  /// No description provided for @statistics_equipment_exposureUnit_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get statistics_equipment_exposureUnit_days;
+
+  /// No description provided for @statistics_equipment_exposureUnit_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get statistics_equipment_exposureUnit_dives;
+
+  /// No description provided for @statistics_equipment_countLabel_days.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get statistics_equipment_countLabel_days;
+
+  /// No description provided for @statistics_equipment_countLabel_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'dives'**
+  String get statistics_equipment_countLabel_dives;
+
+  /// No description provided for @statistics_equipment_countLabel_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get statistics_equipment_countLabel_hours;
+
+  /// No description provided for @statistics_equipment_countLabel_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'salt-water hours'**
+  String get statistics_equipment_countLabel_saltHours;
+
+  /// No description provided for @statistics_equipment_countLabel_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'cold dives'**
+  String get statistics_equipment_countLabel_coldDives;
+
+  /// No description provided for @statistics_equipment_countLabel_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'high-O2 hours'**
+  String get statistics_equipment_countLabel_o2Hours;
+
+  /// No description provided for @statistics_equipment_countLabel_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'deep dives'**
+  String get statistics_equipment_countLabel_deepCycles;
+
+  /// No description provided for @statistics_equipment_countLabel_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'battery cycles'**
+  String get statistics_equipment_countLabel_cycles;
+
+  /// No description provided for @statistics_equipment_exposureUnit_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get statistics_equipment_exposureUnit_hours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Salt-water hours'**
+  String get statistics_equipment_exposureUnit_saltHours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold dives'**
+  String get statistics_equipment_exposureUnit_coldDives;
+
+  /// No description provided for @statistics_equipment_exposureUnit_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'High-O2 hours'**
+  String get statistics_equipment_exposureUnit_o2Hours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep dives'**
+  String get statistics_equipment_exposureUnit_deepCycles;
+
+  /// No description provided for @statistics_equipment_exposureUnit_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery cycles'**
+  String get statistics_equipment_exposureUnit_cycles;
+
   /// No description provided for @statistics_error_loadingStatistics.
   ///
   /// In en, this message translates to:
@@ -35493,6 +35709,134 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passenger Capacity'**
   String get trips_edit_label_capacity;
+
+  /// No description provided for @trips_edit_sectionTitle_planning.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get trips_edit_sectionTitle_planning;
+
+  /// No description provided for @trips_edit_label_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected dives'**
+  String get trips_edit_label_expectedDives;
+
+  /// No description provided for @trips_edit_hint_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to estimate from your recent trips'**
+  String get trips_edit_hint_expectedDives;
+
+  /// No description provided for @trips_edit_label_expectedRuntime.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected runtime per dive (minutes)'**
+  String get trips_edit_label_expectedRuntime;
+
+  /// No description provided for @trips_edit_hint_expectedRuntime.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to estimate from your recent rebreather dives'**
+  String get trips_edit_hint_expectedRuntime;
+
+  /// No description provided for @trips_scrubber_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber margin'**
+  String get trips_scrubber_title;
+
+  /// No description provided for @trips_scrubber_asOfStart.
+  ///
+  /// In en, this message translates to:
+  /// **'as of {date}'**
+  String trips_scrubber_asOfStart(String date);
+
+  /// No description provided for @trips_scrubber_remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)'**
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  );
+
+  /// The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left before the trip (rated {rated} min, {consumed} min used, no repack recorded)'**
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  );
+
+  /// No description provided for @trips_scrubber_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives, plural, one{{dives} expected dive} other{{dives} expected dives}}'**
+  String trips_scrubber_expectedDives(int dives);
+
+  /// No description provided for @trips_scrubber_fromTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, one{(from your last trip)} other{(from your last {n} trips)}}'**
+  String trips_scrubber_fromTrips(int n);
+
+  /// No description provided for @trips_scrubber_fromOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'(set on this trip)'**
+  String get trips_scrubber_fromOverride;
+
+  /// No description provided for @trips_scrubber_perDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min per dive'**
+  String trips_scrubber_perDive(String minutes);
+
+  /// No description provided for @trips_scrubber_fromDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, one{(from your last rebreather dive)} other{(from your last {n} rebreather dives)}}'**
+  String trips_scrubber_fromDives(int n);
+
+  /// No description provided for @trips_scrubber_expectedUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min expected use'**
+  String trips_scrubber_expectedUse(String minutes);
+
+  /// No description provided for @trips_scrubber_margin.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min margin after the trip'**
+  String trips_scrubber_margin(String minutes);
+
+  /// No description provided for @trips_scrubber_caution.
+  ///
+  /// In en, this message translates to:
+  /// **'Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.'**
+  String get trips_scrubber_caution;
+
+  /// No description provided for @trips_scrubber_noRating.
+  ///
+  /// In en, this message translates to:
+  /// **'No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.'**
+  String get trips_scrubber_noRating;
+
+  /// No description provided for @trips_scrubber_bannerMargin.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min scrubber margin'**
+  String trips_scrubber_bannerMargin(String minutes);
+
+  /// No description provided for @trips_scrubber_bannerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
+  String trips_scrubber_bannerCount(int count, String minutes);
 
   /// No description provided for @trips_edit_sectionTitle_embarkDisembark.
   ///

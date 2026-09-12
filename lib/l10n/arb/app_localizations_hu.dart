@@ -2681,6 +2681,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'A karbantartás lejárt';
 
   @override
+  String get preDive_runner_conditionFindings => 'Állapotmegállapítások';
+
+  @override
   String get preDive_runner_addNote => 'Megjegyzés hozzáadása';
 
   @override
@@ -11446,6 +11449,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Hiba';
 
   @override
+  String get equipment_detail_installedInLabel => 'Beszerelve ebbe';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Utolso szerviz';
 
   @override
@@ -11470,6 +11476,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'Birtoklasi ido';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Vasarlas datuma';
@@ -11868,6 +11879,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Utazasok megtekintese ezzel a felszerelessel';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Korabban beszerelve ebbe';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Felszereles szerkesztese';
@@ -19024,6 +19038,111 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Suly trend';
 
   @override
+  String get statistics_equipment_exposure_title => 'Igénybevétel';
+
+  @override
+  String get statistics_equipment_exposure_error =>
+      'Az igénybevételi adatokat nem sikerült betölteni';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Az állapotmegállapításokat nem sikerült betölteni';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'A bejelentett problémákat nem sikerült betölteni';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Összegek eszközönként a küszöbeiddel';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Még nincs merülés felszereléssel';
+
+  @override
+  String get statistics_equipment_findings_title => 'Állapotmegállapítások';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Nyitott megállapítások szabályonként';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Nyitott megállapítások szabályonként, az összes merülésre';
+
+  @override
+  String get statistics_equipment_findings_empty =>
+      'Nincs nyitott megállapítás';
+
+  @override
+  String get statistics_equipment_issues_title => 'Bejelentett problémák';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Leggyakoribb ellenőrzési címkék';
+
+  @override
+  String get statistics_equipment_issues_empty => 'Nincs bejelentett probléma';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'eszköz';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'megállapítás';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'bejelentés';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => 'Nap';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'Merülés';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'nap';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'merülés';
+
+  @override
+  String get statistics_equipment_countLabel_hours => 'óra';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'sósvízi óra';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'hideg merülés';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'óra magas O2-vel';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'mély merülés';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'akkumulátorciklus';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Óra';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'Sósvízi óra';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Hideg merülés';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'Óra magas O2-vel';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'Mély merülés';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Akkumulátorciklus';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Hiba a statisztikak betoltesekor';
 
@@ -21529,6 +21648,119 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
+
+  @override
+  String get trips_edit_sectionTitle_planning => 'Tervezés';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Várható merülések';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Várható futásidő merülésenként (perc)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Hagyd üresen, hogy a legutóbbi visszalélegeztetős merüléseidből becsüljük';
+
+  @override
+  String get trips_scrubber_title => 'Szűrőtartalék';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return '$date állapot szerint';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes perc maradt az utazás előtt (névleges $rated perc, $consumed perc elhasználva a legutóbbi csere óta)';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes perc maradt az utazás előtt (névleges $rated perc, $consumed perc elhasználva, nincs rögzített csere)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives várható merülés',
+      one: '$dives várható merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(a legutóbbi $n utazásod alapján)',
+      one: '(a legutóbbi utazásod alapján)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(ezen az utazáson beállítva)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes perc merülésenként';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(a legutóbbi $n visszalélegeztetős merülésed alapján)',
+      one: '(a legutóbbi visszalélegeztetős merülésed alapján)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes perc várható használat';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes perc tartalék az utazás után';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'A névleges időtartam 20 százaléka alatt. Tervezz cserét, vagy vigyél tartalék szűrőanyagot.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Ehhez a rebreatherhez nincs névleges időtartam; add meg a szűrő időtartamát az attribútumoknál, vagy hozz létre csereütemezést.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes perc szűrőtartalék';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreather, a legkisebb szűrőtartalék $minutes perc';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';

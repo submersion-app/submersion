@@ -2641,6 +2641,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'الصيانة متأخرة';
 
   @override
+  String get preDive_runner_conditionFindings => 'نتائج الحالة';
+
+  @override
   String get preDive_runner_addNote => 'إضافة ملاحظة';
 
   @override
@@ -11274,6 +11277,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_errorTitle => 'خطأ';
 
   @override
+  String get equipment_detail_installedInLabel => 'مركّب في';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'آخر صيانة';
 
   @override
@@ -11297,6 +11303,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'مدة الملكية';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'تاريخ الشراء';
@@ -11698,6 +11709,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'عرض الرحلات باستخدام هذه المعدات';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
 
   @override
   String get equipment_edit_appBar_editTitle => 'تعديل المعدات';
@@ -18739,6 +18753,109 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'اتجاه الأوزان';
 
   @override
+  String get statistics_equipment_exposure_title => 'التعرّض';
+
+  @override
+  String get statistics_equipment_exposure_error =>
+      'تعذّر تحميل بيانات التعرّض';
+
+  @override
+  String get statistics_equipment_findings_error => 'تعذّر تحميل نتائج الحالة';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'تعذّر تحميل المشكلات المبلّغ عنها';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'الإجماليات لكل قطعة وفق حدودك';
+
+  @override
+  String get statistics_equipment_exposure_empty => 'لا توجد غطسات بمعدات بعد';
+
+  @override
+  String get statistics_equipment_findings_title => 'نتائج الحالة';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'النتائج المفتوحة حسب القاعدة';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'النتائج المفتوحة حسب القاعدة، عبر جميع الغطسات';
+
+  @override
+  String get statistics_equipment_findings_empty => 'لا توجد نتائج مفتوحة';
+
+  @override
+  String get statistics_equipment_issues_title => 'المشكلات المبلّغ عنها';
+
+  @override
+  String get statistics_equipment_issues_subtitle => 'أكثر وسوم الفحص تكرارًا';
+
+  @override
+  String get statistics_equipment_issues_empty => 'لم يُبلَّغ عن مشكلات';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'قطع';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'نتائج';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'بلاغات';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => 'أيام';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'غطسات';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'أيام';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'غطسات';
+
+  @override
+  String get statistics_equipment_countLabel_hours => 'ساعات';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours =>
+      'ساعات في المياه المالحة';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'غطسات باردة';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'ساعات بأكسجين مرتفع';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'غطسات عميقة';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'دورات بطارية';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'ساعات';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours =>
+      'ساعات في المياه المالحة';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'غطسات باردة';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'ساعات بأكسجين مرتفع';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'غطسات عميقة';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'دورات بطارية';
+
+  @override
   String get statistics_error_loadingStatistics => 'خطأ في تحميل الإحصائيات';
 
   @override
@@ -21195,6 +21312,128 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
+
+  @override
+  String get trips_edit_sectionTitle_planning => 'التخطيط';
+
+  @override
+  String get trips_edit_label_expectedDives => 'الغطسات المتوقعة';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'اتركه فارغًا للتقدير من رحلاتك الأخيرة';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'مدة التشغيل المتوقعة لكل غطسة (بالدقائق)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'اتركه فارغًا للتقدير من غطساتك الأخيرة بجهاز إعادة التنفس';
+
+  @override
+  String get trips_scrubber_title => 'هامش المنظّف';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'حتى $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes دقيقة متبقية قبل الرحلة (المقدّر $rated دقيقة، استُهلك $consumed دقيقة منذ آخر إعادة تعبئة)';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes دقيقة متبقية قبل الرحلة (المقدّر $rated دقيقة، استُهلك $consumed دقيقة، ولا توجد إعادة تعبئة مسجلة)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة متوقعة',
+      many: '$dives غطسة متوقعة',
+      few: '$dives غطسات متوقعة',
+      two: 'غطستان متوقعتان',
+      one: 'غطسة واحدة متوقعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(من آخر $n رحلة لك)',
+      many: '(من آخر $n رحلة لك)',
+      few: '(من آخر $n رحلات لك)',
+      two: '(من آخر رحلتين لك)',
+      one: '(من رحلتك الأخيرة)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(محدد في هذه الرحلة)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes دقيقة لكل غطسة';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(من آخر $n غطسة بجهاز إعادة التنفس لك)',
+      many: '(من آخر $n غطسة بجهاز إعادة التنفس لك)',
+      few: '(من آخر $n غطسات بجهاز إعادة التنفس لك)',
+      two: '(من آخر غطستين لك بجهاز إعادة التنفس)',
+      one: '(من آخر غطسة لك بجهاز إعادة التنفس)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes دقيقة استخدام متوقع';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes دقيقة هامش بعد الرحلة';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'أقل من 20 بالمئة من المدة المقدّرة. خطّط لإعادة تعبئة أو احمل مادة ماصّة احتياطية.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'لا توجد مدة مقدّرة لهذا الجهاز؛ أضف مدة المنظّف إلى سماته أو جدول إعادة تعبئة.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes دقيقة هامش المنظّف';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count أجهزة، أدنى هامش منظّف $minutes دقيقة';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';

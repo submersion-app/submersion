@@ -2618,6 +2618,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'פג תוקף הטיפול';
 
   @override
+  String get preDive_runner_conditionFindings => 'ממצאי מצב';
+
+  @override
   String get preDive_runner_addNote => 'הוסף הערה';
 
   @override
@@ -11215,6 +11218,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_errorTitle => 'שגיאה';
 
   @override
+  String get equipment_detail_installedInLabel => 'מותקן ב';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'טיפול אחרון';
 
   @override
@@ -11237,6 +11243,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'בבעלות';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'תאריך רכישה';
@@ -11634,6 +11645,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'צפה בטיולים המשתמשים בציוד זה';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'היה מותקן ב';
 
   @override
   String get equipment_edit_appBar_editTitle => 'ערוך ציוד';
@@ -18599,6 +18613,105 @@ class AppLocalizationsHe extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'מגמת משקל';
 
   @override
+  String get statistics_equipment_exposure_title => 'חשיפה';
+
+  @override
+  String get statistics_equipment_exposure_error => 'טעינת נתוני החשיפה נכשלה';
+
+  @override
+  String get statistics_equipment_findings_error => 'טעינת ממצאי המצב נכשלה';
+
+  @override
+  String get statistics_equipment_issues_error => 'טעינת התקלות שדווחו נכשלה';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'סיכומים לכל פריט לפי הספים שלך';
+
+  @override
+  String get statistics_equipment_exposure_empty => 'אין עדיין צלילות עם ציוד';
+
+  @override
+  String get statistics_equipment_findings_title => 'ממצאי מצב';
+
+  @override
+  String get statistics_equipment_findings_subtitle => 'ממצאים פתוחים לפי כלל';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'ממצאים פתוחים לפי כלל, בכל הצלילות';
+
+  @override
+  String get statistics_equipment_findings_empty => 'אין ממצאים פתוחים';
+
+  @override
+  String get statistics_equipment_issues_title => 'תקלות שדווחו';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'תגיות הבדיקה הנפוצות ביותר';
+
+  @override
+  String get statistics_equipment_issues_empty => 'לא דווחו תקלות';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'פריטים';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'ממצאים';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'דיווחים';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => 'ימים';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'צלילות';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'ימים';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'צלילות';
+
+  @override
+  String get statistics_equipment_countLabel_hours => 'שעות';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'שעות במים מלוחים';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'צלילות קרות';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'שעות ב-O2 גבוה';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'צלילות עמוקות';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'מחזורי סוללה';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'שעות';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'שעות במים מלוחים';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'צלילות קרות';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'שעות ב-O2 גבוה';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'צלילות עמוקות';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'מחזורי סוללה';
+
+  @override
   String get statistics_error_loadingStatistics => 'שגיאה בטעינת סטטיסטיקות';
 
   @override
@@ -21041,6 +21154,119 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
+
+  @override
+  String get trips_edit_sectionTitle_planning => 'תכנון';
+
+  @override
+  String get trips_edit_label_expectedDives => 'צלילות צפויות';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'השאר ריק כדי להעריך מהטיולים האחרונים שלך';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'זמן ריצה צפוי לכל צלילה (דקות)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'השאר ריק כדי להעריך מצלילות הריברידר האחרונות שלך';
+
+  @override
+  String get trips_scrubber_title => 'מרווח הסופג';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'נכון ל-$date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו מאז המילוי האחרון)';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו, לא נרשם מילוי)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות צפויות',
+      one: 'צלילה צפויה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(לפי $n הטיולים האחרונים שלך)',
+      one: '(לפי הטיול האחרון שלך)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(הוגדר בטיול זה)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes דק\' לכל צלילה';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(לפי $n צלילות הריברידר האחרונות שלך)',
+      one: '(לפי צלילת הריברידר האחרונה שלך)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes דק\' שימוש צפוי';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes דק\' מרווח אחרי הטיול';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'מתחת ל-20 אחוז מהמשך הנקוב. תכננו מילוי או קחו סופג רזרבי.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'אין משך נקוב לריברידר זה; הוסיפו את משך הסופג למאפיינים או לוח זמנים למילוי.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes דק\' מרווח סופג';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count ריברידרים, מרווח הסופג הנמוך ביותר $minutes דק\'';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';

@@ -100,6 +100,24 @@ class UddfExportBuilders {
     );
   }
 
+  /// A dive's own entry or exit fix, as `<{side}latitude>` and
+  /// `<{side}longitude>` (the names the `<source>` record already uses).
+  ///
+  /// UDDF has coordinates only under `<divesite><geography>`, so these are
+  /// custom elements like `entrytype` and `exittype` beside them. They are
+  /// the only place a fix that lives on the dive row alone (GPS track
+  /// matching, a manual edit) reaches the file at all; without them a
+  /// restore drops it (#1735). Both exporters call this so neither can drift.
+  static void buildDiveGpsElements(
+    XmlBuilder builder,
+    String side,
+    GeoPoint? fix,
+  ) {
+    if (fix == null) return;
+    builder.element('${side}latitude', nest: fix.latitude.toString());
+    builder.element('${side}longitude', nest: fix.longitude.toString());
+  }
+
   static void buildDiveElement(
     XmlBuilder builder,
     Dive dive,
@@ -255,6 +273,7 @@ class UddfExportBuilders {
             if (dive.entryMethod != null) {
               builder.element('entrytype', nest: dive.entryMethod!.name);
             }
+            buildDiveGpsElements(builder, 'entry', dive.entryLocation);
             // Link to buddy records in diver section
             UddfParticipantWriters.writeLinks(builder, diveBuddyList);
             // Equipment used on this dive (including dive computer)
@@ -607,6 +626,7 @@ class UddfExportBuilders {
             if (dive.exitMethod != null) {
               builder.element('exittype', nest: dive.exitMethod!.name);
             }
+            buildDiveGpsElements(builder, 'exit', dive.exitLocation);
             // Weight system
             if (dive.weightAmount != null) {
               builder.element(

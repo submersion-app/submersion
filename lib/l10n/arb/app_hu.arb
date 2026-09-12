@@ -1056,6 +1056,7 @@
   "preDive_runner_flag": "Megjelölés",
   "preDive_runner_undo": "Visszaállítás függő állapotba",
   "preDive_runner_serviceOverdue": "A karbantartás lejárt",
+  "preDive_runner_conditionFindings": "Állapotmegállapítások",
   "preDive_runner_addNote": "Megjegyzés hozzáadása",
   "preDive_runner_enterValue": "Érték megadása",
   "preDive_runner_cellInAir": "Levegőben",
@@ -3662,6 +3663,7 @@
   "equipment_detail_editTooltipShort": "Szerkesztes",
   "equipment_detail_errorMessage": "Hiba: {error}",
   "equipment_detail_errorTitle": "Hiba",
+  "equipment_detail_installedInLabel": "Beszerelve ebbe",
   "equipment_detail_lastServiceLabel": "Utolso szerviz",
   "equipment_detail_loadingTitle": "Betoltes...",
   "equipment_detail_modelLabel": "Modell",
@@ -3670,6 +3672,17 @@
   "equipment_detail_notFoundTitle": "Felszereles nem talalhato",
   "equipment_detail_notesTitle": "Megjegyzesek",
   "equipment_detail_ownedForLabel": "Birtoklasi ido",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Vasarlas datuma",
   "equipment_detail_purchasePriceLabel": "Vasarlasi ar",
   "equipment_detail_retiredChip": "Kivont",
@@ -3837,6 +3850,7 @@
   "equipment_detail_tripsCountSingular": "{count} utazas",
   "equipment_detail_tripsLabel": "Utazasok",
   "equipment_detail_tripsSemanticLabel": "Utazasok megtekintese ezzel a felszerelessel",
+  "equipment_detail_wasInstalledInLabel": "Korabban beszerelve ebbe",
   "equipment_edit_appBar_editTitle": "Felszereles szerkesztese",
   "equipment_edit_appBar_newTitle": "Uj felszereles",
   "equipment_edit_appBar_saveButton": "Mentes",
@@ -5673,6 +5687,38 @@
   "statistics_equipment_weightTrend_error": "Nem sikerult a suly trend betoltese",
   "statistics_equipment_weightTrend_subtitle": "Összes ólom merülésenként",
   "statistics_equipment_weightTrend_title": "Suly trend",
+  "statistics_equipment_exposure_title": "Igénybevétel",
+  "statistics_equipment_exposure_error": "Az igénybevételi adatokat nem sikerült betölteni",
+  "statistics_equipment_findings_error": "Az állapotmegállapításokat nem sikerült betölteni",
+  "statistics_equipment_issues_error": "A bejelentett problémákat nem sikerült betölteni",
+  "statistics_equipment_exposure_subtitle": "Összegek eszközönként a küszöbeiddel",
+  "statistics_equipment_exposure_empty": "Még nincs merülés felszereléssel",
+  "statistics_equipment_findings_title": "Állapotmegállapítások",
+  "statistics_equipment_findings_subtitle": "Nyitott megállapítások szabályonként",
+  "statistics_equipment_findings_subtitleAllDives": "Nyitott megállapítások szabályonként, az összes merülésre",
+  "statistics_equipment_findings_empty": "Nincs nyitott megállapítás",
+  "statistics_equipment_issues_title": "Bejelentett problémák",
+  "statistics_equipment_issues_subtitle": "Leggyakoribb ellenőrzési címkék",
+  "statistics_equipment_issues_empty": "Nincs bejelentett probléma",
+  "statistics_equipment_countLabel_items": "eszköz",
+  "statistics_equipment_countLabel_findings": "megállapítás",
+  "statistics_equipment_countLabel_reports": "bejelentés",
+  "statistics_equipment_exposureUnit_days": "Nap",
+  "statistics_equipment_exposureUnit_dives": "Merülés",
+  "statistics_equipment_countLabel_days": "nap",
+  "statistics_equipment_countLabel_dives": "merülés",
+  "statistics_equipment_countLabel_hours": "óra",
+  "statistics_equipment_countLabel_saltHours": "sósvízi óra",
+  "statistics_equipment_countLabel_coldDives": "hideg merülés",
+  "statistics_equipment_countLabel_o2Hours": "óra magas O2-vel",
+  "statistics_equipment_countLabel_deepCycles": "mély merülés",
+  "statistics_equipment_countLabel_cycles": "akkumulátorciklus",
+  "statistics_equipment_exposureUnit_hours": "Óra",
+  "statistics_equipment_exposureUnit_saltHours": "Sósvízi óra",
+  "statistics_equipment_exposureUnit_coldDives": "Hideg merülés",
+  "statistics_equipment_exposureUnit_o2Hours": "Óra magas O2-vel",
+  "statistics_equipment_exposureUnit_deepCycles": "Mély merülés",
+  "statistics_equipment_exposureUnit_cycles": "Akkumulátorciklus",
   "statistics_error_loadingStatistics": "Hiba a statisztikak betoltesekor",
   "statistics_filterBar_clear": "Szűrő törlése",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 merülés} other{{count} merülés}}",
@@ -6329,6 +6375,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Tervezés",
+  "trips_edit_label_expectedDives": "Várható merülések",
+  "trips_edit_hint_expectedDives": "Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük",
+  "trips_edit_label_expectedRuntime": "Várható futásidő merülésenként (perc)",
+  "trips_edit_hint_expectedRuntime": "Hagyd üresen, hogy a legutóbbi visszalélegeztetős merüléseidből becsüljük",
+  "trips_scrubber_title": "Szűrőtartalék",
+  "trips_scrubber_asOfStart": "{date} állapot szerint",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} perc maradt az utazás előtt (névleges {rated} perc, {consumed} perc elhasználva a legutóbbi csere óta)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} perc maradt az utazás előtt (névleges {rated} perc, {consumed} perc elhasználva, nincs rögzített csere)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} várható merülés} other{{dives} várható merülés}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(a legutóbbi utazásod alapján)} other{(a legutóbbi {n} utazásod alapján)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(ezen az utazáson beállítva)",
+  "trips_scrubber_perDive": "{minutes} perc merülésenként",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(a legutóbbi visszalélegeztetős merülésed alapján)} other{(a legutóbbi {n} visszalélegeztetős merülésed alapján)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} perc várható használat",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} perc tartalék az utazás után",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "A névleges időtartam 20 százaléka alatt. Tervezz cserét, vagy vigyél tartalék szűrőanyagot.",
+  "trips_scrubber_noRating": "Ehhez a rebreatherhez nincs névleges időtartam; add meg a szűrő időtartamát az attribútumoknál, vagy hozz létre csereütemezést.",
+  "trips_scrubber_bannerMargin": "{minutes} perc szűrőtartalék",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreather, a legkisebb szűrőtartalék {minutes} perc",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Befejezes datuma",

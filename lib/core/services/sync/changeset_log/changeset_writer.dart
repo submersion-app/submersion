@@ -16,9 +16,18 @@ import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 enum ChangesetWriteKind { base, changeset, compacted, heartbeat, noop }
 
 class ChangesetWriteResult {
-  const ChangesetWriteResult(this.kind, [this.seq]);
+  const ChangesetWriteResult(this.kind, [this.seq, this.snapshotAt]);
   final ChangesetWriteKind kind;
   final int? seq;
+
+  /// Taken before this publish read its export snapshot, in the millisecond
+  /// clock `sync_records.updated_at` uses: every pending mark older than this
+  /// is in what was published, so the caller may clear it. A mark made later
+  /// may not be, and pending marks are an export source for clockless
+  /// children, so clearing it would drop that edit. Null when the snapshot was
+  /// read on an earlier attempt (a resumed base), where no mark is known to
+  /// be covered and nothing may be cleared.
+  final int? snapshotAt;
 }
 
 /// Publishes this device's local changes to its per-device changeset log.
@@ -152,6 +161,8 @@ class ChangesetWriter {
       // exportChangeset(null) here -- that is the OOM path.
       final ResumableBasePublish publish;
       final int rowCount;
+      // The resumed export was read on an earlier attempt; see snapshotAt.
+      final snapshotAt = resumed == null ? now : null;
       if (resumed != null) {
         publish = resumed;
         // rowCount is only consulted for the empty-library noop below, and a
@@ -176,7 +187,7 @@ class ChangesetWriter {
           try {
             await File(base.path).delete();
           } catch (_) {}
-          return const ChangesetWriteResult(ChangesetWriteKind.noop);
+          return ChangesetWriteResult(ChangesetWriteKind.noop, null, now);
         }
         publish = await _recordResumable(
           base,
@@ -251,7 +262,7 @@ class ChangesetWriter {
         // before this leaves the record in place so the NEXT attempt resumes
         // rather than starting over -- the whole point of the exercise.
         await _resumable.discard(publish);
-        return ChangesetWriteResult(ChangesetWriteKind.base, seq);
+        return ChangesetWriteResult(ChangesetWriteKind.base, seq, snapshotAt);
       } catch (_) {
         // Keep the export and its record for the next attempt. Nothing else
         // reclaims this directory, so a publish that can never succeed would
@@ -307,9 +318,10 @@ class ChangesetWriter {
         return ChangesetWriteResult(
           ChangesetWriteKind.heartbeat,
           ownManifest.headSeq,
+          now,
         );
       }
-      return const ChangesetWriteResult(ChangesetWriteKind.noop);
+      return ChangesetWriteResult(ChangesetWriteKind.noop, null, now);
     }
     final bytes = _codec.encodeChangeset(payload);
     await provider.uploadFile(
@@ -374,9 +386,9 @@ class ChangesetWriter {
         appliedPeerHlc: appliedPeerHlc,
         onBasePartUploaded: onBasePartUploaded,
       );
-      return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq);
+      return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq, now);
     }
-    return ChangesetWriteResult(ChangesetWriteKind.changeset, newSeq);
+    return ChangesetWriteResult(ChangesetWriteKind.changeset, newSeq, now);
   }
 
   Future<void> _writeManifest(

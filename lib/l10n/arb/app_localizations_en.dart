@@ -2646,6 +2646,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'Service overdue';
 
   @override
+  String get preDive_runner_conditionFindings => 'Condition findings';
+
+  @override
   String get preDive_runner_addNote => 'Add note';
 
   @override
@@ -11294,6 +11297,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Error';
 
   @override
+  String get equipment_detail_installedInLabel => 'Installed in';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Last Service';
 
   @override
@@ -11317,6 +11323,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'Owned For';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Purchase Date';
@@ -11715,6 +11726,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'View trips using this equipment';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Was installed in';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Edit Equipment';
@@ -18756,6 +18770,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Weight Trend';
 
   @override
+  String get statistics_equipment_exposure_title => 'Exposure';
+
+  @override
+  String get statistics_equipment_exposure_error =>
+      'Failed to load exposure data';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Failed to load condition findings';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'Failed to load reported issues';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Totals per item with your thresholds';
+
+  @override
+  String get statistics_equipment_exposure_empty => 'No dives with gear yet';
+
+  @override
+  String get statistics_equipment_findings_title => 'Condition findings';
+
+  @override
+  String get statistics_equipment_findings_subtitle => 'Open findings by rule';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Open findings by rule, across all dives';
+
+  @override
+  String get statistics_equipment_findings_empty => 'No open findings';
+
+  @override
+  String get statistics_equipment_issues_title => 'Reported issues';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Most frequent check-in tags';
+
+  @override
+  String get statistics_equipment_issues_empty => 'No issues reported';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'items';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'findings';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'reports';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => 'Days';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'Dives';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'days';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'dives';
+
+  @override
+  String get statistics_equipment_countLabel_hours => 'hours';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'salt-water hours';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'cold dives';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'high-O2 hours';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'deep dives';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'battery cycles';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Hours';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'Salt-water hours';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Cold dives';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'High-O2 hours';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'Deep dives';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Battery cycles';
+
+  @override
   String get statistics_error_loadingStatistics => 'Error loading statistics';
 
   @override
@@ -21217,6 +21333,119 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
+
+  @override
+  String get trips_edit_sectionTitle_planning => 'Planning';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Expected dives';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Leave empty to estimate from your recent trips';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Expected runtime per dive (minutes)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Leave empty to estimate from your recent rebreather dives';
+
+  @override
+  String get trips_scrubber_title => 'Scrubber margin';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'as of $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min left before the trip (rated $rated min, $consumed min used since the last repack)';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min left before the trip (rated $rated min, $consumed min used, no repack recorded)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives expected dives',
+      one: '$dives expected dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(from your last $n trips)',
+      one: '(from your last trip)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(set on this trip)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min per dive';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(from your last $n rebreather dives)',
+      one: '(from your last rebreather dive)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min expected use';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min margin after the trip';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min scrubber margin';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreathers, lowest $minutes min scrubber margin';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';

@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -47,6 +50,7 @@ class ReparseService {
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
   }) : _transmitterMatcherLoader = transmitterMatcherLoader,
+       _sync = SyncRepository(database: db),
        _profileSeries =
            profileSeries ??
            ProfileSeriesRepository(
@@ -60,6 +64,7 @@ class ReparseService {
              syncRepository: SyncRepository(database: db),
            );
 
+  final SyncRepository _sync;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
 
@@ -92,7 +97,7 @@ class ReparseService {
     Uint8List? rawData,
     Uint8List? rawFingerprint,
   }) async {
-    return db.transaction(() async {
+    final outcome = await db.transaction(() async {
       final now = DateTime.now();
 
       // ------------------------------------------------------------------
@@ -173,13 +178,18 @@ class ReparseService {
       // scoping). A combined dive can carry a single source row when only
       // one original had one, so the ownership guard applies here too --
       // otherwise the merge's own surface-gap markers are deleted (#1164).
-      if (!isMultiSource && ownsStrand) {
-        await (db.delete(
-          db.diveProfileEvents,
-        )..where((t) => t.diveId.equals(diveId))).go();
-        await (db.delete(
-          db.gasSwitches,
-        )..where((t) => t.diveId.equals(diveId))).go();
+      final rewritesEvents = !isMultiSource && ownsStrand;
+      if (rewritesEvents) {
+        // Tombstoned: a peer's import only upserts these, so a row removed
+        // here without one would linger there beside its re-inserted copy.
+        await _deleteAndTombstone(
+          'diveProfileEvents',
+          await _idsOf(db.diveProfileEvents, diveId),
+        );
+        await _deleteAndTombstone(
+          'gasSwitches',
+          await _idsOf(db.gasSwitches, diveId),
+        );
         await _tankSeries.deleteForDive(diveId);
 
         // Re-insert events from parsed data
@@ -196,7 +206,8 @@ class ReparseService {
       //    Skip for non-primary or multi-source dives to avoid overwriting
       //    tank data owned by other sources.
       // ------------------------------------------------------------------
-      if (sourceRow.isPrimary && !isMultiSource) {
+      final rewritesTanks = sourceRow.isPrimary && !isMultiSource;
+      if (rewritesTanks) {
         final tankIdsByIndex = await _carryOverTanks(
           diveId: diveId,
           computerId: computerId,
@@ -216,8 +227,80 @@ class ReparseService {
         );
       }
 
+      // ------------------------------------------------------------------
+      // 7. Stage what this re-parse wrote. Each rewritten child is staged
+      //    itself and travels without the dive
+      //    (SyncDataSerializer.parentGatedChildEntities). The dive row is
+      //    staged only when it changed (the primary path): re-stamping an
+      //    unchanged dive would let this device's copy win over a newer edit
+      //    to it made on another device.
+      // ------------------------------------------------------------------
+      final stagedAt = now.millisecondsSinceEpoch;
+      Future<void> stage(String entityType, Iterable<String> ids) async {
+        for (final id in ids) {
+          await _sync.markRecordPending(
+            entityType: entityType,
+            recordId: id,
+            localUpdatedAt: stagedAt,
+          );
+        }
+      }
+
+      await stage('diveDataSources', [sourceRowId]);
+      if (rewritesEvents) {
+        await stage(
+          'diveProfileEvents',
+          await _idsOf(db.diveProfileEvents, diveId),
+        );
+      }
+      if (rewritesTanks) {
+        await stage('diveTanks', await _idsOf(db.diveTanks, diveId));
+      }
+      if (rewritesEvents || rewritesTanks) {
+        await stage('gasSwitches', await _idsOf(db.gasSwitches, diveId));
+      }
+      if (sourceRow.isPrimary) await stage('dives', [diveId]);
+
       return (profilePreserved: !ownsStrand);
     });
+    // After commit, so an auto-sync publishes it. A non-primary re-parse
+    // writes no series, whose repositories otherwise announce the change.
+    SyncEventBus.notifyLocalChange();
+    return outcome;
+  }
+
+  /// The ids of [table]'s rows on [diveId].
+  Future<List<String>> _idsOf(TableInfo<Table, dynamic> table, String diveId) {
+    return db
+        .customSelect(
+          'SELECT id FROM ${table.actualTableName} WHERE dive_id = ?',
+          variables: [Variable<String>(diveId)],
+          readsFrom: {table},
+        )
+        .map((row) => row.read<String>('id'))
+        .get();
+  }
+
+  /// Deletes the [entityType] rows [ids] and logs a tombstone for each.
+  Future<void> _deleteAndTombstone(String entityType, List<String> ids) async {
+    if (ids.isEmpty) return;
+    final table = switch (entityType) {
+      'diveProfileEvents' => 'dive_profile_events',
+      'gasSwitches' => 'gas_switches',
+      _ => throw ArgumentError.value(entityType, 'entityType'),
+    };
+    // In chunks: a long dive's events can outnumber SQLite's ~999
+    // variables in one statement.
+    for (var i = 0; i < ids.length; i += 900) {
+      final chunk = ids.sublist(i, math.min(i + 900, ids.length));
+      await db.customStatement(
+        'DELETE FROM $table WHERE id IN (${List.filled(chunk.length, '?').join(', ')})',
+        chunk,
+      );
+    }
+    for (final id in ids) {
+      await _sync.logDeletion(entityType: entityType, recordId: id);
+    }
   }
 
   /// Count how many sources for a given computer have raw data vs not.
@@ -785,6 +868,7 @@ class ReparseService {
         await (db.delete(
           db.diveTanks,
         )..where((t) => t.id.equals(existing.id))).go();
+        await _sync.logDeletion(entityType: 'diveTanks', recordId: existing.id);
       }
     }
 

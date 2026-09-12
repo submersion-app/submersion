@@ -2698,6 +2698,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'Mantenimiento vencido';
 
   @override
+  String get preDive_runner_conditionFindings => 'Hallazgos de estado';
+
+  @override
   String get preDive_runner_addNote => 'Agregar nota';
 
   @override
@@ -11473,6 +11476,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Error';
 
   @override
+  String get equipment_detail_installedInLabel => 'Instalado en';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Ultimo servicio';
 
   @override
@@ -11495,6 +11501,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'En posesion durante';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Fecha de compra';
@@ -11898,6 +11909,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Ver viajes con este equipo';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Estuvo instalado en';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Editar equipo';
@@ -19085,6 +19099,115 @@ class AppLocalizationsEs extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Tendencia de peso';
 
   @override
+  String get statistics_equipment_exposure_title => 'Exposición';
+
+  @override
+  String get statistics_equipment_exposure_error =>
+      'No se pudieron cargar los datos de exposición';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'No se pudieron cargar los hallazgos de estado';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'No se pudieron cargar los problemas registrados';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Totales por artículo con tus umbrales';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Aún no hay inmersiones con equipo';
+
+  @override
+  String get statistics_equipment_findings_title => 'Hallazgos de estado';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Hallazgos abiertos por regla';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Hallazgos abiertos por regla, en todas las inmersiones';
+
+  @override
+  String get statistics_equipment_findings_empty => 'No hay hallazgos abiertos';
+
+  @override
+  String get statistics_equipment_issues_title => 'Problemas registrados';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Etiquetas de revisión más frecuentes';
+
+  @override
+  String get statistics_equipment_issues_empty =>
+      'No hay problemas registrados';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'artículos';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'hallazgos';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'registros';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => 'Días';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'Inmersiones';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'días';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'inmersiones';
+
+  @override
+  String get statistics_equipment_countLabel_hours => 'horas';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours =>
+      'horas en agua salada';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'inmersiones frías';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'horas con O2 alto';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles =>
+      'inmersiones profundas';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'ciclos de batería';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Horas';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours =>
+      'Horas en agua salada';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Inmersiones frías';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'Horas con O2 alto';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles =>
+      'Inmersiones profundas';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Ciclos de batería';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Error al cargar las estadisticas';
 
@@ -21608,6 +21731,119 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
+
+  @override
+  String get trips_edit_sectionTitle_planning => 'Planificación';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Inmersiones previstas';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Déjalo vacío para estimar a partir de tus viajes recientes';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Duración prevista por inmersión (minutos)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Déjalo vacío para estimar a partir de tus inmersiones con rebreather recientes';
+
+  @override
+  String get trips_scrubber_title => 'Margen del absorbente';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'a fecha de $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min restantes antes del viaje (nominal $rated min, $consumed min usados desde el último cambio)';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min restantes antes del viaje (nominal $rated min, $consumed min usados, sin cambio registrado)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives inmersiones previstas',
+      one: '$dives inmersión prevista',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(según tus últimos $n viajes)',
+      one: '(según tu último viaje)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(fijado en este viaje)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min por inmersión';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(según tus últimas $n inmersiones con rebreather)',
+      one: '(según tu última inmersión con rebreather)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min de uso previsto';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min de margen tras el viaje';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Menos del 20 por ciento de la duración nominal. Planifica un cambio o lleva absorbente de repuesto.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Este rebreather no tiene duración nominal; añade la duración del absorbente a sus atributos o un programa de cambio.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min de margen de absorbente';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreathers, el menor con $minutes min de margen de absorbente';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';

@@ -160,6 +160,10 @@ void main() {
                   .getSingle())
               .read<String>('hlc');
 
+      // The publish that reached this watermark also cleared the review's
+      // pending marks; a pending child is exported until then.
+      await syncRepository.clearPendingRecords();
+
       final serializer = SyncDataSerializer();
       final deviceId = await syncRepository.getDeviceId();
       final before = await serializer.exportChangeset(

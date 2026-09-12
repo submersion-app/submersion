@@ -301,6 +301,11 @@ struct GasMix {
   var index: Int64
   var o2Percent: Double
   var hePercent: Double
+  /// Gas usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+  /// 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+  /// Set on the gas mix itself, so it is available even when the mix has no
+  /// tank/transmitter record.
+  var usage: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -308,11 +313,13 @@ struct GasMix {
     let index = pigeonVar_list[0] as! Int64
     let o2Percent = pigeonVar_list[1] as! Double
     let hePercent = pigeonVar_list[2] as! Double
+    let usage: Int64? = nilOrValue(pigeonVar_list[3])
 
     return GasMix(
       index: index,
       o2Percent: o2Percent,
-      hePercent: hePercent
+      hePercent: hePercent,
+      usage: usage
     )
   }
   func toList() -> [Any?] {
@@ -320,6 +327,7 @@ struct GasMix {
       index,
       o2Percent,
       hePercent,
+      usage,
     ]
   }
 }

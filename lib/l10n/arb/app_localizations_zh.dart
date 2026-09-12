@@ -2539,6 +2539,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_runner_serviceOverdue => '维护已逾期';
 
   @override
+  String get preDive_runner_conditionFindings => '状态发现';
+
+  @override
   String get preDive_runner_addNote => '添加备注';
 
   @override
@@ -10962,6 +10965,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_errorTitle => '错误';
 
   @override
+  String get equipment_detail_installedInLabel => '安装于';
+
+  @override
   String get equipment_detail_lastServiceLabel => '最近维护';
 
   @override
@@ -10984,6 +10990,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => '拥有为';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name（$status）';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => '购买日期';
@@ -11363,6 +11374,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_detail_tripsSemanticLabel => '查看使用此装备的旅行';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => '曾安装于';
 
   @override
   String get equipment_edit_appBar_editTitle => '编辑装备';
@@ -18107,6 +18121,103 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => '配重趋势';
 
   @override
+  String get statistics_equipment_exposure_title => '使用暴露';
+
+  @override
+  String get statistics_equipment_exposure_error => '无法加载使用暴露数据';
+
+  @override
+  String get statistics_equipment_findings_error => '无法加载状态发现';
+
+  @override
+  String get statistics_equipment_issues_error => '无法加载已报告的问题';
+
+  @override
+  String get statistics_equipment_exposure_subtitle => '按您的阈值统计每件装备的总量';
+
+  @override
+  String get statistics_equipment_exposure_empty => '尚无使用装备的潜水';
+
+  @override
+  String get statistics_equipment_findings_title => '状态发现';
+
+  @override
+  String get statistics_equipment_findings_subtitle => '按规则统计的未处理发现';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      '按规则统计的未处理发现（涵盖所有潜水）';
+
+  @override
+  String get statistics_equipment_findings_empty => '没有未处理的发现';
+
+  @override
+  String get statistics_equipment_issues_title => '已报告的问题';
+
+  @override
+  String get statistics_equipment_issues_subtitle => '最常见的检查标签';
+
+  @override
+  String get statistics_equipment_issues_empty => '未报告问题';
+
+  @override
+  String get statistics_equipment_countLabel_items => '件';
+
+  @override
+  String get statistics_equipment_countLabel_findings => '项';
+
+  @override
+  String get statistics_equipment_countLabel_reports => '条';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => '天';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => '潜水';
+
+  @override
+  String get statistics_equipment_countLabel_days => '天';
+
+  @override
+  String get statistics_equipment_countLabel_dives => '潜水';
+
+  @override
+  String get statistics_equipment_countLabel_hours => '小时';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => '盐水小时';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => '冷水潜水';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => '高氧小时';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => '深潜';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => '电池循环';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => '小时';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => '盐水小时';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => '冷水潜水';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => '高氧小时';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => '深潜';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => '电池循环';
+
+  @override
   String get statistics_error_loadingStatistics => '加载统计数据时出错';
 
   @override
@@ -20472,6 +20583,111 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => '乘客容量';
+
+  @override
+  String get trips_edit_sectionTitle_planning => '计划';
+
+  @override
+  String get trips_edit_label_expectedDives => '预计潜水次数';
+
+  @override
+  String get trips_edit_hint_expectedDives => '留空则根据近期行程估算';
+
+  @override
+  String get trips_edit_label_expectedRuntime => '每次潜水预计运行时间（分钟）';
+
+  @override
+  String get trips_edit_hint_expectedRuntime => '留空则根据近期循环呼吸器潜水估算';
+
+  @override
+  String get trips_scrubber_title => '吸收剂余量';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return '截至 $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '行程前剩余 $minutes 分钟（额定 $rated 分钟，自上次更换以来已使用 $consumed 分钟）';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '行程前剩余 $minutes 分钟（额定 $rated 分钟，已使用 $consumed 分钟，未记录更换）';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '预计 $dives 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '（根据您最近 $n 次行程）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '（在本行程中设置）';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '每次潜水 $minutes 分钟';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '（根据您最近 $n 次循环呼吸器潜水）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '预计使用 $minutes 分钟';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '行程后余量 $minutes 分钟';
+  }
+
+  @override
+  String get trips_scrubber_caution => '低于额定时长的 20%。请安排更换或携带备用吸收剂。';
+
+  @override
+  String get trips_scrubber_noRating => '此呼吸器没有额定时长；请在属性中添加吸收剂时长或添加更换计划。';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '吸收剂余量 $minutes 分钟';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count 台呼吸器，最低吸收剂余量 $minutes 分钟';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => '上船/下船';

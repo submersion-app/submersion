@@ -24,7 +24,8 @@ void main() {
   Future<void> insertDive(
     String id, {
     required int dateMs,
-    int runtime = 3600,
+    int? runtime = 3600,
+    int? bottomTime,
     String mode = 'oc',
     String? waterType,
     double? maxDepth,
@@ -39,6 +40,7 @@ void main() {
           updatedAt: dateMs,
         ).copyWith(
           runtime: Value(runtime),
+          bottomTime: Value(bottomTime),
           diveMode: Value(mode),
           waterType: Value(waterType),
           maxDepth: Value(maxDepth),
@@ -98,6 +100,49 @@ void main() {
     expect(s.minTemperature, 7.0);
     expect(s.contactO2Fraction, isNull, reason: 'a mask touches no gas');
   });
+
+  test(
+    'the length is the first positive of runtime, then bottom time',
+    () async {
+      // A hand-logged dive can store a zero runtime beside a real bottom
+      // time. Counting it as zero hours would push a service interval later
+      // than the gear's real use, so the next positive figure stands in, as
+      // the trip history reads it.
+      final reg = await repo.createEquipment(
+        const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+      );
+      final lengths = {
+        'zero': (0, 2400),
+        'negative': (-60, 1200),
+        'null': (null, 1800),
+        'runtime': (3000, 2400),
+        'neither': (0, null),
+      };
+      var day = 1;
+      for (final MapEntry(key: id, value: (runtime, bottom))
+          in lengths.entries) {
+        await insertDive(
+          id,
+          dateMs: DateTime.utc(2026, 4, day++).millisecondsSinceEpoch,
+          runtime: runtime,
+          bottomTime: bottom,
+        );
+        await link(id, reg.id);
+      }
+
+      final samples = await repo.getExposureSamplesForEquipment(reg.id);
+      expect(
+        {for (final s in samples) s.diveId: s.durationSeconds},
+        {
+          'zero': 2400,
+          'negative': 1200,
+          'null': 1800,
+          'runtime': 3000,
+          'neither': 0,
+        },
+      );
+    },
+  );
 
   test(
     'a tank item, a regulator and a rebreather each see their gas',

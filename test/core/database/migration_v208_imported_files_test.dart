@@ -30,8 +30,10 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v208 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 208);
+  test('v208 is in the ladder', () {
+    // Relaxed once v210 (the dive_tanks equipment link and child clocks)
+    // landed on top; the newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(208));
     expect(AppDatabase.migrationVersions, contains(208));
   });
 

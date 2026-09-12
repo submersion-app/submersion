@@ -1639,6 +1639,7 @@
   "preDive_runner_flag": "Flag",
   "preDive_runner_undo": "Reset to pending",
   "preDive_runner_serviceOverdue": "Service overdue",
+  "preDive_runner_conditionFindings": "Condition findings",
   "preDive_runner_addNote": "Add note",
   "preDive_runner_enterValue": "Enter value",
   "preDive_runner_cellInAir": "In air",
@@ -6508,6 +6509,7 @@
   "equipment_detail_editTooltipShort": "Edit",
   "equipment_detail_errorMessage": "Error: {error}",
   "equipment_detail_errorTitle": "Error",
+  "equipment_detail_installedInLabel": "Installed in",
   "equipment_detail_lastServiceLabel": "Last Service",
   "equipment_detail_loadingTitle": "Loading...",
   "equipment_detail_modelLabel": "Model",
@@ -6516,6 +6518,17 @@
   "equipment_detail_notFoundTitle": "Equipment Not Found",
   "equipment_detail_notesTitle": "Notes",
   "equipment_detail_ownedForLabel": "Owned For",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Purchase Date",
   "equipment_detail_purchasePriceLabel": "Purchase Price",
   "equipment_detail_retiredChip": "Retired",
@@ -6810,6 +6823,7 @@
   "equipment_detail_tripsCountSingular": "{count} trip",
   "equipment_detail_tripsLabel": "Trips",
   "equipment_detail_tripsSemanticLabel": "View trips using this equipment",
+  "equipment_detail_wasInstalledInLabel": "Was installed in",
   "equipment_edit_appBar_editTitle": "Edit Equipment",
   "equipment_edit_appBar_newTitle": "New Equipment",
   "equipment_edit_appBar_saveButton": "Save",
@@ -11369,6 +11383,38 @@
   "statistics_equipment_weightTrend_error": "Failed to load weight trend",
   "statistics_equipment_weightTrend_subtitle": "Total lead carried per dive",
   "statistics_equipment_weightTrend_title": "Weight Trend",
+  "statistics_equipment_exposure_title": "Exposure",
+  "statistics_equipment_exposure_error": "Failed to load exposure data",
+  "statistics_equipment_findings_error": "Failed to load condition findings",
+  "statistics_equipment_issues_error": "Failed to load reported issues",
+  "statistics_equipment_exposure_subtitle": "Totals per item with your thresholds",
+  "statistics_equipment_exposure_empty": "No dives with gear yet",
+  "statistics_equipment_findings_title": "Condition findings",
+  "statistics_equipment_findings_subtitle": "Open findings by rule",
+  "statistics_equipment_findings_subtitleAllDives": "Open findings by rule, across all dives",
+  "statistics_equipment_findings_empty": "No open findings",
+  "statistics_equipment_issues_title": "Reported issues",
+  "statistics_equipment_issues_subtitle": "Most frequent check-in tags",
+  "statistics_equipment_issues_empty": "No issues reported",
+  "statistics_equipment_countLabel_items": "items",
+  "statistics_equipment_countLabel_findings": "findings",
+  "statistics_equipment_countLabel_reports": "reports",
+  "statistics_equipment_exposureUnit_days": "Days",
+  "statistics_equipment_exposureUnit_dives": "Dives",
+  "statistics_equipment_countLabel_days": "days",
+  "statistics_equipment_countLabel_dives": "dives",
+  "statistics_equipment_countLabel_hours": "hours",
+  "statistics_equipment_countLabel_saltHours": "salt-water hours",
+  "statistics_equipment_countLabel_coldDives": "cold dives",
+  "statistics_equipment_countLabel_o2Hours": "high-O2 hours",
+  "statistics_equipment_countLabel_deepCycles": "deep dives",
+  "statistics_equipment_countLabel_cycles": "battery cycles",
+  "statistics_equipment_exposureUnit_hours": "Hours",
+  "statistics_equipment_exposureUnit_saltHours": "Salt-water hours",
+  "statistics_equipment_exposureUnit_coldDives": "Cold dives",
+  "statistics_equipment_exposureUnit_o2Hours": "High-O2 hours",
+  "statistics_equipment_exposureUnit_deepCycles": "Deep dives",
+  "statistics_equipment_exposureUnit_cycles": "Battery cycles",
   "statistics_error_loadingStatistics": "Error loading statistics",
   "statistics_filterBar_clear": "Clear filter",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
@@ -12861,6 +12907,119 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_hint_cabinType": "e.g. Deluxe Double",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Planning",
+  "trips_edit_label_expectedDives": "Expected dives",
+  "trips_edit_hint_expectedDives": "Leave empty to estimate from your recent trips",
+  "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
+  "trips_edit_hint_expectedRuntime": "Leave empty to estimate from your recent rebreather dives",
+  "trips_scrubber_title": "Scrubber margin",
+  "trips_scrubber_asOfStart": "as of {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min left before the trip (rated {rated} min, {consumed} min used, no repack recorded)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} expected dive} other{{dives} expected dives}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(from your last trip)} other{(from your last {n} trips)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(set on this trip)",
+  "trips_scrubber_perDive": "{minutes} min per dive",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(from your last rebreather dive)} other{(from your last {n} rebreather dives)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min expected use",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min margin after the trip",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.",
+  "trips_scrubber_noRating": "No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.",
+  "trips_scrubber_bannerMargin": "{minutes} min scrubber margin",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreathers, lowest {minutes} min scrubber margin",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_sectionTitle_embarkDisembark": "Embark / Disembark",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_hint_embarkPort": "e.g. Hurghada Marina",

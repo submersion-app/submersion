@@ -1056,6 +1056,7 @@
   "preDive_runner_flag": "Markieren",
   "preDive_runner_undo": "Auf ausstehend zurücksetzen",
   "preDive_runner_serviceOverdue": "Wartung überfällig",
+  "preDive_runner_conditionFindings": "Zustandsbefunde",
   "preDive_runner_addNote": "Notiz hinzufügen",
   "preDive_runner_enterValue": "Wert eingeben",
   "preDive_runner_cellInAir": "In Luft",
@@ -3746,6 +3747,7 @@
   "equipment_detail_editTooltipShort": "Bearbeiten",
   "equipment_detail_errorMessage": "Fehler: {error}",
   "equipment_detail_errorTitle": "Fehler",
+  "equipment_detail_installedInLabel": "Eingebaut in",
   "equipment_detail_lastServiceLabel": "Letzte Wartung",
   "equipment_detail_loadingTitle": "Wird geladen...",
   "equipment_detail_modelLabel": "Modell",
@@ -3754,6 +3756,17 @@
   "equipment_detail_notFoundTitle": "Ausrüstung nicht gefunden",
   "equipment_detail_notesTitle": "Notizen",
   "equipment_detail_ownedForLabel": "Im Besitz seit",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Kaufdatum",
   "equipment_detail_purchasePriceLabel": "Kaufpreis",
   "equipment_detail_retiredChip": "Ausgemustert",
@@ -3921,6 +3934,7 @@
   "equipment_detail_tripsCountSingular": "{count} Reise",
   "equipment_detail_tripsLabel": "Reisen",
   "equipment_detail_tripsSemanticLabel": "Reisen mit dieser Ausrüstung anzeigen",
+  "equipment_detail_wasInstalledInLabel": "War eingebaut in",
   "equipment_edit_appBar_editTitle": "Ausrüstung bearbeiten",
   "equipment_edit_appBar_newTitle": "Neue Ausrüstung",
   "equipment_edit_appBar_saveButton": "Speichern",
@@ -5757,6 +5771,38 @@
   "statistics_equipment_weightTrend_error": "Gewichtstrend konnte nicht geladen werden",
   "statistics_equipment_weightTrend_subtitle": "Gesamtes Blei pro Tauchgang",
   "statistics_equipment_weightTrend_title": "Gewichtstrend",
+  "statistics_equipment_exposure_title": "Belastung",
+  "statistics_equipment_exposure_error": "Belastungsdaten konnten nicht geladen werden",
+  "statistics_equipment_findings_error": "Zustandsbefunde konnten nicht geladen werden",
+  "statistics_equipment_issues_error": "Gemeldete Probleme konnten nicht geladen werden",
+  "statistics_equipment_exposure_subtitle": "Summen je Teil mit deinen Schwellen",
+  "statistics_equipment_exposure_empty": "Noch keine Tauchgänge mit Ausrüstung",
+  "statistics_equipment_findings_title": "Zustandsbefunde",
+  "statistics_equipment_findings_subtitle": "Offene Befunde je Regel",
+  "statistics_equipment_findings_subtitleAllDives": "Offene Befunde je Regel, über alle Tauchgänge",
+  "statistics_equipment_findings_empty": "Keine offenen Befunde",
+  "statistics_equipment_issues_title": "Gemeldete Probleme",
+  "statistics_equipment_issues_subtitle": "Häufigste Check-in-Tags",
+  "statistics_equipment_issues_empty": "Keine Probleme gemeldet",
+  "statistics_equipment_countLabel_items": "Teile",
+  "statistics_equipment_countLabel_findings": "Befunde",
+  "statistics_equipment_countLabel_reports": "Meldungen",
+  "statistics_equipment_exposureUnit_days": "Tage",
+  "statistics_equipment_exposureUnit_dives": "Tauchgänge",
+  "statistics_equipment_countLabel_days": "Tage",
+  "statistics_equipment_countLabel_dives": "Tauchgänge",
+  "statistics_equipment_countLabel_hours": "Stunden",
+  "statistics_equipment_countLabel_saltHours": "Salzwasserstunden",
+  "statistics_equipment_countLabel_coldDives": "kalte Tauchgänge",
+  "statistics_equipment_countLabel_o2Hours": "Stunden mit hohem O2",
+  "statistics_equipment_countLabel_deepCycles": "tiefe Tauchgänge",
+  "statistics_equipment_countLabel_cycles": "Akkuzyklen",
+  "statistics_equipment_exposureUnit_hours": "Stunden",
+  "statistics_equipment_exposureUnit_saltHours": "Salzwasserstunden",
+  "statistics_equipment_exposureUnit_coldDives": "Kalte Tauchgänge",
+  "statistics_equipment_exposureUnit_o2Hours": "Stunden mit hohem O2",
+  "statistics_equipment_exposureUnit_deepCycles": "Tiefe Tauchgänge",
+  "statistics_equipment_exposureUnit_cycles": "Akkuzyklen",
   "statistics_error_loadingStatistics": "Fehler beim Laden der Statistiken",
   "statistics_filterBar_clear": "Filter zurücksetzen",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
@@ -6413,6 +6459,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Planung",
+  "trips_edit_label_expectedDives": "Erwartete Tauchgänge",
+  "trips_edit_hint_expectedDives": "Leer lassen, um aus deinen letzten Reisen zu schätzen",
+  "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
+  "trips_edit_hint_expectedRuntime": "Leer lassen, um aus deinen letzten Rebreather-Tauchgängen zu schätzen",
+  "trips_scrubber_title": "Atemkalkreserve",
+  "trips_scrubber_asOfStart": "Stand {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min übrig vor der Reise (nominell {rated} min, {consumed} min seit dem letzten Wechsel verbraucht)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min übrig vor der Reise (nominell {rated} min, {consumed} min verbraucht, kein Wechsel erfasst)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} erwarteter Tauchgang} other{{dives} erwartete Tauchgänge}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(aus deiner letzten Reise)} other{(aus deinen letzten {n} Reisen)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(auf dieser Reise festgelegt)",
+  "trips_scrubber_perDive": "{minutes} min je Tauchgang",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(aus deinem letzten Rebreather-Tauchgang)} other{(aus deinen letzten {n} Rebreather-Tauchgängen)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min erwarteter Verbrauch",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min Reserve nach der Reise",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Unter 20 Prozent der nominellen Dauer. Plane einen Wechsel oder nimm Ersatzkalk mit.",
+  "trips_scrubber_noRating": "Für diesen Rebreather ist keine nominelle Dauer hinterlegt; trage die Atemkalkdauer in den Attributen ein oder lege einen Wechselplan an.",
+  "trips_scrubber_bannerMargin": "{minutes} min Atemkalkreserve",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} Rebreather, niedrigste Atemkalkreserve {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Enddatum",

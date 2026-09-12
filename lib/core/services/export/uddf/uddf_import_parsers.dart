@@ -118,6 +118,26 @@ class UddfImportParsers {
     return value;
   }
 
+  /// Reads a dive's own entry or exit fix, the `<{side}latitude>` and
+  /// `<{side}longitude>` pair `UddfExportBuilders.buildDiveGpsElements`
+  /// writes into [parent].
+  ///
+  /// Returns null unless both halves are present, finite and on the globe. A
+  /// lone latitude is not a position, and treating it as one would also stop
+  /// the importer falling back to the dive's `<source>` coordinates.
+  static ({double latitude, double longitude})? parseDiveGps(
+    XmlElement parent,
+    String side,
+  ) {
+    final latitude = parseUddfDouble(getElementText(parent, '${side}latitude'));
+    final longitude = parseUddfDouble(
+      getElementText(parent, '${side}longitude'),
+    );
+    if (latitude == null || longitude == null) return null;
+    if (latitude.abs() > 90 || longitude.abs() > 180) return null;
+    return (latitude: latitude, longitude: longitude);
+  }
+
   static void assignGasMixToTankIfMissing({
     required List<Map<String, dynamic>> tanks,
     required int tankIndex,

@@ -93,9 +93,12 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(185));
   });
 
-  // The column is additive and nullable, so a peer at the previous floor can
-  // still read what this device syncs.
+  // The column is additive and nullable, so this rung did not raise the
+  // floor; a later one did (v210), which is why this is only a lower bound.
   test('the sync compatibility floor is unchanged', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 183);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(183),
+    );
   });
 }
