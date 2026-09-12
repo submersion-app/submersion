@@ -202,4 +202,29 @@ void main() {
       'dive_d1',
     ]);
   });
+
+  test('provenance names only what the file declares', () async {
+    // No equipment set is ever declared by this export, and a parent
+    // assembly is declared only when it is itself on an exported dive.
+    final dive = Dive(
+      id: 'd3',
+      dateTime: DateTime(2026, 3, 2),
+      gear: [
+        const GearLink(item: _reg, viaSetId: 'winter'),
+        GearLink(item: _first, viaEquipmentId: 'reg', viaSetId: 'winter'),
+        const GearLink(item: _fins, viaEquipmentId: 'not-exported'),
+      ],
+    );
+    final doc = XmlDocument.parse(
+      await UddfExportService().generateDivesUddfContent([dive]),
+    );
+
+    final links = _submersion(
+      doc,
+    ).findElements('gearlinks').single.findAllElements('link').toList();
+    expect(links, hasLength(1));
+    expect(links.single.getAttribute('item'), 'equip_first');
+    expect(links.single.getAttribute('via'), 'equip_reg');
+    expect(links.single.getAttribute('set'), isNull);
+  });
 }

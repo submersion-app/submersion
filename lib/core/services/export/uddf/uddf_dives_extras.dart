@@ -16,8 +16,8 @@ class UddfDivesExtras {
   /// Each exported dive's participants with their roles, by dive id.
   final Map<String, List<BuddyWithRole>> diveBuddies;
 
-  /// Assembly template rows. The export keeps those whose parent and
-  /// component are both on an exported dive.
+  /// Assembly template rows between gear on the exported dives. The export
+  /// filters them again against the items it declares.
   final List<EquipmentComponent> components;
 
   const UddfDivesExtras({
@@ -64,6 +64,6 @@ Future<UddfDivesExtras> resolveDivesExtras(
       ? await buddies.getBuddiesForDivesWithCertifications(diveIds)
       : const {},
   components: options.includeGear
-      ? await components.getAllComponents()
+      ? await components.getComponentsForDives(diveIds)
       : const [],
 );

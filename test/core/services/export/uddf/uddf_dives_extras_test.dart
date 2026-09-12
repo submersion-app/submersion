@@ -43,11 +43,13 @@ class _Buddies extends Fake implements BuddyRepository {
 }
 
 class _Components extends Fake implements EquipmentComponentRepository {
-  var calls = 0;
+  final calls = <List<String>>[];
 
   @override
-  Future<List<EquipmentComponent>> getAllComponents() async {
-    calls++;
+  Future<List<EquipmentComponent>> getComponentsForDives(
+    List<String> diveIds,
+  ) async {
+    calls.add(diveIds);
     return [_component];
   }
 }
@@ -62,7 +64,9 @@ void main() {
     expect(buddies.calls, [
       ['d1'],
     ]);
-    expect(components.calls, 1);
+    expect(components.calls, [
+      ['d1'],
+    ]);
     expect(extras.diveBuddies['d1'], [_row]);
     expect(extras.components, [_component]);
   });
@@ -74,7 +78,7 @@ void main() {
       'd1',
     ], const UddfExportOptions(includeParticipants: false, includeGear: false));
     expect(buddies.calls, isEmpty);
-    expect(components.calls, 0);
+    expect(components.calls, isEmpty);
     expect(extras.diveBuddies, isEmpty);
     expect(extras.components, isEmpty);
   });

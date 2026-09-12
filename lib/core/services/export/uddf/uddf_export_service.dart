@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_source_export.
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 /// Handles simple UDDF export of dives with optional site data.
 class UddfExportService {
@@ -85,6 +86,25 @@ class UddfExportService {
     final computerIds = options.includeGear
         ? UddfGearWriters.computerIds(dives)
         : const <String>{};
+    // Provenance may name only what this file declares: it shares no
+    // equipment sets, and a parent assembly counts only when it is itself one
+    // of the exported items. A row left with neither is plain gear, which the
+    // gear links section skips.
+    final gearLinkDives = [
+      if (options.includeGear)
+        for (final dive in dives)
+          dive.copyWith(
+            gear: [
+              for (final link in dive.gear)
+                GearLink(
+                  item: link.item,
+                  viaEquipmentId: itemIds.contains(link.viaEquipmentId)
+                      ? link.viaEquipmentId
+                      : null,
+                ),
+            ],
+          ),
+    ];
 
     final builder = XmlBuilder();
 
@@ -657,7 +677,7 @@ class UddfExportService {
           equipment: items,
           omitPurchaseDetails: true,
           components: components,
-          gearLinkDives: options.includeGear ? dives : null,
+          gearLinkDives: gearLinkDives,
           diveBuddies: diveBuddies,
           customDiveRoles: customRoles,
           dataSources: sources,

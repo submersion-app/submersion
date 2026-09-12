@@ -299,4 +299,47 @@ void main() {
       expect(parts.single.componentEquipmentId, 'hose');
     });
   });
+
+  test(
+    'getComponentsForDives keeps rows between gear on the given dives',
+    () async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      for (final id in ['dive-a', 'dive-b']) {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion(
+                id: Value(id),
+                diveDateTime: Value(t),
+                createdAt: Value(t),
+                updatedAt: Value(t),
+              ),
+            );
+      }
+      for (final (dive, item) in [
+        ('dive-a', 'reg'),
+        ('dive-a', 'first'),
+        ('dive-b', 'hose'),
+      ]) {
+        await db
+            .into(db.diveEquipment)
+            .insert(
+              DiveEquipmentCompanion.insert(diveId: dive, equipmentId: item),
+            );
+      }
+      await repo.addComponent(parentId: 'reg', componentId: 'first');
+      await repo.addComponent(parentId: 'first', componentId: 'hose');
+      await repo.addComponent(parentId: 'kit', componentId: 'second');
+
+      String pair(c) => '${c.parentEquipmentId}>${c.componentEquipmentId}';
+      expect((await repo.getComponentsForDives(['dive-a'])).map(pair), [
+        'reg>first',
+      ], reason: 'hose is not on dive-a, so first>hose is left out');
+      expect(
+        (await repo.getComponentsForDives(['dive-a', 'dive-b'])).map(pair),
+        ['first>hose', 'reg>first'],
+      );
+      expect(await repo.getComponentsForDives(const []), isEmpty);
+    },
+  );
 }
