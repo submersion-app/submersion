@@ -134,12 +134,6 @@ jobs:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
@@ -155,6 +149,28 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      # build_runner keeps its incremental state (asset graph, compiled build
+      # script, hidden outputs) in .dart_tool/build, and restoring a recent
+      # copy turns a ~350s full build into a ~45-70s incremental one. The pub
+      # cache above also carries a .dart_tool/build, but its key only changes
+      # with pubspec.lock and an exact hit is never re-saved, so that copy
+      # drifts further behind main with every merge (hits measured 43s to
+      # 325s). Drop it and restore a per-commit copy instead: every run saves
+      # its own state (~12 MB compressed) and restore-keys picks the newest one
+      # for the same lockfile and SDK, preferring this PR's own ref, then main.
+      # A lockfile or SDK change starts cold, as build_runner would discard
+      # the graph anyway.
+      - name: Drop stale build_runner state from the pub cache
+        run: rm -rf .dart_tool/build
+
+      - name: Cache build_runner state
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.dart_tool/build
+          key: build-runner-${{ runner.os }}-${{ steps.flutter-ver.outputs.version }}-${{ hashFiles('pubspec.lock', 'build.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            build-runner-${{ runner.os }}-${{ steps.flutter-ver.outputs.version }}-${{ hashFiles('pubspec.lock', 'build.yaml') }}-
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
@@ -198,12 +214,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -299,12 +309,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -403,12 +407,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -677,12 +675,6 @@ jobs:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
@@ -754,12 +746,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -837,12 +823,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -971,12 +951,6 @@ jobs:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
@@ -1093,12 +1067,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
@@ -1243,12 +1211,6 @@ jobs:
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
           channel: 'stable'
-
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6

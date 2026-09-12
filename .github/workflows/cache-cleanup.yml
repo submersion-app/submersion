@@ -1,0 +1,44 @@
+name: PR cache cleanup
+
+# The repo shares one 10 GB Actions cache, and every PR run saves entries
+# scoped to its own merge ref (refs/pull/N/merge): pub, pods, nuget and the
+# per-commit build_runner state from ci.yaml. Nothing can restore those once
+# the PR closes, but they still count against the limit until GitHub evicts
+# them, pushing out the main-branch entries every new PR restores from. Delete
+# them as soon as the PR closes (merged or not).
+#
+# pull_request_target, not pull_request: a fork PR's pull_request token is
+# read-only, so it could not delete its own caches. This workflow never checks
+# out or runs PR code; it only calls the cache API for the PR's ref.
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Delete closed PR caches
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete caches for this PR's merge ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          set -uo pipefail
+          ids=$(gh cache list --ref "$REF" --limit 100 --json id --jq '.[].id')
+          if [ -z "$ids" ]; then
+            echo "No caches for $REF."
+            exit 0
+          fi
+          # A cache GitHub already evicted (or a concurrent run deleted) makes
+          # delete fail; that is fine, so report it but keep going.
+          for id in $ids; do
+            gh cache delete "$id" || echo "::warning::could not delete cache $id"
+          done
+          echo "Processed $(echo "$ids" | wc -w) cache(s) for $REF."
