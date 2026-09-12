@@ -967,13 +967,15 @@ class DiveListTile extends ConsumerWidget {
                                   // value (so the date line below doesn't
                                   // shift up) while textHeightBehavior only
                                   // repositions the ink within that space.
+                                  // No ellipsis: a long title wraps, like the
+                                  // trip and equipment cards, so the full
+                                  // name is always visible.
                                   style: titleStyle
                                       ?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: primaryTextColor,
                                       )
                                       .inkCentered,
-                                  overflow: TextOverflow.ellipsis,
                                   textHeightBehavior:
                                       inkCenteredTextHeightBehavior,
                                   strutStyle: titleStyle?.preservingStrut,
