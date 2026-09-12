@@ -2087,6 +2087,7 @@ class UddfEntityImporter {
           : null;
 
       final diveName = (diveData['name'] as String?)?.trim();
+      final gps = _diveGps(diveData, dataSourcesByDiveRef);
       var dive = Dive(
         id: diveId,
         diverId: diverId,
@@ -2141,11 +2142,8 @@ class UddfEntityImporter {
         altitude: asDoubleOrNull(diveData['altitude']),
         // Entry/exit GPS, so file-imported dives become eligible for the
         // existing site matcher.
-        entryLocation: _geoPoint(diveData['latitude'], diveData['longitude']),
-        exitLocation: _geoPoint(
-          diveData['exitLatitude'],
-          diveData['exitLongitude'],
-        ),
+        entryLocation: gps.entry,
+        exitLocation: gps.exit,
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
@@ -2480,6 +2478,61 @@ class UddfEntityImporter {
     final lngVal = asDoubleOrNull(lng);
     if (latVal == null || lngVal == null) return null;
     return GeoPoint(latVal, lngVal);
+  }
+
+  /// The entry and exit fixes to store on an imported dive.
+  ///
+  /// The dive's own coordinates win, and win as a pair: a dive that carries
+  /// either fix is restored exactly as it was, so it never gains an exit
+  /// borrowed from a source that the diver's dive row did not have.
+  ///
+  /// Only a dive carrying no fix at all falls back to its `<source>` entries,
+  /// primary first, then file order. That is the only place a Submersion
+  /// backup written before #1735 kept GPS, so without it restoring one of
+  /// those drops every Surface GPS card. Foreign files carry no `<source>`
+  /// entries, so for them this is exactly the dive's own coordinates.
+  ({GeoPoint? entry, GeoPoint? exit}) _diveGps(
+    Map<String, dynamic> diveData,
+    Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef,
+  ) {
+    final entry = _geoPoint(diveData['latitude'], diveData['longitude']);
+    final exit = _geoPoint(diveData['exitLatitude'], diveData['exitLongitude']);
+    if (entry != null || exit != null) return (entry: entry, exit: exit);
+
+    final sources = _entriesForDive(diveData, dataSourcesByDiveRef);
+    final primaryFirst = [
+      ...sources.where((s) => s['isPrimary'] == true),
+      ...sources.where((s) => s['isPrimary'] != true),
+    ];
+    for (final source in primaryFirst) {
+      final sourceEntry = _sourceFix(
+        source['entryLatitude'],
+        source['entryLongitude'],
+      );
+      final sourceExit = _sourceFix(
+        source['exitLatitude'],
+        source['exitLongitude'],
+      );
+      if (sourceEntry != null || sourceExit != null) {
+        return (entry: sourceEntry, exit: sourceExit);
+      }
+    }
+    return (entry: null, exit: null);
+  }
+
+  /// A `<source>` coordinate pair as a fix, or null unless it is finite and
+  /// on the globe. The source parser keeps whatever `double.tryParse`
+  /// accepts, NaN included, and one bad source must not hide a good one.
+  GeoPoint? _sourceFix(dynamic lat, dynamic lng) {
+    final fix = _geoPoint(lat, lng);
+    if (fix == null ||
+        !fix.latitude.isFinite ||
+        !fix.longitude.isFinite ||
+        fix.latitude.abs() > 90 ||
+        fix.longitude.abs() > 180) {
+      return null;
+    }
+    return fix;
   }
 
   List<DiveTank> _buildTanks(Map<String, dynamic> diveData) {

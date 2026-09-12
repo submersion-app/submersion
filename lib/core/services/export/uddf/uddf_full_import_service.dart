@@ -964,6 +964,14 @@ class UddfFullImportService {
         );
       }
 
+      // The dive's own entry fix, under the keys every other import format
+      // uses for it (#1735).
+      if (UddfImportParsers.parseDiveGps(beforeElement, 'entry')
+          case final fix?) {
+        diveData['latitude'] = fix.latitude;
+        diveData['longitude'] = fix.longitude;
+      }
+
       // Parse dive mode
       final diveMode = UddfImportParsers.parseDiveModeIn(beforeElement);
       if (diveMode != null) {
@@ -1148,6 +1156,12 @@ class UddfFullImportService {
           exitType,
           enums.EntryMethod.values,
         );
+      }
+
+      if (UddfImportParsers.parseDiveGps(afterElement, 'exit')
+          case final fix?) {
+        diveData['exitLatitude'] = fix.latitude;
+        diveData['exitLongitude'] = fix.longitude;
       }
 
       // Parse weight used
