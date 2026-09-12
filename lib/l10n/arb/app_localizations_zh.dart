@@ -11382,6 +11382,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => '曾安装于';
 
   @override
+  String get equipment_detail_wasInstalledInSemanticLabel => '查看此物品曾安装的装备';
+
+  @override
   String get equipment_edit_appBar_editTitle => '编辑装备';
 
   @override

@@ -3936,6 +3936,7 @@
   "equipment_detail_tripsLabel": "Reisen",
   "equipment_detail_tripsSemanticLabel": "Reisen mit dieser Ausrüstung anzeigen",
   "equipment_detail_wasInstalledInLabel": "War eingebaut in",
+  "equipment_detail_wasInstalledInSemanticLabel": "Ausrüstung anzeigen, in die dies eingebaut war",
   "equipment_edit_appBar_editTitle": "Ausrüstung bearbeiten",
   "equipment_edit_appBar_newTitle": "Neue Ausrüstung",
   "equipment_edit_appBar_saveButton": "Speichern",

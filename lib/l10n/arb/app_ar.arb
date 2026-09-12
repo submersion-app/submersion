@@ -3936,6 +3936,7 @@
   "equipment_detail_tripsLabel": "الرحلات",
   "equipment_detail_tripsSemanticLabel": "عرض الرحلات باستخدام هذه المعدات",
   "equipment_detail_wasInstalledInLabel": "كان مركّبًا في",
+  "equipment_detail_wasInstalledInSemanticLabel": "عرض المعدات التي كان هذا العنصر مركّبًا فيها",
   "equipment_edit_appBar_editTitle": "تعديل المعدات",
   "equipment_edit_appBar_newTitle": "معدات جديدة",
   "equipment_edit_appBar_saveButton": "حفظ",

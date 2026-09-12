@@ -11922,6 +11922,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Era installato in';
 
   @override
+  String get equipment_detail_wasInstalledInSemanticLabel =>
+      'Visualizza l\'attrezzatura in cui era installato';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Modifica attrezzatura';
 
   @override

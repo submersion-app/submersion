@@ -3852,6 +3852,7 @@
   "equipment_detail_tripsLabel": "Voyages",
   "equipment_detail_tripsSemanticLabel": "Voir les voyages utilisant cet équipement",
   "equipment_detail_wasInstalledInLabel": "Était installé dans",
+  "equipment_detail_wasInstalledInSemanticLabel": "Voir l'équipement dans lequel il était installé",
   "equipment_edit_appBar_editTitle": "Modifier l'équipement",
   "equipment_edit_appBar_newTitle": "Nouvel équipement",
   "equipment_edit_appBar_saveButton": "Enregistrer",

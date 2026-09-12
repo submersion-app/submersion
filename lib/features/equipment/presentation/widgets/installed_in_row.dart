@@ -48,7 +48,11 @@ class InstalledInRow extends StatelessWidget {
         : null;
     return Semantics(
       button: true,
-      label: l10n.equipment_detail_installedInSemanticLabel,
+      // Same tense as the visible label, so a screen reader never tells a
+      // retired part it is still inside its host.
+      label: part.isFitted
+          ? l10n.equipment_detail_installedInSemanticLabel
+          : l10n.equipment_detail_wasInstalledInSemanticLabel,
       child: InkWell(
         key: const ValueKey('equipment-detail-installed-in'),
         onTap: () => context.push('/equipment/${host.id}'),

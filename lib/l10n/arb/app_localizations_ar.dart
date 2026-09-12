@@ -11718,6 +11718,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
 
   @override
+  String get equipment_detail_wasInstalledInSemanticLabel =>
+      'عرض المعدات التي كان هذا العنصر مركّبًا فيها';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'تعديل المعدات';
 
   @override

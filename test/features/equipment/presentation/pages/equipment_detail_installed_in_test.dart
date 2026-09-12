@@ -242,4 +242,33 @@ void main() {
     expect(find.textContaining('10 days ago'), findsNothing);
     expect(plainInstalledRow, findsOneWidget);
   });
+
+  // The spoken label must follow the visible tense, or a screen reader
+  // tells a retired part it is still inside its host.
+  const presentSpoken = 'View the equipment this is installed in';
+  const pastSpoken = 'View the equipment this was installed in';
+
+  testWidgets('a fitted child announces the present-tense link', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, child: cell(), parent: host);
+
+    expect(find.bySemanticsLabel(RegExp(presentSpoken)), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(pastSpoken)), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('a retired child announces the past-tense link', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pump(
+      tester,
+      child: cell(status: EquipmentStatus.retired, isActive: false),
+      parent: host,
+    );
+
+    expect(find.bySemanticsLabel(RegExp(pastSpoken)), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(presentSpoken)), findsNothing);
+    semantics.dispose();
+  });
 }

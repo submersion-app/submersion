@@ -3852,6 +3852,7 @@
   "equipment_detail_tripsLabel": "Utazasok",
   "equipment_detail_tripsSemanticLabel": "Utazasok megtekintese ezzel a felszerelessel",
   "equipment_detail_wasInstalledInLabel": "Korabban beszerelve ebbe",
+  "equipment_detail_wasInstalledInSemanticLabel": "A felszereles megtekintese, amelybe korabban be volt szerelve",
   "equipment_edit_appBar_editTitle": "Felszereles szerkesztese",
   "equipment_edit_appBar_newTitle": "Uj felszereles",
   "equipment_edit_appBar_saveButton": "Mentes",

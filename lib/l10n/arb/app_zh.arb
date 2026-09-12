@@ -4081,6 +4081,7 @@
   "equipment_detail_tripsLabel": "旅行",
   "equipment_detail_tripsSemanticLabel": "查看使用此装备的旅行",
   "equipment_detail_wasInstalledInLabel": "曾安装于",
+  "equipment_detail_wasInstalledInSemanticLabel": "查看此物品曾安装的装备",
   "equipment_edit_appBar_editTitle": "编辑装备",
   "equipment_edit_appBar_newTitle": "新建装备",
   "equipment_edit_appBar_saveButton": "保存",

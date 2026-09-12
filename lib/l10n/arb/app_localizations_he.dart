@@ -11654,6 +11654,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'היה מותקן ב';
 
   @override
+  String get equipment_detail_wasInstalledInSemanticLabel =>
+      'צפה בציוד שבו פריט זה היה מותקן';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'ערוך ציוד';
 
   @override

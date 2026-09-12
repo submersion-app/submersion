@@ -3936,6 +3936,7 @@
   "equipment_detail_tripsLabel": "Viajes",
   "equipment_detail_tripsSemanticLabel": "Ver viajes con este equipo",
   "equipment_detail_wasInstalledInLabel": "Estuvo instalado en",
+  "equipment_detail_wasInstalledInSemanticLabel": "Ver el equipo en el que estuvo instalado",
   "equipment_edit_appBar_editTitle": "Editar equipo",
   "equipment_edit_appBar_newTitle": "Nuevo equipo",
   "equipment_edit_appBar_saveButton": "Guardar",

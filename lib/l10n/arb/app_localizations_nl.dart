@@ -11830,6 +11830,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Was geplaatst in';
 
   @override
+  String get equipment_detail_wasInstalledInSemanticLabel =>
+      'Bekijk de uitrusting waarin dit geplaatst was';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Uitrusting bewerken';
 
   @override

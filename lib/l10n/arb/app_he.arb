@@ -3852,6 +3852,7 @@
   "equipment_detail_tripsLabel": "טיולים",
   "equipment_detail_tripsSemanticLabel": "צפה בטיולים המשתמשים בציוד זה",
   "equipment_detail_wasInstalledInLabel": "היה מותקן ב",
+  "equipment_detail_wasInstalledInSemanticLabel": "צפה בציוד שבו פריט זה היה מותקן",
   "equipment_edit_appBar_editTitle": "ערוך ציוד",
   "equipment_edit_appBar_newTitle": "ציוד חדש",
   "equipment_edit_appBar_saveButton": "שמור",

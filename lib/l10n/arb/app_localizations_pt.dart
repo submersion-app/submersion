@@ -11916,6 +11916,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Esteve instalado em';
 
   @override
+  String get equipment_detail_wasInstalledInSemanticLabel =>
+      'Ver o equipamento em que esteve instalado';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Editar Equipamento';
 
   @override
