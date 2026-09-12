@@ -1,7 +1,7 @@
 # Dives-only UDDF: participants, roles and gear
 
 Date: 2026-09-12
-Issues: #1718 (gear), plus a new issue for participants (to be opened)
+Issues: #1718 (gear), #1796 (participants)
 Depends on: PR #1788 (issue #1737, `<buddyroles>` and `DiveRole.leaderIds`)
 
 ## Problem
@@ -55,7 +55,9 @@ the full export's writers.
   - `<divemaster>` holding the names of the dive's leaders (roles in
     `DiveRole.leaderIds`), joined with ", ". When the dive links no leader,
     the legacy `dive.diveMaster` text, as the full export does.
-  - One `<link ref="buddy_<id>">` per participant. Solo is skipped.
+  - One `<link ref="buddy_<id>">` per participant, every role included,
+    as the full export writes them. Solo is skipped only in the inline
+    `<buddy>` list below; its exact role rides in `<buddyroles>`.
 - `<informationafterdive>`, per dive: an inline `<buddy><personal>` for each
   participant whose role is neither a leader nor solo. When there is none,
   the legacy `dive.buddy` text.
@@ -128,7 +130,7 @@ when there is a computer to declare.
 | File | Change |
 | --- | --- |
 | new `lib/core/services/export/uddf/uddf_participant_writers.dart` | `UddfParticipantWriters`: `writeBuddyDeclarations(builder, people, {trimmed})`, `writeLeaders(builder, dive, rows)`, `writeLinks(builder, rows)`, `writeInlineBuddies(builder, dive, rows)` |
-| new `lib/core/services/export/uddf/uddf_gear_writers.dart` | `UddfGearWriters`: `writeEquipmentUsed(builder, dive)`, `writeOwnerComputers(builder, ownerId, dives)` returning the declared computer ids |
+| new `lib/core/services/export/uddf/uddf_gear_writers.dart` | `UddfGearWriters`: `computerIds(dives)`, `writeEquipmentUsed(builder, dive)`, `writeOwnerComputers(builder, dives)` writing the owner's `<equipment>` block and returning the declared computer ids; each caller writes its own `<owner>` element around it |
 | new `lib/core/services/export/uddf/uddf_dives_extras.dart` | `UddfDivesExtras` and `uddfDivesExtrasFetchProvider` |
 | `uddf_export_builders.dart` | `buildDiveElement` calls the extracted writers; `buildApplicationData` gains `omitPurchaseDetails` and writes `parentref` only for a parent in the file |
 | `uddf_full_export_service.dart` | `<diver>` block calls `writeBuddyDeclarations(trimmed: false)` and `writeOwnerComputers`; `declaredComputerIds` comes from the writer |
@@ -181,4 +183,4 @@ TDD throughout; each new test is watched failing before its fix.
 
 A PR stacked on #1788's branch, opened now. It gets no CI until #1788
 merges and it is retargeted to `main`, so the local runs above are the gate
-until then. The PR closes #1718 and the new participants issue.
+until then. The PR closes #1718 and #1796.
