@@ -48,8 +48,16 @@ class SensorSummaryScheduler {
   @visibleForTesting
   void Function()? staleSweepRequestListener;
 
+  /// Likewise for summary requests, with whether each was forced.
+  @visibleForTesting
+  void Function(Set<String> diveIds, bool force)? summaryRequestListener;
+
   Future<void> _tail = Future.value();
   final Set<String> _pending = {};
+
+  /// The subset of [_pending] to rebuild even when the stored row looks
+  /// current (see [schedule]).
+  final Set<String> _forced = {};
   final Set<String> _pendingFindings = {};
   bool _allFindingsPending = false;
   bool _staleSweepPending = false;
@@ -61,10 +69,16 @@ class SensorSummaryScheduler {
   @visibleForTesting
   Future<void> get idle => _tail;
 
-  /// Refreshes [diveIds] whose row is missing or stale.
-  void schedule(Set<String> diveIds) {
+  /// Refreshes [diveIds] whose row is missing or stale. With [force], it
+  /// rebuilds them even when the row looks current: a row is current while
+  /// the dive's updated_at is unchanged, and a data-quality repair can
+  /// rewrite a profile or pressure series (or undo one) without touching
+  /// it.
+  void schedule(Set<String> diveIds, {bool force = false}) {
+    summaryRequestListener?.call(diveIds, force);
     if (!enabled || diveIds.isEmpty) return;
     _pending.addAll(diveIds);
+    if (force) _forced.addAll(diveIds);
     _enqueue();
   }
 
@@ -112,6 +126,8 @@ class SensorSummaryScheduler {
       try {
         final ids = Set.of(_pending);
         _pending.clear();
+        final forced = Set.of(_forced);
+        _forced.clear();
         final sweep = _staleSweepPending;
         _staleSweepPending = false;
         if (ids.isEmpty && !sweep) {
@@ -137,7 +153,7 @@ class SensorSummaryScheduler {
         }
         for (final id in ids) {
           try {
-            await repo.ensureCurrent(id);
+            await repo.ensureCurrent(id, force: forced.contains(id));
             // Built: a later findings pass may ask for it again if it goes
             // stale.
             _summariesRequestedByFindings.remove(id);
@@ -198,8 +214,10 @@ class SensorSummaryScheduler {
   }
 }
 
-void scheduleSensorSummaryRefresh(Iterable<String> diveIds) =>
-    SensorSummaryScheduler.instance.schedule(diveIds.toSet());
+void scheduleSensorSummaryRefresh(
+  Iterable<String> diveIds, {
+  bool force = false,
+}) => SensorSummaryScheduler.instance.schedule(diveIds.toSet(), force: force);
 
 /// The hook for an import: every active item's findings are refreshed.
 void scheduleAllConditionFindingsRefresh() =>

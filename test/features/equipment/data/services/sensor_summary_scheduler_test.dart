@@ -92,6 +92,24 @@ void main() {
     expect(visited, isEmpty);
   });
 
+  test('a forced refresh rebuilds a summary that looks current', () async {
+    // A repair can rewrite a profile or pressure series without touching
+    // the dive's updated_at, so the stored row still looks current.
+    scheduleSensorSummaryRefresh(['d1']);
+    await SensorSummaryScheduler.instance.idle;
+    scheduleSensorSummaryRefresh(['d1']);
+    await SensorSummaryScheduler.instance.idle;
+    expect(visited, ['d1'], reason: 'current, so not rebuilt');
+
+    scheduleSensorSummaryRefresh(['d1'], force: true);
+    await SensorSummaryScheduler.instance.idle;
+    expect(visited, ['d1', 'd1']);
+    // Forcing lasts one batch.
+    scheduleSensorSummaryRefresh(['d1']);
+    await SensorSummaryScheduler.instance.idle;
+    expect(visited, ['d1', 'd1']);
+  });
+
   test('a failing repository factory does not poison the queue', () async {
     // The queue is one chained future. An error escaping the callback
     // leaves _tail completed with it, and every later schedule chains onto
