@@ -8,13 +8,23 @@ import 'package:submersion/features/maps/presentation/providers/map_tile_provide
 /// zoom, and the offline cache when it has been initialized.
 ///
 /// Extracted because several maps had grown byte-identical copies of this.
-TileLayer submersionTileLayer(WidgetRef ref, {double? maxZoomOverride}) {
+///
+/// [tileDisplay] defaults to flutter_map's fade-in. A decorative map that
+/// remounts often should pass [TileDisplay.instantaneous], because the fade
+/// starts every tile at opacity 0 even when its image is already in memory.
+TileLayer submersionTileLayer(
+  WidgetRef ref, {
+  double? maxZoomOverride,
+  TileDisplay tileDisplay = const TileDisplay.fadeIn(),
+}) {
+  final urlTemplate = ref.watch(mapTileUrlProvider);
   return TileLayer(
-    urlTemplate: ref.watch(mapTileUrlProvider),
+    urlTemplate: urlTemplate,
     userAgentPackageName: 'app.submersion',
     maxZoom: maxZoomOverride ?? ref.watch(mapTileMaxZoomProvider),
-    tileProvider: TileCacheService.instance.isInitialized
-        ? TileCacheService.instance.getTileProvider()
-        : null,
+    tileDisplay: tileDisplay,
+    tileProvider: TileCacheService.instance.tileProviderFor(
+      urlTemplate: urlTemplate,
+    ),
   );
 }

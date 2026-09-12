@@ -3,6 +3,7 @@ import 'package:submersion/features/equipment/data/repositories/dive_sensor_summ
 import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/dive_sensor_summary.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -130,17 +131,25 @@ class EquipmentConditionRefresher {
           stamp.sourceUpdatedAt == s.updatedAt;
     }
 
-    final missing = {
-      for (final s in samples)
-        if (!summarised(s)) s.diveId,
-    };
+    // Only for an item a summary rule can read: any other would wait on
+    // summaries that change nothing, record no marker, and keep a sensor
+    // finding a former type left behind.
+    final readsSummaries = EquipmentConditionEngine.readsSummaries(item.type);
+    final missing = readsSummaries
+        ? {
+            for (final s in samples)
+              if (!summarised(s)) s.diveId,
+          }
+        : const <String>{};
     if (missing.isNotEmpty) _requestSummaries?.call(missing);
     // Only current summaries reach the engine: a stale one describes an
     // older version of the dive, and its rebuild is already requested.
-    final summaries = {
-      for (final e in (await _summaries.getSummaries(diveIds)).entries)
-        if (!missing.contains(e.key)) e.key: e.value,
-    };
+    final summaries = readsSummaries
+        ? {
+            for (final e in (await _summaries.getSummaries(diveIds)).entries)
+              if (!missing.contains(e.key)) e.key: e.value,
+          }
+        : const <String, DiveSensorSummary>{};
     final stamp = now ?? DateTime.now().toUtc();
     final evaluated = _engine.evaluate(
       ConditionEngineInput(
