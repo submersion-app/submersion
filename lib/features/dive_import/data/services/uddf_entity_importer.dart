@@ -1520,21 +1520,25 @@ class UddfEntityImporter {
 
   /// The `<source>` entries belonging to one parsed dive.
   ///
-  /// Submersion's own export writes `<dive id="dive_<uuid>">`, and the parser
-  /// keeps that attribute verbatim as `sourceUuid`, so the ref is already
-  /// prefixed. A file whose dive ids are bare needs the prefix added. Both
-  /// shapes are tried rather than assuming either, and this lives in one
-  /// place so the restore and the computer registration cannot resolve a dive
+  /// Read from the dive's own map first, where the parser attaches them as
+  /// `dataSources`: that is the only copy the import wizard keeps, because
+  /// it rebuilds the result from entity lists and drops
+  /// [dataSourcesByDiveRef] (#1735). The map is the fallback for a caller
+  /// that builds a result by hand. This lives in one place so the restore,
+  /// the GPS fallback and the computer registration cannot resolve a dive
   /// differently.
   static List<Map<String, dynamic>> _entriesForDive(
     Map<String, dynamic> diveData,
     Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef,
   ) {
-    final sourceUuid = diveData['sourceUuid'] as String?;
-    if (sourceUuid == null) return const [];
-    return dataSourcesByDiveRef[sourceUuid] ??
-        dataSourcesByDiveRef['dive_$sourceUuid'] ??
-        const [];
+    final carried = diveData['dataSources'];
+    if (carried is List && carried.isNotEmpty) {
+      return carried.cast<Map<String, dynamic>>();
+    }
+    return UddfImportResult.sourcesForDive(
+      dataSourcesByDiveRef,
+      diveData['sourceUuid'] as String?,
+    );
   }
 
   /// The registration key for a model and serial pair.

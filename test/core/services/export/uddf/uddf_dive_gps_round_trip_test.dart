@@ -7,6 +7,9 @@
 // the importer read the `<source>` coordinates into the data source rows
 // only, never onto the dive, so even a fix that did reach the file was not
 // shown after a restore.
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/export/export_service.dart';
@@ -35,6 +38,8 @@ import 'package:submersion/features/equipment/data/repositories/equipment_set_re
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:xml/xml.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -401,6 +406,70 @@ void main() {
 
       expect(restored.entryLatitude, closeTo(12.0, 1e-12));
       expect(restored.entryLongitude, closeTo(22.0, 1e-12));
+    });
+  });
+
+  group('import wizard path', () {
+    test('a pre-fix backup restores GPS and sources from the dive maps '
+        'alone', () async {
+      // The wizard hands the importer ImportPayload entity lists and
+      // rebuilds UddfImportResult from them, so anything kept only on the
+      // result (dataSourcesByDiveRef) never reaches a real restore. This is
+      // that shape: the real parser, then nothing but the dive list.
+      final xml = await fullBackup(_dive(), [
+        _source(
+          id: 'src-primary',
+          ordinal: 0,
+          isPrimary: true,
+          entryLatitude: 29.5,
+          entryLongitude: 34.9,
+        ),
+        _source(id: 'src-secondary', ordinal: 1, isPrimary: false),
+      ]);
+      await tearDownTestDatabase();
+      db = await setUpTestDatabase();
+      await _createDiver();
+
+      final payload = await UddfImportParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+      await UddfEntityImporter().import(
+        data: UddfImportResult(
+          dives: payload.entitiesOf(ImportEntityType.dives),
+        ),
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: _repositories(),
+        diverId: _diverId,
+      );
+
+      final restored = await db.select(db.dives).getSingle();
+      expect(restored.entryLatitude, closeTo(29.5, 1e-12));
+      expect(restored.entryLongitude, closeTo(34.9, 1e-12));
+      expect(
+        await db.select(db.diveDataSources).get(),
+        hasLength(2),
+        reason: 'both exported sources come back, not one synthesised row',
+      );
+    });
+  });
+
+  group('simple dives import', () {
+    test('reads the dive GPS a dives-only export writes', () async {
+      final xml = await UddfExportService().generateDivesUddfContent([
+        _dive(
+          entry: const GeoPoint(-8.274, 115.593),
+          exit: const GeoPoint(-8.275, 115.594),
+        ),
+      ]);
+
+      final dive = (await ExportService().importDivesFromUddf(
+        xml,
+      ))['dives']!.single;
+
+      expect(dive['latitude'], closeTo(-8.274, 1e-12));
+      expect(dive['longitude'], closeTo(115.593, 1e-12));
+      expect(dive['exitLatitude'], closeTo(-8.275, 1e-12));
+      expect(dive['exitLongitude'], closeTo(115.594, 1e-12));
     });
   });
 

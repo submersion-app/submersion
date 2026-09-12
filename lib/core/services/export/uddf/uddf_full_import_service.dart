@@ -495,6 +495,19 @@ class UddfFullImportService {
 
     final sources = _parseDataSources(uddfElement);
 
+    // Each dive's <source> entries also ride on its own map as `dataSources`,
+    // like `gearLinks` above. The import wizard flattens this result into
+    // entity lists and rebuilds it without dataSourcesByDiveRef, so a restore
+    // through it otherwise saw no sources at all: no restored source rows,
+    // and no GPS for a backup that kept it only there (#1735).
+    for (final dive in dives) {
+      final entries = UddfImportResult.sourcesForDive(
+        sources.byDiveRef,
+        dive['sourceUuid'] as String?,
+      );
+      if (entries.isNotEmpty) dive['dataSources'] = entries;
+    }
+
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
       unpairedDumps: sources.unpaired,

@@ -228,6 +228,13 @@ class UddfImportService {
         diveData['diveNumber'] = UddfImportParsers.parseUddfInt(diveNumText);
       }
 
+      // The dive's own entry fix, as both UDDF exporters write it (#1735).
+      if (UddfImportParsers.parseDiveGps(beforeElement, 'entry')
+          case final fix?) {
+        diveData['latitude'] = fix.latitude;
+        diveData['longitude'] = fix.longitude;
+      }
+
       final airTempText = _getElementText(beforeElement, 'airtemperature');
       if (airTempText != null) {
         // UDDF stores temps in Kelvin
@@ -697,6 +704,12 @@ class UddfImportService {
       final maxDepthText = _getElementText(afterElement, 'greatestdepth');
       if (maxDepthText != null) {
         diveData['maxDepth'] = double.tryParse(maxDepthText);
+      }
+
+      if (UddfImportParsers.parseDiveGps(afterElement, 'exit')
+          case final fix?) {
+        diveData['exitLatitude'] = fix.latitude;
+        diveData['exitLongitude'] = fix.longitude;
       }
 
       final avgDepthText = _getElementText(afterElement, 'averagedepth');
