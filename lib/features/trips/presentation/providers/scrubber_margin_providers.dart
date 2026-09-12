@@ -102,6 +102,11 @@ final tripScrubberMarginsProvider =
         // Where the repack clock counts from as of the trip start, by the
         // clocks engine's own rule (baseline, else the newest repack): only
         // a baseline and the repacks on or before the start exist then.
+        // "As of the start" is by EVENT date, not by when a fact was entered:
+        // a repack logged after the trip but dated before it counts, and so
+        // does a baseline set after the trip but dated before it (the
+        // diver's correction of history wins, as it does on the clock).
+        // Deliberate; do not filter by anchorSetAt or created_at here.
         final clock = await _repackClock(item, schedules);
         final clockBaseline = clock?.anchorDate;
         final baseline = clockAnchorFromServices(

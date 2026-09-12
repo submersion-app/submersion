@@ -506,7 +506,10 @@ void main() {
           serviceKindId: 'scrubber-repack',
           anchorDate: DateTime(2026, 3, 1),
           // Set after the repack above was written (its created_at is the
-          // real clock at insert).
+          // real clock at insert), and so also after the June trip started:
+          // "as of the start" is by event date, so a baseline dated before
+          // the trip counts however late it was set (maintainer's decision,
+          // 2026-09-12).
           anchorSetAt: DateTime.now().add(const Duration(minutes: 1)),
           createdAt: DateTime(2026),
           updatedAt: DateTime(2026),
