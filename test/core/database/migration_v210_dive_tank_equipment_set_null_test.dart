@@ -156,10 +156,11 @@ Future<void> _expectRebuilt(AppDatabase db) async {
 }
 
 void main() {
-  test('v210 is the current schema version and is in the ladder', () {
-    // This is the newest rung, so it owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 210);
+  test('v210 is at or below the current schema version and in the ladder', () {
+    // Relaxed as this rung's own convention asks, now that the planner's
+    // stop-minimums (211) and gas-options (212) rungs sit on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(210));
     expect(AppDatabase.migrationVersions, contains(210));
   });
 

@@ -7,13 +7,19 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Gas settings for the Setup accordion: RMV (with one-tap logged average)
-/// and reserve pressure. Bottom/deco RMV split and RMV factor land here in
-/// later phases (spec G25).
+/// Gas settings for the Setup accordion: Bottom RMV (with one-tap logged
+/// average), reserve pressure, and the Subsurface-style Gas options
+/// ([PlanGasOptionsSection]: Deco RMV, RMV factor, problem solving time,
+/// bottom/deco ppO2, best-mix END, O2 narcotic).
+///
+/// The app calls the volume rate RMV (AMV in German) and reserves SAC for the
+/// pressure rate, so these labels say RMV even though the state field and the
+/// stored columns keep their historical `sac` names.
 class PlanGasSection extends ConsumerWidget {
   const PlanGasSection({super.key});
 
@@ -26,40 +32,23 @@ class PlanGasSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Flexible(
-              flex: 0,
-              child: Text(context.l10n.divePlanner_label_sacRate),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Semantics(
-                label: context.l10n.divePlanner_semantics_sacRate(
-                  planState.sacRate.toStringAsFixed(0),
-                  units.volumeSymbol,
-                ),
-                child: Slider(
-                  value: planState.sacRate,
-                  min: 8,
-                  max: 30,
-                  divisions: 22,
-                  label:
-                      '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
-                  onChanged: (value) => ref
-                      .read(divePlanNotifierProvider.notifier)
-                      .updateSacRate(value),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 70,
-              child: Text(
-                '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          ],
+        PlanGasOptionNumberField(
+          label: context.l10n.divePlanner_gasOptions_sacBottom,
+          value: units.convertVolume(planState.sacRate),
+          hintValue: units.convertVolume(15),
+          suffixText: units.rmvSymbol,
+          decimals: 1,
+          semanticsLabel: context.l10n.divePlanner_semantics_sacRate(
+            planState.sacRate.toStringAsFixed(0),
+            units.volumeSymbol,
+          ),
+          onChanged: (value) {
+            if (value == null) return;
+            final liters = units.volumeToLiters(value);
+            if (liters > 0) {
+              ref.read(divePlanNotifierProvider.notifier).updateSacRate(liters);
+            }
+          },
         ),
         _LoggedRmvButton(currentRmv: planState.sacRate, units: units),
         const SizedBox(height: 12),
@@ -72,17 +61,17 @@ class PlanGasSection extends ConsumerWidget {
               .map((t) => t.startPressure ?? 0.0)
               .fold(0.0, (a, b) => a > b ? a : b),
           units: units,
-          compact: true,
           onChanged: (value) => ref
               .read(divePlanNotifierProvider.notifier)
               .updateReservePressure(value),
         ),
+        const PlanGasOptionsSection(),
       ],
     );
   }
 }
 
-/// One-tap RMV auto-fill from the diver's logged average ("from your log").
+/// One-tap SAC auto-fill from the diver's logged average ("from your log").
 /// Hidden when no logged average exists or it already matches the plan.
 class _LoggedRmvButton extends ConsumerWidget {
   const _LoggedRmvButton({required this.currentRmv, required this.units});
@@ -119,7 +108,6 @@ class _ReservePressureInput extends StatefulWidget {
   final double defaultPressureBar;
   final double maxPressureBar;
   final UnitFormatter units;
-  final bool compact;
   final ValueChanged<double> onChanged;
 
   const _ReservePressureInput({
@@ -127,7 +115,6 @@ class _ReservePressureInput extends StatefulWidget {
     required this.defaultPressureBar,
     required this.maxPressureBar,
     required this.units,
-    this.compact = false,
     required this.onChanged,
   });
 
@@ -220,63 +207,59 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
 
   @override
   Widget build(BuildContext context) {
-    final textField = SizedBox(
-      width: 80,
-      child: Semantics(
-        label: context.l10n.divePlanner_semantics_reservePressure(
-          widget.units.pressureSymbol,
-        ),
-        child: TextField(
-          controller: _controller,
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 8,
-            ),
-            suffixText: widget.units.pressureSymbol,
-            errorText: _isError ? '' : null,
-            errorStyle: const TextStyle(height: 0, fontSize: 0),
-          ),
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: _validate,
-        ),
-      ),
-    );
-
-    return Column(
-      crossAxisAlignment: widget.compact
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (widget.compact) ...[
-          Text(context.l10n.divePlanner_label_reserve),
-          const SizedBox(height: 4),
-          textField,
-        ] else
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Flexible(child: Text(context.l10n.divePlanner_label_reserve)),
+              Expanded(child: Text(context.l10n.divePlanner_label_reserve)),
               const SizedBox(width: 8),
-              textField,
+              SizedBox(
+                width: PlanGasOptionNumberField.fieldWidth,
+                child: Semantics(
+                  label: context.l10n.divePlanner_semantics_reservePressure(
+                    widget.units.pressureSymbol,
+                  ),
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
+                      errorText: _isError ? '' : null,
+                      errorStyle: const TextStyle(height: 0, fontSize: 0),
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: _validate,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              SizedBox(
+                width: PlanGasOptionNumberField.unitWidth,
+                child: Text(widget.units.pressureSymbol),
+              ),
             ],
           ),
-        if (_messageText != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              _messageText!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: _isError
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
+          if (_messageText != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _messageText!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _isError
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

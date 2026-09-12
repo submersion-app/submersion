@@ -134,7 +134,14 @@ class SegmentOutcome extends Equatable {
 class PlanTankUsage extends Equatable {
   final String tankId;
   final double litersUsed;
+
+  /// Surface liters in the cylinder at the start of the plan; null when the
+  /// tank has no size or start pressure.
+  final double? totalLiters;
   final double? remainingPressure;
+
+  /// Fill pressure at the start of the plan, in bar.
+  final double? startPressure;
   final double percentUsed;
   final bool reserveViolation;
 
@@ -147,18 +154,41 @@ class PlanTankUsage extends Equatable {
   const PlanTankUsage({
     required this.tankId,
     required this.litersUsed,
+    this.totalLiters,
     this.remainingPressure,
+    this.startPressure,
     required this.percentUsed,
     this.reserveViolation = false,
     this.turnPressureBar,
     this.minGasBar,
   });
 
+  /// Pressure consumed, in bar; null when start or remaining is unknown.
+  double? get usedPressure {
+    final start = startPressure;
+    final remaining = remainingPressure;
+    if (start == null || remaining == null) return null;
+    final used = start - remaining;
+    if (used < 0) return 0;
+    if (used > start) return start;
+    return used;
+  }
+
+  /// Surface liters left at the end of the plan.
+  double? get remainingLiters {
+    final total = totalLiters;
+    if (total == null) return null;
+    final left = total - litersUsed;
+    return left < 0 ? 0.0 : left;
+  }
+
   @override
   List<Object?> get props => [
     tankId,
     litersUsed,
+    totalLiters,
     remainingPressure,
+    startPressure,
     percentUsed,
     reserveViolation,
     turnPressureBar,
@@ -241,8 +271,13 @@ class PlanOutcome {
   final int runtimeSeconds;
   final double maxDepth;
 
-  /// NDL (seconds, -1 = in deco) and TTS at the bottom reference point.
+  /// NDL (seconds, -1 = in deco) at the deepest authored leg.
   final int ndlAtBottom;
+
+  /// Time to surface in seconds from the end of the last authored segment:
+  /// travel to the first stop, every stop, the travel between them and the
+  /// final ascent. Always equals [runtimeSeconds] minus the authored
+  /// runtime, so it can never disagree with the printed schedule.
   final int ttsAtBottom;
 
   final List<PlanStop> stops;
@@ -290,12 +325,18 @@ class PlanOutcome {
     required this.endTissue,
     required this.tissueTimeline,
     required this.ceilingTrace,
+    this.authoredDecoSeconds = 0,
   });
+
+  /// Time spent on stops the diver authored as segments (a stop leg in the
+  /// resolved chain), as opposed to the [stops] the engine scheduled after
+  /// the last segment.
+  final int authoredDecoSeconds;
 
   /// No critical issue present.
   bool get isDiveable =>
       !issues.any((i) => i.severity == PlanIssueSeverity.critical);
 
   int get totalDecoSeconds =>
-      stops.fold(0, (sum, s) => sum + s.durationSeconds);
+      authoredDecoSeconds + stops.fold(0, (sum, s) => sum + s.durationSeconds);
 }

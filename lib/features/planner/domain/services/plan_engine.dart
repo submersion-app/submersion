@@ -79,6 +79,33 @@ class PlanEngineConfig {
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
   });
+
+  /// Merges this app-wide config with [plan]'s per-plan gas-option
+  /// overrides. A set plan value always wins; an unset (null) one falls back
+  /// to this config unchanged.
+  ///
+  /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
+  /// (they are plain defaulted fields, not nullable overrides), so they
+  /// always replace [buddyFactor] and [endLimitMeters] for this plan.
+  PlanEngineConfig resolvedFor(domain.DivePlan plan) {
+    return PlanEngineConfig(
+      ppO2Working: plan.ppO2Bottom ?? ppO2Working,
+      ppO2Deco: plan.ppO2Deco ?? ppO2Deco,
+      cnsWarningThreshold: cnsWarningThreshold,
+      o2Narcotic: plan.o2Narcotic ?? o2Narcotic,
+      endLimitMeters: plan.bestMixEndMeters,
+      otuLimit: otuLimit,
+      o2MetabolicRateLpm: o2MetabolicRateLpm,
+      loopVolumeLiters: loopVolumeLiters,
+      buddyFactor: plan.sacFactor,
+      scrInjectionRateLpm: scrInjectionRateLpm,
+      pscrO2ConsumptionMlMin: pscrO2ConsumptionMlMin,
+      pscrSacMlMin: pscrSacMlMin,
+      pscrRatio: pscrRatio,
+      cnsMethod: cnsMethod,
+      gasModel: gasModel,
+    );
+  }
 }
 
 /// Turns a [domain.DivePlan] into a [PlanOutcome] on the Phase 1 engine
@@ -152,7 +179,21 @@ class PlanEngine {
     return OpenCircuit(fO2: gas.o2 / 100.0, fHe: gas.he / 100.0);
   }
 
+  /// Computes the schedule for [inputPlan], first resolving this engine's
+  /// [config] against the plan's own gas-option overrides (ppO2Bottom,
+  /// ppO2Deco, o2Narcotic, sacFactor, bestMixEndMeters) so every call site
+  /// that constructs a `PlanEngine` picks those overrides up automatically.
   PlanOutcome compute(domain.DivePlan inputPlan, {TissueState? startState}) {
+    final resolvedConfig = config.resolvedFor(inputPlan);
+    return PlanEngine(
+      config: resolvedConfig,
+    )._computeInternal(inputPlan, startState: startState);
+  }
+
+  PlanOutcome _computeInternal(
+    domain.DivePlan inputPlan, {
+    TissueState? startState,
+  }) {
     // Cylinder roles are derived from the mixes and the segments that breathe
     // them rather than declared by the diver, so resolve them before any of
     // the role-dependent maths below (turn pressure, rock bottom, deco-gas
@@ -219,7 +260,7 @@ class PlanEngine {
     var otu = 0.0;
     var maxPpO2 = 0.0;
     int? ndlAtBottom;
-    int? ttsAtBottom;
+    var authoredDecoSeconds = 0;
     final maxDepth = plan.maxDepth;
     final segmentOutcomes = <SegmentOutcome>[];
     final timeline = <(int, BuhlmannState)>[];
@@ -299,7 +340,9 @@ class PlanEngine {
       // declared bottom type, which this depth test already subsumed.
       if (leg.endDepth >= maxDepth - 0.1) {
         ndlAtBottom = ndl;
-        ttsAtBottom = tts;
+      }
+      if (leg.phase == SegmentPhase.stop) {
+        authoredDecoSeconds += leg.durationSeconds;
       }
 
       segmentOutcomes.add(
@@ -392,15 +435,27 @@ class PlanEngine {
       environment,
     );
 
+    // The last table line's end, so the headline runtime can never
+    // disagree with the table printed under it.
+    final totalRuntime = scheduleRows.isEmpty
+        ? runtime + schedule.ttsSeconds
+        : scheduleRows.last.runtimeSeconds;
+    // TTS is one thing only: the time from the end of the last authored
+    // segment to the surface, exactly as the schedule below prints it -
+    // travel to the first stop at the plan's ascent rate, every stop, the
+    // travel between them and the final ascent. The authored segments are
+    // what the diver has decided to do; TTS is what the model still owes
+    // once they are done. It is never re-derived from the deepest leg or
+    // from any guess about where "the bottom" ended, so it cannot disagree
+    // with the table.
+    final tts = totalRuntime - runtime;
+
     return PlanOutcome(
-      // The last table line's end, so the headline runtime can never
-      // disagree with the table printed under it.
-      runtimeSeconds: scheduleRows.isEmpty
-          ? runtime + schedule.ttsSeconds
-          : scheduleRows.last.runtimeSeconds,
+      runtimeSeconds: totalRuntime,
       maxDepth: maxDepth,
       ndlAtBottom: ndlAtBottom ?? 0,
-      ttsAtBottom: ttsAtBottom ?? schedule.ttsSeconds,
+      ttsAtBottom: tts,
+      authoredDecoSeconds: authoredDecoSeconds,
       stops: stops,
       schedule: scheduleRows,
       segmentOutcomes: segmentOutcomes,
@@ -581,7 +636,17 @@ class PlanEngine {
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
+            totalLiters: start != null
+                ? gasVolume(
+                    tankSizeLiters: tank.volume ?? 11.0,
+                    pressureBar: start,
+                    o2Percent: tank.gasMix.o2,
+                    hePercent: tank.gasMix.he,
+                    model: config.gasModel,
+                  )
+                : null,
             remainingPressure: remaining,
+            startPressure: start,
             percentUsed: start != null && start > 0
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,
@@ -631,6 +696,26 @@ class PlanEngine {
       );
     }
 
+    // Problem-solving time: extra N minutes at max depth on the working
+    // gas, at bottom SAC x SAC factor, so the used/end figures include the
+    // same bottom-hold term the gas-options row describes.
+    if (plan.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
+      String? bottomTankId;
+      for (final leg in legs) {
+        if (leg.endDepth >= plan.maxDepth - 0.1 ||
+            leg.startDepth >= plan.maxDepth - 0.1) {
+          bottomTankId = leg.tankId;
+        }
+      }
+      charge(
+        bottomTankId,
+        plan.sacBottom *
+            plan.sacFactor *
+            plan.problemSolvingMinutes *
+            environment.pressureAtDepth(plan.maxDepth),
+      );
+    }
+
     // Computed ascent: travel legs and stops on the deco SAC.
     final policy = _policyFor(plan);
     var depth = lastDepth;
@@ -648,12 +733,26 @@ class PlanEngine {
             (legSeconds / 60.0) *
             environment.pressureAtDepth(legAvg),
       );
+      final stopPressure = environment.pressureAtDepth(stop.depthMeters);
+      final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
       charge(
         stop.tankId,
-        plan.sacDecoEffective *
-            (stop.durationSeconds / 60.0) *
-            environment.pressureAtDepth(stop.depthMeters),
+        plan.sacDecoEffective * (primarySeconds / 60.0) * stopPressure,
       );
+      if (stop.airBreakSeconds > 0) {
+        final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
+        final breakTankId = breakGas != null
+            ? _tankForGas(
+                plan.tanks,
+                1.0 - breakGas.fN2 - breakGas.fHe,
+                breakGas.fHe,
+              )
+            : stop.tankId;
+        charge(
+          breakTankId,
+          plan.sacDecoEffective * (stop.airBreakSeconds / 60.0) * stopPressure,
+        );
+      }
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
     }
@@ -690,7 +789,17 @@ class PlanEngine {
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
+            totalLiters: start != null
+                ? gasVolume(
+                    tankSizeLiters: tank.volume ?? 11.0,
+                    pressureBar: start,
+                    o2Percent: tank.gasMix.o2,
+                    hePercent: tank.gasMix.he,
+                    model: config.gasModel,
+                  )
+                : null,
             remainingPressure: remaining,
+            startPressure: start,
             percentUsed: start != null && start > 0
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,
@@ -723,8 +832,14 @@ class PlanEngine {
   }
 
   /// Rock-bottom minimum gas: a stressed, buddy-shared emergency exit from
-  /// the plan's max depth — one minute at depth plus a direct ascent at the
-  /// plan rate — expressed as bar on this tank (bottom tanks, OC only).
+  /// the plan's max depth — [domain.DivePlan.problemSolvingMinutes] at depth
+  /// plus a direct ascent at the plan rate — expressed as bar on this tank
+  /// (bottom tanks, OC only).
+  ///
+  /// The stressed rate is [domain.DivePlan.sacStressedEffective] (an
+  /// explicit override, or bottom SAC x2.5 by default); [config]'s
+  /// `buddyFactor` is resolved from the plan's own `sacFactor` by [compute]
+  /// before this runs, so it always reflects that plan's Gas options.
   double? _minGasFor(
     domain.DivePlan plan,
     DiveTank tank,
@@ -743,7 +858,9 @@ class PlanEngine {
         ).ascentTravelSeconds(fromDepth: maxDepth, stopDepths: const []) /
         60.0;
     final liters =
-        sac * environment.pressureAtDepth(maxDepth) +
+        sac *
+            plan.problemSolvingMinutes *
+            environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
     final volume = tank.volume ?? 11.0;
     return volume > 0 ? liters / volume : null;
@@ -1016,6 +1133,7 @@ class PlanEngine {
     // A plan is read against a watch: stops end on whole minutes.
     snapStopsToWholeMinutes: true,
     airBreaks: plan.airBreaks,
+    minStopSecondsByDepth: plan.stopMinimums,
   );
 
   AscentGasPlan _ascentPlanFor(List<DiveTank> tanks) {

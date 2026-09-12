@@ -68,11 +68,43 @@ class DivePlan extends Equatable {
   final int gasSwitchStopSeconds;
   final AirBreakPolicy? airBreaks;
 
+  /// Diver-authored minimum hold time in seconds, keyed by whole-metre stop
+  /// depth. Passed straight through to [SchedulePolicy.minStopSecondsByDepth]
+  /// so the engine's own stop-time computation honours it, rather than
+  /// baking a fixed stop into the plan's segments.
+  final Map<int, int> stopMinimums;
+
   // Gas planning
   final double sacBottom;
   final double? sacDeco;
   final double? sacStressed;
   final double reservePressure;
+
+  // Gas options (Subsurface-style; issue-driven G-series follow-up).
+  /// Multiplier on [sacStressedEffective]'s fallback for the minimum-gas /
+  /// rock-bottom calculation, standing in for the app-wide
+  /// `PlanEngineConfig.buddyFactor` default (2.0) once a plan sets it.
+  final double sacFactor;
+
+  /// Minutes spent at max depth at the stressed SAC before the ascent
+  /// begins, in the minimum-gas calculation. Subsurface default: 2.
+  final int problemSolvingMinutes;
+
+  /// ppO2 ceiling for gas selection / MOD warnings during the working part
+  /// of the dive. Null = use the app-wide setting.
+  final double? ppO2Bottom;
+
+  /// ppO2 ceiling for deco gas switch depths (MOD) and stop gas selection.
+  /// Null = use the app-wide setting.
+  final double? ppO2Deco;
+
+  /// Equivalent narcotic depth target used when suggesting a best mix for a
+  /// depth. Subsurface default: 30 m (its UI shows 28 m).
+  final double bestMixEndMeters;
+
+  /// Whether O2 counts as narcotic in END for this plan. Null = use the
+  /// app-wide setting.
+  final bool? o2Narcotic;
 
   // Repetitive context
   final Duration? surfaceInterval;
@@ -127,10 +159,17 @@ class DivePlan extends Equatable {
     this.lastStopDepth = 3.0,
     this.gasSwitchStopSeconds = 0,
     this.airBreaks,
+    this.stopMinimums = const {},
     this.sacBottom = 15.0,
     this.sacDeco,
     this.sacStressed,
     this.reservePressure = 50.0,
+    this.sacFactor = 2.0,
+    this.problemSolvingMinutes = 2,
+    this.ppO2Bottom,
+    this.ppO2Deco,
+    this.bestMixEndMeters = 30.0,
+    this.o2Narcotic,
     this.surfaceInterval,
     this.sourceDiveId,
     this.linkedDiveId,
@@ -154,8 +193,8 @@ class DivePlan extends Equatable {
   double get effectiveSetpointHigh => setpointHigh ?? 1.3;
   double get effectiveSetpointSwitchDepth => setpointSwitchDepth ?? 10.0;
 
-  /// Deco SAC: explicit value or the 0.8x-of-bottom default.
-  double get sacDecoEffective => sacDeco ?? sacBottom * 0.8;
+  /// Deco SAC: explicit value, otherwise 15 L/min (same default as bottom SAC).
+  double get sacDecoEffective => sacDeco ?? 15.0;
 
   /// Stressed (bailout/rock-bottom) SAC: explicit or 2.5x bottom.
   double get sacStressedEffective => sacStressed ?? sacBottom * 2.5;
@@ -200,12 +239,22 @@ class DivePlan extends Equatable {
     int? gasSwitchStopSeconds,
     AirBreakPolicy? airBreaks,
     bool clearAirBreaks = false,
+    Map<int, int>? stopMinimums,
     double? sacBottom,
     double? sacDeco,
     bool clearSacDeco = false,
     double? sacStressed,
     bool clearSacStressed = false,
     double? reservePressure,
+    double? sacFactor,
+    int? problemSolvingMinutes,
+    double? ppO2Bottom,
+    bool clearPpO2Bottom = false,
+    double? ppO2Deco,
+    bool clearPpO2Deco = false,
+    double? bestMixEndMeters,
+    bool? o2Narcotic,
+    bool clearO2Narcotic = false,
     Duration? surfaceInterval,
     bool clearSurfaceInterval = false,
     String? sourceDiveId,
@@ -257,10 +306,18 @@ class DivePlan extends Equatable {
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
+      stopMinimums: stopMinimums ?? this.stopMinimums,
       sacBottom: sacBottom ?? this.sacBottom,
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
       sacStressed: clearSacStressed ? null : (sacStressed ?? this.sacStressed),
       reservePressure: reservePressure ?? this.reservePressure,
+      sacFactor: sacFactor ?? this.sacFactor,
+      problemSolvingMinutes:
+          problemSolvingMinutes ?? this.problemSolvingMinutes,
+      ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
+      ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
+      bestMixEndMeters: bestMixEndMeters ?? this.bestMixEndMeters,
+      o2Narcotic: clearO2Narcotic ? null : (o2Narcotic ?? this.o2Narcotic),
       surfaceInterval: clearSurfaceInterval
           ? null
           : (surfaceInterval ?? this.surfaceInterval),
@@ -322,10 +379,17 @@ class DivePlan extends Equatable {
     gasSwitchStopSeconds,
     airBreaks?.o2Seconds,
     airBreaks?.breakSeconds,
+    stopMinimums,
     sacBottom,
     sacDeco,
     sacStressed,
     reservePressure,
+    sacFactor,
+    problemSolvingMinutes,
+    ppO2Bottom,
+    ppO2Deco,
+    bestMixEndMeters,
+    o2Narcotic,
     surfaceInterval,
     sourceDiveId,
     linkedDiveId,

@@ -2738,6 +2738,9 @@
   "divePlanner_field_travelGas": "Également utilisé comme gaz de voyage",
   "divePlanner_field_volume": "Volume ({volumeSymbol})",
   "divePlanner_hint_tankName": "Entrer le nom de la bouteille",
+  "divePlanner_label_airBreaks": "Air breaks",
+  "divePlanner_label_airBreaksBreak": "Break (min)",
+  "divePlanner_label_airBreaksOnO2": "On O2 (min)",
   "divePlanner_label_altitude": "Altitude :",
   "divePlanner_label_belowMinReserve": "En dessous de la réserve minimale",
   "divePlanner_label_ceiling": "Plafond",
@@ -2755,11 +2758,20 @@
   "divePlanner_label_ndl": "DTR",
   "divePlanner_label_planSettings": "Paramètres du plan",
   "divePlanner_label_remaining": "Restant",
-  "divePlanner_label_reserve": "Réserve :",
+  "divePlanner_label_reserve": "Réserve",
   "divePlanner_label_resultsWithWarnings": "Résultats, {count} avertissements",
   "divePlanner_label_runtime": "Durée totale",
   "divePlanner_label_sacRate": "RMV :",
   "divePlanner_label_salinity": "Salinité",
+  "divePlanner_gasOptions_title": "Gas options",
+  "divePlanner_gasOptions_sacBottom": "Bottom RMV",
+  "divePlanner_gasOptions_sacDeco": "Deco RMV",
+  "divePlanner_gasOptions_sacFactor": "RMV factor",
+  "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
+  "divePlanner_gasOptions_ppO2Bottom": "Bottom ppO₂",
+  "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
+  "divePlanner_gasOptions_bestMixEnd": "Best mix END",
+  "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_status": "État",
   "divePlanner_label_tanks": "Bouteilles",
   "divePlanner_savedTanks_title": "Bouteilles enregistrées",
@@ -11875,5 +11887,53 @@
   "equipment_arrange_reset": "Réinitialiser",
   "equipment_arrange_saveFailed": "Impossible d'enregistrer l'organisation",
   "settings_appearance_gearArrangement": "Organisation de l'équipement",
-  "settings_appearance_gearArrangementSubtitle": "Comment l'équipement est groupé et trié sur une plongée"
+  "settings_appearance_gearArrangementSubtitle": "Comment l'équipement est groupé et trié sur une plongée",
+  "diveLog_detail_tooltip_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "plannerCanvas_sourceCompare_title": "vs. original dive",
+  "plannerCanvas_issue_repeated": "{message} ({count} legs)",
+  "@plannerCanvas_issue_repeated": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_dialogTitle": "Minimum stop time at {depth}",
+  "plannerCanvas_stopMinimum_minutesLabel": "Minutes",
+  "plannerCanvas_stopMinimum_apply": "Apply",
+  "plannerCanvas_stopMinimum_clear": "Clear minimum",
+  "diveLog_whatIf_title": "Replan this dive",
+  "diveLog_whatIf_detailLabel": "Detail",
+  "diveLog_whatIf_engineNote": "The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.",
+  "diveLog_whatIf_seedTissues": "Seed tissues from previous dive",
+  "diveLog_whatIf_openInPlanner": "Open in planner",
+  "diveLog_whatIf_planName": "Replan: {title}",
+  "@diveLog_whatIf_planName": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_runtime": "Runtime",
+  "plannerCanvas_compare_maxDepth": "Max depth",
+  "plannerCanvas_compare_deco": "Deco time",
+  "plannerCanvas_compare_gas": "Gas ({tank})",
+  "@plannerCanvas_compare_gas": {
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_cns": "CNS",
+  "plannerCanvas_compare_planned": "Plan",
+  "plannerCanvas_compare_actual": "Actual",
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "plannerCanvas_gas_usedReading": "utilisé : {reading}",
+  "plannerCanvas_gas_endReading": "fin : {reading}"
 }

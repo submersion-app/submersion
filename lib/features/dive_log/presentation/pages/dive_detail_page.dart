@@ -67,6 +67,7 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -1202,6 +1203,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'unlinkPreDive':
                   _unlinkPreDiveChecklist(context, linkedPreDive!);
                   break;
+                case 'whatIf':
+                  showWhatIfSheet(context, dive);
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -1256,6 +1260,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     title: Text(
                       context.l10n.diveLog_detail_menu_resyncImportedFile,
                     ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              if (dive.profile.isNotEmpty)
+                PopupMenuItem(
+                  value: 'whatIf',
+                  child: ListTile(
+                    leading: const Icon(Icons.tune),
+                    title: Text(context.l10n.diveLog_detail_menu_whatIf),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -1419,6 +1432,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     case 'unlinkPreDive':
                       _unlinkPreDiveChecklist(context, linkedPreDive!);
                       break;
+                    case 'whatIf':
+                      showWhatIfSheet(context, dive);
+                      break;
                     case 'delete':
                       _showDeleteConfirmation(context, ref);
                       break;
@@ -1478,6 +1494,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         title: Text(
                           context.l10n.diveLog_detail_menu_resyncImportedFile,
                         ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  if (dive.profile.isNotEmpty)
+                    PopupMenuItem(
+                      value: 'whatIf',
+                      child: ListTile(
+                        leading: const Icon(Icons.tune),
+                        title: Text(context.l10n.diveLog_detail_menu_whatIf),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -2043,6 +2068,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                               ),
                       ),
                     ),
+                    if (dive.profile.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.alt_route),
+                        tooltip: context.l10n.diveLog_detail_tooltip_whatIf,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => showWhatIfSheet(context, dive),
+                      ),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,

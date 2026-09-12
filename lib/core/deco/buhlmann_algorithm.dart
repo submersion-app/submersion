@@ -449,6 +449,10 @@ class BuhlmannAlgorithm {
       if (switched && p.gasSwitchStopSeconds > 0) {
         stopTime = math.max(stopTime, p.gasSwitchStopSeconds);
       }
+      final minStopSeconds = p.minStopSecondsByDepth[currentStopDepth.round()];
+      if (minStopSeconds != null && minStopSeconds > 0) {
+        stopTime = math.max(stopTime, minStopSeconds);
+      }
       final arrivalSeconds =
           clockSeconds +
           p.ascentSeconds(

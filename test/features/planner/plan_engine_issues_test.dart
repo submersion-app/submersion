@@ -177,7 +177,12 @@ void main() {
       // bottom 10 min at 4.016 bar on 15: 602.3 L
       // direct ascent 200 s at avg 15 m on deco SAC 12: 100.3 L
       // total 765.3 L
-      final outcome = engine.compute(_airPlan(depth: 30.0, minutes: 10));
+      final outcome = engine.compute(
+        _airPlan(
+          depth: 30.0,
+          minutes: 10,
+        ).copyWith(problemSolvingMinutes: 0, sacDeco: 12.0),
+      );
       expect(outcome.stops, isEmpty);
       expect(outcome.tankUsages.single.litersUsed, closeTo(765.3, 1.0));
       // Compressibility: remaining is BELOW the ideal-gas figure.
@@ -301,7 +306,7 @@ void main() {
               gasMix: _air,
             ),
           ],
-        ),
+        ).copyWith(problemSolvingMinutes: 0),
       );
       final usage = outcome.tankUsages.single;
       expect(usage.minGasBar, isNotNull);

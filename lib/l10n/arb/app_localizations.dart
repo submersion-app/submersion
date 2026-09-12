@@ -13749,6 +13749,24 @@ abstract class AppLocalizations {
   /// **'Enter tank name'**
   String get divePlanner_hint_tankName;
 
+  /// No description provided for @divePlanner_label_airBreaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Air breaks'**
+  String get divePlanner_label_airBreaks;
+
+  /// No description provided for @divePlanner_label_airBreaksBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break (min)'**
+  String get divePlanner_label_airBreaksBreak;
+
+  /// No description provided for @divePlanner_label_airBreaksOnO2.
+  ///
+  /// In en, this message translates to:
+  /// **'On O2 (min)'**
+  String get divePlanner_label_airBreaksOnO2;
+
   /// No description provided for @divePlanner_label_altitude.
   ///
   /// In en, this message translates to:
@@ -13854,7 +13872,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_label_reserve.
   ///
   /// In en, this message translates to:
-  /// **'Reserve:'**
+  /// **'Reserve'**
   String get divePlanner_label_reserve;
 
   /// No description provided for @divePlanner_label_runtime.
@@ -13874,6 +13892,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Salinity'**
   String get divePlanner_label_salinity;
+
+  /// No description provided for @divePlanner_gasOptions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas options'**
+  String get divePlanner_gasOptions_title;
+
+  /// No description provided for @divePlanner_gasOptions_sacBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom RMV'**
+  String get divePlanner_gasOptions_sacBottom;
+
+  /// No description provided for @divePlanner_gasOptions_sacDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco RMV'**
+  String get divePlanner_gasOptions_sacDeco;
+
+  /// No description provided for @divePlanner_gasOptions_sacFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV factor'**
+  String get divePlanner_gasOptions_sacFactor;
+
+  /// No description provided for @divePlanner_gasOptions_problemSolvingMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem solving time'**
+  String get divePlanner_gasOptions_problemSolvingMinutes;
+
+  /// No description provided for @divePlanner_gasOptions_ppO2Bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom ppO₂'**
+  String get divePlanner_gasOptions_ppO2Bottom;
+
+  /// No description provided for @divePlanner_gasOptions_ppO2Deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO₂'**
+  String get divePlanner_gasOptions_ppO2Deco;
+
+  /// No description provided for @divePlanner_gasOptions_bestMixEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Best mix END'**
+  String get divePlanner_gasOptions_bestMixEnd;
+
+  /// No description provided for @divePlanner_gasOptions_o2Narcotic.
+  ///
+  /// In en, this message translates to:
+  /// **'Treat O₂ as narcotic for this plan'**
+  String get divePlanner_gasOptions_o2Narcotic;
 
   /// No description provided for @divePlanner_label_status.
   ///
@@ -25443,6 +25515,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'turn @ {pressure}'**
   String plannerCanvas_gas_turnAt(String pressure);
+
+  /// No description provided for @plannerCanvas_gas_usedReading.
+  ///
+  /// In en, this message translates to:
+  /// **'used: {reading}'**
+  String plannerCanvas_gas_usedReading(String reading);
+
+  /// No description provided for @plannerCanvas_gas_endReading.
+  ///
+  /// In en, this message translates to:
+  /// **'end: {reading}'**
+  String plannerCanvas_gas_endReading(String reading);
 
   /// No description provided for @plannerCanvas_issue_gasDensityCritical.
   ///
@@ -63963,6 +64047,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How equipment is grouped and sorted on a dive'**
   String get settings_appearance_gearArrangementSubtitle;
+
+  /// No description provided for @diveLog_detail_tooltip_whatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'Replan this dive'**
+  String get diveLog_detail_tooltip_whatIf;
+
+  /// No description provided for @diveLog_detail_menu_whatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'Replan this dive'**
+  String get diveLog_detail_menu_whatIf;
+
+  /// No description provided for @plannerCanvas_sourceCompare_title.
+  ///
+  /// In en, this message translates to:
+  /// **'vs. original dive'**
+  String get plannerCanvas_sourceCompare_title;
+
+  /// No description provided for @plannerCanvas_issue_repeated.
+  ///
+  /// In en, this message translates to:
+  /// **'{message} ({count} legs)'**
+  String plannerCanvas_issue_repeated(String message, int count);
+
+  /// No description provided for @plannerCanvas_stopMinimum_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum stop time at {depth}'**
+  String plannerCanvas_stopMinimum_dialogTitle(String depth);
+
+  /// No description provided for @plannerCanvas_stopMinimum_minutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get plannerCanvas_stopMinimum_minutesLabel;
+
+  /// No description provided for @plannerCanvas_stopMinimum_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get plannerCanvas_stopMinimum_apply;
+
+  /// No description provided for @plannerCanvas_stopMinimum_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear minimum'**
+  String get plannerCanvas_stopMinimum_clear;
+
+  /// No description provided for @diveLog_whatIf_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Replan this dive'**
+  String get diveLog_whatIf_title;
+
+  /// No description provided for @diveLog_whatIf_detailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail'**
+  String get diveLog_whatIf_detailLabel;
+
+  /// No description provided for @diveLog_whatIf_engineNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.'**
+  String get diveLog_whatIf_engineNote;
+
+  /// No description provided for @diveLog_whatIf_seedTissues.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed tissues from previous dive'**
+  String get diveLog_whatIf_seedTissues;
+
+  /// No description provided for @diveLog_whatIf_openInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner'**
+  String get diveLog_whatIf_openInPlanner;
+
+  /// No description provided for @diveLog_whatIf_planName.
+  ///
+  /// In en, this message translates to:
+  /// **'Replan: {title}'**
+  String diveLog_whatIf_planName(String title);
+
+  /// No description provided for @plannerCanvas_compare_runtime.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get plannerCanvas_compare_runtime;
+
+  /// No description provided for @plannerCanvas_compare_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get plannerCanvas_compare_maxDepth;
+
+  /// No description provided for @plannerCanvas_compare_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco time'**
+  String get plannerCanvas_compare_deco;
+
+  /// No description provided for @plannerCanvas_compare_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas ({tank})'**
+  String plannerCanvas_compare_gas(String tank);
+
+  /// No description provided for @plannerCanvas_compare_cns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS'**
+  String get plannerCanvas_compare_cns;
+
+  /// No description provided for @plannerCanvas_compare_planned.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get plannerCanvas_compare_planned;
+
+  /// No description provided for @plannerCanvas_compare_actual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get plannerCanvas_compare_actual;
+
+  /// No description provided for @plannerCanvas_compare_showOnChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on chart'**
+  String get plannerCanvas_compare_showOnChart;
 }
 
 class _AppLocalizationsDelegate

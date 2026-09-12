@@ -16,9 +16,10 @@ abstract class AscentGasPlan {
   /// is split at each so it never breathes a gas impermissible at its depth.
   List<double> switchDepthsBetween(double deeperDepth, double shallowerDepth);
 
-  /// Best gas to breathe during an air break at [depthMeters] — the highest
-  /// O2 eligible gas that is NOT effectively pure O2. Null when the plan has
-  /// no such alternative (no air breaks possible).
+  /// Best gas to breathe during an air break at [depthMeters] — the eligible
+  /// gas that is NOT effectively pure O2 and not hypoxic, whose fO2 is
+  /// closest to air's (0.21). Null when the plan has no such alternative (no
+  /// air breaks possible).
   AscentGas? breakGasForDepth(double depthMeters) => null;
 }
 
@@ -109,13 +110,27 @@ class OptimalOcAscentGas extends AscentGasPlan {
   AvailableGas _deepestUsable() =>
       _gases.reduce((a, b) => a.fO2 <= b.fO2 ? a : b);
 
+  /// Prefer the fO2 closest to air's (0.21) - an air break is meant to give
+  /// the tissues a rest from a high ppO2, not to switch to another rich mix -
+  /// tie-break by lower helium (less narcotic-load carryover), then lower
+  /// fO2, so the result is stable.
+  bool _preferBreakGas(AvailableGas candidate, AvailableGas current) {
+    const airFO2 = 0.21;
+    final candidateDist = (candidate.fO2 - airFO2).abs();
+    final currentDist = (current.fO2 - airFO2).abs();
+    if (candidateDist != currentDist) return candidateDist < currentDist;
+    if (candidate.fHe != current.fHe) return candidate.fHe < current.fHe;
+    return candidate.fO2 < current.fO2;
+  }
+
   @override
   AscentGas? breakGasForDepth(double depthMeters) {
     AvailableGas? best;
     for (final g in _gases) {
       if (g.fO2 >= 0.9) continue; // skip O2 itself
+      if (g.fO2 < 0.16) continue; // skip hypoxic back gas
       if (depthMeters <= g.maxPpO2Mod + 1e-9) {
-        if (best == null || _prefer(g, best)) best = g;
+        if (best == null || _preferBreakGas(g, best)) best = g;
       }
     }
     if (best == null) return null;

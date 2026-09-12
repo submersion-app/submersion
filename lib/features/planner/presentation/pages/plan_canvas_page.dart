@@ -83,12 +83,31 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   void dispose() {
     _wideResultsController.dispose();
+    // A replan opened from a logged dive is a throwaway experiment: once the
+    // diver leaves, the planner forgets it and the next visit starts on a
+    // fresh plan rather than the leftovers of someone else's dive. Saved
+    // replans are still in the list. Ordinary plans keep today's behaviour of
+    // surviving navigation. The notifier is app-wide, so touching it after
+    // this element is gone is safe; the microtask keeps the mutation out of
+    // the dispose frame.
+    final notifier = _notifier;
     super.dispose();
+    if (_isReplan && notifier != null) {
+      Future.microtask(notifier.newPlan);
+    }
   }
+
+  /// Snapshot for [dispose], which may not touch `ref`: the notifier and
+  /// whether the plan on screen is a replan of a logged dive. Refreshed on
+  /// every build so it tracks loads, resets and saves.
+  DivePlanNotifier? _notifier;
+  bool _isReplan = false;
 
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
+    _notifier = ref.read(divePlanNotifierProvider.notifier);
+    _isReplan = planState.sourceDiveId != null;
     final units = UnitFormatter(ref.watch(settingsProvider));
     // A plan opened via the :planId route is known-persisted, so short-circuit
     // before watching the (DB-backed) summaries provider; that avoids an

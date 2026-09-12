@@ -26,9 +26,11 @@ const _junctions = [
 ];
 
 void main() {
-  test('v207 is the current schema version and is in the ladder', () {
-    // Relaxed once v208 (the imported-file store, issue #478) landed on top;
-    // the newest rung owns the exact assertion.
+  test('v207 is at or below the current schema version and in the ladder', () {
+    // Relaxed as this rung's own convention asks, now that the imported-file
+    // store (208), the dive-tank equipment link (210) and the planner's
+    // stop-minimums (211) and gas-options (212) rungs sit on top; the newest
+    // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(207));
     expect(AppDatabase.migrationVersions, contains(207));
   });

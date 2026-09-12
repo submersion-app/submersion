@@ -131,14 +131,22 @@ void main() {
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
   });
 
-  testWidgets('gas section shows SAC slider and reserve field with unit', (
+  testWidgets('gas section shows RMV field and reserve field with unit', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanGasSection()));
     await tester.pumpAndSettle();
-    expect(find.byType(Slider), findsOneWidget);
+    expect(find.text('Bottom RMV'), findsOneWidget);
+    expect(find.byType(Slider), findsNothing);
     expect(find.text('50'), findsOneWidget);
     expect(find.textContaining('bar'), findsWidgets);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasSection)),
+    );
+    await tester.enterText(find.byType(TextField).first, '20');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).sacRate, 20);
   });
 
   testWidgets('reserve validation: zero shows error, valid updates state', (
@@ -146,7 +154,12 @@ void main() {
   ) async {
     await tester.pumpWidget(_harness(const PlanGasSection()));
     await tester.pumpAndSettle();
-    final field = find.byType(TextField).last;
+    // The reserve field sits above the gas options block, so find it by its
+    // semantics label rather than by position.
+    final field = find.descendant(
+      of: find.bySemanticsLabel(RegExp('Reserve pressure')),
+      matching: find.byType(TextField),
+    );
     await tester.enterText(field, '0');
     await tester.pumpAndSettle();
     expect(find.text('Must be greater than 0'), findsOneWidget);

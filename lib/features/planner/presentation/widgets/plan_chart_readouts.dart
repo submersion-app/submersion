@@ -5,6 +5,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 
 /// Dive-computer-style readouts overlaid on the phone planner chart,
 /// replacing the phone chip rows: runtime (with the following pill beneath
@@ -146,7 +147,7 @@ class PlanChartReadouts extends ConsumerWidget {
                     const SizedBox(height: 4),
                     PlanChip(
                       label: context.l10n.plannerCanvas_chip_issues(
-                        outcome.issues.length,
+                        groupPlanIssues(outcome.issues).length,
                       ),
                       tint: planIssueSeverityColor(
                         theme.colorScheme,

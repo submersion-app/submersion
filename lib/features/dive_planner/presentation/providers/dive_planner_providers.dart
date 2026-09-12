@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -428,6 +429,25 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Set (or clear, with `seconds: null` or `<= 0`) the diver-authored
+  /// minimum hold time for the stop at [depthMeters].
+  ///
+  /// Immutable map update: builds a new map rather than mutating
+  /// [state.stopMinimums] in place.
+  void setStopMinimum(int depthMeters, int? seconds) {
+    final updated = Map<int, int>.from(state.stopMinimums);
+    if (seconds == null || seconds <= 0) {
+      updated.remove(depthMeters);
+    } else {
+      updated[depthMeters] = seconds;
+    }
+    state = state.copyWith(
+      stopMinimums: updated,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Update an existing tank.
   void updateTank(String id, DiveTank tank) {
     final tanks = state.tanks.map((t) {
@@ -598,10 +618,55 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Set the air-break (back-gas break) policy for long O2 deco stops; null
+  /// disables air breaks.
+  void setAirBreaks(AirBreakPolicy? policy) {
+    state = state.copyWith(
+      airBreaks: policy,
+      clearAirBreaks: policy == null,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Update reserve pressure in bar.
   void updateReservePressure(double reservePressure) {
     state = state.copyWith(
       reservePressure: reservePressure,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Update the Subsurface-style Gas options; only supplied values change.
+  /// [sacDeco], [ppO2Bottom], [ppO2Deco], and [o2Narcotic] are nullable
+  /// overrides of the app-wide settings (or, for [sacDeco], of the 0.8x-of-
+  /// bottom fallback) - pass the matching `clear*` flag to fall back again.
+  void updateGasOptions({
+    double? sacDeco,
+    bool clearSacDeco = false,
+    double? sacFactor,
+    int? problemSolvingMinutes,
+    double? ppO2Bottom,
+    bool clearPpO2Bottom = false,
+    double? ppO2Deco,
+    bool clearPpO2Deco = false,
+    double? bestMixEndMeters,
+    bool? o2Narcotic,
+    bool clearO2Narcotic = false,
+  }) {
+    state = state.copyWith(
+      sacDeco: sacDeco,
+      clearSacDeco: clearSacDeco,
+      sacFactor: sacFactor,
+      problemSolvingMinutes: problemSolvingMinutes,
+      ppO2Bottom: ppO2Bottom,
+      clearPpO2Bottom: clearPpO2Bottom,
+      ppO2Deco: ppO2Deco,
+      clearPpO2Deco: clearPpO2Deco,
+      bestMixEndMeters: bestMixEndMeters,
+      o2Narcotic: o2Narcotic,
+      clearO2Narcotic: clearO2Narcotic,
       isDirty: true,
       updatedAt: DateTime.now(),
     );

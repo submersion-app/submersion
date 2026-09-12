@@ -4997,6 +4997,9 @@
     }
   },
   "divePlanner_hint_tankName": "Enter tank name",
+  "divePlanner_label_airBreaks": "Air breaks",
+  "divePlanner_label_airBreaksBreak": "Break (min)",
+  "divePlanner_label_airBreaksOnO2": "On O2 (min)",
   "divePlanner_label_altitude": "Altitude:",
   "divePlanner_label_belowMinReserve": "Below Min Reserve",
   "divePlanner_label_ceiling": "Ceiling",
@@ -5014,10 +5017,19 @@
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_remaining": "Remaining",
-  "divePlanner_label_reserve": "Reserve:",
+  "divePlanner_label_reserve": "Reserve",
   "divePlanner_label_runtime": "Runtime",
   "divePlanner_label_sacRate": "RMV:",
   "divePlanner_label_salinity": "Salinity",
+  "divePlanner_gasOptions_title": "Gas options",
+  "divePlanner_gasOptions_sacBottom": "Bottom RMV",
+  "divePlanner_gasOptions_sacDeco": "Deco RMV",
+  "divePlanner_gasOptions_sacFactor": "RMV factor",
+  "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
+  "divePlanner_gasOptions_ppO2Bottom": "Bottom ppO₂",
+  "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
+  "divePlanner_gasOptions_bestMixEnd": "Best mix END",
+  "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_status": "Status",
   "divePlanner_label_tanks": "Tanks",
   "divePlanner_savedTanks_title": "Saved tanks",
@@ -9394,6 +9406,18 @@
       "pressure": {
         "type": "String"
       }
+    }
+  },
+  "plannerCanvas_gas_usedReading": "used: {reading}",
+  "@plannerCanvas_gas_usedReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
+    }
+  },
+  "plannerCanvas_gas_endReading": "end: {reading}",
+  "@plannerCanvas_gas_endReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
     }
   },
   "plannerCanvas_issue_gasDensityCritical": "Gas density {value} g/L over hard limit",
@@ -23827,5 +23851,58 @@
   "equipment_arrange_reset": "Reset to defaults",
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
-  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive"
+  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
+  "diveLog_detail_tooltip_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "plannerCanvas_sourceCompare_title": "vs. original dive",
+  "plannerCanvas_issue_repeated": "{message} ({count} legs)",
+  "@plannerCanvas_issue_repeated": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_dialogTitle": "Minimum stop time at {depth}",
+  "@plannerCanvas_stopMinimum_dialogTitle": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_minutesLabel": "Minutes",
+  "plannerCanvas_stopMinimum_apply": "Apply",
+  "plannerCanvas_stopMinimum_clear": "Clear minimum",
+  "diveLog_whatIf_title": "Replan this dive",
+  "diveLog_whatIf_detailLabel": "Detail",
+  "diveLog_whatIf_engineNote": "The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.",
+  "diveLog_whatIf_seedTissues": "Seed tissues from previous dive",
+  "diveLog_whatIf_openInPlanner": "Open in planner",
+  "diveLog_whatIf_planName": "Replan: {title}",
+  "@diveLog_whatIf_planName": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_runtime": "Runtime",
+  "plannerCanvas_compare_maxDepth": "Max depth",
+  "plannerCanvas_compare_deco": "Deco time",
+  "plannerCanvas_compare_gas": "Gas ({tank})",
+  "@plannerCanvas_compare_gas": {
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_cns": "CNS",
+  "plannerCanvas_compare_planned": "Plan",
+  "plannerCanvas_compare_actual": "Actual",
+  "plannerCanvas_compare_showOnChart": "Show on chart"
 }

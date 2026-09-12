@@ -214,6 +214,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   Widget build(BuildContext context) {
     final series = ref.watch(planCanvasSeriesProvider);
     final ghost = ref.watch(contingencyGhostSeriesProvider);
+    final sourceDive = ref.watch(sourceDiveOverlaySeriesProvider);
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -221,13 +222,15 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
     if (series.isEmpty) return _EmptyState(theme: theme);
 
-    final maxTime =
-        ghost != null && ghost.maxTimeSeconds > series.maxTimeSeconds
-        ? ghost.maxTimeSeconds
-        : series.maxTimeSeconds;
-    final maxDepth = ghost != null && ghost.maxDepth > series.maxDepth
-        ? ghost.maxDepth
-        : series.maxDepth;
+    // Axes stretch to cover every drawn series: plan, ghost and the source
+    // dive's actual profile.
+    var maxTime = series.maxTimeSeconds;
+    var maxDepth = series.maxDepth;
+    for (final extra in [ghost, sourceDive]) {
+      if (extra == null) continue;
+      if (extra.maxTimeSeconds > maxTime) maxTime = extra.maxTimeSeconds;
+      if (extra.maxDepth > maxDepth) maxDepth = extra.maxDepth;
+    }
     final labelStyle =
         theme.textTheme.labelSmall ?? const TextStyle(fontSize: 10);
     final tagStyle = (theme.textTheme.labelSmall ?? const TextStyle()).copyWith(
@@ -407,6 +410,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                             palette: palette,
                             series: series,
                             ghost: ghost,
+                            sourceDive: sourceDive,
                             stopTagLabels: stopTagLabels,
                             meanDepthLabel: meanDepthLabel,
                             labelStyle: labelStyle,

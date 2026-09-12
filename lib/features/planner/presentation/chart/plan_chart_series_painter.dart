@@ -15,6 +15,11 @@ class PlanChartSeriesPainter extends CustomPainter {
   final PlanChartPalette palette;
   final PlanCanvasSeries series;
   final PlanCanvasSeries? ghost;
+
+  /// The logged profile of the dive a "What if..." plan was built from,
+  /// drawn dashed under the plan so the diver can see how far they have
+  /// moved from what they actually did. Null for ordinary plans.
+  final PlanCanvasSeries? sourceDive;
   final List<String> stopTagLabels;
   final String meanDepthLabel;
   final TextStyle labelStyle;
@@ -26,6 +31,7 @@ class PlanChartSeriesPainter extends CustomPainter {
     required this.palette,
     required this.series,
     required this.ghost,
+    this.sourceDive,
     required this.stopTagLabels,
     required this.meanDepthLabel,
     required this.labelStyle,
@@ -36,6 +42,18 @@ class PlanChartSeriesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final plot = geometry.plotRect;
+
+    // Source dive's actual profile under everything.
+    final actual = sourceDive;
+    if (actual != null && actual.profile.length >= 2) {
+      canvas.drawPath(
+        dashedPath(_polyline(actual.profile), dash: 6, gap: 4),
+        Paint()
+          ..color = palette.sourceDiveLine
+          ..strokeWidth = 1.5
+          ..style = PaintingStyle.stroke,
+      );
+    }
 
     // Ghost contingency profile under everything.
     final ghostSeries = ghost;
@@ -183,6 +201,7 @@ class PlanChartSeriesPainter extends CustomPainter {
       oldDelegate.palette != palette ||
       oldDelegate.series != series ||
       oldDelegate.ghost != ghost ||
+      oldDelegate.sourceDive != sourceDive ||
       oldDelegate.meanDepthLabel != meanDepthLabel ||
       !listEquals(oldDelegate.stopTagLabels, stopTagLabels) ||
       oldDelegate.labelStyle != labelStyle ||

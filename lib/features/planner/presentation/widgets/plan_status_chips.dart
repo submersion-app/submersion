@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 
 /// Colour for a plan-issue severity (shared by chips and the results sheet).
 Color planIssueSeverityColor(ColorScheme scheme, PlanIssueSeverity severity) {
@@ -147,7 +148,7 @@ class PlanStatusChips extends ConsumerWidget {
         if (maxSeverity != null)
           PlanChip(
             label: context.l10n.plannerCanvas_chip_issues(
-              outcome.issues.length,
+              groupPlanIssues(outcome.issues).length,
             ),
             tint: planIssueSeverityColor(theme.colorScheme, maxSeverity),
             onTap: onIssuesTap,

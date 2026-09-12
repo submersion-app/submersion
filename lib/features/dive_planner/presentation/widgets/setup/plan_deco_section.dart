@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_air_breaks_control.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_last_stop_selector.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -47,6 +48,11 @@ class PlanDecoSection extends ConsumerWidget {
           value: planState.lastStopDepth,
           units: units,
           onChanged: notifier.updateLastStopDepth,
+        ),
+        const SizedBox(height: 8),
+        PlanAirBreaksControl(
+          policy: planState.airBreaks,
+          onChanged: notifier.setAirBreaks,
         ),
       ],
     );

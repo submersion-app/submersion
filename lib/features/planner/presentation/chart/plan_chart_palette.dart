@@ -19,6 +19,9 @@ class PlanChartPalette {
   final Color stopTagBorder;
   final Color stopTagText;
   final Color ghostLine;
+
+  /// Dashed logged profile of the dive a What-if plan came from.
+  final Color sourceDiveLine;
   final Color scrubCursor;
   final Color readoutBackground;
   final Color readoutBorder;
@@ -40,6 +43,7 @@ class PlanChartPalette {
     required this.stopTagBorder,
     required this.stopTagText,
     required this.ghostLine,
+    required this.sourceDiveLine,
     required this.scrubCursor,
     required this.readoutBackground,
     required this.readoutBorder,
@@ -73,6 +77,7 @@ class PlanChartPalette {
       stopTagBorder: scheme.primary.withValues(alpha: 0.45),
       stopTagText: Color.lerp(scheme.primary, scheme.onSurface, 0.45)!,
       ghostLine: scheme.outline.withValues(alpha: 0.6),
+      sourceDiveLine: scheme.tertiary.withValues(alpha: 0.85),
       scrubCursor: scheme.onSurfaceVariant,
       readoutBackground: scheme.surfaceContainerHighest.withValues(alpha: 0.95),
       readoutBorder: scheme.outline.withValues(alpha: 0.3),
@@ -98,6 +103,7 @@ class PlanChartPalette {
       other.stopTagBorder == stopTagBorder &&
       other.stopTagText == stopTagText &&
       other.ghostLine == ghostLine &&
+      other.sourceDiveLine == sourceDiveLine &&
       other.scrubCursor == scrubCursor &&
       other.readoutBackground == readoutBackground &&
       other.readoutBorder == readoutBorder &&
@@ -120,6 +126,7 @@ class PlanChartPalette {
     stopTagBorder,
     stopTagText,
     ghostLine,
+    sourceDiveLine,
     scrubCursor,
     readoutBackground,
     readoutBorder,
