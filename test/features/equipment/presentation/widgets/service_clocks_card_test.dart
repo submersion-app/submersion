@@ -104,6 +104,16 @@ void main() {
     expect(find.textContaining('Due '), findsOneWidget);
   });
 
+  testWidgets('each clock says which date it counts from', (tester) async {
+    // A baseline date, a service record, the purchase date and the date
+    // the item was added can each start a clock; without this line a
+    // diver cannot tell which one did.
+    await tester.pumpWidget(buildCard());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Counting since Jan 1, 2025'), findsNWidgets(2));
+  });
+
   testWidgets('Add clock sheet lists only unattached kinds', (tester) async {
     await tester.pumpWidget(buildCard());
     await tester.pumpAndSettle();

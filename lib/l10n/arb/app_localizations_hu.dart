@@ -11531,6 +11531,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Számlálás kezdete: $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'Lejárt';
 
   @override
@@ -11707,7 +11712,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Akkor használjuk, ha még nincs ilyen típusú szervizbejegyzés';
+      'Az óra ettől a dátumtól számol. Egy újabb szerviz rögzítése törli.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Kiindulási dátum törlése';

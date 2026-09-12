@@ -39,6 +39,7 @@ void main() {
     int? dives,
     double? hours,
     DateTime? anchor,
+    DateTime? setAt,
     bool enabled = true,
   }) => ServiceSchedule(
     id: 's-$kindId',
@@ -48,19 +49,24 @@ void main() {
     intervalDives: dives,
     intervalHours: hours,
     anchorDate: anchor,
+    anchorSetAt: setAt,
     enabled: enabled,
     createdAt: t0,
     updatedAt: t0,
   );
-  ServiceRecord record(String kindId, DateTime date) => ServiceRecord(
-    id: 'r-$kindId-${date.millisecondsSinceEpoch}',
-    equipmentId: 'e1',
-    serviceCategory: ServiceCategory.other,
-    serviceKindId: kindId,
-    serviceDate: date,
-    createdAt: date,
-    updatedAt: date,
-  );
+
+  /// [loggedAt] is when the record was written, which is what decides
+  /// whether it came after a baseline; it defaults to the service date.
+  ServiceRecord record(String kindId, DateTime date, {DateTime? loggedAt}) =>
+      ServiceRecord(
+        id: 'r-$kindId-${date.millisecondsSinceEpoch}',
+        equipmentId: 'e1',
+        serviceCategory: ServiceCategory.other,
+        serviceKindId: kindId,
+        serviceDate: date,
+        createdAt: loggedAt ?? date,
+        updatedAt: loggedAt ?? date,
+      );
 
   List<ServiceClockStatus> run({
     required List<ServiceSchedule> schedules,
@@ -116,6 +122,134 @@ void main() {
       run(schedules: [sched('hydro')], kinds: [hydro()]).single.anchor,
       t0,
     );
+  });
+
+  group('baseline date against service records', () {
+    final baseline = DateTime(2025, 7, 1);
+    final setAt = DateTime(2026, 7, 15, 12);
+    final dives = [
+      DiveUsageSample(date: DateTime(2025, 9, 1), durationSeconds: 3600),
+      DiveUsageSample(date: DateTime(2026, 3, 1), durationSeconds: 3600),
+    ];
+
+    List<ServiceClockStatus> regRun({
+      DateTime? baselineSetAt,
+      required List<ServiceRecord> records,
+    }) => run(
+      schedules: [
+        sched('regulator-service', anchor: baseline, setAt: baselineSetAt),
+      ],
+      kinds: [regService()],
+      records: records,
+      usage: dives,
+    );
+
+    test('a baseline set after a newer service was logged wins', () {
+      // The reported bug: a service logged the day before the diver set a
+      // baseline a year back silently outranked it, so the clock read "100
+      // of 100 dives left".
+      final statuses = regRun(
+        baselineSetAt: setAt,
+        records: [
+          record(
+            'regulator-service',
+            DateTime(2026, 7, 14),
+            loggedAt: DateTime(2026, 7, 14, 9),
+          ),
+        ],
+      );
+      expect(statuses.single.anchor, baseline);
+      expect(statuses.single.usageByUnit[ExposureUnit.dives]!.since, 2);
+    });
+
+    test('a service logged after the baseline and dated on or after it '
+        'takes over', () {
+      final statuses = regRun(
+        baselineSetAt: setAt,
+        records: [
+          record(
+            'regulator-service',
+            DateTime(2025, 7, 1),
+            loggedAt: DateTime(2026, 7, 15, 13),
+          ),
+        ],
+      );
+      expect(statuses.single.anchor, DateTime(2025, 7, 1));
+      final later = regRun(
+        baselineSetAt: setAt,
+        records: [
+          record(
+            'regulator-service',
+            DateTime(2026, 1, 1),
+            loggedAt: DateTime(2026, 7, 15, 13),
+          ),
+        ],
+      );
+      expect(later.single.anchor, DateTime(2026, 1, 1));
+      expect(later.single.usageByUnit[ExposureUnit.dives]!.since, 1);
+    });
+
+    test('a backdated service logged after the baseline leaves it', () {
+      final statuses = regRun(
+        baselineSetAt: setAt,
+        records: [
+          record(
+            'regulator-service',
+            DateTime(2024, 1, 1),
+            loggedAt: DateTime(2026, 7, 15, 13),
+          ),
+        ],
+      );
+      expect(statuses.single.anchor, baseline);
+    });
+
+    test('once taken over, the clock counts from the newest record', () {
+      final statuses = regRun(
+        baselineSetAt: setAt,
+        records: [
+          record(
+            'regulator-service',
+            DateTime(2026, 2, 1),
+            loggedAt: DateTime(2026, 7, 15, 13),
+          ),
+          record(
+            'regulator-service',
+            DateTime(2026, 4, 1),
+            loggedAt: DateTime(2026, 7, 1),
+          ),
+        ],
+      );
+      expect(statuses.single.anchor, DateTime(2026, 4, 1));
+    });
+
+    test('a baseline with no set time keeps the pre-v211 rule: any record '
+        'of the kind wins', () {
+      // Every baseline set before v211, and every legacy clock, carries no
+      // set time; those clocks must read exactly as they did.
+      final newer = regRun(
+        records: [record('regulator-service', DateTime(2026, 1, 1))],
+      );
+      expect(newer.single.anchor, DateTime(2026, 1, 1));
+      final older = regRun(
+        records: [record('regulator-service', DateTime(2020, 1, 1))],
+      );
+      expect(older.single.anchor, DateTime(2020, 1, 1));
+      expect(regRun(records: const []).single.anchor, baseline);
+    });
+
+    test('a record of another kind never takes a clock over', () {
+      final statuses = regRun(
+        records: [
+          record('hydro', DateTime(2026, 1, 1)),
+          record(
+            'hydro',
+            DateTime(2026, 2, 1),
+            loggedAt: DateTime(2026, 7, 16),
+          ),
+        ],
+      );
+      expect(statuses.single.anchor, baseline);
+    });
   });
 
   test('overdue when date trigger passed', () {

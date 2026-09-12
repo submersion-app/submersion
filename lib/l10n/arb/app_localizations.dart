@@ -19438,6 +19438,12 @@ abstract class AppLocalizations {
   /// **'Overdue since {date}'**
   String equipment_serviceClocks_overdueSince(String date);
 
+  /// No description provided for @equipment_serviceClocks_countingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting since {date}'**
+  String equipment_serviceClocks_countingSince(String date);
+
   /// No description provided for @equipment_serviceClocks_overdue.
   ///
   /// In en, this message translates to:
@@ -19705,7 +19711,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_scheduleDialog_anchorHint.
   ///
   /// In en, this message translates to:
-  /// **'Used when no service record of this kind exists yet'**
+  /// **'The clock counts from this date. Logging a newer service clears it.'**
   String get equipment_scheduleDialog_anchorHint;
 
   /// No description provided for @equipment_scheduleDialog_clearAnchor.

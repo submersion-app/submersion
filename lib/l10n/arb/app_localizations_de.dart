@@ -11553,6 +11553,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Zählt seit $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'Überfällig';
 
   @override
@@ -11731,7 +11736,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Wird verwendet, solange noch kein Wartungseintrag dieser Art vorliegt';
+      'Die Uhr zählt ab diesem Datum. Eine neuere erfasste Wartung löscht es.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Referenzdatum löschen';

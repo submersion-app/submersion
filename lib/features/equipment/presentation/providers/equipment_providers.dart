@@ -576,6 +576,20 @@ class ServiceRecordNotifier
 
   Future<ServiceRecord> addRecord(ServiceRecord record) async {
     final newRecord = await _repository.createRecord(record);
+    // A baseline date outranks records, so a service newer than it must
+    // clear it or the clock would never restart. Only a newly logged
+    // service does this: editing an existing record is correcting history.
+    final kindId = record.serviceKindId;
+    if (kindId != null) {
+      await _ref
+          .read(serviceScheduleRepositoryProvider)
+          .clearAnchorsSupersededBy(
+            equipmentId: record.equipmentId,
+            serviceKindId: kindId,
+            serviceDate: record.serviceDate,
+          );
+      _ref.invalidate(serviceSchedulesForEquipmentProvider(equipmentId));
+    }
     await refresh();
     return newRecord;
   }

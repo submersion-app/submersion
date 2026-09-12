@@ -22,7 +22,14 @@ class ServiceSchedule extends Equatable {
   final double? defaultCost;
   final String? defaultCurrency;
 
+  /// The diver's baseline date: where the clock counts from, ahead of the
+  /// service records of the kind (see `clockAnchorFromServices`).
   final DateTime? anchorDate;
+
+  /// When the diver set [anchorDate]. A record logged after this and dated
+  /// on or after the baseline takes the clock back over. Null on baselines
+  /// set before v211 and on legacy clocks: any record of the kind wins then.
+  final DateTime? anchorSetAt;
   final bool enabled;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -38,16 +45,17 @@ class ServiceSchedule extends Equatable {
     this.defaultCost,
     this.defaultCurrency,
     this.anchorDate,
+    this.anchorSetAt,
     this.enabled = true,
     required this.createdAt,
     required this.updatedAt,
   });
 
   /// The nullable override fields (intervalDays/intervalDives/intervalHours/
-  /// defaultCost/defaultCurrency/anchorDate) use the [_undefined] sentinel so
-  /// callers can explicitly clear them to null (e.g. "Clear baseline date",
-  /// reset an interval to inherit the kind default, or drop a per-item price)
-  /// rather than only ever overwriting with a non-null value.
+  /// defaultCost/defaultCurrency/anchorDate/anchorSetAt) use the [_undefined]
+  /// sentinel so callers can explicitly clear them to null (e.g. "Clear
+  /// baseline date", reset an interval to inherit the kind default, or drop a
+  /// per-item price) rather than only ever overwriting with a non-null value.
   ServiceSchedule copyWith({
     String? id,
     String? equipmentId,
@@ -59,6 +67,7 @@ class ServiceSchedule extends Equatable {
     Object? defaultCost = _undefined,
     Object? defaultCurrency = _undefined,
     Object? anchorDate = _undefined,
+    Object? anchorSetAt = _undefined,
     bool? enabled,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -86,10 +95,23 @@ class ServiceSchedule extends Equatable {
       anchorDate: anchorDate == _undefined
           ? this.anchorDate
           : anchorDate as DateTime?,
+      anchorSetAt: anchorSetAt == _undefined
+          ? this.anchorSetAt
+          : anchorSetAt as DateTime?,
       enabled: enabled ?? this.enabled,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  /// This schedule with [baseline] as its baseline date, stamping
+  /// [anchorSetAt] with [now] when the date actually changes (so a save that
+  /// leaves the date alone does not let older records back in front of it)
+  /// and clearing both when [baseline] is null.
+  ServiceSchedule withBaseline(DateTime? baseline, {required DateTime now}) {
+    if (baseline == null) return copyWith(anchorDate: null, anchorSetAt: null);
+    if (baseline == anchorDate) return this;
+    return copyWith(anchorDate: baseline, anchorSetAt: now);
   }
 
   /// The effective interval for [unit]: this schedule's override, else the
@@ -124,6 +146,7 @@ class ServiceSchedule extends Equatable {
     defaultCost,
     defaultCurrency,
     anchorDate,
+    anchorSetAt,
     enabled,
     createdAt,
     updatedAt,

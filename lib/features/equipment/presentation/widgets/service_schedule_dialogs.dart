@@ -386,6 +386,12 @@ class _ScheduleOverrideDialogState
           onPressed: () async {
             if (!(_formKey.currentState?.validate() ?? true)) return;
             final schedule = widget.schedule;
+            // Stamps the baseline's set time only when the date changed, so
+            // records logged before it cannot outrank it.
+            final baseline = schedule.withBaseline(
+              _anchorDate,
+              now: DateTime.now(),
+            );
             // copyWith cannot null a field; build the updated entity directly.
             final updated = ServiceSchedule(
               id: schedule.id,
@@ -399,7 +405,8 @@ class _ScheduleOverrideDialogState
               }),
               defaultCost: parseUserDecimal(_defaultCost.text),
               defaultCurrency: _defaultCurrency,
-              anchorDate: _anchorDate,
+              anchorDate: baseline.anchorDate,
+              anchorSetAt: baseline.anchorSetAt,
               enabled: schedule.enabled,
               createdAt: schedule.createdAt,
               updatedAt: schedule.updatedAt,

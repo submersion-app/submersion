@@ -68,6 +68,7 @@ class ServiceScheduleRepository {
             defaultCost: Value(schedule.defaultCost),
             defaultCurrency: Value(schedule.defaultCurrency),
             anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
+            anchorSetAt: Value(schedule.anchorSetAt?.millisecondsSinceEpoch),
             enabled: Value(schedule.enabled),
             createdAt: Value(now.millisecondsSinceEpoch),
             updatedAt: Value(now.millisecondsSinceEpoch),
@@ -97,6 +98,7 @@ class ServiceScheduleRepository {
         defaultCost: Value(schedule.defaultCost),
         defaultCurrency: Value(schedule.defaultCurrency),
         anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
+        anchorSetAt: Value(schedule.anchorSetAt?.millisecondsSinceEpoch),
         enabled: Value(schedule.enabled),
         updatedAt: Value(now),
       ),
@@ -107,6 +109,29 @@ class ServiceScheduleRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
+  }
+
+  /// Clears the baseline dates a service just logged for [equipmentId]'s
+  /// [serviceKindId] clock has taken over, so the edit dialog never shows a
+  /// date the clock no longer counts from. The clock itself does not depend
+  /// on this: `clockAnchorFromServices` derives the same answer from the
+  /// rows. A service dated on or after the baseline takes it over; so does
+  /// any service when the baseline carries no set time (the pre-v211 rule).
+  /// A backdated service leaves a dated baseline in place.
+  Future<void> clearAnchorsSupersededBy({
+    required String equipmentId,
+    required String serviceKindId,
+    required DateTime serviceDate,
+  }) async {
+    for (final schedule in await getSchedulesForEquipment(equipmentId)) {
+      if (schedule.serviceKindId != serviceKindId) continue;
+      final baseline = schedule.anchorDate;
+      if (baseline == null) continue;
+      if (schedule.anchorSetAt != null && serviceDate.isBefore(baseline)) {
+        continue;
+      }
+      await updateSchedule(schedule.withBaseline(null, now: DateTime.now()));
+    }
   }
 
   Future<void> deleteSchedule(String id) async {
@@ -190,6 +215,9 @@ class ServiceScheduleRepository {
       anchorDate: row.anchorDate == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(row.anchorDate!),
+      anchorSetAt: row.anchorSetAt == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(row.anchorSetAt!),
       enabled: row.enabled,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),

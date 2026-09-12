@@ -6548,6 +6548,14 @@
       }
     }
   },
+  "equipment_serviceClocks_countingSince": "Counting since {date}",
+  "@equipment_serviceClocks_countingSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_overdue": "Overdue",
   "equipment_serviceClocks_divesLeft": "{remaining} of {total} dives left",
   "@equipment_serviceClocks_divesLeft": {
@@ -6683,7 +6691,7 @@
     }
   },
   "equipment_scheduleDialog_anchorDate": "Baseline date",
-  "equipment_scheduleDialog_anchorHint": "Used when no service record of this kind exists yet",
+  "equipment_scheduleDialog_anchorHint": "The clock counts from this date. Logging a newer service clears it.",
   "equipment_scheduleDialog_clearAnchor": "Clear baseline date",
   "equipment_scheduleDialog_save": "Save",
   "equipment_scheduleDialog_cancel": "Cancel",

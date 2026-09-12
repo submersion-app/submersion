@@ -219,11 +219,50 @@ void main() {
       expect(hydro.intervalDives, 50);
       expect(hydro.intervalHours, 2.5);
       expect(hydro.anchorDate, isNotNull);
+      // A newly set baseline records when, so records logged before it
+      // cannot outrank it.
+      expect(hydro.anchorSetAt, isNotNull);
     });
 
     // The card now renders the usage triggers alongside the date trigger.
     expect(find.textContaining('of 50 dives left'), findsOneWidget);
     expect(find.textContaining('of 2.5 hours left'), findsOneWidget);
+  });
+
+  testWidgets('saving without touching the baseline keeps its set time', (
+    tester,
+  ) async {
+    // Re-stamping on every save would let a record logged between the
+    // baseline edit and an unrelated interval edit jump back in front.
+    final tank = await makeTank(tester);
+    final setAt = DateTime(2026, 1, 2, 3, 4);
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      await scheduleRepo.updateSchedule(
+        hydro.withBaseline(DateTime(2024, 6, 1), now: setAt),
+      );
+    });
+    await tester.pumpWidget(buildCard(tank.id));
+    await tester.pumpAndSettle();
+
+    await openMenu(tester, 'Hydrostatic test');
+    await tester.tap(find.text('Edit intervals'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Interval (days)'),
+      '100',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      expect(hydro.intervalDays, 100);
+      expect(hydro.anchorDate, DateTime(2024, 6, 1));
+      expect(hydro.anchorSetAt, setAt);
+    });
   });
 
   testWidgets('override dialog clear button nulls the anchor date', (
@@ -234,7 +273,7 @@ void main() {
       final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
       final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
       await scheduleRepo.updateSchedule(
-        hydro.copyWith(anchorDate: DateTime(2024, 6, 1)),
+        hydro.withBaseline(DateTime(2024, 6, 1), now: DateTime(2026)),
       );
     });
     await tester.pumpWidget(buildCard(tank.id));
@@ -254,6 +293,7 @@ void main() {
       final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
       final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
       expect(hydro.anchorDate, isNull);
+      expect(hydro.anchorSetAt, isNull);
     });
   });
 

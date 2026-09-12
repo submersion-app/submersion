@@ -1438,8 +1438,9 @@ class ServiceKinds extends Table {
 }
 
 /// One service clock per (equipment item, service kind). Next-due is always
-/// computed from the newest ServiceRecord of the kind (anchorDate/purchase
-/// fallbacks) -- never stored, so dive logging does not churn sync rows.
+/// computed (baseline date, else the newest ServiceRecord of the kind, else
+/// purchase and creation dates) -- never stored, so dive logging does not
+/// churn sync rows.
 @DataClassName('ServiceScheduleRow')
 class ServiceSchedules extends Table {
   TextColumn get id => text()();
@@ -1464,9 +1465,16 @@ class ServiceSchedules extends Table {
   RealColumn get defaultCost => real().nullable()();
   TextColumn get defaultCurrency => text().nullable()();
 
-  /// Baseline when no ServiceRecord of this kind exists yet (e.g. last hydro
-  /// before app adoption). Fallback chain: purchaseDate, then createdAt.
+  /// The diver's baseline date: where the clock counts from (e.g. last hydro
+  /// before app adoption). It outranks the ServiceRecords of the kind until
+  /// one logged after [anchorSetAt] is dated on or after it. Fallback chain
+  /// with no baseline: newest record, purchaseDate, then createdAt.
   IntColumn get anchorDate => integer().nullable()();
+
+  /// v211: when the diver set [anchorDate]. Null on every baseline set
+  /// before v211 (and on legacy clocks), which keeps the pre-v211 rule for
+  /// them: any record of the kind outranks the baseline.
+  IntColumn get anchorSetAt => integer().nullable()();
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -3942,7 +3950,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 208;
+  static const int currentSchemaVersion = 211;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4494,6 +4502,10 @@ class AppDatabase extends _$AppDatabase {
     // 185: main landed 185 through 207 while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     208,
+    // v211: service_schedules.anchor_set_at, so a baseline date the diver
+    // sets outranks the service records logged before it. Column-only, no
+    // backfill. 209 and 210 are claimed by open branches (#1639, #1769).
+    211,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6786,6 +6798,25 @@ class AppDatabase extends _$AppDatabase {
       'WHERE rbt IS NOT NULL AND dive_id IN '
       '(SELECT dive_id FROM dive_data_sources WHERE raw_data IS NOT NULL)',
     );
+  }
+
+  /// Idempotent DDL for v211's `service_schedules.anchor_set_at`: when the
+  /// diver set the clock's baseline date. Null (every existing row) keeps
+  /// the pre-v211 rule, under which any record of the kind outranks the
+  /// baseline; see `clockAnchorFromServices`. Called from the v211
+  /// onUpgrade block and the beforeOpen backstop. Self-guarding for partial
+  /// fixture databases.
+  Future<void> _assertServiceScheduleAnchorSetAtColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('service_schedules')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('anchor_set_at')) {
+      await customStatement(
+        'ALTER TABLE service_schedules ADD COLUMN anchor_set_at INTEGER',
+      );
+    }
   }
 
   /// v163: default_show_estimated_tank_pressure on diver_settings (issue
@@ -11525,6 +11556,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertImportedFilesSchema();
         }
         if (from < 208) await reportProgress();
+        // v211: service_schedules.anchor_set_at. Column-only, no backfill:
+        // a null keeps the pre-v211 rule for every existing baseline.
+        if (from < 211) {
+          await _assertServiceScheduleAnchorSetAtColumn();
+        }
+        if (from < 211) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -11765,6 +11802,11 @@ class AppDatabase extends _$AppDatabase {
         // to it (issue #478; same parallel-branch version-collision
         // self-heal).
         await _assertImportedFilesSchema();
+
+        // v211 backstop: re-assert service_schedules.anchor_set_at (same
+        // parallel-branch version-collision self-heal). Every read of a
+        // schedule selects it.
+        await _assertServiceScheduleAnchorSetAtColumn();
 
         // v160 backstop: re-assert service_kinds.default_category. A device
         // that reached 160 or higher through a parallel branch never enters

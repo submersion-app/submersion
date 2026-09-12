@@ -11378,6 +11378,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Counting since $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'Overdue';
 
   @override
@@ -11555,7 +11560,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Used when no service record of this kind exists yet';
+      'The clock counts from this date. Logging a newer service clears it.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Clear baseline date';

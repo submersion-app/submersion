@@ -11602,6 +11602,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Décompte depuis le $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'En retard';
 
   @override
@@ -11781,7 +11786,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Utilisée lorsqu\'aucun entretien de ce type n\'a encore été enregistré';
+      'Le compteur part de cette date. Enregistrer un entretien plus récent l\'efface.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>
