@@ -174,6 +174,11 @@ void main() {
           isNull,
           reason: 'a name that became a guide link is not also kept as text',
         );
+        expect(
+          dive.keys.where((k) => k.startsWith('_')),
+          isEmpty,
+          reason: 'the held <divemaster> text does not reach the importer',
+        );
       });
 
       test('passes an undeclared name on to be found or created', () async {
@@ -274,6 +279,40 @@ void main() {
         ]);
         expect(dive.containsKey('diveGuideRefs'), isFalse);
       });
+
+      test(
+        'a leader the block cannot use still comes back as a guide',
+        () async {
+          // The block covers Nicol, but its row for the second leader names
+          // a person the file never declares. That leader's name in the text
+          // is then the only record of them, so it must not be dropped along
+          // with the names the block does cover.
+          final dive = await _importSingleDive(
+            _document(
+              buddies: {'buddy_n': 'Nicol Sorin'},
+              dives: {
+                'dive_1':
+                    '<link ref="buddy_n"/>'
+                    '<divemaster>Nicol Sorin, Ghost Leader</divemaster>',
+              },
+              submersion: '''
+      <buddyroles>
+        <dive ref="dive_1">
+          <buddy ref="buddy_n" role="diveGuide"/>
+          <buddy ref="buddy_ghost" role="diveMaster"/>
+        </dive>
+      </buddyroles>''',
+            ),
+          );
+
+          expect(dive['buddyRoleRefs'], [
+            {'buddyRef': 'buddy_n', 'roleId': 'diveGuide'},
+          ]);
+          expect(dive['unmatchedDiveGuideNames'], ['Ghost Leader']);
+          expect(dive.containsKey('diveGuideRefs'), isFalse);
+          expect(dive.containsKey('buddyRefs'), isFalse);
+        },
+      );
 
       test(
         'keeps text-derived guides when the block names no leader',
