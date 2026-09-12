@@ -46,7 +46,16 @@ def _lockup(name, purpose, **kw):
 
 
 def _mark(size):
-    return Preset(f"mark-{size}", size, size, "mark", "none", "Transparent logo mark, no tile")
+    # The dive flag's white stripe and outline vanish on white, so the mark is
+    # for dark or colored backgrounds; light pages use a lockup or the icon.
+    return Preset(
+        f"mark-{size}",
+        size,
+        size,
+        "mark",
+        "none",
+        "Transparent logo mark, no tile; for dark or colored backgrounds",
+    )
 
 
 PRESETS = (
