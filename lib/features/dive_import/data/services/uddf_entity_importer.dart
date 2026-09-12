@@ -2063,15 +2063,16 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
-      // The diver's own role. A role this database lacks can only be a
-      // custom role whose definition never arrived, so the dive keeps no
-      // role rather than one that names nothing.
+      // The diver's own role. A custom role this diver lacks (its definition
+      // never arrived, or it belongs to another diver) leaves the dive with
+      // no role rather than one this diver's role list cannot resolve.
       final diverRoleValue = diveData['diverRoleId'];
       final diverRoleId =
           diverRoleValue is String &&
               diverRoleValue.isNotEmpty &&
               await _roleExists(
                 diverRoleValue,
+                diverId,
                 repos.diveRoleRepository,
                 roleExists,
               )
@@ -2722,7 +2723,12 @@ class UddfEntityImporter {
       if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId == null) continue;
-      final known = await _roleExists(roleId, roleRepository, roleExists);
+      final known = await _roleExists(
+        roleId,
+        diverId,
+        roleRepository,
+        roleExists,
+      );
       await repository.addBuddyToDive(
         diveId,
         newBuddyId,
@@ -2733,17 +2739,22 @@ class UddfEntityImporter {
     return inlineIds;
   }
 
-  /// Whether [roleId] names a role in this database: built in, or custom
-  /// and already present or restored ahead of the dives. Memoized in
-  /// [cache] across one import.
+  /// Whether [roleId] names a role [diverId] can use: built in, or one of
+  /// that diver's custom roles, already present or restored ahead of the
+  /// dives. Custom roles are diver-scoped, so another diver's role (its id
+  /// taken when that diver's backup is restored into this profile) does
+  /// not count: this diver's role list could only show its raw id.
+  /// Memoized in [cache] across one import, which has a single diver.
   Future<bool> _roleExists(
     String roleId,
+    String diverId,
     DiveRoleRepository? repository,
     Map<String, bool> cache,
   ) async {
     if (DiveRole.builtInIds.contains(roleId)) return true;
     if (repository == null) return false;
-    return cache[roleId] ??= await repository.getDiveRoleById(roleId) != null;
+    return cache[roleId] ??=
+        (await repository.getDiveRoleById(roleId))?.diverId == diverId;
   }
 
   Future<void> _linkTagsToDive(

@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'uddf_raw_data_round_trip_test.dart'
@@ -164,6 +166,43 @@ void main() {
       'Pat Kim': DiveRole.buddyId,
       'Sam Park': DiveRole.studentId,
     });
+  });
+
+  test('an exact role owned by another diver falls back to buddy', () async {
+    // Another diver's backup restored into this profile: the role id is
+    // already taken by its owner, so this diver's role list cannot resolve
+    // it and the link would show the raw id.
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      Diver(id: 'diver-other', name: 'Other', createdAt: now, updatedAt: now),
+    );
+    final foreign = await DiveRoleRepository().createDiveRole(
+      name: 'Photographer',
+      diverId: 'diver-other',
+    );
+    final diverId = await createTestDiver();
+    final parsed = UddfImportResult(
+      buddies: const [
+        {'uddfId': 'buddy_p', 'name': 'Pat Kim'},
+      ],
+      dives: [
+        {
+          'sourceUuid': 'dive_1',
+          'buddyRoleRefs': [
+            {'buddyRef': 'buddy_p', 'roleId': foreign.id},
+          ],
+        },
+      ],
+    );
+
+    await UddfEntityImporter().import(
+      data: parsed,
+      selections: UddfImportSelections.selectAll(parsed),
+      repositories: buildRepositories(),
+      diverId: diverId,
+    );
+
+    expect(await rolesOn(0), {'Pat Kim': DiveRole.buddyId});
   });
 
   test('a backup written before <buddyroles> restores its guides', () async {

@@ -11,6 +11,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
@@ -29,13 +31,14 @@ void main() {
 
   tearDown(() async => tearDownTestDatabase());
 
-  Future<void> importResult(UddfImportResult data) async {
-    final diverId = await createTestDiver();
+  /// Imports [data] for [diverId], creating the test diver when none is
+  /// given.
+  Future<void> importResult(UddfImportResult data, {String? diverId}) async {
     await UddfEntityImporter().import(
       data: data,
       selections: UddfImportSelections.selectAll(data),
       repositories: buildRepositories(),
-      diverId: diverId,
+      diverId: diverId ?? await createTestDiver(),
     );
   }
 
@@ -134,6 +137,62 @@ void main() {
     );
 
     expect(await diverRoles(), [null, DiveRole.studentId]);
+  });
+
+  test(
+    'a custom role the diver already has is kept without its definition',
+    () async {
+      // A dives-only file declares no <diveroles>, yet may name a custom role
+      // this diver already holds; the database, not the file, vouches for it.
+      final diverId = await createTestDiver();
+      final custom = await DiveRoleRepository().createDiveRole(
+        name: 'Photographer',
+        diverId: diverId,
+      );
+
+      await importResult(
+        UddfImportResult(
+          dives: [
+            {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': custom.id},
+          ],
+        ),
+        diverId: diverId,
+      );
+
+      expect(await diverRoles(), [custom.id]);
+    },
+  );
+
+  test('a custom role owned by another diver falls back to none', () async {
+    // Another diver's backup restored into this profile: the role id is
+    // already taken by its owner, so the restore cannot give this diver a
+    // copy, and this diver's role list would show the raw id.
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      Diver(id: 'diver-other', name: 'Other', createdAt: now, updatedAt: now),
+    );
+    final foreign = await DiveRoleRepository().createDiveRole(
+      name: 'Photographer',
+      diverId: 'diver-other',
+    );
+
+    await importResult(
+      UddfImportResult(
+        dives: [
+          {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': foreign.id},
+        ],
+        customDiveRoles: [
+          {
+            'id': foreign.id,
+            'name': 'Photographer',
+            'sortOrder': 10,
+            'isBuiltIn': false,
+          },
+        ],
+      ),
+    );
+
+    expect(await diverRoles(), [null]);
   });
 
   test('the dives-only export writes the diver role too', () async {
