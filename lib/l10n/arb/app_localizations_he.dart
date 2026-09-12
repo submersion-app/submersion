@@ -6852,7 +6852,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'הגדרת פרופיל חדש';
 
   @override
-  String get setup_welcome_subtitle => 'צלול בבטחה. רשום הכול.';
+  String get setup_welcome_subtitle => 'צללו בבטחה. רשמו הכול.';
 
   @override
   String get setup_welcome_title => 'ברוכים הבאים ל-Submersion';
@@ -15309,7 +15309,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_about_appName => 'Submersion';
 
   @override
-  String get settings_about_description => 'צלול בבטחה. רשום הכול.';
+  String get settings_about_description => 'צללו בבטחה. רשמו הכול.';
 
   @override
   String get settings_about_header => 'אודות';
