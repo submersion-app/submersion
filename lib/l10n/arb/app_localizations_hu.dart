@@ -20861,6 +20861,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Valassza ki a mentesi helyet az eszkozön';
 
   @override
+  String get transfer_export_includeGear => 'Felszerelés belefoglalása';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Hozzáadja az egyes merülésekhez használt felszerelést és merülőkomputert. A vásárlási adatok kimaradnak.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Résztvevők belefoglalása';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Hozzáadja a társakat, a vezetőket és szerepüket minden merülésnél, névvel és minősítéssel. Az elérhetőségek kimaradnak.';
+
+  @override
   String get transfer_export_includeRawData =>
       'Nyers merülőkomputer-adatok belefoglalása';
 

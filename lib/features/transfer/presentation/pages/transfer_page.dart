@@ -587,7 +587,7 @@ class _ExportSectionContent extends ConsumerWidget {
     );
     if (choice == null || !context.mounted) return;
 
-    final options = UddfExportOptions(includeRawData: choice.includeRawData);
+    final options = choice.options;
     final action = switch (choice.destination) {
       ExportDestination.share => shareAction,
       ExportDestination.saveToFile => saveAction,

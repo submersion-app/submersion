@@ -20872,6 +20872,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Speicherort auf Ihrem Gerät wählen';
 
   @override
+  String get transfer_export_includeGear => 'Ausrüstung einschließen';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Fügt die bei jedem Tauchgang verwendete Ausrüstung und den Tauchcomputer hinzu. Kaufdetails werden weggelassen.';
+
+  @override
+  String get transfer_export_includeParticipants =>
+      'Tauchgangsteilnehmer einschließen';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Fügt Tauchpartner, Guides und ihre Rollen bei jedem Tauchgang hinzu, mit Name und Brevet. Kontaktdaten werden weggelassen.';
+
+  @override
   String get transfer_export_includeRawData =>
       'Rohdaten des Tauchcomputers einschließen';
 

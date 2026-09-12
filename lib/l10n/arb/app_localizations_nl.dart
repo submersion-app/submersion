@@ -20743,6 +20743,20 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kies waar je wilt opslaan op je apparaat';
 
   @override
+  String get transfer_export_includeGear => 'Uitrusting opnemen';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Voegt de uitrusting en duikcomputer toe die bij elke duik zijn gebruikt. Aankoopgegevens worden weggelaten.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Deelnemers opnemen';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Voegt buddies, gidsen en hun rollen bij elke duik toe, met naam en brevet. Contactgegevens worden weggelaten.';
+
+  @override
   String get transfer_export_includeRawData =>
       'Ruwe duikcomputergegevens opnemen';
 

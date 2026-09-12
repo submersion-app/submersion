@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
@@ -757,14 +757,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       context,
       title: formatLabel,
       showRawDataToggle: format == _BulkExportFormat.uddf,
+      showDiveContentToggles: format == _BulkExportFormat.uddf,
     );
     if (choice == null || !mounted) return BulkActionOutcome.cancelled;
     final destination = choice.destination;
     // Resolved while the context is known to be mounted; used after awaits.
     final csvSaveTitle = context.l10n.settings_export_saveDivesCsvDialogTitle;
-    final uddfOptions = UddfExportOptions(
-      includeRawData: choice.includeRawData,
-    );
+    final uddfOptions = choice.options;
 
     // Saving opens the native save panel, which must not be raised while a
     // modal route is up - so that path drops the progress dialog first.
@@ -891,12 +890,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
+                  extras: await ref.read(uddfDivesExtrasFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
                 )
               : await exportService.saveDivesToUddfFile(
                   selectedDives,
                   sites: sites,
                   options: uddfOptions,
                   dataSources: await ref.read(uddfSourceFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
+                  extras: await ref.read(uddfDivesExtrasFetchProvider)(
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),

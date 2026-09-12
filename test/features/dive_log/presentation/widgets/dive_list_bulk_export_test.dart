@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
@@ -50,6 +51,8 @@ class _RecordingExportService implements ExportService {
   /// The picker title the last CSV save was given.
   String? csvSaveTitle;
   List<DiveSite>? uddfSites;
+  UddfDivesExtras? uddfExtras;
+  UddfExportOptions? uddfOptions;
 
   /// Return value for every `save*ToFile`; null simulates a cancelled panel.
   String? savePath = '/tmp/export_out';
@@ -136,9 +139,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     uddfSites = sites;
+    uddfExtras = extras;
+    uddfOptions = options;
     return _share('uddf');
   }
 
@@ -148,9 +154,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     uddfSites = sites;
+    uddfExtras = extras;
+    uddfOptions = options;
     return _save('uddf');
   }
 
@@ -202,9 +211,12 @@ Finder _tile(String id) =>
 void main() {
   late _RecordingExportService exportService;
   late List<Dive> dives;
+  const extrasSentinel = UddfDivesExtras(diveBuddies: {'d1': []});
+  final extrasCalls = <(List<String>, UddfExportOptions)>[];
 
   setUp(() {
     exportService = _RecordingExportService();
+    extrasCalls.clear();
     dives = [
       _dive(
         'd1',
@@ -238,6 +250,13 @@ void main() {
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
           ),
+          uddfDivesExtrasFetchProvider.overrideWithValue((
+            diveIds,
+            options,
+          ) async {
+            extrasCalls.add((diveIds, options));
+            return extrasSentinel;
+          }),
           // The PDF route enriches the export with buddies, certifications
           // and the diver. Those reach a database widget tests do not have,
           // and the reads never settle, so stub them the way
@@ -251,6 +270,9 @@ void main() {
             diverPhotoLoaderProvider.overrideWithValue(photoLoader),
         ],
         child: const DiveListContent(showAppBar: false),
+        // Pinned: the finders below are English, and the host machine's
+        // locale would otherwise pick one of the 11 supported languages.
+        locale: const Locale('en'),
       ),
     );
     await tester.pumpAndSettle();
@@ -505,6 +527,9 @@ void main() {
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
           ),
+          uddfDivesExtrasFetchProvider.overrideWithValue(
+            (diveIds, options) async => const UddfDivesExtras.empty(),
+          ),
         ],
         child: const DiveListContent(showAppBar: false),
       ),
@@ -566,5 +591,15 @@ void main() {
 
     expect(find.text('Exporting...'), findsNothing);
     expect(find.byType(DiveListContent), findsOneWidget);
+  });
+
+  testWidgets('bulk UDDF export fetches extras for the selected dives', (
+    tester,
+  ) async {
+    await pumpAndOpenExportSheet(tester);
+    await chooseFormatAndDestination(tester, 'UDDF', 'Save to File');
+
+    expect(extrasCalls.single.$1.toSet(), {'d1', 'd2'});
+    expect(identical(exportService.uddfExtras, extrasSentinel), isTrue);
   });
 }

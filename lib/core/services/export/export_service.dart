@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/pdf/blender_invoice_pdf_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
@@ -396,12 +397,14 @@ class ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) => _uddf.exportDivesToUddf(
     dives,
     sites: sites,
     diveTankPressures: diveTankPressures,
     dataSources: dataSources,
+    extras: extras,
     options: options,
   );
 
@@ -410,12 +413,14 @@ class ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) => _uddf.saveDivesToUddfFile(
     dives,
     sites: sites,
     diveTankPressures: diveTankPressures,
     dataSources: dataSources,
+    extras: extras,
     options: options,
   );
 

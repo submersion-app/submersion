@@ -20930,6 +20930,20 @@ class AppLocalizationsPt extends AppLocalizations {
       'Escolha onde salvar no seu dispositivo';
 
   @override
+  String get transfer_export_includeGear => 'Incluir equipamento';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Adiciona o equipamento e o computador de mergulho usados em cada mergulho. Os dados de compra ficam de fora.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Incluir participantes';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Adiciona companheiros, guias e as suas funções em cada mergulho, com nome e certificação. Os dados de contacto ficam de fora.';
+
+  @override
   String get transfer_export_includeRawData =>
       'Incluir dados brutos do computador de mergulho';
 

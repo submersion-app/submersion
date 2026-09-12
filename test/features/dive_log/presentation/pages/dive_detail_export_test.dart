@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
@@ -37,6 +38,8 @@ class _RecordingExportService implements ExportService {
   /// The picker title the last CSV save was given.
   String? csvSaveTitle;
   List<DiveSite>? uddfSites;
+  UddfDivesExtras? uddfExtras;
+  UddfExportOptions? uddfOptions;
 
   /// Return value for every `save*ToFile`; null simulates a cancelled panel.
   String? savePath = '/tmp/export_out';
@@ -107,9 +110,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     uddfSites = sites;
+    uddfExtras = extras;
+    uddfOptions = options;
     return _share('uddf');
   }
 
@@ -119,9 +125,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     uddfSites = sites;
+    uddfExtras = extras;
+    uddfOptions = options;
     return _save('uddf');
   }
 
@@ -132,9 +141,12 @@ class _RecordingExportService implements ExportService {
 void main() {
   late _RecordingExportService exportService;
   late Dive dive;
+  const extrasSentinel = UddfDivesExtras(diveBuddies: {'dive-1': []});
+  final extrasCalls = <(List<String>, UddfExportOptions)>[];
 
   setUp(() {
     exportService = _RecordingExportService();
+    extrasCalls.clear();
     final dt = DateTime(2026, 3, 4, 10);
     dive = Dive(
       id: 'dive-1',
@@ -185,6 +197,13 @@ void main() {
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
           ),
+          uddfDivesExtrasFetchProvider.overrideWithValue((
+            diveIds,
+            options,
+          ) async {
+            extrasCalls.add((diveIds, options));
+            return extrasSentinel;
+          }),
           // The PDF route enriches the export with buddies, certifications
           // and the diver; those reads reach a database widget tests have
           // not got, and never settle.
@@ -197,6 +216,9 @@ void main() {
             diverPhotoLoaderProvider.overrideWithValue(photoLoader),
         ],
         child: MaterialApp(
+          // Pinned: the finders below are English, and the host machine's
+          // locale would otherwise pick one of the 11 supported languages.
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: DiveDetailPage(diveId: dive.id, embedded: true)),
@@ -404,5 +426,33 @@ void main() {
 
     expect(find.textContaining('disk full'), findsOneWidget);
     expect(find.text('Dive exported successfully'), findsNothing);
+  });
+
+  testWidgets('UDDF export fetches extras and honours the checkboxes', (
+    tester,
+  ) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('UDDF'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Include gear'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    expect(exportService.calls, ['save:uddf']);
+    expect(extrasCalls.single.$1, ['dive-1']);
+    expect(extrasCalls.single.$2.includeGear, isFalse);
+    expect(identical(exportService.uddfExtras, extrasSentinel), isTrue);
+    expect(exportService.uddfOptions?.includeParticipants, isTrue);
+    expect(exportService.uddfOptions?.includeGear, isFalse);
+  });
+
+  testWidgets('CSV export offers no dive content checkboxes', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('CSV'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Include gear'), findsNothing);
+    expect(find.text('Include dive participants'), findsNothing);
   });
 }

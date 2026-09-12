@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Where an export should be delivered.
@@ -31,29 +32,39 @@ Future<ExportDestination?> showExportDestinationSheet(
   return choice?.destination;
 }
 
-/// What the user chose in an export destination sheet.
-typedef ExportChoice = ({ExportDestination destination, bool includeRawData});
+/// What the user chose in an export destination sheet: where to deliver the
+/// file, and the UDDF content checkboxes as options.
+typedef ExportChoice = ({
+  ExportDestination destination,
+  UddfExportOptions options,
+});
 
-/// The destination sheet, plus the raw dive computer data toggle.
+/// The destination sheet, plus the UDDF content checkboxes.
 ///
 /// [showRawDataToggle] is false for every export that has no raw bytes to
-/// carry, which is every format except UDDF. [initialIncludeRawData] is the
-/// checkbox's starting state; it defaults to on, matching
-/// `UddfExportOptions.includeRawData`, so the code level default and what the
-/// user sees never diverge.
+/// carry, which is every format except UDDF. [showDiveContentToggles] adds
+/// the participants and gear checkboxes, which only the dives only UDDF
+/// export honours; the full backup always carries both. Every checkbox
+/// starts from [initialOptions], whose defaults are all on, so the code
+/// level default and what the user sees never diverge.
 Future<ExportChoice?> showExportDestinationSheetWithOptions(
   BuildContext context, {
   required String title,
   bool showRawDataToggle = false,
-  bool initialIncludeRawData = true,
+  bool showDiveContentToggles = false,
+  UddfExportOptions initialOptions = const UddfExportOptions(),
 }) {
-  var includeRawData = initialIncludeRawData;
+  var options = initialOptions;
 
   return showModalBottomSheet<ExportChoice>(
     context: context,
+    // Up to three checkboxes above the two destinations outgrow the default
+    // cap of 9/16 of the screen height on a phone, so the sheet sizes to its
+    // content and scrolls when even that does not fit.
+    isScrollControlled: true,
     builder: (sheetContext) => StatefulBuilder(
       builder: (builderContext, setSheetState) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -68,13 +79,43 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
               const SizedBox(height: 16),
               if (showRawDataToggle) ...[
                 CheckboxListTile(
-                  value: includeRawData,
+                  value: options.includeRawData,
                   onChanged: (value) => setSheetState(
-                    () => includeRawData = value ?? includeRawData,
+                    () => options = options.copyWith(includeRawData: value),
                   ),
                   title: Text(sheetContext.l10n.transfer_export_includeRawData),
                   subtitle: Text(
                     sheetContext.l10n.transfer_export_includeRawDataSubtitle,
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+                if (!showDiveContentToggles) const Divider(height: 1),
+              ],
+              if (showDiveContentToggles) ...[
+                CheckboxListTile(
+                  value: options.includeParticipants,
+                  onChanged: (value) => setSheetState(
+                    () =>
+                        options = options.copyWith(includeParticipants: value),
+                  ),
+                  title: Text(
+                    sheetContext.l10n.transfer_export_includeParticipants,
+                  ),
+                  subtitle: Text(
+                    sheetContext
+                        .l10n
+                        .transfer_export_includeParticipantsSubtitle,
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+                CheckboxListTile(
+                  value: options.includeGear,
+                  onChanged: (value) => setSheetState(
+                    () => options = options.copyWith(includeGear: value),
+                  ),
+                  title: Text(sheetContext.l10n.transfer_export_includeGear),
+                  subtitle: Text(
+                    sheetContext.l10n.transfer_export_includeGearSubtitle,
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
                 ),
@@ -88,7 +129,7 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
                 ),
                 onTap: () => Navigator.pop(sheetContext, (
                   destination: ExportDestination.saveToFile,
-                  includeRawData: includeRawData,
+                  options: options,
                 )),
               ),
               const Divider(height: 1),
@@ -100,7 +141,7 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
                 ),
                 onTap: () => Navigator.pop(sheetContext, (
                   destination: ExportDestination.share,
-                  includeRawData: includeRawData,
+                  options: options,
                 )),
               ),
             ],

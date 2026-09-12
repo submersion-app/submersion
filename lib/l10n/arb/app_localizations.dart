@@ -34360,6 +34360,30 @@ abstract class AppLocalizations {
   /// **'Choose where to save on your device'**
   String get transfer_export_optionSaveSubtitle;
 
+  /// No description provided for @transfer_export_includeGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Include gear'**
+  String get transfer_export_includeGear;
+
+  /// No description provided for @transfer_export_includeGearSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds the equipment and dive computer used on each dive. Purchase details are left out.'**
+  String get transfer_export_includeGearSubtitle;
+
+  /// No description provided for @transfer_export_includeParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Include dive participants'**
+  String get transfer_export_includeParticipants;
+
+  /// No description provided for @transfer_export_includeParticipantsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds buddies, guides and their roles on each dive, by name and certification. Contact details are left out.'**
+  String get transfer_export_includeParticipantsSubtitle;
+
   /// No description provided for @transfer_export_includeRawData.
   ///
   /// In en, this message translates to:

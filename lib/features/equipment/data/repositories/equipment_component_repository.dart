@@ -91,6 +91,37 @@ class EquipmentComponentRepository {
     return rows.map(_map).toList();
   }
 
+  /// The rows whose parent and component are both gear on one of [diveIds]
+  /// (not necessarily the same dive), ordered as [getAllComponents]. A
+  /// share of a few dives reads only the assembly rows it can use, rather
+  /// than every row in the catalog.
+  Future<List<EquipmentComponent>> getComponentsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const [];
+    final gear =
+        await (_db.selectOnly(_db.diveEquipment, distinct: true)
+              ..addColumns([_db.diveEquipment.equipmentId])
+              ..where(_db.diveEquipment.diveId.isIn(diveIds)))
+            .map((row) => row.read(_db.diveEquipment.equipmentId)!)
+            .get();
+    if (gear.isEmpty) return const [];
+    final rows =
+        await (_db.select(_db.equipmentComponents)
+              ..where(
+                (t) =>
+                    t.parentEquipmentId.isIn(gear) &
+                    t.componentEquipmentId.isIn(gear),
+              )
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.parentEquipmentId),
+                (t) => OrderingTerm.asc(t.sortOrder),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_map).toList();
+  }
+
   /// The parts of [parentId] with their items hydrated, in sort order, the
   /// row id breaking ties so a sort_order collision cannot reshuffle rows
   /// between reads.
