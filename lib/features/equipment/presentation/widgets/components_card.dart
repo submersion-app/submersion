@@ -15,11 +15,14 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_type_
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_role_dialog.dart';
+import 'package:submersion/features/equipment/presentation/widgets/part_of_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Components card on the equipment detail page (issue #1487): the parts
 /// this item is assembled from, each with its role, its own service dot,
-/// inline edit, replace and remove actions, and drag-to-reorder.
+/// inline edit, replace and remove actions, and drag-to-reorder. When the
+/// item is itself a part of other assemblies, a "Part of" section lists them
+/// above its own parts, which then sit under a "Contains" caption.
 ///
 /// Lives on the detail page, not the edit form, like every other cross-item
 /// edge (service clocks, documents, unit configurations): a new item has no
@@ -92,6 +95,10 @@ class ComponentsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final partsAsync = ref.watch(equipmentComponentsProvider(equipmentId));
+    final partOfAsync = ref.watch(equipmentPartOfProvider(equipmentId));
+    final partOf = partOfAsync.hasError
+        ? const <PartOfEntry>[]
+        : partOfAsync.value ?? const <PartOfEntry>[];
     final worstClocks =
         ref.watch(equipmentWorstClockProvider).value ?? const {};
     final repository = ref.read(equipmentComponentRepositoryProvider);
@@ -123,6 +130,16 @@ class ComponentsCard extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            if (partOfAsync.hasError)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(l10n.common_error_tryAgain),
+              ),
+            if (partOf.isNotEmpty) ...[
+              PartOfSection(entries: partOf),
+              const Divider(),
+              ComponentsSectionLabel(l10n.equipment_components_containsSection),
+            ],
             partsAsync.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(16),
@@ -135,7 +152,11 @@ class ComponentsCard extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
-                      l10n.equipment_components_empty,
+                      // A part of something else is most likely a leaf, so
+                      // its empty state must not read as missing parts.
+                      partOf.isNotEmpty
+                          ? l10n.equipment_components_emptyLeaf
+                          : l10n.equipment_components_empty,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

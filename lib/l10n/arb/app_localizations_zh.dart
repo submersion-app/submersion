@@ -21,6 +21,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_add => '添加组件';
 
   @override
+  String get equipment_components_containsSection => '包含';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -39,6 +42,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_components_empty => '暂无组件。请添加构成此装备的部件。';
+
+  @override
+  String get equipment_components_emptyLeaf => '没有自己的部件。如果此装备由其他装备组成，请添加它们。';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -91,6 +97,14 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '属于 1 个组合',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => '属于';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role，位于 $rigs';
   }
 
   @override

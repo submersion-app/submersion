@@ -21,6 +21,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_components_add => 'Alkatrész hozzáadása';
 
   @override
+  String get equipment_components_containsSection => 'Részei';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Nincsenek alkatrészek. Add hozzá azokat a részeket, amelyekből ez a felszerelés áll.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'Nincsenek saját alkatrészei. Add hozzá őket, ha ez a felszerelés másokból áll.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -97,6 +104,14 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 összeállítás része',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'Része ennek';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role, itt: $rigs';
   }
 
   @override

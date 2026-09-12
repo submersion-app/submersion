@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Add component'**
   String get equipment_components_add;
 
+  /// No description provided for @equipment_components_containsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains'**
+  String get equipment_components_containsSection;
+
   /// No description provided for @equipment_components_count.
   ///
   /// In en, this message translates to:
@@ -157,6 +163,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No components. Add the parts this item is assembled from.'**
   String get equipment_components_empty;
+
+  /// No description provided for @equipment_components_emptyLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'No parts of its own. Add them if this item is assembled from others.'**
+  String get equipment_components_emptyLeaf;
 
   /// No description provided for @equipment_components_historyAlsoPast.
   ///
@@ -211,6 +223,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Part of 1 assembly} other{Part of {count} assemblies}}'**
   String equipment_components_partOfCount(num count);
+
+  /// No description provided for @equipment_components_partOfSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get equipment_components_partOfSection;
+
+  /// No description provided for @equipment_components_partOfSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{role}, in {rigs}'**
+  String equipment_components_partOfSubtitle(Object rigs, Object role);
 
   /// No description provided for @equipment_components_pickerConfirm.
   ///
