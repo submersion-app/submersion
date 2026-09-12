@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -23,6 +24,19 @@ import '../../../../helpers/test_database.dart';
 /// database: the kind-picker sheet, pause/resume/remove menu actions, and
 /// the interval-override dialog all execute their real repository paths.
 void main() {
+  // formatDate resolves DateFormat against Intl.defaultLocale, a process
+  // global the app assigns from the diver's locale and a widget test never
+  // sets (MaterialApp.locale does not touch it). Pin it so the date strings
+  // asserted below do not rest on the machine default or a prior test.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   late SharedPreferences prefs;
   late EquipmentRepository equipmentRepo;
   late ServiceScheduleRepository scheduleRepo;
