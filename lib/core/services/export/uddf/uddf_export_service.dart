@@ -7,10 +7,14 @@ import 'package:xml/xml.dart';
 
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Handles simple UDDF export of dives with optional site data.
@@ -23,6 +27,7 @@ class UddfExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     // Encoding happens before the XML build so the builders stay pure
@@ -38,6 +43,27 @@ class UddfExportService {
     final encodedById = <String, String?>{
       for (var i = 0; i < withBytes.length; i++) withBytes[i].id: encoded[i],
     };
+
+    // Participants (issue #1796): only the people on the exported dives,
+    // in dive order, and nobody at all when the user left them out of a
+    // shared file.
+    final diveBuddies = <String, List<BuddyWithRole>>{
+      if (options.includeParticipants)
+        for (final dive in dives)
+          if (extras.diveBuddies[dive.id] case final rows? when rows.isNotEmpty)
+            dive.id: rows,
+    };
+    final people = <String, Buddy>{
+      for (final rows in diveBuddies.values)
+        for (final row in rows) row.buddy.id: row.buddy,
+    }.values.toList(growable: false);
+    // A <buddyroles> row naming a custom role is dropped on import unless
+    // the file also defines that role.
+    final customRoles = <String, DiveRole>{
+      for (final rows in diveBuddies.values)
+        for (final row in rows)
+          if (!DiveRole.builtInIds.contains(row.role.id)) row.role.id: row.role,
+    }.values.toList(growable: false);
 
     final builder = XmlBuilder();
 
@@ -64,6 +90,21 @@ class UddfExportService {
             );
           },
         );
+
+        // Diver section: the participants' declarations, trimmed because
+        // this file is shared with other people.
+        if (people.isNotEmpty) {
+          builder.element(
+            'diver',
+            nest: () {
+              UddfParticipantWriters.writeBuddyDeclarations(
+                builder,
+                people,
+                trimmed: true,
+              );
+            },
+          );
+        }
 
         // Dive sites
         if (sites != null || dives.any((d) => d.site != null)) {
@@ -237,11 +278,11 @@ class UddfExportService {
                                 attributes: {'ref': 'site_${dive.site!.id}'},
                               );
                             }
-                            if (dive.diveMaster != null &&
-                                dive.diveMaster!.isNotEmpty) {
-                              builder.element(
-                                'divemaster',
-                                nest: dive.diveMaster,
+                            if (options.includeParticipants) {
+                              UddfParticipantWriters.writeLeaders(
+                                builder,
+                                dive,
+                                diveBuddies[dive.id] ?? const [],
                               );
                             }
                             if (dive.diveCenter != null) {
@@ -261,6 +302,12 @@ class UddfExportService {
                               builder.element(
                                 'entrytype',
                                 nest: dive.entryMethod!.name,
+                              );
+                            }
+                            if (options.includeParticipants) {
+                              UddfParticipantWriters.writeLinks(
+                                builder,
+                                diveBuddies[dive.id] ?? const [],
                               );
                             }
                           },
@@ -523,20 +570,11 @@ class UddfExportService {
                                 },
                               );
                             }
-                            if (dive.buddy != null && dive.buddy!.isNotEmpty) {
-                              builder.element(
-                                'buddy',
-                                nest: () {
-                                  builder.element(
-                                    'personal',
-                                    nest: () {
-                                      builder.element(
-                                        'firstname',
-                                        nest: dive.buddy,
-                                      );
-                                    },
-                                  );
-                                },
+                            if (options.includeParticipants) {
+                              UddfParticipantWriters.writeInlineBuddies(
+                                builder,
+                                dive,
+                                diveBuddies[dive.id] ?? const [],
                               );
                             }
                             if (dive.customFields.isNotEmpty) {
@@ -565,30 +603,18 @@ class UddfExportService {
           },
         );
 
-        // This path has no top level <applicationdata><submersion> block of
-        // its own: the only <applicationdata> it writes is the per dive
-        // inline one for custom fields, a different element in a different
-        // position. So the source records get their own wrapper here. UDDF
-        // permits <applicationdata> in both places and the inline ones are
-        // untouched.
-        if (sources.isNotEmpty) {
-          builder.element(
-            'applicationdata',
-            nest: () {
-              builder.element(
-                'submersion',
-                attributes: {'version': '1.0'},
-                nest: () {
-                  UddfExportBuilders.buildDataSources(
-                    builder,
-                    sources,
-                    encodedById,
-                  );
-                },
-              );
-            },
-          );
-        }
+        // Every private section in one top level <applicationdata>
+        // <submersion>, as the full export writes it: the importer reads
+        // only the first top level block for everything except data
+        // sources. The per dive inline <applicationdata> for custom fields
+        // is a different element in a different position and is untouched.
+        UddfExportBuilders.buildApplicationData(
+          builder,
+          diveBuddies: diveBuddies,
+          customDiveRoles: customRoles,
+          dataSources: sources,
+          dataSourceDumps: encodedById,
+        );
 
         // Last section, per the UDDF specification. The empty declared set is
         // not an oversight: this export emits no <divecomputer> element, so
@@ -615,6 +641,7 @@ class UddfExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     final xmlString = await generateDivesUddfContent(
@@ -622,6 +649,7 @@ class UddfExportService {
       sites: sites,
       diveTankPressures: diveTankPressures,
       dataSources: dataSources,
+      extras: extras,
       options: options,
     );
     return saveAndShareFile(xmlString, _fileName(), 'application/xml');
@@ -635,6 +663,7 @@ class UddfExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     final xmlString = await generateDivesUddfContent(
@@ -642,6 +671,7 @@ class UddfExportService {
       sites: sites,
       diveTankPressures: diveTankPressures,
       dataSources: dataSources,
+      extras: extras,
       options: options,
     );
 
