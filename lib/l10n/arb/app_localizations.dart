@@ -36354,6 +36354,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 dive imported} other{{count} dives imported}}'**
   String universalImport_summary_fileImported(num count);
 
+  /// Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater route review page
+  ///
+  /// In en, this message translates to:
+  /// **'Import as route'**
+  String get universalImport_summary_importAsRoute;
+
   /// Per-file summary line for CSV files excluded from the batch
   ///
   /// In en, this message translates to:
@@ -42113,6 +42119,12 @@ abstract class AppLocalizations {
   /// **'Steep walls'**
   String get dive3d_seascape_overlay_walls;
 
+  /// No description provided for @dive3d_seascape_showRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Show route'**
+  String get dive3d_seascape_showRoute;
+
   /// No description provided for @dive3d_overlay_water.
   ///
   /// In en, this message translates to:
@@ -42598,6 +42610,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Estimated path (dead reckoning)'**
   String get dive3d_spatial_estimatedPath;
+
+  /// No description provided for @dive3d_spatial_recordedPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded route'**
+  String get dive3d_spatial_recordedPath;
+
+  /// No description provided for @dive3d_spatial_recordedPathWithSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded route ({source})'**
+  String dive3d_spatial_recordedPathWithSource(String source);
 
   /// No description provided for @dive3d_spatial_synthesizedSeafloor.
   ///
@@ -63963,6 +63987,665 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How equipment is grouped and sorted on a dive'**
   String get settings_appearance_gearArrangementSubtitle;
+
+  /// No description provided for @navTrack_common_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this route.'**
+  String get navTrack_common_loadError;
+
+  /// No description provided for @navTrack_common_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Route not found.'**
+  String get navTrack_common_notFound;
+
+  /// No description provided for @navTrack_common_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get navTrack_common_cancel;
+
+  /// No description provided for @navTrack_common_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get navTrack_common_save;
+
+  /// No description provided for @navTrack_common_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get navTrack_common_delete;
+
+  /// No description provided for @navTrack_common_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get navTrack_common_unlink;
+
+  /// No description provided for @navTrack_common_open3dTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 3D'**
+  String get navTrack_common_open3dTooltip;
+
+  /// No description provided for @navTrack_common_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String navTrack_common_diveNumber(String number);
+
+  /// No description provided for @navTrack_common_diveById.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {id}'**
+  String navTrack_common_diveById(String id);
+
+  /// No description provided for @navTrack_common_unlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'unlinked'**
+  String get navTrack_common_unlinked;
+
+  /// No description provided for @navTrack_align_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Align on map'**
+  String get navTrack_align_title;
+
+  /// No description provided for @navTrack_align_resetTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset correction'**
+  String get navTrack_align_resetTooltip;
+
+  /// No description provided for @navTrack_align_setStartHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Set start here'**
+  String get navTrack_align_setStartHere;
+
+  /// No description provided for @navTrack_align_setEndHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Set end here'**
+  String get navTrack_align_setEndHere;
+
+  /// No description provided for @navTrack_align_setStartOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Set start on map'**
+  String get navTrack_align_setStartOnMap;
+
+  /// No description provided for @navTrack_align_fromDiveEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'From dive entry'**
+  String get navTrack_align_fromDiveEntry;
+
+  /// No description provided for @navTrack_align_fromSite.
+  ///
+  /// In en, this message translates to:
+  /// **'From site'**
+  String get navTrack_align_fromSite;
+
+  /// No description provided for @navTrack_align_fromGps.
+  ///
+  /// In en, this message translates to:
+  /// **'From GPS'**
+  String get navTrack_align_fromGps;
+
+  /// No description provided for @navTrack_align_startLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start: '**
+  String get navTrack_align_startLabel;
+
+  /// No description provided for @navTrack_align_endLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End: '**
+  String get navTrack_align_endLabel;
+
+  /// No description provided for @navTrack_align_endMode_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get navTrack_align_endMode_none;
+
+  /// No description provided for @navTrack_align_endMode_sameAsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as start'**
+  String get navTrack_align_endMode_sameAsStart;
+
+  /// No description provided for @navTrack_align_endMode_point.
+  ///
+  /// In en, this message translates to:
+  /// **'Place on map'**
+  String get navTrack_align_endMode_point;
+
+  /// No description provided for @navTrack_align_endMode_gpsFix.
+  ///
+  /// In en, this message translates to:
+  /// **'From GPS fix'**
+  String get navTrack_align_endMode_gpsFix;
+
+  /// No description provided for @navTrack_align_trustSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust: trusted up to {distanceMeters} m, {minutes} min'**
+  String navTrack_align_trustSummary(String distanceMeters, int minutes);
+
+  /// No description provided for @navTrack_align_rotationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotation:'**
+  String get navTrack_align_rotationLabel;
+
+  /// No description provided for @navTrack_align_rotationDegrees.
+  ///
+  /// In en, this message translates to:
+  /// **'{degrees} deg'**
+  String navTrack_align_rotationDegrees(String degrees);
+
+  /// No description provided for @navTrack_terrain_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{onLand} points on land, {below} of {total} below the seafloor{maxPart}, {unknown} unknown{coarsePart}'**
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  );
+
+  /// No description provided for @navTrack_terrain_maxPart.
+  ///
+  /// In en, this message translates to:
+  /// **' (max {meters} m)'**
+  String navTrack_terrain_maxPart(String meters);
+
+  /// No description provided for @navTrack_terrain_coarsePart.
+  ///
+  /// In en, this message translates to:
+  /// **' (coarse bathymetry: only land conflicts checked)'**
+  String get navTrack_terrain_coarsePart;
+
+  /// No description provided for @navTrack_detail_renameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename route'**
+  String get navTrack_detail_renameTitle;
+
+  /// No description provided for @navTrack_detail_deleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete route?'**
+  String get navTrack_detail_deleteTitle;
+
+  /// No description provided for @navTrack_detail_deleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get navTrack_detail_deleteMessage;
+
+  /// No description provided for @navTrack_detail_defaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get navTrack_detail_defaultTitle;
+
+  /// No description provided for @navTrack_detail_menuRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get navTrack_detail_menuRename;
+
+  /// No description provided for @navTrack_detail_menuChangeSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Change site'**
+  String get navTrack_detail_menuChangeSite;
+
+  /// No description provided for @navTrack_detail_noMapYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the start point to see this on a map.'**
+  String get navTrack_detail_noMapYet;
+
+  /// No description provided for @navTrack_detail_correctionStatus_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No correction applied yet.'**
+  String get navTrack_detail_correctionStatus_none;
+
+  /// No description provided for @navTrack_detail_correctionStatus_sameAsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'End set to same as start.'**
+  String get navTrack_detail_correctionStatus_sameAsStart;
+
+  /// No description provided for @navTrack_detail_correctionStatus_point.
+  ///
+  /// In en, this message translates to:
+  /// **'End point set on the map.'**
+  String get navTrack_detail_correctionStatus_point;
+
+  /// No description provided for @navTrack_detail_correctionStatus_gpsFix.
+  ///
+  /// In en, this message translates to:
+  /// **'End set from the recording\'s GPS fix.'**
+  String get navTrack_detail_correctionStatus_gpsFix;
+
+  /// No description provided for @navTrack_detail_device.
+  ///
+  /// In en, this message translates to:
+  /// **'Device: {name}'**
+  String navTrack_detail_device(String name);
+
+  /// No description provided for @navTrack_detail_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment: {name}'**
+  String navTrack_detail_equipment(String name);
+
+  /// No description provided for @navTrack_detail_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance: {value}'**
+  String navTrack_detail_distance(String value);
+
+  /// No description provided for @navTrack_detail_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth: {value}'**
+  String navTrack_detail_maxDepth(String value);
+
+  /// No description provided for @navTrack_detail_maxSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Max speed: {value}'**
+  String navTrack_detail_maxSpeed(String value);
+
+  /// No description provided for @navTrack_detail_avgSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg speed: {value}'**
+  String navTrack_detail_avgSpeed(String value);
+
+  /// No description provided for @navTrack_detail_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration: {hours}h {minutes}min'**
+  String navTrack_detail_duration(int hours, int minutes);
+
+  /// No description provided for @navTrack_detail_battery.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery: {start} V -> {end} V'**
+  String navTrack_detail_battery(String start, String end);
+
+  /// No description provided for @navTrack_detail_noDiveLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No dive linked'**
+  String get navTrack_detail_noDiveLinked;
+
+  /// No description provided for @navTrack_detail_chooseDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dive'**
+  String get navTrack_detail_chooseDive;
+
+  /// No description provided for @navTrack_detail_noSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get navTrack_detail_noSite;
+
+  /// No description provided for @navTrack_detail_chooseSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose site'**
+  String get navTrack_detail_chooseSite;
+
+  /// No description provided for @navTrack_review_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Underwater Route'**
+  String get navTrack_review_title;
+
+  /// No description provided for @navTrack_review_segmentSummaryNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'{underwater} samples underwater, no GPS fix in this recording.'**
+  String navTrack_review_segmentSummaryNoFix(int underwater);
+
+  /// No description provided for @navTrack_review_segmentSummaryWithFix.
+  ///
+  /// In en, this message translates to:
+  /// **'{underwater} samples underwater, {surface} surface samples, GPS fix {vector}m from the reckoned end.'**
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    int vector,
+  );
+
+  /// No description provided for @navTrack_review_saveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save this route: {error}'**
+  String navTrack_review_saveError(String error);
+
+  /// No description provided for @navTrack_review_importError.
+  ///
+  /// In en, this message translates to:
+  /// **'This file could not be imported: {error}'**
+  String navTrack_review_importError(String error);
+
+  /// No description provided for @navTrack_review_sourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Seacraft ENC log'**
+  String get navTrack_review_sourceLabel;
+
+  /// No description provided for @navTrack_review_nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get navTrack_review_nameHint;
+
+  /// No description provided for @navTrack_review_warningNoMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'No movement recorded: distance and speed stay at zero throughout this file.'**
+  String get navTrack_review_warningNoMovement;
+
+  /// No description provided for @navTrack_review_warningDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'This looks like a route already imported from the same file.'**
+  String get navTrack_review_warningDuplicate;
+
+  /// No description provided for @navTrack_review_replaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get navTrack_review_replaceLabel;
+
+  /// No description provided for @navTrack_review_linkToDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to dive'**
+  String get navTrack_review_linkToDive;
+
+  /// No description provided for @navTrack_review_diveSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site'**
+  String get navTrack_review_diveSite;
+
+  /// No description provided for @navTrack_review_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get navTrack_review_equipment;
+
+  /// No description provided for @navTrack_review_noEquipmentChosen.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment'**
+  String get navTrack_review_noEquipmentChosen;
+
+  /// No description provided for @navTrack_review_noSiteChosen.
+  ///
+  /// In en, this message translates to:
+  /// **'No site chosen'**
+  String get navTrack_review_noSiteChosen;
+
+  /// No description provided for @navTrack_review_row_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get navTrack_review_row_start;
+
+  /// No description provided for @navTrack_review_row_end.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get navTrack_review_row_end;
+
+  /// No description provided for @navTrack_review_row_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get navTrack_review_row_duration;
+
+  /// No description provided for @navTrack_review_row_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get navTrack_review_row_distance;
+
+  /// No description provided for @navTrack_review_row_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get navTrack_review_row_maxDepth;
+
+  /// No description provided for @navTrack_review_row_maxSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Max speed'**
+  String get navTrack_review_row_maxSpeed;
+
+  /// No description provided for @navTrack_review_leaveUnlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave unlinked'**
+  String get navTrack_review_leaveUnlinked;
+
+  /// No description provided for @navTrack_list_importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed: {error}'**
+  String navTrack_list_importFailed(String error);
+
+  /// No description provided for @navTrack_list_matchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not match routes.'**
+  String get navTrack_list_matchError;
+
+  /// No description provided for @navTrack_list_matchSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Routes matched to dives.'**
+  String get navTrack_list_matchSuccess;
+
+  /// No description provided for @navTrack_list_deleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String navTrack_list_deleteMessage(String name);
+
+  /// No description provided for @navTrack_list_importTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Import route file'**
+  String get navTrack_list_importTooltip;
+
+  /// No description provided for @navTrack_list_matchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Match now'**
+  String get navTrack_list_matchTooltip;
+
+  /// No description provided for @navTrack_list_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Routes'**
+  String get navTrack_list_title;
+
+  /// No description provided for @navTrack_list_noMapRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'No routes are placed on the map yet.'**
+  String get navTrack_list_noMapRoutes;
+
+  /// No description provided for @navTrack_list_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No underwater routes yet.'**
+  String get navTrack_list_empty;
+
+  /// No description provided for @navTrack_seascape_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Route seascape'**
+  String get navTrack_seascape_title;
+
+  /// No description provided for @navTrack_seascape_noScene.
+  ///
+  /// In en, this message translates to:
+  /// **'This route has no usable seascape.'**
+  String get navTrack_seascape_noScene;
+
+  /// No description provided for @navTrack_handoff_recognized.
+  ///
+  /// In en, this message translates to:
+  /// **'Seacraft ENC navigation log recognised'**
+  String get navTrack_handoff_recognized;
+
+  /// No description provided for @navTrack_handoff_description.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.'**
+  String get navTrack_handoff_description;
+
+  /// No description provided for @navTrack_handoff_reviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Review route'**
+  String get navTrack_handoff_reviewButton;
+
+  /// No description provided for @navTrack_section_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Route'**
+  String get navTrack_section_title;
+
+  /// No description provided for @navTrack_section_routeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} route} other{{count} routes}}'**
+  String navTrack_section_routeCount(num count);
+
+  /// No description provided for @navTrack_section_noRouteLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No route linked'**
+  String get navTrack_section_noRouteLinked;
+
+  /// No description provided for @navTrack_section_linkButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Link route'**
+  String get navTrack_section_linkButton;
+
+  /// No description provided for @navTrack_section_importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import file'**
+  String get navTrack_section_importButton;
+
+  /// No description provided for @navTrack_section_primaryTag.
+  ///
+  /// In en, this message translates to:
+  /// **'primary'**
+  String get navTrack_section_primaryTag;
+
+  /// No description provided for @navTrack_section_menuOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open route'**
+  String get navTrack_section_menuOpen;
+
+  /// No description provided for @navTrack_section_menuOpen3d.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 3D seascape'**
+  String get navTrack_section_menuOpen3d;
+
+  /// No description provided for @navTrack_section_menuMakePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Make primary'**
+  String get navTrack_section_menuMakePrimary;
+
+  /// No description provided for @navTrack_importError_unsupportedFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is not a Seacraft ENC navigation log.'**
+  String get navTrack_importError_unsupportedFormat;
+
+  /// No description provided for @navTrack_importError_unreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This file could not be read as a Seacraft ENC navigation log.'**
+  String get navTrack_importError_unreadable;
+
+  /// No description provided for @navTrack_importError_tooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording has too few samples to be a usable route.'**
+  String get navTrack_importError_tooShort;
+
+  /// No description provided for @navTrack_importError_badData.
+  ///
+  /// In en, this message translates to:
+  /// **'This file has data Submersion could not make sense of.'**
+  String get navTrack_importError_badData;
+
+  /// No description provided for @navTrack_importError_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording has more samples than a route can store.'**
+  String get navTrack_importError_tooLarge;
+
+  /// No description provided for @diveDetailSection_navTrack_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Route'**
+  String get diveDetailSection_navTrack_name;
+
+  /// No description provided for @diveDetailSection_navTrack_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured underwater route from a navigation console'**
+  String get diveDetailSection_navTrack_description;
+
+  /// No description provided for @dashboard_quickActions_navRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater Routes'**
+  String get dashboard_quickActions_navRoutes;
+
+  /// No description provided for @navTrack_list_durationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}min'**
+  String navTrack_list_durationHours(int hours, int minutes);
+
+  /// No description provided for @navTrack_list_durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}min'**
+  String navTrack_list_durationMinutes(int minutes);
 }
 
 class _AppLocalizationsDelegate

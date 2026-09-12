@@ -22131,6 +22131,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_importAsRoute => 'Importa come percorso';
+
+  @override
   String get universalImport_summary_fileNeedsIndividualImport =>
       'Richiede importazione singola';
 
@@ -25742,6 +25745,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'Pareti ripide';
 
   @override
+  String get dive3d_seascape_showRoute => 'Mostra percorso';
+
+  @override
   String get dive3d_overlay_water => 'Superficie dell\'acqua';
 
   @override
@@ -26001,6 +26007,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dive3d_spatial_estimatedPath =>
       'Percorso stimato (navigazione stimata)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'Percorso registrato';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'Percorso registrato ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'Fondale sintetizzato';
@@ -39284,4 +39298,412 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_gearArrangementSubtitle =>
       'Come l\'attrezzatura viene raggruppata e ordinata in un\'immersione';
+
+  @override
+  String get navTrack_common_loadError =>
+      'Non è stato possibile caricare questo percorso.';
+
+  @override
+  String get navTrack_common_notFound => 'Percorso non trovato.';
+
+  @override
+  String get navTrack_common_cancel => 'Annulla';
+
+  @override
+  String get navTrack_common_save => 'Salva';
+
+  @override
+  String get navTrack_common_delete => 'Elimina';
+
+  @override
+  String get navTrack_common_unlink => 'Scollega';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'Apri 3D';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'Immersione n. $number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'Immersione $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'non collegato';
+
+  @override
+  String get navTrack_align_title => 'Allinea sulla mappa';
+
+  @override
+  String get navTrack_align_resetTooltip => 'Reimposta la correzione';
+
+  @override
+  String get navTrack_align_setStartHere => 'Imposta l\'inizio qui';
+
+  @override
+  String get navTrack_align_setEndHere => 'Imposta la fine qui';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'Imposta l\'inizio sulla mappa';
+
+  @override
+  String get navTrack_align_fromDiveEntry =>
+      'Dal punto di ingresso dell\'immersione';
+
+  @override
+  String get navTrack_align_fromSite => 'Dal sito';
+
+  @override
+  String get navTrack_align_fromGps => 'Dal GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'Inizio: ';
+
+  @override
+  String get navTrack_align_endLabel => 'Fine: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'Nessuna';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'Uguale all\'inizio';
+
+  @override
+  String get navTrack_align_endMode_point => 'Posiziona sulla mappa';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'Dal fix GPS';
+
+  @override
+  String navTrack_align_trustSummary(String distanceMeters, int minutes) {
+    return 'Affidabilità: verificato fino a $distanceMeters m, $minutes min';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'Rotazione:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand punti a terra, $below di $total sotto il fondale$maxPart, $unknown sconosciuti$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String meters) {
+    return ' (max $meters m)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (batimetria a bassa risoluzione: verificati solo i conflitti a terra)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'Rinomina percorso';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'Eliminare il percorso?';
+
+  @override
+  String get navTrack_detail_deleteMessage =>
+      'Questa azione non può essere annullata.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'Percorso';
+
+  @override
+  String get navTrack_detail_menuRename => 'Rinomina';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'Cambia sito';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'Imposta il punto di inizio per vederlo su una mappa.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'Nessuna correzione applicata ancora.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'Fine impostata uguale all\'inizio.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'Punto finale impostato sulla mappa.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'Fine impostata dal fix GPS della registrazione.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'Dispositivo: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'Attrezzatura: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'Distanza: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'Profondità max: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'Velocità max: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'Velocità media: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'Durata: $hours h $minutes min';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'Batteria: $start V -> $end V';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'Nessuna immersione collegata';
+
+  @override
+  String get navTrack_detail_chooseDive => 'Scegli immersione';
+
+  @override
+  String get navTrack_detail_noSite => 'Nessun sito';
+
+  @override
+  String get navTrack_detail_chooseSite => 'Scegli sito';
+
+  @override
+  String get navTrack_review_title => 'Importa percorso subacqueo';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater campioni subacquei, nessun fix GPS in questa registrazione.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    int vector,
+  ) {
+    return '$underwater campioni subacquei, $surface campioni in superficie, fix GPS a $vector m dalla fine stimata.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'Impossibile salvare questo percorso: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'Impossibile importare questo file: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'Registro Seacraft ENC';
+
+  @override
+  String get navTrack_review_nameHint => 'Nome (opzionale)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'Nessun movimento registrato: distanza e velocità restano a zero per tutto il file.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'Questo sembra un percorso già importato dallo stesso file.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'Sostituisci';
+
+  @override
+  String get navTrack_review_linkToDive => 'Collega a un\'immersione';
+
+  @override
+  String get navTrack_review_diveSite => 'Sito di immersione';
+
+  @override
+  String get navTrack_review_equipment => 'Attrezzatura';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'Nessuna attrezzatura';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'Nessun sito scelto';
+
+  @override
+  String get navTrack_review_row_start => 'Inizio';
+
+  @override
+  String get navTrack_review_row_end => 'Fine';
+
+  @override
+  String get navTrack_review_row_duration => 'Durata';
+
+  @override
+  String get navTrack_review_row_distance => 'Distanza';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'Profondità max';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'Velocità max';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'Lascia non collegato';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'Importazione non riuscita: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'Impossibile abbinare i percorsi.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'Percorsi abbinati alle immersioni.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return 'Eliminare «$name»?';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'Importa file di percorso';
+
+  @override
+  String get navTrack_list_matchTooltip => 'Abbina ora';
+
+  @override
+  String get navTrack_list_title => 'Percorsi subacquei';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'Nessun percorso posizionato sulla mappa per ora.';
+
+  @override
+  String get navTrack_list_empty => 'Nessun percorso subacqueo ancora.';
+
+  @override
+  String get navTrack_seascape_title => 'Paesaggio subacqueo del percorso';
+
+  @override
+  String get navTrack_seascape_noScene =>
+      'Questo percorso non ha un paesaggio subacqueo utilizzabile.';
+
+  @override
+  String get navTrack_handoff_recognized =>
+      'Registro di navigazione Seacraft ENC riconosciuto';
+
+  @override
+  String get navTrack_handoff_description =>
+      'Questo è un percorso subacqueo, non un registro di immersione. Ha un posto tutto suo in Submersion, separato dall\'importazione delle tue immersioni.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'Rivedi percorso';
+
+  @override
+  String get navTrack_section_title => 'Percorso subacqueo';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count percorsi',
+      one: '$count percorso',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'Nessun percorso collegato';
+
+  @override
+  String get navTrack_section_linkButton => 'Collega percorso';
+
+  @override
+  String get navTrack_section_importButton => 'Importa file';
+
+  @override
+  String get navTrack_section_primaryTag => 'primario';
+
+  @override
+  String get navTrack_section_menuOpen => 'Apri percorso';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'Apri paesaggio 3D';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'Imposta come primario';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'Questo file non è un registro di navigazione Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'Impossibile leggere questo file come registro di navigazione Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'Questa registrazione ha troppo pochi campioni per essere un percorso utilizzabile.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'Questo file contiene dati che Submersion non è riuscita a interpretare.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'Questa registrazione ha più campioni di quanti un percorso possa memorizzare.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'Percorso subacqueo';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'Percorso subacqueo misurato da una consolle di navigazione';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'Percorsi subacquei';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
 }

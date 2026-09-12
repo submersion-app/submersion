@@ -209,7 +209,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         ),
       ],
       detectionResult: detection,
-      currentStep: ImportWizardStep.sourceConfirmation,
+      // A recognised nav-track (Seacraft ENC) file is not a dive log at all;
+      // it never advances to Confirm Source. The file-selection step shows
+      // NavTrackHandoffCard instead, which reads the bytes straight off this
+      // state to open the review page.
+      currentStep: detection.format == ImportFormat.navTrack
+          ? ImportWizardStep.fileSelection
+          : ImportWizardStep.sourceConfirmation,
     );
   }
 
@@ -260,8 +266,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
       // Don't advance to sourceConfirmation for unsupported formats so the
       // wizard isn't left holding stale bytes if the caller shows a snackbar
-      // and doesn't navigate.
-      if (!detection.format.isSupported) {
+      // and doesn't navigate. A recognised nav-track file is the one
+      // exception: it is deliberately unsupported by the dive pipeline, but
+      // still needs its bytes kept in state so the file-selection step's
+      // NavTrackHandoffCard can hand them to the route review page.
+      if (!detection.format.isSupported &&
+          detection.format != ImportFormat.navTrack) {
         state = state.copyWith(isLoading: false);
         return detection;
       }
@@ -277,7 +287,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           ),
         ],
         detectionResult: detection,
-        currentStep: ImportWizardStep.sourceConfirmation,
+        currentStep: detection.format == ImportFormat.navTrack
+            ? ImportWizardStep.fileSelection
+            : ImportWizardStep.sourceConfirmation,
         wasLoadedExternally: true,
       );
 
@@ -358,7 +370,15 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       try {
         final bytes = await File(path).readAsBytes();
         final detection = await _detectFormat(bytes);
-        final status = detection.format == ImportFormat.csv
+        // A recognised nav-track file is excluded from the batch exactly
+        // like a CSV needing the single-file mapping wizard: it needs its
+        // own import (the route review page), not the dive pipeline, so it
+        // reuses `excludedCsv` -> `ImportFileOutcomeStatus.needsIndividualImport`
+        // in the bulk summary (universal_adapter.dart) rather than
+        // `unsupported`.
+        final status =
+            detection.format == ImportFormat.csv ||
+                detection.format == ImportFormat.navTrack
             ? ImportFileStatus.excludedCsv
             : detection.format.isSupported
             ? ImportFileStatus.pending

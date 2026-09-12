@@ -13,8 +13,11 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/gps_log/data/services/track_import/csv_track_parser.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/parsed_track.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/track_import_service.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_signature.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/track_import_review_page.dart';
 import 'package:submersion/features/gps_log/presentation/track_parse_error_text.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -176,6 +179,25 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
     // path: file_picker 12 retired `withData`, and on Android SAF there may
     // be no local path at all.
     final bytes = await file.readAsBytes();
+
+    // A Seacraft ENC navigation console log is a route, not a GPS track:
+    // short-circuit straight to the route review page instead of the
+    // column-mapping form a CSV would otherwise get (spec
+    // 2026-09-10-underwater-nav-track-design.md, "Import and format
+    // detection"). GPX/KML/FIT/every other CSV are untouched.
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      List<String> headers;
+      try {
+        headers = readCsvHeaders(bytes);
+      } catch (_) {
+        headers = const [];
+      }
+      if (looksLikeSeacraftEnc(headers)) {
+        if (!mounted) return;
+        await navigateToNavTrackReview(context, bytes, fileName: file.name);
+        return;
+      }
+    }
 
     final TrackImportCandidate candidate;
     try {

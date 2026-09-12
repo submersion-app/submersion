@@ -21740,6 +21740,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_importAsRoute => 'استيراد كمسار';
+
+  @override
   String get universalImport_summary_fileNeedsIndividualImport =>
       'يتطلب استيرادًا فرديًا';
 
@@ -25290,6 +25293,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'جدران شديدة الانحدار';
 
   @override
+  String get dive3d_seascape_showRoute => 'إظهار المسار';
+
+  @override
   String get dive3d_overlay_water => 'سطح الماء';
 
   @override
@@ -25545,6 +25551,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_spatial_estimatedPath => 'مسار مقدّر (الحساب الاستدلالي)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'مسار مسجّل';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'مسار مسجّل ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'قاع بحر مُركّب';
@@ -38887,4 +38901,411 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_gearArrangementSubtitle =>
       'كيفية تجميع المعدات وترتيبها في الغوصة';
+
+  @override
+  String get navTrack_common_loadError => 'تعذر تحميل هذا المسار.';
+
+  @override
+  String get navTrack_common_notFound => 'المسار غير موجود.';
+
+  @override
+  String get navTrack_common_cancel => 'إلغاء';
+
+  @override
+  String get navTrack_common_save => 'حفظ';
+
+  @override
+  String get navTrack_common_delete => 'حذف';
+
+  @override
+  String get navTrack_common_unlink => 'إلغاء الربط';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'فتح ثلاثي الأبعاد';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'الغطسة رقم $number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'الغطسة $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'غير مرتبط';
+
+  @override
+  String get navTrack_align_title => 'المحاذاة على الخريطة';
+
+  @override
+  String get navTrack_align_resetTooltip => 'إعادة تعيين التصحيح';
+
+  @override
+  String get navTrack_align_setStartHere => 'تعيين البداية هنا';
+
+  @override
+  String get navTrack_align_setEndHere => 'تعيين النهاية هنا';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'تعيين البداية على الخريطة';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'من نقطة دخول الغطسة';
+
+  @override
+  String get navTrack_align_fromSite => 'من موقع الغوص';
+
+  @override
+  String get navTrack_align_fromGps => 'من GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'البداية: ';
+
+  @override
+  String get navTrack_align_endLabel => 'النهاية: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'بلا';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'مثل البداية';
+
+  @override
+  String get navTrack_align_endMode_point => 'التعيين على الخريطة';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'من إصلاح GPS';
+
+  @override
+  String navTrack_align_trustSummary(String distanceMeters, int minutes) {
+    return 'الموثوقية: موثوق حتى $distanceMeters م، $minutes دقيقة';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'الدوران:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand نقاط على اليابسة، $below من $total تحت قاع البحر$maxPart، $unknown غير معروفة$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String meters) {
+    return ' (بحد أقصى $meters م)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'إعادة تسمية المسار';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'حذف المسار؟';
+
+  @override
+  String get navTrack_detail_deleteMessage => 'لا يمكن التراجع عن هذا.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'مسار';
+
+  @override
+  String get navTrack_detail_menuRename => 'إعادة التسمية';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'تغيير الموقع';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'عيّن نقطة البداية لرؤية هذا على خريطة.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'لم يُطبَّق أي تصحيح بعد.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'تم تعيين النهاية لتكون مثل البداية.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'تم تعيين نقطة النهاية على الخريطة.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'تم تعيين النهاية من إصلاح GPS الخاص بالتسجيل.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'الجهاز: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'المعدات: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'المسافة: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'أقصى عمق: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'أقصى سرعة: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'متوسط السرعة: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'المدة: $hours س $minutes د';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'البطارية: $start فولت -> $end فولت';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'لا توجد غطسة مرتبطة';
+
+  @override
+  String get navTrack_detail_chooseDive => 'اختيار غطسة';
+
+  @override
+  String get navTrack_detail_noSite => 'لا يوجد موقع غوص';
+
+  @override
+  String get navTrack_detail_chooseSite => 'اختيار موقع';
+
+  @override
+  String get navTrack_review_title => 'استيراد مسار تحت الماء';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater عينات تحت الماء، لا يوجد إصلاح GPS في هذا التسجيل.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    int vector,
+  ) {
+    return '$underwater عينات تحت الماء، $surface عينات على السطح، إصلاح GPS على بعد $vector م من النهاية المقدَّرة.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'تعذر حفظ هذا المسار: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'تعذر استيراد هذا الملف: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'سجل Seacraft ENC';
+
+  @override
+  String get navTrack_review_nameHint => 'الاسم (اختياري)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'لم تُسجَّل أي حركة: تبقى المسافة والسرعة عند الصفر طوال هذا الملف.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'استبدال';
+
+  @override
+  String get navTrack_review_linkToDive => 'الربط بغطسة';
+
+  @override
+  String get navTrack_review_diveSite => 'موقع الغوص';
+
+  @override
+  String get navTrack_review_equipment => 'المعدات';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'بدون معدات';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'لم يتم اختيار موقع غوص';
+
+  @override
+  String get navTrack_review_row_start => 'البداية';
+
+  @override
+  String get navTrack_review_row_end => 'النهاية';
+
+  @override
+  String get navTrack_review_row_duration => 'المدة';
+
+  @override
+  String get navTrack_review_row_distance => 'المسافة';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'أقصى عمق';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'أقصى سرعة';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'الترك بدون ربط';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'فشل الاستيراد: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'تعذرت مطابقة المسارات.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'تمت مطابقة المسارات مع الغطسات.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'استيراد ملف مسار';
+
+  @override
+  String get navTrack_list_matchTooltip => 'المطابقة الآن';
+
+  @override
+  String get navTrack_list_title => 'المسارات تحت الماء';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'لا توجد مسارات موضوعة على الخريطة بعد.';
+
+  @override
+  String get navTrack_list_empty => 'لا توجد مسارات تحت الماء بعد.';
+
+  @override
+  String get navTrack_seascape_title => 'المشهد البحري للمسار';
+
+  @override
+  String get navTrack_seascape_noScene =>
+      'لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.';
+
+  @override
+  String get navTrack_handoff_recognized =>
+      'تم التعرف على سجل ملاحة Seacraft ENC';
+
+  @override
+  String get navTrack_handoff_description =>
+      'هذا مسار تحت الماء، وليس سجل غطس. له مكانه الخاص في Submersion، منفصل عن استيراد غطساتك.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'مراجعة المسار';
+
+  @override
+  String get navTrack_section_title => 'مسار تحت الماء';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مسار',
+      few: '$count مسارات',
+      two: 'مساران',
+      one: 'مسار واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'لا يوجد مسار مرتبط';
+
+  @override
+  String get navTrack_section_linkButton => 'ربط مسار';
+
+  @override
+  String get navTrack_section_importButton => 'استيراد ملف';
+
+  @override
+  String get navTrack_section_primaryTag => 'أساسي';
+
+  @override
+  String get navTrack_section_menuOpen => 'فتح المسار';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'فتح المشهد ثلاثي الأبعاد';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'تعيين كأساسي';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'هذا الملف ليس سجل ملاحة Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا قابلاً للاستخدام.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'يحتوي هذا الملف على بيانات تعذر على Submersion فهمها.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'مسار تحت الماء';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
 }

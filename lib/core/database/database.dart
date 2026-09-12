@@ -552,6 +552,109 @@ class GpsTrackPointsLocal extends Table {
   // coverage:ignore-end
 }
 
+/// Measured underwater routes from navigation consoles and IMU-equipped
+/// dive computers (spec 2026-09-10-underwater-nav-track-design.md, issues
+/// #1195 and #1445). One row per recording; points live in a gzipped JSON
+/// blob like gps_tracks so sync moves one HLC row per route. The blob is
+/// the recording as it came off the device and is never rewritten; every
+/// correction column below is a non-destructive parameter applied on read.
+@DataClassName('NavTrackRow')
+class NavTracks extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+
+  /// The dive this route belongs to, or null while unlinked. SET NULL on
+  /// dive deletion: the recording outlives the dive and shows as unlinked
+  /// in the routes area, ready to be matched again.
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+
+  /// 'auto' when the match sweep linked it, 'manual' when the diver did.
+  /// The sweep never touches a linked row of either kind; the flag exists
+  /// so the UI can say how the link came about.
+  TextColumn get linkMode => text().nullable()();
+
+  /// The route the dive's 3D seascape draws when several are linked to the
+  /// same dive (two devices on one dive). The first link sets it.
+  BoolColumn get isPrimary => boolean().withDefault(const Constant(true))();
+
+  /// The dive site chosen at import (or taken from the linked dive): gives
+  /// an unlinked route a map position to start from, the default anchor
+  /// until the diver corrects it.
+  TextColumn get siteId => text().nullable().references(
+    DiveSites,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// 'seacraft_enc' | 'suunto_route'. Rendering never branches on it; only
+  /// the caption and the parser registry do.
+  TextColumn get source => text()();
+  TextColumn get sourceRef => text().nullable()(); // originating file name
+  TextColumn get deviceName => text().nullable()();
+
+  /// User-editable label; defaults to the file name.
+  TextColumn get name => text().nullable()();
+
+  /// Optional link to the console or scooter in the equipment list.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Wall-clock-as-UTC epoch milliseconds (dives.entryTime convention).
+  IntColumn get startTime => integer()();
+  IntColumn get endTime => integer()();
+  IntColumn get tzOffsetMinutes => integer().withDefault(const Constant(0))();
+
+  /// Seconds added to the device's clock to place it on the linked dive's
+  /// timeline (same idea as dive_data_sources.time_offset_seconds).
+  IntColumn get timeOffsetSeconds => integer().withDefault(const Constant(0))();
+  IntColumn get pointCount => integer()();
+
+  /// Summary scalars for list rows and stats, so no blob decode is needed.
+  RealColumn get totalDistance => real().nullable()(); // m, device log
+  RealColumn get maxDepth => real().nullable()(); // m
+  RealColumn get maxSpeed => real().nullable()(); // m/s
+  RealColumn get avgSpeed => real().nullable()(); // m/s
+
+  /// Where the route's origin sits on the map. Null until the diver sets
+  /// it (or accepts a suggestion); the route then has no 2D position.
+  RealColumn get anchorLatitude => real().nullable()();
+  RealColumn get anchorLongitude => real().nullable()();
+
+  /// 'none' | 'same_as_start' | 'point' | 'gps_fix'. With 'point',
+  /// endLatitude/endLongitude hold the target. 'same_as_start' follows the
+  /// anchor when it moves, which a copied coordinate would not.
+  TextColumn get endMode => text().withDefault(const Constant('none'))();
+  RealColumn get endLatitude => real().nullable()();
+  RealColumn get endLongitude => real().nullable()();
+
+  /// Trust mark: fraction of the route's cumulative distance, 0 to 1, up
+  /// to which the recording is taken as correct. 0 (default) means the
+  /// whole route is corrected proportionally; 1 disables the correction.
+  RealColumn get trustFraction => real().withDefault(const Constant(0))();
+
+  /// Clockwise rotation applied to the route (magnetic declination, mount
+  /// misalignment).
+  RealColumn get headingOffsetDeg => real().withDefault(const Constant(0))();
+
+  IntColumn get codecVersion => integer().withDefault(const Constant(1))();
+
+  /// Gzipped JSON array of
+  /// [wallClockEpochSeconds, north, east, depth, course, pitch, roll,
+  ///  distance, speed, temp, battV]; null for channels a source lacks.
+  BlobColumn get points => blob()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Saved dive plans (dive planner redesign, Phase 2)
 class DivePlans extends Table {
   // coverage:ignore-start
@@ -4043,6 +4146,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // GPS surface track logging (discussion #289)
     GpsTracks,
     GpsTrackPointsLocal,
+    // Measured underwater routes (spec 2026-09-10-underwater-nav-track-design.md,
+    // issues #1195 and #1445)
+    NavTracks,
     // Saved dive plans (planner redesign Phase 2)
     DivePlans,
     DivePlanTanks,
@@ -4634,12 +4740,17 @@ class AppDatabase extends _$AppDatabase {
     // 185: main landed 185 through 207 while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     208,
+    // v209: nav_tracks -- measured underwater routes from Seacraft ENC
+    // navigation consoles and similar IMU-equipped computers (issues #1195,
+    // #1445). 207 landed on main while this branch was open, and 208 is
+    // claimed by the auto-tag-dive-computer-imports branch, so this rung
+    // takes 209.
+    209,
     // v210: dive_tanks.equipment_id ON DELETE SET NULL. The link was NO
     // ACTION from the initial schema, so deleting a gear item a cylinder
     // was linked to failed. Rebuilds the table from its stored definition.
     // Also an hlc column on the 19 child tables exported through their
     // parent, so a stale copy from a peer cannot overwrite a newer edit.
-    // 209 is claimed by #1639, still open.
     210,
   ];
 
@@ -5054,6 +5165,20 @@ class AppDatabase extends _$AppDatabase {
         ') WHERE updated_at IS NULL',
       );
     }
+  }
+
+  /// v209: the nav_tracks table for measured underwater routes (spec
+  /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
+  /// Idempotent (createTable is IF NOT EXISTS); called from the v209
+  /// onUpgrade step and the beforeOpen backstop.
+  Future<void> _assertNavTracksSchema() async {
+    await createMigrator().createTable(navTracks);
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_nav_tracks_dive ON nav_tracks(dive_id)
+    ''');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_nav_tracks_start ON nav_tracks(start_time)
+    ''');
   }
 
   /// v210: an `hlc` column on every child table exported through its
@@ -11815,10 +11940,20 @@ class AppDatabase extends _$AppDatabase {
           await _assertImportedFilesSchema();
         }
         if (from < 208) await reportProgress();
+        // v209: nav_tracks -- measured underwater routes from Seacraft ENC
+        // navigation consoles and similar IMU-equipped computers (spec
+        // 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
+        // A new synced table, so onUpgrade need only create it; idempotent
+        // and re-asserted in the beforeOpen backstop against the
+        // parallel-branch version collisions noted above.
+        if (from < 209) {
+          await _assertNavTracksSchema();
+        }
+        if (from < 209) await reportProgress();
         // v210: dive_tanks.equipment_id ON DELETE SET NULL, a table rebuild
-        // (see _assertDiveTankEquipmentSetNull). 209 is claimed by an open
-        // PR. Re-asserted in the beforeOpen backstop, which runs it before
-        // foreign keys are switched on.
+        // (see _assertDiveTankEquipmentSetNull). Re-asserted in the
+        // beforeOpen backstop, which runs it before foreign keys are
+        // switched on.
         if (from < 210) {
           await _assertDiveTankEquipmentSetNull();
           await _assertChildHlcColumns();
@@ -11836,6 +11971,10 @@ class AppDatabase extends _$AppDatabase {
 
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
+
+        // v209 backstop: re-assert the nav_tracks table. A database that
+        // arrives by restore or sync-adopt never runs onUpgrade.
+        await _assertNavTracksSchema();
 
         // v207 backstop: re-assert the gear junctions' updated_at. A device
         // stranded without it has no age signal on those rows, so a stale

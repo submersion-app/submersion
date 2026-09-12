@@ -28,6 +28,8 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
@@ -621,6 +623,7 @@ Future<List<Override>> getBaseOverrides({
   PreDiveSession? linkedPreDiveSession,
   Map<int, TripDayWeather>? tripDayWeather,
   List<TankPresetEntity>? tankPresets,
+  NavTrack? primaryNavTrack,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -645,6 +648,14 @@ Future<List<Override>> getBaseOverrides({
     // and a database that widget tests do not have.
     preDiveSessionForDiveProvider.overrideWith(
       (ref, diveId) async => linkedPreDiveSession,
+    ),
+    // spatialReckonedPathProvider checks for a linked underwater route
+    // ahead of dead reckoning; without this it reaches the real repository
+    // and a database widget tests do not have. Defaults to null (no linked
+    // route, falling back to dead reckoning); pass primaryNavTrack to
+    // exercise the nav-track branch.
+    primaryNavTrackForDiveProvider.overrideWith(
+      (ref, diveId) async => primaryNavTrack,
     ),
     // Weather/elevation lookups must never hit the network in widget tests;
     // the default stub fails fast so altitude auto-fill resolves to null.

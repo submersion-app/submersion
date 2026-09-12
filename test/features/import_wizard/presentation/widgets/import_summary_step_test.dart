@@ -1341,4 +1341,74 @@ void main() {
       expect(find.text('Successfully Imported'), findsOneWidget);
     });
   });
+
+  group('ImportSummaryStep - excluded Seacraft ENC route in a batch', () {
+    testWidgets(
+      '"Import as route" only appears for a navTrack outcome with a path',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final notifier = _makeNotifier();
+        notifier.state = notifier.state.copyWith(
+          importResult: const UnifiedImportResult(
+            importedCounts: {},
+            consolidatedCount: 0,
+            skippedCount: 0,
+            fileOutcomes: [
+              // A plain CSV needing the mapping wizard: no equivalent
+              // single-file flow to hand it back off to, so no button.
+              ImportFileOutcome(
+                fileName: 'log.csv',
+                formatName: 'CSV',
+                status: ImportFileOutcomeStatus.needsIndividualImport,
+                filePath: '/tmp/log.csv',
+              ),
+              // A recognised route without a stored path (e.g. a
+              // share-sheet intent with bytes only): no button either,
+              // since there is nothing left to re-read.
+              ImportFileOutcome(
+                fileName: 'no-path.csv',
+                formatName: 'Seacraft ENC log',
+                status: ImportFileOutcomeStatus.needsIndividualImport,
+                isNavTrackRoute: true,
+              ),
+              // The real case: recognised route, path on disk.
+              ImportFileOutcome(
+                fileName: '005.DAT.csv',
+                formatName: 'Seacraft ENC log',
+                status: ImportFileOutcomeStatus.needsIndividualImport,
+                isNavTrackRoute: true,
+                filePath: '/tmp/005.DAT.csv',
+              ),
+            ],
+          ),
+        );
+
+        await tester.pumpWidget(_buildWidget(notifier));
+        await tester.pump();
+
+        expect(find.text('log.csv'), findsOneWidget);
+        expect(find.text('no-path.csv'), findsOneWidget);
+        expect(find.text('005.DAT.csv'), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('import-summary-import-as-route')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    // A widget test driving the tap through to a real, pushed
+    // NavTrackImportReviewPage (via getBaseOverrides()) was attempted here
+    // and consistently hung for minutes regardless of pump strategy
+    // (pumpAndSettle, bounded pumps, or a single pump) -- something in that
+    // combination blocks on real I/O this harness does not stub out. Rather
+    // than fabricate an unstable test, the tap handler's own two steps are
+    // covered at their natural seams instead: `navigateToNavTrackReview` is
+    // exercised directly by the nav_track feature's own tests (it is the
+    // exact same function `global_drop_target.dart` and `app.dart` already
+    // call), and the button-visibility test above covers the condition
+    // this handler's precondition depends on (isNavTrackRoute && filePath
+    // != null).
+  });
 }

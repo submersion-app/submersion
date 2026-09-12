@@ -13369,6 +13369,7 @@
     }
   },
   "universalImport_summary_fileImported": "{count, plural, =1{1 dive imported} other{{count} dives imported}}",
+  "universalImport_summary_importAsRoute": "Import as route",
   "universalImport_summary_fileNeedsIndividualImport": "Needs individual import",
   "universalImport_summary_fileUnsupported": "Unsupported format",
   "universalImport_summary_fileParseFailed": "Failed to read",
@@ -13526,6 +13527,9 @@
         "type": "num"
       }
     }
+  },
+  "@universalImport_summary_importAsRoute": {
+    "description": "Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater route review page"
   },
   "@universalImport_summary_fileNeedsIndividualImport": {
     "description": "Per-file summary line for CSV files excluded from the batch"
@@ -16627,6 +16631,8 @@
   "@dive3d_seascape_overlay_contours": {},
   "dive3d_seascape_overlay_walls": "Steep walls",
   "@dive3d_seascape_overlay_walls": {},
+  "dive3d_seascape_showRoute": "Show route",
+  "@dive3d_seascape_showRoute": {},
   "dive3d_overlay_water": "Water surface",
   "@dive3d_overlay_water": {},
   "dive3d_seascape_legend_land": "Land",
@@ -16822,6 +16828,16 @@
   "@dive3d_spatial_title": {},
   "dive3d_spatial_estimatedPath": "Estimated path (dead reckoning)",
   "@dive3d_spatial_estimatedPath": {},
+  "dive3d_spatial_recordedPath": "Recorded route",
+  "@dive3d_spatial_recordedPath": {},
+  "dive3d_spatial_recordedPathWithSource": "Recorded route ({source})",
+  "@dive3d_spatial_recordedPathWithSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
   "dive3d_spatial_synthesizedSeafloor": "Synthesized seafloor",
   "@dive3d_spatial_synthesizedSeafloor": {},
   "dive3d_spatial_noPath": "Not enough data to reconstruct the dive path",
@@ -23827,5 +23843,307 @@
   "equipment_arrange_reset": "Reset to defaults",
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
-  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive"
+  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
+  "navTrack_common_loadError": "Could not load this route.",
+  "navTrack_common_notFound": "Route not found.",
+  "navTrack_common_cancel": "Cancel",
+  "navTrack_common_save": "Save",
+  "navTrack_common_delete": "Delete",
+  "navTrack_common_unlink": "Unlink",
+  "navTrack_common_open3dTooltip": "Open 3D",
+  "navTrack_common_diveNumber": "Dive #{number}",
+  "@navTrack_common_diveNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_common_diveById": "Dive {id}",
+  "@navTrack_common_diveById": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_common_unlinked": "unlinked",
+  "navTrack_align_title": "Align on map",
+  "navTrack_align_resetTooltip": "Reset correction",
+  "navTrack_align_setStartHere": "Set start here",
+  "navTrack_align_setEndHere": "Set end here",
+  "navTrack_align_setStartOnMap": "Set start on map",
+  "navTrack_align_fromDiveEntry": "From dive entry",
+  "navTrack_align_fromSite": "From site",
+  "navTrack_align_fromGps": "From GPS",
+  "navTrack_align_startLabel": "Start: ",
+  "navTrack_align_endLabel": "End: ",
+  "navTrack_align_endMode_none": "None",
+  "navTrack_align_endMode_sameAsStart": "Same as start",
+  "navTrack_align_endMode_point": "Place on map",
+  "navTrack_align_endMode_gpsFix": "From GPS fix",
+  "navTrack_align_trustSummary": "Trust: trusted up to {distanceMeters} m, {minutes} min",
+  "@navTrack_align_trustSummary": {
+    "placeholders": {
+      "distanceMeters": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_align_rotationLabel": "Rotation:",
+  "navTrack_align_rotationDegrees": "{degrees} deg",
+  "@navTrack_align_rotationDegrees": {
+    "placeholders": {
+      "degrees": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_terrain_summary": "{onLand} points on land, {below} of {total} below the seafloor{maxPart}, {unknown} unknown{coarsePart}",
+  "@navTrack_terrain_summary": {
+    "placeholders": {
+      "onLand": {
+        "type": "int"
+      },
+      "below": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "unknown": {
+        "type": "int"
+      },
+      "maxPart": {
+        "type": "String"
+      },
+      "coarsePart": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_terrain_maxPart": " (max {meters} m)",
+  "@navTrack_terrain_maxPart": {
+    "placeholders": {
+      "meters": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_terrain_coarsePart": " (coarse bathymetry: only land conflicts checked)",
+  "navTrack_detail_renameTitle": "Rename route",
+  "navTrack_detail_deleteTitle": "Delete route?",
+  "navTrack_detail_deleteMessage": "This cannot be undone.",
+  "navTrack_detail_defaultTitle": "Route",
+  "navTrack_detail_menuRename": "Rename",
+  "navTrack_detail_menuChangeSite": "Change site",
+  "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
+  "navTrack_detail_correctionStatus_none": "No correction applied yet.",
+  "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",
+  "navTrack_detail_correctionStatus_point": "End point set on the map.",
+  "navTrack_detail_correctionStatus_gpsFix": "End set from the recording's GPS fix.",
+  "navTrack_detail_device": "Device: {name}",
+  "@navTrack_detail_device": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_equipment": "Equipment: {name}",
+  "@navTrack_detail_equipment": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_distance": "Distance: {value}",
+  "@navTrack_detail_distance": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_maxDepth": "Max depth: {value}",
+  "@navTrack_detail_maxDepth": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_maxSpeed": "Max speed: {value}",
+  "@navTrack_detail_maxSpeed": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_avgSpeed": "Avg speed: {value}",
+  "@navTrack_detail_avgSpeed": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_duration": "Duration: {hours}h {minutes}min",
+  "@navTrack_detail_duration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_detail_battery": "Battery: {start} V -> {end} V",
+  "@navTrack_detail_battery": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_detail_noDiveLinked": "No dive linked",
+  "navTrack_detail_chooseDive": "Choose dive",
+  "navTrack_detail_noSite": "No site",
+  "navTrack_detail_chooseSite": "Choose site",
+  "navTrack_review_title": "Import Underwater Route",
+  "navTrack_review_segmentSummaryNoFix": "{underwater} samples underwater, no GPS fix in this recording.",
+  "@navTrack_review_segmentSummaryNoFix": {
+    "placeholders": {
+      "underwater": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_review_segmentSummaryWithFix": "{underwater} samples underwater, {surface} surface samples, GPS fix {vector}m from the reckoned end.",
+  "@navTrack_review_segmentSummaryWithFix": {
+    "placeholders": {
+      "underwater": {
+        "type": "int"
+      },
+      "surface": {
+        "type": "int"
+      },
+      "vector": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_review_saveError": "Could not save this route: {error}",
+  "@navTrack_review_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_review_importError": "This file could not be imported: {error}",
+  "@navTrack_review_importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_review_sourceLabel": "Seacraft ENC log",
+  "navTrack_review_nameHint": "Name (optional)",
+  "navTrack_review_warningNoMovement": "No movement recorded: distance and speed stay at zero throughout this file.",
+  "navTrack_review_warningDuplicate": "This looks like a route already imported from the same file.",
+  "navTrack_review_replaceLabel": "Replace",
+  "navTrack_review_linkToDive": "Link to dive",
+  "navTrack_review_diveSite": "Dive site",
+  "navTrack_review_equipment": "Equipment",
+  "navTrack_review_noEquipmentChosen": "No equipment",
+  "navTrack_review_noSiteChosen": "No site chosen",
+  "navTrack_review_row_start": "Start",
+  "navTrack_review_row_end": "End",
+  "navTrack_review_row_duration": "Duration",
+  "navTrack_review_row_distance": "Distance",
+  "navTrack_review_row_maxDepth": "Max depth",
+  "navTrack_review_row_maxSpeed": "Max speed",
+  "navTrack_review_leaveUnlinked": "Leave unlinked",
+  "navTrack_list_importFailed": "Import failed: {error}",
+  "@navTrack_list_importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_list_matchError": "Could not match routes.",
+  "navTrack_list_matchSuccess": "Routes matched to dives.",
+  "navTrack_list_deleteMessage": "Delete \"{name}\"?",
+  "@navTrack_list_deleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_list_importTooltip": "Import route file",
+  "navTrack_list_matchTooltip": "Match now",
+  "navTrack_list_title": "Underwater Routes",
+  "navTrack_list_noMapRoutes": "No routes are placed on the map yet.",
+  "navTrack_list_empty": "No underwater routes yet.",
+  "navTrack_seascape_title": "Route seascape",
+  "navTrack_seascape_noScene": "This route has no usable seascape.",
+  "navTrack_handoff_recognized": "Seacraft ENC navigation log recognised",
+  "navTrack_handoff_description": "This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.",
+  "navTrack_handoff_reviewButton": "Review route",
+  "navTrack_section_title": "Underwater Route",
+  "navTrack_section_routeCount": "{count, plural, one{{count} route} other{{count} routes}}",
+  "@navTrack_section_routeCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "navTrack_section_noRouteLinked": "No route linked",
+  "navTrack_section_linkButton": "Link route",
+  "navTrack_section_importButton": "Import file",
+  "navTrack_section_primaryTag": "primary",
+  "navTrack_section_menuOpen": "Open route",
+  "navTrack_section_menuOpen3d": "Open 3D seascape",
+  "navTrack_section_menuMakePrimary": "Make primary",
+  "navTrack_importError_unsupportedFormat": "This file is not a Seacraft ENC navigation log.",
+  "navTrack_importError_unreadable": "This file could not be read as a Seacraft ENC navigation log.",
+  "navTrack_importError_tooShort": "This recording has too few samples to be a usable route.",
+  "navTrack_importError_badData": "This file has data Submersion could not make sense of.",
+  "navTrack_importError_tooLarge": "This recording has more samples than a route can store.",
+  "diveDetailSection_navTrack_name": "Underwater Route",
+  "diveDetailSection_navTrack_description": "Measured underwater route from a navigation console",
+  "dashboard_quickActions_navRoutes": "Underwater Routes",
+  "navTrack_list_durationHours": "{hours}h {minutes}min",
+  "@navTrack_list_durationHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_list_durationMinutes": "{minutes}min",
+  "@navTrack_list_durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  }
 }

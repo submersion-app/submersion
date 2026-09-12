@@ -26,9 +26,10 @@ const _junctions = [
 ];
 
 void main() {
-  test('v207 is the current schema version and is in the ladder', () {
-    // Relaxed once v208 (the imported-file store, issue #478) landed on top;
-    // the newest rung owns the exact assertion.
+  test('v207 is in the ladder and shipped', () {
+    // Relaxed as v200's own test asked, now that later rungs (v208, the
+    // imported-file store, issue #478; v209, the nav_tracks table) are
+    // newer. This one only claims its rung is still in the ladder.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(207));
     expect(AppDatabase.migrationVersions, contains(207));
   });

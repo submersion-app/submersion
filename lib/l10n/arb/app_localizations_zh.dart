@@ -20971,6 +20971,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_importAsRoute => '作为路线导入';
+
+  @override
   String get universalImport_summary_fileNeedsIndividualImport => '需要单独导入';
 
   @override
@@ -24392,6 +24395,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => '陡壁';
 
   @override
+  String get dive3d_seascape_showRoute => '显示路线';
+
+  @override
   String get dive3d_overlay_water => '水面';
 
   @override
@@ -24645,6 +24651,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dive3d_spatial_estimatedPath => '估算路径（航位推算）';
+
+  @override
+  String get dive3d_spatial_recordedPath => '记录的路线';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return '记录的路线（$source）';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => '合成海底';
@@ -36993,4 +37007,392 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_gearArrangementSubtitle => '潜水记录中装备的分组和排序方式';
+
+  @override
+  String get navTrack_common_loadError => '无法加载此路线。';
+
+  @override
+  String get navTrack_common_notFound => '未找到路线。';
+
+  @override
+  String get navTrack_common_cancel => '取消';
+
+  @override
+  String get navTrack_common_save => '保存';
+
+  @override
+  String get navTrack_common_delete => '删除';
+
+  @override
+  String get navTrack_common_unlink => '取消关联';
+
+  @override
+  String get navTrack_common_open3dTooltip => '打开3D';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return '潜水 #$number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return '潜水 $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => '未关联';
+
+  @override
+  String get navTrack_align_title => '在地图上对齐';
+
+  @override
+  String get navTrack_align_resetTooltip => '重置校正';
+
+  @override
+  String get navTrack_align_setStartHere => '在此设置起点';
+
+  @override
+  String get navTrack_align_setEndHere => '在此设置终点';
+
+  @override
+  String get navTrack_align_setStartOnMap => '在地图上设置起点';
+
+  @override
+  String get navTrack_align_fromDiveEntry => '来自潜水入水点';
+
+  @override
+  String get navTrack_align_fromSite => '来自潜点';
+
+  @override
+  String get navTrack_align_fromGps => '来自 GPS';
+
+  @override
+  String get navTrack_align_startLabel => '起点：';
+
+  @override
+  String get navTrack_align_endLabel => '终点：';
+
+  @override
+  String get navTrack_align_endMode_none => '无';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => '与起点相同';
+
+  @override
+  String get navTrack_align_endMode_point => '在地图上放置';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => '来自 GPS 定位';
+
+  @override
+  String navTrack_align_trustSummary(String distanceMeters, int minutes) {
+    return '可信度：可信至 $distanceMeters 米，$minutes 分钟';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => '旋转：';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand 个点在陆地上，$below/$total 个点在海底以下$maxPart，$unknown 个未知$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String meters) {
+    return '（最大 $meters 米）';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart => '（低分辨率测深数据：仅检查了陆地冲突）';
+
+  @override
+  String get navTrack_detail_renameTitle => '重命名路线';
+
+  @override
+  String get navTrack_detail_deleteTitle => '删除路线？';
+
+  @override
+  String get navTrack_detail_deleteMessage => '此操作无法撤销。';
+
+  @override
+  String get navTrack_detail_defaultTitle => '路线';
+
+  @override
+  String get navTrack_detail_menuRename => '重命名';
+
+  @override
+  String get navTrack_detail_menuChangeSite => '更改潜点';
+
+  @override
+  String get navTrack_detail_noMapYet => '设置起点以在地图上查看。';
+
+  @override
+  String get navTrack_detail_correctionStatus_none => '尚未应用校正。';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart => '终点已设置为与起点相同。';
+
+  @override
+  String get navTrack_detail_correctionStatus_point => '终点已在地图上设置。';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix => '终点已根据记录的 GPS 定位设置。';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return '设备：$name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return '装备：$name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return '距离：$value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return '最大深度：$value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return '最大速度：$value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return '平均速度：$value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return '时长：$hours小时$minutes分钟';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return '电池：$start V -> $end V';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => '未关联潜水记录';
+
+  @override
+  String get navTrack_detail_chooseDive => '选择潜水记录';
+
+  @override
+  String get navTrack_detail_noSite => '无潜点';
+
+  @override
+  String get navTrack_detail_chooseSite => '选择潜点';
+
+  @override
+  String get navTrack_review_title => '导入水下路线';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater 个水下采样点，此记录中没有 GPS 定位。';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    int vector,
+  ) {
+    return '$underwater 个水下采样点，$surface 个水面采样点，GPS 定位距推算终点 $vector 米。';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return '无法保存此路线：$error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return '无法导入此文件：$error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'Seacraft ENC 日志';
+
+  @override
+  String get navTrack_review_nameHint => '名称（可选）';
+
+  @override
+  String get navTrack_review_warningNoMovement => '未记录任何移动：整个文件中距离和速度始终为零。';
+
+  @override
+  String get navTrack_review_warningDuplicate => '这看起来像是已从同一文件导入过的路线。';
+
+  @override
+  String get navTrack_review_replaceLabel => '替换';
+
+  @override
+  String get navTrack_review_linkToDive => '关联到潜水记录';
+
+  @override
+  String get navTrack_review_diveSite => '潜点';
+
+  @override
+  String get navTrack_review_equipment => '装备';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => '无装备';
+
+  @override
+  String get navTrack_review_noSiteChosen => '未选择潜点';
+
+  @override
+  String get navTrack_review_row_start => '起点';
+
+  @override
+  String get navTrack_review_row_end => '终点';
+
+  @override
+  String get navTrack_review_row_duration => '时长';
+
+  @override
+  String get navTrack_review_row_distance => '距离';
+
+  @override
+  String get navTrack_review_row_maxDepth => '最大深度';
+
+  @override
+  String get navTrack_review_row_maxSpeed => '最大速度';
+
+  @override
+  String get navTrack_review_leaveUnlinked => '保持未关联';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return '导入失败：$error';
+  }
+
+  @override
+  String get navTrack_list_matchError => '无法匹配路线。';
+
+  @override
+  String get navTrack_list_matchSuccess => '路线已与潜水记录匹配。';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return '删除“$name”？';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => '导入路线文件';
+
+  @override
+  String get navTrack_list_matchTooltip => '立即匹配';
+
+  @override
+  String get navTrack_list_title => '水下路线';
+
+  @override
+  String get navTrack_list_noMapRoutes => '尚未在地图上放置任何路线。';
+
+  @override
+  String get navTrack_list_empty => '尚无水下路线。';
+
+  @override
+  String get navTrack_seascape_title => '路线的海景';
+
+  @override
+  String get navTrack_seascape_noScene => '此路线没有可用的海景。';
+
+  @override
+  String get navTrack_handoff_recognized => '已识别 Seacraft ENC 导航日志';
+
+  @override
+  String get navTrack_handoff_description =>
+      '这是一条水下路线，不是潜水日志。它在 Submersion 中有自己的位置，与你的潜水记录导入分开。';
+
+  @override
+  String get navTrack_handoff_reviewButton => '查看路线';
+
+  @override
+  String get navTrack_section_title => '水下路线';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条路线',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => '未关联路线';
+
+  @override
+  String get navTrack_section_linkButton => '关联路线';
+
+  @override
+  String get navTrack_section_importButton => '导入文件';
+
+  @override
+  String get navTrack_section_primaryTag => '主要';
+
+  @override
+  String get navTrack_section_menuOpen => '打开路线';
+
+  @override
+  String get navTrack_section_menuOpen3d => '打开 3D 海景';
+
+  @override
+  String get navTrack_section_menuMakePrimary => '设为主要';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      '此文件不是 Seacraft ENC 导航日志。';
+
+  @override
+  String get navTrack_importError_unreadable => '无法将此文件作为 Seacraft ENC 导航日志读取。';
+
+  @override
+  String get navTrack_importError_tooShort => '此记录的样本太少，无法成为可用路线。';
+
+  @override
+  String get navTrack_importError_badData => '此文件包含 Submersion 无法解析的数据。';
+
+  @override
+  String get navTrack_importError_tooLarge => '此记录的样本数超过了路线可存储的上限。';
+
+  @override
+  String get diveDetailSection_navTrack_name => '水下路线';
+
+  @override
+  String get diveDetailSection_navTrack_description => '通过导航控制台测量的水下路线';
+
+  @override
+  String get dashboard_quickActions_navRoutes => '水下路线';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '$hours小时$minutes分钟';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '$minutes分钟';
+  }
 }

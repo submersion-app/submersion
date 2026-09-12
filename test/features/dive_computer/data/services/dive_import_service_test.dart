@@ -14,8 +14,40 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 @GenerateMocks([DiveComputerRepository, DiveRepository])
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'dive_import_service_test.mocks.dart';
+
+/// Records the [limitToDiveIds] a sweep was called with, standing in for a
+/// mockito mock: [NavTrackMatchService] takes concrete repositories in its
+/// constructor, but a test double only needs to implement its one public
+/// method.
+class _FakeNavTrackMatchService implements NavTrackMatchService {
+  int callCount = 0;
+  List<String>? capturedLimitToDiveIds;
+
+  @override
+  Future<({List<String> linked, List<String> needsChoice})> sweep({
+    List<String>? limitToRouteIds,
+    List<String>? limitToDiveIds,
+  }) async {
+    callCount++;
+    capturedLimitToDiveIds = limitToDiveIds;
+    return (linked: <String>[], needsChoice: <String>[]);
+  }
+}
+
+/// A route sweep that always fails, proving the trigger is best-effort: a
+/// matching failure must never fail the dive import itself.
+class _ThrowingNavTrackMatchService implements NavTrackMatchService {
+  @override
+  Future<({List<String> linked, List<String> needsChoice})> sweep({
+    List<String>? limitToRouteIds,
+    List<String>? limitToDiveIds,
+  }) {
+    throw StateError('route matching unavailable');
+  }
+}
 
 void main() {
   late MockDiveComputerRepository mockComputerRepo;
@@ -1274,4 +1306,84 @@ void main() {
       },
     );
   });
+
+  group(
+    'nav track match sweep (spec 2026-09-10-underwater-nav-track-design.md)',
+    () {
+      setUp(() {
+        when(
+          mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+        ).thenAnswer((_) async => 1);
+      });
+
+      test('sweeps the imported dive ids through NavTrackMatchService, '
+          'next to the GPS sweep', () async {
+        final fakeNavTrackMatch = _FakeNavTrackMatchService();
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          navTrackMatchService: fakeNavTrackMatch,
+        );
+
+        final dive = DownloadedDive(
+          fingerprint: 'fp-navtrack',
+          startTime: DateTime(2026, 8, 22, 10, 0),
+          durationSeconds: 3300,
+          maxDepth: 38.0,
+          profile: const [],
+          tanks: const [],
+          events: const [],
+        );
+
+        final result = await service.importDives(
+          dives: [dive],
+          computer: computer,
+        );
+
+        expect(fakeNavTrackMatch.callCount, 1);
+        expect(
+          fakeNavTrackMatch.capturedLimitToDiveIds,
+          result.importedDiveIds,
+        );
+      });
+
+      test('does not sweep when nothing was imported', () async {
+        final fakeNavTrackMatch = _FakeNavTrackMatchService();
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          navTrackMatchService: fakeNavTrackMatch,
+        );
+
+        await service.importDives(dives: const [], computer: computer);
+
+        expect(fakeNavTrackMatch.callCount, 0);
+      });
+
+      test('a sweep failure does not fail the import', () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          navTrackMatchService: _ThrowingNavTrackMatchService(),
+        );
+
+        final dive = DownloadedDive(
+          fingerprint: 'fp-navtrack-throws',
+          startTime: DateTime(2026, 8, 23, 10, 0),
+          durationSeconds: 1800,
+          maxDepth: 12.0,
+          profile: const [],
+          tanks: const [],
+          events: const [],
+        );
+
+        final result = await service.importDives(
+          dives: [dive],
+          computer: computer,
+        );
+
+        expect(result.imported, 1);
+      });
+    },
+  );
 }

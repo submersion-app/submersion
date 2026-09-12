@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_computer/data/services/transmitter_regi
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Mode for importing dives.
@@ -253,6 +254,7 @@ class DiveImportService {
   final DiveRepository? _diveRepository;
   final DiveParser _parser;
   final GpsTrackMatchService? _gpsTrackMatchService;
+  final NavTrackMatchService? _navTrackMatchService;
   final DefaultTankPresetLoader? _defaultTankPresetForImports;
   final TransmitterMatcherLoader? _transmitterMatcherForImports;
   final Set<String> _unmatchedSerials = {};
@@ -263,12 +265,14 @@ class DiveImportService {
     DiveRepository? diveRepository,
     DiveParser? parser,
     GpsTrackMatchService? gpsTrackMatchService,
+    NavTrackMatchService? navTrackMatchService,
     DefaultTankPresetLoader? defaultTankPresetForImports,
     TransmitterMatcherLoader? transmitterMatcherForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser(),
        _gpsTrackMatchService = gpsTrackMatchService,
+       _navTrackMatchService = navTrackMatchService,
        _defaultTankPresetForImports = defaultTankPresetForImports,
        _transmitterMatcherForImports = transmitterMatcherForImports;
 
@@ -488,6 +492,20 @@ class DiveImportService {
         await _gpsTrackMatchService.sweep(limitToIds: importedDiveIds);
       } catch (_) {
         // GPS stamping is an enhancement; the dives imported fine.
+      }
+    }
+
+    // A downloaded dive may already have an unlinked underwater route
+    // waiting for it (an ENC log imported before the dive, or a Suunto
+    // route from an earlier session) -- link the two by time window, scoped
+    // to the dives this download just brought in. Best-effort, same as the
+    // GPS sweep above: matching is an enhancement, the dives imported fine
+    // either way.
+    if (_navTrackMatchService != null && importedDiveIds.isNotEmpty) {
+      try {
+        await _navTrackMatchService.sweep(limitToDiveIds: importedDiveIds);
+      } catch (_) {
+        // Route matching is an enhancement; the dives imported fine.
       }
     }
 

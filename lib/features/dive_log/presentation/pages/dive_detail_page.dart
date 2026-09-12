@@ -85,6 +85,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_locations
 import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -466,6 +467,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       DiveDetailSectionId.surfaceGps: (_) {
         if (!_hasSurfaceGps(dive)) return [];
         return [_surfaceGpsCard(dive, computerReadingsAsync, settings)];
+      },
+      DiveDetailSectionId.navTrack: (_) {
+        // Unlike surfaceGps this section always renders: an empty state
+        // ("No route linked", with "Link route"/"Import file") is itself
+        // useful, whereas the GPS section has nothing to show without a fix.
+        return [NavTrackSection(dive: dive)];
       },
       DiveDetailSectionId.weights: (_) {
         if (!_hasWeights(dive)) return [];

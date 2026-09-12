@@ -14,6 +14,14 @@ enum ImportFormat {
   danDl7,
   ratioXml,
   sqlite,
+
+  /// A Seacraft ENC / ENC3 / ENC3-PRO navigation console log (spec
+  /// 2026-09-10-underwater-nav-track-design.md). Deliberately
+  /// `isSupported == false`: this is a measured underwater route, not a
+  /// dive log, so the dive parser registry never sees it -- detection hands
+  /// it to `NavTrackImportReviewPage` instead of the universal import
+  /// pipeline.
+  navTrack,
   unknown;
 
   String get displayName => switch (this) {
@@ -31,6 +39,7 @@ enum ImportFormat {
     danDl7 => 'DAN DL7',
     ratioXml => 'Ratio XML',
     sqlite => 'SQLite Database',
+    navTrack => 'Seacraft ENC log',
     unknown => 'Unknown',
   };
 

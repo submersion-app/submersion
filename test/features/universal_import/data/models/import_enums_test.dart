@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 void main() {
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(15));
+      expect(ImportFormat.values, hasLength(16));
     });
 
     test('displayName for each format', () {
@@ -22,7 +22,15 @@ void main() {
       expect(ImportFormat.danDl7.displayName, 'DAN DL7');
       expect(ImportFormat.ratioXml.displayName, 'Ratio XML');
       expect(ImportFormat.sqlite.displayName, 'SQLite Database');
+      expect(ImportFormat.navTrack.displayName, 'Seacraft ENC log');
       expect(ImportFormat.unknown.displayName, 'Unknown');
+    });
+
+    test('navTrack is deliberately unsupported by the dive pipeline', () {
+      // A Seacraft ENC log is a measured underwater route, not a dive log
+      // (spec 2026-09-10-underwater-nav-track-design.md); the parser
+      // registry must never receive it.
+      expect(ImportFormat.navTrack.isSupported, isFalse);
     });
 
     test(

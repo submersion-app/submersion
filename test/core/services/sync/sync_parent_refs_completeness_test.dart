@@ -85,6 +85,7 @@ void main() {
     'service_kinds': 'serviceKinds',
     'service_schedules': 'serviceSchedules',
     'gps_tracks': 'gpsTracks',
+    'nav_tracks': 'navTracks',
     'diver_weight_entries': 'diverWeightEntries',
     'dive_roles': 'diveRoles',
     'equipment_attributes': 'equipmentAttributes',

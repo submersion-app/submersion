@@ -21573,6 +21573,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_importAsRoute => 'ייבוא כמסלול';
+
+  @override
   String get universalImport_summary_fileNeedsIndividualImport =>
       'נדרש ייבוא נפרד';
 
@@ -25099,6 +25102,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'קירות תלולים';
 
   @override
+  String get dive3d_seascape_showRoute => 'הצג מסלול';
+
+  @override
   String get dive3d_overlay_water => 'פני המים';
 
   @override
@@ -25352,6 +25358,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dive3d_spatial_estimatedPath => 'נתיב משוער (ניווט משוער)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'מסלול מוקלט';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'מסלול מוקלט ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'קרקעית ים מסונתזת';
@@ -38491,4 +38505,406 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_gearArrangementSubtitle =>
       'כיצד הציוד מקובץ וממוין בצלילה';
+
+  @override
+  String get navTrack_common_loadError => 'לא ניתן היה לטעון את המסלול הזה.';
+
+  @override
+  String get navTrack_common_notFound => 'המסלול לא נמצא.';
+
+  @override
+  String get navTrack_common_cancel => 'ביטול';
+
+  @override
+  String get navTrack_common_save => 'שמירה';
+
+  @override
+  String get navTrack_common_delete => 'מחק';
+
+  @override
+  String get navTrack_common_unlink => 'בטל קישור';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'פתח תלת-ממד';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'צלילה #$number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'צלילה $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'לא מקושר';
+
+  @override
+  String get navTrack_align_title => 'יישור על המפה';
+
+  @override
+  String get navTrack_align_resetTooltip => 'איפוס תיקון';
+
+  @override
+  String get navTrack_align_setStartHere => 'קבע התחלה כאן';
+
+  @override
+  String get navTrack_align_setEndHere => 'קבע סיום כאן';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'קבע התחלה על המפה';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'מנקודת הכניסה לצלילה';
+
+  @override
+  String get navTrack_align_fromSite => 'מאתר הצלילה';
+
+  @override
+  String get navTrack_align_fromGps => 'מ-GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'התחלה: ';
+
+  @override
+  String get navTrack_align_endLabel => 'סיום: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'ללא';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'זהה להתחלה';
+
+  @override
+  String get navTrack_align_endMode_point => 'מיקום על המפה';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'מתיקון GPS';
+
+  @override
+  String navTrack_align_trustSummary(String distanceMeters, int minutes) {
+    return 'אמינות: מהימן עד $distanceMeters מ׳, $minutes דק׳';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'סיבוב:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand נקודות ביבשה, $below מתוך $total מתחת לקרקעית הים$maxPart, $unknown לא ידועות$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String meters) {
+    return ' (מקסימום $meters מ׳)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (בתימטריה גסה: נבדקו רק התנגשויות ביבשה)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'שינוי שם המסלול';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'למחוק את המסלול?';
+
+  @override
+  String get navTrack_detail_deleteMessage => 'לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'מסלול';
+
+  @override
+  String get navTrack_detail_menuRename => 'שינוי שם';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'שינוי אתר';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'קבע את נקודת ההתחלה כדי לראות זאת על מפה.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none => 'טרם הוחל תיקון.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'הסיום נקבע כזהה להתחלה.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'נקודת הסיום נקבעה על המפה.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'הסיום נקבע מתיקון ה-GPS של ההקלטה.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'מכשיר: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'ציוד: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'מרחק: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'עומק מקס׳: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'מהירות מקס׳: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'מהירות ממוצעת: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'משך: $hours שעות $minutes דק׳';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'סוללה: $start וולט -> $end וולט';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'אין צלילה מקושרת';
+
+  @override
+  String get navTrack_detail_chooseDive => 'בחר צלילה';
+
+  @override
+  String get navTrack_detail_noSite => 'אין אתר צלילה';
+
+  @override
+  String get navTrack_detail_chooseSite => 'בחר אתר';
+
+  @override
+  String get navTrack_review_title => 'ייבוא מסלול תת-ימי';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater דגימות מתחת למים, אין תיקון GPS בהקלטה זו.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    int vector,
+  ) {
+    return '$underwater דגימות מתחת למים, $surface דגימות פני שטח, תיקון GPS במרחק $vector מ׳ מהסיום המשוער.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'לא ניתן היה לשמור את המסלול הזה: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'לא ניתן היה לייבא את הקובץ הזה: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'יומן Seacraft ENC';
+
+  @override
+  String get navTrack_review_nameHint => 'שם (אופציונלי)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'לא נרשמה תנועה: המרחק והמהירות נשארים באפס לאורך כל הקובץ.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'זה נראה כמו מסלול שכבר יובא מאותו קובץ.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'החלפה';
+
+  @override
+  String get navTrack_review_linkToDive => 'קישור לצלילה';
+
+  @override
+  String get navTrack_review_diveSite => 'אתר צלילה';
+
+  @override
+  String get navTrack_review_equipment => 'ציוד';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'ללא ציוד';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'לא נבחר אתר צלילה';
+
+  @override
+  String get navTrack_review_row_start => 'התחלה';
+
+  @override
+  String get navTrack_review_row_end => 'סיום';
+
+  @override
+  String get navTrack_review_row_duration => 'משך';
+
+  @override
+  String get navTrack_review_row_distance => 'מרחק';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'עומק מקס׳';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'מהירות מקס׳';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'השאר ללא קישור';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'הייבוא נכשל: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'לא ניתן היה להתאים את המסלולים.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'המסלולים הותאמו לצלילות.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return 'למחוק את \"$name\"?';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'ייבוא קובץ מסלול';
+
+  @override
+  String get navTrack_list_matchTooltip => 'התאם עכשיו';
+
+  @override
+  String get navTrack_list_title => 'מסלולים תת-ימיים';
+
+  @override
+  String get navTrack_list_noMapRoutes => 'עדיין לא הוצבו מסלולים על המפה.';
+
+  @override
+  String get navTrack_list_empty => 'עדיין אין מסלולים תת-ימיים.';
+
+  @override
+  String get navTrack_seascape_title => 'נוף תת-ימי של המסלול';
+
+  @override
+  String get navTrack_seascape_noScene => 'למסלול הזה אין נוף תת-ימי שמיש.';
+
+  @override
+  String get navTrack_handoff_recognized => 'זוהה יומן ניווט Seacraft ENC';
+
+  @override
+  String get navTrack_handoff_description =>
+      'זהו מסלול תת-ימי, לא יומן צלילה. יש לו מקום משלו ב-Submersion, נפרד מייבוא הצלילות שלך.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'בדיקת המסלול';
+
+  @override
+  String get navTrack_section_title => 'מסלול תת-ימי';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסלולים',
+      two: 'שני מסלולים',
+      one: 'מסלול אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'אין מסלול מקושר';
+
+  @override
+  String get navTrack_section_linkButton => 'קישור מסלול';
+
+  @override
+  String get navTrack_section_importButton => 'ייבוא קובץ';
+
+  @override
+  String get navTrack_section_primaryTag => 'ראשי';
+
+  @override
+  String get navTrack_section_menuOpen => 'פתיחת המסלול';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'פתיחת נוף תלת-ממד';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'הגדרה כראשי';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'קובץ זה אינו יומן ניווט Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'לא ניתן היה לקרוא את הקובץ הזה כיומן ניווט Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'בהקלטה זו יש מעט מדי דגימות כדי להיות מסלול שמיש.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'בקובץ זה יש נתונים ש-Submersion לא הצליחה לפענח.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'בהקלטה זו יש יותר דגימות ממה שמסלול יכול לאחסן.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'מסלול תת-ימי';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'מסלול תת-ימי שנמדד ממסוף ניווט';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'מסלולים תת-ימיים';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
 }

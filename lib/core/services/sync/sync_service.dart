@@ -207,7 +207,16 @@ enum ConflictResolution { keepLocal, keepRemote, keepBoth }
 /// deletion is tracked in the deletion log. [nullable] distinguishes a cascade
 /// child (NOT NULL -> the row cannot exist without the parent) from a set-null
 /// reference (nullable -> the row survives with the reference cleared).
-typedef ParentRef = ({String field, String parent, bool nullable});
+/// [alsoClear] names other fields on the same record that must be nulled
+/// alongside [field] when the parent is tombstoned -- fields that are only
+/// meaningful while the reference is set (e.g. a link-mode flag that must
+/// stay null exactly when the reference it describes is null).
+typedef ParentRef = ({
+  String field,
+  String parent,
+  bool nullable,
+  List<String> alsoClear,
+});
 
 /// Outcome of the library-epoch gate: either a [terminal] result the caller
 /// must return immediately (a pending replace was executed, the marker was
@@ -1324,6 +1333,7 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
+          (type: 'navTracks', records: data.navTracks, hasUpdatedAt: true),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
             type: 'divePlanTanks',
@@ -2294,6 +2304,7 @@ class SyncService {
     'preDiveSessions': true,
     'preDiveSessionItems': true,
     'gpsTracks': true,
+    'navTracks': true,
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
@@ -2410,138 +2421,313 @@ class SyncService {
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [
-      (field: 'siteId', parent: 'diveSites', nullable: true),
-      (field: 'tripId', parent: 'trips', nullable: true),
-      (field: 'courseId', parent: 'courses', nullable: true),
-      (field: 'computerId', parent: 'diveComputers', nullable: true),
-      (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+      (field: 'siteId', parent: 'diveSites', nullable: true, alsoClear: []),
+      (field: 'tripId', parent: 'trips', nullable: true, alsoClear: []),
+      (field: 'courseId', parent: 'courses', nullable: true, alsoClear: []),
+      (
+        field: 'computerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
+      (
+        field: 'diveCenterId',
+        parent: 'diveCenters',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'qualityFindings': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'relatedDiveId', parent: 'dives', nullable: true),
-      (field: 'computerId', parent: 'diveComputers', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (field: 'relatedDiveId', parent: 'dives', nullable: true, alsoClear: []),
+      (
+        field: 'computerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     // v175 gear twins: a peer's live computer whose gear item we deleted
     // locally would otherwise dangle this FK and abort the whole sync at
     // COMMIT. Nullable, so the computer survives with the reference cleared.
     'diveComputers': [
-      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     // Both gear FKs are nullable: the registry entry outlives a deleted
     // cylinder or computer (set null), so a missing parent must not drop it.
     'transmitters': [
-      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
       // v206: the transmitter gear item the entry is (condition phase 3b).
-      (field: 'transmitterEquipmentId', parent: 'equipment', nullable: true),
-      (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
+      (
+        field: 'transmitterEquipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
+      (
+        field: 'diveComputerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     // v202: a child item (O2 cell, battery) points at the item it is installed
     // in. Nullable: deleting the parent orphans the child, never drops it.
     'equipment': [
-      (field: 'parentEquipmentId', parent: 'equipment', nullable: true),
+      (
+        field: 'parentEquipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'diveTanks': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
       // v202: the regulator breathed from the cylinder; user-authored and
       // nullable, so a deleted regulator only clears the link.
-      (field: 'regulatorEquipmentId', parent: 'equipment', nullable: true),
-      (field: 'computerId', parent: 'diveComputers', nullable: true),
+      (
+        field: 'regulatorEquipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
+      (
+        field: 'computerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
-    'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveWeights': [
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+    ],
     'diveEquipment': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
       // Provenance (issue #1487). Nullable by design: the schema is ON DELETE
       // SET NULL, so a peer that deleted the assembly or the set clears the
       // pointer instead of dropping the row.
-      (field: 'viaEquipmentId', parent: 'equipment', nullable: true),
-      (field: 'viaSetId', parent: 'equipmentSets', nullable: true),
+      (
+        field: 'viaEquipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
+      (
+        field: 'viaSetId',
+        parent: 'equipmentSets',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'diveBuddies': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'buddyId', parent: 'buddies', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (field: 'buddyId', parent: 'buddies', nullable: false, alsoClear: []),
     ],
     'mediaEnrichment': [
-      (field: 'mediaId', parent: 'media', nullable: false),
-      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'mediaId', parent: 'media', nullable: false, alsoClear: []),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
     ],
     'diveTags': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'tagId', parent: 'tags', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (field: 'tagId', parent: 'tags', nullable: false, alsoClear: []),
     ],
-    'diveDiveTypes': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveDiveTypes': [
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+    ],
     'diveProfileEvents': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'computerId', parent: 'diveComputers', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (
+        field: 'computerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
-    'emergencyChambers': [(field: 'diverId', parent: 'divers', nullable: true)],
+    'emergencyChambers': [
+      (field: 'diverId', parent: 'divers', nullable: true, alsoClear: []),
+    ],
     'incidents': [
-      (field: 'diverId', parent: 'divers', nullable: true),
-      (field: 'diveId', parent: 'dives', nullable: true),
+      (field: 'diverId', parent: 'divers', nullable: true, alsoClear: []),
+      (field: 'diveId', parent: 'dives', nullable: true, alsoClear: []),
       // v202: the item an equipment incident attributes to; nullable.
-      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
+    ],
+    'diveSafetyReviews': [
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+    ],
+    'diveSafetyFindings': [
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+    ],
+    'gasSwitches': [
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+    ],
+    'diveCustomFields': [
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+    ],
+    'tideRecords': [
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
     ],
     // v202: a gear check-in; the item is required, the dive optional.
     'equipmentObservations': [
-      (field: 'diverId', parent: 'divers', nullable: true),
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
-      (field: 'diveId', parent: 'dives', nullable: true),
+      (field: 'diverId', parent: 'divers', nullable: true, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
+      (field: 'diveId', parent: 'dives', nullable: true, alsoClear: []),
     ],
     // v202: condition findings, write-once children of equipment.
     'equipmentFindings': [
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
-    'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
-    'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],
-    'gasSwitches': [(field: 'diveId', parent: 'dives', nullable: false)],
-    'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
-    'tideRecords': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveDataSources': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'computerId', parent: 'diveComputers', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (
+        field: 'computerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'diveProfileSeries': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'computerId', parent: 'diveComputers', nullable: true),
-      (field: 'sourceId', parent: 'diveDataSources', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (
+        field: 'computerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
+      (
+        field: 'sourceId',
+        parent: 'diveDataSources',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'tankPressureSeries': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'tankId', parent: 'diveTanks', nullable: false),
-      (field: 'computerId', parent: 'diveComputers', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (field: 'tankId', parent: 'diveTanks', nullable: false, alsoClear: []),
+      (
+        field: 'computerId',
+        parent: 'diveComputers',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'sightings': [
-      (field: 'diveId', parent: 'dives', nullable: false),
-      (field: 'speciesId', parent: 'species', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
+      (field: 'speciesId', parent: 'species', nullable: false, alsoClear: []),
     ],
     'media': [
-      (field: 'diveId', parent: 'dives', nullable: true),
-      (field: 'siteId', parent: 'diveSites', nullable: true),
-      (field: 'equipmentId', parent: 'equipment', nullable: true),
-      (field: 'signerId', parent: 'buddies', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: true, alsoClear: []),
+      (field: 'siteId', parent: 'diveSites', nullable: true, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
+      (field: 'signerId', parent: 'buddies', nullable: true, alsoClear: []),
+    ],
+    // All three nullable (onDelete: KeyAction.setNull): the recording
+    // outlives a deleted dive, site or equipment item and just loses the
+    // link (spec 2026-09-10-underwater-nav-track-design.md).
+    'navTracks': [
+      // linkMode records HOW diveId got linked ('auto'/'manual') and is
+      // meaningless once diveId is cleared (nav_tracks schema comment,
+      // database.dart); clearing it here keeps that invariant when a
+      // peer's still-linked route arrives after this device already
+      // tombstoned its dive, mirroring the explicit normalization
+      // NavTrackRepository does for the same unlink on the local delete
+      // path. isPrimary is left alone: it is a NOT NULL column with a
+      // default, nothing queries it without also filtering on diveId, and
+      // nulling it through this generic mechanism would violate the
+      // column's NOT NULL constraint.
+      (
+        field: 'diveId',
+        parent: 'dives',
+        nullable: true,
+        alsoClear: ['linkMode'],
+      ),
+      (field: 'siteId', parent: 'diveSites', nullable: true, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'siteSpecies': [
-      (field: 'siteId', parent: 'diveSites', nullable: false),
-      (field: 'speciesId', parent: 'species', nullable: false),
+      (field: 'siteId', parent: 'diveSites', nullable: false, alsoClear: []),
+      (field: 'speciesId', parent: 'species', nullable: false, alsoClear: []),
     ],
     'mediaSpecies': [
-      (field: 'mediaId', parent: 'media', nullable: false),
-      (field: 'speciesId', parent: 'species', nullable: false),
+      (field: 'mediaId', parent: 'media', nullable: false, alsoClear: []),
+      (field: 'speciesId', parent: 'species', nullable: false, alsoClear: []),
     ],
-    'siteFeatures': [(field: 'siteId', parent: 'diveSites', nullable: false)],
-    'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
-    'itineraryDays': [(field: 'tripId', parent: 'trips', nullable: false)],
-    'tripDayWeather': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'siteFeatures': [
+      (field: 'siteId', parent: 'diveSites', nullable: false, alsoClear: []),
+    ],
+    'liveaboardDetails': [
+      (field: 'tripId', parent: 'trips', nullable: false, alsoClear: []),
+    ],
+    'itineraryDays': [
+      (field: 'tripId', parent: 'trips', nullable: false, alsoClear: []),
+    ],
+    'tripDayWeather': [
+      (field: 'tripId', parent: 'trips', nullable: false, alsoClear: []),
+    ],
     'checklistTemplateItems': [
-      (field: 'templateId', parent: 'checklistTemplates', nullable: false),
+      (
+        field: 'templateId',
+        parent: 'checklistTemplates',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
-    'tripChecklistItems': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'tripChecklistItems': [
+      (field: 'tripId', parent: 'trips', nullable: false, alsoClear: []),
+    ],
     'preDiveChecklistTemplateItems': [
       (
         field: 'templateId',
         parent: 'preDiveChecklistTemplates',
         nullable: false,
+        alsoClear: [],
       ),
     ],
     'preDiveSessions': [
@@ -2549,79 +2735,174 @@ class SyncService {
         field: 'templateId',
         parent: 'preDiveChecklistTemplates',
         nullable: true,
+        alsoClear: [],
       ),
-      (field: 'diveId', parent: 'dives', nullable: true),
-      (field: 'tripId', parent: 'trips', nullable: true),
-      (field: 'equipmentSetId', parent: 'equipmentSets', nullable: true),
+      (field: 'diveId', parent: 'dives', nullable: true, alsoClear: []),
+      (field: 'tripId', parent: 'trips', nullable: true, alsoClear: []),
+      (
+        field: 'equipmentSetId',
+        parent: 'equipmentSets',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'preDiveSessionItems': [
-      (field: 'sessionId', parent: 'preDiveSessions', nullable: false),
-      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (
+        field: 'sessionId',
+        parent: 'preDiveSessions',
+        nullable: false,
+        alsoClear: [],
+      ),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'divePlans': [
-      (field: 'siteId', parent: 'diveSites', nullable: true),
-      (field: 'sourceDiveId', parent: 'dives', nullable: true),
-      (field: 'linkedDiveId', parent: 'dives', nullable: true),
+      (field: 'siteId', parent: 'diveSites', nullable: true, alsoClear: []),
+      (field: 'sourceDiveId', parent: 'dives', nullable: true, alsoClear: []),
+      (field: 'linkedDiveId', parent: 'dives', nullable: true, alsoClear: []),
     ],
-    'divePlanTanks': [(field: 'planId', parent: 'divePlans', nullable: false)],
+    'divePlanTanks': [
+      (field: 'planId', parent: 'divePlans', nullable: false, alsoClear: []),
+    ],
     'divePlanSegments': [
-      (field: 'planId', parent: 'divePlans', nullable: false),
-      (field: 'tankId', parent: 'divePlanTanks', nullable: false),
+      (field: 'planId', parent: 'divePlans', nullable: false, alsoClear: []),
+      (
+        field: 'tankId',
+        parent: 'divePlanTanks',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
     'certifications': [
-      (field: 'courseId', parent: 'courses', nullable: true),
-      (field: 'instructorId', parent: 'buddies', nullable: true),
-      (field: 'buddyId', parent: 'buddies', nullable: true),
+      (field: 'courseId', parent: 'courses', nullable: true, alsoClear: []),
+      (field: 'instructorId', parent: 'buddies', nullable: true, alsoClear: []),
+      (field: 'buddyId', parent: 'buddies', nullable: true, alsoClear: []),
     ],
-    'courses': [(field: 'instructorId', parent: 'buddies', nullable: true)],
+    'courses': [
+      (field: 'instructorId', parent: 'buddies', nullable: true, alsoClear: []),
+    ],
     'courseRequirements': [
-      (field: 'courseId', parent: 'courses', nullable: false),
+      (field: 'courseId', parent: 'courses', nullable: false, alsoClear: []),
     ],
     'courseRequirementDives': [
-      (field: 'requirementId', parent: 'courseRequirements', nullable: false),
-      (field: 'diveId', parent: 'dives', nullable: false),
+      (
+        field: 'requirementId',
+        parent: 'courseRequirements',
+        nullable: false,
+        alsoClear: [],
+      ),
+      (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),
     ],
     'equipmentSetItems': [
-      (field: 'setId', parent: 'equipmentSets', nullable: false),
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'setId', parent: 'equipmentSets', nullable: false, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
     'weightPresetEntries': [
-      (field: 'presetId', parent: 'weightPresets', nullable: false),
+      (
+        field: 'presetId',
+        parent: 'weightPresets',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
     'equipmentSetGeofences': [
-      (field: 'setId', parent: 'equipmentSets', nullable: false),
+      (field: 'setId', parent: 'equipmentSets', nullable: false, alsoClear: []),
     ],
     // equipmentId is nullable by design: deleting a rebreather demotes its
     // configurations to generic gas plans (ON DELETE SET NULL) rather than
     // destroying them, so a peer's config referencing a locally-deleted unit
     // must have the reference cleared, not be skipped.
     'cylinderConfigs': [
-      (field: 'diverId', parent: 'divers', nullable: true),
-      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (field: 'diverId', parent: 'divers', nullable: true, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'cylinderConfigItems': [
-      (field: 'configId', parent: 'cylinderConfigs', nullable: false),
+      (
+        field: 'configId',
+        parent: 'cylinderConfigs',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
     'divePlanEquipment': [
-      (field: 'planId', parent: 'divePlans', nullable: false),
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'planId', parent: 'divePlans', nullable: false, alsoClear: []),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
       // Provenance (issue #1487); see diveEquipment.
-      (field: 'viaEquipmentId', parent: 'equipment', nullable: true),
-      (field: 'viaSetId', parent: 'equipmentSets', nullable: true),
+      (
+        field: 'viaEquipmentId',
+        parent: 'equipment',
+        nullable: true,
+        alsoClear: [],
+      ),
+      (
+        field: 'viaSetId',
+        parent: 'equipmentSets',
+        nullable: true,
+        alsoClear: [],
+      ),
     ],
     'serviceRecords': [
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
     'equipmentAttributes': [
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
     'equipmentComponents': [
-      (field: 'parentEquipmentId', parent: 'equipment', nullable: false),
-      (field: 'componentEquipmentId', parent: 'equipment', nullable: false),
+      (
+        field: 'parentEquipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
+      (
+        field: 'componentEquipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
     'serviceSchedules': [
-      (field: 'equipmentId', parent: 'equipment', nullable: false),
-      (field: 'serviceKindId', parent: 'serviceKinds', nullable: false),
+      (
+        field: 'equipmentId',
+        parent: 'equipment',
+        nullable: false,
+        alsoClear: [],
+      ),
+      (
+        field: 'serviceKindId',
+        parent: 'serviceKinds',
+        nullable: false,
+        alsoClear: [],
+      ),
     ],
   };
 
@@ -2700,7 +2981,11 @@ class SyncService {
               // the child's reference intact regardless of merge order.
               (revivedParents[ref.parent]?.contains(parentId) != true)) {
             if (ref.nullable) {
-              recordToApply = {...recordToApply, ref.field: null};
+              recordToApply = {
+                ...recordToApply,
+                ref.field: null,
+                for (final also in ref.alsoClear) also: null,
+              };
             } else {
               droppedByParent = true;
               break;

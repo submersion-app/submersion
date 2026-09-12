@@ -22,6 +22,7 @@ import 'package:submersion/features/backup/presentation/pages/restore_complete_p
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -320,7 +321,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
         : null;
 
-    final shouldNavigate = await handleIncomingFile(
+    final outcome = await handleIncomingFile(
       bytes: bytes,
       fileName: fileName,
       currentPath: location,
@@ -330,10 +331,20 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       unsupportedFileMessage: l10n?.dropTarget_error_unsupportedFile,
     );
 
-    if (shouldNavigate) {
-      // PUSH (not go): the wizard is a sub-page, so system back returns to
-      // wherever the drop happened instead of closing the app (#647).
-      router.push('/transfer/import-wizard');
+    if (!mounted) return;
+
+    switch (outcome) {
+      case IncomingFileOutcome.navigateToWizard:
+        // PUSH (not go): the wizard is a sub-page, so system back returns
+        // to wherever the drop happened instead of closing the app (#647).
+        router.push('/transfer/import-wizard');
+      case IncomingFileOutcome.navigateToNavTrackReview:
+        final navContext = rootNavigatorKey.currentContext;
+        if (navContext != null && navContext.mounted) {
+          await navigateToNavTrackReview(navContext, bytes, fileName: fileName);
+        }
+      case IncomingFileOutcome.none:
+        break;
     }
   }
 

@@ -13,6 +13,9 @@ import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -152,6 +155,56 @@ void main() {
       expect((await publishCapped()).kind, ChangesetWriteKind.base);
     },
   );
+
+  test('a nav_tracks.points delta over the cap publishes a base, not a '
+      'changeset (item 3: the oversized-changeset guard used to scan only '
+      'dive_profile_series and tank_pressure_series, so an imported route '
+      'bypassed it and could recreate the OOM the streamed-base path exists '
+      'to prevent)', () async {
+    final db = DatabaseService.instance.database;
+    final serializer = SyncDataSerializer();
+    final capped = ChangesetWriter(
+      serializer,
+      ChangesetCodec(serializer),
+      PublishStateStore(db),
+      compactionByteRatio: 1000.0,
+      compactionMaxChangesets: 1 << 30,
+      maxChangesetSeriesBlobBytes: 256,
+    );
+    Future<ChangesetWriteResult> publishCapped() async => capped.publish(
+      provider: provider,
+      deviceId: await SyncRepository().getDeviceId(),
+      folderId: folder,
+      deletions: await SyncRepository().getAllDeletions(),
+    );
+
+    expect((await publishCapped()).kind, ChangesetWriteKind.noop);
+
+    await NavTrackRepository().insertImportedRoute(
+      points: [
+        for (var i = 0; i < 2000; i++)
+          NavTrackPoint(
+            timestamp: i,
+            north: i * 1.3,
+            east: i * 0.7,
+            depth: (i % 40).toDouble(),
+            distance: i * 1.5,
+          ),
+      ],
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'big.csv',
+    );
+
+    expect(
+      await serializer.pendingSeriesBlobBytes(null),
+      greaterThan(256),
+      reason:
+          'the fixture must actually exceed the cap once nav_tracks is '
+          'included in the size calculation',
+    );
+
+    expect((await publishCapped()).kind, ChangesetWriteKind.base);
+  });
 
   test('a series delta under the cap still publishes a changeset', () async {
     await DiveRepository().createDive(

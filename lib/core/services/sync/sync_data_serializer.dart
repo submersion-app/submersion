@@ -284,6 +284,7 @@ class SyncData {
   final List<Map<String, dynamic>> preDiveSessions;
   final List<Map<String, dynamic>> preDiveSessionItems;
   final List<Map<String, dynamic>> gpsTracks;
+  final List<Map<String, dynamic>> navTracks;
   final List<Map<String, dynamic>> divePlans;
   final List<Map<String, dynamic>> divePlanTanks;
   final List<Map<String, dynamic>> divePlanSegments;
@@ -375,6 +376,7 @@ class SyncData {
     this.preDiveSessions = const [],
     this.preDiveSessionItems = const [],
     this.gpsTracks = const [],
+    this.navTracks = const [],
     this.divePlans = const [],
     this.divePlanTanks = const [],
     this.divePlanSegments = const [],
@@ -461,6 +463,7 @@ class SyncData {
     'preDiveSessions': preDiveSessions,
     'preDiveSessionItems': preDiveSessionItems,
     'gpsTracks': gpsTracks,
+    'navTracks': navTracks,
     'divePlans': divePlans,
     'divePlanTanks': divePlanTanks,
     'divePlanSegments': divePlanSegments,
@@ -550,6 +553,7 @@ class SyncData {
       preDiveSessions: _parseList(json['preDiveSessions']),
       preDiveSessionItems: _parseList(json['preDiveSessionItems']),
       gpsTracks: _parseList(json['gpsTracks']),
+      navTracks: _parseList(json['navTracks']),
       divePlans: _parseList(json['divePlans']),
       divePlanTanks: _parseList(json['divePlanTanks']),
       divePlanSegments: _parseList(json['divePlanSegments']),
@@ -928,6 +932,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'gpsTracks', table: _db.gpsTracks, blob: true, full: null),
+    (key: 'navTracks', table: _db.navTracks, blob: true, full: null),
     (key: 'divePlans', table: _db.divePlans, blob: false, full: null),
     (key: 'divePlanTanks', table: _db.divePlanTanks, blob: false, full: null),
     (
@@ -1780,6 +1785,10 @@ class SyncDataSerializer {
         'gpsTracks',
         () => _exportGpsTracks(hlcSince),
       ),
+      navTracks: await _safeExport(
+        'navTracks',
+        () => _exportNavTracks(hlcSince),
+      ),
       divePlans: await _safeExport(
         'divePlans',
         () => _exportDivePlans(hlcSince),
@@ -2331,6 +2340,12 @@ class SyncDataSerializer {
           _db.gpsTracks,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         // The points BLOB rides as base64, matching _exportGpsTracks.
+        return row?.toJson(serializer: _syncBlobSerializer);
+      case 'navTracks':
+        final row = await (_db.select(
+          _db.navTracks,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        // The points BLOB rides as base64, matching _exportNavTracks.
         return row?.toJson(serializer: _syncBlobSerializer);
       case 'divePlans':
         final row = await (_db.select(
@@ -3366,6 +3381,13 @@ class SyncDataSerializer {
               GpsTrackRow.fromJson(data, serializer: _syncBlobSerializer),
             );
         return;
+      case 'navTracks':
+        await _db
+            .into(_db.navTracks)
+            .insertOnConflictUpdate(
+              NavTrackRow.fromJson(data, serializer: _syncBlobSerializer),
+            );
+        return;
       case 'divePlans':
         await _db
             .into(_db.divePlans)
@@ -4253,6 +4275,19 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'navTracks':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.navTracks,
+            records
+                .map(
+                  (r) =>
+                      NavTrackRow.fromJson(r, serializer: _syncBlobSerializer),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'divePlans':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -4774,6 +4809,8 @@ class SyncDataSerializer {
         return plain(_db.preDiveSessionItems, _db.preDiveSessionItems.id);
       case 'gpsTracks':
         return plain(_db.gpsTracks, _db.gpsTracks.id);
+      case 'navTracks':
+        return plain(_db.navTracks, _db.navTracks.id);
       case 'divePlans':
         return plain(_db.divePlans, _db.divePlans.id);
       case 'divePlanTanks':
@@ -5136,6 +5173,8 @@ class SyncDataSerializer {
         return _db.preDiveSessionItems;
       case 'gpsTracks':
         return _db.gpsTracks;
+      case 'navTracks':
+        return _db.navTracks;
       case 'divePlans':
         return _db.divePlans;
       case 'divePlanTanks':
@@ -5508,6 +5547,11 @@ class SyncDataSerializer {
       case 'gpsTracks':
         await (_db.delete(
           _db.gpsTracks,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'navTracks':
+        await (_db.delete(
+          _db.navTracks,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'divePlans':
@@ -6294,26 +6338,47 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
-  /// The stored size, in bytes, of the packed sample blobs an incremental
-  /// changeset would carry above [hlcSince] (everything when it is null).
+  Future<List<Map<String, dynamic>>> _exportNavTracks(String? hlcSince) async {
+    final query = _db.select(_db.navTracks);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    // nav_tracks carries the points BLOB; encode it as base64, like
+    // gps_tracks.points.
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+  }
+
+  /// The stored size, in bytes, of the packed sample/route blobs an
+  /// incremental changeset would carry above [hlcSince] (everything when it
+  /// is null).
   ///
   /// The changeset export builds its whole payload in memory, base64 and
   /// `jsonEncode` alive at once, which the base path deliberately avoids by
-  /// streaming to a temp file. These two entities are the only ones whose
-  /// rows carry a large blob AND can all move at once: the v182 migration
-  /// stamps every packed row with one freshly issued HLC, so the first
-  /// changeset after the upgrade would otherwise select the entire packed
-  /// corpus into a single unstreamed payload. [ChangesetWriter] asks this
-  /// first and publishes a streamed base instead when the answer is too big.
+  /// streaming to a temp file. These are the entities whose rows carry a
+  /// large blob AND can all move at once: the v182 migration stamps every
+  /// packed profile/pressure row with one freshly issued HLC, so the first
+  /// changeset after that upgrade would otherwise select the entire packed
+  /// corpus into a single unstreamed payload -- and an imported nav_tracks
+  /// route (or several) carries its own large `points` blob the same way.
+  /// [ChangesetWriter] asks this first and publishes a streamed base instead
+  /// when the answer is too big.
   ///
   /// `length()` on a blob column reads the record header, not the payload,
-  /// so this costs a scan of two small tables and no blob reads.
+  /// so this costs a scan of a few small tables and no blob reads.
   Future<int> pendingSeriesBlobBytes(String? hlcSince) async {
+    const blobColumnByTable = {
+      'dive_profile_series': 'samples',
+      'tank_pressure_series': 'samples',
+      'nav_tracks': 'points',
+    };
     var total = 0;
-    for (final table in const ['dive_profile_series', 'tank_pressure_series']) {
-      // Guarded per table: _assertProfileSeriesSchema waits for each series
-      // table's foreign key parents, so a partially built database can reach
-      // a publish without one.
+    for (final entry in blobColumnByTable.entries) {
+      final table = entry.key;
+      final column = entry.value;
+      // Guarded per table: _assertProfileSeriesSchema/_assertNavTracksSchema
+      // wait for each table's foreign key parents, so a partially built
+      // database can reach a publish without one.
       final exists = await _db
           .customSelect(
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
@@ -6323,7 +6388,7 @@ class SyncDataSerializer {
       if (exists.isEmpty) continue;
       final row = await _db
           .customSelect(
-            'SELECT COALESCE(SUM(LENGTH(samples)), 0) AS n FROM $table'
+            'SELECT COALESCE(SUM(LENGTH($column)), 0) AS n FROM $table'
             '${hlcSince == null ? '' : ' WHERE hlc > ?'}',
             variables: hlcSince == null
                 ? const []

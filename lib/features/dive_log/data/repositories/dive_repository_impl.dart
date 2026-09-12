@@ -47,6 +47,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
@@ -135,6 +136,7 @@ class DiveRepository {
       EquipmentObservationRepository();
   late final DiveCustomFieldRepository _customFieldRepository =
       DiveCustomFieldRepository(_db);
+  final NavTrackRepository _navTrackRepository = NavTrackRepository();
 
   // ============================================================================
   // CRUD Operations
@@ -1949,7 +1951,13 @@ class DiveRepository {
       if (cascadeMedia) await _cascadeMediaForDiveDeletion([id]);
       // Check-ins on the dive stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives([id]);
+      // Captured before the delete: the nav_tracks.dive_id FK's own SET NULL
+      // fires as part of the dive row's removal, so afterwards there is no
+      // way to tell which routes it just unlinked from which were already
+      // unlinked.
+      final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDive(id);
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
+      await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // The FK cascade took this dive's dive_data_sources rows, which may
       // have held the last reference to a stored import file (issue #478).
       // Gated on cascadeMedia for the same reason the media cascade is: a
@@ -1982,7 +1990,16 @@ class DiveRepository {
       if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives(ids);
+      // See deleteDive: must be captured before the delete removes the
+      // dives that the nav_tracks.dive_id FK's SET NULL is about to unlink.
+      final linkedRouteIds = <String>[];
+      for (final id in ids) {
+        linkedRouteIds.addAll(
+          await _navTrackRepository.routeIdsLinkedToDive(id),
+        );
+      }
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+      await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // See deleteDive: the cascade may have orphaned a stored import file.
       if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       for (final id in ids) {
