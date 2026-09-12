@@ -11521,6 +11521,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Erreur';
 
   @override
+  String get equipment_detail_installedInLabel => 'Installé dans';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Dernière révision';
 
   @override
@@ -11544,6 +11547,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'Possede depuis';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Date d\'achat';
@@ -11947,6 +11955,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Voir les voyages utilisant cet équipement';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Était installé dans';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Modifier l\'équipement';
