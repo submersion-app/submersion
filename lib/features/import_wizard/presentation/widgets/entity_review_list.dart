@@ -20,9 +20,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Order: likely duplicates (score >= 0.7), then possible duplicates
 /// (score >= 0.5), then non-duplicates. Duplicates appear first so rows
 /// needing a user decision aren't buried beneath clean imports.
-int? _lastToggledIndex;
 
-class EntityReviewList extends StatelessWidget {
+class EntityReviewList extends StatefulWidget {
   /// The entity group containing items, duplicate indices, and match results.
   final EntityGroup group;
 
@@ -106,12 +105,19 @@ class EntityReviewList extends StatelessWidget {
   static void _noopBulkAction(DuplicateAction _) {}
 
   @override
+  State<EntityReviewList> createState() => _EntityReviewListState();
+}
+
+class _EntityReviewListState extends State<EntityReviewList> {
+  int? _lastToggledIndex;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = context.l10n;
 
-    final autoSkipIndices = group.autoSkipIndices ?? const <int>{};
+    final autoSkipIndices = widget.group.autoSkipIndices ?? const <int>{};
 
     final nonDuplicateIndices = _applySort(
       _nonDuplicateIndices().where((i) => !autoSkipIndices.contains(i)),
@@ -127,8 +133,8 @@ class EntityReviewList extends StatelessWidget {
         .where((i) => !autoSkipIndices.contains(i))
         .toList();
 
-    final totalItems = group.items.length;
-    final duplicateCount = group.duplicateIndices.length;
+    final totalItems = widget.group.items.length;
+    final duplicateCount = widget.group.duplicateIndices.length;
     final nonDuplicateCount = totalItems - duplicateCount;
 
     return Column(
@@ -145,21 +151,21 @@ class EntityReviewList extends StatelessWidget {
                     l10n,
                     nonDuplicateCount,
                     duplicateCount,
-                    selectedIndices.length,
+                    widget.selectedIndices.length,
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
-              if (sortField != null && onSortFieldChanged != null)
+              if (widget.sortField != null && widget.onSortFieldChanged != null)
                 _SortMenuButton(
-                  sortField: sortField!,
-                  sortAscending: sortAscending,
-                  onSortFieldChanged: onSortFieldChanged!,
+                  sortField: widget.sortField!,
+                  sortAscending: widget.sortAscending,
+                  onSortFieldChanged: widget.onSortFieldChanged!,
                 ),
               TextButton(
-                onPressed: onSelectAll,
+                onPressed: widget.onSelectAll,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   minimumSize: Size.zero,
@@ -168,7 +174,7 @@ class EntityReviewList extends StatelessWidget {
                 child: Text(l10n.universalImport_action_selectAll),
               ),
               TextButton(
-                onPressed: onDeselectAll,
+                onPressed: widget.onDeselectAll,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   minimumSize: Size.zero,
@@ -181,13 +187,13 @@ class EntityReviewList extends StatelessWidget {
         ),
 
         // Bulk action row (only when there are pending duplicates).
-        if (pendingIndices.isNotEmpty)
+        if (widget.pendingIndices.isNotEmpty)
           _BulkActionRow(
             isDiveTab: _isDiveTab(),
-            pendingCount: pendingIndices.length,
+            pendingCount: widget.pendingIndices.length,
             matchableConsolidateCount: _matchableConsolidateCount(),
-            availableActions: availableActions,
-            onBulkAction: onBulkAction,
+            availableActions: widget.availableActions,
+            onBulkAction: widget.onBulkAction,
           ),
 
         // Scored duplicates (dives with matchResults) appear first so rows
@@ -225,9 +231,9 @@ class EntityReviewList extends StatelessWidget {
         if (nonDuplicateIndices.isNotEmpty) ...[
           for (final index in nonDuplicateIndices)
             _NonDuplicateRow(
-              item: group.items[index],
+              item: widget.group.items[index],
               index: index,
-              isSelected: selectedIndices.contains(index),
+              isSelected: widget.selectedIndices.contains(index),
               onToggle: () {
                 final isShiftPressed = HardwareKeyboard
                     .instance
@@ -237,11 +243,11 @@ class EntityReviewList extends StatelessWidget {
                           k == LogicalKeyboardKey.shiftLeft ||
                           k == LogicalKeyboardKey.shiftRight,
                     );
-                final isSelecting = !selectedIndices.contains(index);
+                final isSelecting = !widget.selectedIndices.contains(index);
 
                 if (isShiftPressed &&
                     _lastToggledIndex != null &&
-                    onSetSelections != null) {
+                    widget.onSetSelections != null) {
                   final startIndex = nonDuplicateIndices.indexOf(
                     _lastToggledIndex!,
                   );
@@ -252,16 +258,16 @@ class EntityReviewList extends StatelessWidget {
                     final range = nonDuplicateIndices
                         .sublist(start, end + 1)
                         .toSet();
-                    onSetSelections!(range, isSelecting);
+                    widget.onSetSelections!(range, isSelecting);
                   } else {
-                    onToggleSelection(index);
+                    widget.onToggleSelection(index);
                   }
                 } else {
-                  onToggleSelection(index);
+                  widget.onToggleSelection(index);
                 }
                 _lastToggledIndex = index;
               },
-              projectedDiveNumber: projectedDiveNumbers?[index],
+              projectedDiveNumber: widget.projectedDiveNumbers?[index],
             ),
         ],
 
@@ -307,30 +313,30 @@ class EntityReviewList extends StatelessWidget {
   /// [_EntityDuplicateCard], and everything else renders as a
   /// [_NonDuplicateRow].
   Widget _buildRowForIndex(int index) {
-    if (group.duplicateIndices.contains(index)) {
-      final matchResults = group.matchResults;
+    if (widget.group.duplicateIndices.contains(index)) {
+      final matchResults = widget.group.matchResults;
       if (matchResults != null && matchResults[index] != null) {
         return _buildDuplicateCard(index);
       }
       return _buildEntityDuplicateCard(index);
     }
     return _NonDuplicateRow(
-      item: group.items[index],
+      item: widget.group.items[index],
       index: index,
-      isSelected: selectedIndices.contains(index),
-      onToggle: () => onToggleSelection(index),
-      projectedDiveNumber: projectedDiveNumbers?[index],
+      isSelected: widget.selectedIndices.contains(index),
+      onToggle: () => widget.onToggleSelection(index),
+      projectedDiveNumber: widget.projectedDiveNumbers?[index],
     );
   }
 
   Widget _buildDuplicateCard(int index) {
-    final item = group.items[index];
-    final matchResult = group.matchResults![index]!;
+    final item = widget.group.items[index];
+    final matchResult = widget.group.matchResults![index]!;
     // Pass the user's chosen action verbatim — including `null`, which means
     // the user has not yet decided. Falling back to a default here would
     // contradict the "Needs decision" pending state and pre-highlight a
     // button the user did not pick.
-    final action = duplicateActions[index];
+    final action = widget.duplicateActions[index];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -338,34 +344,34 @@ class EntityReviewList extends StatelessWidget {
         item: item,
         matchResult: matchResult,
         selectedAction: action,
-        availableActions: availableActions,
-        onActionChanged: (a) => onDuplicateActionChanged(index, a),
-        existingDiveId: existingDiveIdForIndex(index),
-        projectedDiveNumber: projectedDiveNumbers?[index],
-        isPending: pendingIndices.contains(index),
+        availableActions: widget.availableActions,
+        onActionChanged: (a) => widget.onDuplicateActionChanged(index, a),
+        existingDiveId: widget.existingDiveIdForIndex(index),
+        projectedDiveNumber: widget.projectedDiveNumbers?[index],
+        isPending: widget.pendingIndices.contains(index),
       ),
     );
   }
 
   List<int> _nonDuplicateIndices() {
     return [
-      for (int i = 0; i < group.items.length; i++)
-        if (!group.duplicateIndices.contains(i)) i,
+      for (int i = 0; i < widget.group.items.length; i++)
+        if (!widget.group.duplicateIndices.contains(i)) i,
     ];
   }
 
-  /// Sorts [indices] by [sortField] (date/depth/duration, read off each
+  /// Sorts [indices] by [widget.sortField] (date/depth/duration, read off each
   /// item's [EntityItem.diveData]) when a sort field is set; otherwise
   /// returns them unchanged.
   ///
   /// Items missing the sorted-by field always sink to the end, regardless of
   /// direction, rather than being placed arbitrarily by a null comparison.
   List<int> _applySort(Iterable<int> indices) {
-    final field = sortField;
+    final field = widget.sortField;
     if (field == null) return indices.toList();
 
     double? valueFor(int index) {
-      final data = group.items[index].diveData;
+      final data = widget.group.items[index].diveData;
       return switch (field) {
         DiveReviewSortField.date =>
           data?.startTime?.millisecondsSinceEpoch.toDouble(),
@@ -382,7 +388,7 @@ class EntityReviewList extends StatelessWidget {
 
     withValue.sort((a, b) {
       final cmp = valueFor(a)!.compareTo(valueFor(b)!);
-      return sortAscending ? cmp : -cmp;
+      return widget.sortAscending ? cmp : -cmp;
     });
 
     return [...withValue, ...withoutValue];
@@ -391,17 +397,17 @@ class EntityReviewList extends StatelessWidget {
   /// Returns duplicate indices filtered by score range.
   ///
   /// Pending-review indices are emitted first (preserving their
-  /// enumeration order from [group.duplicateIndices]). The remaining
+  /// enumeration order from [widget.group.duplicateIndices]). The remaining
   /// non-pending indices are then sorted descending by match score.
   List<int> _sortedDuplicateIndices({
     required double minScore,
     double maxScore = double.infinity,
   }) {
-    final matchResults = group.matchResults;
+    final matchResults = widget.group.matchResults;
     if (matchResults == null) return const [];
 
     final all = <int>[];
-    for (final index in group.duplicateIndices) {
+    for (final index in widget.group.duplicateIndices) {
       final result = matchResults[index];
       if (result == null) continue;
       if (result.score >= minScore && result.score < maxScore) {
@@ -409,8 +415,8 @@ class EntityReviewList extends StatelessWidget {
       }
     }
 
-    final pendingFirst = all.where(pendingIndices.contains).toList();
-    final rest = all.where((i) => !pendingIndices.contains(i)).toList();
+    final pendingFirst = all.where(widget.pendingIndices.contains).toList();
+    final rest = all.where((i) => !widget.pendingIndices.contains(i)).toList();
     rest.sort((a, b) {
       final scoreA = matchResults[a]?.score ?? 0;
       final scoreB = matchResults[b]?.score ?? 0;
@@ -425,41 +431,43 @@ class EntityReviewList extends StatelessWidget {
   /// Pending-review indices are emitted first, in ascending index order; the
   /// remaining non-pending indices follow in ascending index order.
   List<int> _unscoredDuplicateIndices() {
-    final matchResults = group.matchResults;
+    final matchResults = widget.group.matchResults;
     if (matchResults != null) {
       // Entities with matchResults are handled by _sortedDuplicateIndices.
       return const [];
     }
-    final sorted = group.duplicateIndices.toList()..sort();
-    final pendingFirst = sorted.where(pendingIndices.contains).toList();
-    final rest = sorted.where((i) => !pendingIndices.contains(i)).toList();
+    final sorted = widget.group.duplicateIndices.toList()..sort();
+    final pendingFirst = sorted.where(widget.pendingIndices.contains).toList();
+    final rest = sorted
+        .where((i) => !widget.pendingIndices.contains(i))
+        .toList();
     return [...pendingFirst, ...rest];
   }
 
   Widget _buildEntityDuplicateCard(int index) {
-    final item = group.items[index];
+    final item = widget.group.items[index];
     // Pass the user's chosen action verbatim — `null` means "not yet decided"
     // and is rendered as a pending row with no pre-selected button.
-    final action = duplicateActions[index];
-    final entityMatch = group.entityMatches?[index];
+    final action = widget.duplicateActions[index];
+    final entityMatch = widget.group.entityMatches?[index];
 
     return _EntityDuplicateCard(
       item: item,
       entityMatch: entityMatch,
       selectedAction: action,
-      onActionChanged: (a) => onDuplicateActionChanged(index, a),
-      availableActions: availableActions,
-      isPending: pendingIndices.contains(index),
+      onActionChanged: (a) => widget.onDuplicateActionChanged(index, a),
+      availableActions: widget.availableActions,
+      isPending: widget.pendingIndices.contains(index),
     );
   }
 
-  /// Whether this group represents the dive tab.
+  /// Whether this widget.group represents the dive tab.
   ///
-  /// A group is a "dive tab" if at least one item carries dive data. This
+  /// A widget.group is a "dive tab" if at least one item carries dive data. This
   /// controls the bulk-action label variant (Import all as new vs Import all).
   bool _isDiveTab() {
-    if (group.items.isEmpty) return false;
-    return group.items.any((item) => item.diveData != null);
+    if (widget.group.items.isEmpty) return false;
+    return widget.group.items.any((item) => item.diveData != null);
   }
 
   /// Number of pending rows eligible for bulk consolidation.
@@ -470,9 +478,9 @@ class EntityReviewList extends StatelessWidget {
   /// consolidate targets). Keeping the two in sync ensures the displayed count
   /// and button enablement match what a bulk tap actually consolidates.
   int _matchableConsolidateCount() {
-    final matchResults = group.matchResults;
+    final matchResults = widget.group.matchResults;
     if (matchResults == null) return 0;
-    return pendingIndices.where((i) {
+    return widget.pendingIndices.where((i) {
       final match = matchResults[i];
       return match != null &&
           match.score >= 0.7 &&
@@ -503,7 +511,7 @@ class EntityReviewList extends StatelessWidget {
 /// Sort control for the dive tab's non-duplicate rows.
 ///
 /// Shows the active field with a direction arrow; picking the active field
-/// again (via [onSortFieldChanged]) flips the arrow instead of no-opping.
+/// again (via [widget.onSortFieldChanged]) flips the arrow instead of no-opping.
 class _SortMenuButton extends StatelessWidget {
   final DiveReviewSortField sortField;
   final bool sortAscending;
