@@ -11452,10 +11452,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_installedInLabel => 'Beszerelve ebbe';
 
   @override
-  String get equipment_detail_installedInSemanticLabel =>
-      'A felszereles megtekintese, amelybe be van szerelve';
-
-  @override
   String get equipment_detail_lastServiceLabel => 'Utolso szerviz';
 
   @override
@@ -11886,10 +11882,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_detail_wasInstalledInLabel => 'Korabban beszerelve ebbe';
-
-  @override
-  String get equipment_detail_wasInstalledInSemanticLabel =>
-      'A felszereles megtekintese, amelybe korabban be volt szerelve';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Felszereles szerkesztese';

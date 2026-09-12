@@ -11221,10 +11221,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_installedInLabel => 'מותקן ב';
 
   @override
-  String get equipment_detail_installedInSemanticLabel =>
-      'צפה בציוד שבו פריט זה מותקן';
-
-  @override
   String get equipment_detail_lastServiceLabel => 'טיפול אחרון';
 
   @override
@@ -11652,10 +11648,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_detail_wasInstalledInLabel => 'היה מותקן ב';
-
-  @override
-  String get equipment_detail_wasInstalledInSemanticLabel =>
-      'צפה בציוד שבו פריט זה היה מותקן';
 
   @override
   String get equipment_edit_appBar_editTitle => 'ערוך ציוד';

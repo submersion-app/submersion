@@ -46,13 +46,14 @@ class InstalledInRow extends StatelessWidget {
     final age = showsInstallAge(part, host)
         ? childInstalledText(l10n, units, part)
         : null;
+    // Its own node: the Details card merges every child into one semantics
+    // node, which read this link run together with the other rows and gave
+    // it no tap of its own. The node's label is the row's visible text,
+    // already localized, tensed and carrying the host's status, so no
+    // custom label repeats it.
     return Semantics(
+      container: true,
       button: true,
-      // Same tense as the visible label, so a screen reader never tells a
-      // retired part it is still inside its host.
-      label: part.isFitted
-          ? l10n.equipment_detail_installedInSemanticLabel
-          : l10n.equipment_detail_wasInstalledInSemanticLabel,
       child: InkWell(
         key: const ValueKey('equipment-detail-installed-in'),
         onTap: () => context.push('/equipment/${host.id}'),

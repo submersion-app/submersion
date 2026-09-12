@@ -11524,10 +11524,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_detail_installedInLabel => 'Installé dans';
 
   @override
-  String get equipment_detail_installedInSemanticLabel =>
-      'Voir l\'équipement dans lequel il est installé';
-
-  @override
   String get equipment_detail_lastServiceLabel => 'Dernière révision';
 
   @override
@@ -11962,10 +11958,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_detail_wasInstalledInLabel => 'Était installé dans';
-
-  @override
-  String get equipment_detail_wasInstalledInSemanticLabel =>
-      'Voir l\'équipement dans lequel il était installé';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Modifier l\'équipement';

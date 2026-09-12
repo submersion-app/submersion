@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -243,23 +244,30 @@ void main() {
     expect(plainInstalledRow, findsOneWidget);
   });
 
-  // The spoken label must follow the visible tense, or a screen reader
-  // tells a retired part it is still inside its host.
-  const presentSpoken = 'View the equipment this is installed in';
-  const pastSpoken = 'View the equipment this was installed in';
+  // A screen reader must reach the row as its own node reading exactly its
+  // visible text. Without a boundary the Details card merges every row into
+  // one node, so the link was announced run together with Status, Dives and
+  // Trips and could not be activated on its own. Anchored patterns, because
+  // an unanchored one also matches that merged card node.
+  final fittedNode = RegExp(
+    r'^Installed in\nJJ-CCR\nInstalled [^\n]+, 10 days ago$',
+  );
+  final retiredNode = RegExp(r'^Was installed in\nJJ-CCR$');
+  // Any node carrying both the card's Status row and the host's name.
+  final mergedIntoCard = RegExp(r'Status[\s\S]*JJ-CCR');
 
-  testWidgets('a fitted child announces the present-tense link', (
-    tester,
-  ) async {
+  testWidgets('a fitted child reads the link as its own node', (tester) async {
     final semantics = tester.ensureSemantics();
     await pump(tester, child: cell(), parent: host);
 
-    expect(find.bySemanticsLabel(RegExp(presentSpoken)), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp(pastSpoken)), findsNothing);
+    expect(find.semantics.byLabel(fittedNode).evaluate(), hasLength(1));
+    expect(find.semantics.byLabel(mergedIntoCard).evaluate(), isEmpty);
     semantics.dispose();
   });
 
-  testWidgets('a retired child announces the past-tense link', (tester) async {
+  testWidgets('a retired child reads the past-tense link as its own node', (
+    tester,
+  ) async {
     final semantics = tester.ensureSemantics();
     await pump(
       tester,
@@ -267,8 +275,22 @@ void main() {
       parent: host,
     );
 
-    expect(find.bySemanticsLabel(RegExp(pastSpoken)), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp(presentSpoken)), findsNothing);
+    expect(find.semantics.byLabel(retiredNode).evaluate(), hasLength(1));
+    expect(find.semantics.byLabel(mergedIntoCard).evaluate(), isEmpty);
+    semantics.dispose();
+  });
+
+  testWidgets('a screen reader can open the host from the row', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, child: cell(), parent: host);
+
+    tester.semantics.performAction(
+      find.semantics.byLabel(fittedNode),
+      SemanticsAction.tap,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('OPENED:$hostId'), findsOneWidget);
     semantics.dispose();
   });
 }

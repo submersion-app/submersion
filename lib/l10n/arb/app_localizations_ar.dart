@@ -11280,10 +11280,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_installedInLabel => 'مركّب في';
 
   @override
-  String get equipment_detail_installedInSemanticLabel =>
-      'عرض المعدات المركّب فيها هذا العنصر';
-
-  @override
   String get equipment_detail_lastServiceLabel => 'آخر صيانة';
 
   @override
@@ -11716,10 +11712,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
-
-  @override
-  String get equipment_detail_wasInstalledInSemanticLabel =>
-      'عرض المعدات التي كان هذا العنصر مركّبًا فيها';
 
   @override
   String get equipment_edit_appBar_editTitle => 'تعديل المعدات';

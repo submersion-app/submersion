@@ -19294,12 +19294,6 @@ abstract class AppLocalizations {
   /// **'Installed in'**
   String get equipment_detail_installedInLabel;
 
-  /// No description provided for @equipment_detail_installedInSemanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'View the equipment this is installed in'**
-  String get equipment_detail_installedInSemanticLabel;
-
   /// No description provided for @equipment_detail_lastServiceLabel.
   ///
   /// In en, this message translates to:
@@ -19977,12 +19971,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Was installed in'**
   String get equipment_detail_wasInstalledInLabel;
-
-  /// No description provided for @equipment_detail_wasInstalledInSemanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'View the equipment this was installed in'**
-  String get equipment_detail_wasInstalledInSemanticLabel;
 
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///
