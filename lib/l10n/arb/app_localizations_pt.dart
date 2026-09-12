@@ -17280,6 +17280,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_finding => 'Constatacao';
 
   @override
+  String get settings_conflict_ref_importedFile => 'Arquivo importado';
+
+  @override
   String get settings_conflict_ref_instructor => 'Instrutor';
 
   @override
@@ -24808,6 +24811,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'Falha na reanálise: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Ressincronizar a partir do arquivo original';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'Mergulho atualizado a partir do arquivo original';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Não foi possível ressincronizar: este mergulho não existe mais';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Não foi possível ressincronizar: nenhum arquivo original foi salvo para este mergulho';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Não foi possível ressincronizar: este formato de arquivo não é compatível';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Não foi possível ressincronizar: o arquivo original não está mais neste dispositivo';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Não foi possível ressincronizar: o arquivo original não contém mais um mergulho correspondente';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Não foi possível ressincronizar: ocorreu um erro inesperado ao ler o arquivo original';
 
   @override
   String get universalImport_label_replaceSource => 'Substituir Fonte';
@@ -38041,6 +38076,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'Ficheiros exportados';
 
   @override
+  String get settings_storageUsage_group_importedFiles =>
+      'Dados brutos importados';
+
+  @override
   String get settings_storageUsage_category_database =>
       'Base de dados do registo de mergulhos';
 
@@ -38091,6 +38130,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'Ficheiros exportados';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'Ficheiros de importação originais';
 
   @override
   String get profilePhoto_sheet_title => 'Foto do perfil';

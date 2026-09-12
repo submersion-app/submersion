@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
@@ -94,6 +95,7 @@ class DiveRepository {
   factory DiveRepository({
     MediaRepository? mediaRepository,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
+    ImportedFileReclaimer? importedFileReclaimer,
   }) {
     final media = mediaRepository ?? MediaRepository();
     return DiveRepository._(
@@ -107,13 +109,19 @@ class DiveRepository {
             // start, or any other kick; the Verify Library sweep is the
             // backstop.
           ),
+      importedFileReclaimer ?? ImportedFileReclaimer(),
     );
   }
 
-  DiveRepository._(this._mediaRepository, this._mediaDeletionCoordinator);
+  DiveRepository._(
+    this._mediaRepository,
+    this._mediaDeletionCoordinator,
+    this._importedFileReclaimer,
+  );
 
   final MediaRepository _mediaRepository;
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
+  final ImportedFileReclaimer _importedFileReclaimer;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final ProfileSeriesRepository _profileSeries = ProfileSeriesRepository();
@@ -1942,6 +1950,12 @@ class DiveRepository {
       // Check-ins on the dive stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives([id]);
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
+      // The FK cascade took this dive's dive_data_sources rows, which may
+      // have held the last reference to a stored import file (issue #478).
+      // Gated on cascadeMedia for the same reason the media cascade is: a
+      // restore-safe delete is about to re-insert source rows naming that
+      // file, and reclaiming it here would leave them pointing at nothing.
+      if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive: $id');
@@ -1969,6 +1983,8 @@ class DiveRepository {
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives(ids);
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+      // See deleteDive: the cascade may have orphaned a stored import file.
+      if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       for (final id in ids) {
         await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       }
@@ -7370,6 +7386,7 @@ class DiveRepository {
       sourceFormat: row.sourceFormat,
       sourceFileName: row.sourceFileName,
       sourceFileFormat: row.sourceFileFormat,
+      importedFileId: row.importedFileId,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       duration: row.duration,

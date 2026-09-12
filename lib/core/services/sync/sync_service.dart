@@ -1466,11 +1466,19 @@ class SyncService {
           // append-only and use the blind-upsert merge path (no updatedAt
           // column: diveCustomFields, diveDataSources, siteSpecies,
           // mediaSpecies, fieldPresets). Two carry updatedAt and use the standard
-          // conflict-detection path (csvPresets, viewConfigs). FK ordering
+          // conflict-detection path (csvPresets, viewConfigs). importedFiles
+          // carries updatedAt and still blind-upserts: its id is the sha256
+          // of its bytes, so two devices holding the same id hold the same
+          // row and there is nothing to overlay or conflict over. FK ordering
           // is handled by the deferred-FK transaction wrapping this loop.
           (
             type: 'diveCustomFields',
             records: data.diveCustomFields,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'importedFiles',
+            records: data.importedFiles,
             hasUpdatedAt: false,
           ),
           (
@@ -2280,6 +2288,10 @@ class SyncService {
     'equipmentObservations': true,
     'gasSwitches': false,
     'diveCustomFields': false,
+    // The id is the sha256 of the bytes, so the row is immutable and two
+    // devices that hold the same id hold the same row: nothing to overlay,
+    // nothing to raise a conflict card for (issue #478).
+    'importedFiles': false,
     'diveDataSources': false,
     'siteSpecies': false,
     'mediaSpecies': false,

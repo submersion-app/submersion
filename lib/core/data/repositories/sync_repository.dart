@@ -51,6 +51,7 @@ class SyncRepository {
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),
     'itineraryDays': (table: 'trip_itinerary_days', pk: 'id'),
     'tripDayWeather': (table: 'trip_day_weather', pk: 'id'),
+    'importedFiles': (table: 'imported_files', pk: 'id'),
     'diveProfileSeries': (table: 'dive_profile_series', pk: 'id'),
     'tankPressureSeries': (table: 'tank_pressure_series', pk: 'id'),
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
@@ -613,12 +614,18 @@ class SyncRepository {
       timestamp: 'created_at',
       filter: null,
     ),
-    // The packed sample series (schema v182). A row can reach these tables
-    // unstamped two ways: the v182 pack runs on a device that had no clock
-    // to advance yet, and any series write whose sync bookkeeping did not
-    // land. Without an entry here such a row is invisible to the
-    // incremental export forever, because NULL never passes the strict
-    // watermark comparison.
+    // The packed sample series (schema v182) and the stored logbook files
+    // (v208, issue #478). A row can reach these tables unstamped two ways:
+    // the v182 pack runs on a device that had no clock to advance yet, and
+    // any write whose sync bookkeeping did not land. Without an entry here
+    // such a row is invisible to the incremental export forever, because NULL
+    // never passes the strict watermark comparison.
+    (
+      entityType: 'importedFiles',
+      table: 'imported_files',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
     (
       entityType: 'diveProfileSeries',
       table: 'dive_profile_series',

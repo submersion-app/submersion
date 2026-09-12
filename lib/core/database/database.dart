@@ -2989,6 +2989,18 @@ class DiveDataSources extends Table {
   TextColumn get sourceFormat => text().nullable()();
   TextColumn get sourceFileName => text().nullable()();
   TextColumn get sourceFileFormat => text().nullable()();
+
+  /// The [ImportedFiles] row holding the original logbook file this source
+  /// was parsed out of, so a later parser fix can be replayed onto the dive
+  /// (issue #478). Null on every source that did not come from a file import.
+  ///
+  /// Deliberately not a declared foreign key. The row it names is reclaimed
+  /// by refcount rather than by a cascade, and the sync apply runs with
+  /// `defer_foreign_keys = ON` and a per-entity watermark, so a changeset can
+  /// legitimately carry a source row whose file row travelled in an earlier
+  /// one -- which a real constraint would reject at COMMIT, taking the whole
+  /// changeset with it.
+  TextColumn get importedFileId => text().nullable()();
   RealColumn get maxDepth => real().nullable()();
   RealColumn get avgDepth => real().nullable()();
   IntColumn get duration => integer().nullable()();
@@ -3053,6 +3065,48 @@ class DiveDataSources extends Table {
   /// Segments whose sources carry no computerId have nothing else to
   /// distinguish their strands by, which is exactly the case that was broken.
   IntColumn get mergeSourceSlot => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// The original logbook file a file import was parsed out of, kept so a later
+/// parser fix can be replayed onto dives that were already imported (issue
+/// #478).
+///
+/// One row per file, identified by the sha256 of its bytes, so a multi-dive
+/// logbook is stored once however many dives came out of it and re-importing
+/// the same file reuses the row it already has. Reclaimed by refcount:
+/// `ImportedFileReclaimer` drops a row the moment no `dive_data_sources` row
+/// names it any more.
+///
+/// A synced entity with its own `hlc`, so the files a diver has imported are
+/// covered by backups and reach their other devices. Immutable once written
+/// -- the id IS the content -- which is why it merges by blind upsert rather
+/// than by conflict detection.
+class ImportedFiles extends Table {
+  /// Lowercase hex sha256 of [bytes] as the original file had them.
+  TextColumn get id => text()();
+
+  /// The file exactly as it was imported, zlib-compressed at rest behind the
+  /// self-describing header the raw-download column uses (issue #227). The
+  /// converter runs on every read and write, so callers and the sync layer
+  /// both see the original bytes. See [RawDiveDataConverter].
+  BlobColumn get bytes => blob().map(const RawDiveDataConverter())();
+
+  /// The basename the file was imported under, which is all that is needed to
+  /// hand the bytes back as a file again (the extension comes with it). Kept
+  /// nullable because a picked file can arrive without a usable name.
+  TextColumn get fileName => text().nullable()();
+
+  /// Length of the original bytes, so size can be read without inflating the
+  /// blob.
+  IntColumn get byteCount => integer()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -3798,6 +3852,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     Transmitters,
     DiveComputers,
     DiveDataSources,
+    ImportedFiles,
     DiveProfileEvents,
     DiveSafetyReviews,
     DiveSafetyFindings,
@@ -3873,7 +3928,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 207;
+  static const int currentSchemaVersion = 208;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4413,6 +4468,13 @@ class AppDatabase extends _$AppDatabase {
     // rung takes 207; the list only counts remaining steps for progress
     // reporting and is non-contiguous by design.
     207,
+    // v208 (issue #478): the imported_files table plus
+    // dive_data_sources.imported_file_id, the original logbook file a
+    // file-imported dive can be re-parsed from. Table-and-column rung, no
+    // backfill, so the beforeOpen backstop is safe to re-run. Renumbered from
+    // 185: main landed 185 through 207 while this branch was open, and a rung
+    // at or below the shipped version never runs its onUpgrade step.
+    208,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7089,6 +7151,42 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE dive_data_sources ADD COLUMN merge_source_slot INTEGER',
       );
     }
+  }
+
+  /// Idempotent DDL for the v208 imported-file store (issue #478): the
+  /// `imported_files` table and the `dive_data_sources.imported_file_id`
+  /// reference that names a row in it. Same dual-call contract (onUpgrade +
+  /// beforeOpen backstop) as the other assert helpers.
+  ///
+  /// No declared foreign key on the reference; see
+  /// [DiveDataSources.importedFileId] for why. The index is what keeps the
+  /// refcount sweep off a full scan of the sources table.
+  Future<void> _assertImportedFilesSchema() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS imported_files (
+        id TEXT NOT NULL PRIMARY KEY,
+        bytes BLOB NOT NULL,
+        file_name TEXT,
+        byte_count INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('imported_file_id')) {
+      await customStatement(
+        'ALTER TABLE dive_data_sources ADD COLUMN imported_file_id TEXT',
+      );
+    }
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_dive_data_sources_imported_file '
+      'ON dive_data_sources (imported_file_id)',
+    );
   }
 
   /// Stamp `merge_source_slot = 0` on the provenance rows of dives that were
@@ -11365,6 +11463,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertJunctionUpdatedAtColumns();
         }
         if (from < 207) await reportProgress();
+        // v208: the stored original file a file-imported dive can be
+        // re-parsed from, and the reference that names it (issue #478).
+        if (from < 208) {
+          await _assertImportedFilesSchema();
+        }
+        if (from < 208) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -11598,6 +11702,11 @@ class AppDatabase extends _$AppDatabase {
         // Reading any dive's sources throws without it. Only the column is
         // re-asserted here; the one-shot backfill belongs to the rung.
         await _assertDataSourceMergeSlotColumn();
+
+        // v208 backstop: re-assert the imported-file table and the reference
+        // to it (issue #478; same parallel-branch version-collision
+        // self-heal).
+        await _assertImportedFilesSchema();
 
         // v160 backstop: re-assert service_kinds.default_category. A device
         // that reached 160 or higher through a parallel branch never enters

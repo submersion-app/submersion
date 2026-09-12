@@ -16418,6 +16418,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_finding => '发现项';
 
   @override
+  String get settings_conflict_ref_importedFile => '导入的文件';
+
+  @override
   String get settings_conflict_ref_instructor => '教练';
 
   @override
@@ -23530,6 +23533,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return '重新解析失败：$error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile => '从原始文件重新同步';
+
+  @override
+  String get diveLog_detail_resyncSuccess => '潜水记录已根据原始文件更新';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing => '无法重新同步：该潜水记录已不存在';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile => '无法重新同步：此潜水记录没有保存原始文件';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat => '无法重新同步：不支持此文件格式';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      '无法重新同步：本设备上已找不到原始文件';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      '无法重新同步：原始文件中已没有匹配的潜水记录';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      '无法重新同步：读取原始文件时发生意外错误';
 
   @override
   String get universalImport_label_replaceSource => '替换源数据';
@@ -35813,6 +35843,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_storageUsage_group_exports => '导出的文件';
 
   @override
+  String get settings_storageUsage_group_importedFiles => '原始导入数据';
+
+  @override
   String get settings_storageUsage_category_database => '潜水日志数据库';
 
   @override
@@ -35853,6 +35886,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => '导出的文件';
+
+  @override
+  String get settings_storageUsage_category_importedFiles => '原始导入文件';
 
   @override
   String get profilePhoto_sheet_title => '个人资料照片';

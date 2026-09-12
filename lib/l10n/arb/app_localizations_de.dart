@@ -17252,6 +17252,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_finding => 'Befund';
 
   @override
+  String get settings_conflict_ref_importedFile => 'Importierte Datei';
+
+  @override
   String get settings_conflict_ref_instructor => 'Instructor';
 
   @override
@@ -24756,6 +24759,38 @@ class AppLocalizationsDe extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'Neu-Auswertung fehlgeschlagen: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Erneut aus Originaldatei synchronisieren';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'Tauchgang aus der Originaldatei aktualisiert';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Resynchronisierung fehlgeschlagen: Dieser Tauchgang existiert nicht mehr';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Resynchronisierung fehlgeschlagen: Für diesen Tauchgang ist keine Originaldatei gespeichert';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Resynchronisierung fehlgeschlagen: Dieses Dateiformat wird nicht unterstützt';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Resynchronisierung fehlgeschlagen: Die Originaldatei ist auf diesem Gerät nicht mehr vorhanden';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Resynchronisierung fehlgeschlagen: Die Originaldatei enthält keinen passenden Tauchgang mehr';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Resynchronisierung fehlgeschlagen: Beim Lesen der Originaldatei ist ein unerwarteter Fehler aufgetreten';
 
   @override
   String get universalImport_label_replaceSource => 'Quelle ersetzen';
@@ -37957,6 +37992,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'Exportierte Dateien';
 
   @override
+  String get settings_storageUsage_group_importedFiles =>
+      'Importierte Rohdaten';
+
+  @override
   String get settings_storageUsage_category_database => 'Tauchbuch-Datenbank';
 
   @override
@@ -38005,6 +38044,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'Exportierte Dateien';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'Original-Importdateien';
 
   @override
   String get profilePhoto_sheet_title => 'Profilfoto';

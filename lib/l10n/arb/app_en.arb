@@ -10299,6 +10299,7 @@
   "settings_conflict_ref_equipment": "Equipment",
   "settings_conflict_ref_equipmentSet": "Equipment set",
   "settings_conflict_ref_finding": "Finding",
+  "settings_conflict_ref_importedFile": "Imported file",
   "settings_conflict_ref_instructor": "Instructor",
   "settings_conflict_ref_linkedDive": "Linked dive",
   "settings_conflict_ref_media": "Media",
@@ -15855,6 +15856,38 @@
         "example": "Parse error"
       }
     }
+  },
+  "diveLog_detail_menu_resyncImportedFile": "Resync from original file",
+  "@diveLog_detail_menu_resyncImportedFile": {
+    "description": "Menu item to re-parse a file-imported dive from its originally stored file"
+  },
+  "diveLog_detail_resyncSuccess": "Dive updated from the original file",
+  "@diveLog_detail_resyncSuccess": {
+    "description": "Snackbar shown after a successful resync"
+  },
+  "diveLog_detail_resyncFailed_diveMissing": "Could not resync: this dive no longer exists",
+  "@diveLog_detail_resyncFailed_diveMissing": {
+    "description": "Snackbar shown when a resync cannot run because the dive was deleted meanwhile"
+  },
+  "diveLog_detail_resyncFailed_noStoredFile": "Could not resync: no original file is stored for this dive",
+  "@diveLog_detail_resyncFailed_noStoredFile": {
+    "description": "Snackbar shown when a resync cannot run because no original file is stored for the dive"
+  },
+  "diveLog_detail_resyncFailed_unsupportedFormat": "Could not resync: this file format is not supported",
+  "@diveLog_detail_resyncFailed_unsupportedFormat": {
+    "description": "Snackbar shown when a resync cannot run because the stored file's format has no parser"
+  },
+  "diveLog_detail_resyncFailed_storedFileMissing": "Could not resync: the original file is missing from this device",
+  "@diveLog_detail_resyncFailed_storedFileMissing": {
+    "description": "Snackbar shown when a resync cannot run because the stored original file is gone from disk"
+  },
+  "diveLog_detail_resyncFailed_noMatchingDive": "Could not resync: the original file no longer contains a matching dive",
+  "@diveLog_detail_resyncFailed_noMatchingDive": {
+    "description": "Snackbar shown when the re-parsed original file no longer contains a dive matching this one"
+  },
+  "diveLog_detail_resyncFailed_unexpectedError": "Could not resync: an unexpected error occurred while reading the original file",
+  "@diveLog_detail_resyncFailed_unexpectedError": {
+    "description": "Snackbar shown when reading or parsing the stored original file threw"
   },
   "universalImport_label_replaceSource": "Replace Source",
   "@universalImport_label_replaceSource": {
@@ -22984,6 +23017,7 @@
   "settings_storageUsage_group_backups": "Backups",
   "settings_storageUsage_group_temporary": "Temporary Files",
   "settings_storageUsage_group_exports": "Exported Files",
+  "settings_storageUsage_group_importedFiles": "Raw imported data",
   "settings_storageUsage_category_database": "Dive log database",
   "settings_storageUsage_category_localCache": "Local cache database",
   "settings_storageUsage_category_mediaCacheOriginals": "Original photos and videos",
@@ -22998,6 +23032,7 @@
   "settings_storageUsage_category_backups": "Backup files",
   "settings_storageUsage_category_temporary": "Temporary files",
   "settings_storageUsage_category_exports": "Exported files",
+  "settings_storageUsage_category_importedFiles": "Imported logbook files",
   "profilePhoto_sheet_title": "Profile Photo",
   "profilePhoto_source_camera": "Take Photo",
   "profilePhoto_source_library": "Choose from Library",

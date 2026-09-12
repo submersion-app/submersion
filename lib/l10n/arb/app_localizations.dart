@@ -28417,6 +28417,12 @@ abstract class AppLocalizations {
   /// **'Finding'**
   String get settings_conflict_ref_finding;
 
+  /// No description provided for @settings_conflict_ref_importedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported file'**
+  String get settings_conflict_ref_importedFile;
+
   /// No description provided for @settings_conflict_ref_instructor.
   ///
   /// In en, this message translates to:
@@ -40686,6 +40692,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Re-parse failed: {error}'**
   String diveLog_detail_reparseFailed(String error);
+
+  /// Menu item to re-parse a file-imported dive from its originally stored file
+  ///
+  /// In en, this message translates to:
+  /// **'Resync from original file'**
+  String get diveLog_detail_menu_resyncImportedFile;
+
+  /// Snackbar shown after a successful resync
+  ///
+  /// In en, this message translates to:
+  /// **'Dive updated from the original file'**
+  String get diveLog_detail_resyncSuccess;
+
+  /// Snackbar shown when a resync cannot run because the dive was deleted meanwhile
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: this dive no longer exists'**
+  String get diveLog_detail_resyncFailed_diveMissing;
+
+  /// Snackbar shown when a resync cannot run because no original file is stored for the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: no original file is stored for this dive'**
+  String get diveLog_detail_resyncFailed_noStoredFile;
+
+  /// Snackbar shown when a resync cannot run because the stored file's format has no parser
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: this file format is not supported'**
+  String get diveLog_detail_resyncFailed_unsupportedFormat;
+
+  /// Snackbar shown when a resync cannot run because the stored original file is gone from disk
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file is missing from this device'**
+  String get diveLog_detail_resyncFailed_storedFileMissing;
+
+  /// Snackbar shown when the re-parsed original file no longer contains a dive matching this one
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file no longer contains a matching dive'**
+  String get diveLog_detail_resyncFailed_noMatchingDive;
+
+  /// Snackbar shown when reading or parsing the stored original file threw
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: an unexpected error occurred while reading the original file'**
+  String get diveLog_detail_resyncFailed_unexpectedError;
 
   /// Label for the replace source duplicate action
   ///
@@ -62300,6 +62354,12 @@ abstract class AppLocalizations {
   /// **'Exported Files'**
   String get settings_storageUsage_group_exports;
 
+  /// No description provided for @settings_storageUsage_group_importedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw imported data'**
+  String get settings_storageUsage_group_importedFiles;
+
   /// No description provided for @settings_storageUsage_category_database.
   ///
   /// In en, this message translates to:
@@ -62383,6 +62443,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exported files'**
   String get settings_storageUsage_category_exports;
+
+  /// No description provided for @settings_storageUsage_category_importedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported logbook files'**
+  String get settings_storageUsage_category_importedFiles;
 
   /// No description provided for @profilePhoto_sheet_title.
   ///

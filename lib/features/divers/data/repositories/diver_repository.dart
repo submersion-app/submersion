@@ -7,6 +7,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -35,7 +36,11 @@ class DeleteDiverResult {
 }
 
 class DiverRepository {
+  DiverRepository({ImportedFileReclaimer? importedFileReclaimer})
+    : _importedFileReclaimer = importedFileReclaimer ?? ImportedFileReclaimer();
+
   AppDatabase get _db => DatabaseService.instance.database;
+  final ImportedFileReclaimer _importedFileReclaimer;
   final DiverSettingsRepository _settingsRepository = DiverSettingsRepository();
   final SyncRepository _syncRepository = SyncRepository();
   static const _uuid = Uuid();
@@ -610,6 +615,11 @@ class DiverRepository {
         await (_db.delete(_db.divers)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'divers', recordId: id);
       });
+      // The cascade above took dive_data_sources rows that can have been the
+      // last references to a stored import file (issue #478). Swept after the
+      // transaction commits, so a failure leaks a row rather than stranding a
+      // surviving source row on bytes that are gone.
+      await _importedFileReclaimer.reclaimOrphans();
 
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted diver: $id');

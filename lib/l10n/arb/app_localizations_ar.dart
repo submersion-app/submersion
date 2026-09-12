@@ -16965,6 +16965,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_finding => 'الملاحظة';
 
   @override
+  String get settings_conflict_ref_importedFile => 'ملف مستورد';
+
+  @override
   String get settings_conflict_ref_instructor => 'المدرب';
 
   @override
@@ -24364,6 +24367,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'فشلت إعادة التحليل: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'إعادة المزامنة من الملف الأصلي';
+
+  @override
+  String get diveLog_detail_resyncSuccess => 'تم تحديث الغطسة من الملف الأصلي';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'تعذّرت إعادة المزامنة: لم تعد هذه الغطسة موجودة';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'تعذّرت إعادة المزامنة: لا يوجد ملف أصلي محفوظ لهذه الغطسة';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'تعذّرت إعادة المزامنة: تنسيق الملف هذا غير مدعوم';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'تعذّرت إعادة المزامنة: الملف الأصلي غير موجود على هذا الجهاز';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'تعذّرت إعادة المزامنة: حدث خطأ غير متوقع أثناء قراءة الملف الأصلي';
 
   @override
   String get universalImport_label_replaceSource => 'استبدال المصدر';
@@ -37640,6 +37674,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'الملفات المصدرة';
 
   @override
+  String get settings_storageUsage_group_importedFiles =>
+      'بيانات الاستيراد الخام';
+
+  @override
   String get settings_storageUsage_category_database =>
       'قاعدة بيانات سجل الغوص';
 
@@ -37688,6 +37726,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'الملفات المصدرة';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'ملفات الاستيراد الأصلية';
 
   @override
   String get profilePhoto_sheet_title => 'صورة الملف الشخصي';

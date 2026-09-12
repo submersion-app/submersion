@@ -16846,6 +16846,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_finding => 'ממצא';
 
   @override
+  String get settings_conflict_ref_importedFile => 'קובץ מיובא';
+
+  @override
   String get settings_conflict_ref_instructor => 'מדריך';
 
   @override
@@ -24189,6 +24192,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_detail_reparseFailed(String error) {
     return 'הניתוח מחדש נכשל: $error';
   }
+
+  @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'סנכרן מחדש מהקובץ המקורי';
+
+  @override
+  String get diveLog_detail_resyncSuccess => 'הצלילה עודכנה מהקובץ המקורי';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'לא ניתן היה לסנכרן מחדש: הצלילה הזו כבר לא קיימת';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'לא ניתן היה לסנכרן מחדש: לא נשמר קובץ מקורי לצלילה הזו';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'לא ניתן היה לסנכרן מחדש: תבנית הקובץ הזו אינה נתמכת';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'לא ניתן היה לסנכרן מחדש: הקובץ המקורי אינו נמצא במכשיר הזה';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'לא ניתן היה לסנכרן מחדש: הקובץ המקורי כבר לא מכיל צלילה תואמת';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'לא ניתן היה לסנכרן מחדש: אירעה שגיאה בלתי צפויה בעת קריאת הקובץ המקורי';
 
   @override
   String get universalImport_label_replaceSource => 'החלף מקור';
@@ -37270,6 +37304,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'קבצים שיוצאו';
 
   @override
+  String get settings_storageUsage_group_importedFiles => 'נתוני ייבוא גולמיים';
+
+  @override
   String get settings_storageUsage_category_database =>
       'מסד נתונים של יומן הצלילה';
 
@@ -37319,6 +37356,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'קבצים שיוצאו';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'קובצי הייבוא המקוריים';
 
   @override
   String get profilePhoto_sheet_title => 'תמונת פרופיל';
