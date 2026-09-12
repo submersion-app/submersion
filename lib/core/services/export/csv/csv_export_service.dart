@@ -5,6 +5,7 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -70,6 +71,60 @@ class CsvExportService {
       componentNames: componentNames,
     );
     return saveAndShareFile(csvData, 'equipment_export.csv', 'text/csv');
+  }
+
+  /// Export gear check-ins to CSV format and share via system sheet
+  /// (condition phase 3a).
+  Future<String> exportObservationsToCsv(List<ObservationExportRow> rows) {
+    final csvData = generateObservationsCsvContent(rows);
+    return saveAndShareFile(csvData, 'observations_export.csv', 'text/csv');
+  }
+
+  /// Generate CSV content for gear check-ins (without sharing). Same
+  /// columns as the workbook's Observations sheet; tag names are the stored
+  /// values, joined by "; ". The diver's own text is sanitised against
+  /// formula injection, and a note's line breaks are flattened to spaces as
+  /// the trips export does, so each check-in stays on one row.
+  String generateObservationsCsvContent(List<ObservationExportRow> rows) {
+    final table = <List<dynamic>>[
+      ObservationsExcelExportService.headers,
+      for (final row in rows)
+        [
+          sanitizeCsvField(row.equipmentName),
+          row.equipmentType,
+          _dateFormat.format(row.observation.observedAt),
+          row.diveNumber ?? '',
+          row.observation.status.dbValue,
+          // A newer peer's names ride along, and came from another device,
+          // so the cell is neutralised like the free text around it.
+          sanitizeCsvField(row.observation.storedTagNames.join('; ')),
+          sanitizeCsvField(
+            row.observation.note.replaceAll(RegExp(r'\s*[\r\n]+\s*'), ' '),
+          ),
+        ],
+    ];
+    return const ListToCsvConverter().convert(table);
+  }
+
+  /// Save gear check-ins CSV to a user-selected location.
+  Future<String?> saveObservationsCsvToFile(
+    List<ObservationExportRow> rows, {
+    required String dialogTitle,
+  }) async {
+    final csvContent = generateObservationsCsvContent(rows);
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'observations_export_$dateStr.csv';
+
+    final result = await FilePicker.saveFile(
+      dialogTitle: dialogTitle,
+      fileName: fileName,
+      type: FileType.custom,
+      bytes: Uint8List.fromList(utf8.encode(csvContent)),
+      mimeType: 'text/csv',
+    );
+
+    if (result == null) return null;
+    return savedFileLocation(result);
   }
 
   /// Export trips to CSV format and share via system sheet.
@@ -325,13 +380,16 @@ class CsvExportService {
   // ==================== Save to File ====================
 
   /// Save dives CSV to a user-selected location.
-  Future<String?> saveDivesCsvToFile(List<Dive> dives) async {
+  Future<String?> saveDivesCsvToFile(
+    List<Dive> dives, {
+    required String dialogTitle,
+  }) async {
     final csvContent = generateDivesCsvContent(dives);
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
-      dialogTitle: 'Save Dives CSV',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.custom,
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
@@ -343,13 +401,16 @@ class CsvExportService {
   }
 
   /// Save sites CSV to a user-selected location.
-  Future<String?> saveSitesCsvToFile(List<DiveSite> sites) async {
+  Future<String?> saveSitesCsvToFile(
+    List<DiveSite> sites, {
+    required String dialogTitle,
+  }) async {
     final csvContent = generateSitesCsvContent(sites);
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'sites_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
-      dialogTitle: 'Save Sites CSV',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.custom,
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
@@ -364,6 +425,7 @@ class CsvExportService {
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    required String dialogTitle,
   }) async {
     final csvContent = generateEquipmentCsvContent(
       equipment,
@@ -373,7 +435,7 @@ class CsvExportService {
     final fileName = 'equipment_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
-      dialogTitle: 'Save Equipment CSV',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.custom,
       bytes: Uint8List.fromList(utf8.encode(csvContent)),

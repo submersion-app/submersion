@@ -47,14 +47,19 @@ class BuoyancySection extends ConsumerWidget {
               children: [
                 Icon(Icons.waves, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveDetailSection_buoyancy_name.toUpperCase(),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    letterSpacing: 0.5,
-                    fontWeight: FontWeight.w600,
+                // Expanded rather than a Spacer after it: on a narrow card
+                // (half of a paired row) the title gives way to the button.
+                Expanded(
+                  child: Text(
+                    context.l10n.diveDetailSection_buoyancy_name.toUpperCase(),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
                 TextButton.icon(
                   onPressed: () => showBuoyancyWhatIfSheet(
                     context,

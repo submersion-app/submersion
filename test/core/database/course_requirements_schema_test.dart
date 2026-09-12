@@ -57,14 +57,18 @@ void main() {
     });
 
     test(
-      'course_requirement_dives has the expected columns and no hlc',
+      'course_requirement_dives has the expected columns and its own clock',
       () async {
         final cols = await _columns('course_requirement_dives');
         expect(
           cols,
           containsAll({'id', 'requirement_id', 'dive_id', 'created_at'}),
         );
-        expect(cols, isNot(contains('hlc')));
+        // v210 gave every child exported through its parent an hlc, so a
+        // stale copy from a peer cannot overwrite a newer one. No writer
+        // marks this link pending yet, so it stays null and the link still
+        // travels with its requirement's clock until one does.
+        expect(cols, contains('hlc'));
       },
     );
 

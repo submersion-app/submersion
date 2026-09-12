@@ -10,6 +10,7 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -321,6 +322,24 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setConditionEngineEnabled(bool value) async =>
+      state = state.copyWith(conditionEngineEnabled: value);
+
+  @override
+  Future<void> setConditionRuleEnabled(
+    ConditionRuleId rule,
+    bool enabled,
+  ) async {
+    final rules = {...state.conditionDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(conditionDisabledRules: rules);
+  }
+
+  @override
   Future<void> setShowAscentRateColors(bool value) async =>
       state = state.copyWith(showAscentRateColors: value);
   @override
@@ -408,6 +427,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setGroupTripsInDiveList(bool value) async =>
       state = state.copyWith(groupTripsInDiveList: value);
+  @override
+  Future<void> setAutoTagImports(bool value) async =>
+      state = state.copyWith(autoTagImports: value);
   @override
   Future<void> setShowMapBackgroundOnSiteCards(bool value) async =>
       state = state.copyWith(showMapBackgroundOnSiteCards: value);

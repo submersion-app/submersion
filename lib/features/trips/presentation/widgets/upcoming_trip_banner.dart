@@ -4,6 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Countdown + checklist progress line shown on upcoming trip tiles, plus a
@@ -20,6 +22,10 @@ class UpcomingTripBanner extends ConsumerWidget {
     final progress = progressAsync.value;
     final serviceAlerts =
         ref.watch(tripServiceAlertsProvider(trip.id)).value ?? const [];
+    final margins =
+        ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
+    final marginLine = tripScrubberMarginSummary(context.l10n, margins);
+    final marginCaution = margins.any((m) => m.caution);
 
     final countdown = trip.isInProgress
         ? context.l10n.trips_list_inProgress
@@ -70,6 +76,34 @@ class UpcomingTripBanner extends ConsumerWidget {
                     ),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (marginLine != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.air,
+                  size: 14,
+                  color: marginCaution
+                      ? theme.colorScheme.error
+                      : theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    marginLine,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: marginCaution
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,

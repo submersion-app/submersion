@@ -176,6 +176,97 @@ void main() {
     expect(row['defaultCurrency'], 'EUR');
   });
 
+  test(
+    'serviceSchedules carry the v213 baseline set time over the wire',
+    () async {
+      // The set time is what lets a baseline outrank the records logged
+      // before it; a serializer that dropped it would quietly turn every
+      // synced baseline back into a legacy one (any record wins).
+      await serializer.upsertRecord('equipment', {
+        'id': 'e-baseline',
+        'name': 'Reg',
+        'type': 'regulator',
+        'status': 'active',
+        'purchaseCurrency': 'USD',
+        'notes': '',
+        'isActive': true,
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+      await serializer.upsertRecord('serviceSchedules', {
+        'id': 's-single',
+        'equipmentId': 'e-baseline',
+        'serviceKindId': 'regulator-service',
+        'anchorDate': 1719792000000,
+        'anchorSetAt': 1757660000000,
+        'enabled': true,
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+      await serializer.upsertRecords('serviceSchedules', [
+        {
+          'id': 's-batch',
+          'equipmentId': 'e-baseline',
+          'serviceKindId': 'hydro',
+          'anchorDate': 1719792000000,
+          'anchorSetAt': 1757660000001,
+          'enabled': true,
+          'createdAt': 1000,
+          'updatedAt': 1000,
+        },
+      ]);
+
+      final single = await serializer.fetchRecord(
+        'serviceSchedules',
+        's-single',
+      );
+      expect(single!['anchorDate'], 1719792000000);
+      expect(single['anchorSetAt'], 1757660000000);
+      final batch = await serializer.fetchRecords('serviceSchedules', [
+        's-batch',
+      ]);
+      expect(batch['s-batch']!['anchorSetAt'], 1757660000001);
+
+      final payload = await serializer.exportData(
+        deviceId: 'test-device',
+        deletions: const [],
+      );
+      final exported = payload.data.serviceSchedules.firstWhere(
+        (s) => s['id'] == 's-single',
+      );
+      expect(exported['anchorSetAt'], 1757660000000);
+    },
+  );
+
+  test('a schedule from a peer without the set time stays legacy', () async {
+    // An older build sends no anchorSetAt: the baseline must land with a
+    // null set time (the pre-v213 rule), not a default that would stamp it.
+    await serializer.upsertRecord('equipment', {
+      'id': 'e-old-peer',
+      'name': 'Reg',
+      'type': 'regulator',
+      'status': 'active',
+      'purchaseCurrency': 'USD',
+      'notes': '',
+      'isActive': true,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    await serializer.upsertRecord('serviceSchedules', {
+      'id': 's-old-peer',
+      'equipmentId': 'e-old-peer',
+      'serviceKindId': 'regulator-service',
+      'anchorDate': 1719792000000,
+      'enabled': true,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final row = await serializer.fetchRecord('serviceSchedules', 's-old-peer');
+    expect(row!['anchorDate'], 1719792000000);
+    expect(row['anchorSetAt'], isNull);
+  });
+
   test('serviceSchedules round-trip through batch paths', () async {
     await serializer.upsertRecord('equipment', {
       'id': 'e1',

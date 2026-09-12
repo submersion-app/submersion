@@ -152,6 +152,13 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
   void _showImportOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      // Two switches plus a tag field that grows with every chip added can
+      // outgrow the sheet's default ~half-screen cap (issue #998 follow-up
+      // added the second switch). isScrollControlled lets it grow with its
+      // content instead of being squeezed into that fixed fraction; the
+      // sheet's own body still scrolls internally as a second line of
+      // defense once content exceeds even the full screen.
+      isScrollControlled: true,
       builder: (_) => _ImportOptionsSheet(
         notifier: widget.notifier,
         existingTags: widget.existingTags,
@@ -646,7 +653,11 @@ class _ImportOptionsSheetState extends State<_ImportOptionsSheet> {
     final state = _currentState;
     if (state == null) return const SizedBox.shrink();
 
-    return Padding(
+    return SingleChildScrollView(
+      // Second line of defense: isScrollControlled at the call site already
+      // lets the sheet grow with its content, but a small screen (or a tag
+      // field with several chips) can still exceed even that, so the body
+      // scrolls internally rather than overflowing (issue #998 follow-up).
       padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -667,6 +678,20 @@ class _ImportOptionsSheetState extends State<_ImportOptionsSheet> {
             value: state.retainSourceDiveNumbers,
             onChanged: (value) =>
                 widget.notifier.setRetainSourceDiveNumbers(value),
+          ),
+          // Session-only override of the diver's saved auto-tag preference
+          // (issue #998 follow-up). Starts from that preference -- whatever
+          // initializeDefaultTag already seeded importTags with -- but
+          // toggling it here never writes back to the setting; it only adds
+          // or removes this one import's default tag.
+          SwitchListTile(
+            title: Text(context.l10n.universalImport_label_autoTagThisImport),
+            subtitle: Text(
+              context.l10n.universalImport_label_autoTagThisImportSubtitle,
+            ),
+            value: widget.notifier.isAutoTagForThisImportEnabled,
+            onChanged: (value) =>
+                widget.notifier.setAutoTagForThisImport(value),
           ),
           const Divider(),
           ImportTagsField(

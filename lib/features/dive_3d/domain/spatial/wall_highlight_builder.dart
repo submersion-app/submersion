@@ -11,7 +11,13 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 const Color _wallColor = Color(0xFFEF4444);
 const double _wallOpacity = 0.45;
-const double _wallLiftSceneUnits = 0.015;
+
+/// Real-world lift above the terrain surface, scaled by
+/// [SpatialProjection.horizScale] at the call site below -- see
+/// contour_builder.dart's contourLiftMeters doc for why a fixed
+/// scene-unit lift is unsafe now that [SpatialProjection.yOf] is true to
+/// scale (Copilot review).
+const double _wallLiftMeters = 0.15;
 
 /// Mean slope of one grid cell from its corner depths, in degrees, or null
 /// when any corner is nodata or land. Grid resolution SMOOTHS real walls:
@@ -74,9 +80,15 @@ MeshData? buildWallHighlightMesh({
 
       final base = positions.length ~/ 3;
       void vertex(double east, double north, double depth) {
+        // Capped at half THIS vertex's own depth: the four corners of a
+        // wall cell can have very different depths, so a shared lift
+        // sized for the deepest corner could still push a shallow corner
+        // (sw/se/nw/ne all confirmed > 0 by wallCellSlopeDegrees above)
+        // above the waterline (Copilot review).
+        final liftMeters = math.min(_wallLiftMeters, depth / 2);
         positions
           ..add(projection.xOf(east))
-          ..add(projection.yOf(depth) + _wallLiftSceneUnits)
+          ..add(projection.yOf(depth) + liftMeters * projection.horizScale)
           ..add(projection.zOf(north));
       }
 

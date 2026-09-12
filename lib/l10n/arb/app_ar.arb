@@ -173,10 +173,12 @@
   "common_action_dismiss": "تجاهل",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "إضافة مكوّن",
+  "equipment_components_containsSection": "يحتوي على",
   "equipment_components_count": "{count, plural, =1{مكوّن واحد} other{{count} مكوّنات}}",
   "equipment_components_cycleError": "هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.",
   "equipment_components_editRole": "تعديل الدور",
   "equipment_components_empty": "لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.",
+  "equipment_components_emptyLeaf": "لا يحتوي على أجزاء خاصة به. أضفها إذا كان هذا العنصر يتكوّن من عناصر أخرى.",
   "equipment_components_historyAlsoPast": "{count, plural, =1{تحديث غطسة واحدة أيضًا} other{تحديث {count} غطسات أيضًا}}",
   "equipment_components_historyAskAdded": "إضافة الجزء الجديد إلى تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟",
   "equipment_components_historyAskRemoved": "إزالة الجزء من تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟",
@@ -186,6 +188,8 @@
   "equipment_components_historyTitle": "تحديث الغطسات السابقة؟",
   "equipment_components_partOf": "جزء من {name}",
   "equipment_components_partOfCount": "{count, plural, =1{جزء من تجميعة واحدة} other{جزء من {count} تجميعات}}",
+  "equipment_components_partOfSection": "جزء من",
+  "equipment_components_partOfSubtitle": "{role}، في {rigs}",
   "equipment_components_pickerConfirm": "{count, plural, =0{إضافة} =1{إضافة 1} other{إضافة {count}}}",
   "equipment_components_pickerEmpty": "لا توجد معدات نشطة أخرى يمكن إضافتها هنا.",
   "equipment_components_pickerReplaceConfirm": "استبدال",
@@ -311,6 +315,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "الغطسات التي لا تحتوي على أسطوانة فقط",
   "diveLog_bulkEdit_confirmTitle": "تطبيق التغييرات؟",
   "diveLog_bulkEdit_confirmApply": "تطبيق",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{إضافة إلى غطسة واحدة} other{إضافة إلى كل الـ {count} غطسة}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{إزالة من غطسة واحدة} other{إزالة من كل الـ {count} غطسة}}",
   "diveLog_bulkEdit_nothingSelected": "فعّل حقلاً واحداً على الأقل لتطبيق التغييرات.",
   "diveLog_bulkEdit_applied": "تم تحديث {count} غطسة",
   "settings_cloudSync_error_icloudSignedOut": "iCloud غير متوفر. يُرجى تسجيل الدخول إلى iCloud من إعدادات جهازك.",
@@ -498,7 +504,7 @@
   "setup_welcome_skipSetup": "تخطي الإعداد",
   "setup_welcome_startFresh_subtitle": "أنشئ ملف الغواص الخاص بك واضبط التطبيق",
   "setup_welcome_startFresh_title": "إعداد ملف تعريف جديد",
-  "setup_welcome_subtitle": "تسجيل وتحليل متقدم للغوص",
+  "setup_welcome_subtitle": "غُص بأمان. سجّل كل شيء.",
   "setup_welcome_title": "مرحباً بك في Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -1054,6 +1060,7 @@
   "preDive_runner_flag": "وضع علامة",
   "preDive_runner_undo": "إعادة إلى قيد الانتظار",
   "preDive_runner_serviceOverdue": "الصيانة متأخرة",
+  "preDive_runner_conditionFindings": "نتائج الحالة",
   "preDive_runner_addNote": "إضافة ملاحظة",
   "preDive_runner_enterValue": "أدخل القيمة",
   "preDive_runner_cellInAir": "في الهواء",
@@ -3744,6 +3751,7 @@
   "equipment_detail_editTooltipShort": "تعديل",
   "equipment_detail_errorMessage": "خطأ: {error}",
   "equipment_detail_errorTitle": "خطأ",
+  "equipment_detail_installedInLabel": "مركّب في",
   "equipment_detail_lastServiceLabel": "آخر صيانة",
   "equipment_detail_loadingTitle": "جارٍ التحميل...",
   "equipment_detail_modelLabel": "الطراز",
@@ -3752,6 +3760,17 @@
   "equipment_detail_notFoundTitle": "المعدات غير موجودة",
   "equipment_detail_notesTitle": "ملاحظات",
   "equipment_detail_ownedForLabel": "مدة الملكية",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "تاريخ الشراء",
   "equipment_detail_purchasePriceLabel": "سعر الشراء",
   "equipment_detail_retiredChip": "متقاعد",
@@ -3769,6 +3788,7 @@
   "equipment_serviceClocks_unconfigured": "لم يتم تعيين فترة - انقر للإعداد",
   "equipment_serviceClocks_dueOn": "مستحق في {date}",
   "equipment_serviceClocks_overdueSince": "متأخر منذ {date}",
+  "equipment_serviceClocks_countingSince": "يُحتسب منذ {date}",
   "equipment_serviceClocks_overdue": "متأخر",
   "equipment_serviceClocks_divesLeft": "متبقٍ {remaining} من {total} غوصة",
   "cylinderConfigs_title": "إعدادات الأسطوانات",
@@ -3877,7 +3897,7 @@
   "equipment_scheduleDialog_intervalCycles": "الفاصل (دورات البطارية)",
   "equipment_scheduleDialog_inheritHint": "الافتراضي: {value}",
   "equipment_scheduleDialog_anchorDate": "تاريخ الأساس",
-  "equipment_scheduleDialog_anchorHint": "يُستخدم عندما لا يوجد بعد سجل صيانة من هذا النوع",
+  "equipment_scheduleDialog_anchorHint": "تعدّ الساعة من هذا التاريخ حتى تسجّل صيانة أحدث.",
   "equipment_scheduleDialog_clearAnchor": "مسح تاريخ الأساس",
   "equipment_scheduleDialog_save": "حفظ",
   "equipment_scheduleDialog_cancel": "إلغاء",
@@ -3919,6 +3939,7 @@
   "equipment_detail_tripsCountSingular": "{count} رحلة",
   "equipment_detail_tripsLabel": "الرحلات",
   "equipment_detail_tripsSemanticLabel": "عرض الرحلات باستخدام هذه المعدات",
+  "equipment_detail_wasInstalledInLabel": "كان مركّبًا في",
   "equipment_edit_appBar_editTitle": "تعديل المعدات",
   "equipment_edit_appBar_newTitle": "معدات جديدة",
   "equipment_edit_appBar_saveButton": "حفظ",
@@ -4959,7 +4980,7 @@
   "planning_welcome_title": "أدوات التخطيط",
   "settings_about_aboutSubmersion": "حول Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "تتبع غوصاتك، وأدر معداتك، واستكشف مواقع الغوص.",
+  "settings_about_description": "غُص بأمان. سجّل كل شيء.",
   "settings_about_header": "حول",
   "settings_about_openSourceLicenses": "تراخيص المصادر المفتوحة",
   "settings_about_reportIssue": "الإبلاغ عن مشكلة",
@@ -5206,6 +5227,7 @@
   "settings_conflict_ref_equipment": "المعدات",
   "settings_conflict_ref_equipmentSet": "طقم المعدات",
   "settings_conflict_ref_finding": "الملاحظة",
+  "settings_conflict_ref_importedFile": "ملف مستورد",
   "settings_conflict_ref_instructor": "المدرب",
   "settings_conflict_ref_linkedDive": "الغوصة المرتبطة",
   "settings_conflict_ref_media": "الوسائط",
@@ -5754,6 +5776,38 @@
   "statistics_equipment_weightTrend_error": "فشل تحميل اتجاه الأوزان",
   "statistics_equipment_weightTrend_subtitle": "إجمالي الرصاص لكل غطسة",
   "statistics_equipment_weightTrend_title": "اتجاه الأوزان",
+  "statistics_equipment_exposure_title": "التعرّض",
+  "statistics_equipment_exposure_error": "تعذّر تحميل بيانات التعرّض",
+  "statistics_equipment_findings_error": "تعذّر تحميل نتائج الحالة",
+  "statistics_equipment_issues_error": "تعذّر تحميل المشكلات المبلّغ عنها",
+  "statistics_equipment_exposure_subtitle": "الإجماليات لكل قطعة وفق حدودك",
+  "statistics_equipment_exposure_empty": "لا توجد غطسات بمعدات بعد",
+  "statistics_equipment_findings_title": "نتائج الحالة",
+  "statistics_equipment_findings_subtitle": "النتائج المفتوحة حسب القاعدة",
+  "statistics_equipment_findings_subtitleAllDives": "النتائج المفتوحة حسب القاعدة، عبر جميع الغطسات",
+  "statistics_equipment_findings_empty": "لا توجد نتائج مفتوحة",
+  "statistics_equipment_issues_title": "المشكلات المبلّغ عنها",
+  "statistics_equipment_issues_subtitle": "أكثر وسوم الفحص تكرارًا",
+  "statistics_equipment_issues_empty": "لم يُبلَّغ عن مشكلات",
+  "statistics_equipment_countLabel_items": "قطع",
+  "statistics_equipment_countLabel_findings": "نتائج",
+  "statistics_equipment_countLabel_reports": "بلاغات",
+  "statistics_equipment_exposureUnit_days": "أيام",
+  "statistics_equipment_exposureUnit_dives": "غطسات",
+  "statistics_equipment_countLabel_days": "أيام",
+  "statistics_equipment_countLabel_dives": "غطسات",
+  "statistics_equipment_countLabel_hours": "ساعات",
+  "statistics_equipment_countLabel_saltHours": "ساعات في المياه المالحة",
+  "statistics_equipment_countLabel_coldDives": "غطسات باردة",
+  "statistics_equipment_countLabel_o2Hours": "ساعات بأكسجين مرتفع",
+  "statistics_equipment_countLabel_deepCycles": "غطسات عميقة",
+  "statistics_equipment_countLabel_cycles": "دورات بطارية",
+  "statistics_equipment_exposureUnit_hours": "ساعات",
+  "statistics_equipment_exposureUnit_saltHours": "ساعات في المياه المالحة",
+  "statistics_equipment_exposureUnit_coldDives": "غطسات باردة",
+  "statistics_equipment_exposureUnit_o2Hours": "ساعات بأكسجين مرتفع",
+  "statistics_equipment_exposureUnit_deepCycles": "غطسات عميقة",
+  "statistics_equipment_exposureUnit_cycles": "دورات بطارية",
   "statistics_error_loadingStatistics": "خطأ في تحميل الإحصائيات",
   "statistics_filterBar_clear": "مسح التصفية",
   "statistics_filterBar_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
@@ -6045,6 +6099,8 @@
   "importWizard_photos_destinationUnwritable": "لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{تم تخطي غطسة واحدة أقدم — موجودة بالفعل في سجلك} other{تم تخطي {count} غطسات أقدم — موجودة بالفعل في سجلك}}",
   "tags_hint_addTags": "إضافة وسوم...",
+  "tags_manage_autoTagImports": "وسم الاستيرادات تلقائيا",
+  "tags_manage_autoTagImports_subtitle": "يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.",
   "tags_manage_bulkDeleteMessage": "سيتم إزالة هذه الوسوم من {diveCount, plural, =0{0 غوصات} =1{غوصة واحدة} other{{diveCount} غوصة}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_bulkDeleteTitle": "حذف {count} وسم؟",
   "tags_manage_colorLabel": "اللون",
@@ -6054,6 +6110,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 غوصات} =1{غوصة واحدة} other{{count} غوصة}}",
   "tags_manage_editTitle": "تعديل الوسم",
   "tags_manage_emptyState": "لا توجد وسوم بعد. أنشئ واحداً للبدء.",
+  "tags_manage_importsSection": "الاستيراد",
   "tags_manage_mergeAction": "دمج",
   "tags_manage_mergeAffectedDives": "سيؤثر هذا على {count, plural, =0{0 غوصات} =1{غوصة واحدة} other{{count} غوصة}} إجمالاً.",
   "tags_manage_mergeKeepFrom": "أو الاحتفاظ بالاسم من:",
@@ -6241,15 +6298,18 @@
   "transfer_csvExport_dataTypeHeader": "نوع البيانات",
   "transfer_csvExport_descriptionDives": "تصدير جميع سجلات الغوص كجدول بيانات",
   "transfer_csvExport_descriptionEquipment": "تصدير جرد المعدات ومعلومات الصيانة",
+  "transfer_csvExport_descriptionObservations": "كل فحص سليم وكل مشكلة مُبلَّغ عنها مع الغطسة والوسوم والملاحظة",
   "transfer_csvExport_descriptionSites": "تصدير مواقع الغوص وتفاصيلها",
   "transfer_csvExport_dialogTitle": "تصدير CSV",
   "transfer_csvExport_exportButton": "تصدير CSV",
   "transfer_csvExport_optionDivesTitle": "الغوصات CSV",
   "transfer_csvExport_optionEquipmentTitle": "المعدات CSV",
+  "transfer_csvExport_optionObservationsTitle": "ملف CSV لفحوصات المعدات",
   "transfer_csvExport_optionSitesTitle": "المواقع CSV",
   "transfer_csvExport_semanticLabel": "تصدير {typeName}",
   "transfer_csvExport_typeDives": "الغوصات",
   "transfer_csvExport_typeEquipment": "المعدات",
+  "transfer_csvExport_typeObservations": "فحوصات المعدات",
   "transfer_csvExport_typeSites": "المواقع",
   "transfer_detail_backTooltip": "العودة إلى النقل",
   "transfer_export_aboutContent": "قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV في تطبيقات جداول البيانات.",
@@ -6265,6 +6325,10 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "تصدير متعدد الصيغ",
   "transfer_export_optionSaveSubtitle": "اختر مكان الحفظ على جهازك",
+  "transfer_export_includeGear": "تضمين المعدات",
+  "transfer_export_includeGearSubtitle": "يضيف المعدات وكمبيوتر الغوص المستخدمة في كل غطسة. تُستبعد تفاصيل الشراء.",
+  "transfer_export_includeParticipants": "تضمين المشاركين في الغطس",
+  "transfer_export_includeParticipantsSubtitle": "يضيف الرفاق والمرشدين وأدوارهم في كل غطسة، بالاسم والشهادة. تُستبعد بيانات الاتصال.",
   "transfer_export_includeRawData": "تضمين البيانات الخام لكمبيوتر الغوص",
   "transfer_export_includeRawDataSubtitle": "يحتفظ بالبيانات الأصلية من كمبيوتر الغوص حتى يمكن تحليل الملف مرة أخرى لاحقًا. يزيد من حجم الملف.",
   "transfer_export_optionSaveTitle": "حفظ كملف",
@@ -6403,6 +6467,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "التخطيط",
+  "trips_edit_label_expectedDives": "الغطسات المتوقعة",
+  "trips_edit_hint_expectedDives": "اتركه فارغًا للتقدير من رحلاتك الأخيرة",
+  "trips_edit_label_expectedRuntime": "مدة التشغيل المتوقعة لكل غطسة (بالدقائق)",
+  "trips_edit_hint_expectedRuntime": "اتركه فارغًا للتقدير من غطساتك الأخيرة بجهاز إعادة التنفس",
+  "trips_scrubber_title": "هامش المنظّف",
+  "trips_scrubber_asOfStart": "حتى {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} دقيقة متبقية قبل الرحلة (المقدّر {rated} دقيقة، استُهلك {consumed} دقيقة منذ آخر إعادة تعبئة)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} دقيقة متبقية قبل الرحلة (المقدّر {rated} دقيقة، استُهلك {consumed} دقيقة، ولا توجد إعادة تعبئة مسجلة)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{غطسة واحدة متوقعة} two{غطستان متوقعتان} few{{dives} غطسات متوقعة} many{{dives} غطسة متوقعة} other{{dives} غطسة متوقعة}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(من رحلتك الأخيرة)} two{(من آخر رحلتين لك)} few{(من آخر {n} رحلات لك)} many{(من آخر {n} رحلة لك)} other{(من آخر {n} رحلة لك)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(محدد في هذه الرحلة)",
+  "trips_scrubber_perDive": "{minutes} دقيقة لكل غطسة",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(من آخر غطسة لك بجهاز إعادة التنفس)} two{(من آخر غطستين لك بجهاز إعادة التنفس)} few{(من آخر {n} غطسات بجهاز إعادة التنفس لك)} many{(من آخر {n} غطسة بجهاز إعادة التنفس لك)} other{(من آخر {n} غطسة بجهاز إعادة التنفس لك)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} دقيقة استخدام متوقع",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} دقيقة هامش بعد الرحلة",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "أقل من 20 بالمئة من المدة المقدّرة. خطّط لإعادة تعبئة أو احمل مادة ماصّة احتياطية.",
+  "trips_scrubber_noRating": "لا توجد مدة مقدّرة لهذا الجهاز؛ أضف مدة المنظّف إلى سماته أو جدول إعادة تعبئة.",
+  "trips_scrubber_bannerMargin": "{minutes} دقيقة هامش المنظّف",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} أجهزة، أدنى هامش منظّف {minutes} دقيقة",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "تاريخ الانتهاء",
@@ -7103,11 +7280,21 @@
   "universalImport_label_options": "خيارات",
   "universalImport_label_photosAttached": "الصور المرفقة",
   "universalImport_label_photosUnmatched": "صور لم تطابق أي غوصة",
+  "diveLog_detail_menu_resyncImportedFile": "إعادة المزامنة من الملف الأصلي",
+  "diveLog_detail_resyncSuccess": "تم تحديث الغطسة من الملف الأصلي",
+  "diveLog_detail_resyncFailed_diveMissing": "تعذّرت إعادة المزامنة: لم تعد هذه الغطسة موجودة",
+  "diveLog_detail_resyncFailed_noStoredFile": "تعذّرت إعادة المزامنة: لا يوجد ملف أصلي محفوظ لهذه الغطسة",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "تعذّرت إعادة المزامنة: تنسيق الملف هذا غير مدعوم",
+  "diveLog_detail_resyncFailed_storedFileMissing": "تعذّرت إعادة المزامنة: الملف الأصلي غير موجود على هذا الجهاز",
+  "diveLog_detail_resyncFailed_noMatchingDive": "تعذّرت إعادة المزامنة: لم يعد الملف الأصلي يحتوي على غطسة مطابقة",
+  "diveLog_detail_resyncFailed_unexpectedError": "تعذّرت إعادة المزامنة: حدث خطأ غير متوقع أثناء قراءة الملف الأصلي",
   "universalImport_label_replaceSource": "استبدال المصدر",
   "universalImport_label_replaceSourceSubtitle": "تحديث من نفس الكمبيوتر",
   "universalImport_label_replacedSourceData": "تم استبدال بيانات المصدر",
   "universalImport_label_retainDiveNumbers": "الاحتفاظ بأرقام الغطسات الأصلية",
   "universalImport_label_retainDiveNumbersSubtitle": "استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً",
+  "universalImport_label_autoTagThisImport": "وسم هذا الاستيراد تلقائيا",
+  "universalImport_label_autoTagThisImportSubtitle": "يبدأ من تفضيلك المحفوظ في إعدادات الوسوم. تغييره هنا يؤثر فقط على هذا الاستيراد.",
   "universalImport_title_importOptions": "خيارات الاستيراد",
   "universalImport_title_noDivesImported": "لم يتم استيراد أي غطسة",
   "universalImport_title_successConsolidated": "تم الدمج بنجاح",
@@ -8172,6 +8359,10 @@
   "incidentEdit_lessonsLearned": "ما الذي سيساعد المرة القادمة (اختياري)",
   "incidentEdit_save": "حفظ",
   "incidentEdit_privacyNote": "تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.",
+  "incidentEdit_equipment": "المعدات المعنية",
+  "incidentEdit_equipment_none": "لا شيء",
+  "incidentEdit_equipment_onThisDive": "في هذه الغطسة",
+  "incidentEdit_equipment_allGear": "كل المعدات",
   "incidentCategory_buoyancy": "الطفو",
   "incidentCategory_gasSupply": "إمداد الغاز",
   "incidentCategory_equipment": "المعدات",
@@ -8198,6 +8389,359 @@
   "settings_section_equipmentCondition_title": "حالة المعدات",
   "settings_section_equipmentCondition_subtitle": "حدود التعرض لساعات الصيانة",
   "equipmentConditionSettings_title": "حالة المعدات",
+  "equipmentCondition_children_title": "الأجزاء المركّبة",
+  "equipmentCondition_children_slot": "الفتحة {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "رُكّب في {date}، {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{اليوم} =1{قبل يوم واحد} other{قبل {days} أيام}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{قبل شهر واحد} other{قبل {months} أشهر}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "استبدال",
+  "equipmentCondition_children_open": "فتح",
+  "equipmentCondition_children_replaceTitle": "هل تريد استبدال {name}؟",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "سيُسحب {name} اليوم ويحل محله {type} جديد في الفتحة نفسها. يبدأ الرقم التسلسلي والملاحظات فارغين.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "استبدال",
+  "equipmentCondition_children_replaceCancel": "إلغاء",
+  "equipmentCondition_children_replaced": "تم استبدال {name}",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "لا توجد خلايا أو بطاريات مسجّلة",
+  "equipmentCondition_children_add": "إضافة",
+  "equipmentCondition_findings_title": "نتائج الحالة",
+  "equipmentCondition_findings_count": "{count, plural, =1{نتيجة واحدة} other{{count} نتائج}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "غطسات الدليل",
+  "equipmentCondition_findings_dismiss": "تجاهل",
+  "equipmentCondition_findings_restore": "استعادة",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{إظهار نتيجة متجاهلة واحدة} other{إظهار {count} نتائج متجاهلة}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "غطسات الدليل",
+  "equipmentCondition_evidence_dive": "الغطسة {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "غطسة",
+  "equipmentCondition_evidence_minutes": "{n} دقيقة",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "خرج الخلايا لكل غطسة",
+  "equipmentCondition_trend_title_gap": "انقطاعات جهاز الإرسال لكل غطسة",
+  "equipmentCondition_trend_title_scrubber": "استهلاك المنظّف لكل غطسة",
+  "equipmentCondition_trend_title_temperature": "أدنى درجة حرارة لكل غطسة",
+  "equipmentCondition_trend_cell": "الخلية {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "غطسات بها مشكلة",
+  "equipmentCondition_trend_scrubber": "دقائق المنظّف",
+  "equipmentCondition_trend_gap": "نسبة الانقطاع",
+  "equipmentCondition_trend_temperature": "أدنى درجة حرارة",
+  "equipmentCondition_trend_axis_minutes": "دقيقة",
+  "equipmentCondition_exposure_title": "التعرّض",
+  "equipmentCondition_exposure_empty": "لا توجد غطسات بهذه القطعة بعد",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{غطسة واحدة} other{{n} غطسات}}، {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{غطسة واحدة} other{{n} غطسات}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} ساعات",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} ساعات في المياه المالحة",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{غطسة باردة واحدة} other{{n} غطسات باردة}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} ساعات بأكسجين مرتفع",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{غطسة عميقة واحدة} other{{n} غطسات عميقة}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{دورة بطارية واحدة} other{{n} دورات بطارية}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "انخفض خرج الخلية {slot} بنسبة {percent} بالمئة عبر {n} غطسة منذ {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "خرج الخلية {slot} هو {gain} مللي فولت لكل بار خلال آخر {n} غطسة",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "اختلفت الخلية {slot} عن نظيراتها بما يصل إلى {bar} بار في {count} من آخر {n} غطسة",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "قرأت الخلية {slot} قيمة منخفضة عند ppO2 مرتفع في {count} من آخر {n} غطسة، بما يصل إلى {percent} بالمئة من العينات",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "انقطعت قراءة الضغط في {recent} بالمئة من آخر 5 غطسات، مقارنة بنسبة {prior} بالمئة في الغطسات {priorCount} السابقة",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "انقطعت قراءة الضغط في المتوسط في {recent} بالمئة من آخر {n} غطسة، منها {count} فوق 10 بالمئة",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "تم الإبلاغ عن {tag} {count} مرات في آخر {n} غطسة",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} من {totalIssue} غطسات فيها مشكلة كانت أبرد من {threshold}، على مدى {n} غطسة بهذه القطعة",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} من {totalIssue} غطسات فيها مشكلة كانت أعمق من {threshold}، على مدى {n} غطسة بهذه القطعة",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{حادث واحد يذكر هذه القطعة} other{{count} حوادث تذكر هذه القطعة}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{غطسة واحدة} other{{n} غطسات}}، {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "حدود التعرض",
   "equipmentConditionSettings_thresholdsHelp": "تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.",
   "equipmentConditionSettings_coldLabel": "ماء بارد تحت",
@@ -8205,6 +8749,138 @@
   "equipmentConditionSettings_o2Label": "خليط بأكسجين مرتفع فوق (% O2)",
   "equipmentConditionSettings_invalid": "أدخل رقمًا",
   "equipmentConditionSettings_saveFailed": "تعذر الحفظ. حاول مرة أخرى.",
+  "equipmentConditionSettings_sensorHeader": "ملخصات المستشعرات",
+  "equipmentConditionSettings_sensorHelp": "يُلخَّص ملف كل غطسة مرة واحدة لقياس خرج الخلايا وانقطاعات جهاز الإرسال واستهلاك المنظّف. تُلخَّص الغطسات الجديدة والمعدّلة تلقائيًا.",
+  "equipmentConditionSettings_rebuild": "إعادة بناء ملخصات المستشعرات",
+  "equipmentConditionSettings_rebuild_subtitle": "إعادة حساب ملخص كل غطسة من ملفها",
+  "equipmentConditionSettings_rebuild_progress": "تم تلخيص {done} من {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "أُعيد بناء ملخصات المستشعرات",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تلخيص غطسة واحدة} other{تعذّر تلخيص {count} غطسات}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{تعذّر تلخيص غطسة واحدة} other{تعذّر تلخيص {dives} غطسات}}؛ {items, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} other{تعذّر تحديث نتائج الحالة لـ {items} قطع معدات}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} other{تعذّر تحديث نتائج الحالة لـ {count} قطع معدات}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "تعذّرت إعادة بناء ملخصات المستشعرات.",
+  "equipmentConditionSettings_masterToggle": "نتائج الحالة",
+  "equipmentConditionSettings_masterToggle_subtitle": "يُبلغ عن اتجاهات خرج الخلايا وانقطاعات جهاز الإرسال والمشكلات المسجّلة، مع الأرقام التي تدعمها",
+  "equipmentConditionSettings_rulesHeader": "القواعد",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "خرج الخلية في انخفاض",
+  "equipmentConditionSettings_rule_cellOutputLow": "خرج الخلية منخفض",
+  "equipmentConditionSettings_rule_cellDivergent": "الخلية تختلف عن نظيراتها",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "الخلية محدودة التيار عند ppO2 مرتفع",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "انقطاعات جهاز الإرسال في ازدياد",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "انقطاعات جهاز الإرسال مرتفعة",
+  "equipmentConditionSettings_rule_issueRecurring": "مشكلة متكررة",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "مشكلات في الغطسات الباردة",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "مشكلات في الغطسات العميقة",
+  "equipmentConditionSettings_rule_incidentLinked": "حوادث مرتبطة",
+  "equipmentObservation_tag_freeFlow": "تدفق حر",
+  "equipmentObservation_tag_hardBreathing": "تنفس صعب",
+  "equipmentObservation_tag_wetBreathing": "تنفس رطب",
+  "equipmentObservation_tag_leak": "تسرب",
+  "equipmentObservation_tag_hoseDamage": "تلف الخرطوم",
+  "equipmentObservation_tag_inflatorStuck": "نافخ عالق",
+  "equipmentObservation_tag_inflatorSlow": "نافخ بطيء",
+  "equipmentObservation_tag_bladderLeak": "تسرب الكيس",
+  "equipmentObservation_tag_dumpLeak": "تسرب صمام التفريغ",
+  "equipmentObservation_tag_leakNeck": "تسرب عازل الرقبة",
+  "equipmentObservation_tag_leakWrist": "تسرب عازل المعصم",
+  "equipmentObservation_tag_leakZip": "تسرب السحّاب",
+  "equipmentObservation_tag_leakBoot": "تسرب الحذاء",
+  "equipmentObservation_tag_leakValve": "تسرب الصمام",
+  "equipmentObservation_tag_leakSeam": "تسرب الدرزة",
+  "equipmentObservation_tag_tear": "تمزق",
+  "equipmentObservation_tag_seamFailure": "انفتاق الدرزة",
+  "equipmentObservation_tag_dim": "خافت",
+  "equipmentObservation_tag_died": "تعطل",
+  "equipmentObservation_tag_flooded": "غمرته المياه",
+  "equipmentObservation_tag_switchFault": "عطل المفتاح",
+  "equipmentObservation_tag_batteryLow": "بطارية منخفضة",
+  "equipmentObservation_tag_screenFault": "عطل الشاشة",
+  "equipmentObservation_tag_connectionFault": "عطل الاتصال",
+  "equipmentObservation_tag_dropout": "انقطاع",
+  "equipmentObservation_tag_cellWarning": "تحذير الخلية",
+  "equipmentObservation_tag_loopLeak": "تسرب الحلقة",
+  "equipmentObservation_tag_solenoidFault": "عطل الملف اللولبي",
+  "equipmentObservation_tag_scrubberBreakthrough": "اختراق المنظّف",
+  "equipmentObservation_tag_slowResponse": "استجابة بطيئة",
+  "equipmentObservation_tag_erratic": "غير منتظم",
+  "equipmentObservation_tag_lowCapacity": "سعة منخفضة",
+  "equipmentObservation_tag_propFault": "عطل المروحة",
+  "equipmentObservation_tag_strapBroke": "انقطع الحزام",
+  "equipmentObservation_tag_other": "أخرى",
+  "equipmentObservation_status_ok": "سليم",
+  "equipmentObservation_status_issue": "مشكلة",
+  "equipmentObservation_sheet_title": "فحص: {item}",
+  "@equipmentObservation_sheet_title": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentObservation_sheet_empty": "لا فحوصات لهذه الغطسة بعد.",
+  "equipmentObservation_sheet_emptyBench": "لا فحوصات بعد.",
+  "equipmentObservation_sheet_add": "إضافة فحص",
+  "equipmentObservation_sheet_edit": "تعديل الفحص",
+  "equipmentObservation_sheet_delete": "حذف الفحص",
+  "equipmentObservation_sheet_deleteConfirm": "هل تريد حذف هذا الفحص؟",
+  "equipmentObservation_sheet_noteLabel": "ملاحظة",
+  "equipmentObservation_sheet_tagsLabel": "ماذا حدث",
+  "equipmentObservation_sheet_dateLabel": "لوحظ في",
+  "equipmentObservation_sheet_diveLabel": "الغطسة",
+  "equipmentObservation_sheet_noDive": "بدون غطسة (على الطاولة)",
+  "equipmentObservation_sheet_pickDive": "اختر غطسة",
+  "equipmentObservation_sheet_save": "حفظ",
+  "equipmentObservation_sheet_cancel": "إلغاء",
+  "equipmentObservation_sheet_tagRequired": "اختر وسمًا واحدًا على الأقل للمشكلة",
+  "equipmentObservation_chip_ok": "تم الفحص، سليم",
+  "equipmentObservation_chip_issue": "تم الإبلاغ عن مشكلة",
+  "equipmentObservation_chip_none": "فحص",
+  "equipmentObservation_card_title": "الفحوصات",
+  "equipmentObservation_card_empty": "لا فحوصات مسجلة لهذه القطعة.",
+  "equipmentObservation_card_add": "إضافة فحص",
+  "equipmentObservation_card_onDive": "الغطسة رقم {number}",
+  "@equipmentObservation_card_onDive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentObservation_card_bench": "على الطاولة",
   "dataQuality_inbox_title": "جودة البيانات",
   "dataQuality_dive_unknown": "تفاصيل الغطسة غير متاحة",
   "dataQuality_dive_number": "#{number}",
@@ -10769,6 +11445,7 @@
   "settings_export_progress_divesCsv": "جارٍ تصدير الغوصات إلى CSV...",
   "settings_export_progress_sitesCsv": "جارٍ تصدير المواقع إلى CSV...",
   "settings_export_progress_equipmentCsv": "جارٍ تصدير المعدات إلى CSV...",
+  "settings_export_progress_observationsCsv": "جارٍ تصدير فحوصات المعدات إلى CSV...",
   "settings_export_progress_pdf": "جارٍ إنشاء سجل الغوص بصيغة PDF...",
   "settings_export_progress_loadingSignatures": "جارٍ تحميل التوقيعات...",
   "settings_export_progress_loadingProfiles": "جارٍ تحميل ملفات الغوص...",
@@ -10787,6 +11464,7 @@
   "settings_export_progress_preparingDivesCsv": "جارٍ تحضير ملف CSV للغوصات...",
   "settings_export_progress_preparingSitesCsv": "جارٍ تحضير ملف CSV للمواقع...",
   "settings_export_progress_preparingEquipmentCsv": "جارٍ تحضير ملف CSV للمعدات...",
+  "settings_export_progress_preparingObservationsCsv": "جارٍ تحضير ملف CSV لفحوصات المعدات...",
   "settings_export_progress_preparingUddf": "جارٍ تحضير ملف UDDF...",
   "settings_export_progress_preparingPdf": "جارٍ تحضير ملف PDF...",
   "settings_export_progress_selectingBackup": "جارٍ اختيار ملف النسخة الاحتياطية...",
@@ -10794,6 +11472,7 @@
   "settings_export_empty_dives": "لا توجد غوصات للتصدير",
   "settings_export_empty_sites": "لا توجد مواقع للتصدير",
   "settings_export_empty_equipment": "لا توجد معدات للتصدير",
+  "settings_export_empty_observations": "لا فحوصات معدات للتصدير",
   "settings_export_empty_data": "لا توجد بيانات للتصدير",
   "settings_export_empty_diveSites": "لا توجد مواقع غوص للتصدير",
   "settings_export_saveFailed": "فشل الحفظ: {error}",
@@ -10804,6 +11483,7 @@
   "settings_export_success_dives": "تم تصدير الغوصات بنجاح",
   "settings_export_success_sites": "تم تصدير المواقع بنجاح",
   "settings_export_success_equipment": "تم تصدير المعدات بنجاح",
+  "settings_export_success_observations": "تم تصدير فحوصات المعدات",
   "settings_export_success_pdf": "تم إنشاء سجل الغوص بصيغة PDF بنجاح",
   "settings_export_success_uddf": "تم إنشاء ملف UDDF بنجاح",
   "settings_export_success_excel": "تم تصدير ملف Excel بنجاح",
@@ -10813,6 +11493,7 @@
   "settings_export_saved_divesCsv": "تم حفظ ملف CSV للغوصات بنجاح",
   "settings_export_saved_sitesCsv": "تم حفظ ملف CSV للمواقع بنجاح",
   "settings_export_saved_equipmentCsv": "تم حفظ ملف CSV للمعدات بنجاح",
+  "settings_export_saved_observationsCsv": "تم حفظ ملف CSV لفحوصات المعدات",
   "settings_export_saved_uddf": "تم حفظ ملف UDDF بنجاح",
   "settings_export_saved_pdf": "تم حفظ ملف PDF بنجاح",
   "settings_export_saved_backup": "تم حفظ النسخة الاحتياطية بنجاح",
@@ -10822,6 +11503,10 @@
   "settings_export_cancelled_restore": "تم إلغاء الاستعادة",
   "settings_export_pdfDocumentTitle": "سجل الغوص",
   "settings_export_saveBackupDialogTitle": "حفظ النسخة الاحتياطية",
+  "settings_export_saveDivesCsvDialogTitle": "حفظ ملف CSV للغوصات",
+  "settings_export_saveSitesCsvDialogTitle": "حفظ ملف CSV للمواقع",
+  "settings_export_saveEquipmentCsvDialogTitle": "حفظ ملف CSV للمعدات",
+  "settings_export_saveObservationsCsvDialogTitle": "حفظ ملف CSV لفحوصات المعدات",
   "backup_operation_created": "تم إنشاء نسخة احتياطية: {size}",
   "backup_operation_backupFailed": "فشل النسخ الاحتياطي: {error}",
   "backup_operation_restoring": "جارٍ استعادة النسخة الاحتياطية...",
@@ -11082,6 +11767,7 @@
   "settings_storageUsage_group_backups": "النسخ الاحتياطية",
   "settings_storageUsage_group_temporary": "الملفات المؤقتة",
   "settings_storageUsage_group_exports": "الملفات المصدرة",
+  "settings_storageUsage_group_importedFiles": "بيانات الاستيراد الخام",
   "settings_storageUsage_category_database": "قاعدة بيانات سجل الغوص",
   "settings_storageUsage_category_localCache": "قاعدة بيانات التخزين المؤقت المحلي",
   "settings_storageUsage_category_mediaCacheOriginals": "الصور ومقاطع الفيديو الأصلية",
@@ -11096,6 +11782,7 @@
   "settings_storageUsage_category_backups": "ملفات النسخ الاحتياطي",
   "settings_storageUsage_category_temporary": "الملفات المؤقتة",
   "settings_storageUsage_category_exports": "الملفات المصدرة",
+  "settings_storageUsage_category_importedFiles": "ملفات الاستيراد الأصلية",
   "profilePhoto_sheet_title": "صورة الملف الشخصي",
   "profilePhoto_source_camera": "التقاط صورة",
   "profilePhoto_source_library": "الاختيار من المكتبة",
@@ -11160,6 +11847,7 @@
   "transmitters_field_channel": "القناة",
   "transmitters_field_role": "الدور",
   "transmitters_field_gear": "أسطوانة من المعدات",
+  "transmitters_field_transmitterGear": "جهاز إرسال من المعدات",
   "transmitters_field_material": "المادة",
   "transmitters_gear_none": "لا شيء",
   "transmitters_validation_key": "أدخل رقمًا تسلسليًا، أو اختر كمبيوتر غوص وقناة",
@@ -11206,13 +11894,11 @@
   "enum_equipmentItemSortField_purchaseDate": "تاريخ الشراء",
   "enum_equipmentItemSortField_dateAdded": "تاريخ الإضافة",
   "enum_equipmentItemSortField_lastServiceDate": "آخر صيانة",
-  "equipment_arrange_title": "ترتيب المعدات",
   "equipment_arrange_groupByType": "التجميع حسب النوع",
   "equipment_arrange_groupByTypeSubtitle": "إظهار عنوان لكل نوع من المعدات",
   "equipment_arrange_typeOrderLabel": "ترتيب الأنواع حسب",
   "equipment_arrange_itemOrderLabel": "ثم حسب",
   "equipment_arrange_itemOrderLabelFlat": "الترتيب حسب",
-  "equipment_arrange_tooltip": "ترتيب المعدات",
   "equipment_arrange_reset": "إعادة التعيين إلى الإعدادات الافتراضية",
   "equipment_arrange_saveFailed": "تعذر حفظ الترتيب",
   "settings_appearance_gearArrangement": "ترتيب المعدات",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -8,9 +9,11 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -21,6 +24,19 @@ import '../../../../helpers/test_database.dart';
 /// database: the kind-picker sheet, pause/resume/remove menu actions, and
 /// the interval-override dialog all execute their real repository paths.
 void main() {
+  // formatDate resolves DateFormat against Intl.defaultLocale, a process
+  // global the app assigns from the diver's locale and a widget test never
+  // sets (MaterialApp.locale does not touch it). Pin it so the date strings
+  // asserted below do not rest on the machine default or a prior test.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   late SharedPreferences prefs;
   late EquipmentRepository equipmentRepo;
   late ServiceScheduleRepository scheduleRepo;
@@ -219,11 +235,173 @@ void main() {
       expect(hydro.intervalDives, 50);
       expect(hydro.intervalHours, 2.5);
       expect(hydro.anchorDate, isNotNull);
+      // A newly set baseline records when, so records logged before it
+      // cannot outrank it.
+      expect(hydro.anchorSetAt, isNotNull);
     });
 
     // The card now renders the usage triggers alongside the date trigger.
     expect(find.textContaining('of 50 dives left'), findsOneWidget);
     expect(find.textContaining('of 2.5 hours left'), findsOneWidget);
+  });
+
+  testWidgets('saving without touching the baseline keeps its set time', (
+    tester,
+  ) async {
+    // Re-stamping on every save would let a record logged between the
+    // baseline edit and an unrelated interval edit jump back in front.
+    final tank = await makeTank(tester);
+    final setAt = DateTime(2026, 1, 2, 3, 4);
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      await scheduleRepo.updateSchedule(
+        hydro.withBaseline(DateTime(2024, 6, 1), now: setAt),
+      );
+    });
+    await tester.pumpWidget(buildCard(tank.id));
+    await tester.pumpAndSettle();
+
+    await openMenu(tester, 'Hydrostatic test');
+    await tester.tap(find.text('Edit intervals'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Interval (days)'),
+      '100',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      expect(hydro.intervalDays, 100);
+      expect(hydro.anchorDate, DateTime(2024, 6, 1));
+      expect(hydro.anchorSetAt, setAt);
+    });
+  });
+
+  testWidgets('re-picking a pre-update baseline on the same day stamps it', (
+    tester,
+  ) async {
+    // A baseline set before v213 has no set time, so the old rule (any
+    // record wins) governs it. The upgrade advice is "set it once more";
+    // picking the date it already shows must count as setting it.
+    final tank = await makeTank(tester);
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      await scheduleRepo.updateSchedule(
+        hydro.copyWith(anchorDate: DateTime(2024, 6, 1)),
+      );
+    });
+    await tester.pumpWidget(buildCard(tank.id));
+    await tester.pumpAndSettle();
+
+    await openMenu(tester, 'Hydrostatic test');
+    await tester.tap(find.text('Edit intervals'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Baseline date'));
+    await tester.tap(find.text('Baseline date'));
+    await tester.pumpAndSettle();
+    // The picker opens on the stored date; OK keeps it.
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      expect(hydro.anchorDate, DateTime(2024, 6, 1));
+      expect(hydro.anchorSetAt, isNotNull);
+    });
+  });
+
+  testWidgets(
+    'saving the dialog moves a pre-update baseline onto the new rule',
+    (tester) async {
+      // The hint promises "logging a newer service clears it", which a
+      // baseline with no set time does not honour (any record wins, even a
+      // backdated one). The dialog only shows such a baseline while no
+      // service of the kind exists, so stamping it on save moves nothing now
+      // and makes the promise true from then on.
+      final tank = await makeTank(tester);
+      await tester.runAsync(() async {
+        final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+        final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+        await scheduleRepo.updateSchedule(
+          hydro.copyWith(anchorDate: DateTime(2024, 6, 1)),
+        );
+      });
+      await tester.pumpWidget(buildCard(tank.id));
+      await tester.pumpAndSettle();
+
+      await openMenu(tester, 'Hydrostatic test');
+      await tester.tap(find.text('Edit intervals'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Interval (days)'),
+        '100',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      await tester.runAsync(() async {
+        final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+        final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+        expect(hydro.anchorDate, DateTime(2024, 6, 1));
+        expect(hydro.anchorSetAt, isNotNull);
+      });
+    },
+  );
+
+  testWidgets('the dialog leaves out a baseline a later service took over', (
+    tester,
+  ) async {
+    // A service that arrived by sync (or from an older build) takes the
+    // clock over without clearing the stored baseline. The dialog must not
+    // present a date the clock no longer counts from.
+    final tank = await makeTank(tester);
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      await scheduleRepo.updateSchedule(
+        hydro.withBaseline(DateTime(2024, 6, 1), now: DateTime(2025)),
+      );
+      await ServiceRecordRepository().createRecord(
+        ServiceRecord(
+          id: '',
+          equipmentId: tank.id,
+          serviceCategory: ServiceCategory.inspection,
+          serviceKindId: 'hydro',
+          serviceDate: DateTime(2025, 3, 1),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+    });
+    await tester.pumpWidget(buildCard(tank.id));
+    await tester.pumpAndSettle();
+
+    await openMenu(tester, 'Hydrostatic test');
+    await tester.tap(find.text('Edit intervals'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Baseline date'));
+
+    expect(find.byTooltip('Clear baseline date'), findsNothing);
+    expect(find.text('Jun 1, 2024'), findsNothing);
+
+    // Saving keeps the hidden baseline stored, set time and all: deleting
+    // the service that took over must be able to bring it back.
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      expect(hydro.anchorDate, DateTime(2024, 6, 1));
+      expect(hydro.anchorSetAt, DateTime(2025));
+    });
   });
 
   testWidgets('override dialog clear button nulls the anchor date', (
@@ -234,7 +412,7 @@ void main() {
       final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
       final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
       await scheduleRepo.updateSchedule(
-        hydro.copyWith(anchorDate: DateTime(2024, 6, 1)),
+        hydro.withBaseline(DateTime(2024, 6, 1), now: DateTime(2026)),
       );
     });
     await tester.pumpWidget(buildCard(tank.id));
@@ -254,6 +432,7 @@ void main() {
       final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
       final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
       expect(hydro.anchorDate, isNull);
+      expect(hydro.anchorSetAt, isNull);
     });
   });
 

@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
-import 'package:submersion/core/buoyancy/twin_analyzer.dart';
-import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -14,82 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
-
-BuoyancyTwinOutcome _outcome({
-  double leadKg = 6.0,
-  double droppableLeadKg = 4.0,
-  double minDitchableKg = 2.0,
-  double peakLiftDemandKg = 3.0,
-  double? wingLiftCapacityKg,
-  double verdictNet = 1.8,
-}) {
-  final env = DiveEnvironment.forConditions(waterType: WaterType.salt);
-  final input = TwinInput(
-    profile: const [
-      TwinProfileSample(timestamp: 0, depthM: 0),
-      TwinProfileSample(timestamp: 60, depthM: 5),
-    ],
-    tanks: const [],
-    suit: const TwinSuitInput(
-      kind: TwinSuitKind.wetsuit,
-      anchorKg: 3.0,
-      source: TermSource.typeDefault,
-    ),
-    staticTerms: const [
-      TwinStaticTerm(label: 'personal', kg: 5.0, source: TermSource.measured),
-    ],
-    leadKg: leadKg,
-    droppableLeadKg: droppableLeadKg,
-    environment: env,
-  );
-  final result = BuoyancyTwinResult(
-    samples: const [
-      TwinSample(timestamp: 0, depthM: 0, suitKg: 3, tanksKg: 0, netKg: 2),
-      TwinSample(timestamp: 60, depthM: 5, suitKg: 3, tanksKg: 0, netKg: 1.8),
-    ],
-    staticKg: 5.0,
-    suitSurfaceKg: 3.9,
-    drysuitGasLiters: 0,
-    pressuresEstimated: false,
-    input: input,
-  );
-  final verdict = TwinVerdict(
-    anchor: const TwinAnchor(
-      kind: TwinAnchorKind.detectedStop,
-      timestamp: 60,
-      depthM: 5,
-    ),
-    netKg: verdictNet,
-    terms: [
-      const TwinStaticTerm(
-        label: 'suit',
-        kg: 3.0,
-        source: TermSource.typeDefault,
-      ),
-      const TwinStaticTerm(
-        label: 'personal',
-        kg: 5.0,
-        source: TermSource.measured,
-      ),
-      TwinStaticTerm(label: 'lead', kg: -leadKg, source: TermSource.measured),
-    ],
-  );
-  final outputs = TwinOutputs(
-    beginNetKg: 2.0,
-    endNetKg: 1.8,
-    peakLiftDemandKg: peakLiftDemandKg,
-    minDitchableKg: minDitchableKg,
-    droppableLeadKg: droppableLeadKg,
-    idealLeadKg: leadKg + verdictNet,
-    verdict: verdict,
-    drysuitGasLiters: 0,
-  );
-  return BuoyancyTwinOutcome(
-    result: result,
-    outputs: outputs,
-    wingLiftCapacityKg: wingLiftCapacityKg,
-  );
-}
+import 'buoyancy_outcome_fixture.dart';
 
 Future<void> _pump(WidgetTester tester, BuoyancyTwinOutcome? outcome) async {
   await tester.pumpWidget(
@@ -120,7 +40,7 @@ Future<void> _pump(WidgetTester tester, BuoyancyTwinOutcome? outcome) async {
 
 void main() {
   testWidgets('renders the verdict and expands the breakdown', (tester) async {
-    await _pump(tester, _outcome());
+    await _pump(tester, buoyancyOutcome());
     // Verdict amount is rendered (1.8 kg buoyant).
     expect(find.textContaining('1.8'), findsWidgets);
 
@@ -136,7 +56,10 @@ void main() {
   testWidgets('warns when droppable lead is below the minimum ditchable', (
     tester,
   ) async {
-    await _pump(tester, _outcome(minDitchableKg: 6.0, droppableLeadKg: 2.0));
+    await _pump(
+      tester,
+      buoyancyOutcome(minDitchableKg: 6.0, droppableLeadKg: 2.0),
+    );
     expect(find.byIcon(Icons.warning_amber_rounded), findsWidgets);
   });
 
@@ -146,13 +69,26 @@ void main() {
     // Lead lives either in the dive's Weights section or as a dry weight on
     // weights-type gear; zero means neither, and the net reads far too
     // buoyant (issue #1103).
-    await _pump(tester, _outcome(leadKg: 0.0, droppableLeadKg: 0.0));
+    await _pump(tester, buoyancyOutcome(leadKg: 0.0, droppableLeadKg: 0.0));
     expect(find.textContaining('No lead recorded'), findsOneWidget);
   });
 
   testWidgets('no lead hint is absent once lead is known', (tester) async {
-    await _pump(tester, _outcome());
+    await _pump(tester, buoyancyOutcome());
     expect(find.textContaining('No lead recorded'), findsNothing);
+  });
+
+  testWidgets('a narrow card fits its header row', (tester) async {
+    // Half of a 700px paired row. The title, the Adjust button and the info
+    // icon could not shrink, so the header overflowed; the title now gives
+    // way instead.
+    await tester.binding.setSurfaceSize(const Size(300, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await _pump(tester, buoyancyOutcome());
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('BUOYANCY'), findsOneWidget);
   });
 
   testWidgets('renders nothing when the outcome is null', (tester) async {

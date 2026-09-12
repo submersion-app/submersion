@@ -111,6 +111,50 @@ void main() {
 
       expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
     });
+
+    // Selection mode puts the checkbox ahead of the connection icon rather
+    // than in its place (issue #1717), so the info column loses 40px. The
+    // stats line must still fit a phone-width card.
+    for (final selecting in [false, true]) {
+      testWidgets('fits a phone-width card '
+          '${selecting ? 'in' : 'outside'} selection mode', (tester) async {
+        tester.view.physicalSize = const Size(353, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              allDiveComputersProvider.overrideWith(
+                (ref) async => [
+                  DiveComputer(
+                    id: 'c1',
+                    name: 'Perdix',
+                    manufacturer: 'Shearwater',
+                    model: 'Perdix 2',
+                    diveCount: 1234,
+                    lastDownload: DateTime(2025, 12, 28, 18, 45),
+                    createdAt: DateTime(2026),
+                    updatedAt: DateTime(2026),
+                  ),
+                ],
+              ),
+            ],
+            locale: const Locale('en'),
+            child: const DeviceListPage(),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (selecting) {
+          await tester.tap(find.byKey(const ValueKey('enter_selection')));
+          await tester.pumpAndSettle();
+          expect(find.byType(Checkbox), findsWidgets);
+        }
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('1234 dives'), findsOneWidget);
+      });
+    }
   });
 }
 

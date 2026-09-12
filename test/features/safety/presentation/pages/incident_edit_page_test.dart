@@ -3,7 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
@@ -42,11 +49,13 @@ class _FakeIncidentRepository extends IncidentRepository {
     String? lessonsLearned,
     String? diveId,
     String? diverId,
+    String? equipmentId,
   }) async {
     final incident = Incident(
       id: 'created-id',
       diverId: diverId,
       diveId: diveId,
+      equipmentId: equipmentId,
       occurredAt: occurredAt,
       category: category,
       severity: severity,
@@ -242,8 +251,10 @@ void main() {
     (tester) async {
       useTallSurface(tester);
       final repo = _FakeIncidentRepository();
+      // The raw id names a diver that no longer exists; the validated one
+      // (what the gear picker and the incident list read) has fallen back.
       final diver = MockCurrentDiverIdNotifier();
-      await diver.setCurrentDiver('diver-1');
+      await diver.setCurrentDiver('deleted-diver');
 
       await tester.pumpWidget(
         testAppRouter(
@@ -251,6 +262,9 @@ void main() {
           overrides: [
             incidentRepositoryProvider.overrideWithValue(repo),
             currentDiverIdProvider.overrideWith((ref) => diver),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-1',
+            ),
           ],
           router: routerFor(const IncidentEditPage(diveId: 'dive-9')),
         ),
@@ -351,5 +365,286 @@ void main() {
 
     expect(repo.deletedId, isNull);
     expect(find.text('Edit near-miss'), findsOneWidget);
+  });
+
+  testWidgets(
+    'the equipment picker lists the dive gear first and preselects the category',
+    (tester) async {
+      useTallSurface(tester);
+      final repo = _FakeIncidentRepository();
+      final reg = EquipmentItem(
+        id: 'reg',
+        name: 'Apeks XTX',
+        type: EquipmentType.regulator,
+        createdAt: DateTime.utc(2026),
+      );
+      final fins = EquipmentItem(
+        id: 'fins',
+        name: 'Jet Fins',
+        type: EquipmentType.fins,
+        createdAt: DateTime.utc(2026),
+      );
+      final dive = Dive(
+        id: 'd1',
+        dateTime: DateTime.utc(2026, 7, 10),
+        gear: [GearLink(item: reg)],
+      );
+
+      await tester.pumpWidget(
+        testAppRouter(
+          locale: const Locale('en'),
+          overrides: [
+            incidentRepositoryProvider.overrideWithValue(repo),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+            diveProvider('d1').overrideWith((ref) async => dive),
+            activeEquipmentProvider.overrideWith((ref) async => [reg, fins]),
+            equipmentItemProvider('reg').overrideWith((ref) async => reg),
+          ],
+          router: routerFor(const IncidentEditPage(diveId: 'd1')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Equipment involved'), findsOneWidget);
+      expect(find.text('None'), findsOneWidget);
+      await tester.tap(find.text('Equipment involved'));
+      await tester.pumpAndSettle();
+      expect(find.text('On this dive'), findsOneWidget);
+      expect(find.text('All gear'), findsOneWidget);
+      // The dive's regulator is listed under the dive header only; the
+      // full list carries the rest of the active gear.
+      expect(find.text('Apeks XTX'), findsOneWidget);
+      expect(find.text('Jet Fins'), findsOneWidget);
+
+      await tester.tap(find.text('Apeks XTX'));
+      await tester.pumpAndSettle();
+      expect(find.text('Apeks XTX'), findsOneWidget);
+      final chip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Equipment'),
+      );
+      expect(chip.selected, isTrue);
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'Second stage free-flowed at depth.',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(repo.created!.equipmentId, 'reg');
+      expect(repo.created!.category, IncidentCategory.equipment);
+    },
+  );
+
+  testWidgets('a cylinder linked to a gear item is listed on the dive', (
+    tester,
+  ) async {
+    // The registry links a cylinder through the tank, not the dive's gear
+    // junction, and the item can be retired (so absent from the active
+    // list). It still belongs under the dive header, once.
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository();
+    final reg = EquipmentItem(
+      id: 'reg',
+      name: 'Apeks XTX',
+      type: EquipmentType.regulator,
+      createdAt: DateTime.utc(2026),
+    );
+    final cylinder = EquipmentItem(
+      id: 'cyl',
+      name: 'Blue AL80',
+      type: EquipmentType.tank,
+      isActive: false,
+      createdAt: DateTime.utc(2026),
+    );
+    final dive = Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 7, 10),
+      gear: [GearLink(item: reg)],
+      tanks: const [
+        DiveTank(id: 't1', equipmentId: 'cyl'),
+        DiveTank(id: 't2', equipmentId: 'cyl'),
+        // Also in the dive's gear: listed once, not twice.
+        DiveTank(id: 't3', equipmentId: 'reg'),
+      ],
+    );
+
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          diveProvider('d1').overrideWith((ref) async => dive),
+          activeEquipmentProvider.overrideWith((ref) async => [reg]),
+          equipmentItemProvider('cyl').overrideWith((ref) async => cylinder),
+          equipmentItemProvider('reg').overrideWith((ref) async => reg),
+        ],
+        router: routerFor(const IncidentEditPage(diveId: 'd1')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Equipment involved'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('On this dive'), findsOneWidget);
+    expect(find.text('Blue AL80'), findsOneWidget);
+    expect(find.text('Apeks XTX'), findsOneWidget);
+    // Everything active is already listed above, so no empty header.
+    expect(find.text('All gear'), findsNothing);
+
+    await tester.tap(find.text('Blue AL80'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'Tank valve stuck half open.',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(repo.created!.equipmentId, 'cyl');
+  });
+
+  testWidgets('a category chosen by hand survives picking an item', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository();
+    final fins = EquipmentItem(
+      id: 'fins',
+      name: 'Jet Fins',
+      type: EquipmentType.fins,
+      createdAt: DateTime.utc(2026),
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          activeEquipmentProvider.overrideWith((ref) async => [fins]),
+        ],
+        router: routerFor(const IncidentEditPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Buoyancy'));
+    await tester.pump();
+    await tester.tap(find.text('Equipment involved'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Jet Fins'));
+    await tester.pumpAndSettle();
+    final chip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'Buoyancy'),
+    );
+    expect(chip.selected, isTrue);
+  });
+  group('queues the named gear for a findings refresh', () {
+    late List<Set<String>> requests;
+    final fins = EquipmentItem(
+      id: 'fins',
+      name: 'Jet Fins',
+      type: EquipmentType.fins,
+      createdAt: DateTime.utc(2026),
+    );
+
+    setUp(() {
+      requests = [];
+      SensorSummaryScheduler.instance.findingsRequestListener = requests.add;
+    });
+    tearDown(
+      () => SensorSummaryScheduler.instance.findingsRequestListener = null,
+    );
+
+    Future<_FakeIncidentRepository> openSaved(WidgetTester tester) async {
+      useTallSurface(tester);
+      final repo = _FakeIncidentRepository(
+        result: existingIncident().copyWith(equipmentId: 'reg'),
+      );
+      await tester.pumpWidget(
+        testAppRouter(
+          locale: const Locale('en'),
+          overrides: [
+            incidentRepositoryProvider.overrideWithValue(repo),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            activeEquipmentProvider.overrideWith((ref) async => [fins]),
+          ],
+          router: routerFor(const IncidentEditPage(incidentId: 'i1')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('moving an incident to another item refreshes both', (
+      tester,
+    ) async {
+      await openSaved(tester);
+      await tester.tap(find.text('Equipment involved'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Jet Fins'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(requests, [
+        {'reg', 'fins'},
+      ]);
+    });
+
+    testWidgets('deleting an incident refreshes its item', (tester) async {
+      await openSaved(tester);
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+      expect(requests, [
+        {'reg'},
+      ]);
+    });
+  });
+
+  testWidgets('a saved category survives picking an item on edit', (
+    tester,
+  ) async {
+    // The stored category was the diver's choice when they saved it, so
+    // naming an item later must not flip it to Equipment.
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository(result: existingIncident());
+    final fins = EquipmentItem(
+      id: 'fins',
+      name: 'Jet Fins',
+      type: EquipmentType.fins,
+      createdAt: DateTime.utc(2026),
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          activeEquipmentProvider.overrideWith((ref) async => [fins]),
+        ],
+        router: routerFor(const IncidentEditPage(incidentId: 'i1')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Equipment involved'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Jet Fins'));
+    await tester.pumpAndSettle();
+    final chip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'Equipment'),
+    );
+    expect(chip.selected, isFalse);
   });
 }

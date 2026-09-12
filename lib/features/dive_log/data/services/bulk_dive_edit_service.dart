@@ -208,9 +208,13 @@ class BulkDiveEditService {
       final tanks = snapshot.priorTanks;
       if (tanks != null) {
         for (final id in ids) {
-          await _diveRepo.bulkReplaceTanks([
-            id,
-          ], _tanksFromRows(tanks[id] ?? const []));
+          // The captured rows carry the registry's cylinder links, which
+          // a restore puts back and a template never writes.
+          await _diveRepo.bulkReplaceTanks(
+            [id],
+            _tanksFromRows(tanks[id] ?? const []),
+            restoreLinks: true,
+          );
         }
       }
       final tankSpecRows = snapshot.priorTankSpecRows;
@@ -371,6 +375,9 @@ class BulkDiveEditService {
         transmitterSerial: r.transmitterSerial,
         regulatorEquipmentId: r.regulatorEquipmentId,
         sourceTankIndex: r.sourceTankIndex,
+        // The cylinder link the registry recorded; bulkReplaceTanks writes
+        // it only when told this is a restore.
+        equipmentId: r.equipmentId,
       ),
   ];
 

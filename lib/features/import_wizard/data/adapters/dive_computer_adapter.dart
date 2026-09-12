@@ -5,6 +5,7 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
@@ -648,6 +649,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(importedDiveIds);
+    scheduleSensorSummaryRefresh(importedDiveIds);
 
     final unmatched = _importService.unmatchedTransmitterSerials;
     return UnifiedImportResult(

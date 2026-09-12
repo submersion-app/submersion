@@ -3,11 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
-import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -22,16 +20,24 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
-import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -68,6 +74,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
+
+  /// The type axis the rows had when [_lastScrolledToId] was brought into
+  /// view. The arrangement starts at the defaults and adopts the stored one
+  /// a moment later, so the first scroll can be positioned for an order the
+  /// list is about to leave; a different type axis here means the row has
+  /// moved and must be scrolled to again.
+  ///
+  /// Only the type axis (and the locale, which reorders alphabetical
+  /// headings): the page orders items by its own sort, so the arrangement's
+  /// item sort (a dive-surface setting) moves no row here, and re-scrolling
+  /// on it would yank the diver back to the selected row.
+  Object? _scrolledTypeAxis;
+
+  /// The type axis the list was last built with, for [didUpdateWidget],
+  /// which runs before the next build and outside it.
+  Object? _currentTypeAxis;
   bool _selectionFromList = false;
 
   @override
@@ -86,23 +108,73 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       if (_selectionFromList) {
         _selectionFromList = false;
         _lastScrolledToId = widget.selectedId;
+        _scrolledTypeAxis = _currentTypeAxis;
       }
       // External selection changes are handled by _buildEquipmentList
       // when the sorted data is available.
     }
   }
 
-  /// Scroll the list to bring the item at [index] into view.
+  /// What moves rows on this page: the arrangement's type axis, plus the
+  /// locale when the types are ordered alphabetically, since that order
+  /// sorts by the translated type name and a new language reorders it with
+  /// no arrangement change. The curated orders and "none" ignore the labels,
+  /// so there a language switch moves no row and must not re-scroll.
   ///
-  /// Uses an estimated item height (Card + ListTile ~ 80px) since
-  /// ListView.builder is lazy and off-screen items have no context.
-  void _scrollToIndex(int index) {
+  /// With no type order the arranger ignores the grouping switch and the
+  /// type direction as well, so they collapse to one key there.
+  static Object _typeAxisOf(EquipmentArrangement arrangement, Locale locale) {
+    if (arrangement.typeOrder == EquipmentTypeOrder.none) {
+      return EquipmentTypeOrder.none;
+    }
+    return (
+      arrangement.groupByType,
+      arrangement.typeOrder,
+      arrangement.typeOrderDescending,
+      arrangement.typeOrder == EquipmentTypeOrder.alphabetical ? locale : null,
+    );
+  }
+
+  /// Whether [mode] draws the shared arrangement: the card modes only.
+  static bool _honoursArrangement(ListViewMode mode) =>
+      mode == ListViewMode.detailed || mode == ListViewMode.compact;
+
+  /// Orders the flat modes by the page sort alone: with no type order the
+  /// arranger draws no headings and [arrangeEquipment]'s item comparator,
+  /// always the page's here, is the only key.
+  static const EquipmentArrangement _pageSortOnly = EquipmentArrangement(
+    typeOrder: EquipmentTypeOrder.none,
+    groupByType: false,
+    itemSortField: EquipmentItemSortField.name,
+    itemSortDirection: SortDirection.ascending,
+  );
+
+  /// Scroll the list to bring the row at [index] into view.
+  ///
+  /// Uses estimated heights (Card + ListTile ~ 80px, a type heading ~ 32px)
+  /// since ListView.builder is lazy and off-screen rows have no context.
+  /// Headings are sized separately because sizing them like items overshoots
+  /// by the difference for every heading above the target, which in a
+  /// grouped list is nearly one per item.
+  void _scrollToIndex(
+    List<_EquipmentListRow> rows,
+    int index,
+    String targetId,
+    Object typeAxis,
+  ) {
     if (!mounted || !_scrollController.hasClients) return;
 
     const estimatedItemHeight = 80.0;
+    const estimatedHeadingHeight = 32.0;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final viewportHeight = _scrollController.position.viewportDimension;
-    final targetOffset = (index * estimatedItemHeight) - (viewportHeight / 3);
+    var rowTop = 0.0;
+    for (final row in rows.take(index)) {
+      rowTop += row is _EquipmentHeadingRow
+          ? estimatedHeadingHeight
+          : estimatedItemHeight;
+    }
+    final targetOffset = rowTop - (viewportHeight / 3);
     final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
     _scrollController.animateTo(
@@ -110,7 +182,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
-    _lastScrolledToId = widget.selectedId;
+    _lastScrolledToId = targetId;
+    _scrolledTypeAxis = typeAxis;
   }
 
   void _handleItemTap(EquipmentItem equipment) {
@@ -146,7 +219,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final viewMode = ref.watch(equipmentListViewModeProvider);
     // The urgency map drives the Service Due sort and (in table mode) the
     // forecast columns, and it evaluates clocks for all active gear -- so only
-    // watch it when needed, not on the common name/type list sorts.
+    // watch it when needed, not on the common name and date sorts.
     final needsUrgency =
         viewMode == ListViewMode.table ||
         sort.field == EquipmentSortField.serviceDue;
@@ -175,7 +248,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           filter.applyType(equipment),
           sort,
           serviceUrgency: serviceUrgency,
-          typeLabel: (t) => t.localizedName(context.l10n),
         ),
       );
       return _buildTableModeScaffold(
@@ -187,14 +259,34 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       );
     }
 
-    // The visible list depends on which status filter is active, so derive
-    // selectable ids from the same branch the list renders.
-    final sortedVisible = applyEquipmentSorting(
-      filter.applyType(equipmentAsync.value ?? const <EquipmentItem>[]),
+    // The list honours the gear arrangement every gear surface shares: its
+    // type axis groups and orders the headings, while the page's own sort
+    // (which alone offers Service Due) orders the gear inside each group.
+    // Only the card modes do: Dense is a single-row flat layout (not offered
+    // for gear, but a value stored by an older build can still select it),
+    // so it stays flat on the page sort, as the table does.
+    final arrangement = _honoursArrangement(viewMode)
+        ? ref.watch(equipmentArrangementProvider)
+        : _pageSortOnly;
+    final compareItems = equipmentSortComparator(
       sort,
       serviceUrgency: serviceUrgency,
-      typeLabel: (t) => t.localizedName(context.l10n),
     );
+    // The visible list depends on which status filter is active, so derive
+    // selectable ids from the same branch the list renders, in the order it
+    // renders them.
+    //
+    // Arranged once per build, here, and reused by the list below: that list
+    // is rebuilt inside the selection listener on every check toggle, and
+    // re-sorting the whole inventory there made bulk selection cost a full
+    // sort per tap.
+    final visibleGroups = arrangeEquipment(
+      filter.applyType(equipmentAsync.value ?? const <EquipmentItem>[]),
+      arrangement,
+      typeLabel: (t) => t.localizedName(context.l10n),
+      compareItems: compareItems,
+    );
+    final sortedVisible = [for (final group in visibleGroups) ...group.items];
     final visibleIds = sortedVisible.map((e) => e.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -205,21 +297,15 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // change; computing it here would leave the list frozen mid-selection.
     Widget buildContent() {
       return equipmentAsync.when(
-        data: (equipment) {
-          final sorted = applyEquipmentSorting(
-            filter.applyType(equipment),
-            sort,
-            serviceUrgency: serviceUrgency,
-            typeLabel: (t) => t.localizedName(context.l10n),
-          );
-          return sorted.isEmpty
-              ? _buildEmptyState(
-                  context,
-                  ref,
-                  hadItemsBeforeTypeFilter: equipment.isNotEmpty,
-                )
-              : _buildEquipmentList(context, ref, sorted);
-        },
+        // `equipment` is `equipmentAsync.value`, which visibleGroups was
+        // arranged from.
+        data: (equipment) => visibleGroups.isEmpty
+            ? _buildEmptyState(
+                context,
+                ref,
+                hadItemsBeforeTypeFilter: equipment.isNotEmpty,
+              )
+            : _buildEquipmentList(context, ref, visibleGroups, arrangement),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(context, error),
       );
@@ -667,21 +753,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   }
 
   void _showSortSheet(BuildContext context) {
-    final sort = ref.read(equipmentSortProvider);
-    showSortBottomSheet<EquipmentSortField>(
-      context: context,
-      title: context.l10n.equipment_list_sortTitle,
-      currentField: sort.field,
-      currentDirection: sort.direction,
-      fields: EquipmentSortField.values,
-      getFieldDisplayName: (field) => field.localizedName(context.l10n),
-      getFieldIcon: (field) => field.icon,
-      onSortChanged: (field, direction) {
-        ref.read(equipmentSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
-      },
+    // The flat modes (table, dense) ignore the grouping, so their sheet
+    // leaves it out.
+    showEquipmentListSortSheet(
+      context,
+      showGrouping: _honoursArrangement(
+        ref.read(equipmentListViewModeProvider),
+      ),
     );
   }
 
@@ -778,19 +856,39 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Widget _buildEquipmentList(
     BuildContext context,
     WidgetRef ref,
-    List<EquipmentItem> equipment,
+    List<EquipmentGroup> groups,
+    EquipmentArrangement arrangement,
   ) {
+    // One flat run of rows for the lazy builder: a heading before each group
+    // when the arrangement groups, then that group's gear.
+    final rows = <_EquipmentListRow>[
+      for (final group in groups) ...[
+        if (group.type != null) _EquipmentHeadingRow(group.type!),
+        for (final item in group.items) _EquipmentItemRow(item),
+      ],
+    ];
+
     // Scroll to selected item when data is available but we haven't
-    // scrolled yet (e.g., navigated from dive detail or set detail).
-    if (widget.selectedId != null &&
-        widget.selectedId != _lastScrolledToId &&
+    // scrolled yet (e.g., navigated from dive detail or set detail), or when
+    // the arrangement has moved it since (the stored arrangement landing
+    // after the first frame, or the diver regrouping). The index counts
+    // heading rows too, since they take space above the item.
+    final selectedId = widget.selectedId;
+    final typeAxis = _typeAxisOf(arrangement, Localizations.localeOf(context));
+    _currentTypeAxis = typeAxis;
+    if (selectedId != null &&
+        (selectedId != _lastScrolledToId || typeAxis != _scrolledTypeAxis) &&
         !_selectionFromList) {
-      final selectedIndex = equipment.indexWhere(
-        (e) => e.id == widget.selectedId,
+      final selectedIndex = rows.indexWhere(
+        (row) => row is _EquipmentItemRow && row.item.id == selectedId,
       );
       if (selectedIndex >= 0) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToIndex(selectedIndex);
+          // These rows were laid out for this selection. If it changed before
+          // the callback ran, scrolling now would move to the old row and
+          // mark the new one as done; the newer build schedules its own.
+          if (widget.selectedId != selectedId) return;
+          _scrollToIndex(rows, selectedIndex, selectedId, typeAxis);
         });
       }
     }
@@ -801,9 +899,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.only(bottom: 80),
-        itemCount: equipment.length,
+        itemCount: rows.length,
         itemBuilder: (context, index) {
-          final item = equipment[index];
+          final EquipmentItem item;
+          switch (rows[index]) {
+            case _EquipmentHeadingRow(:final type):
+              return Padding(
+                // Level with the card edges below it.
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: EquipmentGroupHeader(type: type),
+              );
+            case _EquipmentItemRow(item: final rowItem):
+              item = rowItem;
+          }
           final isSelected =
               widget.selectedId == item.id ||
               ref.watch(highlightedEquipmentIdProvider) == item.id;
@@ -958,8 +1066,16 @@ class EquipmentListTile extends ConsumerWidget {
         rollup == null || rollup.status.severity == ServiceClockSeverity.ok
         ? null
         : rollup;
-    final isOverdue =
-        worstClock?.status.severity == ServiceClockSeverity.overdue;
+    // A condition finding competes with the clock for the one badge slot
+    // (condition phase 4b); a significant finding lights the avatar too.
+    final finding = ref.watch(conditionBadgeProvider).value?[item.id];
+    final source = pickBadgeSource(
+      clockSeverity: worstClock?.status.severity,
+      finding: finding,
+    );
+    final isOverdue = source == BadgeSource.finding
+        ? finding!.severity == ConditionSeverity.significant
+        : worstClock?.status.severity == ServiceClockSeverity.overdue;
     // A non-null subtitle forces the two-line tile layout, so only build one
     // when there is something to show: a differing full name, or chips.
     final index = ref.watch(equipmentComponentsIndexProvider).value;
@@ -1012,12 +1128,20 @@ class EquipmentListTile extends ConsumerWidget {
                 ],
               )
             : null,
-        trailing: _buildTrailing(context, worstClock),
+        trailing: _buildTrailing(
+          context,
+          source == BadgeSource.finding ? null : worstClock,
+          source == BadgeSource.finding ? finding : null,
+        ),
       ),
     );
   }
 
-  Widget _buildTrailing(BuildContext context, RollupClock? worstClock) {
+  Widget _buildTrailing(
+    BuildContext context,
+    RollupClock? worstClock,
+    ConditionBadge? finding,
+  ) {
     final theme = Theme.of(context);
 
     final typeLabel = Text(
@@ -1026,6 +1150,27 @@ class EquipmentListTile extends ConsumerWidget {
         color: theme.colorScheme.onSurfaceVariant,
       ),
     );
+
+    if (finding != null) {
+      final significant = finding.severity == ConditionSeverity.significant;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          typeLabel,
+          const SizedBox(height: 2),
+          Text(
+            conditionFindingShortLabel(finding.rule, context.l10n),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: significant
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.tertiary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
 
     if (worstClock != null) {
       final overdue =
@@ -1189,4 +1334,21 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
       },
     );
   }
+}
+
+/// One row of the lazily built equipment list: a type heading or an item.
+sealed class _EquipmentListRow {
+  const _EquipmentListRow();
+}
+
+class _EquipmentHeadingRow extends _EquipmentListRow {
+  const _EquipmentHeadingRow(this.type);
+
+  final EquipmentType type;
+}
+
+class _EquipmentItemRow extends _EquipmentListRow {
+  const _EquipmentItemRow(this.item);
+
+  final EquipmentItem item;
 }

@@ -52,6 +52,7 @@ void main() {
       overrides: [
         incidentRepositoryProvider.overrideWithValue(repo),
         currentDiverIdProvider.overrideWith((ref) => diver),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
       ],
     );
     addTearDown(container.dispose);
@@ -59,6 +60,27 @@ void main() {
     final result = await container.read(incidentsProvider.future);
     expect(result, hasLength(1));
     expect(repo.queriedDiverId, 'diver-1');
+  });
+
+  test('incidentsProvider scopes to the validated diver', () async {
+    // A new incident is saved under the validated diver id. With a stale
+    // raw id (a restore, or a sync that removed the diver) a list scoped to
+    // the raw id would not show the incident just saved.
+    final repo = _FakeIncidentRepository([incident()]);
+    final diver = MockCurrentDiverIdNotifier();
+    await diver.setCurrentDiver('gone');
+
+    final container = ProviderContainer(
+      overrides: [
+        incidentRepositoryProvider.overrideWithValue(repo),
+        currentDiverIdProvider.overrideWith((ref) => diver),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'kept'),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(incidentsProvider.future);
+    expect(repo.queriedDiverId, 'kept');
   });
 
   test('incidentsForDiveProvider filters by dive', () async {

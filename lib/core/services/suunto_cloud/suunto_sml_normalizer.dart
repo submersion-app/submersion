@@ -64,7 +64,9 @@ class SuuntoSmlNormalizer {
   ///  - `Summary.Samples[]` with an `Attributes['suunto/sml']['Header']`
   ///    entry and an `Attributes['suunto/sml']['DiveHeader']` entry (which
   ///    holds the real Gases list, as plain percentages, not the 0.0-1.0
-  ///    fractions the DeviceLog shape uses).
+  ///    fractions the DeviceLog shape uses), and an
+  ///    `Attributes['suunto/sml']['DiveFooter']` entry (which holds the
+  ///    dive's surface GPS fixes in `DiveLocation`).
   ///  - `Data.Samples[]` each wraps the per-instant fields (Depth, Ceiling,
   ///    NoDecTime, Cylinders, DiveEvents, Events, Temperature, ...) one level
   ///    deeper, in `Attributes['suunto/sml']['Sample']`.
@@ -116,6 +118,17 @@ class SuuntoSmlNormalizer {
       diving['GfHigh'] = diveHeader['HighGf'];
     }
     if (diving.isNotEmpty) header['Diving'] = diving;
+
+    // The surface GPS pair (Start = entry, Stop = exit, both in radians)
+    // lives in the dive footer rather than the header or the samples. The
+    // dive parser only sees (header, samples), so hoist it onto the header.
+    final diveFooterVal = _summaryType(root, 'DiveFooter');
+    if (diveFooterVal is Map) {
+      final diveLocation = diveFooterVal['DiveLocation'];
+      if (diveLocation is Map) {
+        header['DiveLocation'] = Map<String, dynamic>.from(diveLocation);
+      }
+    }
 
     final samples = <Map<String, dynamic>>[];
     final dataSamples =

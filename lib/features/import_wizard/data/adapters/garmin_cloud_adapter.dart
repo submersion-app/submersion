@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/import_wizard/data/adapters/cloud_computer_identity.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -408,6 +409,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     }
 
     scheduleQualityScan(importedDiveIds);
+    scheduleSensorSummaryRefresh(importedDiveIds);
 
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},

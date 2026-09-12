@@ -99,4 +99,25 @@ void main() {
       'reg',
     );
   });
+
+  test('incidents carry equipmentId', () async {
+    await serializer.upsertRecord('equipment', equipment('reg'));
+    await serializer.upsertRecord('incidents', {
+      'id': 'i1',
+      'diverId': null,
+      'diveId': null,
+      'equipmentId': 'reg',
+      'occurredAt': 1000,
+      'category': 'equipment',
+      'severity': 'minor',
+      'narrative': 'n',
+      'contributingFactors': null,
+      'lessonsLearned': null,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+      'hlc': null,
+    });
+    final back = await serializer.fetchRecord('incidents', 'i1');
+    expect(back!['equipmentId'], 'reg');
+  });
 }

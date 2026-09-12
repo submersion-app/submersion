@@ -1,0 +1,64 @@
+name: PR cache cleanup
+
+# The repo shares one 10 GB Actions cache, and every PR run saves entries
+# scoped to its own merge ref (refs/pull/N/merge): pub, pods, nuget and the
+# per-commit build_runner state from ci.yaml. Nothing can restore those once
+# the PR closes, but they still count against the limit until GitHub evicts
+# them, pushing out the main-branch entries every new PR restores from. Delete
+# them as soon as the PR closes (merged or not).
+#
+# pull_request_target, not pull_request: a fork PR's pull_request token is
+# read-only, so it could not delete its own caches. This workflow never checks
+# out or runs PR code; it only calls the cache API for the PR's ref.
+#
+# pull_request_target also runs the workflow as it exists on main, so it only
+# covers PRs that close after this file lands there. Caches from PRs closed
+# before then are left to GitHub's LRU eviction, as they always were.
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Delete closed PR caches
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete caches for this PR's merge ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          set -uo pipefail
+          deleted=0
+          # ci.yaml saves one build_runner entry per commit, so a long-lived PR
+          # can exceed one listing page. Delete in passes of up to 100 until the
+          # ref is empty; the pass cap stops a cache that keeps refusing to
+          # delete from looping forever.
+          for pass in $(seq 1 20); do
+            # A failed listing must fail the job, not read as "nothing left".
+            if ! ids=$(gh cache list --ref "$REF" --limit 100 --json id --jq '.[].id'); then
+              echo "::error::could not list caches for $REF"
+              exit 1
+            fi
+            if [ -z "$ids" ]; then
+              echo "Deleted $deleted cache(s) for $REF in $((pass - 1)) pass(es)."
+              exit 0
+            fi
+            # A cache GitHub already evicted (or a concurrent run deleted) makes
+            # delete fail; that is fine, so report it but keep going.
+            for id in $ids; do
+              if gh cache delete "$id"; then
+                deleted=$((deleted + 1))
+              else
+                echo "::warning::could not delete cache $id"
+              fi
+            done
+          done
+          echo "::error::caches still listed for $REF after 20 passes ($deleted deleted)"
+          exit 1

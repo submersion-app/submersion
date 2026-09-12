@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,10 +8,14 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -22,6 +27,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -29,13 +35,16 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -70,6 +79,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 @GenerateNiceMocks([
@@ -89,6 +99,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
   MockSpec<UddfEntityImporter>(),
   MockSpec<DiveConsolidationService>(),
 ])
+import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
 
 typedef Override = riverpod.Override;
@@ -138,6 +149,22 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Fake `path_provider` platform, so the batch test's picked files can live
+/// in a temp directory. Windows' `path_provider_windows` resolves the
+/// documents path via a native win32 call rather than a `MethodChannel`, so
+/// mocking the channel does not intercept it; overriding
+/// [PathProviderPlatform.instance] directly (this codebase's existing idiom
+/// -- see media_cache_root_test.dart) does.
+class _FakePathProviderPlatform extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  _FakePathProviderPlatform(this.documentsPath);
+
+  final String documentsPath;
+
+  @override
+  Future<String?> getApplicationDocumentsPath() async => documentsPath;
+}
+
 /// A testable version of the notifier that allows setting state directly.
 class _TestableImportNotifier extends UniversalImportNotifier {
   _TestableImportNotifier(super.ref);
@@ -169,6 +196,12 @@ class _TestableImportNotifier extends UniversalImportNotifier {
           ),
       ],
     );
+  }
+
+  /// Batch files as the wizard really holds them: path-backed, each with its
+  /// own detected format and no bytes in memory.
+  void setPickedFiles(List<PickedImportFile> files) {
+    state = state.copyWith(files: files);
   }
 
   void setDetectedCsvPreset(CsvPreset? preset) {
@@ -245,6 +278,8 @@ List<Override> _fullOverrides({
   ImportOptions? options,
   Diver? diver,
   List<String> fileNames = const [],
+  List<PickedImportFile> pickedFiles = const [],
+  DetectionResult? detectionResult,
   List<Dive> existingDives = const [],
   List<DiveSite> existingSites = const [],
   List<Trip> existingTrips = const [],
@@ -296,6 +331,8 @@ List<Override> _fullOverrides({
       notifier.setPayload(payload);
       if (options != null) notifier.setOptions(options);
       if (fileNames.isNotEmpty) notifier.setFiles(fileNames);
+      if (pickedFiles.isNotEmpty) notifier.setPickedFiles(pickedFiles);
+      if (detectionResult != null) notifier.setDetectionResult(detectionResult);
       return notifier;
     }),
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
@@ -2384,6 +2421,64 @@ void main() {
       );
     });
 
+    testWidgets('custom dive roles in the metadata are restored', (
+      tester,
+    ) async {
+      // Issue #1737: a restored dive links people by custom role id, so
+      // the role definitions the file carried have to land as well.
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await tester.runAsync(() => DiverRepository().createDiver(_testDiver()));
+
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 3, 15, 10, 0),
+              'maxDepth': 20.0,
+              'runtime': const Duration(minutes: 30),
+            },
+          ],
+        },
+        metadata: {
+          ImportPayload.customDiveRolesKey: [
+            {
+              'id': 'custom-uuid',
+              'name': 'Photographer',
+              'sortOrder': 10,
+              'isBuiltIn': false,
+            },
+          ],
+        },
+      );
+
+      final mockTankPresetRepo = MockTankPresetRepository();
+      when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          mockTankPresetRepo: mockTankPresetRepo,
+        ),
+        callback: (adapter) async {
+          await tester.runAsync(() async {
+            final bundle = await adapter.buildBundle();
+            final result = await adapter.performImport(bundle, {
+              wizard.ImportEntityType.dives: {0},
+            }, {});
+            expect(result.errorMessage, isNull);
+          });
+        },
+      );
+
+      final role = await tester.runAsync(
+        () => DiveRoleRepository().getDiveRoleById('custom-uuid'),
+      );
+      expect(role?.name, 'Photographer');
+    });
+
     testWidgets(
       'real SSRF-shaped payload imports without int-to-double cast failures',
       (tester) async {
@@ -2442,6 +2537,376 @@ void main() {
             expect(result.importedCounts[ImportEntityType.dives], 1);
           },
         );
+      },
+    );
+
+    testWidgets(
+      'a backup whose GPS lives on its <source> records restores it (#1735)',
+      (tester) async {
+        // The wizard rebuilds UddfImportResult from entity lists, so the
+        // per-dive source entries have to survive on the dive maps. Every
+        // backup written before #1735 kept GPS only on those entries.
+        await setUpTestDatabase();
+        addTearDown(tearDownTestDatabase);
+
+        final payload = (await tester.runAsync(() async {
+          final stamp = DateTime(2025, 10, 13, 18);
+          final xml = await UddfFullExportService().generateAllDataXmlForTest(
+            dives: [
+              Dive(
+                id: 'dive-gps',
+                diveNumber: 1,
+                dateTime: DateTime(2025, 10, 13, 11, 24),
+                bottomTime: const Duration(minutes: 45),
+                maxDepth: 24.0,
+              ),
+            ],
+            dataSources: [
+              DiveSourceExport(
+                id: 'src-primary',
+                diveId: 'dive-gps',
+                ordinal: 0,
+                isPrimary: true,
+                importedAt: stamp,
+                createdAt: stamp,
+                entryLatitude: 29.5,
+                entryLongitude: 34.9,
+              ),
+              DiveSourceExport(
+                id: 'src-secondary',
+                diveId: 'dive-gps',
+                ordinal: 1,
+                isPrimary: false,
+                importedAt: stamp,
+                createdAt: stamp,
+              ),
+            ],
+          );
+          return UddfImportParser().parse(Uint8List.fromList(utf8.encode(xml)));
+        }))!;
+
+        final mockDiveRepo = MockDiveRepository();
+        when(
+          mockDiveRepo.createDive(any),
+        ).thenAnswer((inv) async => inv.positionalArguments[0] as Dive);
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            await tester.runAsync(() async {
+              final bundle = await adapter.buildBundle();
+              final result = await adapter.performImport(bundle, {
+                wizard.ImportEntityType.dives: {0},
+              }, {});
+              expect(result.errorMessage, isNull);
+            });
+          },
+        );
+
+        final dive =
+            verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+        expect(dive.entryLocation, const GeoPoint(29.5, 34.9));
+        // Both exported sources are restored rather than one synthesised
+        // row, which is the same entries reaching the importer.
+        final readings =
+            verify(
+                  mockDiveRepo.saveComputerReadings(captureAny),
+                ).captured.single
+                as List;
+        expect(readings, hasLength(2));
+        verifyNever(mockDiveRepo.saveComputerReading(any));
+      },
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // performImport -- wires the source file through to DiveDataSources
+  // (issue #478 -- see task-3-report.md for the bug this regression-tests)
+  // -------------------------------------------------------------------------
+
+  group('performImport() - stores the source file (issue #478)', () {
+    testWidgets(
+      'a single-file resyncable import threads fileName/fileBytes/format '
+      'from notifierState through to the persisted DiveDataSource',
+      (tester) async {
+        // UddfEntityImporter's default ImportedFileRepository writes to the
+        // database, so the group needs one; the dive repository itself is
+        // still a mock, which is what the captured companion comes from.
+        final db = await setUpTestDatabase();
+        addTearDown(tearDownTestDatabase);
+
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+              },
+            ],
+          },
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+            fileNames: const ['dive.uddf'],
+            detectionResult: const DetectionResult(
+              format: ui.ImportFormat.uddf,
+              confidence: 1.0,
+            ),
+          ),
+          callback: (adapter) async {
+            await tester.runAsync(() async {
+              final bundle = await adapter.buildBundle();
+              final result = await adapter.performImport(bundle, {
+                wizard.ImportEntityType.dives: {0},
+              }, {});
+
+              expect(result.errorMessage, isNull);
+            });
+          },
+        );
+
+        // This is the regression this test exists for: before the fix,
+        // performImport() never passed sourceFileName to the importer (the
+        // plan's brief wrongly assumed it already flowed through), so the
+        // store() guard (sourceFileBytes/sourceFileName/sourceFormat all
+        // non-null) was always false in production and no file was ever
+        // stored, even for a qualifying single-file UDDF import.
+        final capturedReadings = verify(
+          mockDiveRepo.saveComputerReading(captureAny),
+        ).captured;
+        final reading = capturedReadings.single;
+        expect(reading.sourceFileName.value, 'dive.uddf');
+        expect(reading.sourceFileFormat.value, 'uddf');
+        final storedId = reading.importedFileId.value as String?;
+        expect(storedId, isNotNull);
+        // The picked file the test notifier holds carries no bytes, so this
+        // asserts the row landed; the batch test below is where byte fidelity
+        // is pinned.
+        expect(
+          await ImportedFileRepository(database: () => db).exists(storedId!),
+          isTrue,
+        );
+      },
+    );
+
+    testWidgets(
+      'the diver format override, not the auto-detection, is what gets '
+      'persisted and stored',
+      (tester) async {
+        // Source Confirmation lets the diver correct a wrong auto-detection,
+        // and the parse already runs on the override. Persisting the detected
+        // format instead would hand resync the wrong parser later.
+        await setUpTestDatabase();
+        addTearDown(tearDownTestDatabase);
+
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+              },
+            ],
+          },
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+            fileNames: const ['logbook.xml'],
+            detectionResult: const DetectionResult(
+              format: ui.ImportFormat.macdiveXml,
+              confidence: 0.5,
+            ),
+            options: const ImportOptions(
+              sourceApp: ui.SourceApp.subsurface,
+              format: ui.ImportFormat.subsurfaceXml,
+              fileName: 'logbook.xml',
+            ),
+          ),
+          callback: (adapter) async {
+            await tester.runAsync(() async {
+              final bundle = await adapter.buildBundle();
+              final result = await adapter.performImport(bundle, {
+                wizard.ImportEntityType.dives: {0},
+              }, {});
+
+              expect(result.errorMessage, isNull);
+            });
+          },
+        );
+
+        final capturedReadings = verify(
+          mockDiveRepo.saveComputerReading(captureAny),
+        ).captured;
+        final reading = capturedReadings.single;
+        expect(reading.sourceFileFormat.value, 'subsurfaceXml');
+      },
+    );
+
+    testWidgets(
+      'a batch import stores one copy per file and points each dive at the '
+      'copy of the file it came from',
+      (tester) async {
+        // The bug this regression-tests: notifierState.fileBytes/fileName are
+        // the SINGLE selected file, so a multi-file pick stored nothing at all
+        // and no dive ever got a resync path.
+        final db = await setUpTestDatabase();
+        addTearDown(tearDownTestDatabase);
+        final previousPathProvider = PathProviderPlatform.instance;
+        final tempDir = (await tester.runAsync(
+          () => Directory.systemTemp.createTemp('universal_adapter_batch_'),
+        ))!;
+        PathProviderPlatform.instance = _FakePathProviderPlatform(tempDir.path);
+        addTearDown(() async {
+          PathProviderPlatform.instance = previousPathProvider;
+          await tester.runAsync(() async {
+            if (await tempDir.exists()) await tempDir.delete(recursive: true);
+          });
+        });
+
+        // Genuinely different content, so a mixed-up attribution cannot pass.
+        final januaryBytes = utf8.encode('<uddf>january</uddf>');
+        final februaryBytes = utf8.encode('<divelog>february</divelog>');
+        final januaryFile = File(p.join(tempDir.path, 'january.uddf'));
+        final februaryFile = File(p.join(tempDir.path, 'february.ssrf'));
+        await tester.runAsync(() async {
+          await januaryFile.writeAsBytes(januaryBytes);
+          await februaryFile.writeAsBytes(februaryBytes);
+        });
+
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 1, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                '_sourceFile': 'january.uddf',
+                '_sourceFileId': 'f0',
+              },
+              {
+                'dateTime': DateTime(2026, 2, 15, 10, 0),
+                'maxDepth': 18.0,
+                'runtime': const Duration(minutes: 35),
+                '_sourceFile': 'february.ssrf',
+                '_sourceFileId': 'f1',
+              },
+            ],
+          },
+          metadata: const {'batchFileCount': 2},
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+            pickedFiles: [
+              PickedImportFile(
+                name: 'january.uddf',
+                path: januaryFile.path,
+                detection: const DetectionResult(
+                  format: ui.ImportFormat.uddf,
+                  confidence: 1.0,
+                ),
+                status: ImportFileStatus.parsed,
+              ),
+              PickedImportFile(
+                name: 'february.ssrf',
+                path: februaryFile.path,
+                detection: const DetectionResult(
+                  format: ui.ImportFormat.subsurfaceXml,
+                  confidence: 1.0,
+                ),
+                status: ImportFileStatus.parsed,
+              ),
+            ],
+            detectionResult: const DetectionResult(
+              format: ui.ImportFormat.uddf,
+              confidence: 1.0,
+            ),
+          ),
+          callback: (adapter) async {
+            await tester.runAsync(() async {
+              final bundle = await adapter.buildBundle();
+              final result = await adapter.performImport(bundle, {
+                wizard.ImportEntityType.dives: {0, 1},
+              }, {});
+
+              expect(result.errorMessage, isNull);
+            });
+          },
+        );
+
+        final capturedReadings = verify(
+          mockDiveRepo.saveComputerReading(captureAny),
+        ).captured;
+        expect(capturedReadings, hasLength(2));
+        final byName = {
+          for (final reading in capturedReadings)
+            reading.sourceFileName.value as String?: reading,
+        };
+
+        final january = byName['january.uddf'];
+        final february = byName['february.ssrf'];
+        expect(january, isNotNull);
+        expect(february, isNotNull);
+        expect(january!.sourceFileFormat.value, 'uddf');
+        expect(february!.sourceFileFormat.value, 'subsurfaceXml');
+
+        final januaryId = january.importedFileId.value as String?;
+        final februaryId = february.importedFileId.value as String?;
+        expect(januaryId, isNotNull);
+        expect(februaryId, isNotNull);
+        expect(januaryId, isNot(februaryId));
+
+        // Each stored row holds the bytes of the file its dive came from.
+        final importedFiles = ImportedFileRepository(database: () => db);
+        expect(await importedFiles.read(januaryId!), januaryBytes);
+        expect(await importedFiles.read(februaryId!), februaryBytes);
       },
     );
   });

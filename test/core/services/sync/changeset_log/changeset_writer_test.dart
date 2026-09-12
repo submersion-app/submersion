@@ -39,15 +39,36 @@ void main() {
   });
   tearDown(() => tearDownTestDatabase());
 
+  /// Clears the pending marks a publish covered, as SyncService does after
+  /// every publish. Pending clockless children are exported until cleared,
+  /// so without this a second publish would resend them.
+  ///
+  /// The cutoff is strict: a mark made in the very millisecond the publish
+  /// started is kept (and resent), because it cannot be told apart from one
+  /// made just after the snapshot. [publishLater] steps past that
+  /// millisecond so a test's own seeding is always covered.
+  Future<void> clearCovered(ChangesetWriteResult result) async {
+    final snapshotAt = result.snapshotAt;
+    if (snapshotAt != null) {
+      await SyncRepository().clearPendingRecords(markedBefore: snapshotAt);
+    }
+  }
+
+  Future<void> publishLater() =>
+      Future<void>.delayed(const Duration(milliseconds: 2));
+
   Future<ChangesetWriteResult> publish() async {
+    await publishLater();
     final deviceId = await SyncRepository().getDeviceId();
     final deletions = await SyncRepository().getAllDeletions();
-    return writer.publish(
+    final result = await writer.publish(
       provider: provider,
       deviceId: deviceId,
       folderId: folder,
       deletions: deletions,
     );
+    await clearCovered(result);
+    return result;
   }
 
   Future<List<String>> names() async {
@@ -62,8 +83,13 @@ void main() {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
     );
+    final before = DateTime.now().millisecondsSinceEpoch;
     final result = await publish();
+    final after = DateTime.now().millisecondsSinceEpoch;
     expect(result.kind, ChangesetWriteKind.base);
+    // When the published snapshot was read: pending marks older than this
+    // are in it, newer ones are not and must survive the post-publish clear.
+    expect(result.snapshotAt, inInclusiveRange(before, after));
 
     final deviceId = await SyncRepository().getDeviceId();
     final ns = await names();
@@ -200,8 +226,11 @@ void main() {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd2', diveNumber: 2),
     );
+    final before = DateTime.now().millisecondsSinceEpoch;
     final result = await publish();
+    final after = DateTime.now().millisecondsSinceEpoch;
     expect(result.kind, ChangesetWriteKind.changeset);
+    expect(result.snapshotAt, inInclusiveRange(before, after));
 
     final deviceId = await SyncRepository().getDeviceId();
     final files = await provider.listFiles(
@@ -362,6 +391,9 @@ void main() {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'adopted-dive', diveNumber: 1),
       );
+      // Adopted rows arrive through the merge, not as local edits, and the
+      // real adopt resets sync state (resetSyncState clears every record).
+      await SyncRepository().clearAllSyncRecords();
       await PublishStateStore(
         DatabaseService.instance.database,
       ).markAdoptedPendingBase(
@@ -577,12 +609,15 @@ void main() {
           createTestDiveWithBottomTime(id: 'hb-d1', diveNumber: 1),
         );
         final deviceId = await SyncRepository().getDeviceId();
-        await writer.publish(
-          provider: provider,
-          deviceId: deviceId,
-          folderId: folder,
-          deletions: const [],
-          uploadNonce: 'nonce-1',
+        await publishLater();
+        await clearCovered(
+          await writer.publish(
+            provider: provider,
+            deviceId: deviceId,
+            folderId: folder,
+            deletions: const [],
+            uploadNonce: 'nonce-1',
+          ),
         );
         // Age the manifest 8 days (past the 7-day heartbeat threshold).
         final name = ChangesetLogLayout.manifestName(deviceId);

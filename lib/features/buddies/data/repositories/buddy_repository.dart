@@ -465,6 +465,35 @@ class BuddyRepository {
     return byDive;
   }
 
+  /// [getBuddiesForDives] plus each person's derived primary certification,
+  /// for readers that show or export it (the dives only UDDF export writes
+  /// it into every `<buddy>` declaration).
+  ///
+  /// One extra query over the lean load, however many dives and people:
+  /// each distinct person is hydrated once through [_withPrimaryCerts], and
+  /// a person on several dives gets the same hydrated record on each.
+  Future<Map<String, List<domain.BuddyWithRole>>>
+  getBuddiesForDivesWithCertifications(List<String> diveIds) async {
+    final byDive = await getBuddiesForDives(diveIds);
+    final people = <String, domain.Buddy>{
+      for (final rows in byDive.values)
+        for (final row in rows) row.buddy.id: row.buddy,
+    };
+    final hydrated = {
+      for (final b in await _withPrimaryCerts(people.values.toList())) b.id: b,
+    };
+    return {
+      for (final entry in byDive.entries)
+        entry.key: [
+          for (final row in entry.value)
+            domain.BuddyWithRole(
+              buddy: hydrated[row.buddy.id]!,
+              role: row.role,
+            ),
+        ],
+    };
+  }
+
   /// Set buddies for a dive (replaces existing)
   Future<void> setBuddiesForDive(
     String diveId,

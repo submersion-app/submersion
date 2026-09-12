@@ -544,7 +544,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newEquipment',
-                builder: (context, state) => const EquipmentEditPage(),
+                builder: (context, state) => EquipmentEditPage(
+                  initialParentId: state.uri.queryParameters['parent'],
+                ),
               ),
               GoRoute(
                 path: 'sets',

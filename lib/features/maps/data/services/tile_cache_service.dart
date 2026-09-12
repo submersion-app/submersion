@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -75,7 +77,9 @@ class TileDownloadProgress {
 /// await TileCacheService.instance.initialize();
 ///
 /// // Get a tile provider for use with FlutterMap
-/// final tileProvider = TileCacheService.instance.getTileProvider();
+/// final tileProvider = TileCacheService.instance.getTileProvider(
+///   urlTemplate: ref.watch(mapTileUrlProvider),
+/// );
 /// ```
 class TileCacheService {
   static TileCacheService? _instance;
@@ -343,24 +347,69 @@ class TileCacheService {
   ///   Widget build(BuildContext context, WidgetRef ref) {
   ///     return TileLayer(
   ///       urlTemplate: ref.watch(mapTileUrlProvider),
-  ///       tileProvider: TileCacheService.instance.getTileProvider(),
+  ///       tileProvider: TileCacheService.instance.getTileProvider(
+  ///         urlTemplate: ref.watch(mapTileUrlProvider),
+  ///       ),
   ///     );
   ///   }
   /// }
   /// ```
   FMTCTileProvider getTileProvider({
+    required String urlTemplate,
     // coverage:ignore-start
     BrowseLoadingStrategy loadingStrategy = BrowseLoadingStrategy.cacheFirst,
   }) {
     _ensureInitialized();
-    return FMTCTileProvider(
-      stores: browseStoreStrategies(),
-      otherStoresStrategy: otherStoresStrategy,
+    return browseTileProvider(
+      urlTemplate: urlTemplate,
       loadingStrategy: loadingStrategy,
-      errorHandler: handleTileError,
     );
     // coverage:ignore-end
   }
+
+  /// The browse provider for [urlTemplate], or null until [initialize] has
+  /// succeeded.
+  ///
+  /// This is what a map hands to `TileLayer.tileProvider`: null there means
+  /// flutter_map's own network provider, so a cache that failed to start
+  /// leaves the maps working, just uncached.
+  FMTCTileProvider? tileProviderFor({required String urlTemplate}) =>
+      isInitialized ? getTileProvider(urlTemplate: urlTemplate) : null;
+
+  /// One HTTP client per tile URL template, shared by every provider this
+  /// service builds for that template.
+  ///
+  /// FMTCTileProvider's equality compares its client by identity, and that
+  /// equality is half of the ImageCache key for every tile. Left to itself the
+  /// constructor creates a new client per provider, so no two providers were
+  /// ever equal and a remounted map (the dive header, on every selection)
+  /// missed the in-memory cache for tiles it had just shown.
+  ///
+  /// The key does not include the tile URL, so one client for everything
+  /// would make every map style's provider equal, and switching style would
+  /// paint the previous style's cached bitmap for the same z/x/y. A client
+  /// per template keeps providers equal within a style and distinct across
+  /// styles. Bounded by the handful of map styles, and each lives for the
+  /// process: FMTC only closes a client it created itself, so disposing a map
+  /// leaves these open for the next.
+  static final Map<String, http.Client> _httpClients = {};
+
+  static http.Client _httpClientFor(String urlTemplate) => _httpClients
+      .putIfAbsent(urlTemplate, () => IOClient(HttpClient()..userAgent = null));
+
+  /// The provider [getTileProvider] hands out, without the initialization
+  /// guard, so its identity can be asserted without an ObjectBox backend.
+  @visibleForTesting
+  static FMTCTileProvider browseTileProvider({
+    required String urlTemplate,
+    BrowseLoadingStrategy loadingStrategy = BrowseLoadingStrategy.cacheFirst,
+  }) => FMTCTileProvider(
+    stores: browseStoreStrategies(),
+    otherStoresStrategy: otherStoresStrategy,
+    loadingStrategy: loadingStrategy,
+    errorHandler: handleTileError,
+    httpClient: _httpClientFor(urlTemplate),
+  );
 
   /// Handles a tile fetch failure: logs it (offline misses at info, real
   /// transport/HTTP errors at warning) and returns null so the map shows a
@@ -414,20 +463,27 @@ class TileCacheService {
     }
   }
 
+  // coverage:ignore-start
   /// Get a tile provider configured for offline-only usage.
   ///
   /// This provider will only use cached tiles and will not make network
   /// requests.
-  FMTCTileProvider getOfflineTileProvider() {
-    // coverage:ignore-start
+  FMTCTileProvider getOfflineTileProvider({required String urlTemplate}) {
     _ensureInitialized();
-    return FMTCTileProvider(
-      stores: offlineStoreStrategies(),
-      otherStoresStrategy: otherStoresStrategy,
-      loadingStrategy: BrowseLoadingStrategy.cacheOnly,
-    );
-    // coverage:ignore-end
+    return offlineTileProvider(urlTemplate: urlTemplate);
   }
+  // coverage:ignore-end
+
+  /// The provider [getOfflineTileProvider] hands out, without the
+  /// initialization guard, so its identity can be asserted in tests.
+  @visibleForTesting
+  static FMTCTileProvider offlineTileProvider({required String urlTemplate}) =>
+      FMTCTileProvider(
+        stores: offlineStoreStrategies(),
+        otherStoresStrategy: otherStoresStrategy,
+        loadingStrategy: BrowseLoadingStrategy.cacheOnly,
+        httpClient: _httpClientFor(urlTemplate),
+      );
 
   /// Estimate the number of tiles in a rectangular region.
   ///

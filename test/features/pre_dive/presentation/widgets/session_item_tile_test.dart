@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
@@ -308,6 +312,121 @@ void main() {
         expect(find.byIcon(Icons.flag), findsNothing);
       },
     );
+
+    EquipmentFinding finding(
+      ConditionSeverity severity, {
+      bool dismissed = false,
+    }) {
+      final rule = severity == ConditionSeverity.significant
+          ? ConditionRuleId.cellOutputLow
+          : ConditionRuleId.cellOutputDeclining;
+      final evidence = FindingEvidence(n: 3, windowStart: now, windowEnd: now);
+      return EquipmentFinding(
+        id: conditionFindingId('g1', rule, slot: 1),
+        equipmentId: 'g1',
+        ruleId: rule,
+        severity: severity,
+        evidence: evidence,
+        evidenceFingerprint: evidenceFingerprint(evidence),
+        engineVersion: 1,
+        createdAt: now,
+        dismissedAt: dismissed ? now : null,
+      );
+    }
+
+    List<dynamic> findingOverrides(
+      List<EquipmentFinding> findings, {
+      AppSettings settings = const AppSettings(),
+      bool overdue = false,
+    }) => [
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
+      serviceClockStatusesProvider(
+        'g1',
+      ).overrideWith((ref) async => overdue ? [overdueStatus] : []),
+      equipmentConditionProvider('g1').overrideWith((ref) async => findings),
+    ];
+
+    testWidgets('a significant finding joins the warning block', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(equipmentId: 'g1'),
+        overrides: findingOverrides([finding(ConditionSeverity.significant)]),
+      );
+      expect(find.text('Condition findings'), findsOneWidget);
+      expect(find.text('Cell output low'), findsOneWidget);
+      expect(find.text('Service overdue'), findsNothing);
+    });
+
+    testWidgets('a caution or dismissed finding shows nothing', (tester) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(equipmentId: 'g1'),
+        overrides: findingOverrides([
+          finding(ConditionSeverity.caution),
+          finding(ConditionSeverity.significant, dismissed: true),
+        ]),
+      );
+      expect(find.text('Condition findings'), findsNothing);
+    });
+
+    testWidgets('clocks come first, then the findings', (tester) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(equipmentId: 'g1'),
+        overrides: findingOverrides([
+          finding(ConditionSeverity.significant),
+        ], overdue: true),
+      );
+      final overdueY = tester.getTopLeft(find.text('Service overdue')).dy;
+      final findingsY = tester.getTopLeft(find.text('Condition findings')).dy;
+      expect(overdueY, lessThan(findingsY));
+      expect(find.text('Cell output low'), findsOneWidget);
+    });
+
+    testWidgets('a disabled rule or the engine off hides the finding', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(equipmentId: 'g1'),
+        overrides: findingOverrides(
+          [finding(ConditionSeverity.significant)],
+          settings: const AppSettings(
+            conditionDisabledRules: {'cellOutputLow'},
+          ),
+        ),
+      );
+      expect(find.text('Condition findings'), findsNothing);
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(equipmentId: 'g1'),
+        overrides: findingOverrides([
+          finding(ConditionSeverity.significant),
+        ], settings: const AppSettings(conditionEngineEnabled: false)),
+      );
+      expect(find.text('Condition findings'), findsNothing);
+    });
+
+    testWidgets('a resolved item shows no finding line', (tester) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          equipmentId: 'g1',
+          state: PreDiveItemState.done,
+          completedAt: now,
+        ),
+        overrides: findingOverrides([finding(ConditionSeverity.significant)]),
+      );
+      expect(find.text('Condition findings'), findsNothing);
+    });
 
     testWidgets('pending item with no overdue clocks shows nothing extra', (
       tester,

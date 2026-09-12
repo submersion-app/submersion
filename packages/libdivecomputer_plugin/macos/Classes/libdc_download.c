@@ -590,6 +590,7 @@ static int extract_dive_fields(dc_parser_t *parser, libdc_parsed_dive_t *dive) {
             if (dc_parser_get_field(parser, DC_FIELD_GASMIX, i, &gm) == DC_STATUS_SUCCESS) {
                 dive->gasmixes[i].oxygen = gm.oxygen;
                 dive->gasmixes[i].helium = gm.helium;
+                dive->gasmixes[i].usage = gm.usage;
             }
         }
         dive->gasmix_count = gasmix_count;

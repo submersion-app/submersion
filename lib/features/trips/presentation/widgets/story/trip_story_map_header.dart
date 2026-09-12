@@ -150,9 +150,9 @@ class _StoryMap extends ConsumerWidget {
               urlTemplate: ref.watch(mapTileUrlProvider),
               userAgentPackageName: 'app.submersion',
               maxZoom: ref.watch(mapTileMaxZoomProvider),
-              tileProvider: TileCacheService.instance.isInitialized
-                  ? TileCacheService.instance.getTileProvider()
-                  : null,
+              tileProvider: TileCacheService.instance.tileProviderFor(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+              ),
             ),
             // A route only makes sense with at least two points.
             if (points.length > 1)

@@ -51,6 +51,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -1329,6 +1330,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
           }
           await _ref.read(postRestoreSyncStoreProvider).clear();
           await _surfaceOldBackendCleanupOffer();
+          // Sensor summaries are device-local: dives this sync pulled in have
+          // none until the stale sweep builds them, and a first sync can land
+          // after the launch sweep ran. Single-flight, a no-op when current;
+          // the condition findings follow the batch it runs.
+          SensorSummaryScheduler.instance.scheduleStaleSweep();
           // A straggler syncing into a backend another device moved away from
           // learns of the move here -- the moment it is actively writing into
           // the now-orphaned copy.

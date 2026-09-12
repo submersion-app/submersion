@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#002D50",
     "theme_color": "#006994",
-    "description": "A new Flutter project.",
+    "description": "An open-source dive logging application for scuba divers.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -73,6 +73,14 @@ class ComponentsIndex {
     }
   });
 
+  /// The outermost assemblies above [id]: every ancestor that is not itself
+  /// a part of anything. Empty for a top-level item. Assemblies form a DAG,
+  /// so a shared part can sit under several roots at once.
+  Set<String> rootsOf(String id) => {
+    for (final ancestor in ancestorsOf(id))
+      if (!byComponent.containsKey(ancestor)) ancestor,
+  };
+
   Set<String> _walk(String start, Iterable<String> Function(String) next) {
     final seen = <String>{};
     final queue = <String>[start];

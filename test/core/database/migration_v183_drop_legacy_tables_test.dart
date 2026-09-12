@@ -651,7 +651,10 @@ void main() {
     // replaced the two synced entities: no released build was ever stamped
     // 182, and only a reader that has run v183 has lost the legacy
     // deletion_log guard, so 183 is the oldest schema that can safely apply
-    // this build's payloads.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 183);
+    // this build's payloads. A later rung may raise it further (v210 did).
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(183),
+    );
   });
 }

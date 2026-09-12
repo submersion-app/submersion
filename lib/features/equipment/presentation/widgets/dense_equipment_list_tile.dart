@@ -4,7 +4,10 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -38,6 +41,13 @@ class DenseEquipmentListTile extends ConsumerWidget {
         rollup == null || rollup.status.severity == ServiceClockSeverity.ok
         ? null
         : rollup;
+    // A condition finding competes with the clock for the one badge slot
+    // (condition phase 4b); info findings never reach the map.
+    final finding = ref.watch(conditionBadgeProvider).value?[item.id];
+    final source = pickBadgeSource(
+      clockSeverity: worstClock?.status.severity,
+      finding: finding,
+    );
     final isAssembly =
         ref
             .watch(equipmentComponentsIndexProvider)
@@ -110,7 +120,9 @@ class DenseEquipmentListTile extends ConsumerWidget {
                 // Service status indicator (~80px)
                 SizedBox(
                   width: 80,
-                  child: _buildServiceStatus(context, worstClock),
+                  child: source == BadgeSource.finding
+                      ? _buildFindingStatus(context, finding!)
+                      : _buildServiceStatus(context, worstClock),
                 ),
                 ExcludeSemantics(
                   child: Icon(
@@ -124,6 +136,22 @@ class DenseEquipmentListTile extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFindingStatus(BuildContext context, ConditionBadge finding) {
+    final theme = Theme.of(context);
+    final significant = finding.severity == ConditionSeverity.significant;
+    return Text(
+      conditionFindingShortLabel(finding.rule, context.l10n),
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: significant
+            ? theme.colorScheme.error
+            : theme.colorScheme.tertiary,
+        fontWeight: FontWeight.w600,
+      ),
+      textAlign: TextAlign.right,
+      overflow: TextOverflow.ellipsis,
     );
   }
 

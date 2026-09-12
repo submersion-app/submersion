@@ -11,3 +11,7 @@ tqdm>=4.66.0
 
 # chamber_harvester.py - recompression chamber directory
 pypdf>=4.0.0
+
+# brand/generate_icon.py, brand/generate_brand_assets.py - app icon and brand images
+# (10.1 is the first release that accepts float font sizes)
+Pillow>=10.1

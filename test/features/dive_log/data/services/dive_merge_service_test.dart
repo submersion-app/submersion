@@ -620,7 +620,7 @@ void main() {
         // ReparseService.getSourcesForDiveReparse selects on rawData, so
         // both halves keep their bytes for a libdivecomputer upgrade. What
         // a re-parse does with them is scoped by
-        // ReparseService._sourceOwnsProfileStrand: it refreshes each row's
+        // sourceOwnsProfileStrand: it refreshes each row's
         // provenance snapshot but leaves the merged profile alone (#1164).
         expect(rows.where((r) => r.rawData != null), hasLength(2));
 

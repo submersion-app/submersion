@@ -6,12 +6,22 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -95,6 +105,8 @@ Future<List<Override>> _buildPhoneOverrides({
   List<EquipmentItem> serviceDue = const [],
   ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedEquipmentId,
+  EquipmentArrangement? arrangement,
+  SortState<EquipmentSortField>? sort,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -114,6 +126,9 @@ Future<List<Override>> _buildPhoneOverrides({
     highlightedEquipmentIdProvider.overrideWith(
       (ref) => highlightedEquipmentId,
     ),
+    if (arrangement != null)
+      equipmentArrangementProvider.overrideWithValue(arrangement),
+    if (sort != null) equipmentSortProvider.overrideWith((ref) => sort),
   ];
 }
 
@@ -743,6 +758,684 @@ void main() {
     );
   });
 
+  group('group by type (shared gear arrangement)', () {
+    final items = [
+      _makeEquipment(
+        id: 'e1',
+        name: 'Alpha Reg',
+        type: EquipmentType.regulator,
+      ),
+      _makeEquipment(id: 'e2', name: 'Bravo BCD', type: EquipmentType.bcd),
+      _makeEquipment(id: 'e3', name: 'Charlie BCD', type: EquipmentType.bcd),
+      _makeEquipment(id: 'e4', name: 'Delta Suit', type: EquipmentType.wetsuit),
+    ];
+
+    Future<void> pumpList(
+      WidgetTester tester, {
+      EquipmentArrangement arrangement = EquipmentArrangement.defaults,
+      SortState<EquipmentSortField>? sort,
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) async {
+      // Tall enough that every heading and row is built at once.
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final overrides = await _buildPhoneOverrides(
+        items: items,
+        viewMode: viewMode,
+        arrangement: arrangement,
+        sort: sort,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    List<String> rowNames(WidgetTester tester) => tester
+        .widgetList<EquipmentListTile>(find.byType(EquipmentListTile))
+        .map((t) => t.item.name)
+        .toList();
+
+    List<EquipmentType> headings(WidgetTester tester) => tester
+        .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+        .map((h) => h.type)
+        .toList();
+
+    double top(WidgetTester tester, Finder finder) =>
+        tester.getTopLeft(finder).dy;
+
+    testWidgets('draws a heading per type, gear under its own heading', (
+      tester,
+    ) async {
+      await pumpList(tester);
+
+      expect(headings(tester), [
+        EquipmentType.bcd,
+        EquipmentType.regulator,
+        EquipmentType.wetsuit,
+      ]);
+      expect(rowNames(tester), [
+        'Bravo BCD',
+        'Charlie BCD',
+        'Alpha Reg',
+        'Delta Suit',
+      ]);
+
+      final bcdHeading = find.byKey(
+        const ValueKey('equipment-group-header-bcd'),
+      );
+      final regHeading = find.byKey(
+        const ValueKey('equipment-group-header-regulator'),
+      );
+      expect(
+        top(tester, bcdHeading),
+        lessThan(top(tester, find.text('Bravo BCD'))),
+      );
+      expect(
+        top(tester, find.text('Charlie BCD')),
+        lessThan(top(tester, regHeading)),
+      );
+      expect(
+        top(tester, regHeading),
+        lessThan(top(tester, find.text('Alpha Reg'))),
+      );
+    });
+
+    testWidgets('the type order comes from the shared arrangement', (
+      tester,
+    ) async {
+      await pumpList(
+        tester,
+        arrangement: EquipmentArrangement.defaults.copyWith(
+          typeOrderDescending: true,
+        ),
+      );
+
+      expect(headings(tester), [
+        EquipmentType.wetsuit,
+        EquipmentType.regulator,
+        EquipmentType.bcd,
+      ]);
+    });
+
+    testWidgets('gear inside each heading follows the page sort', (
+      tester,
+    ) async {
+      await pumpList(
+        tester,
+        sort: const SortState(
+          field: EquipmentSortField.name,
+          direction: SortDirection.descending,
+        ),
+      );
+
+      expect(rowNames(tester), [
+        'Charlie BCD',
+        'Bravo BCD',
+        'Alpha Reg',
+        'Delta Suit',
+      ]);
+    });
+
+    testWidgets('grouping off draws no headings but still orders by type', (
+      tester,
+    ) async {
+      await pumpList(
+        tester,
+        arrangement: EquipmentArrangement.defaults.copyWith(groupByType: false),
+      );
+
+      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      expect(rowNames(tester), [
+        'Bravo BCD',
+        'Charlie BCD',
+        'Alpha Reg',
+        'Delta Suit',
+      ]);
+    });
+
+    testWidgets('with no type order the page sort alone orders the list', (
+      tester,
+    ) async {
+      await pumpList(
+        tester,
+        arrangement: EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.none,
+        ),
+      );
+
+      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      expect(rowNames(tester), [
+        'Alpha Reg',
+        'Bravo BCD',
+        'Charlie BCD',
+        'Delta Suit',
+      ]);
+    });
+
+    testWidgets('compact mode groups too', (tester) async {
+      await pumpList(tester, viewMode: ListViewMode.compact);
+
+      expect(headings(tester), hasLength(3));
+    });
+
+    testWidgets('dense mode stays flat on the page sort, like the table', (
+      tester,
+    ) async {
+      // Dense is a single-row flat layout (not offered for gear, but a stored
+      // value from an older build can still select it). Only Detailed and
+      // Compact honour the arrangement.
+      await pumpList(tester, viewMode: ListViewMode.dense);
+
+      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      final names = tester
+          .widgetList<DenseEquipmentListTile>(
+            find.byType(DenseEquipmentListTile),
+          )
+          .map((t) => t.item.name)
+          .toList();
+      expect(names, ['Alpha Reg', 'Bravo BCD', 'Charlie BCD', 'Delta Suit']);
+
+      await tester.tap(find.byTooltip('Sort'));
+      await tester.pumpAndSettle();
+      expect(find.text('Group by type'), findsNothing);
+    });
+
+    testWidgets('table mode stays flat', (tester) async {
+      // The table has its own column sort, so headings there would fight it.
+      await pumpList(tester, viewMode: ListViewMode.table);
+
+      expect(find.byType(EquipmentGroupHeader), findsNothing);
+    });
+
+    testWidgets('headings order by the localized type name', (tester) async {
+      // In German the three types are Tarierjacket (BCD), Flasche (tank) and
+      // Atemregler (regulator), so the German alphabetical order reverses the
+      // English one. A list that ordered by the English displayName would
+      // draw BCD first here.
+      final gear = [
+        _makeEquipment(id: 'b', name: 'Zeagle', type: EquipmentType.bcd),
+        _makeEquipment(id: 't', name: 'Faber', type: EquipmentType.tank),
+        _makeEquipment(id: 'r', name: 'Apeks', type: EquipmentType.regulator),
+      ];
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: EquipmentArrangement.defaults,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('de'),
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(headings(tester), [
+        EquipmentType.regulator, // Atemregler
+        EquipmentType.tank, // Flasche
+        EquipmentType.bcd, // Tarierjacket
+      ]);
+    });
+
+    testWidgets(
+      'flipping "Group by type" in the sort sheet regroups the list',
+      (tester) async {
+        // End to end through the real notifier: the sheet writes the shared
+        // arrangement and the list, which reads it, redraws flat.
+        tester.view.physicalSize = const Size(800, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final overrides = await _buildPhoneOverrides(items: items);
+        await tester.pumpWidget(
+          testApp(
+            locale: const Locale('en'),
+            overrides: [
+              ...overrides,
+              appSettingsRepositoryProvider.overrideWithValue(
+                _FakeArrangementRepository(),
+              ),
+            ],
+            child: const EquipmentListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(headings(tester), hasLength(3));
+
+        await tester.tap(find.byTooltip('Sort'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Group by type'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Close'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(EquipmentGroupHeader), findsNothing);
+      },
+    );
+
+    testWidgets('the selected gear is scrolled to again once the stored '
+        'arrangement loads', (tester) async {
+      // The arrangement starts at the defaults and adopts the stored one when
+      // its read lands. Scrolling on the first frame therefore positions the
+      // row for the DEFAULT order; if that counted as done, a stored order
+      // that moves the row would leave it off screen.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      // Near the top in the default order, near the bottom once the stored
+      // arrangement reverses the headings.
+      final target = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults,
+        typeLabel: (t) => t.displayName,
+      )[3].items.single;
+      final repository = _FakeArrangementRepository()
+        ..heldRead = Completer<EquipmentArrangement?>();
+
+      final overrides = await _buildPhoneOverrides(items: gear);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            appSettingsRepositoryProvider.overrideWithValue(repository),
+          ],
+          child: EquipmentListContent(showAppBar: false, selectedId: target.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(target.name), findsOneWidget);
+
+      repository.heldRead!.complete(
+        EquipmentArrangement.defaults.copyWith(typeOrderDescending: true),
+      );
+      await tester.pumpAndSettle();
+
+      final row = find.text(target.name);
+      expect(row, findsOneWidget);
+      final list = tester.getRect(find.byType(ListView));
+      final rect = tester.getRect(row);
+      expect(
+        rect.top,
+        greaterThanOrEqualTo(list.top),
+        reason: '$rect in $list',
+      );
+      expect(rect.bottom, lessThanOrEqualTo(list.bottom), reason: '$rect');
+    });
+
+    testWidgets('switching language re-scrolls to the selected gear', (
+      tester,
+    ) async {
+      // Alphabetical headings sort by the translated type name, so a new
+      // language reorders them without any arrangement change. The selected
+      // row must be brought back into view after the reorder.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      List<EquipmentType> orderIn(Locale locale) {
+        final l10n = lookupAppLocalizations(locale);
+        return [
+          for (final group in arrangeEquipment(
+            gear,
+            EquipmentArrangement.defaults,
+            typeLabel: (t) => t.localizedName(l10n),
+          ))
+            group.type!,
+        ];
+      }
+
+      final english = orderIn(const Locale('en'));
+      final german = orderIn(const Locale('de'));
+      // A type the switch moves several rows, so the viewport (about five
+      // rows) no longer shows it, while it stays within the first dozen rows
+      // in both languages: this checks that the list re-scrolls, not how
+      // far the row-height estimate drifts deep into a long list.
+      int shift(EquipmentType t) =>
+          (german.indexOf(t) - english.indexOf(t)).abs();
+      final candidates = english.where(
+        (t) => english.indexOf(t) <= 12 && german.indexOf(t) <= 12,
+      );
+      final type = candidates.reduce((a, b) => shift(a) >= shift(b) ? a : b);
+      expect(
+        shift(type),
+        greaterThanOrEqualTo(5),
+        reason: 'the switch must move the row off screen to prove anything',
+      );
+      final target = gear.firstWhere((e) => e.type == type);
+
+      final locale = ValueNotifier(const Locale('en'));
+      addTearDown(locale.dispose);
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: EquipmentArrangement.defaults,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: ValueListenableBuilder<Locale>(
+            valueListenable: locale,
+            builder: (context, value, _) => MaterialApp(
+              locale: value,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: EquipmentListContent(
+                  showAppBar: false,
+                  selectedId: target.id,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(target.name), findsOneWidget);
+
+      locale.value = const Locale('de');
+      await tester.pumpAndSettle();
+
+      final row = find.text(target.name);
+      expect(row, findsOneWidget);
+      final list = tester.getRect(find.byType(ListView));
+      final rect = tester.getRect(row);
+      expect(
+        rect.top,
+        greaterThanOrEqualTo(list.top),
+        reason: '$rect in $list',
+      );
+      expect(rect.bottom, lessThanOrEqualTo(list.bottom), reason: '$rect');
+    });
+
+    testWidgets('switching language under a fixed type order does not jump', (
+      tester,
+    ) async {
+      // Only alphabetical ordering reads the translated labels; head to toe
+      // is a curated table, so a new language moves no row and must not
+      // yank the diver back to the selected one.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final headToToe = EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+      );
+      final target = arrangeEquipment(
+        gear,
+        headToToe,
+        typeLabel: (t) => t.displayName,
+      )[8].items.single;
+
+      final locale = ValueNotifier(const Locale('en'));
+      addTearDown(locale.dispose);
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: headToToe,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: ValueListenableBuilder<Locale>(
+            valueListenable: locale,
+            builder: (context, value, _) => MaterialApp(
+              locale: value,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: EquipmentListContent(
+                  showAppBar: false,
+                  selectedId: target.id,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      ScrollPosition position() =>
+          tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+      expect(position().pixels, greaterThan(0), reason: 'scrolled to the row');
+
+      position().jumpTo(0);
+      await tester.pumpAndSettle();
+      locale.value = const Locale('de');
+      await tester.pumpAndSettle();
+
+      expect(position().pixels, 0);
+    });
+
+    testWidgets('tapping a row in the list does not scroll the list', (
+      tester,
+    ) async {
+      // In master-detail a row tap selects that row, which the list already
+      // shows; the list must stay where the diver scrolled it rather than
+      // treat the new selection as one to scroll to.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final selected = ValueNotifier<String?>(null);
+      addTearDown(selected.dispose);
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: EquipmentArrangement.defaults,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: ValueListenableBuilder<String?>(
+            valueListenable: selected,
+            builder: (context, id, _) => EquipmentListContent(
+              showAppBar: false,
+              selectedId: id,
+              onItemSelected: (next) => selected.value = next,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      position.jumpTo(600);
+      await tester.pumpAndSettle();
+
+      final visibleRow = find.byType(EquipmentListTile).first;
+      await tester.tap(visibleRow);
+      await tester.pumpAndSettle();
+
+      expect(selected.value, isNotNull, reason: 'the tap selected the row');
+      expect(position.pixels, 600);
+    });
+
+    testWidgets('with no type order, flags it ignores do not jump the list', (
+      tester,
+    ) async {
+      // "Do not order by type" ignores the grouping switch and the type
+      // direction, so a synced change to either moves no row.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final noTypeOrder = EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.none,
+      );
+      final target = arrangeEquipment(
+        gear,
+        noTypeOrder,
+        typeLabel: (t) => t.displayName,
+      ).single.items[12];
+      final source = StateProvider<EquipmentArrangement>((ref) => noTypeOrder);
+
+      final overrides = await _buildPhoneOverrides(items: gear);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            equipmentArrangementProvider.overrideWith(
+              (ref) => ref.watch(source),
+            ),
+          ],
+          child: EquipmentListContent(showAppBar: false, selectedId: target.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      expect(position.pixels, greaterThan(0), reason: 'scrolled to the row');
+
+      position.jumpTo(0);
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EquipmentListContent)),
+      );
+      container.read(source.notifier).state = noTypeOrder.copyWith(
+        groupByType: false,
+        typeOrderDescending: true,
+      );
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, 0);
+    });
+
+    testWidgets('a change to only the dive item sort does not jump the list', (
+      tester,
+    ) async {
+      // The page orders gear by its own sort, so the arrangement's item sort
+      // moves no row here. Re-scrolling to the selected row on such a change
+      // would yank the diver back from wherever they had scrolled.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final target = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults,
+        typeLabel: (t) => t.displayName,
+      )[8].items.single;
+      final source = StateProvider<EquipmentArrangement>(
+        (ref) => EquipmentArrangement.defaults,
+      );
+
+      final overrides = await _buildPhoneOverrides(items: gear);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            equipmentArrangementProvider.overrideWith(
+              (ref) => ref.watch(source),
+            ),
+          ],
+          child: EquipmentListContent(showAppBar: false, selectedId: target.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      expect(position.pixels, greaterThan(0), reason: 'scrolled to the row');
+
+      position.jumpTo(0);
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EquipmentListContent)),
+      );
+      container.read(source.notifier).state = EquipmentArrangement.defaults
+          .copyWith(
+            itemSortField: EquipmentItemSortField.purchaseDate,
+            itemSortDirection: SortDirection.descending,
+          );
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, 0);
+    });
+
+    testWidgets('scrolling to the selected gear allows for the headings', (
+      tester,
+    ) async {
+      // Each type gets its own heading, so a row deep in the list has almost
+      // as many headings above it as items. Sizing a heading like an item row
+      // overshoots by the difference per heading, and the row the diver
+      // opened ends up scrolled past the top of the list.
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final gear = [
+        for (final type in EquipmentType.values)
+          _makeEquipment(id: type.name, name: 'Item ${type.name}', type: type),
+      ];
+      final groups = arrangeEquipment(
+        gear,
+        EquipmentArrangement.defaults,
+        typeLabel: (t) => t.displayName,
+      );
+      // Mid-list on purpose: near the end the clamp to the maximum scroll
+      // extent hides the overshoot.
+      final target = groups[8].items.single;
+
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        arrangement: EquipmentArrangement.defaults,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: EquipmentListContent(showAppBar: false, selectedId: target.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final row = find.text(target.name);
+      expect(row, findsOneWidget);
+      final list = tester.getRect(find.byType(ListView));
+      final rect = tester.getRect(row);
+      expect(
+        rect.top,
+        greaterThanOrEqualTo(list.top),
+        reason: '$rect in $list',
+      );
+      expect(rect.bottom, lessThanOrEqualTo(list.bottom), reason: '$rect');
+    });
+  });
+
   group('filter panel (#1274, PR #1435 review)', () {
     final items = [
       _makeEquipment(
@@ -1289,4 +1982,31 @@ class _CapturingEquipmentNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// Serves the gear arrangement from memory so a test can drive the real
+/// arrangement notifier through the sort sheet.
+class _FakeArrangementRepository extends AppSettingsRepository {
+  _FakeArrangementRepository() {
+    addTearDown(_ticks.close);
+  }
+
+  final StreamController<void> _ticks = StreamController<void>();
+  EquipmentArrangement? _stored;
+
+  /// When set, the read waits on this, so a test can land the stored
+  /// arrangement after the first frame, as a slow launch read would.
+  Completer<EquipmentArrangement?>? heldRead;
+
+  @override
+  Future<EquipmentArrangement?> getEquipmentArrangement() async =>
+      heldRead != null ? heldRead!.future : _stored;
+
+  @override
+  Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {
+    _stored = arrangement;
+  }
+
+  @override
+  Stream<void> watchSettingsChanges() => _ticks.stream;
 }

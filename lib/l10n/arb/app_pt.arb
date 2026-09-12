@@ -173,10 +173,12 @@
   "common_action_dismiss": "Dispensar",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Adicionar componente",
+  "equipment_components_containsSection": "Contém",
   "equipment_components_count": "{count, plural, =1{1 componente} other{{count} componentes}}",
   "equipment_components_cycleError": "Esse item já contém este, por isso não pode ser adicionado como componente.",
   "equipment_components_editRole": "Editar função",
   "equipment_components_empty": "Sem componentes. Adicione as peças que compõem este item.",
+  "equipment_components_emptyLeaf": "Sem peças próprias. Adicione-as se este item for composto por outros.",
   "equipment_components_historyAlsoPast": "{count, plural, =1{Atualizar também 1 mergulho} other{Atualizar também {count} mergulhos}}",
   "equipment_components_historyAskAdded": "Adicionar a nova peça também a esses mergulhos, ou só a partir de agora?",
   "equipment_components_historyAskRemoved": "Remover a peça também desses mergulhos, ou só a partir de agora?",
@@ -186,6 +188,8 @@
   "equipment_components_historyTitle": "Atualizar mergulhos anteriores?",
   "equipment_components_partOf": "Parte de {name}",
   "equipment_components_partOfCount": "{count, plural, =1{Parte de 1 conjunto} other{Parte de {count} conjuntos}}",
+  "equipment_components_partOfSection": "Parte de",
+  "equipment_components_partOfSubtitle": "{role}, em {rigs}",
   "equipment_components_pickerConfirm": "{count, plural, =0{Adicionar} =1{Adicionar 1} other{Adicionar {count}}}",
   "equipment_components_pickerEmpty": "Não há outro equipamento ativo que possa ser adicionado aqui.",
   "equipment_components_pickerReplaceConfirm": "Substituir",
@@ -311,6 +315,8 @@
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Apenas mergulhos sem cilindro existente",
   "diveLog_bulkEdit_confirmTitle": "Aplicar alterações?",
   "diveLog_bulkEdit_confirmApply": "Aplicar",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Adicionando a 1 mergulho} other{Adicionando a todos os {count} mergulhos}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{Removendo de 1 mergulho} other{Removendo de todos os {count} mergulhos}}",
   "diveLog_bulkEdit_nothingSelected": "Ative pelo menos um campo para aplicar alterações.",
   "diveLog_bulkEdit_applied": "{count} mergulhos atualizados",
   "settings_cloudSync_error_icloudSignedOut": "O iCloud não está disponível. Inicie sessão no iCloud nas definições do seu dispositivo.",
@@ -498,7 +504,7 @@
   "setup_welcome_skipSetup": "Ignorar configuração",
   "setup_welcome_startFresh_subtitle": "Crie seu perfil de mergulhador e configure o aplicativo",
   "setup_welcome_startFresh_title": "Configurar um novo perfil",
-  "setup_welcome_subtitle": "Registro e análise avançada de mergulhos",
+  "setup_welcome_subtitle": "Mergulhe com segurança. Registre tudo.",
   "setup_welcome_title": "Bem-vindo ao Submersion",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -1054,6 +1060,7 @@
   "preDive_runner_flag": "Sinalizar",
   "preDive_runner_undo": "Redefinir como pendente",
   "preDive_runner_serviceOverdue": "Manutenção vencida",
+  "preDive_runner_conditionFindings": "Constatações de estado",
   "preDive_runner_addNote": "Adicionar nota",
   "preDive_runner_enterValue": "Inserir valor",
   "preDive_runner_cellInAir": "No ar",
@@ -3744,6 +3751,7 @@
   "equipment_detail_editTooltipShort": "Editar",
   "equipment_detail_errorMessage": "Erro: {error}",
   "equipment_detail_errorTitle": "Erro",
+  "equipment_detail_installedInLabel": "Instalado em",
   "equipment_detail_lastServiceLabel": "Ultima Manutencao",
   "equipment_detail_loadingTitle": "Carregando...",
   "equipment_detail_modelLabel": "Modelo",
@@ -3752,6 +3760,17 @@
   "equipment_detail_notFoundTitle": "Equipamento Nao Encontrado",
   "equipment_detail_notesTitle": "Observacoes",
   "equipment_detail_ownedForLabel": "Tempo de Posse",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Data de Compra",
   "equipment_detail_purchasePriceLabel": "Preco de Compra",
   "equipment_detail_retiredChip": "Aposentado",
@@ -3769,6 +3788,7 @@
   "equipment_serviceClocks_unconfigured": "Nenhum intervalo definido - toque para configurar",
   "equipment_serviceClocks_dueOn": "Vence em {date}",
   "equipment_serviceClocks_overdueSince": "Atrasado desde {date}",
+  "equipment_serviceClocks_countingSince": "Contando desde {date}",
   "equipment_serviceClocks_overdue": "Atrasado",
   "equipment_serviceClocks_divesLeft": "Restam {remaining} de {total} mergulhos",
   "cylinderConfigs_title": "Configurações de garrafas",
@@ -3877,7 +3897,7 @@
   "equipment_scheduleDialog_intervalCycles": "Intervalo (ciclos de bateria)",
   "equipment_scheduleDialog_inheritHint": "Padrão: {value}",
   "equipment_scheduleDialog_anchorDate": "Data de referência",
-  "equipment_scheduleDialog_anchorHint": "Usada quando ainda não existe nenhum registro de manutenção deste tipo",
+  "equipment_scheduleDialog_anchorHint": "O relógio conta a partir desta data até registrar uma manutenção mais recente.",
   "equipment_scheduleDialog_clearAnchor": "Limpar data de referência",
   "equipment_scheduleDialog_save": "Salvar",
   "equipment_scheduleDialog_cancel": "Cancelar",
@@ -3919,6 +3939,7 @@
   "equipment_detail_tripsCountSingular": "{count} viagem",
   "equipment_detail_tripsLabel": "Viagens",
   "equipment_detail_tripsSemanticLabel": "Ver viagens usando este equipamento",
+  "equipment_detail_wasInstalledInLabel": "Esteve instalado em",
   "equipment_edit_appBar_editTitle": "Editar Equipamento",
   "equipment_edit_appBar_newTitle": "Novo Equipamento",
   "equipment_edit_appBar_saveButton": "Salvar",
@@ -4959,7 +4980,7 @@
   "planning_welcome_title": "Ferramentas de Planejamento",
   "settings_about_aboutSubmersion": "Sobre o Submersion",
   "settings_about_appName": "Submersion",
-  "settings_about_description": "Registre seus mergulhos, gerencie equipamentos e explore pontos de mergulho.",
+  "settings_about_description": "Mergulhe com segurança. Registre tudo.",
   "settings_about_header": "Sobre",
   "settings_about_openSourceLicenses": "Licencas de Codigo Aberto",
   "settings_about_reportIssue": "Relatar um Problema",
@@ -5206,6 +5227,7 @@
   "settings_conflict_ref_equipment": "Equipamento",
   "settings_conflict_ref_equipmentSet": "Conjunto de equipamentos",
   "settings_conflict_ref_finding": "Constatacao",
+  "settings_conflict_ref_importedFile": "Arquivo importado",
   "settings_conflict_ref_instructor": "Instrutor",
   "settings_conflict_ref_linkedDive": "Mergulho vinculado",
   "settings_conflict_ref_media": "Midia",
@@ -5754,6 +5776,38 @@
   "statistics_equipment_weightTrend_error": "Falha ao carregar tendencia de peso",
   "statistics_equipment_weightTrend_subtitle": "Chumbo total por mergulho",
   "statistics_equipment_weightTrend_title": "Tendencia de Peso",
+  "statistics_equipment_exposure_title": "Exposição",
+  "statistics_equipment_exposure_error": "Não foi possível carregar os dados de exposição",
+  "statistics_equipment_findings_error": "Não foi possível carregar as constatações de estado",
+  "statistics_equipment_issues_error": "Não foi possível carregar os problemas registados",
+  "statistics_equipment_exposure_subtitle": "Totais por item com os seus limites",
+  "statistics_equipment_exposure_empty": "Ainda não há mergulhos com equipamento",
+  "statistics_equipment_findings_title": "Constatações de estado",
+  "statistics_equipment_findings_subtitle": "Constatações abertas por regra",
+  "statistics_equipment_findings_subtitleAllDives": "Constatações abertas por regra, em todos os mergulhos",
+  "statistics_equipment_findings_empty": "Sem constatações abertas",
+  "statistics_equipment_issues_title": "Problemas registados",
+  "statistics_equipment_issues_subtitle": "Etiquetas de verificação mais frequentes",
+  "statistics_equipment_issues_empty": "Sem problemas registados",
+  "statistics_equipment_countLabel_items": "itens",
+  "statistics_equipment_countLabel_findings": "constatações",
+  "statistics_equipment_countLabel_reports": "registos",
+  "statistics_equipment_exposureUnit_days": "Dias",
+  "statistics_equipment_exposureUnit_dives": "Mergulhos",
+  "statistics_equipment_countLabel_days": "dias",
+  "statistics_equipment_countLabel_dives": "mergulhos",
+  "statistics_equipment_countLabel_hours": "horas",
+  "statistics_equipment_countLabel_saltHours": "horas em água salgada",
+  "statistics_equipment_countLabel_coldDives": "mergulhos frios",
+  "statistics_equipment_countLabel_o2Hours": "horas com O2 elevado",
+  "statistics_equipment_countLabel_deepCycles": "mergulhos profundos",
+  "statistics_equipment_countLabel_cycles": "ciclos de bateria",
+  "statistics_equipment_exposureUnit_hours": "Horas",
+  "statistics_equipment_exposureUnit_saltHours": "Horas em água salgada",
+  "statistics_equipment_exposureUnit_coldDives": "Mergulhos frios",
+  "statistics_equipment_exposureUnit_o2Hours": "Horas com O2 elevado",
+  "statistics_equipment_exposureUnit_deepCycles": "Mergulhos profundos",
+  "statistics_equipment_exposureUnit_cycles": "Ciclos de bateria",
   "statistics_error_loadingStatistics": "Erro ao carregar estatisticas",
   "statistics_filterBar_clear": "Limpar filtro",
   "statistics_filterBar_diveCount": "{count, plural, =1{1 mergulho} other{{count} mergulhos}}",
@@ -6045,6 +6099,8 @@
   "importWizard_photos_destinationUnwritable": "Não é possível escrever nessa pasta. Escolha outra.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 mergulho mais antigo ignorado — já está no seu registo} other{{count} mergulhos mais antigos ignorados — já estão no seu registo}}",
   "tags_hint_addTags": "Adicionar tags...",
+  "tags_manage_autoTagImports": "Marcar importações automaticamente",
+  "tags_manage_autoTagImports_subtitle": "Cada nova importação começa com uma etiqueta que indica a origem e a data. Pode alterar isto para uma única importação nas opções dessa importação.",
   "tags_manage_bulkDeleteMessage": "Estas etiquetas serao removidas de {diveCount, plural, =0{0 mergulhos} =1{1 mergulho} other{{diveCount} mergulhos}} no total. Esta acao nao pode ser desfeita.",
   "tags_manage_bulkDeleteTitle": "Excluir {count} Etiquetas?",
   "tags_manage_colorLabel": "Cor",
@@ -6054,6 +6110,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 mergulhos} =1{1 mergulho} other{{count} mergulhos}}",
   "tags_manage_editTitle": "Editar Etiqueta",
   "tags_manage_emptyState": "Nenhuma etiqueta ainda. Crie uma para comecar.",
+  "tags_manage_importsSection": "Importações",
   "tags_manage_mergeAction": "Mesclar",
   "tags_manage_mergeAffectedDives": "Isso afetara {count, plural, =0{0 mergulhos} =1{1 mergulho} other{{count} mergulhos}} no total.",
   "tags_manage_mergeKeepFrom": "Ou manter nome de:",
@@ -6241,15 +6298,18 @@
   "transfer_csvExport_dataTypeHeader": "Tipo de Dados",
   "transfer_csvExport_descriptionDives": "Exportar todos os registros de mergulho como planilha",
   "transfer_csvExport_descriptionEquipment": "Exportar inventario de equipamentos e informacoes de manutencao",
+  "transfer_csvExport_descriptionObservations": "Cada verificação OK e cada problema reportado, com mergulho, etiquetas e nota",
   "transfer_csvExport_descriptionSites": "Exportar localizacoes e detalhes dos pontos de mergulho",
   "transfer_csvExport_dialogTitle": "Exportar CSV",
   "transfer_csvExport_exportButton": "Exportar CSV",
   "transfer_csvExport_optionDivesTitle": "CSV de Mergulhos",
   "transfer_csvExport_optionEquipmentTitle": "CSV de Equipamentos",
+  "transfer_csvExport_optionObservationsTitle": "CSV de verificações de equipamento",
   "transfer_csvExport_optionSitesTitle": "CSV de Pontos",
   "transfer_csvExport_semanticLabel": "Exportar {typeName}",
   "transfer_csvExport_typeDives": "Mergulhos",
   "transfer_csvExport_typeEquipment": "Equipamentos",
+  "transfer_csvExport_typeObservations": "Verificações de equipamento",
   "transfer_csvExport_typeSites": "Pontos",
   "transfer_detail_backTooltip": "Voltar para transferencia",
   "transfer_export_aboutContent": "Exporte seus dados de mergulho em varios formatos. PDF cria um logbook imprimivel. UDDF e um formato universal compativel com a maioria dos softwares de registro de mergulho. Arquivos CSV podem ser abertos em aplicativos de planilha.",
@@ -6265,6 +6325,10 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Exportacao Multi-Formato",
   "transfer_export_optionSaveSubtitle": "Escolha onde salvar no seu dispositivo",
+  "transfer_export_includeGear": "Incluir equipamento",
+  "transfer_export_includeGearSubtitle": "Adiciona o equipamento e o computador de mergulho usados em cada mergulho. Os dados de compra ficam de fora.",
+  "transfer_export_includeParticipants": "Incluir participantes",
+  "transfer_export_includeParticipantsSubtitle": "Adiciona companheiros, guias e as suas funções em cada mergulho, com nome e certificação. Os dados de contacto ficam de fora.",
   "transfer_export_includeRawData": "Incluir dados brutos do computador de mergulho",
   "transfer_export_includeRawDataSubtitle": "Mantém os bytes originais do seu computador de mergulho para que o ficheiro possa ser reprocessado mais tarde. Aumenta o tamanho do ficheiro.",
   "transfer_export_optionSaveTitle": "Salvar em Arquivo",
@@ -6403,6 +6467,119 @@
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
+  "trips_edit_sectionTitle_planning": "Planeamento",
+  "trips_edit_label_expectedDives": "Mergulhos previstos",
+  "trips_edit_hint_expectedDives": "Deixe vazio para estimar a partir das suas viagens recentes",
+  "trips_edit_label_expectedRuntime": "Duração prevista por mergulho (minutos)",
+  "trips_edit_hint_expectedRuntime": "Deixe vazio para estimar a partir dos seus mergulhos com rebreather recentes",
+  "trips_scrubber_title": "Margem do absorvente",
+  "trips_scrubber_asOfStart": "à data de {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min restantes antes da viagem (nominal {rated} min, {consumed} min usados desde a última troca)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remainingNoRepack": "{minutes} min restantes antes da viagem (nominal {rated} min, {consumed} min usados, nenhuma troca registrada)",
+  "@trips_scrubber_remainingNoRepack": {
+    "description": "The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives, plural, one{{dives} mergulho previsto} other{{dives} mergulhos previstos}}",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "{n, plural, one{(da sua última viagem)} other{(das suas últimas {n} viagens)}}",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(definido nesta viagem)",
+  "trips_scrubber_perDive": "{minutes} min por mergulho",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "{n, plural, one{(do seu último mergulho com rebreather)} other{(dos seus últimos {n} mergulhos com rebreather)}}",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min de uso previsto",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min de margem após a viagem",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Abaixo de 20 por cento da duração nominal. Planeie uma troca ou leve absorvente de reserva.",
+  "trips_scrubber_noRating": "Sem duração nominal neste rebreather; adicione a duração do absorvente aos atributos ou um plano de troca.",
+  "trips_scrubber_bannerMargin": "{minutes} min de margem de absorvente",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreathers, a menor margem de absorvente é de {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data Final",
@@ -7103,11 +7280,21 @@
   "universalImport_label_options": "Opções",
   "universalImport_label_photosAttached": "Fotos anexadas",
   "universalImport_label_photosUnmatched": "Fotos sem mergulho correspondente",
+  "diveLog_detail_menu_resyncImportedFile": "Ressincronizar a partir do arquivo original",
+  "diveLog_detail_resyncSuccess": "Mergulho atualizado a partir do arquivo original",
+  "diveLog_detail_resyncFailed_diveMissing": "Não foi possível ressincronizar: este mergulho não existe mais",
+  "diveLog_detail_resyncFailed_noStoredFile": "Não foi possível ressincronizar: nenhum arquivo original foi salvo para este mergulho",
+  "diveLog_detail_resyncFailed_unsupportedFormat": "Não foi possível ressincronizar: este formato de arquivo não é compatível",
+  "diveLog_detail_resyncFailed_storedFileMissing": "Não foi possível ressincronizar: o arquivo original não está mais neste dispositivo",
+  "diveLog_detail_resyncFailed_noMatchingDive": "Não foi possível ressincronizar: o arquivo original não contém mais um mergulho correspondente",
+  "diveLog_detail_resyncFailed_unexpectedError": "Não foi possível ressincronizar: ocorreu um erro inesperado ao ler o arquivo original",
   "universalImport_label_replaceSource": "Substituir Fonte",
   "universalImport_label_replaceSourceSubtitle": "Atualizar a partir do mesmo computador",
   "universalImport_label_replacedSourceData": "Dados de origem substituídos",
   "universalImport_label_retainDiveNumbers": "Manter números de mergulho da origem",
   "universalImport_label_retainDiveNumbersSubtitle": "Usar os números de mergulho do arquivo importado em vez de atribuí-los automaticamente",
+  "universalImport_label_autoTagThisImport": "Marcar esta importação automaticamente",
+  "universalImport_label_autoTagThisImportSubtitle": "Começa com a sua preferência guardada nas configurações de Etiquetas. Alterá-la aqui afeta apenas esta importação.",
   "universalImport_title_importOptions": "Opções de Importação",
   "universalImport_title_noDivesImported": "Nenhum Mergulho Importado",
   "universalImport_title_successConsolidated": "Consolidados com Sucesso",
@@ -8172,6 +8359,10 @@
   "incidentEdit_lessonsLearned": "O que ajudaria da próxima vez (opcional)",
   "incidentEdit_save": "Salvar",
   "incidentEdit_privacyNote": "Relatos de quase acidentes sincronizam entre seus dispositivos e entram nos backups, mas nunca em exportações ou páginas compartilhadas do logbook.",
+  "incidentEdit_equipment": "Equipamento envolvido",
+  "incidentEdit_equipment_none": "Nenhum",
+  "incidentEdit_equipment_onThisDive": "Neste mergulho",
+  "incidentEdit_equipment_allGear": "Todo o equipamento",
   "incidentCategory_buoyancy": "Flutuabilidade",
   "incidentCategory_gasSupply": "Suprimento de gás",
   "incidentCategory_equipment": "Equipamento",
@@ -8198,6 +8389,359 @@
   "settings_section_equipmentCondition_title": "Estado do equipamento",
   "settings_section_equipmentCondition_subtitle": "Limites de exposição para os relógios de manutenção",
   "equipmentConditionSettings_title": "Estado do equipamento",
+  "equipmentCondition_children_title": "Peças instaladas",
+  "equipmentCondition_children_slot": "Ranhura {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Instalado a {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{hoje} =1{há 1 dia} other{há {days} dias}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{há 1 mês} other{há {months} meses}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Substituir",
+  "equipmentCondition_children_open": "Abrir",
+  "equipmentCondition_children_replaceTitle": "Substituir {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} é retirado hoje e um novo {type} ocupa o seu lugar na mesma ranhura. O número de série e as notas começam vazios.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Substituir",
+  "equipmentCondition_children_replaceCancel": "Cancelar",
+  "equipmentCondition_children_replaced": "{name} substituído",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Sem células ou baterias registadas",
+  "equipmentCondition_children_add": "Adicionar",
+  "equipmentCondition_findings_title": "Constatações de estado",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 constatação} other{{count} constatações}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Mergulhos de evidência",
+  "equipmentCondition_findings_dismiss": "Dispensar",
+  "equipmentCondition_findings_restore": "Repor",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Mostrar 1 dispensada} other{Mostrar {count} dispensadas}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Mergulhos de evidência",
+  "equipmentCondition_evidence_dive": "Mergulho {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Mergulho",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_title_cellGain": "Saída das células por mergulho",
+  "equipmentCondition_trend_title_gap": "Falhas de sinal do transmissor por mergulho",
+  "equipmentCondition_trend_title_scrubber": "Uso do absorvente por mergulho",
+  "equipmentCondition_trend_title_temperature": "Temperatura mínima por mergulho",
+  "equipmentCondition_trend_cell": "Célula {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Mergulhos com um problema",
+  "equipmentCondition_trend_scrubber": "Minutos de absorvente",
+  "equipmentCondition_trend_gap": "Percentagem de falhas",
+  "equipmentCondition_trend_temperature": "Temperatura mínima",
+  "equipmentCondition_trend_axis_minutes": "min",
+  "equipmentCondition_exposure_title": "Exposição",
+  "equipmentCondition_exposure_empty": "Ainda não há mergulhos com este item",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{1 mergulho} other{{n} mergulhos}}, {range}",
+  "@equipmentCondition_exposure_footer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_dives": "{n, plural, =1{1 mergulho} other{{n} mergulhos}}",
+  "@equipmentCondition_exposure_dives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_hours": "{n} horas",
+  "@equipmentCondition_exposure_hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_saltHours": "{n} horas em água salgada",
+  "@equipmentCondition_exposure_saltHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{1 mergulho frio} other{{n} mergulhos frios}}",
+  "@equipmentCondition_exposure_coldDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_o2Hours": "{n} horas com O2 elevado",
+  "@equipmentCondition_exposure_o2Hours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{1 mergulho profundo} other{{n} mergulhos profundos}}",
+  "@equipmentCondition_exposure_deepCycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{1 ciclo de bateria} other{{n} ciclos de bateria}}",
+  "@equipmentCondition_exposure_cycles": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputDeclining": "A saída da célula {slot} caiu {percent} por cento em {n} mergulhos desde {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "A saída da célula {slot} é de {gain} mV por bar nos últimos {n} mergulhos",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "A célula {slot} discordou das outras até {bar} bar em {count} dos últimos {n} mergulhos",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "A célula {slot} leu baixo a ppO2 alta em {count} dos últimos {n} mergulhos, até {percent} por cento das amostras",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "A pressão falhou durante {recent} por cento dos últimos 5 mergulhos, contra {prior} por cento nos {priorCount} anteriores",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "A pressão falhou em média durante {recent} por cento dos últimos {n} mergulhos, {count} deles acima de 10 por cento",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} registado {count} vezes nos últimos {n} mergulhos",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} de {totalIssue} mergulhos com problemas foram mais frios do que {threshold}, em {n} mergulhos com este item",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} de {totalIssue} mergulhos com problemas foram além de {threshold}, em {n} mergulhos com este item",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 incidente refere este item} other{{count} incidentes referem este item}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 mergulho} other{{n} mergulhos}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Limites de exposição",
   "equipmentConditionSettings_thresholdsHelp": "Um mergulho conta como frio, profundo ou com O2 elevado para os relógios de manutenção quando ultrapassa estes limites.",
   "equipmentConditionSettings_coldLabel": "Água fria abaixo de",
@@ -8205,6 +8749,138 @@
   "equipmentConditionSettings_o2Label": "Mistura com O2 elevado acima de (% O2)",
   "equipmentConditionSettings_invalid": "Introduza um número",
   "equipmentConditionSettings_saveFailed": "Não foi possível guardar. Tente novamente.",
+  "equipmentConditionSettings_sensorHeader": "Resumos de sensores",
+  "equipmentConditionSettings_sensorHelp": "O perfil de cada mergulho é resumido uma vez para a saída das células, as falhas do transmissor e o uso do absorvente. Mergulhos novos e editados são resumidos sozinhos.",
+  "equipmentConditionSettings_rebuild": "Reconstruir resumos de sensores",
+  "equipmentConditionSettings_rebuild_subtitle": "Recalcular o resumo de cada mergulho a partir do seu perfil",
+  "equipmentConditionSettings_rebuild_progress": "Resumidos {done} de {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Resumos de sensores reconstruídos",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Resumos de sensores reconstruídos; {count, plural, =1{1 mergulho não pôde ser resumido} other{{count} mergulhos não puderam ser resumidos}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{1 mergulho não pôde ser resumido} other{{dives} mergulhos não puderam ser resumidos}}; não foi possível atualizar as constatações de estado de {items, plural, =1{1 equipamento} other{{items} equipamentos}}",
+  "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "Resumos de sensores reconstruídos; não foi possível atualizar as constatações de estado de {count, plural, =1{1 equipamento} other{{count} equipamentos}}",
+  "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "Não foi possível reconstruir os resumos de sensores.",
+  "equipmentConditionSettings_masterToggle": "Constatações de estado",
+  "equipmentConditionSettings_masterToggle_subtitle": "Relata tendências na saída das células, falhas de sinal do transmissor e problemas registados, com os números por trás",
+  "equipmentConditionSettings_rulesHeader": "Regras",
+  "equipmentConditionSettings_rule_cellOutputDeclining": "Saída da célula em queda",
+  "equipmentConditionSettings_rule_cellOutputLow": "Saída da célula baixa",
+  "equipmentConditionSettings_rule_cellDivergent": "Célula discorda das outras",
+  "equipmentConditionSettings_rule_cellCurrentLimited": "Célula limitada por corrente a ppO2 alta",
+  "equipmentConditionSettings_rule_transmitterDropoutRising": "Falhas de sinal do transmissor a aumentar",
+  "equipmentConditionSettings_rule_transmitterDropoutHigh": "Falhas de sinal do transmissor elevadas",
+  "equipmentConditionSettings_rule_issueRecurring": "Problema recorrente",
+  "equipmentConditionSettings_rule_issueColdCorrelated": "Problemas em mergulhos frios",
+  "equipmentConditionSettings_rule_issueDeepCorrelated": "Problemas em mergulhos profundos",
+  "equipmentConditionSettings_rule_incidentLinked": "Incidentes associados",
+  "equipmentObservation_tag_freeFlow": "Fluxo contínuo",
+  "equipmentObservation_tag_hardBreathing": "Respiração dura",
+  "equipmentObservation_tag_wetBreathing": "Respiração húmida",
+  "equipmentObservation_tag_leak": "Fuga",
+  "equipmentObservation_tag_hoseDamage": "Mangueira danificada",
+  "equipmentObservation_tag_inflatorStuck": "Inflador preso",
+  "equipmentObservation_tag_inflatorSlow": "Inflador lento",
+  "equipmentObservation_tag_bladderLeak": "Fuga na bexiga",
+  "equipmentObservation_tag_dumpLeak": "Fuga na válvula de purga",
+  "equipmentObservation_tag_leakNeck": "Fuga no vedante do pescoço",
+  "equipmentObservation_tag_leakWrist": "Fuga no vedante do pulso",
+  "equipmentObservation_tag_leakZip": "Fuga no fecho",
+  "equipmentObservation_tag_leakBoot": "Fuga na bota",
+  "equipmentObservation_tag_leakValve": "Fuga na válvula",
+  "equipmentObservation_tag_leakSeam": "Fuga na costura",
+  "equipmentObservation_tag_tear": "Rasgo",
+  "equipmentObservation_tag_seamFailure": "Costura aberta",
+  "equipmentObservation_tag_dim": "Fraco",
+  "equipmentObservation_tag_died": "Avariou",
+  "equipmentObservation_tag_flooded": "Inundado",
+  "equipmentObservation_tag_switchFault": "Falha do interruptor",
+  "equipmentObservation_tag_batteryLow": "Bateria fraca",
+  "equipmentObservation_tag_screenFault": "Falha do ecrã",
+  "equipmentObservation_tag_connectionFault": "Falha de ligação",
+  "equipmentObservation_tag_dropout": "Perda de sinal",
+  "equipmentObservation_tag_cellWarning": "Aviso de célula",
+  "equipmentObservation_tag_loopLeak": "Fuga no circuito",
+  "equipmentObservation_tag_solenoidFault": "Falha do solenoide",
+  "equipmentObservation_tag_scrubberBreakthrough": "Rutura do absorvente",
+  "equipmentObservation_tag_slowResponse": "Resposta lenta",
+  "equipmentObservation_tag_erratic": "Errático",
+  "equipmentObservation_tag_lowCapacity": "Pouca capacidade",
+  "equipmentObservation_tag_propFault": "Falha da hélice",
+  "equipmentObservation_tag_strapBroke": "Fita partida",
+  "equipmentObservation_tag_other": "Outro",
+  "equipmentObservation_status_ok": "OK",
+  "equipmentObservation_status_issue": "Problema",
+  "equipmentObservation_sheet_title": "Verificação: {item}",
+  "@equipmentObservation_sheet_title": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentObservation_sheet_empty": "Ainda sem verificações neste mergulho.",
+  "equipmentObservation_sheet_emptyBench": "Ainda sem verificações.",
+  "equipmentObservation_sheet_add": "Adicionar verificação",
+  "equipmentObservation_sheet_edit": "Editar verificação",
+  "equipmentObservation_sheet_delete": "Eliminar verificação",
+  "equipmentObservation_sheet_deleteConfirm": "Eliminar esta verificação?",
+  "equipmentObservation_sheet_noteLabel": "Nota",
+  "equipmentObservation_sheet_tagsLabel": "O que aconteceu",
+  "equipmentObservation_sheet_dateLabel": "Observado",
+  "equipmentObservation_sheet_diveLabel": "Mergulho",
+  "equipmentObservation_sheet_noDive": "Sem mergulho (bancada)",
+  "equipmentObservation_sheet_pickDive": "Escolher um mergulho",
+  "equipmentObservation_sheet_save": "Guardar",
+  "equipmentObservation_sheet_cancel": "Cancelar",
+  "equipmentObservation_sheet_tagRequired": "Escolha pelo menos uma etiqueta para um problema",
+  "equipmentObservation_chip_ok": "Verificado, OK",
+  "equipmentObservation_chip_issue": "Problema reportado",
+  "equipmentObservation_chip_none": "Verificar",
+  "equipmentObservation_card_title": "Verificações",
+  "equipmentObservation_card_empty": "Sem verificações registadas para este item.",
+  "equipmentObservation_card_add": "Adicionar verificação",
+  "equipmentObservation_card_onDive": "Mergulho n.º {number}",
+  "@equipmentObservation_card_onDive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentObservation_card_bench": "Bancada",
   "dataQuality_inbox_title": "Qualidade dos dados",
   "dataQuality_dive_unknown": "Detalhes do mergulho indisponíveis",
   "dataQuality_dive_number": "#{number}",
@@ -10769,6 +11445,7 @@
   "settings_export_progress_divesCsv": "Exportando mergulhos para CSV...",
   "settings_export_progress_sitesCsv": "Exportando pontos para CSV...",
   "settings_export_progress_equipmentCsv": "Exportando equipamentos para CSV...",
+  "settings_export_progress_observationsCsv": "A exportar verificações de equipamento para CSV...",
   "settings_export_progress_pdf": "Gerando diário de mergulho em PDF...",
   "settings_export_progress_loadingSignatures": "Carregando assinaturas...",
   "settings_export_progress_loadingProfiles": "Carregando perfis de mergulho...",
@@ -10787,6 +11464,7 @@
   "settings_export_progress_preparingDivesCsv": "Preparando CSV de mergulhos...",
   "settings_export_progress_preparingSitesCsv": "Preparando CSV de pontos...",
   "settings_export_progress_preparingEquipmentCsv": "Preparando CSV de equipamentos...",
+  "settings_export_progress_preparingObservationsCsv": "A preparar CSV de verificações de equipamento...",
   "settings_export_progress_preparingUddf": "Preparando arquivo UDDF...",
   "settings_export_progress_preparingPdf": "Preparando PDF...",
   "settings_export_progress_selectingBackup": "Selecionando arquivo de backup...",
@@ -10794,6 +11472,7 @@
   "settings_export_empty_dives": "Nenhum mergulho para exportar",
   "settings_export_empty_sites": "Nenhum ponto para exportar",
   "settings_export_empty_equipment": "Nenhum equipamento para exportar",
+  "settings_export_empty_observations": "Sem verificações de equipamento para exportar",
   "settings_export_empty_data": "Nenhum dado para exportar",
   "settings_export_empty_diveSites": "Nenhum ponto de mergulho para exportar",
   "settings_export_saveFailed": "Falha ao salvar: {error}",
@@ -10804,6 +11483,7 @@
   "settings_export_success_dives": "Mergulhos exportados com sucesso",
   "settings_export_success_sites": "Pontos exportados com sucesso",
   "settings_export_success_equipment": "Equipamentos exportados com sucesso",
+  "settings_export_success_observations": "Verificações de equipamento exportadas",
   "settings_export_success_pdf": "Diário de mergulho em PDF gerado com sucesso",
   "settings_export_success_uddf": "Arquivo UDDF gerado com sucesso",
   "settings_export_success_excel": "Arquivo Excel exportado com sucesso",
@@ -10813,6 +11493,7 @@
   "settings_export_saved_divesCsv": "CSV de mergulhos salvo com sucesso",
   "settings_export_saved_sitesCsv": "CSV de pontos salvo com sucesso",
   "settings_export_saved_equipmentCsv": "CSV de equipamentos salvo com sucesso",
+  "settings_export_saved_observationsCsv": "CSV de verificações de equipamento guardado",
   "settings_export_saved_uddf": "Arquivo UDDF salvo com sucesso",
   "settings_export_saved_pdf": "PDF salvo com sucesso",
   "settings_export_saved_backup": "Backup salvo com sucesso",
@@ -10822,6 +11503,10 @@
   "settings_export_cancelled_restore": "Restauração cancelada",
   "settings_export_pdfDocumentTitle": "Diário de Mergulho",
   "settings_export_saveBackupDialogTitle": "Salvar Backup",
+  "settings_export_saveDivesCsvDialogTitle": "Salvar CSV de mergulhos",
+  "settings_export_saveSitesCsvDialogTitle": "Salvar CSV de pontos",
+  "settings_export_saveEquipmentCsvDialogTitle": "Salvar CSV de equipamentos",
+  "settings_export_saveObservationsCsvDialogTitle": "Salvar CSV de verificações de equipamento",
   "backup_operation_created": "Backup criado: {size}",
   "backup_operation_backupFailed": "Falha no backup: {error}",
   "backup_operation_restoring": "Restaurando backup...",
@@ -11082,6 +11767,7 @@
   "settings_storageUsage_group_backups": "Cópias de segurança",
   "settings_storageUsage_group_temporary": "Ficheiros temporários",
   "settings_storageUsage_group_exports": "Ficheiros exportados",
+  "settings_storageUsage_group_importedFiles": "Dados brutos importados",
   "settings_storageUsage_category_database": "Base de dados do registo de mergulhos",
   "settings_storageUsage_category_localCache": "Base de dados de cache local",
   "settings_storageUsage_category_mediaCacheOriginals": "Fotos e vídeos originais",
@@ -11096,6 +11782,7 @@
   "settings_storageUsage_category_backups": "Ficheiros de cópia de segurança",
   "settings_storageUsage_category_temporary": "Ficheiros temporários",
   "settings_storageUsage_category_exports": "Ficheiros exportados",
+  "settings_storageUsage_category_importedFiles": "Ficheiros de importação originais",
   "profilePhoto_sheet_title": "Foto do perfil",
   "profilePhoto_source_camera": "Tirar foto",
   "profilePhoto_source_library": "Escolher da biblioteca",
@@ -11160,6 +11847,7 @@
   "transmitters_field_channel": "Canal",
   "transmitters_field_role": "Função",
   "transmitters_field_gear": "Cilindro do equipamento",
+  "transmitters_field_transmitterGear": "Transmissor do equipamento",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "Nenhum",
   "transmitters_validation_key": "Informe um número de série ou escolha um computador e um canal",
@@ -11206,13 +11894,11 @@
   "enum_equipmentItemSortField_purchaseDate": "Data de compra",
   "enum_equipmentItemSortField_dateAdded": "Data de adição",
   "enum_equipmentItemSortField_lastServiceDate": "Última revisão",
-  "equipment_arrange_title": "Organizar o equipamento",
   "equipment_arrange_groupByType": "Agrupar por tipo",
   "equipment_arrange_groupByTypeSubtitle": "Mostrar um cabeçalho para cada tipo de equipamento",
   "equipment_arrange_typeOrderLabel": "Ordenar tipos por",
   "equipment_arrange_itemOrderLabel": "Depois por",
   "equipment_arrange_itemOrderLabelFlat": "Ordenar por",
-  "equipment_arrange_tooltip": "Organizar o equipamento",
   "equipment_arrange_reset": "Repor predefinições",
   "equipment_arrange_saveFailed": "Não foi possível guardar a organização",
   "settings_appearance_gearArrangement": "Organização do equipamento",
