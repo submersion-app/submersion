@@ -2063,6 +2063,20 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
+      // The diver's own role. A role this database lacks can only be a
+      // custom role whose definition never arrived, so the dive keeps no
+      // role rather than one that names nothing.
+      final diverRoleValue = diveData['diverRoleId'];
+      final diverRoleId =
+          diverRoleValue is String &&
+              diverRoleValue.isNotEmpty &&
+              await _roleExists(
+                diverRoleValue,
+                repos.diveRoleRepository,
+                roleExists,
+              )
+          ? diverRoleValue
+          : null;
       final isFavorite = diveData['isFavorite'] as bool? ?? false;
       final excludedFromStats = diveData['excludedFromStats'] as bool? ?? false;
       final excludedFromGasStats =
@@ -2150,6 +2164,7 @@ class UddfEntityImporter {
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
+        diverRoleId: diverRoleId,
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,

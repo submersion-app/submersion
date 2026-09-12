@@ -266,6 +266,7 @@ class UddfExportBuilders {
             if (dive.isPlanned) {
               builder.element('isplanned', nest: 'true');
             }
+            buildDiverRole(builder, dive);
             // Course association
             if (dive.courseId != null) {
               builder.element(
@@ -868,6 +869,18 @@ class UddfExportBuilders {
         );
       },
     );
+  }
+
+  /// The logbook owner's own role on [dive] as a custom `<diverrole>`
+  /// element inside `informationbeforedive` (not UDDF standard). Holds the
+  /// dive role id verbatim; a custom role's definition travels in the
+  /// `<diveroles>` block of a full backup. Shared by the full and the
+  /// dives-only dive builders.
+  static void buildDiverRole(XmlBuilder builder, Dive dive) {
+    final roleId = dive.diverRoleId;
+    if (roleId != null && roleId.isNotEmpty) {
+      builder.element('diverrole', nest: roleId);
+    }
   }
 
   static bool _hasProvenance(GearLink g) =>

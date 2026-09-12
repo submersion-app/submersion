@@ -1012,6 +1012,17 @@ class UddfFullImportService {
         diveData['isPlanned'] = true;
       }
 
+      // The logbook owner's own role on the dive (custom element). The
+      // importer checks the id against the database, since a dives-only
+      // file declares no custom roles yet may name one already present.
+      final diverRole = UddfImportParsers.getElementText(
+        beforeElement,
+        'diverrole',
+      );
+      if (diverRole != null && diverRole.isNotEmpty) {
+        diveData['diverRoleId'] = diverRole;
+      }
+
       // Parse entry time
       final entryTime = UddfImportParsers.getElementText(
         beforeElement,
