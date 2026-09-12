@@ -819,6 +819,9 @@ class UddfExportBuilders {
     List<EquipmentComponent>? components,
     List<Dive>? gearLinkDives,
     Map<String, List<BuddyWithRole>>? diveBuddies,
+    // A file shared with other people carries no purchase date, price or
+    // currency on its items; a backup keeps them.
+    bool omitPurchaseDetails = false,
   }) {
     // Gear provenance per dive (issue #1487): only rows attached through
     // an assembly or applied from a set are worth a link; the standard
@@ -869,6 +872,11 @@ class UddfExportBuilders {
     for (final o in observations ?? const <EquipmentObservation>[]) {
       (observationsByItem[o.equipmentId] ??= []).add(o);
     }
+    // An item's parent is referenced only when it is declared here too, so
+    // a file carrying some items never points at one it left out.
+    final itemIds = {
+      for (final i in equipment ?? const <EquipmentItem>[]) i.id,
+    };
 
     builder.element(
       'applicationdata',
@@ -905,13 +913,14 @@ class UddfExportBuilders {
                           builder.element('size', nest: item.size);
                         }
                         builder.element('status', nest: item.status.name);
-                        if (item.purchaseDate != null) {
+                        if (!omitPurchaseDetails && item.purchaseDate != null) {
                           builder.element(
                             'purchasedate',
                             nest: item.purchaseDate!.toIso8601String(),
                           );
                         }
-                        if (item.purchasePrice != null) {
+                        if (!omitPurchaseDetails &&
+                            item.purchasePrice != null) {
                           builder.element(
                             'purchaseprice',
                             nest: item.purchasePrice.toString(),
@@ -943,11 +952,9 @@ class UddfExportBuilders {
                         // Condition phase 3a: the parent link and the
                         // check-ins ride inside the item so the importer
                         // can resolve them once equipment and dives exist.
-                        if (item.parentEquipmentId != null) {
-                          builder.element(
-                            'parentref',
-                            nest: 'equip_${item.parentEquipmentId}',
-                          );
+                        if (item.parentEquipmentId case final parent?
+                            when itemIds.contains(parent)) {
+                          builder.element('parentref', nest: 'equip_$parent');
                         }
                         final mine =
                             observationsByItem[item.id] ??
