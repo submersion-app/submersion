@@ -138,6 +138,69 @@ void main() {
       expect(dives[0]['buddyRefs'], ['f0:b1']);
     });
 
+    test('keeps every file\'s custom dive roles, once per id', () {
+      // Role ids are UUIDs minted on one device, so the same id in two
+      // backups is the same role and must not be restored twice.
+      ImportPayload withRoles(List<String> ids) => ImportPayload(
+        entities: const {},
+        metadata: {
+          ImportPayload.customDiveRolesKey: [
+            for (final id in ids) {'id': id, 'name': 'Role $id'},
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'a.uddf',
+          payload: withRoles(['r1', 'r2']),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'b.uddf',
+          payload: withRoles(['r2', 'r3']),
+        ),
+      ]);
+
+      final roles = merged.metadata[ImportPayload.customDiveRolesKey] as List;
+      expect([for (final r in roles) (r as Map)['id']], ['r1', 'r2', 'r3']);
+    });
+
+    test('rewrites the person in each exact buddy role (issue #1737)', () {
+      final a = payloadWith(
+        buddies: [
+          {'uddfId': 'b1', 'name': 'Alice'},
+        ],
+      );
+      final b = payloadWith(
+        buddies: [
+          {'uddfId': 'b7', 'name': 'ALICE'},
+          {'uddfId': 'b8', 'name': 'Bob'},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 2, 1, 9),
+            'buddyRoleRefs': [
+              {'buddyRef': 'b7', 'roleId': 'diveMaster'},
+              {'buddyRef': 'b8', 'roleId': 'student'},
+            ],
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: b),
+      ]);
+
+      final dives = merged.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['buddyRoleRefs'], [
+        {'buddyRef': 'f0:b1', 'roleId': 'diveMaster'},
+        {'buddyRef': 'f1:b8', 'roleId': 'student'},
+      ]);
+    });
+
     test('never folds dives, even identical ones', () {
       final dive = {'dateTime': DateTime(2026, 1, 1, 9), 'maxDepth': 18.0};
       final merged = merger.merge([
