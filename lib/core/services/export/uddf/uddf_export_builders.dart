@@ -5,6 +5,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/export_service_record.dart';
+import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -110,21 +111,6 @@ class UddfExportBuilders {
     List<GasSwitchWithTank> gasSwitches, {
     Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
-    // Separate buddies by role for UDDF export. Leaders map to UDDF leader
-    // elements; every other role (including custom roles) exports as a plain
-    // buddy. Solo exports as neither. The exact role of each person rides in
-    // the private <buddyroles> block (see buildApplicationData).
-    final regularBuddies = diveBuddyList
-        .where(
-          (b) =>
-              !DiveRole.leaderIds.contains(b.role.id) &&
-              b.role.id != DiveRole.soloId,
-        )
-        .toList();
-    final guidesAndDivemasters = diveBuddyList
-        .where((b) => DiveRole.leaderIds.contains(b.role.id))
-        .toList();
-
     // Find the trip this dive belongs to
     Trip? diveTrip;
     if (trips != null && dive.tripId != null) {
@@ -240,15 +226,7 @@ class UddfExportBuilders {
               );
             }
             // Export guides/divemasters/instructors in the divemaster field
-            if (guidesAndDivemasters.isNotEmpty) {
-              final names = guidesAndDivemasters
-                  .map((b) => b.buddy.name)
-                  .join(', ');
-              builder.element('divemaster', nest: names);
-            } else if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty) {
-              // Fallback to legacy field if no linked buddies
-              builder.element('divemaster', nest: dive.diveMaster);
-            }
+            UddfParticipantWriters.writeLeaders(builder, dive, diveBuddyList);
             if (dive.diveCenter != null) {
               builder.element(
                 'link',
@@ -277,12 +255,7 @@ class UddfExportBuilders {
               builder.element('entrytype', nest: dive.entryMethod!.name);
             }
             // Link to buddy records in diver section
-            for (final buddyWithRole in diveBuddyList) {
-              builder.element(
-                'link',
-                attributes: {'ref': 'buddy_${buddyWithRole.buddy.id}'},
-              );
-            }
+            UddfParticipantWriters.writeLinks(builder, diveBuddyList);
             // Equipment used on this dive (including dive computer)
             if (dive.equipment.isNotEmpty ||
                 (dive.diveComputerModel != null &&
@@ -719,41 +692,11 @@ class UddfExportBuilders {
               );
             }
             // Export regular buddies in the buddy field for compatibility
-            if (regularBuddies.isNotEmpty) {
-              for (final buddyWithRole in regularBuddies) {
-                builder.element(
-                  'buddy',
-                  nest: () {
-                    builder.element(
-                      'personal',
-                      nest: () {
-                        final nameParts = buddyWithRole.buddy.name.split(' ');
-                        builder.element('firstname', nest: nameParts.first);
-                        if (nameParts.length > 1) {
-                          builder.element(
-                            'lastname',
-                            nest: nameParts.sublist(1).join(' '),
-                          );
-                        }
-                      },
-                    );
-                  },
-                );
-              }
-            } else if (dive.buddy != null && dive.buddy!.isNotEmpty) {
-              // Fallback to legacy field if no linked buddies
-              builder.element(
-                'buddy',
-                nest: () {
-                  builder.element(
-                    'personal',
-                    nest: () {
-                      builder.element('firstname', nest: dive.buddy);
-                    },
-                  );
-                },
-              );
-            }
+            UddfParticipantWriters.writeInlineBuddies(
+              builder,
+              dive,
+              diveBuddyList,
+            );
             // Export additional weights (app-specific, beyond single weight)
             if (diveWeights.isNotEmpty) {
               builder.element(

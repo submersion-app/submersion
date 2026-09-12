@@ -10,6 +10,7 @@ import 'package:submersion/core/services/export/models/uddf_export_options.dart'
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -206,57 +207,7 @@ class UddfFullExportService {
 
               // Export buddies
               if (buddies != null) {
-                for (final buddy in buddies) {
-                  builder.element(
-                    'buddy',
-                    attributes: {'id': 'buddy_${buddy.id}'},
-                    nest: () {
-                      builder.element(
-                        'personal',
-                        nest: () {
-                          // Split name into first/last
-                          final nameParts = buddy.name.split(' ');
-                          builder.element('firstname', nest: nameParts.first);
-                          if (nameParts.length > 1) {
-                            builder.element(
-                              'lastname',
-                              nest: nameParts.sublist(1).join(' '),
-                            );
-                          }
-                          if (buddy.email != null && buddy.email!.isNotEmpty) {
-                            builder.element('email', nest: buddy.email);
-                          }
-                          if (buddy.phone != null && buddy.phone!.isNotEmpty) {
-                            builder.element('phone', nest: buddy.phone);
-                          }
-                        },
-                      );
-                      if (buddy.certificationLevel != null ||
-                          buddy.certificationAgency != null) {
-                        builder.element(
-                          'certification',
-                          nest: () {
-                            if (buddy.certificationLevel != null) {
-                              builder.element(
-                                'level',
-                                nest: buddy.certificationLevel!.name,
-                              );
-                            }
-                            if (buddy.certificationAgency != null) {
-                              builder.element(
-                                'agency',
-                                nest: buddy.certificationAgency!.name,
-                              );
-                            }
-                          },
-                        );
-                      }
-                      if (buddy.notes.isNotEmpty) {
-                        builder.element('notes', nest: buddy.notes);
-                      }
-                    },
-                  );
-                }
+                UddfParticipantWriters.writeBuddyDeclarations(builder, buddies);
               }
             },
           );
