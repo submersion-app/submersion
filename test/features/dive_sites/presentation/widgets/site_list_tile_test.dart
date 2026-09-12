@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -129,6 +130,43 @@ void main() {
     expect(find.text('Egypt'), findsOneWidget);
     expect(find.text('32m'), findsOneWidget);
     expect(find.text('5-50m'), findsNothing);
+  });
+
+  testWidgets('wraps a long title onto more lines instead of ellipsizing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(353, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const longName =
+        'Blue Hole Arch and Canyon drift along the northern reef wall';
+    final entry = SiteWithDiveCount(
+      site: _richEntry.site.copyWith(name: longName),
+      diveCount: _richEntry.diveCount,
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        locale: const Locale('en'),
+        child: SiteListTile(entry: entry, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final title = tester.renderObject<RenderParagraph>(find.text(longName));
+    final lineHeight = title.text.style!.fontSize!;
+    expect(
+      title.didExceedMaxLines,
+      isFalse,
+      reason: 'an ellipsized title hides the rest of the site name',
+    );
+    expect(
+      title.size.height,
+      greaterThan(lineHeight * 2),
+      reason: 'the full name only fits on a narrow card by wrapping',
+    );
   });
 
   testWidgets('shows a checkbox in selection mode', (tester) async {

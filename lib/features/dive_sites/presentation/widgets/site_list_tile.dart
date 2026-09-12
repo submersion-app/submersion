@@ -192,6 +192,9 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                     children: [
                       Row(
                         children: [
+                          // No ellipsis: a long title wraps, like the trip
+                          // and equipment cards, so the full name is always
+                          // visible.
                           Expanded(
                             child: Text(
                               title,
@@ -200,8 +203,6 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                                     fontWeight: FontWeight.w600,
                                     color: primaryTextColor,
                                   ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (site.rating != null) ...[
