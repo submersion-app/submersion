@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -60,9 +61,7 @@ class _ParentTile extends StatelessWidget {
     final edge = entry.edge;
     final parent = edge.parent;
     final type = parent?.type ?? EquipmentType.other;
-    final retired =
-        parent != null &&
-        (parent.status == EquipmentStatus.retired || !parent.isActive);
+    final departed = parent == null ? null : departedStatusOf(parent);
     final role = edge.role.isNotEmpty ? edge.role : type.localizedName(l10n);
     final subtitle = entry.rootNames.isEmpty
         ? role
@@ -78,10 +77,10 @@ class _ParentTile extends StatelessWidget {
       subtitle: Row(
         children: [
           Flexible(child: Text(subtitle)),
-          if (retired) ...[
+          if (departed != null) ...[
             const SizedBox(width: 8),
             Text(
-              EquipmentStatus.retired.localizedName(l10n),
+              departed.localizedName(l10n),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSecondaryContainer,
               ),

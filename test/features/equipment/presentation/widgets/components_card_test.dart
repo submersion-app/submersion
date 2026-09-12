@@ -260,6 +260,28 @@ void main() {
       expect(find.text('Retired'), findsOneWidget);
     });
 
+    testWidgets('a sold parent keeps its Sold status, not Retired', (
+      tester,
+    ) async {
+      const sold = EquipmentItem(
+        id: 'sold',
+        name: 'Sold reg',
+        type: EquipmentType.regulator,
+        status: EquipmentStatus.sold,
+        isActive: false,
+      );
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [parentEntry(sold, role: 'Octopus')],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Sold'), findsOneWidget);
+      expect(find.text('Retired'), findsNothing);
+    });
+
     testWidgets('a part with nothing of its own says so, not "no components"', (
       tester,
     ) async {
@@ -338,6 +360,22 @@ void main() {
     // A part with no role falls back to its type label.
     expect(find.text('Hose'), findsOneWidget);
     expect(find.text('Retired'), findsOneWidget);
+  });
+
+  testWidgets('a sold part keeps its Sold status, not Retired', (tester) async {
+    const sold = EquipmentItem(
+      id: 'sold',
+      name: 'Sold hose',
+      type: EquipmentType.hose,
+      status: EquipmentStatus.sold,
+      isActive: false,
+    );
+    await tester.pumpWidget(
+      build([part('c1', sold)], _FakeComponentRepository()),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Sold'), findsOneWidget);
+    expect(find.text('Retired'), findsNothing);
   });
 
   testWidgets('a drag reorders the rows at once and persists the order', (

@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
@@ -279,9 +280,7 @@ class _PartTile extends StatelessWidget {
     final item = part.component;
     final name = item?.name ?? part.componentEquipmentId;
     final type = item?.type ?? EquipmentType.other;
-    final retired =
-        item != null &&
-        (item.status == EquipmentStatus.retired || !item.isActive);
+    final departed = item == null ? null : departedStatusOf(item);
     final subtitle = part.role.isNotEmpty
         ? part.role
         : type.localizedName(l10n);
@@ -299,10 +298,10 @@ class _PartTile extends StatelessWidget {
       subtitle: Row(
         children: [
           Flexible(child: Text(subtitle, overflow: TextOverflow.ellipsis)),
-          if (retired) ...[
+          if (departed != null) ...[
             const SizedBox(width: 8),
             Text(
-              EquipmentStatus.retired.localizedName(l10n),
+              departed.localizedName(l10n),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSecondaryContainer,
               ),
