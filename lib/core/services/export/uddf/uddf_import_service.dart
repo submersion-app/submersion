@@ -235,6 +235,13 @@ class UddfImportService {
         diveData['longitude'] = fix.longitude;
       }
 
+      // The logbook owner's own role on the dive, as both UDDF exporters
+      // write it.
+      final diverRole = _getElementText(beforeElement, 'diverrole');
+      if (diverRole != null && diverRole.isNotEmpty) {
+        diveData['diverRoleId'] = diverRole;
+      }
+
       final airTempText = _getElementText(beforeElement, 'airtemperature');
       if (airTempText != null) {
         // UDDF stores temps in Kelvin

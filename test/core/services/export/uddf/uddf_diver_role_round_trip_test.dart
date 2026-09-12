@@ -208,4 +208,22 @@ void main() {
 
     expect(parsed.dives.single['diverRoleId'], DiveRole.diveGuideId);
   });
+
+  test('the dives-only importer reads the diver role back', () async {
+    // The dives-only export's paired importer, kept in step with it the
+    // way its entry GPS is.
+    final xml = await UddfExportService().generateDivesUddfContent([
+      domain.Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 3, 1, 9),
+        diverRoleId: DiveRole.diveGuideId,
+      ),
+    ]);
+
+    final dive = (await ExportService().importDivesFromUddf(
+      xml,
+    ))['dives']!.single;
+
+    expect(dive['diverRoleId'], DiveRole.diveGuideId);
+  });
 }
