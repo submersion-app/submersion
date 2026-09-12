@@ -68,6 +68,7 @@ class ServiceScheduleRepository {
             defaultCost: Value(schedule.defaultCost),
             defaultCurrency: Value(schedule.defaultCurrency),
             anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
+            anchorSetAt: Value(schedule.anchorSetAt?.millisecondsSinceEpoch),
             enabled: Value(schedule.enabled),
             createdAt: Value(now.millisecondsSinceEpoch),
             updatedAt: Value(now.millisecondsSinceEpoch),
@@ -97,6 +98,7 @@ class ServiceScheduleRepository {
         defaultCost: Value(schedule.defaultCost),
         defaultCurrency: Value(schedule.defaultCurrency),
         anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
+        anchorSetAt: Value(schedule.anchorSetAt?.millisecondsSinceEpoch),
         enabled: Value(schedule.enabled),
         updatedAt: Value(now),
       ),
@@ -190,6 +192,9 @@ class ServiceScheduleRepository {
       anchorDate: row.anchorDate == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(row.anchorDate!),
+      anchorSetAt: row.anchorSetAt == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(row.anchorSetAt!),
       enabled: row.enabled,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),

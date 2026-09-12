@@ -12,8 +12,29 @@ class UddfExportOptions {
   /// A caller that omits options therefore gets a complete export.
   final bool includeRawData;
 
-  const UddfExportOptions({this.includeRawData = true});
+  /// Whether the dives only export carries each dive's participants and
+  /// their roles (issue #1796). The full backup always carries them and
+  /// ignores this.
+  final bool includeParticipants;
 
-  UddfExportOptions copyWith({bool? includeRawData}) =>
-      UddfExportOptions(includeRawData: includeRawData ?? this.includeRawData);
+  /// Whether the dives only export carries the gear and dive computer used
+  /// on each dive (issue #1718). The full backup always carries them and
+  /// ignores this.
+  final bool includeGear;
+
+  const UddfExportOptions({
+    this.includeRawData = true,
+    this.includeParticipants = true,
+    this.includeGear = true,
+  });
+
+  UddfExportOptions copyWith({
+    bool? includeRawData,
+    bool? includeParticipants,
+    bool? includeGear,
+  }) => UddfExportOptions(
+    includeRawData: includeRawData ?? this.includeRawData,
+    includeParticipants: includeParticipants ?? this.includeParticipants,
+    includeGear: includeGear ?? this.includeGear,
+  );
 }

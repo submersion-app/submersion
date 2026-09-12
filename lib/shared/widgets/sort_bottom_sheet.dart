@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/sort_option_tile.dart';
 
 /// A reusable bottom sheet for selecting sort field and direction.
 ///
@@ -58,7 +59,6 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return SafeArea(
@@ -111,41 +111,19 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
             const SizedBox(height: 8),
             const Divider(height: 1),
             // Sort field options
-            ...widget.fields.map((field) {
-              final isSelected = field == _selectedField;
-              final displayName = widget.getFieldDisplayName(field);
-              return Semantics(
-                button: true,
-                selected: isSelected,
-                label: isSelected
-                    ? context.l10n.accessibility_sort_selectedLabel(displayName)
-                    : context.l10n.accessibility_sort_unselectedLabel(
-                        displayName,
-                      ),
-                child: ListTile(
-                  leading: Icon(
-                    widget.getFieldIcon(field),
-                    color: isSelected ? colorScheme.primary : null,
-                  ),
-                  title: Text(
-                    displayName,
-                    style: TextStyle(
-                      color: isSelected ? colorScheme.primary : null,
-                      fontWeight: isSelected ? FontWeight.w600 : null,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? Icon(Icons.check, color: colorScheme.primary)
-                      : null,
-                  onTap: () {
-                    setState(() {
-                      _selectedField = field;
-                    });
-                    widget.onSortChanged(_selectedField, _selectedDirection);
-                  },
-                ),
-              );
-            }),
+            ...widget.fields.map(
+              (field) => SortOptionTile(
+                icon: widget.getFieldIcon(field),
+                label: widget.getFieldDisplayName(field),
+                isSelected: field == _selectedField,
+                onTap: () {
+                  setState(() {
+                    _selectedField = field;
+                  });
+                  widget.onSortChanged(_selectedField, _selectedDirection);
+                },
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         ),

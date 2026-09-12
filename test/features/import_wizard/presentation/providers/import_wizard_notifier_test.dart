@@ -1391,7 +1391,7 @@ void main() {
         final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
         notifier.setBundle(bundle);
 
-        notifier.initializeDefaultTag();
+        notifier.initializeDefaultTag(autoTagImports: true);
 
         expect(notifier.state.importTags.length, equals(1));
         expect(
@@ -1408,9 +1408,260 @@ void main() {
         final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
         notifier.setBundle(bundle);
 
-        notifier.initializeDefaultTag();
-        notifier.initializeDefaultTag();
+        notifier.initializeDefaultTag(autoTagImports: true);
+        notifier.initializeDefaultTag(autoTagImports: true);
 
+        expect(notifier.state.importTags.length, equals(1));
+      });
+
+      // Issue #998: repeated imports otherwise pile up one dated tag per
+      // session. Applies uniformly regardless of source -- mockAdapter
+      // defaults to ImportSourceType.uddf in setUp, so this also covers
+      // file-based sources, not just dive computer downloads.
+      test('skips the default tag entirely when the setting is off', () {
+        when(
+          mockAdapter.defaultTagName,
+        ).thenReturn('test.uddf Import 2026-03-26');
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+
+        notifier.initializeDefaultTag(autoTagImports: false);
+
+        expect(notifier.state.importTags, isEmpty);
+      });
+    });
+
+    group('defaultTagName / isAutoTagForThisImportEnabled / '
+        'setAutoTagForThisImport', () {
+      setUp(() {
+        when(
+          mockAdapter.defaultTagName,
+        ).thenReturn('test.uddf Import 2026-03-26');
+        final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);
+        notifier.setBundle(bundle);
+      });
+
+      test('defaultTagName exposes the adapter default tag name', () {
+        expect(notifier.defaultTagName, equals('test.uddf Import 2026-03-26'));
+      });
+
+      test('isAutoTagForThisImportEnabled is false before the default tag '
+          'is added', () {
+        expect(notifier.isAutoTagForThisImportEnabled, isFalse);
+      });
+
+      test('isAutoTagForThisImportEnabled is true once the default tag is '
+          'present', () {
+        notifier.initializeDefaultTag(autoTagImports: true);
+
+        expect(notifier.isAutoTagForThisImportEnabled, isTrue);
+      });
+
+      test('setAutoTagForThisImport(true) adds the default tag', () {
+        notifier.setAutoTagForThisImport(true);
+
+        expect(notifier.state.importTags.length, equals(1));
+        expect(
+          notifier.state.importTags.first.name,
+          equals('test.uddf Import 2026-03-26'),
+        );
+        expect(notifier.isAutoTagForThisImportEnabled, isTrue);
+      });
+
+      test('setAutoTagForThisImport(true) is a no-op when already present', () {
+        notifier.initializeDefaultTag(autoTagImports: true);
+        notifier.setAutoTagForThisImport(true);
+
+        expect(notifier.state.importTags.length, equals(1));
+      });
+
+      test('setAutoTagForThisImport(false) removes the default tag, '
+          'leaving other tags untouched', () {
+        notifier.initializeDefaultTag(autoTagImports: true);
+        const manual = TagSelection(name: 'Vacation');
+        notifier.addImportTag(manual);
+
+        notifier.setAutoTagForThisImport(false);
+
+        expect(notifier.state.importTags, equals([manual]));
+        expect(notifier.isAutoTagForThisImportEnabled, isFalse);
+      });
+
+      test('setAutoTagForThisImport(false) is a no-op when already absent', () {
+        notifier.setAutoTagForThisImport(false);
+
+        expect(notifier.state.importTags, isEmpty);
+      });
+
+      test('defaultTagName stays stable even if the adapter would return a '
+          'different name on a later call', () {
+        // Real adapters build this string from DateTime.now(), so a
+        // notifier that re-derived it on every read would drift to a
+        // different name if the review step stayed open across midnight
+        // (issue #998 follow-up). The mock stands in for that drift by
+        // switching its answer after the first call.
+        var callCount = 0;
+        when(mockAdapter.defaultTagName).thenAnswer((_) {
+          callCount++;
+          return callCount == 1
+              ? 'test.uddf Import 2026-03-26'
+              : 'test.uddf Import 2026-03-27';
+        });
+
+        final first = notifier.defaultTagName;
+        notifier.initializeDefaultTag(autoTagImports: true);
+        final second = notifier.defaultTagName;
+
+        expect(first, equals('test.uddf Import 2026-03-26'));
+        expect(second, equals(first));
+        expect(notifier.isAutoTagForThisImportEnabled, isTrue);
+      });
+
+      // A tag the diver typed or picked by hand is theirs, even when it
+      // happens to share the default name: the switch tracks auto-tagging
+      // itself, not whichever chip matches by name.
+      test('a hand-added tag sharing the default name does not read as '
+          'auto-tagged', () {
+        notifier.initializeDefaultTag(autoTagImports: false);
+        notifier.addImportTag(
+          const TagSelection(name: 'test.uddf Import 2026-03-26'),
+        );
+
+        expect(notifier.isAutoTagForThisImportEnabled, isFalse);
+      });
+
+      test('turning the switch on over a hand-added same-name tag adds no '
+          'duplicate, and turning it off leaves that tag in place', () {
+        const manual = TagSelection(name: 'test.uddf Import 2026-03-26');
+        notifier.initializeDefaultTag(autoTagImports: false);
+        notifier.addImportTag(manual);
+
+        notifier.setAutoTagForThisImport(true);
+        expect(notifier.state.importTags, equals([manual]));
+        expect(notifier.isAutoTagForThisImportEnabled, isTrue);
+
+        notifier.setAutoTagForThisImport(false);
+        expect(notifier.state.importTags, equals([manual]));
+        expect(notifier.isAutoTagForThisImportEnabled, isFalse);
+      });
+
+      test('deleting the default chip from the tag field turns the switch '
+          'off', () {
+        notifier.initializeDefaultTag(autoTagImports: true);
+
+        notifier.removeImportTag(0);
+
+        expect(notifier.state.importTags, isEmpty);
+        expect(notifier.isAutoTagForThisImportEnabled, isFalse);
+      });
+    });
+
+    // Back from review, then Next again, builds a new bundle and seeds its
+    // tag a second time on the same notifier.
+    group('initializeDefaultTag on a later bundle', () {
+      void installNextBundle() {
+        notifier.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+      }
+
+      test('swaps the previous bundle\'s default tag for its own, keeping '
+          'the diver\'s other tags', () {
+        when(mockAdapter.defaultTagName).thenReturn('a.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: true);
+        const manual = TagSelection(name: 'Vacation');
+        notifier.addImportTag(manual);
+
+        // The diver went back and picked a different file.
+        when(mockAdapter.defaultTagName).thenReturn('b.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: true);
+
+        expect(
+          notifier.state.importTags.map((t) => t.name),
+          equals(['Vacation', 'b.uddf Import 2026-03-26']),
+        );
+        expect(notifier.defaultTagName, equals('b.uddf Import 2026-03-26'));
+        expect(notifier.isAutoTagForThisImportEnabled, isTrue);
+      });
+
+      test('keeps the switch off when the diver turned it off for this '
+          'import', () {
+        when(
+          mockAdapter.defaultTagName,
+        ).thenReturn('test.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: true);
+        notifier.setAutoTagForThisImport(false);
+
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: true);
+
+        expect(notifier.state.importTags, isEmpty);
+        expect(notifier.isAutoTagForThisImportEnabled, isFalse);
+      });
+
+      test('keeps the switch off when the bundle\'s tag name also changed', () {
+        when(mockAdapter.defaultTagName).thenReturn('a.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: true);
+        notifier.removeImportTag(0);
+
+        when(mockAdapter.defaultTagName).thenReturn('b.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: true);
+
+        expect(notifier.state.importTags, isEmpty);
+        expect(notifier.isAutoTagForThisImportEnabled, isFalse);
+      });
+
+      test('keeps the switch on when the diver turned it on for this import '
+          'despite a saved "off"', () {
+        when(mockAdapter.defaultTagName).thenReturn('a.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: false);
+        notifier.setAutoTagForThisImport(true);
+
+        when(mockAdapter.defaultTagName).thenReturn('b.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: false);
+
+        expect(
+          notifier.state.importTags.map((t) => t.name),
+          equals(['b.uddf Import 2026-03-26']),
+        );
+      });
+
+      test('leaves a hand-added tag with the old default name in place', () {
+        const manual = TagSelection(name: 'a.uddf Import 2026-03-26');
+        when(mockAdapter.defaultTagName).thenReturn('a.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: false);
+        notifier.addImportTag(manual);
+        notifier.setAutoTagForThisImport(true);
+
+        when(mockAdapter.defaultTagName).thenReturn('b.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: false);
+
+        expect(
+          notifier.state.importTags.map((t) => t.name),
+          equals(['a.uddf Import 2026-03-26', 'b.uddf Import 2026-03-26']),
+        );
+      });
+
+      test('reset starts the next session from the saved preference '
+          'again', () {
+        when(
+          mockAdapter.defaultTagName,
+        ).thenReturn('test.uddf Import 2026-03-26');
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: false);
+
+        notifier.reset();
+        installNextBundle();
+        notifier.initializeDefaultTag(autoTagImports: true);
+
+        expect(notifier.isAutoTagForThisImportEnabled, isTrue);
         expect(notifier.state.importTags.length, equals(1));
       });
     });

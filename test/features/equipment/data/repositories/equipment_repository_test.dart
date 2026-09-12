@@ -1,10 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -483,7 +487,90 @@ void main() {
           completes,
         );
       });
+
+      test('deletes an item a cylinder is linked to, staging the tank for '
+          'sync', () async {
+        // The transmitter registry writes dive_tanks.equipment_id. Deleting
+        // the item must clear that link rather than fail on it, and the
+        // cleared tank must reach peers like any other tank edit.
+        final cylinder = await repository.createEquipment(
+          createTestEquipment(name: 'Blue AL80', type: EquipmentType.tank),
+        );
+        final db = DatabaseService.instance.database;
+        await db.customStatement(
+          'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+          "VALUES ('d1', 1000, 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO dive_tanks (id, dive_id, equipment_id) '
+          "VALUES ('t1', 'd1', ?), ('t2', 'd1', NULL)",
+          [cylinder.id],
+        );
+
+        await repository.deleteEquipment(cylinder.id);
+
+        expect(await repository.getEquipmentById(cylinder.id), isNull);
+        final tank = await db
+            .customSelect("SELECT equipment_id FROM dive_tanks WHERE id = 't1'")
+            .getSingle();
+        expect(tank.read<String?>('equipment_id'), isNull);
+        final pending = await db.select(db.syncRecords).get();
+        final pendingTanks = pending
+            .where((r) => r.entityType == 'diveTanks')
+            .map((r) => r.recordId);
+        expect(pendingTanks, ['t1'], reason: 'an unlinked tank is untouched');
+        // The pending tank is exported on its own. The dive did not change,
+        // and re-stamping it would let this stale copy overwrite a newer edit
+        // to it made on another device.
+        expect(pending.where((r) => r.entityType == 'dives'), isEmpty);
+        final dive = await db
+            .customSelect("SELECT hlc FROM dives WHERE id = 'd1'")
+            .getSingle();
+        expect(dive.read<String?>('hlc'), isNull, reason: 'not re-stamped');
+      });
     });
+
+    test(
+      'deleting a regulator a cylinder breathed from stages that tank',
+      () async {
+        // The regulator link already set null on delete (v202); the cleared
+        // tank still has to reach peers.
+        final reg = await repository.createEquipment(
+          createTestEquipment(name: 'Apeks XTX'),
+        );
+        final db = DatabaseService.instance.database;
+        await db.customStatement(
+          'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+          "VALUES ('d2', 1000, 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO dive_tanks (id, dive_id, regulator_equipment_id) '
+          "VALUES ('t3', 'd2', ?)",
+          [reg.id],
+        );
+
+        await repository.deleteEquipment(reg.id);
+
+        final tank = await db
+            .customSelect(
+              "SELECT regulator_equipment_id FROM dive_tanks WHERE id = 't3'",
+            )
+            .getSingle();
+        expect(tank.read<String?>('regulator_equipment_id'), isNull);
+        final pending = await db.select(db.syncRecords).get();
+        expect(
+          pending
+              .where((r) => r.entityType == 'diveTanks')
+              .map((r) => r.recordId),
+          ['t3'],
+        );
+        expect(
+          pending.where((r) => r.entityType == 'dives'),
+          isEmpty,
+          reason: 'the tank travels on its own; the dive is not re-stamped',
+        );
+      },
+    );
 
     group('retireEquipment', () {
       test('should mark equipment as inactive', () async {
@@ -677,5 +764,144 @@ void main() {
         },
       );
     });
+  });
+
+  test('child parts: active by default, retired ones on request', () async {
+    // The condition engine needs retired cells to know who occupied a
+    // slot; the children card and the clocks want only what is fitted.
+    final ccr = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),
+    );
+    final fitted = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Fitted',
+        type: EquipmentType.o2Cell,
+        parentEquipmentId: ccr.id,
+      ),
+    );
+    final old = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Old',
+        type: EquipmentType.o2Cell,
+        parentEquipmentId: ccr.id,
+      ),
+    );
+    await repository.retireEquipment(old.id);
+    expect((await repository.getChildEquipment(ccr.id)).map((c) => c.id), [
+      fitted.id,
+    ]);
+    expect(
+      (await repository.getChildEquipment(
+        ccr.id,
+        includeRetired: true,
+      )).map((c) => c.id).toSet(),
+      {fitted.id, old.id},
+    );
+  });
+
+  test(
+    'deleting gear clears and stages the registry rows that name it',
+    () async {
+      // A registry row names the cylinder it feeds and the transmitter item
+      // it is. SQLite nulls either link on delete but moves no clock, so a
+      // peer kept the stale link; the delete clears and stages the row.
+      final tx = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Tx',
+          type: EquipmentType.transmitter,
+        ),
+      );
+      final tank = await repository.createEquipment(
+        const EquipmentItem(id: '', name: 'AL80', type: EquipmentType.tank),
+      );
+      final now = DateTime.utc(2026);
+      await TransmitterRepository().create(
+        Transmitter(
+          id: 'r1',
+          transmitterSerial: '180777',
+          label: 'Left',
+          equipmentId: tank.id,
+          transmitterEquipmentId: tx.id,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final db = DatabaseService.instance.database;
+      await db.delete(db.syncRecords).go();
+
+      await repository.deleteEquipment(tx.id);
+      var row = await TransmitterRepository().getById('r1');
+      expect(row!.transmitterEquipmentId, isNull);
+      expect(row.equipmentId, tank.id, reason: 'the cylinder link stays');
+      expect(
+        (await db.select(db.syncRecords).get())
+            .where((r) => r.entityType == 'transmitters')
+            .map((r) => r.recordId),
+        ['r1'],
+      );
+
+      await db.delete(db.syncRecords).go();
+      await repository.deleteEquipment(tank.id);
+      row = await TransmitterRepository().getById('r1');
+      expect(row!.equipmentId, isNull);
+      expect(
+        (await db.select(db.syncRecords).get())
+            .where((r) => r.entityType == 'transmitters')
+            .map((r) => r.recordId),
+        ['r1'],
+      );
+    },
+  );
+
+  test('deleting an item tombstones its condition findings', () async {
+    // equipment_findings syncs and goes by cascade like the check-ins; a
+    // peer that never hears of the delete keeps the finding.
+    final reg = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    );
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO equipment_findings (id, equipment_id, rule_id, severity, '
+      'evidence_fingerprint, engine_version, created_at) '
+      "VALUES ('f1', ?, 'issueRecurring', 'caution', 'fp', 1, 1)",
+      [reg.id],
+    );
+
+    await repository.deleteEquipment(reg.id);
+
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(
+      tombstones.any(
+        (t) => t.entityType == 'equipmentFindings' && t.recordId == 'f1',
+      ),
+      isTrue,
+    );
+  });
+
+  test('deleting an item tombstones its check-ins', () async {
+    // equipment_observations is a synced root whose rows go by cascade;
+    // without a tombstone a peer keeps the check-in and it can reappear.
+    final reg = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    );
+    final observation = await EquipmentObservationRepository().create(
+      equipmentId: reg.id,
+      observedAt: DateTime.utc(2026, 1, 1),
+      status: ObservationStatus.ok,
+    );
+    await repository.deleteEquipment(reg.id);
+    final db = DatabaseService.instance.database;
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(
+      tombstones.any(
+        (t) =>
+            t.entityType == 'equipmentObservations' &&
+            t.recordId == observation.id,
+      ),
+      isTrue,
+    );
   });
 }

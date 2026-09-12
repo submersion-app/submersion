@@ -24,6 +24,12 @@ class ImportPayload extends Equatable {
   /// Metadata about the import source.
   final Map<String, dynamic> metadata;
 
+  /// [metadata] key for custom dive role definitions (a list of maps with
+  /// `id`, `name`, `sortOrder`, `isBuiltIn`). They have no review step, so
+  /// they ride here rather than as an entity type, and are restored ahead
+  /// of the dive links that reference them.
+  static const customDiveRolesKey = 'customDiveRoles';
+
   const ImportPayload({
     required this.entities,
     this.warnings = const [],

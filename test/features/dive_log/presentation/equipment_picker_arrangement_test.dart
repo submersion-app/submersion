@@ -128,12 +128,15 @@ void main() {
     expect(find.text('All equipment already selected'), findsOneWidget);
   });
 
-  testWidgets('the header action opens the arrange sheet', (tester) async {
+  testWidgets('the header Sort action opens the gear sort sheet', (
+    tester,
+  ) async {
     await pumpPicker(tester);
 
-    await tester.tap(find.byTooltip('Arrange gear'));
+    await tester.tap(find.byTooltip('Sort'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Sort Equipment'), findsOneWidget);
     expect(find.text('Order types by'), findsOneWidget);
   });
 

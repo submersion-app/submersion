@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Add component'**
   String get equipment_components_add;
 
+  /// No description provided for @equipment_components_containsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains'**
+  String get equipment_components_containsSection;
+
   /// No description provided for @equipment_components_count.
   ///
   /// In en, this message translates to:
@@ -157,6 +163,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No components. Add the parts this item is assembled from.'**
   String get equipment_components_empty;
+
+  /// No description provided for @equipment_components_emptyLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'No parts of its own. Add them if this item is assembled from others.'**
+  String get equipment_components_emptyLeaf;
 
   /// No description provided for @equipment_components_historyAlsoPast.
   ///
@@ -211,6 +223,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Part of 1 assembly} other{Part of {count} assemblies}}'**
   String equipment_components_partOfCount(num count);
+
+  /// No description provided for @equipment_components_partOfSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get equipment_components_partOfSection;
+
+  /// No description provided for @equipment_components_partOfSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{role}, in {rigs}'**
+  String equipment_components_partOfSubtitle(Object rigs, Object role);
 
   /// No description provided for @equipment_components_pickerConfirm.
   ///
@@ -990,6 +1014,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get diveLog_bulkEdit_confirmApply;
+
+  /// No description provided for @diveLog_bulkEdit_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Adding to 1 dive} other{Adding to all {count} dives}}'**
+  String diveLog_bulkEdit_confirmAdding(int count);
+
+  /// No description provided for @diveLog_bulkEdit_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removing from 1 dive} other{Removing from all {count} dives}}'**
+  String diveLog_bulkEdit_confirmRemoving(int count);
 
   /// No description provided for @diveLog_bulkEdit_nothingSelected.
   ///
@@ -4408,6 +4444,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Service overdue'**
   String get preDive_runner_serviceOverdue;
+
+  /// No description provided for @preDive_runner_conditionFindings.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get preDive_runner_conditionFindings;
 
   /// No description provided for @preDive_runner_addNote.
   ///
@@ -11580,7 +11622,7 @@ abstract class AppLocalizations {
   /// No description provided for @setup_welcome_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Advanced dive logging and analytics'**
+  /// **'Dive safe. Log everything.'**
   String get setup_welcome_subtitle;
 
   /// No description provided for @setup_welcome_title.
@@ -19270,6 +19312,12 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get equipment_detail_errorTitle;
 
+  /// No description provided for @equipment_detail_installedInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed in'**
+  String get equipment_detail_installedInLabel;
+
   /// No description provided for @equipment_detail_lastServiceLabel.
   ///
   /// In en, this message translates to:
@@ -19317,6 +19365,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Owned For'**
   String get equipment_detail_ownedForLabel;
+
+  /// No description provided for @equipment_detail_parentWithStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({status})'**
+  String equipment_detail_parentWithStatus(String name, String status);
 
   /// No description provided for @equipment_detail_purchaseDateLabel.
   ///
@@ -19419,6 +19473,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overdue since {date}'**
   String equipment_serviceClocks_overdueSince(String date);
+
+  /// No description provided for @equipment_serviceClocks_countingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting since {date}'**
+  String equipment_serviceClocks_countingSince(String date);
 
   /// No description provided for @equipment_serviceClocks_overdue.
   ///
@@ -19687,7 +19747,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_scheduleDialog_anchorHint.
   ///
   /// In en, this message translates to:
-  /// **'Used when no service record of this kind exists yet'**
+  /// **'The clock counts from this date until you log a newer service.'**
   String get equipment_scheduleDialog_anchorHint;
 
   /// No description provided for @equipment_scheduleDialog_clearAnchor.
@@ -19935,6 +19995,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View trips using this equipment'**
   String get equipment_detail_tripsSemanticLabel;
+
+  /// No description provided for @equipment_detail_wasInstalledInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Was installed in'**
+  String get equipment_detail_wasInstalledInLabel;
 
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///
@@ -25963,7 +26029,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_description.
   ///
   /// In en, this message translates to:
-  /// **'Dive deeper.'**
+  /// **'Dive safe. Log everything.'**
   String get settings_about_description;
 
   /// No description provided for @settings_about_header.
@@ -28404,6 +28470,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finding'**
   String get settings_conflict_ref_finding;
+
+  /// No description provided for @settings_conflict_ref_importedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported file'**
+  String get settings_conflict_ref_importedFile;
 
   /// No description provided for @settings_conflict_ref_instructor.
   ///
@@ -31470,6 +31542,198 @@ abstract class AppLocalizations {
   /// **'Weight Trend'**
   String get statistics_equipment_weightTrend_title;
 
+  /// No description provided for @statistics_equipment_exposure_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure'**
+  String get statistics_equipment_exposure_title;
+
+  /// No description provided for @statistics_equipment_exposure_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load exposure data'**
+  String get statistics_equipment_exposure_error;
+
+  /// No description provided for @statistics_equipment_findings_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load condition findings'**
+  String get statistics_equipment_findings_error;
+
+  /// No description provided for @statistics_equipment_issues_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load reported issues'**
+  String get statistics_equipment_issues_error;
+
+  /// No description provided for @statistics_equipment_exposure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals per item with your thresholds'**
+  String get statistics_equipment_exposure_subtitle;
+
+  /// No description provided for @statistics_equipment_exposure_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with gear yet'**
+  String get statistics_equipment_exposure_empty;
+
+  /// No description provided for @statistics_equipment_findings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get statistics_equipment_findings_title;
+
+  /// No description provided for @statistics_equipment_findings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open findings by rule'**
+  String get statistics_equipment_findings_subtitle;
+
+  /// No description provided for @statistics_equipment_findings_subtitleAllDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Open findings by rule, across all dives'**
+  String get statistics_equipment_findings_subtitleAllDives;
+
+  /// No description provided for @statistics_equipment_findings_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No open findings'**
+  String get statistics_equipment_findings_empty;
+
+  /// No description provided for @statistics_equipment_issues_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported issues'**
+  String get statistics_equipment_issues_title;
+
+  /// No description provided for @statistics_equipment_issues_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Most frequent check-in tags'**
+  String get statistics_equipment_issues_subtitle;
+
+  /// No description provided for @statistics_equipment_issues_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No issues reported'**
+  String get statistics_equipment_issues_empty;
+
+  /// No description provided for @statistics_equipment_countLabel_items.
+  ///
+  /// In en, this message translates to:
+  /// **'items'**
+  String get statistics_equipment_countLabel_items;
+
+  /// No description provided for @statistics_equipment_countLabel_findings.
+  ///
+  /// In en, this message translates to:
+  /// **'findings'**
+  String get statistics_equipment_countLabel_findings;
+
+  /// No description provided for @statistics_equipment_countLabel_reports.
+  ///
+  /// In en, this message translates to:
+  /// **'reports'**
+  String get statistics_equipment_countLabel_reports;
+
+  /// No description provided for @statistics_equipment_exposureUnit_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get statistics_equipment_exposureUnit_days;
+
+  /// No description provided for @statistics_equipment_exposureUnit_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get statistics_equipment_exposureUnit_dives;
+
+  /// No description provided for @statistics_equipment_countLabel_days.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get statistics_equipment_countLabel_days;
+
+  /// No description provided for @statistics_equipment_countLabel_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'dives'**
+  String get statistics_equipment_countLabel_dives;
+
+  /// No description provided for @statistics_equipment_countLabel_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get statistics_equipment_countLabel_hours;
+
+  /// No description provided for @statistics_equipment_countLabel_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'salt-water hours'**
+  String get statistics_equipment_countLabel_saltHours;
+
+  /// No description provided for @statistics_equipment_countLabel_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'cold dives'**
+  String get statistics_equipment_countLabel_coldDives;
+
+  /// No description provided for @statistics_equipment_countLabel_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'high-O2 hours'**
+  String get statistics_equipment_countLabel_o2Hours;
+
+  /// No description provided for @statistics_equipment_countLabel_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'deep dives'**
+  String get statistics_equipment_countLabel_deepCycles;
+
+  /// No description provided for @statistics_equipment_countLabel_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'battery cycles'**
+  String get statistics_equipment_countLabel_cycles;
+
+  /// No description provided for @statistics_equipment_exposureUnit_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get statistics_equipment_exposureUnit_hours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Salt-water hours'**
+  String get statistics_equipment_exposureUnit_saltHours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold dives'**
+  String get statistics_equipment_exposureUnit_coldDives;
+
+  /// No description provided for @statistics_equipment_exposureUnit_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'High-O2 hours'**
+  String get statistics_equipment_exposureUnit_o2Hours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep dives'**
+  String get statistics_equipment_exposureUnit_deepCycles;
+
+  /// No description provided for @statistics_equipment_exposureUnit_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery cycles'**
+  String get statistics_equipment_exposureUnit_cycles;
+
   /// No description provided for @statistics_error_loadingStatistics.
   ///
   /// In en, this message translates to:
@@ -33270,6 +33534,24 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get tags_manage_title;
 
+  /// Section header above the auto-tag-imports switch on the tag management screen
+  ///
+  /// In en, this message translates to:
+  /// **'Imports'**
+  String get tags_manage_importsSection;
+
+  /// Switch title for auto-tagging every new import session
+  ///
+  /// In en, this message translates to:
+  /// **'Tag imports automatically'**
+  String get tags_manage_autoTagImports;
+
+  /// Switch subtitle for auto-tagging every new import session
+  ///
+  /// In en, this message translates to:
+  /// **'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.'**
+  String get tags_manage_autoTagImports_subtitle;
+
   /// No description provided for @tags_manage_searchHint.
   ///
   /// In en, this message translates to:
@@ -33946,6 +34228,12 @@ abstract class AppLocalizations {
   /// **'Export equipment inventory and service info'**
   String get transfer_csvExport_descriptionEquipment;
 
+  /// No description provided for @transfer_csvExport_descriptionObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Every OK check and reported issue, with its dive, tags and note'**
+  String get transfer_csvExport_descriptionObservations;
+
   /// No description provided for @transfer_csvExport_descriptionSites.
   ///
   /// In en, this message translates to:
@@ -33976,6 +34264,12 @@ abstract class AppLocalizations {
   /// **'Equipment CSV'**
   String get transfer_csvExport_optionEquipmentTitle;
 
+  /// No description provided for @transfer_csvExport_optionObservationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins CSV'**
+  String get transfer_csvExport_optionObservationsTitle;
+
   /// No description provided for @transfer_csvExport_optionSitesTitle.
   ///
   /// In en, this message translates to:
@@ -33999,6 +34293,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment'**
   String get transfer_csvExport_typeEquipment;
+
+  /// No description provided for @transfer_csvExport_typeObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins'**
+  String get transfer_csvExport_typeObservations;
 
   /// No description provided for @transfer_csvExport_typeSites.
   ///
@@ -34089,6 +34389,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose where to save on your device'**
   String get transfer_export_optionSaveSubtitle;
+
+  /// No description provided for @transfer_export_includeGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Include gear'**
+  String get transfer_export_includeGear;
+
+  /// No description provided for @transfer_export_includeGearSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds the equipment and dive computer used on each dive. Purchase details are left out.'**
+  String get transfer_export_includeGearSubtitle;
+
+  /// No description provided for @transfer_export_includeParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Include dive participants'**
+  String get transfer_export_includeParticipants;
+
+  /// No description provided for @transfer_export_includeParticipantsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds buddies, guides and their roles on each dive, by name and certification. Contact details are left out.'**
+  String get transfer_export_includeParticipantsSubtitle;
 
   /// No description provided for @transfer_export_includeRawData.
   ///
@@ -35433,6 +35757,134 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passenger Capacity'**
   String get trips_edit_label_capacity;
+
+  /// No description provided for @trips_edit_sectionTitle_planning.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get trips_edit_sectionTitle_planning;
+
+  /// No description provided for @trips_edit_label_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected dives'**
+  String get trips_edit_label_expectedDives;
+
+  /// No description provided for @trips_edit_hint_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to estimate from your recent trips'**
+  String get trips_edit_hint_expectedDives;
+
+  /// No description provided for @trips_edit_label_expectedRuntime.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected runtime per dive (minutes)'**
+  String get trips_edit_label_expectedRuntime;
+
+  /// No description provided for @trips_edit_hint_expectedRuntime.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to estimate from your recent rebreather dives'**
+  String get trips_edit_hint_expectedRuntime;
+
+  /// No description provided for @trips_scrubber_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber margin'**
+  String get trips_scrubber_title;
+
+  /// No description provided for @trips_scrubber_asOfStart.
+  ///
+  /// In en, this message translates to:
+  /// **'as of {date}'**
+  String trips_scrubber_asOfStart(String date);
+
+  /// No description provided for @trips_scrubber_remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)'**
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  );
+
+  /// The scrubber's remaining minutes when no repack is recorded on or before the trip, so the used minutes count every loop dive on it.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left before the trip (rated {rated} min, {consumed} min used, no repack recorded)'**
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  );
+
+  /// No description provided for @trips_scrubber_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives, plural, one{{dives} expected dive} other{{dives} expected dives}}'**
+  String trips_scrubber_expectedDives(int dives);
+
+  /// No description provided for @trips_scrubber_fromTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, one{(from your last trip)} other{(from your last {n} trips)}}'**
+  String trips_scrubber_fromTrips(int n);
+
+  /// No description provided for @trips_scrubber_fromOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'(set on this trip)'**
+  String get trips_scrubber_fromOverride;
+
+  /// No description provided for @trips_scrubber_perDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min per dive'**
+  String trips_scrubber_perDive(String minutes);
+
+  /// No description provided for @trips_scrubber_fromDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, one{(from your last rebreather dive)} other{(from your last {n} rebreather dives)}}'**
+  String trips_scrubber_fromDives(int n);
+
+  /// No description provided for @trips_scrubber_expectedUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min expected use'**
+  String trips_scrubber_expectedUse(String minutes);
+
+  /// No description provided for @trips_scrubber_margin.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min margin after the trip'**
+  String trips_scrubber_margin(String minutes);
+
+  /// No description provided for @trips_scrubber_caution.
+  ///
+  /// In en, this message translates to:
+  /// **'Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.'**
+  String get trips_scrubber_caution;
+
+  /// No description provided for @trips_scrubber_noRating.
+  ///
+  /// In en, this message translates to:
+  /// **'No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.'**
+  String get trips_scrubber_noRating;
+
+  /// No description provided for @trips_scrubber_bannerMargin.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min scrubber margin'**
+  String trips_scrubber_bannerMargin(String minutes);
+
+  /// No description provided for @trips_scrubber_bannerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
+  String trips_scrubber_bannerCount(int count, String minutes);
 
   /// No description provided for @trips_edit_sectionTitle_embarkDisembark.
   ///
@@ -40657,6 +41109,54 @@ abstract class AppLocalizations {
   /// **'Re-parse failed: {error}'**
   String diveLog_detail_reparseFailed(String error);
 
+  /// Menu item to re-parse a file-imported dive from its originally stored file
+  ///
+  /// In en, this message translates to:
+  /// **'Resync from original file'**
+  String get diveLog_detail_menu_resyncImportedFile;
+
+  /// Snackbar shown after a successful resync
+  ///
+  /// In en, this message translates to:
+  /// **'Dive updated from the original file'**
+  String get diveLog_detail_resyncSuccess;
+
+  /// Snackbar shown when a resync cannot run because the dive was deleted meanwhile
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: this dive no longer exists'**
+  String get diveLog_detail_resyncFailed_diveMissing;
+
+  /// Snackbar shown when a resync cannot run because no original file is stored for the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: no original file is stored for this dive'**
+  String get diveLog_detail_resyncFailed_noStoredFile;
+
+  /// Snackbar shown when a resync cannot run because the stored file's format has no parser
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: this file format is not supported'**
+  String get diveLog_detail_resyncFailed_unsupportedFormat;
+
+  /// Snackbar shown when a resync cannot run because the stored original file is gone from disk
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file is missing from this device'**
+  String get diveLog_detail_resyncFailed_storedFileMissing;
+
+  /// Snackbar shown when the re-parsed original file no longer contains a dive matching this one
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: the original file no longer contains a matching dive'**
+  String get diveLog_detail_resyncFailed_noMatchingDive;
+
+  /// Snackbar shown when reading or parsing the stored original file threw
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resync: an unexpected error occurred while reading the original file'**
+  String get diveLog_detail_resyncFailed_unexpectedError;
+
   /// Label for the replace source duplicate action
   ///
   /// In en, this message translates to:
@@ -40692,6 +41192,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use dive numbers from the imported file instead of auto-assigning'**
   String get universalImport_label_retainDiveNumbersSubtitle;
+
+  /// Switch title for the session-only auto-tag override in the import options sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Tag this import automatically'**
+  String get universalImport_label_autoTagThisImport;
+
+  /// Switch subtitle for the session-only auto-tag override in the import options sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Starts from your saved preference in Tags settings. Changing it here only affects this import.'**
+  String get universalImport_label_autoTagThisImportSubtitle;
 
   /// Title shown when dives are successfully imported
   ///
@@ -44379,6 +44891,30 @@ abstract class AppLocalizations {
   /// **'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.'**
   String get incidentEdit_privacyNote;
 
+  /// No description provided for @incidentEdit_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment involved'**
+  String get incidentEdit_equipment;
+
+  /// No description provided for @incidentEdit_equipment_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get incidentEdit_equipment_none;
+
+  /// No description provided for @incidentEdit_equipment_onThisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'On this dive'**
+  String get incidentEdit_equipment_onThisDive;
+
+  /// No description provided for @incidentEdit_equipment_allGear.
+  ///
+  /// In en, this message translates to:
+  /// **'All gear'**
+  String get incidentEdit_equipment_allGear;
+
   /// No description provided for @incidentCategory_buoyancy.
   ///
   /// In en, this message translates to:
@@ -44493,6 +45029,373 @@ abstract class AppLocalizations {
   /// **'Equipment condition'**
   String get equipmentConditionSettings_title;
 
+  /// No description provided for @equipmentCondition_children_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed parts'**
+  String get equipmentCondition_children_title;
+
+  /// No description provided for @equipmentCondition_children_slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot {slot}'**
+  String equipmentCondition_children_slot(int slot);
+
+  /// No description provided for @equipmentCondition_children_installed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed {date}, {age}'**
+  String equipmentCondition_children_installed(String date, String age);
+
+  /// No description provided for @equipmentCondition_children_ageDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{today} =1{1 day ago} other{{days} days ago}}'**
+  String equipmentCondition_children_ageDays(int days);
+
+  /// No description provided for @equipmentCondition_children_ageMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, =1{1 month ago} other{{months} months ago}}'**
+  String equipmentCondition_children_ageMonths(int months);
+
+  /// No description provided for @equipmentCondition_children_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get equipmentCondition_children_replace;
+
+  /// No description provided for @equipmentCondition_children_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get equipmentCondition_children_open;
+
+  /// No description provided for @equipmentCondition_children_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace {name}?'**
+  String equipmentCondition_children_replaceTitle(String name);
+
+  /// No description provided for @equipmentCondition_children_replaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is retired today and a new {type} takes its place in the same slot. Serial and notes start empty.'**
+  String equipmentCondition_children_replaceBody(String name, String type);
+
+  /// No description provided for @equipmentCondition_children_replaceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get equipmentCondition_children_replaceConfirm;
+
+  /// No description provided for @equipmentCondition_children_replaceCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get equipmentCondition_children_replaceCancel;
+
+  /// No description provided for @equipmentCondition_children_replaced.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} replaced'**
+  String equipmentCondition_children_replaced(String name);
+
+  /// No description provided for @equipmentCondition_children_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No cells or batteries recorded'**
+  String get equipmentCondition_children_empty;
+
+  /// No description provided for @equipmentCondition_children_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get equipmentCondition_children_add;
+
+  /// No description provided for @equipmentCondition_findings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get equipmentCondition_findings_title;
+
+  /// No description provided for @equipmentCondition_findings_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 finding} other{{count} findings}}'**
+  String equipmentCondition_findings_count(int count);
+
+  /// No description provided for @equipmentCondition_findings_evidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence dives'**
+  String get equipmentCondition_findings_evidence;
+
+  /// No description provided for @equipmentCondition_findings_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get equipmentCondition_findings_dismiss;
+
+  /// No description provided for @equipmentCondition_findings_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get equipmentCondition_findings_restore;
+
+  /// No description provided for @equipmentCondition_findings_showDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}'**
+  String equipmentCondition_findings_showDismissed(int count);
+
+  /// No description provided for @equipmentCondition_evidence_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence dives'**
+  String get equipmentCondition_evidence_title;
+
+  /// No description provided for @equipmentCondition_evidence_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String equipmentCondition_evidence_dive(int number);
+
+  /// No description provided for @equipmentCondition_evidence_unnumbered.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get equipmentCondition_evidence_unnumbered;
+
+  /// No description provided for @equipmentCondition_evidence_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min'**
+  String equipmentCondition_evidence_minutes(int n);
+
+  /// No description provided for @equipmentCondition_trend_title_cellGain.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell output per dive'**
+  String get equipmentCondition_trend_title_cellGain;
+
+  /// No description provided for @equipmentCondition_trend_title_gap.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter dropouts per dive'**
+  String get equipmentCondition_trend_title_gap;
+
+  /// No description provided for @equipmentCondition_trend_title_scrubber.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber use per dive'**
+  String get equipmentCondition_trend_title_scrubber;
+
+  /// No description provided for @equipmentCondition_trend_title_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum temperature per dive'**
+  String get equipmentCondition_trend_title_temperature;
+
+  /// No description provided for @equipmentCondition_trend_cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot}'**
+  String equipmentCondition_trend_cell(int slot);
+
+  /// No description provided for @equipmentCondition_trend_issues.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives with an issue'**
+  String get equipmentCondition_trend_issues;
+
+  /// No description provided for @equipmentCondition_trend_scrubber.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber minutes'**
+  String get equipmentCondition_trend_scrubber;
+
+  /// No description provided for @equipmentCondition_trend_gap.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropout share'**
+  String get equipmentCondition_trend_gap;
+
+  /// No description provided for @equipmentCondition_trend_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum temperature'**
+  String get equipmentCondition_trend_temperature;
+
+  /// No description provided for @equipmentCondition_trend_axis_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get equipmentCondition_trend_axis_minutes;
+
+  /// No description provided for @equipmentCondition_exposure_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure'**
+  String get equipmentCondition_exposure_title;
+
+  /// No description provided for @equipmentCondition_exposure_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with this item yet'**
+  String get equipmentCondition_exposure_empty;
+
+  /// No description provided for @equipmentCondition_exposure_footer.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 dive} other{{n} dives}}, {range}'**
+  String equipmentCondition_exposure_footer(int n, String range);
+
+  /// No description provided for @equipmentCondition_exposure_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 dive} other{{n} dives}}'**
+  String equipmentCondition_exposure_dives(int n);
+
+  /// No description provided for @equipmentCondition_exposure_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} hours'**
+  String equipmentCondition_exposure_hours(String n);
+
+  /// No description provided for @equipmentCondition_exposure_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} salt-water hours'**
+  String equipmentCondition_exposure_saltHours(String n);
+
+  /// No description provided for @equipmentCondition_exposure_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 cold dive} other{{n} cold dives}}'**
+  String equipmentCondition_exposure_coldDives(int n);
+
+  /// No description provided for @equipmentCondition_exposure_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} high-O2 hours'**
+  String equipmentCondition_exposure_o2Hours(String n);
+
+  /// No description provided for @equipmentCondition_exposure_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 deep dive} other{{n} deep dives}}'**
+  String equipmentCondition_exposure_deepCycles(int n);
+
+  /// No description provided for @equipmentCondition_exposure_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 battery cycle} other{{n} battery cycles}}'**
+  String equipmentCondition_exposure_cycles(int n);
+
+  /// No description provided for @equipmentCondition_finding_cellOutputDeclining.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} output fell {percent} percent across {n} dives since {since}'**
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  );
+
+  /// No description provided for @equipmentCondition_finding_cellOutputLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} output is {gain} mV per bar over the last {n} dives'**
+  String equipmentCondition_finding_cellOutputLow(int slot, String gain, int n);
+
+  /// No description provided for @equipmentCondition_finding_cellDivergent.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} disagreed with its peers by up to {bar} bar on {count} of the last {n} dives'**
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_cellCurrentLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} read low at high ppO2 on {count} of the last {n} dives, up to {percent} percent of samples'**
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  );
+
+  /// No description provided for @equipmentCondition_finding_transmitterDropoutRising.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure dropped out for {recent} percent of the last 5 dives, up from {prior} percent over the {priorCount} before'**
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  );
+
+  /// No description provided for @equipmentCondition_finding_transmitterDropoutHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure dropped out for {recent} percent of the last {n} dives on average, {count} of them above 10 percent'**
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  );
+
+  /// No description provided for @equipmentCondition_finding_issueRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'{tag} reported {count} times in the last {n} dives'**
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_issueColdCorrelated.
+  ///
+  /// In en, this message translates to:
+  /// **'{insideIssue} of {totalIssue} dives with an issue were colder than {threshold}, over {n} dives with this item'**
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_issueDeepCorrelated.
+  ///
+  /// In en, this message translates to:
+  /// **'{insideIssue} of {totalIssue} dives with an issue went beyond {threshold}, over {n} dives with this item'**
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_incidentLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 incident names this item} other{{count} incidents name this item}}'**
+  String equipmentCondition_finding_incidentLinked(int count);
+
+  /// No description provided for @equipmentCondition_finding_window.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 dive} other{{n} dives}}, {range}'**
+  String equipmentCondition_finding_window(int n, String range);
+
   /// No description provided for @equipmentConditionSettings_thresholdsHeader.
   ///
   /// In en, this message translates to:
@@ -44534,6 +45437,513 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save. Try again.'**
   String get equipmentConditionSettings_saveFailed;
+
+  /// No description provided for @equipmentConditionSettings_sensorHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries'**
+  String get equipmentConditionSettings_sensorHeader;
+
+  /// No description provided for @equipmentConditionSettings_sensorHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Each dive\'s profile is summarised once for cell output, transmitter dropouts and scrubber use. New and edited dives are summarised on their own.'**
+  String get equipmentConditionSettings_sensorHelp;
+
+  /// No description provided for @equipmentConditionSettings_rebuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuild sensor summaries'**
+  String get equipmentConditionSettings_rebuild;
+
+  /// No description provided for @equipmentConditionSettings_rebuild_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recompute every dive\'s summary from its profile'**
+  String get equipmentConditionSettings_rebuild_subtitle;
+
+  /// No description provided for @equipmentConditionSettings_rebuild_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarised {done} of {total}'**
+  String equipmentConditionSettings_rebuild_progress(int done, int total);
+
+  /// No description provided for @equipmentConditionSettings_rebuild_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries rebuilt'**
+  String get equipmentConditionSettings_rebuild_done;
+
+  /// No description provided for @equipmentConditionSettings_rebuild_doneWithBothErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives, plural, =1{1 dive could not be summarised} other{{dives} dives could not be summarised}}; condition findings could not be refreshed for {items, plural, =1{1 item} other{{items} items}}'**
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  );
+
+  /// No description provided for @equipmentConditionSettings_rebuild_doneWithErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries rebuilt; {count, plural, =1{1 dive could not be summarised} other{{count} dives could not be summarised}}'**
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count);
+
+  /// No description provided for @equipmentConditionSettings_rebuild_doneWithFindingErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries rebuilt; condition findings could not be refreshed for {count, plural, =1{1 item} other{{count} items}}'**
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count);
+
+  /// No description provided for @equipmentConditionSettings_rebuild_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not rebuild the sensor summaries.'**
+  String get equipmentConditionSettings_rebuild_failed;
+
+  /// No description provided for @equipmentConditionSettings_masterToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get equipmentConditionSettings_masterToggle;
+
+  /// No description provided for @equipmentConditionSettings_masterToggle_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report trends in cell output, transmitter dropouts and reported issues, with the numbers behind them'**
+  String get equipmentConditionSettings_masterToggle_subtitle;
+
+  /// No description provided for @equipmentConditionSettings_rulesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get equipmentConditionSettings_rulesHeader;
+
+  /// No description provided for @equipmentConditionSettings_rule_cellOutputDeclining.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell output declining'**
+  String get equipmentConditionSettings_rule_cellOutputDeclining;
+
+  /// No description provided for @equipmentConditionSettings_rule_cellOutputLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell output low'**
+  String get equipmentConditionSettings_rule_cellOutputLow;
+
+  /// No description provided for @equipmentConditionSettings_rule_cellDivergent.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell disagrees with its peers'**
+  String get equipmentConditionSettings_rule_cellDivergent;
+
+  /// No description provided for @equipmentConditionSettings_rule_cellCurrentLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell current-limited at high ppO2'**
+  String get equipmentConditionSettings_rule_cellCurrentLimited;
+
+  /// No description provided for @equipmentConditionSettings_rule_transmitterDropoutRising.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter dropouts rising'**
+  String get equipmentConditionSettings_rule_transmitterDropoutRising;
+
+  /// No description provided for @equipmentConditionSettings_rule_transmitterDropoutHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter dropouts high'**
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh;
+
+  /// No description provided for @equipmentConditionSettings_rule_issueRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring issue'**
+  String get equipmentConditionSettings_rule_issueRecurring;
+
+  /// No description provided for @equipmentConditionSettings_rule_issueColdCorrelated.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues on cold dives'**
+  String get equipmentConditionSettings_rule_issueColdCorrelated;
+
+  /// No description provided for @equipmentConditionSettings_rule_issueDeepCorrelated.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues on deep dives'**
+  String get equipmentConditionSettings_rule_issueDeepCorrelated;
+
+  /// No description provided for @equipmentConditionSettings_rule_incidentLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked incidents'**
+  String get equipmentConditionSettings_rule_incidentLinked;
+
+  /// No description provided for @equipmentObservation_tag_freeFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Free flow'**
+  String get equipmentObservation_tag_freeFlow;
+
+  /// No description provided for @equipmentObservation_tag_hardBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard breathing'**
+  String get equipmentObservation_tag_hardBreathing;
+
+  /// No description provided for @equipmentObservation_tag_wetBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Wet breathing'**
+  String get equipmentObservation_tag_wetBreathing;
+
+  /// No description provided for @equipmentObservation_tag_leak.
+  ///
+  /// In en, this message translates to:
+  /// **'Leak'**
+  String get equipmentObservation_tag_leak;
+
+  /// No description provided for @equipmentObservation_tag_hoseDamage.
+  ///
+  /// In en, this message translates to:
+  /// **'Hose damage'**
+  String get equipmentObservation_tag_hoseDamage;
+
+  /// No description provided for @equipmentObservation_tag_inflatorStuck.
+  ///
+  /// In en, this message translates to:
+  /// **'Inflator stuck'**
+  String get equipmentObservation_tag_inflatorStuck;
+
+  /// No description provided for @equipmentObservation_tag_inflatorSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Inflator slow'**
+  String get equipmentObservation_tag_inflatorSlow;
+
+  /// No description provided for @equipmentObservation_tag_bladderLeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Bladder leak'**
+  String get equipmentObservation_tag_bladderLeak;
+
+  /// No description provided for @equipmentObservation_tag_dumpLeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Dump valve leak'**
+  String get equipmentObservation_tag_dumpLeak;
+
+  /// No description provided for @equipmentObservation_tag_leakNeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Neck seal leak'**
+  String get equipmentObservation_tag_leakNeck;
+
+  /// No description provided for @equipmentObservation_tag_leakWrist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist seal leak'**
+  String get equipmentObservation_tag_leakWrist;
+
+  /// No description provided for @equipmentObservation_tag_leakZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Zip leak'**
+  String get equipmentObservation_tag_leakZip;
+
+  /// No description provided for @equipmentObservation_tag_leakBoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Boot leak'**
+  String get equipmentObservation_tag_leakBoot;
+
+  /// No description provided for @equipmentObservation_tag_leakValve.
+  ///
+  /// In en, this message translates to:
+  /// **'Valve leak'**
+  String get equipmentObservation_tag_leakValve;
+
+  /// No description provided for @equipmentObservation_tag_leakSeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Seam leak'**
+  String get equipmentObservation_tag_leakSeam;
+
+  /// No description provided for @equipmentObservation_tag_tear.
+  ///
+  /// In en, this message translates to:
+  /// **'Tear'**
+  String get equipmentObservation_tag_tear;
+
+  /// No description provided for @equipmentObservation_tag_seamFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Seam failure'**
+  String get equipmentObservation_tag_seamFailure;
+
+  /// No description provided for @equipmentObservation_tag_dim.
+  ///
+  /// In en, this message translates to:
+  /// **'Dim'**
+  String get equipmentObservation_tag_dim;
+
+  /// No description provided for @equipmentObservation_tag_died.
+  ///
+  /// In en, this message translates to:
+  /// **'Died'**
+  String get equipmentObservation_tag_died;
+
+  /// No description provided for @equipmentObservation_tag_flooded.
+  ///
+  /// In en, this message translates to:
+  /// **'Flooded'**
+  String get equipmentObservation_tag_flooded;
+
+  /// No description provided for @equipmentObservation_tag_switchFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch fault'**
+  String get equipmentObservation_tag_switchFault;
+
+  /// No description provided for @equipmentObservation_tag_batteryLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery low'**
+  String get equipmentObservation_tag_batteryLow;
+
+  /// No description provided for @equipmentObservation_tag_screenFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen fault'**
+  String get equipmentObservation_tag_screenFault;
+
+  /// No description provided for @equipmentObservation_tag_connectionFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection fault'**
+  String get equipmentObservation_tag_connectionFault;
+
+  /// No description provided for @equipmentObservation_tag_dropout.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropout'**
+  String get equipmentObservation_tag_dropout;
+
+  /// No description provided for @equipmentObservation_tag_cellWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell warning'**
+  String get equipmentObservation_tag_cellWarning;
+
+  /// No description provided for @equipmentObservation_tag_loopLeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop leak'**
+  String get equipmentObservation_tag_loopLeak;
+
+  /// No description provided for @equipmentObservation_tag_solenoidFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Solenoid fault'**
+  String get equipmentObservation_tag_solenoidFault;
+
+  /// No description provided for @equipmentObservation_tag_scrubberBreakthrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber breakthrough'**
+  String get equipmentObservation_tag_scrubberBreakthrough;
+
+  /// No description provided for @equipmentObservation_tag_slowResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow response'**
+  String get equipmentObservation_tag_slowResponse;
+
+  /// No description provided for @equipmentObservation_tag_erratic.
+  ///
+  /// In en, this message translates to:
+  /// **'Erratic'**
+  String get equipmentObservation_tag_erratic;
+
+  /// No description provided for @equipmentObservation_tag_lowCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Low capacity'**
+  String get equipmentObservation_tag_lowCapacity;
+
+  /// No description provided for @equipmentObservation_tag_propFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Prop fault'**
+  String get equipmentObservation_tag_propFault;
+
+  /// No description provided for @equipmentObservation_tag_strapBroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Strap broke'**
+  String get equipmentObservation_tag_strapBroke;
+
+  /// No description provided for @equipmentObservation_tag_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get equipmentObservation_tag_other;
+
+  /// No description provided for @equipmentObservation_status_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get equipmentObservation_status_ok;
+
+  /// No description provided for @equipmentObservation_status_issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue'**
+  String get equipmentObservation_status_issue;
+
+  /// No description provided for @equipmentObservation_sheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in: {item}'**
+  String equipmentObservation_sheet_title(String item);
+
+  /// No description provided for @equipmentObservation_sheet_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins on this dive yet.'**
+  String get equipmentObservation_sheet_empty;
+
+  /// No description provided for @equipmentObservation_sheet_emptyBench.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins yet.'**
+  String get equipmentObservation_sheet_emptyBench;
+
+  /// No description provided for @equipmentObservation_sheet_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add check-in'**
+  String get equipmentObservation_sheet_add;
+
+  /// No description provided for @equipmentObservation_sheet_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit check-in'**
+  String get equipmentObservation_sheet_edit;
+
+  /// No description provided for @equipmentObservation_sheet_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete check-in'**
+  String get equipmentObservation_sheet_delete;
+
+  /// No description provided for @equipmentObservation_sheet_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this check-in?'**
+  String get equipmentObservation_sheet_deleteConfirm;
+
+  /// No description provided for @equipmentObservation_sheet_noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get equipmentObservation_sheet_noteLabel;
+
+  /// No description provided for @equipmentObservation_sheet_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get equipmentObservation_sheet_tagsLabel;
+
+  /// No description provided for @equipmentObservation_sheet_dateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed'**
+  String get equipmentObservation_sheet_dateLabel;
+
+  /// No description provided for @equipmentObservation_sheet_diveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get equipmentObservation_sheet_diveLabel;
+
+  /// No description provided for @equipmentObservation_sheet_noDive.
+  ///
+  /// In en, this message translates to:
+  /// **'No dive (bench)'**
+  String get equipmentObservation_sheet_noDive;
+
+  /// No description provided for @equipmentObservation_sheet_pickDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dive'**
+  String get equipmentObservation_sheet_pickDive;
+
+  /// No description provided for @equipmentObservation_sheet_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get equipmentObservation_sheet_save;
+
+  /// No description provided for @equipmentObservation_sheet_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get equipmentObservation_sheet_cancel;
+
+  /// No description provided for @equipmentObservation_sheet_tagRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one tag for an issue'**
+  String get equipmentObservation_sheet_tagRequired;
+
+  /// No description provided for @equipmentObservation_chip_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked OK'**
+  String get equipmentObservation_chip_ok;
+
+  /// No description provided for @equipmentObservation_chip_issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue reported'**
+  String get equipmentObservation_chip_issue;
+
+  /// No description provided for @equipmentObservation_chip_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in'**
+  String get equipmentObservation_chip_none;
+
+  /// No description provided for @equipmentObservation_card_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get equipmentObservation_card_title;
+
+  /// No description provided for @equipmentObservation_card_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins recorded for this item.'**
+  String get equipmentObservation_card_empty;
+
+  /// No description provided for @equipmentObservation_card_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add check-in'**
+  String get equipmentObservation_card_add;
+
+  /// No description provided for @equipmentObservation_card_onDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String equipmentObservation_card_onDive(int number);
+
+  /// No description provided for @equipmentObservation_card_bench.
+  ///
+  /// In en, this message translates to:
+  /// **'Bench'**
+  String get equipmentObservation_card_bench;
 
   /// No description provided for @settings_section_security_title.
   ///
@@ -45302,6 +46712,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{1 photo or video} other{{count} photos or videos}}'**
   String dataQuality_carries_media(int count);
+
+  /// Summary fragment: how many signatures, documents, maps or other non-photo attachments the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 attachment} other{{count} attachments}}'**
+  String dataQuality_carries_attachments(int count);
 
   /// Summary fragment: how many custom fields the dive about to be deleted carries.
   ///
@@ -59885,6 +61301,12 @@ abstract class AppLocalizations {
   /// **'Exporting equipment to CSV...'**
   String get settings_export_progress_equipmentCsv;
 
+  /// No description provided for @settings_export_progress_observationsCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting gear check-ins to CSV...'**
+  String get settings_export_progress_observationsCsv;
+
   /// No description provided for @settings_export_progress_pdf.
   ///
   /// In en, this message translates to:
@@ -59993,6 +61415,12 @@ abstract class AppLocalizations {
   /// **'Preparing equipment CSV...'**
   String get settings_export_progress_preparingEquipmentCsv;
 
+  /// No description provided for @settings_export_progress_preparingObservationsCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing gear check-ins CSV...'**
+  String get settings_export_progress_preparingObservationsCsv;
+
   /// No description provided for @settings_export_progress_preparingUddf.
   ///
   /// In en, this message translates to:
@@ -60034,6 +61462,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No equipment to export'**
   String get settings_export_empty_equipment;
+
+  /// No description provided for @settings_export_empty_observations.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear check-ins to export'**
+  String get settings_export_empty_observations;
 
   /// No description provided for @settings_export_empty_data.
   ///
@@ -60095,6 +61529,12 @@ abstract class AppLocalizations {
   /// **'Equipment exported successfully'**
   String get settings_export_success_equipment;
 
+  /// No description provided for @settings_export_success_observations.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins exported'**
+  String get settings_export_success_observations;
+
   /// No description provided for @settings_export_success_pdf.
   ///
   /// In en, this message translates to:
@@ -60149,6 +61589,12 @@ abstract class AppLocalizations {
   /// **'Equipment CSV saved successfully'**
   String get settings_export_saved_equipmentCsv;
 
+  /// No description provided for @settings_export_saved_observationsCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins CSV saved'**
+  String get settings_export_saved_observationsCsv;
+
   /// No description provided for @settings_export_saved_uddf.
   ///
   /// In en, this message translates to:
@@ -60202,6 +61648,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Backup'**
   String get settings_export_saveBackupDialogTitle;
+
+  /// No description provided for @settings_export_saveDivesCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Dives CSV'**
+  String get settings_export_saveDivesCsvDialogTitle;
+
+  /// No description provided for @settings_export_saveSitesCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Sites CSV'**
+  String get settings_export_saveSitesCsvDialogTitle;
+
+  /// No description provided for @settings_export_saveEquipmentCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Equipment CSV'**
+  String get settings_export_saveEquipmentCsvDialogTitle;
+
+  /// No description provided for @settings_export_saveObservationsCsvDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Gear Check-ins CSV'**
+  String get settings_export_saveObservationsCsvDialogTitle;
 
   /// No description provided for @backup_operation_created.
   ///
@@ -61772,6 +63242,12 @@ abstract class AppLocalizations {
   /// **'Exported Files'**
   String get settings_storageUsage_group_exports;
 
+  /// No description provided for @settings_storageUsage_group_importedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw imported data'**
+  String get settings_storageUsage_group_importedFiles;
+
   /// No description provided for @settings_storageUsage_category_database.
   ///
   /// In en, this message translates to:
@@ -61855,6 +63331,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exported files'**
   String get settings_storageUsage_category_exports;
+
+  /// No description provided for @settings_storageUsage_category_importedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported logbook files'**
+  String get settings_storageUsage_category_importedFiles;
 
   /// No description provided for @profilePhoto_sheet_title.
   ///
@@ -62248,6 +63730,12 @@ abstract class AppLocalizations {
   /// **'Cylinder from gear'**
   String get transmitters_field_gear;
 
+  /// No description provided for @transmitters_field_transmitterGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter from gear'**
+  String get transmitters_field_transmitterGear;
+
   /// No description provided for @transmitters_field_material.
   ///
   /// In en, this message translates to:
@@ -62524,12 +64012,6 @@ abstract class AppLocalizations {
   /// **'Last service'**
   String get enum_equipmentItemSortField_lastServiceDate;
 
-  /// No description provided for @equipment_arrange_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Arrange gear'**
-  String get equipment_arrange_title;
-
   /// No description provided for @equipment_arrange_groupByType.
   ///
   /// In en, this message translates to:
@@ -62559,12 +64041,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort by'**
   String get equipment_arrange_itemOrderLabelFlat;
-
-  /// No description provided for @equipment_arrange_tooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Arrange gear'**
-  String get equipment_arrange_tooltip;
 
   /// No description provided for @equipment_arrange_reset.
   ///

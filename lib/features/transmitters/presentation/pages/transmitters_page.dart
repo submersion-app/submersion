@@ -11,6 +11,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Manage > Transmitters. Follows the dive roles page: extended
@@ -232,6 +233,11 @@ class _EntryTile extends ConsumerWidget {
     if (confirmed != true) return;
     try {
       await ref.read(transmitterRepositoryProvider).delete(entry.id);
+      // Its transmitter item loses these serials, and with them any stored
+      // dropout finding they raised.
+      if (entry.transmitterEquipmentId case final item?) {
+        scheduleConditionFindingsRefresh([item]);
+      }
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(content: Text('${l10n.common_label_error}: $e')),

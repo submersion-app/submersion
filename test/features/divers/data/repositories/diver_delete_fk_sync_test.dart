@@ -130,6 +130,69 @@ void main() {
     expect(source.readNullable<String>('computer_id'), isNull);
   });
 
+  test("a foreign dive's cylinder linked to the diver's gear is cleared "
+      'and staged', () async {
+    // Bob's cylinder carries Alice's gear on both tank links. Removing Alice
+    // deletes her gear in bulk; the links on Bob's surviving tank must be
+    // cleared (the cylinder link had no action before v210 and failed the
+    // delete) and reach peers as a pending tank.
+    await insertDiver('diver-a');
+    await insertDiver('diver-b');
+    const stale = 1000;
+    for (final (id, type) in [('cyl-a', 'tank'), ('reg-a', 'regulator')]) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: type,
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+    }
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'dive-b',
+            diverId: const Value('diver-b'),
+            diveDateTime: stale,
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(id: 'tank-b', diveId: 'dive-b').copyWith(
+            equipmentId: const Value('cyl-a'),
+            regulatorEquipmentId: const Value('reg-a'),
+          ),
+        );
+
+    await repository.deleteDiverWithReassignment('diver-a');
+
+    final tank = await db
+        .customSelect(
+          'SELECT equipment_id, regulator_equipment_id FROM dive_tanks '
+          "WHERE id = 'tank-b'",
+        )
+        .getSingle();
+    expect(tank.readNullable<String>('equipment_id'), isNull);
+    expect(tank.readNullable<String>('regulator_equipment_id'), isNull);
+    expect(await pendingCountFor('diveTanks', 'tank-b'), 1);
+    expect(
+      await pendingCountFor('dives', 'dive-b'),
+      0,
+      reason:
+          'the pending tank is exported on its own; re-stamping Bob\'s '
+          'dive would let this copy overwrite his newer edits to it',
+    );
+  });
+
   test('a cleared data source marks its own dive pending', () async {
     // The dive itself never referenced the computer, so only the source
     // clear can be what publishes this change.

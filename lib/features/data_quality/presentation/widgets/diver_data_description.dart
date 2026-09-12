@@ -25,7 +25,10 @@ String? describeDiverData(DiverDataSummary? summary, AppLocalizations l10n) {
     // dialog says it the same way rather than in a second vocabulary.
     if (summary.sightings > 0)
       l10n.diveLog_edit_summary_species(summary.sightings),
-    if (summary.media > 0) l10n.dataQuality_carries_media(summary.media),
+    if (summary.photosAndVideos > 0)
+      l10n.dataQuality_carries_media(summary.photosAndVideos),
+    if (summary.attachments > 0)
+      l10n.dataQuality_carries_attachments(summary.attachments),
     if (summary.customFields > 0)
       l10n.dataQuality_carries_customFields(summary.customFields),
     if (summary.hasNotes) l10n.diveLog_edit_summary_notes,

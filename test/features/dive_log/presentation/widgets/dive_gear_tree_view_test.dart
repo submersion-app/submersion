@@ -49,6 +49,7 @@ void main() {
     void Function(String)? onRemovePart,
     void Function(String)? onRemoveSubtree,
     void Function(String)? onRemoveSet,
+    Widget Function(EquipmentItem)? rowTrailing,
   }) => ProviderScope(
     overrides: [
       equipmentArrangementProvider.overrideWithValue(arrangement),
@@ -65,6 +66,7 @@ void main() {
             onRemovePart: onRemovePart,
             onRemoveSubtree: onRemoveSubtree,
             onRemoveSet: onRemoveSet,
+            rowTrailing: rowTrailing,
           ),
         ),
       ),
@@ -99,6 +101,22 @@ void main() {
       greaterThan(tester.getTopLeft(find.text('Cold water reg')).dx),
     );
     expect(find.byTooltip('Hide parts'), findsOneWidget);
+  });
+
+  testWidgets('the row slot reaches every row, parts included', (tester) async {
+    // The detail page puts the check-in chip here, and a part (a cell, a
+    // hose) takes check-ins like any other item.
+    await tester.pumpWidget(
+      build(arrangement: flat, rowTrailing: (item) => Text('slot-${item.id}')),
+    );
+    await tester.pumpAndSettle();
+    for (final id in ['mask', 'reg', 'fins']) {
+      expect(find.text('slot-$id'), findsOneWidget, reason: id);
+    }
+    expect(find.text('slot-hose'), findsNothing);
+    await tester.tap(find.byTooltip('Show parts'));
+    await tester.pumpAndSettle();
+    expect(find.text('slot-hose'), findsOneWidget);
   });
 
   testWidgets('the arrangement groups each band\'s top-level rows by type', (

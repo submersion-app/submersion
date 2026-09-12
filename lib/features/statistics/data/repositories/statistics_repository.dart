@@ -216,6 +216,23 @@ class StatisticsRepository {
     );
   }
 
+  /// The ids of the dives [filter] keeps, or null when it keeps them all.
+  /// For the cards that aggregate from their own sources (the condition
+  /// rankings) and narrow them to the filter afterwards. The view filter
+  /// only: DiveStatsScope is left to the caller, since gear exposure counts
+  /// every dive the gear made.
+  Future<Set<String>?> filteredDiveIds(DiveFilterState filter) async {
+    final f = buildFilteredDiveIdSubquery(filter);
+    if (f.subquery.isEmpty) return null;
+    final rows = await _db
+        .customSelect(
+          f.subquery,
+          variables: f.params.map((p) => Variable(p)).toList(),
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('id')};
+  }
+
   // ============================================================================
   // Gas Statistics
   // ============================================================================
@@ -2234,10 +2251,15 @@ class StatisticsRepository {
           e.name,
           e.type,
           e.brand,
-          COUNT(de.dive_id) AS use_count
+          COUNT(DISTINCT u.dive_id) AS use_count
         FROM equipment e
-        JOIN dive_equipment de ON de.equipment_id = e.id
-        JOIN dives d ON d.id = de.dive_id
+        JOIN (
+          SELECT dive_id, equipment_id FROM dive_equipment
+          UNION
+          SELECT dive_id, equipment_id FROM dive_tanks
+          WHERE equipment_id IS NOT NULL
+        ) u ON u.equipment_id = e.id
+        JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY e.id
         ORDER BY use_count DESC

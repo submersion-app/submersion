@@ -29,11 +29,8 @@ class EquipmentArrangement {
   final bool groupByType;
   final EquipmentItemSortField itemSortField;
 
-  /// Ascending means A to Z and oldest first.
-  ///
-  /// Note this diverges from `applyEquipmentSorting` on the Equipment page,
-  /// which inverts direction for text fields so that "descending" reads as
-  /// A to Z. That inversion is surprising and is not repeated here.
+  /// Ascending means A to Z and oldest first, the same as the Equipment
+  /// page's own sort, since both are edited through one sheet layout.
   final SortDirection itemSortDirection;
 
   const EquipmentArrangement({

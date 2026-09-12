@@ -198,4 +198,30 @@ void main() {
       containsAll(before.map((s) => s.id)),
     );
   });
+
+  test('round-trips the baseline and its set time', () async {
+    // The set time is what lets a baseline outrank the records logged
+    // before it; clearing the baseline clears it too.
+    final tank = await makeTank();
+    final setAt = DateTime(2026, 9, 1, 8, 30);
+    final hydro = (await repo.getSchedulesForEquipment(
+      tank.id,
+    )).firstWhere((s) => s.serviceKindId == 'hydro');
+    await repo.updateSchedule(
+      hydro.withBaseline(DateTime(2025, 6, 1), now: setAt),
+    );
+
+    var stored = (await repo.getSchedulesForEquipment(
+      tank.id,
+    )).firstWhere((s) => s.serviceKindId == 'hydro');
+    expect(stored.anchorDate, DateTime(2025, 6, 1));
+    expect(stored.anchorSetAt, setAt);
+
+    await repo.updateSchedule(stored.withBaseline(null, now: DateTime.now()));
+    stored = (await repo.getSchedulesForEquipment(
+      tank.id,
+    )).firstWhere((s) => s.serviceKindId == 'hydro');
+    expect(stored.anchorDate, isNull);
+    expect(stored.anchorSetAt, isNull);
+  });
 }

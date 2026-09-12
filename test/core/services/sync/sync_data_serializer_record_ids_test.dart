@@ -101,6 +101,36 @@ void main() {
     }
   });
 
+  test('every synced entity has a recordIdForEntity case', () async {
+    // The merge keys each incoming record with SyncService.recordIdForEntity;
+    // an entity with no case falls through to record['id'], and a table whose
+    // primary key is not a plain `id` has none -- so every one of its rows is
+    // counted as malformed and silently never applied. That is what happened
+    // to divePlanEquipment until issue #1728 found it.
+    //
+    // Driven off the live Drift schema rather than a hand-kept list, so a new
+    // composite-key or natural-key synced table fails here until it is wired
+    // up.
+    final s = SyncDataSerializer();
+    for (final entity in SyncService.entityHasUpdatedAt.keys) {
+      final primaryKey = s
+          .syncTableFor(entity)
+          .$primaryKey
+          .map((c) => c.name)
+          .toList();
+      final record = <String, dynamic>{
+        for (final column in primaryKey) _camelCase(column): 'x-$column',
+      };
+      expect(
+        SyncService.recordIdForEntity(entity, record),
+        isNotNull,
+        reason:
+            '$entity keys on ${primaryKey.join(' + ')}, which recordIdForEntity '
+            'cannot resolve; add a case for it or its rows will never merge',
+      );
+    }
+  });
+
   test('every synced entity has a deleteAllRecords case', () async {
     // deleteAllRecords -> _syncTableFor throws on an entity with no case, so
     // iterating every synced entity fails loudly if one is ever added without a
@@ -158,3 +188,11 @@ Map<String, dynamic> _equipment(String id) => {
   'createdAt': 1000,
   'updatedAt': 1000,
 };
+
+/// `dive_id` -> `diveId`: the column naming Drift's own toJson emits, which is
+/// the shape the merge sees on the wire.
+String _camelCase(String columnName) {
+  final parts = columnName.split('_');
+  return parts.first +
+      parts.skip(1).map((p) => p[0].toUpperCase() + p.substring(1)).join();
+}

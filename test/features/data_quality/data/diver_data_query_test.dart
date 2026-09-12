@@ -232,6 +232,24 @@ void main() {
             ),
           );
     },
+    // Anything in `media` that is not a photo or video: a signature here,
+    // but documents and maps share the table too. It must still count, or a
+    // copy whose only attachment is an instructor's signature would read as
+    // untouched in the dialog while the detector withheld the repair.
+    'attachments': (id) async {
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: 'sig-$id',
+              diveId: Value(id),
+              filePath: '',
+              fileType: const Value('instructor_signature'),
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+    },
   };
 
   test('a dive nothing but the computer has touched carries nothing', () async {
@@ -286,6 +304,29 @@ void main() {
     expect(summary.hasNotes, isTrue);
     expect(summary.tags, 0);
     expect(summary.hasRating, isFalse);
+  });
+
+  // "Photos or videos" is only true of photos and videos: a signature,
+  // document or map is counted, but under its own name.
+  test('media splits photos and videos from other attachments', () async {
+    await seedDive('d1');
+    await signals['media']!('d1');
+    await signals['attachments']!('d1');
+    await db
+        .into(db.media)
+        .insert(
+          MediaCompanion.insert(
+            id: 'v1',
+            diveId: const Value('d1'),
+            filePath: '/clips/v1.mp4',
+            fileType: const Value('video'),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    final summary = (await query.forDive('d1'))!;
+    expect(summary.photosAndVideos, 2);
+    expect(summary.attachments, 1);
   });
 
   // Whitespace is not an entry, and the boolean fragment agrees: both read a

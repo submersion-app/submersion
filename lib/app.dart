@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
@@ -113,6 +114,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _fileShareHandler.initialize();
+      // Fill the per-dive sensor summary cache for dives that predate it or
+      // changed since. Single-flight, oldest first, no-op when current.
+      SensorSummaryScheduler.instance.scheduleStaleSweep();
     });
   }
 

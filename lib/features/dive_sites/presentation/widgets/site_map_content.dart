@@ -331,9 +331,9 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                 urlTemplate: ref.watch(mapTileUrlProvider),
                 userAgentPackageName: 'app.submersion',
                 maxZoom: ref.watch(mapTileMaxZoomProvider),
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider()
-                    : null,
+                tileProvider: TileCacheService.instance.tileProviderFor(
+                  urlTemplate: ref.watch(mapTileUrlProvider),
+                ),
               ),
               // Depth overlay: the selected site's bathymetry as a
               // translucent ramp + contours, above tiles, below markers.

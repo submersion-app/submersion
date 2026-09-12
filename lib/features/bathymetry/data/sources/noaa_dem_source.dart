@@ -54,6 +54,14 @@ class NoaaDemSource implements BathymetrySource {
   @override
   bool get global => false;
 
+  /// See [BathymetrySource.minKnownFraction]'s doc: unchanged from the
+  /// resolver's original default. Unlike swissBATHY3D, this source's own
+  /// coastal mosaic tiles are themselves sparse survey data (not a
+  /// definitive land/water lookup per cell), so a thin grid here is
+  /// genuinely as untrustworthy as EMODnet's.
+  @override
+  double get minKnownFraction => 0.60;
+
   @override
   Future<SourceCapability?> probe(GeoPoint center) async {
     final url = Uri.parse('$baseUrl/identify').replace(

@@ -169,10 +169,21 @@ List<ContourPolyline> marchGrid({
   return _joinSegments(segments);
 }
 
-/// Scene-Y lift above the terrain surface so contour ribbons never z-fight
-/// the mesh they trace (scene ySpan is 6.0).
-const double contourLiftSceneUnits = 0.03;
-const double _labelExtraLift = 0.05;
+/// Real-world lift above the terrain surface so contour ribbons never
+/// z-fight the mesh they trace, expressed in meters rather than a fixed
+/// scene-unit amount: with [SpatialProjection.yOf] now true to scale
+/// (proportional to [SpatialProjection.horizScale], not independently
+/// normalized to fill the scene height), a fixed scene-unit lift could
+/// exceed a shallow contour's own depth and place it above the waterline
+/// for a wide, shallow site (Copilot review). Scaled by horizScale at
+/// each use site instead, so it stays a genuinely small offset relative
+/// to the real terrain regardless of how wide the requested span is --
+/// and additionally capped at half the LEVEL's own depth at each use
+/// site, since a shallow custom level (e.g. 0.10 m) could otherwise
+/// still exceed its own depth even after scaling (Copilot review, round
+/// 2).
+const double contourLiftMeters = 0.15;
+const double _labelExtraLiftMeters = 0.25;
 const double _minorHalfWidth = 0.016;
 const double _majorHalfWidth = 0.030;
 const Color _contourInk = Color(0xFFF8FAFC);
@@ -245,7 +256,13 @@ ContourBuildResult buildContourLayers({
     );
     if (polylines.isEmpty) continue;
 
-    final y = projection.yOf(level.depthMeters) + contourLiftSceneUnits;
+    // Capped at half the level's own depth: a shallow custom level (e.g.
+    // 0.10 m) would otherwise still end up lifted above the waterline even
+    // after scaling by horizScale, since the fixed contourLiftMeters can
+    // exceed the depth itself (Copilot review).
+    final liftMeters = math.min(contourLiftMeters, level.depthMeters / 2);
+    final liftSceneUnits = liftMeters * projection.horizScale;
+    final y = projection.yOf(level.depthMeters) + liftSceneUnits;
     final sceneLines = <List<double>>[];
     for (final line in polylines) {
       final pts = line.pointsEastNorth;
@@ -263,6 +280,7 @@ ContourBuildResult buildContourLayers({
             isMajor: level.isMajor,
             colorArgb: level.colorArgb,
             ceiling: ceiling,
+            liftSceneUnits: liftSceneUnits,
           ),
           overlay: SceneOverlay.contours,
           drapedOnTerrain: true,
@@ -276,13 +294,18 @@ ContourBuildResult buildContourLayers({
       final longest = sceneLines.first;
       final vertexCount = longest.length ~/ 3;
       final anchors = <double>[];
+      final labelLiftMeters = math.min(
+        _labelExtraLiftMeters,
+        level.depthMeters / 2,
+      );
+      final labelLiftSceneUnits = labelLiftMeters * projection.horizScale;
       for (var k = 0; k < _labelAnchorCount; k++) {
         final vi = vertexCount <= 1
             ? 0
             : (k * (vertexCount - 1) / (_labelAnchorCount - 1)).round();
         anchors
           ..add(longest[vi * 3])
-          ..add(longest[vi * 3 + 1] + _labelExtraLift)
+          ..add(longest[vi * 3 + 1] + labelLiftSceneUnits)
           ..add(longest[vi * 3 + 2]);
       }
       labels.add(ContourLabelSpec(text: level.label, anchorsXyz: anchors));
@@ -303,6 +326,7 @@ MeshData _ribbonMesh(
   required bool isMajor,
   required int? colorArgb,
   required TerrainCeiling ceiling,
+  required double liftSceneUnits,
 }) {
   final n = xyz.length ~/ 3;
   if (n < 2) {
@@ -353,8 +377,7 @@ MeshData _ribbonMesh(
       final si = vi + s * 3;
       sortHeights[i * 2 + s] = math.max(
         positions[si + 1],
-        ceiling.atScene(positions[si], positions[si + 2]) +
-            contourLiftSceneUnits,
+        ceiling.atScene(positions[si], positions[si + 2]) + liftSceneUnits,
       );
     }
   }

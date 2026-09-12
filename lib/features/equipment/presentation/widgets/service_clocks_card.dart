@@ -138,6 +138,20 @@ class ServiceClocksCard extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(_triggerText(context, units, status)),
+                            // A baseline date, a service record, the
+                            // purchase date or the date the item was added
+                            // can each start a clock; say which date did.
+                            Text(
+                              l10n.equipment_serviceClocks_countingSince(
+                                units.formatDate(status.anchor),
+                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
                             // An hours clock accrues from logged dive
                             // duration, which approximates but is not
                             // identical to rebreather loop time. Say so

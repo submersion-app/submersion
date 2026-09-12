@@ -38,6 +38,7 @@ void main() {
     Future<Directory> Function()? networkImageDirectory,
     Future<String?> Function()? backupsDirectoryPath,
     Future<String> Function()? databasePath,
+    Future<int> Function()? importedFileBytes,
   }) {
     return StorageInventory(
       supportDirectory: () async => support,
@@ -51,19 +52,21 @@ void main() {
       networkImageDirectory:
           networkImageDirectory ??
           () async => Directory(p.join(temporary.path, 'libCachedImageData')),
+      importedFileBytes: importedFileBytes ?? () async => 0,
     );
   }
 
   StorageCategory categoryFor(StorageInventory inventory, String id) =>
       inventory.categories.firstWhere((c) => c.id == id);
 
-  test('exposes exactly the fourteen documented categories', () {
+  test('exposes exactly the fifteen documented categories', () {
     final ids = build().categories.map((c) => c.id).toList();
 
-    expect(ids, hasLength(14));
-    expect(ids.toSet(), hasLength(14), reason: 'ids must be unique');
+    expect(ids, hasLength(15));
+    expect(ids.toSet(), hasLength(15), reason: 'ids must be unique');
     expect(ids, contains(StorageCategoryId.database));
     expect(ids, contains(StorageCategoryId.exports));
+    expect(ids, contains(StorageCategoryId.importedFiles));
   });
 
   test('the database category counts the file and its sidecars', () async {
@@ -319,6 +322,25 @@ void main() {
       expect(
         await categoryFor(inventory, StorageCategoryId.exports).measure(),
         77,
+      );
+    },
+  );
+
+  test('imported files report what the stored rows occupy', () async {
+    final inventory = build(importedFileBytes: () async => 365);
+
+    expect(
+      await categoryFor(inventory, StorageCategoryId.importedFiles).measure(),
+      365,
+    );
+  });
+
+  test(
+    'imported files measure zero rather than unavailable before any import',
+    () async {
+      expect(
+        await categoryFor(build(), StorageCategoryId.importedFiles).measure(),
+        0,
       );
     },
   );

@@ -10,6 +10,7 @@ import 'package:submersion/features/data_quality/data/services/diver_data_query.
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
+import 'package:submersion/features/data_quality/domain/entities/diver_data_summary.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassi
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
     qualityUnitFormattersFor(UnitFormatter(ref.watch(settingsProvider)));
@@ -181,7 +183,20 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         // carries, and waits for an explicit yes before the executor writes
         // anything. The counts are read here rather than in build: one dive,
         // once, on the tap that could lose it.
-        final carries = await DiverDataQuery().forDive(deleteDiveId);
+        //
+        // A failed read aborts, reported like any failed repair. Opening the
+        // dialog without the line instead would look exactly like "this copy
+        // holds nothing", and the card drops this Future, so an uncaught
+        // error would make the tap do nothing at all.
+        final DiverDataSummary? carries;
+        try {
+          carries = await DiverDataQuery().forDive(deleteDiveId);
+        } catch (e) {
+          messenger.showSnackBar(
+            SnackBar(content: Text('${l10n.dataQuality_repair_failed}: $e')),
+          );
+          return;
+        }
         if (!mounted) return;
         final confirmed = await showDeleteDuplicateDialog(
           context,
@@ -220,6 +235,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               .read(diveSplitServiceProvider)
               .split(diveId: diveId, sourceId: sourceId);
           scheduleQualityScan([diveId, newId]);
+          scheduleSensorSummaryRefresh([diveId, newId], force: true);
         } catch (e) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),

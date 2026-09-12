@@ -16,9 +16,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 void main() {
   /// The page is a lazy ListView, so a short surface builds only the rows that
   /// fit. Every test here is about what the page reports rather than about
-  /// scrolling, so the surface is made tall enough for all fourteen rows.
+  /// scrolling, so the surface is made tall enough for all fifteen rows.
   void useTallSurface(WidgetTester tester) {
-    tester.view.physicalSize = const Size(1000, 2400);
+    tester.view.physicalSize = const Size(1000, 2600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -71,8 +71,21 @@ void main() {
     );
     final expected = container.read(storageCategoriesProvider).length;
 
-    expect(expected, 14);
+    expect(expected, 15);
     expect(find.byType(StorageUsageRow), findsNWidgets(expected));
+  });
+
+  testWidgets('shows the raw imported data group and its row', (tester) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(
+      harness(
+        sizes: {StorageCategoryId.importedFiles: () => Future<int?>.value(0)},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Raw imported data'), findsOneWidget);
+    expect(rowText('Imported logbook files'), findsOneWidget);
   });
 
   testWidgets('shows a formatted size once a category resolves', (

@@ -111,6 +111,7 @@ _ResolvedCylinders _resolveCylinders(
       return const _ResolvedCylinders([], {});
     }
     final tanks = <DownloadedTank>[];
+    final roles = _inferSensorlessRoles(gasMixes, parsed.diveMode);
     for (var i = 0; i < gasMixes.length; i++) {
       final g = gasMixes[i];
       gasIndexToTankIndex[i] = g.index;
@@ -119,7 +120,7 @@ _ResolvedCylinders _resolveCylinders(
           index: g.index,
           o2Percent: g.o2Percent,
           hePercent: g.hePercent,
-          role: _inferRole(null, g.o2Percent, g.hePercent),
+          role: roles[i],
         ),
       );
     }
@@ -204,6 +205,92 @@ String _inferRole(int? usage, double o2Percent, double hePercent) {
   }
   return TankRole.backGas.name;
 }
+
+/// Role for each of [gasMixes], in order, on a sensorless (tankless) dive.
+///
+/// A gas whose usage the computer reported directly on the gas mix itself
+/// (`dc_gasmix_t.usage`, independent of any tank/transmitter record) is
+/// authoritative device data, regardless of dive mode: oxygen maps to
+/// [TankRole.oxygenSupply], diluent to [TankRole.diluent]. Sidemount maps to
+/// [TankRole.backGas] rather than [TankRole.sidemountLeft]/[TankRole.sidemountRight]
+/// -- the flag only says the gas is on a sidemount cylinder, not which side,
+/// so it cannot pick between the two.
+///
+/// For a dive recognized as CCR, the gases left with no reported usage are
+/// the open-circuit bailout candidates and are ranked against each other
+/// instead of scored in isolation:
+/// 1. Bottom gas: the lowest O2 percentage among them becomes
+///    [TankRole.bailout]; a tie is broken by the higher helium percentage,
+///    and a further tie gives Bailout to every still-tied gas. A gas that
+///    only loses the helium tie-break gets no automatic Bailout role and
+///    falls through to the next rule.
+/// 2. Deco: every still-unassigned gas at or above the same 41% O2
+///    threshold [_inferRole] uses for open circuit becomes [TankRole.deco].
+/// 3. Stage: everything still unassigned becomes [TankRole.stage].
+///
+/// On any other recognized dive mode, a gas with no reported usage keeps
+/// [_inferRole]'s original single-threshold heuristic, unaffected by this.
+List<String> _inferSensorlessRoles(
+  List<pigeon.GasMix> gasMixes,
+  String? diveMode,
+) {
+  final roles = List<String?>.filled(gasMixes.length, null);
+  final unranked = <int>[];
+  for (var i = 0; i < gasMixes.length; i++) {
+    final g = gasMixes[i];
+    switch (g.usage) {
+      case 1: // DC_USAGE_OXYGEN
+        roles[i] = TankRole.oxygenSupply.name;
+      case 2: // DC_USAGE_DILUENT
+        roles[i] = TankRole.diluent.name;
+      case 3: // DC_USAGE_SIDEMOUNT
+        roles[i] = TankRole.backGas.name;
+      default:
+        unranked.add(i);
+    }
+  }
+
+  if (diveMode != 'ccr') {
+    for (final i in unranked) {
+      final g = gasMixes[i];
+      roles[i] = _inferRole(null, g.o2Percent, g.hePercent);
+    }
+    return [for (final role in roles) role!];
+  }
+
+  if (unranked.isNotEmpty) {
+    final lowestO2 = unranked
+        .map((i) => gasMixes[i].o2Percent)
+        .reduce((a, b) => a < b ? a : b);
+    final atLowestO2 = unranked.where(
+      (i) => _nearlyEqualPercent(gasMixes[i].o2Percent, lowestO2),
+    );
+    final highestHeAtLowestO2 = atLowestO2
+        .map((i) => gasMixes[i].hePercent)
+        .reduce((a, b) => a > b ? a : b);
+    for (final i in atLowestO2) {
+      if (_nearlyEqualPercent(gasMixes[i].hePercent, highestHeAtLowestO2)) {
+        roles[i] = TankRole.bailout.name;
+      }
+    }
+    for (final i in unranked) {
+      if (roles[i] != null) continue;
+      roles[i] = gasMixes[i].o2Percent >= 41.0
+          ? TankRole.deco.name
+          : TankRole.stage.name;
+    }
+  }
+
+  return [for (final role in roles) role!];
+}
+
+/// Whether two gas percentages are the same value within floating-point
+/// noise. Each of the four platform converters independently computes
+/// `fraction * 100.0` from the native `dc_gasmix_t`, so two mixes the diver
+/// set to the same nominal percentage can differ by a few ULPs; an exact
+/// `==` would then miss a real tie in [_inferSensorlessRoles]'s bailout
+/// ranking.
+bool _nearlyEqualPercent(double a, double b) => (a - b).abs() < 1e-6;
 
 /// The gas-mix index (position in [gasMixes]) for [tank], preferring the gas
 /// actually breathed on it. Returns null only when there are no gas mixes.

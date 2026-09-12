@@ -51,6 +51,7 @@ class SyncRepository {
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),
     'itineraryDays': (table: 'trip_itinerary_days', pk: 'id'),
     'tripDayWeather': (table: 'trip_day_weather', pk: 'id'),
+    'importedFiles': (table: 'imported_files', pk: 'id'),
     'diveProfileSeries': (table: 'dive_profile_series', pk: 'id'),
     'tankPressureSeries': (table: 'tank_pressure_series', pk: 'id'),
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
@@ -121,7 +122,32 @@ class SyncRepository {
     // findings phase; registering the clock target now keeps the hlc census
     // honest about the table carrying a clock column.
     'equipmentObservations': (table: 'equipment_observations', pk: 'id'),
+    // equipment_findings has no hlc (it rides on the equipment row's clock)
+    // and equipment_condition_reviews is device-local: neither belongs here.
     'mediaSmartAlbums': (table: 'media_smart_albums', pk: 'id'),
+    // v210: the children exported through their parent
+    // (SyncDataSerializer.parentGatedChildEntities). Their merge refuses a
+    // remote copy strictly older than the local one. The three gear
+    // junctions are keyed by two columns; see [compositeHlcKeys].
+    'diveTanks': (table: 'dive_tanks', pk: 'id'),
+    'diveEquipment': (table: 'dive_equipment', pk: 'dive_id'),
+    'divePlanEquipment': (table: 'dive_plan_equipment', pk: 'plan_id'),
+    'diveWeights': (table: 'dive_weights', pk: 'id'),
+    'equipmentSetItems': (table: 'equipment_set_items', pk: 'set_id'),
+    'diveBuddies': (table: 'dive_buddies', pk: 'id'),
+    'courseRequirementDives': (table: 'course_requirement_dives', pk: 'id'),
+    'diveTags': (table: 'dive_tags', pk: 'id'),
+    'diveDiveTypes': (table: 'dive_dive_types', pk: 'id'),
+    'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
+    'tideRecords': (table: 'tide_records', pk: 'id'),
+    'sightings': (table: 'sightings', pk: 'id'),
+    'diveCustomFields': (table: 'dive_custom_fields', pk: 'id'),
+    'diveDataSources': (table: 'dive_data_sources', pk: 'id'),
+    'siteSpecies': (table: 'site_species', pk: 'id'),
+    'diveProfileEvents': (table: 'dive_profile_events', pk: 'id'),
+    'diveSafetyReviews': (table: 'dive_safety_reviews', pk: 'dive_id'),
+    'diveSafetyFindings': (table: 'dive_safety_findings', pk: 'id'),
+    'gasSwitches': (table: 'gas_switches', pk: 'id'),
   };
 
   // ============================================================================
@@ -613,12 +639,18 @@ class SyncRepository {
       timestamp: 'created_at',
       filter: null,
     ),
-    // The packed sample series (schema v182). A row can reach these tables
-    // unstamped two ways: the v182 pack runs on a device that had no clock
-    // to advance yet, and any series write whose sync bookkeeping did not
-    // land. Without an entry here such a row is invisible to the
-    // incremental export forever, because NULL never passes the strict
-    // watermark comparison.
+    // The packed sample series (schema v182) and the stored logbook files
+    // (v208, issue #478). A row can reach these tables unstamped two ways:
+    // the v182 pack runs on a device that had no clock to advance yet, and
+    // any write whose sync bookkeeping did not land. Without an entry here
+    // such a row is invisible to the incremental export forever, because NULL
+    // never passes the strict watermark comparison.
+    (
+      entityType: 'importedFiles',
+      table: 'imported_files',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
     (
       entityType: 'diveProfileSeries',
       table: 'dive_profile_series',
@@ -694,12 +726,33 @@ class SyncRepository {
   /// here (the write choke point) rather than in every repository companion.
   /// The row is expected to already exist (repositories mark pending after the
   /// insert/update); if it does not, the UPDATE is a harmless no-op.
+  /// The second key column of the [hlcTargets] keyed by two columns (the
+  /// gear junctions, whose record id is `first|second`); [hlcTargets] names
+  /// the first.
+  @visibleForTesting
+  static const Map<String, String> compositeHlcKeys = {
+    'diveEquipment': 'equipment_id',
+    'divePlanEquipment': 'equipment_id',
+    'equipmentSetItems': 'equipment_id',
+  };
+
   Future<void> _stampHlc(String entityType, String recordId) async {
     final target = hlcTargets[entityType];
     if (target == null) return;
     await ensureSyncClockConfigured();
     final hlc = SyncClock.instance.issue();
     if (hlc == null) return;
+    final second = compositeHlcKeys[entityType];
+    if (second != null) {
+      final parts = recordId.split('|');
+      if (parts.length != 2) return;
+      await _db.customStatement(
+        'UPDATE "${target.table}" SET hlc = ? '
+        'WHERE "${target.pk}" = ? AND "$second" = ?',
+        [hlc, parts[0], parts[1]],
+      );
+      return;
+    }
     await _db.customStatement(
       'UPDATE "${target.table}" SET hlc = ? WHERE "${target.pk}" = ?',
       [hlc, recordId],
@@ -1029,12 +1082,23 @@ class SyncRepository {
     return pending + await getUnpublishedDeletionCount(upToHlc: watermark);
   }
 
-  /// Clear all pending sync records
-  Future<void> clearPendingRecords() async {
+  /// Clear pending sync records; with [markedBefore], only those marked
+  /// before it.
+  ///
+  /// A publish passes the time its export snapshot was read. Pending marks
+  /// are an export source for clockless children (they travel on their own,
+  /// not through a parent's HLC), so a mark made after the snapshot is not in
+  /// what was sent, and clearing it would drop that edit.
+  Future<void> clearPendingRecords({int? markedBefore}) async {
     try {
-      await (_db.delete(
-        _db.syncRecords,
-      )..where((t) => t.syncStatus.equals('pending'))).go();
+      await (_db.delete(_db.syncRecords)..where(
+            (t) =>
+                t.syncStatus.equals('pending') &
+                (markedBefore == null
+                    ? const Constant(true)
+                    : t.updatedAt.isSmallerThanValue(markedBefore)),
+          ))
+          .go();
       _log.info('Cleared pending sync records');
     } catch (e, stackTrace) {
       _log.error(
@@ -1080,10 +1144,15 @@ class SyncRepository {
     }
   }
 
-  /// Clear all sync records (useful after full sync)
-  Future<void> clearAllSyncRecords() async {
+  /// Clear all sync records (useful after full sync); with [markedBefore],
+  /// only those marked before it (see [clearPendingRecords]).
+  Future<void> clearAllSyncRecords({int? markedBefore}) async {
     try {
-      await _db.delete(_db.syncRecords).go();
+      final delete = _db.delete(_db.syncRecords);
+      if (markedBefore != null) {
+        delete.where((t) => t.updatedAt.isSmallerThanValue(markedBefore));
+      }
+      await delete.go();
       _log.info('Cleared all sync records');
     } catch (e, stackTrace) {
       _log.error(
@@ -1099,11 +1168,16 @@ class SyncRepository {
   // Deletion Log Operations
   // ============================================================================
 
-  /// Log a record deletion for sync
+  /// Log a record deletion for sync. A local delete's own clock is the
+  /// stamp issued here. A [relayed] peer tombstone keeps the clock the peer
+  /// sent as [originHlc], or none: this device's stamp says only when it
+  /// heard of the delete, not when the delete happened.
   Future<void> logDeletion({
     required String entityType,
     required String recordId,
     int? deletedAt,
+    bool relayed = false,
+    String? originHlc,
   }) async {
     try {
       final id = _uuid.v4();
@@ -1137,6 +1211,7 @@ class SyncRepository {
                 recordId: Value(recordId),
                 deletedAt: Value(now),
                 hlc: Value(hlc),
+                originHlc: Value(relayed ? originHlc : hlc),
               ),
             );
       });
@@ -1189,6 +1264,7 @@ class SyncRepository {
     required String entityType,
     required String recordId,
     required int deletedAt,
+    String? originHlc,
   }) async {
     // Use .get() instead of .getSingleOrNull() to handle cases where
     // duplicate deletion entries exist (the schema allows this since
@@ -1203,6 +1279,8 @@ class SyncRepository {
       entityType: entityType,
       recordId: recordId,
       deletedAt: deletedAt,
+      relayed: true,
+      originHlc: originHlc,
     );
   }
 

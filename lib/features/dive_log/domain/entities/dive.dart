@@ -1097,6 +1097,13 @@ class DiveTank extends Equatable {
   /// tank editor sets it and downloads never touch it.
   final String? regulatorEquipmentId;
 
+  /// The gear item this cylinder is (the `dive_tanks.equipment_id` link the
+  /// transmitter registry writes when a serial is assigned to an item).
+  /// Read-only on the domain side: edit flows rebuild the tank field by
+  /// field and never write it, like [computerId], so a rebuild that forgot
+  /// it cannot wipe what the registry recorded.
+  final String? equipmentId;
+
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
   /// Unused for logged-dive tanks.
@@ -1126,6 +1133,7 @@ class DiveTank extends Equatable {
     this.transmitterSerial,
     this.sourceTankIndex,
     this.regulatorEquipmentId,
+    this.equipmentId,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
@@ -1157,6 +1165,7 @@ class DiveTank extends Equatable {
     int? sourceTankIndex,
     bool clearSourceTankIndex = false,
     String? regulatorEquipmentId,
+    String? equipmentId,
     bool clearRegulatorEquipmentId = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
@@ -1184,6 +1193,7 @@ class DiveTank extends Equatable {
       regulatorEquipmentId: clearRegulatorEquipmentId
           ? null
           : (regulatorEquipmentId ?? this.regulatorEquipmentId),
+      equipmentId: equipmentId ?? this.equipmentId,
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -1208,6 +1218,7 @@ class DiveTank extends Equatable {
     transmitterSerial,
     sourceTankIndex,
     regulatorEquipmentId,
+    equipmentId,
     decoSwitchDepth,
     isTravelGas,
   ];

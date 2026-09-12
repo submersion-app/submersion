@@ -75,20 +75,51 @@ void main() {
       expect(received, isTrue);
     });
 
-    testWidgets('renders nothing for a non-selectable row', (tester) async {
+    testWidgets('keeps the column blank for a non-selectable row', (
+      tester,
+    ) async {
+      const selectable = ValueKey('selectable');
+      const locked = ValueKey('locked');
       await tester.pumpWidget(
-        host(
-          const SelectionCheckboxSlot(
-            isSelectionMode: true,
-            isChecked: false,
-            isSelectable: false,
+        const MaterialApp(
+          home: Scaffold(
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    SelectionCheckboxSlot(
+                      key: selectable,
+                      isSelectionMode: true,
+                      isChecked: false,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    SelectionCheckboxSlot(
+                      key: locked,
+                      isSelectionMode: true,
+                      isChecked: false,
+                      isSelectable: false,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(Checkbox), findsNothing);
-      expect(tester.getSize(find.byType(SelectionCheckboxSlot)).width, 0);
+      expect(find.byType(Checkbox), findsOneWidget);
+      expect(
+        tester.getSize(find.byKey(locked)).width,
+        tester.getSize(find.byKey(selectable)).width,
+        reason:
+            'a row without a checkbox keeps the column blank so its content '
+            'lines up with the rows that have one',
+      );
     });
   });
 }

@@ -1,6 +1,9 @@
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
@@ -89,6 +92,80 @@ void main() {
       expect(TileCacheService.browseStoreMaxTiles, greaterThan(0));
       expect(TileCacheService.browseTileMaxAge, const Duration(days: 30));
     });
+  });
+
+  // Flutter's ImageCache keys an FMTC tile on (coordinates, provider), and
+  // FMTCTileProvider's equality includes its httpClient by identity. A map
+  // that remounts (every dive selected in the master-detail pane rebuilds its
+  // header map) builds a fresh provider, so unless two providers compare
+  // equal, every tile misses the in-memory cache and blinks back in through
+  // FMTC's async lookup even when it was on screen a moment ago.
+  //
+  // The tile URL is NOT part of that key, so the opposite failure is just as
+  // real: if providers for two map styles compared equal, switching styles
+  // would paint the previous style's cached bitmap for the same z/x/y.
+  group('tile provider identity', () {
+    final osm = MapTileConfig.urlTemplate(MapStyle.openStreetMap);
+    final esri = MapTileConfig.urlTemplate(MapStyle.esriSatellite);
+    const coords = TileCoordinates(4, 7, 12);
+
+    // The key the ImageCache actually stores a tile under.
+    Object cacheKey(FMTCTileProvider provider, String urlTemplate) =>
+        provider.getImage(coords, TileLayer(urlTemplate: urlTemplate));
+
+    test('two browse providers are equal, so remounted maps hit the cache', () {
+      final first = TileCacheService.browseTileProvider(urlTemplate: osm);
+      final second = TileCacheService.browseTileProvider(urlTemplate: osm);
+
+      expect(identical(first, second), isFalse);
+      expect(first, second);
+      expect(first.hashCode, second.hashCode);
+      expect(cacheKey(first, osm), cacheKey(second, osm));
+    });
+
+    test('switching map style never reuses the old style\'s tile', () {
+      final before = TileCacheService.browseTileProvider(urlTemplate: osm);
+      final after = TileCacheService.browseTileProvider(urlTemplate: esri);
+
+      expect(before, isNot(after));
+      expect(cacheKey(before, osm), isNot(cacheKey(after, esri)));
+    });
+
+    test('an uninitialized cache hands maps no provider', () {
+      // Every map passes this straight to TileLayer.tileProvider, where null
+      // means flutter_map's own network provider: a cache that failed to
+      // start must still leave the maps working.
+      expect(
+        TileCacheService.instance.tileProviderFor(urlTemplate: osm),
+        isNull,
+      );
+    });
+
+    test('a different loading strategy is a different cache key', () {
+      expect(
+        TileCacheService.browseTileProvider(urlTemplate: osm),
+        isNot(
+          TileCacheService.browseTileProvider(
+            urlTemplate: osm,
+            loadingStrategy: BrowseLoadingStrategy.cacheOnly,
+          ),
+        ),
+      );
+    });
+
+    test(
+      'offline providers are equal per style and distinct across styles',
+      () {
+        expect(
+          TileCacheService.offlineTileProvider(urlTemplate: osm),
+          TileCacheService.offlineTileProvider(urlTemplate: osm),
+        );
+        expect(
+          TileCacheService.offlineTileProvider(urlTemplate: osm),
+          isNot(TileCacheService.offlineTileProvider(urlTemplate: esri)),
+        );
+      },
+    );
   });
 
   // Issue #1403: deleting a region used to free nothing, because FMTC can only

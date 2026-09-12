@@ -13,7 +13,8 @@ class DiverDataSummary {
     this.buddies = 0,
     this.tags = 0,
     this.sightings = 0,
-    this.media = 0,
+    this.photosAndVideos = 0,
+    this.attachments = 0,
     this.customFields = 0,
     this.hasNotes = false,
     this.hasRating = false,
@@ -34,8 +35,11 @@ class DiverDataSummary {
   /// Marine life sightings.
   final int sightings;
 
-  /// Photos, videos and signatures linked to the dive.
-  final int media;
+  /// Photos and videos linked to the dive.
+  final int photosAndVideos;
+
+  /// Everything else in the dive's media: signatures, documents, maps.
+  final int attachments;
   final int customFields;
 
   /// Notes with something other than whitespace in them.
@@ -55,7 +59,8 @@ class DiverDataSummary {
       buddies == 0 &&
       tags == 0 &&
       sightings == 0 &&
-      media == 0 &&
+      photosAndVideos == 0 &&
+      attachments == 0 &&
       customFields == 0 &&
       !hasNotes &&
       !hasRating &&
@@ -64,6 +69,4 @@ class DiverDataSummary {
       !hasTrip &&
       !hasDiveCenter &&
       !hasCourse;
-
-  bool get isNotEmpty => !isEmpty;
 }

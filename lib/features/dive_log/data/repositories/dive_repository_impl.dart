@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
@@ -66,6 +67,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -93,6 +95,7 @@ class DiveRepository {
   factory DiveRepository({
     MediaRepository? mediaRepository,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
+    ImportedFileReclaimer? importedFileReclaimer,
   }) {
     final media = mediaRepository ?? MediaRepository();
     return DiveRepository._(
@@ -106,13 +109,19 @@ class DiveRepository {
             // start, or any other kick; the Verify Library sweep is the
             // backstop.
           ),
+      importedFileReclaimer ?? ImportedFileReclaimer(),
     );
   }
 
-  DiveRepository._(this._mediaRepository, this._mediaDeletionCoordinator);
+  DiveRepository._(
+    this._mediaRepository,
+    this._mediaDeletionCoordinator,
+    this._importedFileReclaimer,
+  );
 
   final MediaRepository _mediaRepository;
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
+  final ImportedFileReclaimer _importedFileReclaimer;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final ProfileSeriesRepository _profileSeries = ProfileSeriesRepository();
@@ -122,6 +131,8 @@ class DiveRepository {
   final _log = LoggerService.forClass(DiveRepository);
   final TagRepository _tagRepository = TagRepository();
   final BuddyRepository _buddyRepository = BuddyRepository();
+  final EquipmentObservationRepository _observationRepository =
+      EquipmentObservationRepository();
   late final DiveCustomFieldRepository _customFieldRepository =
       DiveCustomFieldRepository(_db);
 
@@ -227,6 +238,9 @@ class DiveRepository {
   /// them with a raw insertOnConflictUpdate straight into the tables; the one-
   /// shot safetyReviewProvider self-invalidates on this stream so a freshly
   /// synced (or batch-analyzed) review becomes visible without an app restart.
+  ///
+  /// Also watches `dive_sensor_summaries`, which the condition sweep fills
+  /// outside any notifier.
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -253,6 +267,10 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.tideRecords),
           TableUpdateQuery.onTable(_db.diveSafetyReviews),
           TableUpdateQuery.onTable(_db.diveSafetyFindings),
+          // The sensor summary cache (condition phase 2): written by the
+          // sweep and the scheduler outside any notifier, read by the
+          // chart host through diveSensorSummaryProvider.
+          TableUpdateQuery.onTable(_db.diveSensorSummaries),
         ]),
       )
       .debounce(changeTickDebounce);
@@ -1929,7 +1947,15 @@ class DiveRepository {
     try {
       _log.info('Deleting dive: $id');
       if (cascadeMedia) await _cascadeMediaForDiveDeletion([id]);
+      // Check-ins on the dive stay as bench notes; staged, not just nulled.
+      await _observationRepository.unlinkFromDeletedDives([id]);
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
+      // The FK cascade took this dive's dive_data_sources rows, which may
+      // have held the last reference to a stored import file (issue #478).
+      // Gated on cascadeMedia for the same reason the media cascade is: a
+      // restore-safe delete is about to re-insert source rows naming that
+      // file, and reclaiming it here would leave them pointing at nothing.
+      if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive: $id');
@@ -1954,7 +1980,11 @@ class DiveRepository {
     try {
       _log.info('Bulk deleting ${ids.length} dives');
       if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
+      // Check-ins on the dives stay as bench notes; staged, not just nulled.
+      await _observationRepository.unlinkFromDeletedDives(ids);
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+      // See deleteDive: the cascade may have orphaned a stored import file.
+      if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       for (final id in ids) {
         await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       }
@@ -2440,12 +2470,18 @@ class DiveRepository {
         filter.equipmentIds.length,
         '?',
       ).join(', ');
+      // Directly linked, or through a tank the registry matched to a
+      // cylinder, in step with the statistics filter and apply().
       clauses.add(
-        'EXISTS (SELECT 1 FROM dive_equipment de '
-        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders))',
+        '(EXISTS (SELECT 1 FROM dive_equipment de '
+        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders)) '
+        'OR EXISTS (SELECT 1 FROM dive_tanks dt '
+        'WHERE dt.dive_id = d.id AND dt.equipment_id IN ($placeholders)))',
       );
-      for (final eqId in filter.equipmentIds) {
-        args.add(Variable(eqId));
+      for (var pass = 0; pass < 2; pass++) {
+        for (final eqId in filter.equipmentIds) {
+          args.add(Variable(eqId));
+        }
       }
     }
     if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
@@ -3542,6 +3578,8 @@ class DiveRepository {
         resortName: trip.resortName,
         liveaboardName: trip.liveaboardName,
         notes: trip.notes,
+        expectedDives: trip.expectedDives,
+        expectedRuntimeMinutes: trip.expectedRuntimeMinutes,
         createdAt: DateTime.fromMillisecondsSinceEpoch(trip.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(trip.updatedAt),
       );
@@ -3709,6 +3747,7 @@ class DiveRepository {
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
               regulatorEquipmentId: t.regulatorEquipmentId,
+              equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
           )
@@ -3951,6 +3990,8 @@ class DiveRepository {
           resortName: tripRow.resortName,
           liveaboardName: tripRow.liveaboardName,
           notes: tripRow.notes,
+          expectedDives: tripRow.expectedDives,
+          expectedRuntimeMinutes: tripRow.expectedRuntimeMinutes,
           createdAt: DateTime.fromMillisecondsSinceEpoch(tripRow.createdAt),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(tripRow.updatedAt),
         );
@@ -4128,6 +4169,7 @@ class DiveRepository {
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
           regulatorEquipmentId: t.regulatorEquipmentId,
+          equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
       }).toList(),
@@ -6262,12 +6304,15 @@ class DiveRepository {
     return {for (final r in rows) r.read(j.diveTypeId)!: r.read(countExpr)!};
   }
 
+  /// A whole new tank row. [withLink] writes [t]'s registry cylinder link;
+  /// only an undo restoring the rows it captured passes it.
   DiveTanksCompanion _tankCompanion(
     String id,
     String diveId,
     domain.DiveTank t,
-    int order,
-  ) => DiveTanksCompanion(
+    int order, {
+    bool withLink = false,
+  }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
     volume: Value(t.volume),
@@ -6285,6 +6330,10 @@ class DiveRepository {
     transmitterSerial: Value(t.transmitterSerial),
     regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
+    // The registry's cylinder link, owned by the transmitter registry. A
+    // template copied from a linked tank must not stamp that cylinder onto
+    // every dive it lands on, so only a restore writes it.
+    equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -6440,10 +6489,15 @@ class DiveRepository {
 
   /// Replace each dive's tank list with [tanks] (fresh ids, sequential order).
   /// No notify/txn. Cascades to delete tank_pressure_series/gas_switches.
+  ///
+  /// [restoreLinks] keeps each tank's registry cylinder link: set by undo,
+  /// which puts back the rows it captured. A bulk edit's template tanks
+  /// never write one.
   Future<void> bulkReplaceTanks(
     List<String> diveIds,
-    List<domain.DiveTank> tanks,
-  ) async {
+    List<domain.DiveTank> tanks, {
+    bool restoreLinks = false,
+  }) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
@@ -6463,7 +6517,15 @@ class DiveRepository {
         final tankId = _uuid.v4();
         await _db
             .into(_db.diveTanks)
-            .insert(_tankCompanion(tankId, diveId, tanks[i], i));
+            .insert(
+              _tankCompanion(
+                tankId,
+                diveId,
+                tanks[i],
+                i,
+                withLink: restoreLinks,
+              ),
+            );
         await _syncRepository.markRecordPending(
           entityType: 'diveTanks',
           recordId: tankId,
@@ -7334,6 +7396,7 @@ class DiveRepository {
       sourceFormat: row.sourceFormat,
       sourceFileName: row.sourceFileName,
       sourceFileFormat: row.sourceFileFormat,
+      importedFileId: row.importedFileId,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       duration: row.duration,

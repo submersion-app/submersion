@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_roles/presentation/providers/dive_role_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
+import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
@@ -157,14 +158,14 @@ class BuddyListTile extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Center(
-                        child: SelectionLeading(
-                          isSelectionMode: isSelectionMode,
-                          isChecked: isChecked,
-                          onChanged: (_) => onTap?.call(),
+                    SelectionLeading(
+                      isSelectionMode: isSelectionMode,
+                      isChecked: isChecked,
+                      onChanged: (_) => onTap?.call(),
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Center(
                           child: _BuddyAvatar(
                             buddy: buddy,
                             ringColor: agencyColor,
@@ -214,10 +215,9 @@ class BuddyListTile extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: _contentInset,
-                  ),
+                SelectionInset(
+                  isSelectionMode: isSelectionMode,
+                  start: _contentInset,
                   child: Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 16,
@@ -230,10 +230,9 @@ class BuddyListTile extends ConsumerWidget {
                 ),
                 if (trailer.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      start: _contentInset,
-                    ),
+                  SelectionInset(
+                    isSelectionMode: isSelectionMode,
+                    start: _contentInset,
                     child: Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 8,
@@ -244,10 +243,9 @@ class BuddyListTile extends ConsumerWidget {
                 ],
                 if (config.extraFields.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      start: _contentInset,
-                    ),
+                  SelectionInset(
+                    isSelectionMode: isSelectionMode,
+                    start: _contentInset,
                     child:
                         EntityCardExtraFields<BuddyWithDiveCount, BuddyField>(
                           adapter: adapter,

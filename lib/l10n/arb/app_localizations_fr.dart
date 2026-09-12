@@ -21,6 +21,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_components_add => 'Ajouter un composant';
 
   @override
+  String get equipment_components_containsSection => 'Contient';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Aucun composant. Ajoutez les pièces qui composent cet équipement.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'Aucune pièce propre. Ajoutez-en si cet équipement est composé d\'autres éléments.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -97,6 +104,14 @@ class AppLocalizationsFr extends AppLocalizations {
       one: 'Fait partie de 1 ensemble',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'Fait partie de';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role, dans $rigs';
   }
 
   @override
@@ -602,6 +617,28 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_bulkEdit_confirmApply => 'Appliquer';
+
+  @override
+  String diveLog_bulkEdit_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajout à toutes les $count plongées',
+      one: 'Ajout à 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retrait de toutes les $count plongées',
+      one: 'Retrait de 1 plongée',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_bulkEdit_nothingSelected =>
@@ -2680,6 +2717,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get preDive_runner_serviceOverdue => 'Entretien en retard';
+
+  @override
+  String get preDive_runner_conditionFindings => 'Constats d\'état';
 
   @override
   String get preDive_runner_addNote => 'Ajouter une note';
@@ -7045,8 +7085,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setup_welcome_startFresh_title => 'Créer un nouveau profil';
 
   @override
-  String get setup_welcome_subtitle =>
-      'Enregistrement et analyse avancés de plongée';
+  String get setup_welcome_subtitle => 'Plongez en sécurité. Enregistrez tout.';
 
   @override
   String get setup_welcome_title => 'Bienvenue dans Submersion';
@@ -11497,6 +11536,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Erreur';
 
   @override
+  String get equipment_detail_installedInLabel => 'Installé dans';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Dernière révision';
 
   @override
@@ -11520,6 +11562,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'Possede depuis';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Date d\'achat';
@@ -11575,6 +11622,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String equipment_serviceClocks_overdueSince(String date) {
     return 'En retard depuis le $date';
+  }
+
+  @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Décompte depuis le $date';
   }
 
   @override
@@ -11757,7 +11809,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Utilisée lorsqu\'aucun entretien de ce type n\'a encore été enregistré';
+      'Le compteur part de cette date jusqu\'à l\'enregistrement d\'un entretien plus récent.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>
@@ -11923,6 +11975,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Voir les voyages utilisant cet équipement';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Était installé dans';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Modifier l\'équipement';
@@ -15732,7 +15787,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_about_description =>
-      'Suivez vos plongées, gerez votre équipement et explorez les sites de plongée.';
+      'Plongez en sécurité. Enregistrez tout.';
 
   @override
   String get settings_about_header => 'À propos';
@@ -17316,6 +17371,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Anomalie';
+
+  @override
+  String get settings_conflict_ref_importedFile => 'Fichier importé';
 
   @override
   String get settings_conflict_ref_instructor => 'Moniteur';
@@ -19136,6 +19194,112 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Tendance de lestage';
 
   @override
+  String get statistics_equipment_exposure_title => 'Exposition';
+
+  @override
+  String get statistics_equipment_exposure_error =>
+      'Impossible de charger les données d\'exposition';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Impossible de charger les constats d\'état';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'Impossible de charger les problèmes signalés';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Totaux par équipement avec vos seuils';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Aucune plongée avec équipement pour l\'instant';
+
+  @override
+  String get statistics_equipment_findings_title => 'Constats d\'état';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Constats ouverts par règle';
+
+  @override
+  String get statistics_equipment_findings_subtitleAllDives =>
+      'Constats ouverts par règle, sur toutes les plongées';
+
+  @override
+  String get statistics_equipment_findings_empty => 'Aucun constat ouvert';
+
+  @override
+  String get statistics_equipment_issues_title => 'Problèmes signalés';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Étiquettes de contrôle les plus fréquentes';
+
+  @override
+  String get statistics_equipment_issues_empty => 'Aucun problème signalé';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'équipements';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'constats';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'signalements';
+
+  @override
+  String get statistics_equipment_exposureUnit_days => 'Jours';
+
+  @override
+  String get statistics_equipment_exposureUnit_dives => 'Plongées';
+
+  @override
+  String get statistics_equipment_countLabel_days => 'jours';
+
+  @override
+  String get statistics_equipment_countLabel_dives => 'plongées';
+
+  @override
+  String get statistics_equipment_countLabel_hours => 'heures';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'heures en eau salée';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'plongées froides';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'heures à O2 élevé';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'plongées profondes';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'cycles de batterie';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Heures';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours =>
+      'Heures en eau salée';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Plongées froides';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'Heures à O2 élevé';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles =>
+      'Plongées profondes';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Cycles de batterie';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Erreur de chargement des statistiques';
 
@@ -20312,6 +20476,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_manage_title => 'Étiquettes';
 
   @override
+  String get tags_manage_importsSection => 'Imports';
+
+  @override
+  String get tags_manage_autoTagImports =>
+      'Étiqueter automatiquement les imports';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Chaque nouvel import commence avec une étiquette indiquant la source et la date. Vous pouvez modifier cela pour un import donné dans ses options.';
+
+  @override
   String get tags_manage_searchHint => 'Rechercher des étiquettes...';
 
   @override
@@ -20765,6 +20940,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Exporter l\'inventaire d\'équipement et les informations de service';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Chaque vérification OK et chaque problème signalé, avec la plongée, les étiquettes et la note';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Exporter les sites de plongée et leurs détails';
 
@@ -20781,6 +20960,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV Équipement';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'CSV des bilans d\'équipement';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'CSV Sites';
 
   @override
@@ -20793,6 +20976,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Équipement';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Bilans d\'équipement';
 
   @override
   String get transfer_csvExport_typeSites => 'Sites';
@@ -20844,6 +21030,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get transfer_export_optionSaveSubtitle =>
       'Choisissez ou enregistrer sur votre appareil';
+
+  @override
+  String get transfer_export_includeGear => 'Inclure l\'équipement';
+
+  @override
+  String get transfer_export_includeGearSubtitle =>
+      'Ajoute l\'équipement et l\'ordinateur de plongée utilisés à chaque plongée. Les détails d\'achat sont omis.';
+
+  @override
+  String get transfer_export_includeParticipants => 'Inclure les participants';
+
+  @override
+  String get transfer_export_includeParticipantsSubtitle =>
+      'Ajoute les binômes, les guides et leurs rôles à chaque plongée, avec nom et certification. Les coordonnées sont omises.';
 
   @override
   String get transfer_export_includeRawData =>
@@ -21634,6 +21834,119 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
+
+  @override
+  String get trips_edit_sectionTitle_planning => 'Planification';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Plongées prévues';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Laisser vide pour estimer d\'après vos voyages récents';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Durée prévue par plongée (minutes)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Laisser vide pour estimer d\'après vos plongées en recycleur récentes';
+
+  @override
+  String get trips_scrubber_title => 'Marge de chaux';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'au $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min restantes avant le voyage (nominal $rated min, $consumed min utilisées depuis le dernier remplissage)';
+  }
+
+  @override
+  String trips_scrubber_remainingNoRepack(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min restantes avant le voyage (nominal $rated min, $consumed min utilisées, aucun remplissage enregistré)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées prévues',
+      one: '$dives plongée prévue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(d\'après vos $n derniers voyages)',
+      one: '(d\'après votre dernier voyage)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(défini sur ce voyage)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min par plongée';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '(d\'après vos $n dernières plongées en recycleur)',
+      one: '(d\'après votre dernière plongée en recycleur)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min d\'usage prévu';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min de marge après le voyage';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Moins de 20 pour cent de la durée nominale. Prévoyez un remplissage ou emportez de la chaux de rechange.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Aucune durée nominale sur ce recycleur ; ajoutez la durée de la chaux à ses attributs ou un calendrier de remplissage.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min de marge de chaux';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count recycleurs, la plus faible marge de chaux est de $minutes min';
+  }
 
   @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
@@ -24872,6 +25185,38 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_menu_resyncImportedFile =>
+      'Resynchroniser depuis le fichier original';
+
+  @override
+  String get diveLog_detail_resyncSuccess =>
+      'Plongée mise à jour à partir du fichier original';
+
+  @override
+  String get diveLog_detail_resyncFailed_diveMissing =>
+      'Impossible de resynchroniser : cette plongée n\'existe plus';
+
+  @override
+  String get diveLog_detail_resyncFailed_noStoredFile =>
+      'Impossible de resynchroniser : aucun fichier original n\'est enregistré pour cette plongée';
+
+  @override
+  String get diveLog_detail_resyncFailed_unsupportedFormat =>
+      'Impossible de resynchroniser : ce format de fichier n\'est pas pris en charge';
+
+  @override
+  String get diveLog_detail_resyncFailed_storedFileMissing =>
+      'Impossible de resynchroniser : le fichier original est introuvable sur cet appareil';
+
+  @override
+  String get diveLog_detail_resyncFailed_noMatchingDive =>
+      'Impossible de resynchroniser : le fichier original ne contient plus de plongée correspondante';
+
+  @override
+  String get diveLog_detail_resyncFailed_unexpectedError =>
+      'Impossible de resynchroniser : une erreur inattendue s\'est produite lors de la lecture du fichier original';
+
+  @override
   String get universalImport_label_replaceSource => 'Remplacer la source';
 
   @override
@@ -24891,6 +25236,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Utiliser les numéros de plongée du fichier importé au lieu de les attribuer automatiquement';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Étiqueter automatiquement cet import';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'Démarre avec votre préférence enregistrée dans les paramètres Étiquettes. La modifier ici n\'affecte que cet import.';
 
   @override
   String get universalImport_title_successImported => 'Importation réussie';
@@ -27025,6 +27378,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les rapports de presque-accidents se synchronisent entre vos appareils et figurent dans vos sauvegardes, mais jamais dans les exports ni les pages de carnet partagées.';
 
   @override
+  String get incidentEdit_equipment => 'Équipement impliqué';
+
+  @override
+  String get incidentEdit_equipment_none => 'Aucun';
+
+  @override
+  String get incidentEdit_equipment_onThisDive => 'Sur cette plongée';
+
+  @override
+  String get incidentEdit_equipment_allGear => 'Tout l\'équipement';
+
+  @override
   String get incidentCategory_buoyancy => 'Flottabilité';
 
   @override
@@ -27094,6 +27459,347 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'État du matériel';
 
   @override
+  String get equipmentCondition_children_title => 'Pièces installées';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'Emplacement $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Installé le $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'il y a $days jours',
+      one: 'il y a 1 jour',
+      zero: 'aujourd\'hui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'il y a $months mois',
+      one: 'il y a 1 mois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Remplacer';
+
+  @override
+  String get equipmentCondition_children_open => 'Ouvrir';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'Remplacer $name ?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name est retiré aujourd\'hui et un nouvel élément de type $type prend sa place dans le même emplacement. Le numéro de série et les notes démarrent vides.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Remplacer';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Annuler';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name remplacé';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'Aucune cellule ni batterie enregistrée';
+
+  @override
+  String get equipmentCondition_children_add => 'Ajouter';
+
+  @override
+  String get equipmentCondition_findings_title => 'Constats d\'état';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count constats',
+      one: '1 constat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'Plongées à l\'appui';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'Ignorer';
+
+  @override
+  String get equipmentCondition_findings_restore => 'Rétablir';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Afficher $count ignorés',
+      one: 'Afficher 1 ignoré',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'Plongées à l\'appui';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'Plongée $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'Plongée';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n min';
+  }
+
+  @override
+  String get equipmentCondition_trend_title_cellGain =>
+      'Sortie des cellules par plongée';
+
+  @override
+  String get equipmentCondition_trend_title_gap =>
+      'Pertes de signal de l\'émetteur par plongée';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'Usage de la chaux par plongée';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Température minimale par plongée';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'Cellule $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Plongées avec un problème';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Minutes de chaux';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Part des pertes';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'Température minimale';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'min';
+
+  @override
+  String get equipmentCondition_exposure_title => 'Exposition';
+
+  @override
+  String get equipmentCondition_exposure_empty =>
+      'Aucune plongée avec cet équipement pour l\'instant';
+
+  @override
+  String equipmentCondition_exposure_footer(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
+  String equipmentCondition_exposure_dives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_hours(String n) {
+    return '$n heures';
+  }
+
+  @override
+  String equipmentCondition_exposure_saltHours(String n) {
+    return '$n heures en eau salée';
+  }
+
+  @override
+  String equipmentCondition_exposure_coldDives(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n plongées froides',
+      one: '1 plongée froide',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_o2Hours(String n) {
+    return '$n heures à O2 élevé';
+  }
+
+  @override
+  String equipmentCondition_exposure_deepCycles(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n plongées profondes',
+      one: '1 plongée profonde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_cycles(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n cycles de batterie',
+      one: '1 cycle de batterie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'La sortie de la cellule $slot a chuté de $percent pour cent sur $n plongées depuis le $since';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'La sortie de la cellule $slot est de $gain mV par bar sur les $n dernières plongées';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'La cellule $slot a divergé des autres jusqu\'à $bar bar sur $count des $n dernières plongées';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'La cellule $slot a lu trop bas à ppO2 élevée sur $count des $n dernières plongées, jusqu\'à $percent pour cent des mesures';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'La pression a été perdue pendant $recent pour cent des 5 dernières plongées, contre $prior pour cent sur les $priorCount précédentes';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'La pression a été perdue pendant $recent pour cent des $n dernières plongées en moyenne, dont $count au-dessus de 10 pour cent';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag signalé $count fois sur les $n dernières plongées';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue des $totalIssue plongées avec un problème étaient plus froides que $threshold, sur $n plongées avec cet équipement';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue des $totalIssue plongées avec un problème allaient au-delà de $threshold, sur $n plongées avec cet équipement';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count incidents mentionnent cet équipement',
+      one: '1 incident mentionne cet équipement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader =>
       'Seuils d\'exposition';
 
@@ -27118,6 +27824,318 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipmentConditionSettings_saveFailed =>
       'Enregistrement impossible. Réessayez.';
+
+  @override
+  String get equipmentConditionSettings_sensorHeader =>
+      'Synthèses des capteurs';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Le profil de chaque plongée est synthétisé une fois pour la sortie des cellules, les pertes de l\'émetteur et l\'usage de la chaux. Les plongées nouvelles ou modifiées sont synthétisées d\'elles-mêmes.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Reconstruire les synthèses des capteurs';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Recalculer la synthèse de chaque plongée à partir de son profil';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '$done sur $total synthétisées';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Synthèses des capteurs reconstruites';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithBothErrors(
+    int dives,
+    int items,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées n\'ont pas pu être synthétisées',
+      one: '1 plongée n\'a pas pu être synthétisée',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items équipements',
+      one: '1 équipement',
+    );
+    return '$_temp0 ; les constats d\'état de $_temp1 n\'ont pas pu être actualisés';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées n\'ont pas pu être synthétisées',
+      one: '1 plongée n\'a pas pu être synthétisée',
+    );
+    return 'Synthèses des capteurs reconstruites ; $_temp0';
+  }
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithFindingErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count équipements',
+      one: '1 équipement',
+    );
+    return 'Synthèses des capteurs reconstruites ; les constats d\'état de $_temp0 n\'ont pas pu être actualisés';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'Impossible de reconstruire les synthèses des capteurs.';
+
+  @override
+  String get equipmentConditionSettings_masterToggle => 'Constats d\'état';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'Signale les tendances de la sortie des cellules, des pertes de signal de l\'émetteur et des problèmes signalés, avec les chiffres à l\'appui';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'Règles';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'Sortie de cellule en baisse';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow =>
+      'Sortie de cellule faible';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'Cellule en désaccord avec les autres';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'Cellule limitée en courant à ppO2 élevée';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'Pertes de signal de l\'émetteur en hausse';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'Pertes de signal de l\'émetteur élevées';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring =>
+      'Problème récurrent';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'Problèmes lors des plongées froides';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'Problèmes lors des plongées profondes';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked => 'Incidents liés';
+
+  @override
+  String get equipmentObservation_tag_freeFlow => 'Débit continu';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Respiration dure';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Respiration humide';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Fuite';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Flexible endommagé';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflateur bloqué';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflateur lent';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Fuite de la vessie';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Fuite de purge';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Fuite au joint de cou';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Fuite au joint de poignet';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Fuite à la fermeture';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Fuite au chausson';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Fuite de valve';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Fuite de couture';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Déchirure';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Couture ouverte';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Faible';
+
+  @override
+  String get equipmentObservation_tag_died => 'En panne';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Inondé';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Défaut d\'interrupteur';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Batterie faible';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Défaut d\'écran';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Défaut de connexion';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Perte de signal';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Alerte cellule';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Fuite de boucle';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Défaut de solénoïde';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough =>
+      'Percée de la chaux';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Réponse lente';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Erratique';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Faible capacité';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Défaut d\'hélice';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Sangle cassée';
+
+  @override
+  String get equipmentObservation_tag_other => 'Autre';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Problème';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Bilan : $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'Aucun bilan sur cette plongée pour l\'instant.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench =>
+      'Aucun bilan pour l\'instant.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Ajouter un bilan';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Modifier le bilan';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Supprimer le bilan';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm => 'Supprimer ce bilan ?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Note';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'Ce qui s\'est passé';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Observé';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Plongée';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'Sans plongée (atelier)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Choisir une plongée';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Enregistrer';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Annuler';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Choisissez au moins une étiquette pour un problème';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Vérifié, OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Problème signalé';
+
+  @override
+  String get equipmentObservation_chip_none => 'Faire un bilan';
+
+  @override
+  String get equipmentObservation_card_title => 'Bilans';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'Aucun bilan enregistré pour cet élément.';
+
+  @override
+  String get equipmentObservation_card_add => 'Ajouter un bilan';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'Plongée n° $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Atelier';
 
   @override
   String get settings_section_security_title => 'Sécurité de l\'application';
@@ -27664,6 +28682,17 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count photos ou vidéos',
       one: '1 photo ou vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pièces jointes',
+      one: '1 pièce jointe',
     );
     return '$_temp0';
   }
@@ -36580,6 +37609,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Export de l’équipement vers CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Export des bilans d\'équipement en CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Génération du carnet PDF...';
 
   @override
@@ -36649,6 +37682,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Préparation du CSV de l’équipement...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'Préparation du CSV des bilans d\'équipement...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Préparation du fichier UDDF...';
 
@@ -36671,6 +37708,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_export_empty_equipment => 'Aucun équipement à exporter';
+
+  @override
+  String get settings_export_empty_observations =>
+      'Aucun bilan d\'équipement à exporter';
 
   @override
   String get settings_export_empty_data => 'Aucune donnée à exporter';
@@ -36711,6 +37752,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Équipement exporté avec succès';
+
+  @override
+  String get settings_export_success_observations =>
+      'Bilans d\'équipement exportés';
 
   @override
   String get settings_export_success_pdf => 'Carnet PDF généré avec succès';
@@ -36766,6 +37811,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'CSV de l’équipement enregistré avec succès';
 
   @override
+  String get settings_export_saved_observationsCsv =>
+      'CSV des bilans d\'équipement enregistré';
+
+  @override
   String get settings_export_saved_uddf =>
       'Fichier UDDF enregistré avec succès';
 
@@ -36794,6 +37843,22 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_export_saveBackupDialogTitle =>
       'Enregistrer la sauvegarde';
+
+  @override
+  String get settings_export_saveDivesCsvDialogTitle =>
+      'Enregistrer le CSV des plongées';
+
+  @override
+  String get settings_export_saveSitesCsvDialogTitle =>
+      'Enregistrer le CSV des sites';
+
+  @override
+  String get settings_export_saveEquipmentCsvDialogTitle =>
+      'Enregistrer le CSV de l’équipement';
+
+  @override
+  String get settings_export_saveObservationsCsvDialogTitle =>
+      'Enregistrer le CSV des bilans d’équipement';
 
   @override
   String backup_operation_created(String size) {
@@ -37817,6 +38882,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_storageUsage_group_exports => 'Fichiers exportés';
 
   @override
+  String get settings_storageUsage_group_importedFiles =>
+      'Données brutes importées';
+
+  @override
   String get settings_storageUsage_category_database =>
       'Base de données du carnet de plongée';
 
@@ -37865,6 +38934,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_exports => 'Fichiers exportés';
+
+  @override
+  String get settings_storageUsage_category_importedFiles =>
+      'Fichiers d\'importation originaux';
 
   @override
   String get profilePhoto_sheet_title => 'Photo de profil';
@@ -38160,6 +39233,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transmitters_field_gear => 'Bouteille de l\'équipement';
 
   @override
+  String get transmitters_field_transmitterGear => 'Émetteur de l’équipement';
+
+  @override
   String get transmitters_field_material => 'Matériau';
 
   @override
@@ -38354,9 +39430,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentItemSortField_lastServiceDate => 'Dernier entretien';
 
   @override
-  String get equipment_arrange_title => 'Organiser l\'équipement';
-
-  @override
   String get equipment_arrange_groupByType => 'Grouper par type';
 
   @override
@@ -38371,9 +39444,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_arrange_itemOrderLabelFlat => 'Trier par';
-
-  @override
-  String get equipment_arrange_tooltip => 'Organiser l\'équipement';
 
   @override
   String get equipment_arrange_reset => 'Réinitialiser';
