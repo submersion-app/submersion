@@ -10,12 +10,14 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// Handles simple UDDF export of dives with optional site data.
 class UddfExportService {
@@ -65,6 +67,25 @@ class UddfExportService {
           if (!DiveRole.builtInIds.contains(row.role.id)) row.role.id: row.role,
     }.values.toList(growable: false);
 
+    // Gear (issue #1718): each distinct item on the exported dives, the
+    // assembly rows between two of them, and the dives' computers. None of
+    // it when the user left gear out.
+    final items = <String, EquipmentItem>{
+      if (options.includeGear)
+        for (final dive in dives)
+          for (final link in dive.gear) link.item.id: link.item,
+    }.values.toList(growable: false);
+    final itemIds = {for (final item in items) item.id};
+    final components = [
+      for (final c in extras.components)
+        if (itemIds.contains(c.parentEquipmentId) &&
+            itemIds.contains(c.componentEquipmentId))
+          c,
+    ];
+    final computerIds = options.includeGear
+        ? UddfGearWriters.computerIds(dives)
+        : const <String>{};
+
     final builder = XmlBuilder();
 
     builder.processing('xml', 'version="1.0" encoding="UTF-8"');
@@ -91,12 +112,22 @@ class UddfExportService {
           },
         );
 
-        // Diver section: the participants' declarations, trimmed because
-        // this file is shared with other people.
-        if (people.isNotEmpty) {
+        // Diver section: an id-only owner hosting the computer declarations,
+        // then the participants. Both trimmed, because this file is shared
+        // with other people.
+        if (computerIds.isNotEmpty || people.isNotEmpty) {
           builder.element(
             'diver',
             nest: () {
+              if (computerIds.isNotEmpty) {
+                builder.element(
+                  'owner',
+                  attributes: {'id': 'owner'},
+                  nest: () {
+                    UddfGearWriters.writeOwnerComputers(builder, dives);
+                  },
+                );
+              }
               UddfParticipantWriters.writeBuddyDeclarations(
                 builder,
                 people,
@@ -309,6 +340,9 @@ class UddfExportService {
                                 builder,
                                 diveBuddies[dive.id] ?? const [],
                               );
+                            }
+                            if (options.includeGear) {
+                              UddfGearWriters.writeEquipmentUsed(builder, dive);
                             }
                           },
                         );
@@ -610,20 +644,24 @@ class UddfExportService {
         // is a different element in a different position and is untouched.
         UddfExportBuilders.buildApplicationData(
           builder,
+          equipment: items,
+          omitPurchaseDetails: true,
+          components: components,
+          gearLinkDives: options.includeGear ? dives : null,
           diveBuddies: diveBuddies,
           customDiveRoles: customRoles,
           dataSources: sources,
           dataSourceDumps: encodedById,
         );
 
-        // Last section, per the UDDF specification. The empty declared set is
-        // not an oversight: this export emits no <divecomputer> element, so
-        // any computer ref would dangle under IDREF validation.
+        // Last section, per the UDDF specification. A dump links only to a
+        // computer the owner block above declared, which it does only when
+        // gear is included.
         UddfExportBuilders.buildDiveComputerControl(
           builder,
           sources,
           encodedById,
-          declaredComputerIds: const {},
+          declaredComputerIds: computerIds,
         );
       },
     );
