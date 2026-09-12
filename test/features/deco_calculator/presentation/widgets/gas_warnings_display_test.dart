@@ -29,6 +29,7 @@ Future<WidgetRef> _pump(
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
       ],
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -47,6 +48,15 @@ Future<WidgetRef> _pump(
 }
 
 void main() {
+  // The number helpers read the process-global Intl.defaultLocale rather than
+  // MaterialApp.locale, so pin it per test; the German test overrides it.
+  String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   testWidgets('a psi diver sees ppO2 in bar, not converted to psi', (
     tester,
   ) async {
@@ -87,10 +97,7 @@ void main() {
   });
 
   testWidgets('ppO2 uses the locale decimal separator', (tester) async {
-    // The number helpers read the process-global Intl.defaultLocale.
-    final previousLocale = Intl.defaultLocale;
     Intl.defaultLocale = 'de';
-    addTearDown(() => Intl.defaultLocale = previousLocale);
 
     final ref = await _pump(
       tester,
