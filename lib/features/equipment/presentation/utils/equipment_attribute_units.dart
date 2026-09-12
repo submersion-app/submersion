@@ -81,7 +81,9 @@ String formatAttributeNumberForEditing(
   return formatRoundedForInput(display, 1);
 }
 
-/// Display string for a stored attribute value (detail page, CSV).
+/// Display string for a stored attribute value on the detail page. The
+/// equipment CSV does not use it: that export writes each attribute's raw
+/// canonical metric value, as its `_m` / `_kg` key names promise.
 String formatAttributeValue(
   EquipmentAttribute attr,
   EquipmentAttributeDef? def,

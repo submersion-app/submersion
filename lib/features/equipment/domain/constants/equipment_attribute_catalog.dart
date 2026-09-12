@@ -32,8 +32,8 @@ enum AttributeGroup {
 /// Unit dimension for number attributes; drives UnitFormatter conversion.
 /// thicknessMm always displays in mm (industry convention in every market).
 ///
-/// Every dimension stores its canonical metric value, which for all of them
-/// except the two per-time ones is also what a metric diver reads:
+/// Every dimension stores its canonical metric value, which is also what a
+/// metric diver reads for all of them except these three:
 /// - [speedMps] stores m/s (matching wind speed and GPS track speed) and
 ///   displays as m/min or ft/min, the way a DPV's rated speed is quoted.
 /// - [durationH] stores hours and displays as minutes, the way a scooter's
