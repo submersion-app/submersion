@@ -378,6 +378,20 @@ void main() {
     expect(find.text('Retired'), findsNothing);
   });
 
+  testWidgets('a lost part still marked active is badged Lost', (tester) async {
+    const lost = EquipmentItem(
+      id: 'lost',
+      name: 'Lost torch',
+      type: EquipmentType.light,
+      status: EquipmentStatus.lost,
+    );
+    await tester.pumpWidget(
+      build([part('c1', lost)], _FakeComponentRepository()),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Lost'), findsOneWidget);
+  });
+
   testWidgets('a drag reorders the rows at once and persists the order', (
     tester,
   ) async {

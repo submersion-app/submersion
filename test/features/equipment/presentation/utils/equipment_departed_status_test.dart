@@ -20,6 +20,15 @@ void main() {
     );
   });
 
+  test('lost gear keeps its own status, active or not', () {
+    // Lost can be set without flipping isActive, and the gear is still gone.
+    expect(departedStatusOf(item(EquipmentStatus.lost)), EquipmentStatus.lost);
+    expect(
+      departedStatusOf(item(EquipmentStatus.lost, isActive: false)),
+      EquipmentStatus.lost,
+    );
+  });
+
   test('retired gear reads as retired', () {
     expect(
       departedStatusOf(item(EquipmentStatus.retired, isActive: false)),
