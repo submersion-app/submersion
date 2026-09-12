@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -24,6 +25,8 @@ import '../../../../helpers/mock_providers.dart';
 class _RecordingExportService implements ExportService {
   final calls = <String>[];
   List<DiveSite>? sites;
+  UddfDivesExtras? uddfExtras;
+  UddfExportOptions? uddfOptions;
 
   @override
   Future<String> exportDivesToUddf(
@@ -31,9 +34,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     this.sites = sites;
+    uddfExtras = extras;
+    uddfOptions = options;
     calls.add('share:uddf');
     return '/tmp/shared.uddf';
   }
@@ -44,9 +50,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     this.sites = sites;
+    uddfExtras = extras;
+    uddfOptions = options;
     calls.add('save:uddf');
     return '/tmp/saved.uddf';
   }
@@ -85,9 +94,14 @@ void main() {
     ),
   ];
 
+  const extrasSentinel = UddfDivesExtras(diveBuddies: {'dive-1': []});
+  final extrasCalls = <(List<String>, UddfExportOptions)>[];
   late _RecordingExportService exportService;
 
-  setUp(() => exportService = _RecordingExportService());
+  setUp(() {
+    exportService = _RecordingExportService();
+    extrasCalls.clear();
+  });
 
   /// Pumps the buddy page at phone width and opens the Share Dives flow.
   Future<void> pumpAndOpenShareDives(WidgetTester tester) async {
@@ -131,6 +145,13 @@ void main() {
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
           ),
+          uddfDivesExtrasFetchProvider.overrideWithValue((
+            diveIds,
+            options,
+          ) async {
+            extrasCalls.add((diveIds, options));
+            return extrasSentinel;
+          }),
         ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -178,5 +199,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(exportService.calls, isEmpty);
+  });
+
+  testWidgets('share dives fetches extras and honours the checkboxes', (
+    tester,
+  ) async {
+    await pumpAndOpenShareDives(tester);
+
+    await tester.tap(find.text('Include dive participants'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+
+    expect(exportService.calls, ['share:uddf']);
+    expect(extrasCalls.single.$1, ['dive-1']);
+    expect(identical(exportService.uddfExtras, extrasSentinel), isTrue);
+    expect(exportService.uddfOptions?.includeParticipants, isFalse);
   });
 }

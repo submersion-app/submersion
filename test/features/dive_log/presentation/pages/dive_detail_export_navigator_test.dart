@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -38,6 +39,7 @@ class _StubExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     calls.add('share:uddf');
@@ -50,6 +52,7 @@ class _StubExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     calls.add('save:uddf');
@@ -68,6 +71,7 @@ class _ThrowingExportService extends _StubExportService {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     calls.add('share:uddf');
@@ -133,6 +137,9 @@ void main() {
           // repository, so the export would never be issued.
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
+          ),
+          uddfDivesExtrasFetchProvider.overrideWithValue(
+            (diveIds, options) async => const UddfDivesExtras.empty(),
           ),
         ],
         child: DiveDetailPage(diveId: dive.id, embedded: true),

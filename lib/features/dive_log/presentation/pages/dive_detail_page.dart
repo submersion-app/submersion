@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
@@ -5571,6 +5572,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ref,
                   title: context.l10n.diveLog_export_uddf,
                   offerRawData: true,
+                  offerDiveContent: true,
                   shareFn: (options) async => ref
                       .read(exportServiceProvider)
                       .exportDivesToUddf(
@@ -5578,6 +5580,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         sites: sites,
                         options: options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
+                          dive.id,
+                        ], options),
+                        extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], options),
                       ),
@@ -5588,6 +5593,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         sites: sites,
                         options: options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
+                          dive.id,
+                        ], options),
+                        extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], options),
                       ),
@@ -5643,11 +5651,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     required Future<String> Function(UddfExportOptions options) shareFn,
     required Future<String?> Function(UddfExportOptions options) saveFn,
     bool offerRawData = false,
+    bool offerDiveContent = false,
   }) async {
     final choice = await showExportDestinationSheetWithOptions(
       context,
       title: title,
       showRawDataToggle: offerRawData,
+      showDiveContentToggles: offerDiveContent,
     );
     if (choice == null || !context.mounted) return;
     final destination = choice.destination;

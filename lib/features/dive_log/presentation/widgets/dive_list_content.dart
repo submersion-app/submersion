@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
@@ -756,6 +757,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       context,
       title: formatLabel,
       showRawDataToggle: format == _BulkExportFormat.uddf,
+      showDiveContentToggles: format == _BulkExportFormat.uddf,
     );
     if (choice == null || !mounted) return BulkActionOutcome.cancelled;
     final destination = choice.destination;
@@ -888,12 +890,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
+                  extras: await ref.read(uddfDivesExtrasFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
                 )
               : await exportService.saveDivesToUddfFile(
                   selectedDives,
                   sites: sites,
                   options: uddfOptions,
                   dataSources: await ref.read(uddfSourceFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
+                  extras: await ref.read(uddfDivesExtrasFetchProvider)(
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
