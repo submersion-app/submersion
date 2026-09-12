@@ -10,6 +10,7 @@ import 'package:submersion/core/services/export/models/uddf_export_options.dart'
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -88,20 +89,12 @@ class UddfFullExportService {
       for (var i = 0; i < withBytes.length; i++) withBytes[i].id: encoded[i],
     };
 
-    // Which computers this document will actually declare as
-    // <divecomputer id=...>. Mirrors the uniqueComputers block below, which
-    // only runs when there is an owner, and which mints ids from the dives'
-    // own model and serial snapshots. A dump may only link to an id in here.
-    final declaredComputerIds = <String>{
-      if (owner != null)
-        for (final dive in dives)
-          if (dive.diveComputerModel != null &&
-              dive.diveComputerModel!.isNotEmpty)
-            UddfExportBuilders.computerRefId(
-              dive.diveComputerModel!,
-              dive.diveComputerSerial,
-            ),
-    };
+    // Which computers this document actually declares as
+    // <divecomputer id=...>, filled in by the owner block below from the
+    // same writer that declares them, so the two cannot disagree. Stays
+    // empty without an owner, since the declarations live under it. A dump
+    // may only link to an id in here.
+    var declaredComputerIds = const <String>{};
 
     final builder = XmlBuilder();
 
@@ -160,46 +153,10 @@ class UddfFullExportService {
                       },
                     );
                     // Export dive computers used in equipment section
-                    // Collect unique dive computers from all dives
-                    final uniqueComputers = <String, Map<String, String>>{};
-                    for (final dive in dives) {
-                      if (dive.diveComputerModel != null &&
-                          dive.diveComputerModel!.isNotEmpty) {
-                        final computerId = UddfExportBuilders.computerRefId(
-                          dive.diveComputerModel!,
-                          dive.diveComputerSerial,
-                        );
-                        uniqueComputers[computerId] = {
-                          'model': dive.diveComputerModel!,
-                          'serial': dive.diveComputerSerial ?? '',
-                        };
-                      }
-                    }
-                    if (uniqueComputers.isNotEmpty) {
-                      builder.element(
-                        'equipment',
-                        nest: () {
-                          for (final entry in uniqueComputers.entries) {
-                            builder.element(
-                              'divecomputer',
-                              attributes: {'id': entry.key},
-                              nest: () {
-                                builder.element(
-                                  'model',
-                                  nest: entry.value['model'],
-                                );
-                                if (entry.value['serial']!.isNotEmpty) {
-                                  builder.element(
-                                    'serialnumber',
-                                    nest: entry.value['serial'],
-                                  );
-                                }
-                              },
-                            );
-                          }
-                        },
-                      );
-                    }
+                    declaredComputerIds = UddfGearWriters.writeOwnerComputers(
+                      builder,
+                      dives,
+                    );
                     // Certifications will be added in applicationdata section
                   },
                 );
