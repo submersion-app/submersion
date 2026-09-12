@@ -115,8 +115,10 @@ callable. Output: boxes for the icon, name, rule and slogan.
 
 All dimensions derive from the icon size using the approved card's
 proportions: icon height 0.53 of canvas height, name font 0.34 of the icon
-size, rule 96x8 at the reference scale, and the reference gaps (64px
-icon-to-text, 30px name-to-rule, 28px rule-to-slogan at a 340px icon). The
+size, rule 96x8 at the reference scale, and the reference gaps measured
+between ink edges on the approved render (64px icon-to-text, 40px
+name-to-rule, 46px rule-to-slogan at a 340px icon). Text boxes are ink
+bounding boxes, not line boxes, so alignment is exact. The
 slogan font size is solved so the slogan's measured width equals the name's
 measured width. One scale factor is reduced until the whole block fits inside
 the safe area, and the block is then centered in it. `stacked` places the
@@ -134,20 +136,24 @@ from the icon.
 
 ### generate_brand_assets.py
 
-For each selected preset: build the canvas (banner: icon gradient
-`(73, 232, 255)` to `(51, 191, 180)` at 160 degrees plus the three decorative
-wave shapes; transparent: empty RGBA), render the icon tile with
-`create_icon()` at the laid-out size, draw the name, rule and slogan with the
-bundled fonts, crop transparent lockups to content plus margin, and save PNG.
+For each selected preset: build the canvas (banner: the approved card's
+160-degree gradient `#4FE9FD` 0%, `#40D3E0` 45%, `#2FB4AA` 100% plus the three
+decorative wave shapes and the icon's soft teal drop shadow; transparent:
+empty RGBA, no shadow), render the icon tile with `create_icon()` at the
+laid-out size, draw the name, rule and slogan with the bundled fonts, crop
+transparent lockups to content plus margin, and save PNG.
 
-Text uses Pillow's RAQM layout when `PIL.features.check("raqm")` is true, so
-Inter's kerning applies, and falls back to BASIC layout otherwise. Whether the
-standard Pillow wheels ship RAQM on macOS and on the Linux CI runner is
-verified during implementation; the fallback only affects kerning.
+Text requires Pillow's RAQM layout. Inter carries its kerning only in the
+OpenType GPOS table (it has no legacy `kern` table), and Pillow's BASIC layout
+reads only `kern`, so without RAQM the text would silently lose all kerning
+and output would differ between machines. Pillow's wheels bundle libraqm but
+load the system `libfribidi` at runtime (Homebrew `fribidi` on macOS,
+`libfribidi0` on Debian/Ubuntu). There is no fallback.
 
 Error handling: an unknown `--only` name exits non-zero listing valid names; a
-missing font file exits non-zero naming the expected path; Pillow import
-failure exits non-zero pointing at `scripts/requirements.txt`.
+missing font file exits non-zero naming the expected path; RAQM unavailable
+exits non-zero with the fribidi install commands; Pillow import failure exits
+non-zero pointing at `scripts/requirements.txt`.
 
 ### generate_icon.py move
 
@@ -190,15 +196,15 @@ Tests are written before the code they cover (repo TDD rule), in the
   tolerance
 - `lockup-dark` and `lockup-light` differ only in text pixels (navy vs white)
 - CLI: `--list` output, `--only` subset, unknown name exits non-zero, missing
-  font exits non-zero
+  font exits non-zero, RAQM unavailable exits non-zero
 
 Tests fail, never skip, when Pillow or the fonts are missing.
 
 ### CI
 
 In `.github/workflows/ci.yaml`, the `script-tests` job gains a Pillow install
-step using the job's existing three-attempt pip retry pattern, and a step that
-runs `scripts/brand/layout_test.py` and
+step using the job's existing three-attempt pip retry pattern, installs
+`libfribidi0` if Pillow reports RAQM unavailable, and runs `scripts/brand/layout_test.py` and
 `scripts/brand/generate_brand_assets_test.py`.
 
 ### Manual verification
