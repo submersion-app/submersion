@@ -225,6 +225,7 @@ void main() {
       await repo.clearAnchorsSupersededBy(
         equipmentId: tank.id,
         serviceKindId: 'hydro',
+        loggedAt: DateTime.now().add(const Duration(minutes: 1)),
         serviceDate: DateTime(2026, 2, 1),
       );
 
@@ -238,6 +239,7 @@ void main() {
       await repo.clearAnchorsSupersededBy(
         equipmentId: tank.id,
         serviceKindId: 'hydro',
+        loggedAt: DateTime.now().add(const Duration(minutes: 1)),
         serviceDate: DateTime(2025, 6, 1),
       );
 
@@ -251,6 +253,7 @@ void main() {
       await repo.clearAnchorsSupersededBy(
         equipmentId: tank.id,
         serviceKindId: 'hydro',
+        loggedAt: DateTime.now().add(const Duration(minutes: 1)),
         serviceDate: DateTime(2024, 1, 1),
       );
 
@@ -272,6 +275,7 @@ void main() {
       await repo.clearAnchorsSupersededBy(
         equipmentId: tank.id,
         serviceKindId: 'hydro',
+        loggedAt: DateTime.now().add(const Duration(minutes: 1)),
         serviceDate: DateTime(2024, 1, 1),
       );
 
@@ -296,6 +300,7 @@ void main() {
       await repo.clearAnchorsSupersededBy(
         equipmentId: tank.id,
         serviceKindId: 'hydro',
+        loggedAt: DateTime.now().add(const Duration(minutes: 1)),
         serviceDate: DateTime(2026, 2, 1),
       );
       final cleared = (await repo.getSchedulesForEquipment(
@@ -319,12 +324,36 @@ void main() {
       await repo.clearAnchorsSupersededBy(
         equipmentId: tank.id,
         serviceKindId: 'hydro',
+        loggedAt: DateTime.now().add(const Duration(minutes: 1)),
         serviceDate: DateTime(2026, 2, 1),
       );
 
       expect(await baselineOf(tank.id, 'hydro'), isNull);
       expect(await baselineOf(tank.id, 'vip'), DateTime(2025, 6, 1));
       expect(await baselineOf(other.id, 'hydro'), DateTime(2025, 6, 1));
+    });
+
+    test('a service logged before the baseline was set leaves it', () async {
+      // The clear runs after the record insert; a baseline set (or synced
+      // in) in between must not be taken by a record that predates it,
+      // which is the same rule the clocks engine applies.
+      final tank = await makeTank();
+      final setAt = DateTime(2026, 9, 12, 10);
+      final hydro = (await repo.getSchedulesForEquipment(
+        tank.id,
+      )).firstWhere((s) => s.serviceKindId == 'hydro');
+      await repo.updateSchedule(
+        hydro.withBaseline(DateTime(2025, 6, 1), now: setAt),
+      );
+
+      await repo.clearAnchorsSupersededBy(
+        equipmentId: tank.id,
+        serviceKindId: 'hydro',
+        loggedAt: setAt.subtract(const Duration(seconds: 1)),
+        serviceDate: DateTime(2026, 2, 1),
+      );
+
+      expect(await baselineOf(tank.id, 'hydro'), DateTime(2025, 6, 1));
     });
 
     test('a cleared baseline is queued for sync', () async {
@@ -335,6 +364,7 @@ void main() {
       await repo.clearAnchorsSupersededBy(
         equipmentId: tank.id,
         serviceKindId: 'hydro',
+        loggedAt: DateTime.now().add(const Duration(minutes: 1)),
         serviceDate: DateTime(2026, 2, 1),
       );
 

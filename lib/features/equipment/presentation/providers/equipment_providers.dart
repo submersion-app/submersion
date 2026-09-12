@@ -586,7 +586,8 @@ class ServiceRecordNotifier
           .clearAnchorsSupersededBy(
             equipmentId: record.equipmentId,
             serviceKindId: kindId,
-            serviceDate: record.serviceDate,
+            serviceDate: newRecord.serviceDate,
+            loggedAt: newRecord.createdAt,
           );
       _ref.invalidate(serviceSchedulesForEquipmentProvider(equipmentId));
     }
@@ -925,6 +926,7 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
       validatedCurrentDiverIdProvider.future,
     );
     ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+    _invalidateOnServiceLedgerChanges(ref);
 
     final items = await repository.getActiveEquipment(
       diverId: validatedDiverId,
