@@ -194,6 +194,12 @@ class CylindersCard extends ConsumerWidget {
       formatFixedForDisplay(workingPpO2, 1),
       mndDepth,
     );
+    final consumptionRow = _consumptionRow(
+      context.l10n,
+      theme,
+      cylinderSac,
+      sourceName,
+    );
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -212,7 +218,7 @@ class CylindersCard extends ConsumerWidget {
             '$startP ${units.pressureSymbol} → '
             '$endP ${units.pressureSymbol}$used',
           ),
-          ?_consumptionRow(context.l10n, theme, cylinderSac, sourceName),
+          ?consumptionRow,
           Text(
             modMndText,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -245,7 +251,9 @@ class CylindersCard extends ConsumerWidget {
             ),
         ],
       ),
-      isThreeLine: serial != null,
+      // Either extra subtitle row makes the tile tall, and M3 centres the
+      // leading icon on a tall two-line tile, away from the name.
+      isThreeLine: serial != null || consumptionRow != null,
       trailing: _checkInButton(tank),
     );
   }

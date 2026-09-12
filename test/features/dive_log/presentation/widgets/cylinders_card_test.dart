@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -310,27 +311,72 @@ void main() {
       expect(find.text('RMV 22.2 L/min'), findsOneWidget);
     });
 
-    testWidgets('both fits its lanes at desktop density', (tester) async {
-      // The lanes used to live in ListTile's trailing slot, whose height the
-      // tile caps at 56px minus the density adjustment. Desktop defaults to
-      // compact, making that 48px: exactly 8px short of the three lines
-      // Both rendered there (SAC, RMV, gas used), which is what the macOS
-      // screenshot run reported. Widget tests run at standard density, so
-      // the default harness never saw it. The lanes and the gas used now
-      // live in the subtitle, which grows with its content.
+    testWidgets('the tank icon stays level with the name on a row with rates', (
+      tester,
+    ) async {
+      // The rates add a subtitle row, so the tile is tall. ListTile's M3
+      // alignment centres leading and trailing on the whole tile unless
+      // isThreeLine is set, which left the icon floating below the name.
       await tester.pumpWidget(
         _buildCard(
           dive: _makeDive([_makeTank()]),
           cylinderSacs: [_makeSac()],
           display: GasConsumptionDisplay.both,
-          visualDensity: VisualDensity.compact,
         ),
       );
       await tester.pumpAndSettle();
 
+      final iconTop = tester.getTopLeft(find.byIcon(MdiIcons.divingScubaTank));
+      final nameTop = tester.getTopLeft(find.text('Tank 1 (EAN32)'));
+      expect((iconTop.dy - nameTop.dy).abs(), lessThan(8));
+    });
+
+    testWidgets('both fits everything at desktop density', (tester) async {
+      // ListTile caps the trailing slot's height at 56px minus the density
+      // adjustment. Desktop defaults to compact, making that 48px, which the
+      // macOS screenshot run found too short for the lines trailing used to
+      // hold. Widget tests run at standard density, so the default harness
+      // never saw it. This row carries all of it at once (source badge, both
+      // lanes, gas used, check-in button); a vertical overflow anywhere
+      // would fail the test through FlutterError.
+      final item = EquipmentItem(
+        id: 'al80',
+        name: 'AL80 #4',
+        type: EquipmentType.tank,
+        createdAt: DateTime(2026),
+      );
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(computerId: 'comp-1', equipmentId: 'al80'),
+          ]),
+          cylinderSacs: [_makeSac()],
+          dataSources: [
+            _makeSource(
+              id: 'src-1',
+              computerId: 'comp-1',
+              isPrimary: true,
+              computerModel: 'Perdix 2',
+            ),
+            _makeSource(id: 'src-2', computerId: 'comp-2'),
+          ],
+          display: GasConsumptionDisplay.both,
+          visualDensity: VisualDensity.compact,
+          extraOverrides: [
+            equipmentItemProvider('al80').overrideWith((ref) async => item),
+            observationsForDiveProvider(
+              'dive-1',
+            ).overrideWith((ref) async => const []),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Perdix 2'), findsOneWidget);
       expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
       expect(find.text('RMV 22.2 L/min'), findsOneWidget);
       expect(find.textContaining('(150 bar / 1665 L used)'), findsOneWidget);
+      expect(find.byType(ObservationStatusChip), findsOneWidget);
     });
 
     group('on a narrow card', () {
@@ -352,7 +398,8 @@ void main() {
             dive: _makeDive([tank ?? _makeTank()]),
             cylinderSacs: [_makeSac()],
             display: GasConsumptionDisplay.both,
-            locale: locale,
+            // Pinned, so the English finders do not depend on the host.
+            locale: locale ?? const Locale('en'),
             extraOverrides: extraOverrides,
           ),
         );
