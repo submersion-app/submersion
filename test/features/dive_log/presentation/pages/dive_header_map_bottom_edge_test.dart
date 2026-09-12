@@ -87,12 +87,11 @@ double _rowMax(ByteData rgba, int width, int y, int x0, int x1) {
   return best;
 }
 
-/// Captures the frame and returns how much brighter the header card's bottom
-/// edge rows are than the opaque gradient just inside the card and the page
-/// just below it. Anything above zero is map content that escaped the overlay.
-Future<({double excess, double bottom})> _bottomEdgeExcess(
-  WidgetTester tester,
-) async {
+typedef _Frame = ({ByteData rgba, int width, Rect card, int x0, int x1});
+
+/// Captures the current frame along with the header card's rect and the
+/// physical column range to sample (clear of the rounded corners).
+Future<_Frame> _capture(WidgetTester tester) async {
   final card = find.ancestor(
     of: find.byType(DiveLocationsMap),
     matching: find.byType(Card),
@@ -111,11 +110,39 @@ Future<({double excess, double bottom})> _bottomEdgeExcess(
   ))!;
   final width = image.width;
   image.dispose();
+  return (
+    rgba: rgba,
+    width: width,
+    card: rect,
+    x0: (rect.left * _dpr).ceil() + 40,
+    x1: (rect.right * _dpr).floor() - 40,
+  );
+}
 
-  final bottom = rect.bottom * _dpr;
-  // Stay clear of the rounded corners.
-  final x0 = (rect.left * _dpr).ceil() + 40;
-  final x1 = (rect.right * _dpr).floor() - 40;
+/// Average brightness of the map near the top of the header card, where the
+/// fade is at its most transparent and the header content has not started.
+Future<double> _mapBrightness(WidgetTester tester) async {
+  final f = await _capture(tester);
+  final y = ((f.card.top + 8) * _dpr).floor();
+  var sum = 0.0;
+  for (var x = f.x0; x < f.x1; x++) {
+    sum += _luma(f.rgba, f.width, x, y);
+  }
+  return sum / (f.x1 - f.x0);
+}
+
+/// Captures the frame and returns how much brighter the header card's bottom
+/// edge rows are than the opaque gradient just inside the card and the page
+/// just below it. Anything above zero is map content that escaped the overlay.
+Future<({double excess, double bottom})> _bottomEdgeExcess(
+  WidgetTester tester,
+) async {
+  final f = await _capture(tester);
+  final rgba = f.rgba;
+  final width = f.width;
+  final x0 = f.x0;
+  final x1 = f.x1;
+  final bottom = f.card.bottom * _dpr;
   final edgeRow = bottom.floor();
   final inside = _rowMax(rgba, width, edgeRow - 4, x0, x1);
   final below = _rowMax(rgba, width, edgeRow + 4, x0, x1);
@@ -150,6 +177,17 @@ void main() {
 
       await _pump(tester);
       expect(find.byType(DiveLocationsMap), findsOneWidget);
+
+      // The leak is only detectable if there is bright map content to leak.
+      // No tiles load under flutter_test (every HTTP request gets a 400), so
+      // what shows is FlutterMap's own light background. Pin that here: a map
+      // that rendered nothing, or something dark, would otherwise let a
+      // leaking header pass with nothing to see.
+      expect(
+        await _mapBrightness(tester),
+        greaterThan(100),
+        reason: 'the header map must be visibly bright under the fade',
+      );
 
       final samples = <String>[];
       var worst = 0.0;
