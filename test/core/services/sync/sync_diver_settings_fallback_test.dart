@@ -428,4 +428,69 @@ void main() {
       }
     },
   );
+
+  test(
+    'applies a pre-v211 diver_settings payload missing autoTagImports',
+    () async {
+      // A peer on v210 or older sends no autoTagImports (a NOT NULL bool).
+      // Auto-tagging is on by default (issue #998), so that is what the row
+      // must hydrate to, on both the single and the batch path.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds-211',
+              diverId: 'diver-1',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-211');
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('autoTagImports');
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds-211'))).go();
+
+      await serializer.upsertRecord('diverSettings', legacy);
+      await serializer.upsertRecords('diverSettings', [
+        {...legacy, 'id': 'ds-211b'},
+      ]);
+
+      for (final id in ['ds-211', 'ds-211b']) {
+        final row = await (db.select(
+          db.diverSettings,
+        )..where((t) => t.id.equals(id))).getSingle();
+        expect(row.autoTagImports, isTrue, reason: id);
+      }
+    },
+  );
+
+  test(
+    'exports a disabled autoTagImports so it reaches other devices',
+    () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds-211c',
+              diverId: 'diver-1',
+              createdAt: now,
+              updatedAt: now,
+              autoTagImports: const Value(false),
+            ),
+          );
+
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-211c');
+      // The value, not just the key: a dropped or defaulted opt-out would
+      // re-enable auto-tagging on every other device.
+      expect(exported!['autoTagImports'], isFalse);
+    },
+  );
 }

@@ -214,4 +214,23 @@ void main() {
       expect(settings.diveDetailSections[1].visible, true);
     });
   });
+
+  group('AppSettings autoTagImports', () {
+    test('has true as default', () {
+      const settings = AppSettings();
+      expect(settings.autoTagImports, true);
+    });
+
+    test('copyWith updates autoTagImports', () {
+      const settings = AppSettings();
+      final updated = settings.copyWith(autoTagImports: false);
+      expect(updated.autoTagImports, false);
+    });
+
+    test('copyWith without the field preserves the current value', () {
+      const settings = AppSettings(autoTagImports: false);
+      final updated = settings.copyWith(themePresetId: 'dark');
+      expect(updated.autoTagImports, false);
+    });
+  });
 }

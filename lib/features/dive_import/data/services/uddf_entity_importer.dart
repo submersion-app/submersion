@@ -1520,21 +1520,25 @@ class UddfEntityImporter {
 
   /// The `<source>` entries belonging to one parsed dive.
   ///
-  /// Submersion's own export writes `<dive id="dive_<uuid>">`, and the parser
-  /// keeps that attribute verbatim as `sourceUuid`, so the ref is already
-  /// prefixed. A file whose dive ids are bare needs the prefix added. Both
-  /// shapes are tried rather than assuming either, and this lives in one
-  /// place so the restore and the computer registration cannot resolve a dive
+  /// Read from the dive's own map first, where the parser attaches them as
+  /// `dataSources`: that is the only copy the import wizard keeps, because
+  /// it rebuilds the result from entity lists and drops
+  /// [dataSourcesByDiveRef] (#1735). The map is the fallback for a caller
+  /// that builds a result by hand. This lives in one place so the restore,
+  /// the GPS fallback and the computer registration cannot resolve a dive
   /// differently.
   static List<Map<String, dynamic>> _entriesForDive(
     Map<String, dynamic> diveData,
     Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef,
   ) {
-    final sourceUuid = diveData['sourceUuid'] as String?;
-    if (sourceUuid == null) return const [];
-    return dataSourcesByDiveRef[sourceUuid] ??
-        dataSourcesByDiveRef['dive_$sourceUuid'] ??
-        const [];
+    final carried = diveData['dataSources'];
+    if (carried is List && carried.isNotEmpty) {
+      return carried.cast<Map<String, dynamic>>();
+    }
+    return UddfImportResult.sourcesForDive(
+      dataSourcesByDiveRef,
+      diveData['sourceUuid'] as String?,
+    );
   }
 
   /// The registration key for a model and serial pair.
@@ -1764,6 +1768,7 @@ class UddfEntityImporter {
     final diveIdByIndex = <int, String>{};
     final diveIdBySourceUuid = <String, String>{};
     final inlineBuddyIds = <String>{};
+    final roleExists = <String, bool>{};
 
     // Sort selected indices by dateTime (oldest first) for sequential
     // numbering. An undated dive is stored at [now] further down, so it has
@@ -2062,6 +2067,21 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
+      // The diver's own role. A custom role this diver lacks (its definition
+      // never arrived, or it belongs to another diver) leaves the dive with
+      // no role rather than one this diver's role list cannot resolve.
+      final diverRoleValue = diveData['diverRoleId'];
+      final diverRoleId =
+          diverRoleValue is String &&
+              diverRoleValue.isNotEmpty &&
+              await _roleExists(
+                diverRoleValue,
+                diverId,
+                repos.diveRoleRepository,
+                roleExists,
+              )
+          ? diverRoleValue
+          : null;
       final isFavorite = diveData['isFavorite'] as bool? ?? false;
       final excludedFromStats = diveData['excludedFromStats'] as bool? ?? false;
       final excludedFromGasStats =
@@ -2087,6 +2107,7 @@ class UddfEntityImporter {
           : null;
 
       final diveName = (diveData['name'] as String?)?.trim();
+      final gps = _diveGps(diveData, dataSourcesByDiveRef);
       var dive = Dive(
         id: diveId,
         diverId: diverId,
@@ -2141,14 +2162,12 @@ class UddfEntityImporter {
         altitude: asDoubleOrNull(diveData['altitude']),
         // Entry/exit GPS, so file-imported dives become eligible for the
         // existing site matcher.
-        entryLocation: _geoPoint(diveData['latitude'], diveData['longitude']),
-        exitLocation: _geoPoint(
-          diveData['exitLatitude'],
-          diveData['exitLongitude'],
-        ),
+        entryLocation: gps.entry,
+        exitLocation: gps.exit,
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
+        diverRoleId: diverRoleId,
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
@@ -2376,6 +2395,8 @@ class UddfEntityImporter {
         diverId,
         buddyIdMapping,
         repos.buddyRepository,
+        roleRepository: repos.diveRoleRepository,
+        roleExists: roleExists,
       );
       inlineBuddyIds.addAll(linkedIds);
 
@@ -2480,6 +2501,61 @@ class UddfEntityImporter {
     final lngVal = asDoubleOrNull(lng);
     if (latVal == null || lngVal == null) return null;
     return GeoPoint(latVal, lngVal);
+  }
+
+  /// The entry and exit fixes to store on an imported dive.
+  ///
+  /// The dive's own coordinates win, and win as a pair: a dive that carries
+  /// either fix is restored exactly as it was, so it never gains an exit
+  /// borrowed from a source that the diver's dive row did not have.
+  ///
+  /// Only a dive carrying no fix at all falls back to its `<source>` entries,
+  /// primary first, then file order. That is the only place a Submersion
+  /// backup written before #1735 kept GPS, so without it restoring one of
+  /// those drops every Surface GPS card. Foreign files carry no `<source>`
+  /// entries, so for them this is exactly the dive's own coordinates.
+  ({GeoPoint? entry, GeoPoint? exit}) _diveGps(
+    Map<String, dynamic> diveData,
+    Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef,
+  ) {
+    final entry = _geoPoint(diveData['latitude'], diveData['longitude']);
+    final exit = _geoPoint(diveData['exitLatitude'], diveData['exitLongitude']);
+    if (entry != null || exit != null) return (entry: entry, exit: exit);
+
+    final sources = _entriesForDive(diveData, dataSourcesByDiveRef);
+    final primaryFirst = [
+      ...sources.where((s) => s['isPrimary'] == true),
+      ...sources.where((s) => s['isPrimary'] != true),
+    ];
+    for (final source in primaryFirst) {
+      final sourceEntry = _sourceFix(
+        source['entryLatitude'],
+        source['entryLongitude'],
+      );
+      final sourceExit = _sourceFix(
+        source['exitLatitude'],
+        source['exitLongitude'],
+      );
+      if (sourceEntry != null || sourceExit != null) {
+        return (entry: sourceEntry, exit: sourceExit);
+      }
+    }
+    return (entry: null, exit: null);
+  }
+
+  /// A `<source>` coordinate pair as a fix, or null unless it is finite and
+  /// on the globe. The source parser keeps whatever `double.tryParse`
+  /// accepts, NaN included, and one bad source must not hide a good one.
+  GeoPoint? _sourceFix(dynamic lat, dynamic lng) {
+    final fix = _geoPoint(lat, lng);
+    if (fix == null ||
+        !fix.latitude.isFinite ||
+        !fix.longitude.isFinite ||
+        fix.latitude.abs() > 90 ||
+        fix.longitude.abs() > 180) {
+      return null;
+    }
+    return fix;
   }
 
   List<DiveTank> _buildTanks(Map<String, dynamic> diveData) {
@@ -2629,8 +2705,10 @@ class UddfEntityImporter {
     String diveId,
     String diverId,
     Map<String, String> buddyIdMapping,
-    BuddyRepository repository,
-  ) async {
+    BuddyRepository repository, {
+    DiveRoleRepository? roleRepository,
+    required Map<String, bool> roleExists,
+  }) async {
     // Link referenced buddies (from pre-imported buddy entities)
     final buddyRefsValue = diveData['buddyRefs'];
     final buddyRefs = buddyRefsValue is List
@@ -2688,7 +2766,52 @@ class UddfEntityImporter {
       inlineIds.add(guide.id);
     }
 
+    // Exact roles from Submersion's private <buddyroles> block (issue
+    // #1737). Applied last: addBuddyToDive keeps one row per person, so
+    // these override any role inferred from the standard elements. A role
+    // this database lacks can only be a custom role whose definition never
+    // arrived, which the standard elements carried as a plain buddy.
+    final roleRefsValue = diveData['buddyRoleRefs'];
+    final roleRefs = roleRefsValue is List ? roleRefsValue : const [];
+    for (final entry in roleRefs) {
+      if (entry is! Map) continue;
+      final buddyRef = entry['buddyRef'];
+      final roleId = entry['roleId'];
+      if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
+      final newBuddyId = buddyIdMapping[buddyRef];
+      if (newBuddyId == null) continue;
+      final known = await _roleExists(
+        roleId,
+        diverId,
+        roleRepository,
+        roleExists,
+      );
+      await repository.addBuddyToDive(
+        diveId,
+        newBuddyId,
+        known ? roleId : DiveRole.buddyId,
+      );
+    }
+
     return inlineIds;
+  }
+
+  /// Whether [roleId] names a role [diverId] can use: built in, or one of
+  /// that diver's custom roles, already present or restored ahead of the
+  /// dives. Custom roles are diver-scoped, so another diver's role (its id
+  /// taken when that diver's backup is restored into this profile) does
+  /// not count: this diver's role list could only show its raw id.
+  /// Memoized in [cache] across one import, which has a single diver.
+  Future<bool> _roleExists(
+    String roleId,
+    String diverId,
+    DiveRoleRepository? repository,
+    Map<String, bool> cache,
+  ) async {
+    if (DiveRole.builtInIds.contains(roleId)) return true;
+    if (repository == null) return false;
+    return cache[roleId] ??=
+        (await repository.getDiveRoleById(roleId))?.diverId == diverId;
   }
 
   Future<void> _linkTagsToDive(

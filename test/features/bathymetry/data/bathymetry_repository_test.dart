@@ -32,6 +32,8 @@ class ScriptedSource implements BathymetrySource {
   @override
   bool get global => true;
   @override
+  double get minKnownFraction => 0.60;
+  @override
   Future<SourceCapability?> probe(GeoPoint center) async =>
       const SourceCapability(cellSizeMeters: 100, detail: 'fake');
   @override
@@ -69,6 +71,8 @@ class CenterRecordingSource implements BathymetrySource {
   String get id => 'recorder';
   @override
   bool get global => true;
+  @override
+  double get minKnownFraction => 0.60;
   @override
   Future<SourceCapability?> probe(GeoPoint center) async =>
       const SourceCapability(cellSizeMeters: 100, detail: 'recorder');
@@ -115,11 +119,11 @@ void main() {
     // The key carries the request span and the selection generation, so a
     // change to either refetches instead of serving the old cached answer
     // forever.
-    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000v4');
+    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000v5');
     // Nearby coordinates share the key.
     expect(
       BathymetryRepository.keyFor(const GeoPoint(12.171, -68.281)),
-      '12.16,-68.30@8000v4',
+      '12.16,-68.30@8000v5',
     );
   });
 
@@ -316,7 +320,7 @@ void main() {
 
   test('the cache key carries the selection generation', () {
     final key = BathymetryRepository.keyFor(const GeoPoint(12.16, -68.29));
-    expect(key, endsWith('@8000v4'));
+    expect(key, endsWith('@8000v5'));
   });
 
   test('a row written under the previous generation is not reused', () {

@@ -35,6 +35,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/installed_in_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
@@ -465,6 +466,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
   ) {
     final diveCountAsync = ref.watch(equipmentDiveCountProvider(equipmentId));
     final tripCountAsync = ref.watch(equipmentTripCountProvider(equipmentId));
+    // The item this one is installed in. A parent id naming nothing (a
+    // parent row that never arrived) resolves to null and shows no row.
+    final parentId = equipment.parentEquipmentId;
+    final host = parentId == null
+        ? null
+        : ref.watch(equipmentItemProvider(parentId)).value;
+    final showsInstallAge = InstalledInRow.showsInstallAge(equipment, host);
 
     return Card(
       child: Padding(
@@ -482,6 +490,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
               context.l10n.equipment_detail_statusLabel,
               equipment.status.localizedName(context.l10n),
             ),
+            if (host != null)
+              InstalledInRow(part: equipment, host: host, units: units),
             diveCountAsync.when(
               data: (count) => Semantics(
                 button: count > 0,
@@ -639,10 +649,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 equipment.serialNumber!,
               ),
             // Curated specs in catalog order, then custom fields. The
-            // purchase group is held back to the purchase block below.
-            for (final def in EquipmentAttributeCatalog.attributesFor(
-              equipment.type,
-            ).where((d) => d.group == AttributeGroup.spec))
+            // purchase group is held back to the purchase block below, and
+            // the install date to the installed-in row while it shows one.
+            for (final def
+                in EquipmentAttributeCatalog.attributesFor(
+                  equipment.type,
+                ).where(
+                  (d) =>
+                      d.group == AttributeGroup.spec &&
+                      !(showsInstallAge &&
+                          d.key == EquipmentAttrKeys.installedDate),
+                ))
               if (equipment.attributes.firstWhereOrNull(
                     (a) => !a.isCustom && a.key == def.key,
                   )

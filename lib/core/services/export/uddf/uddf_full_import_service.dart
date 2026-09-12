@@ -5,6 +5,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
+import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
@@ -452,6 +453,29 @@ class UddfFullImportService {
           }
         }
 
+        // Exact per-dive roles (issue #1737), matched the same way. Parsed
+        // after <diveroles>, so a custom role the file declares is known.
+        final buddyRolesSection = submersionElement
+            .findElements('buddyroles')
+            .firstOrNull;
+        if (buddyRolesSection != null) {
+          final byDive = UddfBuddyRoles.parse(buddyRolesSection);
+          final declaredRoleIds = {
+            for (final role in customDiveRoles)
+              if (role['id'] is String) role['id'] as String,
+          };
+          for (final dive in dives) {
+            final rows = byDive[dive['sourceUuid']];
+            if (rows == null || rows.isEmpty) continue;
+            UddfBuddyRoles.applyExactRoles(
+              dive,
+              rows,
+              declaredBuddies: buddyMap.keys.toSet(),
+              declaredRoleIds: declaredRoleIds,
+            );
+          }
+        }
+
         // Parse courses
         final coursesSection = submersionElement
             .findElements('courses')
@@ -491,9 +515,28 @@ class UddfFullImportService {
       }
     }
 
+    // Every source of role links has now been read, so each person can be
+    // left holding exactly one role per dive.
+    for (final dive in dives) {
+      UddfBuddyRoles.settle(dive, buddyMap);
+    }
+
     _applyTripDateRanges(trips, dives);
 
     final sources = _parseDataSources(uddfElement);
+
+    // Each dive's <source> entries also ride on its own map as `dataSources`,
+    // like `gearLinks` above. The import wizard flattens this result into
+    // entity lists and rebuilds it without dataSourcesByDiveRef, so a restore
+    // through it otherwise saw no sources at all: no restored source rows,
+    // and no GPS for a backup that kept it only there (#1735).
+    for (final dive in dives) {
+      final entries = UddfImportResult.sourcesForDive(
+        sources.byDiveRef,
+        dive['sourceUuid'] as String?,
+      );
+      if (entries.isNotEmpty) dive['dataSources'] = entries;
+    }
 
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
@@ -941,10 +984,15 @@ class UddfFullImportService {
         .findElements('informationbeforedive')
         .firstOrNull;
     if (beforeElement != null) {
-      diveData['diveMaster'] = UddfImportParsers.getElementText(
+      // The names in <divemaster> become dive guide links rather than
+      // free text on the dive (issue #1737).
+      final leaderNames = UddfImportParsers.getElementText(
         beforeElement,
         'divemaster',
       );
+      if (leaderNames != null) {
+        UddfBuddyRoles.recordLeaderText(diveData, leaderNames);
+      }
 
       final diveTypeElements = beforeElement.findElements('divetype').toList();
       if (diveTypeElements.isNotEmpty) {
@@ -964,6 +1012,14 @@ class UddfFullImportService {
         );
       }
 
+      // The dive's own entry fix, under the keys every other import format
+      // uses for it (#1735).
+      if (UddfImportParsers.parseDiveGps(beforeElement, 'entry')
+          case final fix?) {
+        diveData['latitude'] = fix.latitude;
+        diveData['longitude'] = fix.longitude;
+      }
+
       // Parse dive mode
       final diveMode = UddfImportParsers.parseDiveModeIn(beforeElement);
       if (diveMode != null) {
@@ -977,6 +1033,17 @@ class UddfFullImportService {
       );
       if (isPlanned?.toLowerCase() == 'true') {
         diveData['isPlanned'] = true;
+      }
+
+      // The logbook owner's own role on the dive (custom element). The
+      // importer checks the id against the database, since a dives-only
+      // file declares no custom roles yet may name one already present.
+      final diverRole = UddfImportParsers.getElementText(
+        beforeElement,
+        'diverrole',
+      );
+      if (diverRole != null && diverRole.isNotEmpty) {
+        diveData['diverRoleId'] = diverRole;
       }
 
       // Parse entry time
@@ -1148,6 +1215,12 @@ class UddfFullImportService {
           exitType,
           enums.EntryMethod.values,
         );
+      }
+
+      if (UddfImportParsers.parseDiveGps(afterElement, 'exit')
+          case final fix?) {
+        diveData['exitLatitude'] = fix.latitude;
+        diveData['exitLongitude'] = fix.longitude;
       }
 
       // Parse weight used

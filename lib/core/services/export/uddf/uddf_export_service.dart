@@ -263,6 +263,12 @@ class UddfExportService {
                                 nest: dive.entryMethod!.name,
                               );
                             }
+                            UddfExportBuilders.buildDiverRole(builder, dive);
+                            UddfExportBuilders.buildDiveGpsElements(
+                              builder,
+                              'entry',
+                              dive.entryLocation,
+                            );
                           },
                         );
 
@@ -471,6 +477,11 @@ class UddfExportService {
                                 nest: dive.exitMethod!.name,
                               );
                             }
+                            UddfExportBuilders.buildDiveGpsElements(
+                              builder,
+                              'exit',
+                              dive.exitLocation,
+                            );
                             // Weight system
                             if (dive.weightAmount != null) {
                               builder.element(

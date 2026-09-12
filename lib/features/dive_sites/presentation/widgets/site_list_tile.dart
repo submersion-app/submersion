@@ -17,6 +17,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/site_scape/presentation/site_feature_glyph.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
@@ -166,22 +167,20 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
           children: [
             Row(
               children: [
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Center(
-                    child: SelectionLeading(
-                      isSelectionMode: widget.isSelectionMode,
-                      isChecked: widget.isChecked,
-                      onChanged: (_) => widget.onTap?.call(),
-                      child: CircleAvatar(
-                        backgroundColor:
-                            accent?.withValues(alpha: 0.15) ??
-                            colorScheme.secondaryContainer,
-                        child: Icon(
-                          Icons.location_on,
-                          color: accent ?? colorScheme.onSecondaryContainer,
-                        ),
+                SelectionLeading(
+                  isSelectionMode: widget.isSelectionMode,
+                  isChecked: widget.isChecked,
+                  onChanged: (_) => widget.onTap?.call(),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircleAvatar(
+                      backgroundColor:
+                          accent?.withValues(alpha: 0.15) ??
+                          colorScheme.secondaryContainer,
+                      child: Icon(
+                        Icons.location_on,
+                        color: accent ?? colorScheme.onSecondaryContainer,
                       ),
                     ),
                   ),
@@ -193,6 +192,9 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                     children: [
                       Row(
                         children: [
+                          // No ellipsis: a long title wraps, like the trip
+                          // and equipment cards, so the full name is always
+                          // visible.
                           Expanded(
                             child: Text(
                               title,
@@ -201,8 +203,6 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                                     fontWeight: FontWeight.w600,
                                     color: primaryTextColor,
                                   ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (site.rating != null) ...[
@@ -253,8 +253,9 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
               ],
             ),
             const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: _contentInset),
+            SelectionInset(
+              isSelectionMode: widget.isSelectionMode,
+              start: _contentInset,
               child: Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 16,
@@ -264,15 +265,17 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
             ),
             if (chips.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: _contentInset),
+              SelectionInset(
+                isSelectionMode: widget.isSelectionMode,
+                start: _contentInset,
                 child: Wrap(spacing: 6, runSpacing: 4, children: chips),
               ),
             ],
             if (config.extraFields.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: _contentInset),
+              SelectionInset(
+                isSelectionMode: widget.isSelectionMode,
+                start: _contentInset,
                 child: EntityCardExtraFields<SiteWithDiveCount, SiteField>(
                   adapter: adapter,
                   entity: entry,

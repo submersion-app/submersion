@@ -10979,6 +10979,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_errorTitle => '错误';
 
   @override
+  String get equipment_detail_installedInLabel => '安装于';
+
+  @override
   String get equipment_detail_lastServiceLabel => '最近维护';
 
   @override
@@ -11001,6 +11004,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => '拥有为';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name（$status）';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => '购买日期';
@@ -11380,6 +11388,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_detail_tripsSemanticLabel => '查看使用此装备的旅行';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => '曾安装于';
 
   @override
   String get equipment_edit_appBar_editTitle => '编辑装备';
@@ -19298,6 +19309,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_title => '标签';
 
   @override
+  String get tags_manage_importsSection => '导入';
+
+  @override
+  String get tags_manage_autoTagImports => '自动为导入的记录打标签';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      '每次新的导入都会以包含来源和日期的标签开始。可以在该次导入的选项中为单次导入更改此设置。';
+
+  @override
   String get tags_manage_searchHint => '搜索标签...';
 
   @override
@@ -23798,6 +23819,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       '使用导入文件中的潜水编号而不是自动分配';
+
+  @override
+  String get universalImport_label_autoTagThisImport => '自动为此次导入打标签';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      '从你在标签设置中保存的偏好开始。在此处更改仅影响此次导入。';
 
   @override
   String get universalImport_title_successImported => '导入成功';

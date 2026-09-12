@@ -41,6 +41,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
@@ -917,31 +918,28 @@ class DiveListTile extends ConsumerWidget {
                 // Top row: avatar/checkbox, text info, chart, chevron
                 Row(
                   children: [
-                    // Selection checkbox or dive number badge
-                    SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Center(
-                        child: SelectionLeading(
-                          isSelectionMode: isSelectionMode,
-                          isChecked: isChecked,
-                          onChanged: (_) => onTap?.call(),
-                          child: CircleAvatar(
-                            backgroundColor: colorScheme.primaryContainer,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  '#$diveNumber',
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    color: colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
+                    // Dive number badge, with the selection checkbox ahead
+                    // of it in selection mode (never in place of it).
+                    SelectionLeading(
+                      isSelectionMode: isSelectionMode,
+                      isChecked: isChecked,
+                      onChanged: (_) => onTap?.call(),
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircleAvatar(
+                          backgroundColor: colorScheme.primaryContainer,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '#$diveNumber',
+                                maxLines: 1,
+                                style: TextStyle(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),
@@ -969,13 +967,15 @@ class DiveListTile extends ConsumerWidget {
                                   // value (so the date line below doesn't
                                   // shift up) while textHeightBehavior only
                                   // repositions the ink within that space.
+                                  // No ellipsis: a long title wraps, like the
+                                  // trip and equipment cards, so the full
+                                  // name is always visible.
                                   style: titleStyle
                                       ?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: primaryTextColor,
                                       )
                                       .inkCentered,
-                                  overflow: TextOverflow.ellipsis,
                                   textHeightBehavior:
                                       inkCenteredTextHeightBehavior,
                                   strutStyle: titleStyle?.preservingStrut,
@@ -1109,8 +1109,9 @@ class DiveListTile extends ConsumerWidget {
                 // neither can squeeze the other -- DiveTypeBadgeRow still
                 // collapses into a single "+N" badge if the stat row alone
                 // leaves it little room.
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 52),
+                SelectionInset(
+                  isSelectionMode: isSelectionMode,
+                  start: 52,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -1157,8 +1158,9 @@ class DiveListTile extends ConsumerWidget {
                 // is itself capped with an ellipsis as a defensive backstop).
                 if (tags.isNotEmpty && detailedConfig.showTags) ...[
                   const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 52),
+                  SelectionInset(
+                    isSelectionMode: isSelectionMode,
+                    start: 52,
                     child: TagChips(tags: tags, maxTags: 3),
                   ),
                 ],
@@ -1166,8 +1168,9 @@ class DiveListTile extends ConsumerWidget {
                 if (extraFields.isNotEmpty &&
                     (fullDive != null || summary != null)) ...[
                   const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 52),
+                  SelectionInset(
+                    isSelectionMode: isSelectionMode,
+                    start: 52,
                     child: LayoutBuilder(
                       builder: (context, innerConstraints) {
                         final useOneColumn = innerConstraints.maxWidth < 250;

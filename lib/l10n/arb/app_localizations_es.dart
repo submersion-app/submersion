@@ -11491,6 +11491,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_detail_errorTitle => 'Error';
 
   @override
+  String get equipment_detail_installedInLabel => 'Instalado en';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'Ultimo servicio';
 
   @override
@@ -11513,6 +11516,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'En posesion durante';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'Fecha de compra';
@@ -11916,6 +11924,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'Ver viajes con este equipo';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'Estuvo instalado en';
 
   @override
   String get equipment_edit_appBar_editTitle => 'Editar equipo';
@@ -20386,6 +20397,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tags_manage_title => 'Etiquetas';
 
   @override
+  String get tags_manage_importsSection => 'Importaciones';
+
+  @override
+  String get tags_manage_autoTagImports =>
+      'Etiquetar importaciones automáticamente';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'Cada nueva importación comienza con una etiqueta que indica el origen y la fecha. Puedes cambiar esto para una sola importación en las opciones de esa importación.';
+
+  @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';
 
   @override
@@ -25121,6 +25143,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Usar los números de inmersión del archivo importado en lugar de asignarlos automáticamente';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'Etiquetar esta importación automáticamente';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'Comienza con tu preferencia guardada en la configuración de Etiquetas. Cambiarla aquí solo afecta a esta importación.';
 
   @override
   String get universalImport_title_successImported => 'Importación Exitosa';

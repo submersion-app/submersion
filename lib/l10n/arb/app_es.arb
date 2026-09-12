@@ -3751,6 +3751,7 @@
   "equipment_detail_editTooltipShort": "Editar",
   "equipment_detail_errorMessage": "Error: {error}",
   "equipment_detail_errorTitle": "Error",
+  "equipment_detail_installedInLabel": "Instalado en",
   "equipment_detail_lastServiceLabel": "Ultimo servicio",
   "equipment_detail_loadingTitle": "Cargando...",
   "equipment_detail_modelLabel": "Modelo",
@@ -3759,6 +3760,17 @@
   "equipment_detail_notFoundTitle": "Equipo no encontrado",
   "equipment_detail_notesTitle": "Notas",
   "equipment_detail_ownedForLabel": "En posesion durante",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Fecha de compra",
   "equipment_detail_purchasePriceLabel": "Precio de compra",
   "equipment_detail_retiredChip": "Retirado",
@@ -3926,6 +3938,7 @@
   "equipment_detail_tripsCountSingular": "{count} viaje",
   "equipment_detail_tripsLabel": "Viajes",
   "equipment_detail_tripsSemanticLabel": "Ver viajes con este equipo",
+  "equipment_detail_wasInstalledInLabel": "Estuvo instalado en",
   "equipment_edit_appBar_editTitle": "Editar equipo",
   "equipment_edit_appBar_newTitle": "Nuevo equipo",
   "equipment_edit_appBar_saveButton": "Guardar",
@@ -6085,6 +6098,8 @@
   "importWizard_photos_destinationUnwritable": "No se puede escribir en esa carpeta. Elige otra.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 inmersión antigua omitida — ya está en tu registro} other{{count} inmersiones antiguas omitidas — ya están en tu registro}}",
   "tags_hint_addTags": "Agregar etiquetas...",
+  "tags_manage_autoTagImports": "Etiquetar importaciones automáticamente",
+  "tags_manage_autoTagImports_subtitle": "Cada nueva importación comienza con una etiqueta que indica el origen y la fecha. Puedes cambiar esto para una sola importación en las opciones de esa importación.",
   "tags_manage_bulkDeleteMessage": "Estas etiquetas se eliminaran de {diveCount, plural, =0{0 inmersiones} =1{1 inmersion} other{{diveCount} inmersiones}} en total. Esta accion no se puede deshacer.",
   "tags_manage_bulkDeleteTitle": "Eliminar {count} Etiquetas?",
   "tags_manage_colorLabel": "Color",
@@ -6094,6 +6109,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 inmersiones} =1{1 inmersion} other{{count} inmersiones}}",
   "tags_manage_editTitle": "Editar Etiqueta",
   "tags_manage_emptyState": "Aun no hay etiquetas. Crea una para empezar.",
+  "tags_manage_importsSection": "Importaciones",
   "tags_manage_mergeAction": "Fusionar",
   "tags_manage_mergeAffectedDives": "Esto afectara a {count, plural, =0{0 inmersiones} =1{1 inmersion} other{{count} inmersiones}} en total.",
   "tags_manage_mergeKeepFrom": "O conservar nombre de:",
@@ -7272,6 +7288,8 @@
   "universalImport_label_replacedSourceData": "Datos de origen reemplazados",
   "universalImport_label_retainDiveNumbers": "Conservar números de inmersión de origen",
   "universalImport_label_retainDiveNumbersSubtitle": "Usar los números de inmersión del archivo importado en lugar de asignarlos automáticamente",
+  "universalImport_label_autoTagThisImport": "Etiquetar esta importación automáticamente",
+  "universalImport_label_autoTagThisImportSubtitle": "Comienza con tu preferencia guardada en la configuración de Etiquetas. Cambiarla aquí solo afecta a esta importación.",
   "universalImport_title_importOptions": "Opciones de Importación",
   "universalImport_title_noDivesImported": "No se Importaron Inmersiones",
   "universalImport_title_successConsolidated": "Consolidación Exitosa",

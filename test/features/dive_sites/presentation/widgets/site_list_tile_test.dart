@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
@@ -130,6 +132,43 @@ void main() {
     expect(find.text('5-50m'), findsNothing);
   });
 
+  testWidgets('wraps a long title onto more lines instead of ellipsizing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(353, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const longName =
+        'Blue Hole Arch and Canyon drift along the northern reef wall';
+    final entry = SiteWithDiveCount(
+      site: _richEntry.site.copyWith(name: longName),
+      diveCount: _richEntry.diveCount,
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        locale: const Locale('en'),
+        child: SiteListTile(entry: entry, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final title = tester.renderObject<RenderParagraph>(find.text(longName));
+    final lineHeight = title.text.style!.fontSize!;
+    expect(
+      title.didExceedMaxLines,
+      isFalse,
+      reason: 'an ellipsized title hides the rest of the site name',
+    );
+    expect(
+      title.size.height,
+      greaterThan(lineHeight * 2),
+      reason: 'the full name only fits on a narrow card by wrapping',
+    );
+  });
+
   testWidgets('shows a checkbox in selection mode', (tester) async {
     await tester.pumpWidget(
       testApp(
@@ -145,6 +184,63 @@ void main() {
     await tester.pump();
 
     expect(find.byType(Checkbox), findsOneWidget);
+  });
+
+  testWidgets('keeps the avatar beside the checkbox in selection mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        child: SiteListTile(
+          entry: _richEntry,
+          isSelectionMode: true,
+          isChecked: false,
+          onTap: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byIcon(Icons.location_on),
+      findsOneWidget,
+      reason: 'the checkbox is inserted ahead of the avatar (issue #1717)',
+    );
+    expect(
+      tester.getTopRight(find.byType(Checkbox)).dx,
+      lessThanOrEqualTo(tester.getTopLeft(find.byType(CircleAvatar)).dx),
+    );
+  });
+
+  testWidgets('keeps the stat line under the title in selection mode', (
+    tester,
+  ) async {
+    Future<double> statOffsetFromTitle({required bool selecting}) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: SiteListTile(
+            entry: _richEntry,
+            isSelectionMode: selecting,
+            isChecked: false,
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return tester.getTopLeft(find.text('5-50m')).dx -
+          tester.getTopLeft(find.text('Blue Hole')).dx;
+    }
+
+    final normal = await statOffsetFromTitle(selecting: false);
+    final selecting = await statOffsetFromTitle(selecting: true);
+    expect(
+      selecting,
+      normal,
+      reason: 'the lower lines move with the checkbox column',
+    );
   });
 
   testWidgets('renders a FlutterMap background for a located site', (
@@ -168,5 +264,61 @@ void main() {
 
     expect(find.byType(FlutterMap), findsWidgets);
     expect(find.text('Located Reef'), findsOneWidget);
+  });
+
+  testWidgets('tapping the checkbox toggles the row', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        child: SiteListTile(
+          entry: _richEntry,
+          isSelectionMode: true,
+          isChecked: false,
+          onTap: () => taps++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Checkbox>(find.byType(Checkbox)).onChanged,
+      isNotNull,
+      reason: 'a disabled checkbox would read as an unselectable row',
+    );
+    await tester.tap(find.byType(Checkbox));
+    expect(
+      taps,
+      1,
+      reason: 'the checkbox claims the tap, so the row toggles exactly once',
+    );
+  });
+
+  testWidgets('tints the avatar with the sites accent when list accents are '
+      'on', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await _overrides(),
+          accentListIconsProvider.overrideWithValue(true),
+        ],
+        child: Builder(
+          builder: (context) => Theme(
+            data: Theme.of(
+              context,
+            ).copyWith(extensions: const [FeatureAccentColors.light]),
+            child: SiteListTile(entry: _richEntry, onTap: () {}),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final accent = FeatureAccentColors.light.of('sites')!;
+    expect(
+      tester.widget<CircleAvatar>(find.byType(CircleAvatar)).backgroundColor,
+      accent.withValues(alpha: 0.15),
+    );
+    expect(tester.widget<Icon>(find.byIcon(Icons.location_on)).color, accent);
   });
 }

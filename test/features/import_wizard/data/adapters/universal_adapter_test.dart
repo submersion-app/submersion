@@ -15,6 +15,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -34,13 +35,16 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -75,6 +79,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 @GenerateNiceMocks([
@@ -2416,6 +2421,64 @@ void main() {
       );
     });
 
+    testWidgets('custom dive roles in the metadata are restored', (
+      tester,
+    ) async {
+      // Issue #1737: a restored dive links people by custom role id, so
+      // the role definitions the file carried have to land as well.
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await tester.runAsync(() => DiverRepository().createDiver(_testDiver()));
+
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 3, 15, 10, 0),
+              'maxDepth': 20.0,
+              'runtime': const Duration(minutes: 30),
+            },
+          ],
+        },
+        metadata: {
+          ImportPayload.customDiveRolesKey: [
+            {
+              'id': 'custom-uuid',
+              'name': 'Photographer',
+              'sortOrder': 10,
+              'isBuiltIn': false,
+            },
+          ],
+        },
+      );
+
+      final mockTankPresetRepo = MockTankPresetRepository();
+      when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          mockTankPresetRepo: mockTankPresetRepo,
+        ),
+        callback: (adapter) async {
+          await tester.runAsync(() async {
+            final bundle = await adapter.buildBundle();
+            final result = await adapter.performImport(bundle, {
+              wizard.ImportEntityType.dives: {0},
+            }, {});
+            expect(result.errorMessage, isNull);
+          });
+        },
+      );
+
+      final role = await tester.runAsync(
+        () => DiveRoleRepository().getDiveRoleById('custom-uuid'),
+      );
+      expect(role?.name, 'Photographer');
+    });
+
     testWidgets(
       'real SSRF-shaped payload imports without int-to-double cast failures',
       (tester) async {
@@ -2474,6 +2537,94 @@ void main() {
             expect(result.importedCounts[ImportEntityType.dives], 1);
           },
         );
+      },
+    );
+
+    testWidgets(
+      'a backup whose GPS lives on its <source> records restores it (#1735)',
+      (tester) async {
+        // The wizard rebuilds UddfImportResult from entity lists, so the
+        // per-dive source entries have to survive on the dive maps. Every
+        // backup written before #1735 kept GPS only on those entries.
+        await setUpTestDatabase();
+        addTearDown(tearDownTestDatabase);
+
+        final payload = (await tester.runAsync(() async {
+          final stamp = DateTime(2025, 10, 13, 18);
+          final xml = await UddfFullExportService().generateAllDataXmlForTest(
+            dives: [
+              Dive(
+                id: 'dive-gps',
+                diveNumber: 1,
+                dateTime: DateTime(2025, 10, 13, 11, 24),
+                bottomTime: const Duration(minutes: 45),
+                maxDepth: 24.0,
+              ),
+            ],
+            dataSources: [
+              DiveSourceExport(
+                id: 'src-primary',
+                diveId: 'dive-gps',
+                ordinal: 0,
+                isPrimary: true,
+                importedAt: stamp,
+                createdAt: stamp,
+                entryLatitude: 29.5,
+                entryLongitude: 34.9,
+              ),
+              DiveSourceExport(
+                id: 'src-secondary',
+                diveId: 'dive-gps',
+                ordinal: 1,
+                isPrimary: false,
+                importedAt: stamp,
+                createdAt: stamp,
+              ),
+            ],
+          );
+          return UddfImportParser().parse(Uint8List.fromList(utf8.encode(xml)));
+        }))!;
+
+        final mockDiveRepo = MockDiveRepository();
+        when(
+          mockDiveRepo.createDive(any),
+        ).thenAnswer((inv) async => inv.positionalArguments[0] as Dive);
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            await tester.runAsync(() async {
+              final bundle = await adapter.buildBundle();
+              final result = await adapter.performImport(bundle, {
+                wizard.ImportEntityType.dives: {0},
+              }, {});
+              expect(result.errorMessage, isNull);
+            });
+          },
+        );
+
+        final dive =
+            verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+        expect(dive.entryLocation, const GeoPoint(29.5, 34.9));
+        // Both exported sources are restored rather than one synthesised
+        // row, which is the same entries reaching the importer.
+        final readings =
+            verify(
+                  mockDiveRepo.saveComputerReadings(captureAny),
+                ).captured.single
+                as List;
+        expect(readings, hasLength(2));
+        verifyNever(mockDiveRepo.saveComputerReading(any));
       },
     );
   });

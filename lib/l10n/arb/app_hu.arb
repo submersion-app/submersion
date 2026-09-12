@@ -3667,6 +3667,7 @@
   "equipment_detail_editTooltipShort": "Szerkesztes",
   "equipment_detail_errorMessage": "Hiba: {error}",
   "equipment_detail_errorTitle": "Hiba",
+  "equipment_detail_installedInLabel": "Beszerelve ebbe",
   "equipment_detail_lastServiceLabel": "Utolso szerviz",
   "equipment_detail_loadingTitle": "Betoltes...",
   "equipment_detail_modelLabel": "Modell",
@@ -3675,6 +3676,17 @@
   "equipment_detail_notFoundTitle": "Felszereles nem talalhato",
   "equipment_detail_notesTitle": "Megjegyzesek",
   "equipment_detail_ownedForLabel": "Birtoklasi ido",
+  "equipment_detail_parentWithStatus": "{name} ({status})",
+  "@equipment_detail_parentWithStatus": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_purchaseDateLabel": "Vasarlas datuma",
   "equipment_detail_purchasePriceLabel": "Vasarlasi ar",
   "equipment_detail_retiredChip": "Kivont",
@@ -3842,6 +3854,7 @@
   "equipment_detail_tripsCountSingular": "{count} utazas",
   "equipment_detail_tripsLabel": "Utazasok",
   "equipment_detail_tripsSemanticLabel": "Utazasok megtekintese ezzel a felszerelessel",
+  "equipment_detail_wasInstalledInLabel": "Korabban beszerelve ebbe",
   "equipment_edit_appBar_editTitle": "Felszereles szerkesztese",
   "equipment_edit_appBar_newTitle": "Uj felszereles",
   "equipment_edit_appBar_saveButton": "Mentes",
@@ -6001,6 +6014,8 @@
   "importWizard_photos_destinationUnwritable": "Ebbe a mappába nem lehet írni. Válasszon másikat.",
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 régebbi merülés kihagyva — már szerepel a naplódban} other{{count} régebbi merülés kihagyva — már szerepel a naplódban}}",
   "tags_hint_addTags": "Címkék hozzáadása...",
+  "tags_manage_autoTagImports": "Importok automatikus címkézése",
+  "tags_manage_autoTagImports_subtitle": "Minden új import egy, a forrást és a dátumot megnevező címkével kezdődik. Ez egyetlen importra megváltoztatható az adott import beállításaiban.",
   "tags_manage_bulkDeleteMessage": "Ezek a címkék eltávolításra kerülnek összesen {diveCount, plural, =0{0 merülésből} =1{1 merülésből} other{{diveCount} merülésből}}. Ez nem vonható vissza.",
   "tags_manage_bulkDeleteTitle": "{count} címke törlése?",
   "tags_manage_colorLabel": "Szín",
@@ -6010,6 +6025,7 @@
   "tags_manage_diveCount": "{count, plural, =0{0 merülés} =1{1 merülés} other{{count} merülés}}",
   "tags_manage_editTitle": "Címke szerkesztése",
   "tags_manage_emptyState": "Még nincsenek címkék. Hozzon létre egyet a kezdéshez.",
+  "tags_manage_importsSection": "Importok",
   "tags_manage_mergeAction": "Összevonás",
   "tags_manage_mergeAffectedDives": "Ez összesen {count, plural, =0{0 merülést} =1{1 merülést} other{{count} merülést}} érint.",
   "tags_manage_mergeKeepFrom": "Vagy tartsa meg a nevet innen:",
@@ -7272,6 +7288,8 @@
   "universalImport_label_replacedSourceData": "Forrásadat lecserélve",
   "universalImport_label_retainDiveNumbers": "Eredeti merülésszámok megtartása",
   "universalImport_label_retainDiveNumbersSubtitle": "Az importált fájl merülésszámainak használata az automatikus kiosztás helyett",
+  "universalImport_label_autoTagThisImport": "Ennek az importnak az automatikus címkézése",
+  "universalImport_label_autoTagThisImportSubtitle": "A Címkék beállításokban mentett beállításból indul. Az itt végzett módosítás csak ezt az importot érinti.",
   "universalImport_title_importOptions": "Importálási beállítások",
   "universalImport_title_noDivesImported": "Nem lett merülés importálva",
   "universalImport_title_successConsolidated": "Sikeresen összevonva",

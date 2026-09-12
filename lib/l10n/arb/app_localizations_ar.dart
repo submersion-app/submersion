@@ -11292,6 +11292,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_errorTitle => 'خطأ';
 
   @override
+  String get equipment_detail_installedInLabel => 'مركّب في';
+
+  @override
   String get equipment_detail_lastServiceLabel => 'آخر صيانة';
 
   @override
@@ -11315,6 +11318,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_detail_ownedForLabel => 'مدة الملكية';
+
+  @override
+  String equipment_detail_parentWithStatus(String name, String status) {
+    return '$name ($status)';
+  }
 
   @override
   String get equipment_detail_purchaseDateLabel => 'تاريخ الشراء';
@@ -11716,6 +11724,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_detail_tripsSemanticLabel =>
       'عرض الرحلات باستخدام هذه المعدات';
+
+  @override
+  String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
 
   @override
   String get equipment_edit_appBar_editTitle => 'تعديل المعدات';
@@ -19994,6 +20005,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_manage_title => 'الوسوم';
 
   @override
+  String get tags_manage_importsSection => 'الاستيراد';
+
+  @override
+  String get tags_manage_autoTagImports => 'وسم الاستيرادات تلقائيا';
+
+  @override
+  String get tags_manage_autoTagImports_subtitle =>
+      'يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.';
+
+  @override
   String get tags_manage_searchHint => 'البحث في الوسوم...';
 
   @override
@@ -24661,6 +24682,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً';
+
+  @override
+  String get universalImport_label_autoTagThisImport =>
+      'وسم هذا الاستيراد تلقائيا';
+
+  @override
+  String get universalImport_label_autoTagThisImportSubtitle =>
+      'يبدأ من تفضيلك المحفوظ في إعدادات الوسوم. تغييره هنا يؤثر فقط على هذا الاستيراد.';
 
   @override
   String get universalImport_title_successImported => 'تم الاستيراد بنجاح';
