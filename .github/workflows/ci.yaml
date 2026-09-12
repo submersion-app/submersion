@@ -558,20 +558,13 @@ jobs:
           python3 -m pip install shapely
           python3 scripts/sea_area_harvester_test.py
 
-      - name: Run dive site harvester tests
-        # The harvester stamps the bundled dive site and dive centre assets.
-        # Its dependency set is the one scripts/requirements.txt declares;
-        # without it the module-level tests skip themselves and only the
-        # source scan runs.
-        run: |
-          python3 -m pip install -r scripts/requirements.txt
-          python3 scripts/dive_site_harvester_test.py
-
       - name: Run brand asset generator tests
         # The generator draws the social card, banners, lockups and logo mark
         # from code. Pillow is installed with the same retry as coverage.py;
         # the tests fail rather than skip without it, so this step cannot go
-        # green having tested nothing. Text needs Pillow's RAQM layout, which
+        # green having tested nothing. It runs before the dive site step,
+        # whose unretried `pip install -r scripts/requirements.txt` would
+        # otherwise be the one downloading Pillow (it is listed there too). Text needs Pillow's RAQM layout, which
         # loads the system libfribidi; install it if the runner lacks it.
         # layout_test.py needs no Pillow.
         run: |
@@ -593,6 +586,15 @@ jobs:
           fi
           python3 scripts/brand/layout_test.py
           python3 scripts/brand/generate_brand_assets_test.py
+
+      - name: Run dive site harvester tests
+        # The harvester stamps the bundled dive site and dive centre assets.
+        # Its dependency set is the one scripts/requirements.txt declares;
+        # without it the module-level tests skip themselves and only the
+        # source scan runs.
+        run: |
+          python3 -m pip install -r scripts/requirements.txt
+          python3 scripts/dive_site_harvester_test.py
 
       - name: Run appcast beta feed test
         run: ./scripts/generate_appcast_beta_test.sh

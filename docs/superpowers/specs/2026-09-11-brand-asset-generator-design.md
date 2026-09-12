@@ -165,7 +165,8 @@ PNG encoding).
 
 ### Other edits
 
-- `scripts/requirements.txt`: add `Pillow>=10.0`, noting it serves the brand
+- `scripts/requirements.txt`: add `Pillow>=10.1` (the first release that
+  accepts the float font sizes the renderer passes), noting it serves the brand
   scripts (the icon script already depended on it without listing it).
 
 ## Testing
@@ -203,7 +204,10 @@ Tests fail, never skip, when Pillow or the fonts are missing.
 In `.github/workflows/ci.yaml`, the `script-tests` job gains a Pillow install
 step using the job's existing three-attempt pip retry pattern, installs
 `libfribidi0` if Pillow reports RAQM unavailable, and runs `scripts/brand/layout_test.py` and
-`scripts/brand/generate_brand_assets_test.py`.
+`scripts/brand/generate_brand_assets_test.py`. The step runs before the dive
+site harvester step: that step's unretried `pip install -r
+scripts/requirements.txt` also lists Pillow, so running it first would make it
+the one downloading Pillow and bypass the retry.
 
 ### Manual verification
 
