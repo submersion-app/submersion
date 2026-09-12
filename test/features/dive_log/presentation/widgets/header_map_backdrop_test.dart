@@ -24,10 +24,14 @@ Future<void> _pump(WidgetTester tester, double height) {
   );
 }
 
-Rect _mapClip(WidgetTester tester) {
-  final clip = tester.renderObject<RenderClipRect>(
+RenderClipRect _mapClipRender(WidgetTester tester) {
+  return tester.renderObject<RenderClipRect>(
     find.ancestor(of: find.byKey(_mapKey), matching: find.byType(ClipRect)),
   );
+}
+
+Rect _mapClip(WidgetTester tester) {
+  final clip = _mapClipRender(tester);
   return clip.clipper!.getClip(clip.size);
 }
 
@@ -64,6 +68,22 @@ void main() {
     // Fully opaque from where the map ends to the card's bottom edge.
     expect(gradient.colors.sublist(3), [_fade, _fade]);
     expect(gradient.colors.first, _fade.withValues(alpha: 0.3));
+  });
+
+  testWidgets('the map clip only recomputes when the inset changes', (
+    tester,
+  ) async {
+    await _pump(tester, 200);
+    final clipper = _mapClipRender(tester).clipper!;
+    // The inset is a constant, so a clipper never differs from its
+    // predecessor and resizing re-runs getClip without a reclip request.
+    expect(clipper.shouldReclip(clipper), isFalse);
+
+    await _pump(tester, 120);
+    expect(
+      _mapClip(tester),
+      const Rect.fromLTRB(0, 0, 200, 120 - kHeaderMapBottomInset),
+    );
   });
 
   testWidgets('a backdrop shorter than the band hides the map entirely', (
