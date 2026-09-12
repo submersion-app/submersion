@@ -263,6 +263,7 @@ class UddfExportService {
                                 nest: dive.entryMethod!.name,
                               );
                             }
+                            UddfExportBuilders.buildDiverRole(builder, dive);
                             UddfExportBuilders.buildDiveGpsElements(
                               builder,
                               'entry',
