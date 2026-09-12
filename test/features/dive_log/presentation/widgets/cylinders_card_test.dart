@@ -330,6 +330,33 @@ void main() {
       expect(find.textContaining('(150 bar / 1665 L used)'), findsOneWidget);
     });
 
+    testWidgets(
+      'a narrow card fits the title and volume chip beside the rates',
+      (tester) async {
+        // ListTile lays out the trailing rates first and gives the title what
+        // is left. On a phone, or half of a 700px pane, that can be too little
+        // for the tank name and the volume chip on one line, and the chip,
+        // which cannot shrink, overflowed the title row. The test font sets
+        // every glyph a full em wide, so this width exaggerates the squeeze;
+        // it is the overflow, not the title's width, that is asserted.
+        await tester.binding.setSurfaceSize(const Size(340, 800));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          _buildCard(
+            dive: _makeDive([_makeTank()]),
+            cylinderSacs: [_makeSac()],
+            display: GasConsumptionDisplay.both,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Tank 1 (EAN32)'), findsOneWidget);
+        expect(find.text('11.1 L'), findsOneWidget);
+      },
+    );
+
     testWidgets('both omits the RMV line for a cylinder without a volume', (
       tester,
     ) async {

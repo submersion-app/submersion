@@ -17,14 +17,32 @@ void main() {
   });
 
   group('kDiveDetailSectionPairs', () {
-    test('pairs the five card pairs, left half first', () {
+    test('pairs the six card pairs, left half first', () {
       expect(kDiveDetailSectionPairs.map((p) => (p.left, p.right)), [
         (DiveDetailSectionId.decoStatus, DiveDetailSectionId.tissueLoading),
+        (DiveDetailSectionId.tanks, DiveDetailSectionId.sacSegments),
         (DiveDetailSectionId.details, DiveDetailSectionId.environment),
         (DiveDetailSectionId.surfaceGps, DiveDetailSectionId.tide),
-        (DiveDetailSectionId.tanks, DiveDetailSectionId.weights),
+        (DiveDetailSectionId.weights, DiveDetailSectionId.buoyancy),
         (DiveDetailSectionId.buddies, DiveDetailSectionId.signatures),
       ]);
+    });
+
+    // The Cylinders row takes the slot Gas consumption by segment already
+    // had, so it lands above Details and the Surface GPS + Tide row.
+    test('default order puts Cylinders directly after Safety Review', () {
+      final order = DiveDetailSectionConfig.defaultSections
+          .map((s) => s.id)
+          .toList();
+
+      expect(
+        order.indexOf(DiveDetailSectionId.tanks),
+        order.indexOf(DiveDetailSectionId.safetyReview) + 1,
+      );
+      expect(
+        order.indexOf(DiveDetailSectionId.sacSegments),
+        lessThan(order.indexOf(DiveDetailSectionId.details)),
+      );
     });
 
     // The deco column pads itself to the tissue card's height, so that pair
@@ -86,10 +104,18 @@ void main() {
         diveDetailSectionPairFor(DiveDetailSectionId.surfaceGps)?.right,
         DiveDetailSectionId.tide,
       );
+      expect(
+        diveDetailSectionPairFor(DiveDetailSectionId.sacSegments)?.left,
+        DiveDetailSectionId.tanks,
+      );
+      expect(
+        diveDetailSectionPairFor(DiveDetailSectionId.buoyancy)?.left,
+        DiveDetailSectionId.weights,
+      );
     });
 
     test('returns null for a section that never pairs', () {
-      expect(diveDetailSectionPairFor(DiveDetailSectionId.buoyancy), isNull);
+      expect(diveDetailSectionPairFor(DiveDetailSectionId.altitude), isNull);
       expect(diveDetailSectionPairFor(DiveDetailSectionId.reefHealth), isNull);
     });
   });

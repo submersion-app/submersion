@@ -48,6 +48,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
+import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -425,21 +426,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.sacSegments: (_) {
         if (dive.profile.isEmpty) return [];
-        return [
-          Consumer(
-            builder: (context, ref, _) {
-              final selectedPointIndex = ref.watch(
-                profileTrackingIndexProvider(diveId),
-              );
-              return _buildSacSegmentsSection(
-                context,
-                ref,
-                dive,
-                selectedPointIndex,
-              );
-            },
-          ),
-        ];
+        return [_sacSegmentsCard(dive)];
       },
       DiveDetailSectionId.details: (_) {
         return [
@@ -616,13 +603,60 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// The Cylinders card. Extracted so both the normal section flow and the
-  /// side-by-side pairing (with Weights) render identical content.
+  /// side-by-side pairing (with Gas consumption by segment) render identical
+  /// content.
   Widget _cylindersCard(Dive dive, UnitFormatter units, AppSettings settings) {
     return CylindersCard(
       dive: dive,
       units: units,
       settings: settings,
       display: ref.watch(gasConsumptionDisplayProvider),
+    );
+  }
+
+  /// The Gas consumption by segment card. Extracted so both the normal
+  /// section flow and the side-by-side pairing (with Cylinders) render
+  /// identical content. The tracking index is watched in its own [Consumer]
+  /// so hovering the profile chart rebuilds this card, not the page.
+  Widget _sacSegmentsCard(Dive dive) {
+    return Consumer(
+      builder: (context, ref, _) => _buildSacSegmentsSection(
+        context,
+        ref,
+        dive,
+        ref.watch(profileTrackingIndexProvider(dive.id)),
+      ),
+    );
+  }
+
+  /// Whether the Gas consumption by segment card has segments to show.
+  ///
+  /// Mirrors the card's own gate, including its last-good fallback, so a
+  /// transient null analysis cannot split the pair while the card stays.
+  /// The read is narrowed to that answer, so the page rebuilds only when it
+  /// flips.
+  bool _hasSacSegments(WidgetRef ref, Dive dive) {
+    if (dive.profile.isEmpty) return false;
+    final hasSegments = ref.watch(
+      sourceProfileAnalysisProvider((
+        diveId: dive.id,
+        sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+      )).select((a) => a.valueOrNull?.sacSegments?.isNotEmpty ?? false),
+    );
+    return hasSegments ||
+        (_lastSacSegmentsAnalysisDiveId == dive.id &&
+            _lastSacSegmentsAnalysis != null);
+  }
+
+  /// Whether the Buoyancy card has a modelled result to show.
+  ///
+  /// [BuoyancySection] renders nothing while loading, on error, or for an
+  /// unmodelable dive; this reads the provider the same way, narrowed to
+  /// that answer.
+  bool _hasBuoyancy(WidgetRef ref, Dive dive) {
+    if (dive.tanks.isEmpty && !_hasExposureSuit(dive)) return false;
+    return ref.watch(
+      buoyancyTwinProvider(dive.id).select((a) => a.valueOrNull != null),
     );
   }
 
@@ -681,15 +715,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Builds the ordered configurable-section widgets, rendering the fixed card
   /// pairs in [kDiveDetailSectionPairs] side by side when the pane is wide
-  /// enough: Details + Conditions, Surface GPS + Tide, Cylinders + Weights,
+  /// enough: Deco Status + Tissue Loading, Cylinders + Gas consumption by
+  /// segment, Details + Conditions, Surface GPS + Tide, Weights + Buoyancy,
   /// and Buddies + Signatures.
   ///
   /// A pair forms whenever both halves are visible and both have content to
   /// show, wherever they sit in the configured order. The row renders at the
   /// slot of whichever half comes first and anything between them drops below,
   /// which is what lets a diver whose saved order predates a pair (Water
-  /// Conditions between Tide and Surface GPS, Buoyancy between Weights and
-  /// Cylinders) still get the paired layout. Left/right come from the pair
+  /// Conditions between Tide and Surface GPS, Details between Gas consumption
+  /// and Cylinders) still get the paired layout. Left/right come from the pair
   /// definition rather than the configured order, so the arrangement is the
   /// same either way. When either half has nothing to show, both render
   /// full-width in their own slots exactly as before.
@@ -844,9 +879,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// rendering full-width in their own slots.
   ///
   /// The presence gates mirror what each section builder would decide for
-  /// itself: Conditions, Tide and Signatures all self-erase when empty, so
-  /// without these checks a pair could put a blank column beside a half-width
-  /// card.
+  /// itself: Conditions, Gas consumption by segment, Tide, Buoyancy and
+  /// Signatures all self-erase when empty, so without these checks a pair
+  /// could put a blank column beside a half-width card.
   _PairCards? _buildPairCards(
     DiveDetailSectionPair pair, {
     required BuildContext context,
@@ -908,10 +943,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         );
 
       case DiveDetailSectionId.tanks:
-        if (dive.tanks.isEmpty || !_hasWeights(dive)) return null;
+        if (dive.tanks.isEmpty || !_hasSacSegments(ref, dive)) return null;
         return _PairCards(
           _cylindersCard(dive, units, settings),
+          _sacSegmentsCard(dive),
+        );
+
+      case DiveDetailSectionId.weights:
+        if (!_hasWeights(dive) || !_hasBuoyancy(ref, dive)) return null;
+        return _PairCards(
           _buildWeightSection(context, dive, units),
+          BuoyancySection(diveId: dive.id, units: units),
         );
 
       case DiveDetailSectionId.buddies:
@@ -1048,8 +1090,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             SizedBox(height: layout.headerGap),
             // Configurable sections in user-defined order -- the dive profile
             // chart among them -- with the card pairs (Deco+Tissue,
-            // Details+Conditions, Cylinders+Weights, Buddies+Signatures) laid
-            // out side by side when the pane is wide enough. Gauge dives hide
+            // Cylinders+Gas consumption, Details+Conditions, GPS+Tide,
+            // Weights+Buoyancy, Buddies+Signatures) laid out side by side
+            // when the pane is wide enough. Gauge dives hide
             // gas/deco sections (deco status, tissue loading, SAC segments,
             // cylinders). The list layout folds each section to a header row.
             ..._buildOrderedSections(

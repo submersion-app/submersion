@@ -200,10 +200,15 @@ class CylindersCard extends ConsumerWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: const Icon(MdiIcons.divingScubaTank),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
+      // The trailing rates take their width first, so on a narrow card
+      // (a phone, or half of a paired row) the chip drops under the name
+      // rather than overflowing beside it.
+      title: Wrap(
+        spacing: 6,
+        runSpacing: 2,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Flexible(child: Text('$tankTitle (${tank.gasMix.name})')),
+          Text('$tankTitle (${tank.gasMix.name})'),
           if (tankLabel != null) _volumeChip(theme, tankLabel),
         ],
       ),
@@ -284,7 +289,6 @@ class CylindersCard extends ConsumerWidget {
   /// Small outlined chip carrying the preset/volume label (e.g. "AL80").
   Widget _volumeChip(ThemeData theme, String label) {
     return Container(
-      margin: const EdgeInsetsDirectional.only(start: 6),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.outlineVariant),
