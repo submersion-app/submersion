@@ -41,6 +41,44 @@ def teal_pixel_count(img):
     return hits.histogram()[255]
 
 
+def differing_pixels(a, b, threshold=48):
+    """Pixels where any RGBA channel differs by more than threshold."""
+    bands = ImageChops.difference(a.convert("RGBA"), b.convert("RGBA")).split()
+    worst = bands[0]
+    for band in bands[1:]:
+        worst = ImageChops.lighter(worst, band)
+    return _where(worst, lambda v: v > threshold).histogram()[255]
+
+
+def scaled(img, px):
+    return img.resize((px, px), Image.Resampling.LANCZOS)
+
+
+class OfficialOutlineTest(unittest.TestCase):
+    # Regression: generate_icon.py's white outline is a fixed 8px at 4x
+    # supersampling, so drawing the icon or glyph directly at a small size
+    # made the outline several times thicker, relative to the logo, than the
+    # official 1024px icon has it. Every size must be the official artwork
+    # scaled down.
+
+    def test_banner_icon_is_the_official_icon_scaled_down(self):
+        official = scaled(Image.open(ICON_PNG), 340)
+        self.assertEqual(differing_pixels(gen._icon(340), official), 0)
+
+    # The glyph and mark references are scaled twice (master to 1024, then
+    # to 256) while the code scales once, which differs on about 0.1% of
+    # pixels at hard edges. The fixed-width outline bug differed on about 8%.
+    EDGE_TOLERANCE = 0.005 * 256 * 256
+
+    def test_small_glyph_is_the_official_glyph_scaled_down(self):
+        reference = scaled(render_glyph(1024), 256)
+        self.assertLess(differing_pixels(render_glyph(256), reference), self.EDGE_TOLERANCE)
+
+    def test_small_mark_matches_the_large_mark_scaled_down(self):
+        reference = scaled(create_mark(1024), 256)
+        self.assertLess(differing_pixels(create_mark(256), reference), self.EDGE_TOLERANCE)
+
+
 class MarkTest(unittest.TestCase):
     def test_mark_is_square_with_clear_corners(self):
         mark = create_mark(256)
