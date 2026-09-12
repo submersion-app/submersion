@@ -280,11 +280,15 @@ jobs:
         # already fans out ~10-11 non-test jobs (analyze + 5 builds + scripts +
         # timezone + integration) that share the pool AND gate ci-success, so
         # oversharding queues the builds and makes total CI slower, not
-        # faster. 8 keeps us under the cap while roughly halving test
-        # wall-clock.
-        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+        # faster. The org is on GitHub Team (60 concurrent jobs; it was 8
+        # shards under Free's 20). Each shard pays ~4s per test file (almost
+        # all of it load + coverage, not assertions) plus ~2 min of fixed
+        # setup, so at ~3000 files 16 shards bring a shard to ~14 min, under
+        # the ~19 min Android build that then sets the critical path. More
+        # shards would not shorten CI until that build does.
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     env:
-      TOTAL_SHARDS: 8
+      TOTAL_SHARDS: 16
     steps:
       - uses: actions/checkout@v7
         with:
