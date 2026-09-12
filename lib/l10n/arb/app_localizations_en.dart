@@ -5866,6 +5866,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'All equipment already selected';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'Remaining gear is marked Spare';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Error loading equipment: $error';
   }
@@ -5876,6 +5880,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Remove items to add different ones';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Set an item\'s status to Active to add it to a dive';
 
   @override
   String get diveLog_equipmentPicker_title => 'Add Equipment';
@@ -10588,6 +10596,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'Sold';
+
+  @override
+  String get enum_equipmentStatus_spare => 'Spare';
 
   @override
   String get enum_equipmentType_backplate => 'Backplate';

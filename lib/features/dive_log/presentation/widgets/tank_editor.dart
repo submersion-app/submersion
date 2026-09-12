@@ -546,6 +546,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         (ref.watch(activeEquipmentProvider).valueOrNull ??
                 const <EquipmentItem>[])
             .where((e) => e.type == EquipmentType.regulator)
+            // Spare regulators are not offered (#1803), except the one this
+            // tank already uses, so an existing dive never reads "None".
+            .where(
+              (e) =>
+                  e.status != EquipmentStatus.spare ||
+                  e.id == _regulatorEquipmentId,
+            )
             .toList();
     final known = regs.any((r) => r.id == _regulatorEquipmentId);
     return DropdownButtonFormField<String?>(

@@ -22,6 +22,12 @@ class EquipmentPickerSheet extends ConsumerWidget {
   /// When set, only gear of this type is offered (the transmitter registry
   /// editor lists cylinders only).
   final EquipmentType? typeFilter;
+
+  /// Leave out [EquipmentStatus.spare] gear (#1803). Set by the callers that
+  /// pick the gear a diver dives with (dive edit, bulk edit, the planner,
+  /// the weight rig), where a shelf of spare hoses and O-rings would only
+  /// bury the gear actually worn. The transmitter registry leaves it off.
+  final bool hideSpare;
   final void Function(EquipmentItem) onEquipmentSelected;
 
   const EquipmentPickerSheet({
@@ -29,8 +35,16 @@ class EquipmentPickerSheet extends ConsumerWidget {
     required this.scrollController,
     required this.selectedEquipmentIds,
     this.typeFilter,
+    this.hideSpare = false,
     required this.onEquipmentSelected,
   });
+
+  /// The caller's own constraints on what may be offered, before the
+  /// diver's filter: the [typeFilter] and [hideSpare].
+  Iterable<EquipmentItem> _callerAllowed(Iterable<EquipmentItem> equipment) =>
+      equipment
+          .where((e) => typeFilter == null || e.type == typeFilter)
+          .where((e) => !hideSpare || e.status != EquipmentStatus.spare);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,16 +109,26 @@ class EquipmentPickerSheet extends ConsumerWidget {
             data: (equipmentList) {
               // Three narrowings, kept separate because each empties the list
               // for a different reason and the diver deserves to be told
-              // which: gear already on the dive, the caller's own constraint
-              // (the transmitter registry offers cylinders only), and finally
-              // the filter the diver chose.
+              // which: gear already on the dive, the caller's own constraints
+              // (the transmitter registry offers cylinders only, dive pickers
+              // hide spare gear), and finally the filter the diver chose.
               final unselected = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
                   .toList();
-              final offerable = typeFilter == null
-                  ? unselected
-                  : unselected.where((e) => e.type == typeFilter).toList();
+              final offerable = _callerAllowed(unselected).toList();
               final available = filter.apply(offerable);
+
+              // True when the only thing left to offer is spare gear, so the
+              // empty state points at the status rather than claiming the
+              // diver owns nothing or has already added everything.
+              final onlySpareLeft =
+                  hideSpare &&
+                  offerable.isEmpty &&
+                  unselected.any(
+                    (e) =>
+                        e.status == EquipmentStatus.spare &&
+                        (typeFilter == null || e.type == typeFilter),
+                  );
 
               // Which axis to blame when nothing is left. Applying the type
               // axis alone says whether the category really holds nothing:
@@ -122,6 +146,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       ? context.l10n.diveLog_equipmentPicker_noEquipment
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_allSelected
+                      : onlySpareLeft
+                      ? context.l10n.diveLog_equipmentPicker_allSpare
                       : typeMatches.isEmpty
                       ? context.l10n.equipment_list_emptyState_noTypeMatch
                       : context.l10n.equipment_list_emptyState_noStatusMatch,
@@ -129,6 +155,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       ? context.l10n.diveLog_equipmentPicker_addFromTab
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_removeToAdd
+                      : onlySpareLeft
+                      ? context.l10n.diveLog_equipmentPicker_spareHint
                       : null,
                   onClearFilter: filter.hasActiveFilters
                       ? () =>
@@ -213,13 +241,12 @@ class EquipmentPickerSheet extends ConsumerWidget {
   ) async {
     final current = ref.read(equipmentPickerFilterProvider);
     // Derived from what the picker can actually show: gear already on the
-    // dive is excluded, and so is anything the caller's own typeFilter
-    // rules out. Deriving them from the full active list would offer a chip
-    // that could only ever produce an empty list.
-    final selectable = equipment
-        .where((e) => !selectedEquipmentIds.contains(e.id))
-        .where((e) => typeFilter == null || e.type == typeFilter)
-        .toList();
+    // dive is excluded, and so is anything the caller's own constraints rule
+    // out. Deriving them from the full active list would offer a chip (such
+    // as Spare, when hidden) that could only ever produce an empty list.
+    final selectable = _callerAllowed(
+      equipment.where((e) => !selectedEquipmentIds.contains(e.id)),
+    ).toList();
     final presentTypes = selectable.map((e) => e.type).toSet();
     final presentStatuses = selectable.map((e) => e.status).toSet();
 

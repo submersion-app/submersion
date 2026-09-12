@@ -9765,6 +9765,12 @@ abstract class AppLocalizations {
   /// **'All equipment already selected'**
   String get diveLog_equipmentPicker_allSelected;
 
+  /// No description provided for @diveLog_equipmentPicker_allSpare.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining gear is marked Spare'**
+  String get diveLog_equipmentPicker_allSpare;
+
   /// No description provided for @diveLog_equipmentPicker_errorLoading.
   ///
   /// In en, this message translates to:
@@ -9782,6 +9788,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
+
+  /// No description provided for @diveLog_equipmentPicker_spareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set an item\'s status to Active to add it to a dive'**
+  String get diveLog_equipmentPicker_spareHint;
 
   /// No description provided for @diveLog_equipmentPicker_title.
   ///
@@ -17949,6 +17961,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sold'**
   String get enum_equipmentStatus_sold;
+
+  /// No description provided for @enum_equipmentStatus_spare.
+  ///
+  /// In en, this message translates to:
+  /// **'Spare'**
+  String get enum_equipmentStatus_spare;
 
   /// No description provided for @enum_equipmentType_backplate.
   ///

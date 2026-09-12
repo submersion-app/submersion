@@ -5927,6 +5927,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle uitrusting al geselecteerd';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'Resterende uitrusting is gemarkeerd als reserve';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Fout bij laden van uitrusting: $error';
   }
@@ -5937,6 +5941,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Verwijder items om andere toe te voegen';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Zet de status van een item op Actief om het aan een duik toe te voegen';
 
   @override
   String get diveLog_equipmentPicker_title => 'Uitrusting toevoegen';
@@ -10680,6 +10688,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'Verkocht';
+
+  @override
+  String get enum_equipmentStatus_spare => 'Reserve';
 
   @override
   String get enum_equipmentType_backplate => 'Backplate';

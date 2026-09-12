@@ -5968,6 +5968,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tutta l\'attrezzatura gia selezionata';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'L\'attrezzatura rimanente e segnata come di scorta';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Errore nel caricamento dell\'attrezzatura: $error';
   }
@@ -5978,6 +5982,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Rimuovi elementi per aggiungerne altri';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Imposta lo stato di un elemento su Attivo per aggiungerlo a un\'immersione';
 
   @override
   String get diveLog_equipmentPicker_title => 'Aggiungi attrezzatura';
@@ -10762,6 +10770,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'Venduto';
+
+  @override
+  String get enum_equipmentStatus_spare => 'Di scorta';
 
   @override
   String get enum_equipmentType_backplate => 'Piastra dorsale';

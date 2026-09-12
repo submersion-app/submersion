@@ -5850,6 +5850,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم اختيار جميع المعدات بالفعل';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'المعدات المتبقية مصنفة كاحتياطية';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'خطأ في تحميل المعدات: $error';
   }
@@ -5860,6 +5864,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'أزل عناصر لإضافة عناصر مختلفة';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
 
   @override
   String get diveLog_equipmentPicker_title => 'إضافة معدات';
@@ -10568,6 +10576,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'تم بيعه';
+
+  @override
+  String get enum_equipmentStatus_spare => 'احتياطي';
 
   @override
   String get enum_equipmentType_backplate => 'لوحة ظهر';

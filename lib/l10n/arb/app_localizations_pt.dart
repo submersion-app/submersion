@@ -5971,6 +5971,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todos os equipamentos ja selecionados';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'O equipamento restante esta marcado como reserva';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Erro ao carregar equipamentos: $error';
   }
@@ -5981,6 +5985,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Remova itens para adicionar outros';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Defina o status de um item como Ativo para adiciona-lo a um mergulho';
 
   @override
   String get diveLog_equipmentPicker_title => 'Adicionar Equipamento';
@@ -10763,6 +10771,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'Vendido';
+
+  @override
+  String get enum_equipmentStatus_spare => 'Reserva';
 
   @override
   String get enum_equipmentType_backplate => 'Backplate';

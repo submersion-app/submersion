@@ -3495,6 +3495,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         builder: (context, scrollController) => EquipmentPickerSheet(
           scrollController: scrollController,
           selectedEquipmentIds: _selectedEquipment.map((e) => e.id).toSet(),
+          hideSpare: true,
           onEquipmentSelected: (equipment) {
             Navigator.of(context).pop();
             _addGear([equipment]);
@@ -3615,6 +3616,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         builder: (context, scrollController) => EquipmentPickerSheet(
           scrollController: scrollController,
           selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
+          hideSpare: true,
           onEquipmentSelected: (equipment) {
             setState(() {
               if (!_equipmentMembers.any((e) => e.id == equipment.id)) {
