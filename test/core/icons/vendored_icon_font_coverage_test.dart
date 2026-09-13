@@ -85,6 +85,9 @@ void main() {
       'dpv': SubmersionIcons.dpv,
       'undersuit': SubmersionIcons.undersuit,
       'baselayer': SubmersionIcons.baselayer,
+      'tank_band': SubmersionIcons.tankBand,
+      'weight_pocket': SubmersionIcons.weightPocket,
+      'gear_pocket': SubmersionIcons.gearPocket,
     };
     final cmap = cmaps[SubmersionIcons.fontFamily]!;
     for (final entry in drawn.entries) {
