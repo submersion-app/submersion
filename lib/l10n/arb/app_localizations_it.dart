@@ -36733,6 +36733,40 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Salva i log di debug';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostica';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Visualizza log';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Avvisi ed errori vengono registrati automaticamente';
+
+  @override
+  String get settings_diagnostics_copy => 'Copia diagnostica';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Versione dell\'app, dispositivo e righe di log recenti per una segnalazione di bug';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostica copiata negli appunti';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Apri cartella dei log';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Impossibile aprire la cartella dei log. Si trova in: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Impossibile copiare la diagnostica: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Salva come preset';
 
   @override
@@ -38473,6 +38507,29 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'Impossibile caricare l\'andamento della temperatura';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Immersioni per temperatura dell\'acqua';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Come si distribuiscono le tue immersioni tra le fasce di temperatura dell\'acqua';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Nessun dato sulla temperatura dell\'acqua disponibile';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Impossibile caricare le fasce di temperatura dell\'acqua';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Grafico a barre. Immersioni per temperatura dell\'acqua. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Ultimi 5 anni';

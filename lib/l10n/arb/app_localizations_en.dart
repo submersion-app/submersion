@@ -36193,6 +36193,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Save Debug Logs';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostics';
+
+  @override
+  String get settings_diagnostics_viewLog => 'View log';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Warnings and errors are recorded automatically';
+
+  @override
+  String get settings_diagnostics_copy => 'Copy diagnostics';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App version, device and recent log lines for a bug report';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostics copied to clipboard';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Open log folder';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Could not open the log folder. It is at: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Could not copy diagnostics: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Save as Preset';
 
   @override
@@ -37891,6 +37925,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'Failed to load temperature trend';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Dives by Water Temperature';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'How your dives split across water temperature bands';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'No water temperature data available';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Failed to load water temperature bands';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Bar chart. Dives by water temperature. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Last 5 years';

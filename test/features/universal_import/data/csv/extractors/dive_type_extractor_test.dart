@@ -20,6 +20,20 @@ void main() {
       expect(types.map((t) => t['id']), ['night', 'deep_wreck', 'boat']);
     });
 
+    test('names a type as the row names it (#1834)', () {
+      final types = extractor.extractFromRows([
+        {
+          'diveTypeIds': ['search_recovery_1a2b3c4d', 'night'],
+          'diveTypeNames': {'search_recovery_1a2b3c4d': 'Search & Recovery'},
+        },
+      ]);
+
+      expect(types.map((t) => (t['id'], t['name'])), [
+        ('search_recovery_1a2b3c4d', 'Search & Recovery'),
+        ('night', 'Night'),
+      ]);
+    });
+
     test('names a type by the display form of its id', () {
       final types = extractor.extractFromRows([
         {

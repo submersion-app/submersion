@@ -36480,6 +36480,40 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Debuglogs opslaan';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostiek';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Log bekijken';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Waarschuwingen en fouten worden automatisch vastgelegd';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnostiek kopiëren';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App-versie, apparaat en recente logregels voor een foutmelding';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostiek gekopieerd naar klembord';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Logmap openen';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Kan de logmap niet openen. Deze staat in: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Kan diagnostiek niet kopiëren: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Opslaan als voorinstelling';
 
   @override
@@ -38212,6 +38246,29 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'Kan het temperatuurverloop niet laden';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Duiken per watertemperatuur';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Hoe je duiken verdeeld zijn over watertemperatuurbereiken';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Geen watertemperatuurgegevens beschikbaar';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Kan watertemperatuurbereiken niet laden';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Staafdiagram. Duiken per watertemperatuur. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Afgelopen 5 jaar';

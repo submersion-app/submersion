@@ -17,6 +17,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -170,6 +171,7 @@ class PdfExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     final signatureService = SignatureStorageService();
     final diveSignatures = <String, List<Signature>>{};
@@ -213,6 +215,7 @@ class PdfExportService {
       diver: diver,
       diverPhoto: diverPhoto,
       includeVerificationAreas: options.includeVerificationAreas,
+      diveTypesById: diveTypesById,
     );
 
     final fileName =
@@ -232,6 +235,7 @@ class PdfExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     final result = await generateDivePdfBytes(
       dives,
@@ -243,6 +247,7 @@ class PdfExportService {
       certifications: certifications,
       diver: diver,
       diverPhoto: diverPhoto,
+      diveTypesById: diveTypesById,
     );
     return saveAndShareFileBytes(
       result.bytes,
@@ -262,6 +267,7 @@ class PdfExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     final result = await generateDivePdfBytes(
       dives,
@@ -273,6 +279,7 @@ class PdfExportService {
       certifications: certifications,
       diver: diver,
       diverPhoto: diverPhoto,
+      diveTypesById: diveTypesById,
     );
     return savePdfBytesToFile(result.bytes, result.fileName);
   }

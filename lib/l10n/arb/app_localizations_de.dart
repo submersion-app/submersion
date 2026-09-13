@@ -36647,6 +36647,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Debug-Protokolle speichern';
 
   @override
+  String get settings_diagnostics_header => 'Diagnose';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Protokoll anzeigen';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Warnungen und Fehler werden automatisch aufgezeichnet';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnosedaten kopieren';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App-Version, Gerät und aktuelle Protokollzeilen für einen Fehlerbericht';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnosedaten in die Zwischenablage kopiert';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Protokollordner öffnen';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Der Protokollordner konnte nicht geöffnet werden. Er befindet sich unter: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Diagnosedaten konnten nicht kopiert werden: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Als Vorlage speichern';
 
   @override
@@ -38396,6 +38430,29 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'Temperaturverlauf konnte nicht geladen werden';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Tauchgänge nach Wassertemperatur';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Verteilung deiner Tauchgänge auf Wassertemperaturbereiche';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Keine Wassertemperaturdaten verfügbar';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Wassertemperaturbereiche konnten nicht geladen werden';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Balkendiagramm. Tauchgänge nach Wassertemperatur. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Letzte 5 Jahre';
