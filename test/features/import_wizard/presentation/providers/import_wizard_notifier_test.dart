@@ -2416,10 +2416,13 @@ void main() {
 
       final notifier = container.read(importWizardNotifierProvider.notifier);
 
-      final bundle = ImportBundle(
-        source: 'test_source',
+      const bundle = ImportBundle(
+        source: ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'test_source',
+        ),
         groups: {
-          ImportEntityType.dives: const EntityGroup(
+          ImportEntityType.dives: EntityGroup(
             items: [
               EntityItem(title: 'Dive 1', subtitle: ''),
               EntityItem(title: 'Dive 2', subtitle: ''),
@@ -2461,10 +2464,13 @@ void main() {
 
       final notifier = container.read(importWizardNotifierProvider.notifier);
 
-      final bundle = ImportBundle(
-        source: 'test_source',
+      const bundle = ImportBundle(
+        source: ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'test_source',
+        ),
         groups: {
-          ImportEntityType.dives: const EntityGroup(
+          ImportEntityType.dives: EntityGroup(
             items: [
               EntityItem(title: 'Dive 1', subtitle: ''),
               EntityItem(title: 'Dive 2', subtitle: ''),
@@ -2480,7 +2486,7 @@ void main() {
       // Attempt to select {0, 1, 2}
       notifier.setSelections(ImportEntityType.dives, {0, 1, 2}, true);
 
-      var state = container.read(importWizardNotifierProvider);
+      final state = container.read(importWizardNotifierProvider);
 
       // Index 1 should NOT be selected because it's in duplicateIndices
       expect(state.selections[ImportEntityType.dives], {0, 2});

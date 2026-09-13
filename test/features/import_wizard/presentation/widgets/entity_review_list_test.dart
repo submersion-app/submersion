@@ -1128,10 +1128,10 @@ void main() {
   });
 
   group('EntityReviewList - shift-click multi-selection', () {
-    final _item1 = EntityItem(title: 'Dive 1', subtitle: '');
-    final _item2 = EntityItem(title: 'Dive 2', subtitle: '');
-    final _item3 = EntityItem(title: 'Dive 3', subtitle: '');
-    final _item4 = EntityItem(title: 'Dive 4', subtitle: '');
+    const item1 = EntityItem(title: 'Dive 1', subtitle: '');
+    const item2 = EntityItem(title: 'Dive 2', subtitle: '');
+    const item3 = EntityItem(title: 'Dive 3', subtitle: '');
+    const item4 = EntityItem(title: 'Dive 4', subtitle: '');
 
     testWidgets('shift-click triggers onSetSelections with correct range', (
       tester,
@@ -1140,7 +1140,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(items: [_item1, _item2, _item3, _item4]);
+      const group = EntityGroup(items: [item1, item2, item3, item4]);
 
       Set<int>? updatedIndices;
       bool? wasSelecting;
@@ -1195,7 +1195,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      final group = EntityGroup(items: [_item1, _item2, _item3, _item4]);
+      const group = EntityGroup(items: [item1, item2, item3, item4]);
 
       Set<int>? updatedIndices;
       bool? wasSelecting;

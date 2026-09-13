@@ -381,12 +381,22 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// duplicate rows never reach this path with a meaningful action — their
   /// action is set via [setDuplicateAction] from `DuplicateActionCard` — so
   /// this can't clobber a user's duplicate-resolution choice.
+  ///
+  /// A shift-click range can span a duplicate row in the middle without the
+  /// user intending to select it, so -- exactly like [selectAll] -- indices
+  /// in [EntityGroup.duplicateIndices] are never added by this method. They
+  /// stay eligible for [setSelections]'s removal path, though that's moot in
+  /// practice since they can never have been added in the first place.
   void setSelections(ImportEntityType type, Set<int> indices, bool select) {
     final current = state.selections[type] ?? const <int>{};
     final updated = Set<int>.from(current);
 
     if (select) {
-      updated.addAll(indices);
+      final group = state.bundle?.groups[type];
+      final selectable = group == null
+          ? indices
+          : indices.difference(group.duplicateIndices);
+      updated.addAll(selectable);
     } else {
       updated.removeAll(indices);
     }
