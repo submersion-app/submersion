@@ -11465,6 +11465,17 @@
   "statistics_conditions_visibility_error": "Failed to load visibility data",
   "statistics_conditions_visibility_subtitle": "Dives by visibility condition",
   "statistics_conditions_visibility_title": "Visibility Distribution",
+  "statistics_conditions_siteType_error": "Failed to load site type data",
+  "statistics_conditions_siteType_semanticLabel": "Bar chart. Dives per site type. {description}",
+  "@statistics_conditions_siteType_semanticLabel": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "statistics_conditions_siteType_subtitle": "Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.",
+  "statistics_conditions_siteType_title": "Site Types",
   "statistics_conditions_waterType_error": "Failed to load water type data",
   "statistics_conditions_waterType_subtitle": "Salt vs Fresh water dives",
   "statistics_conditions_waterType_title": "Water Type",

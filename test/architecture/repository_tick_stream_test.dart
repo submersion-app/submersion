@@ -277,6 +277,37 @@ void main() {
         isTrue,
       );
     });
+
+    // Site type links are clockless children: typing a site writes only the
+    // junction, never dive_sites, so the chart must listen to it (#1765).
+    test('watchStatisticsChanges fires on a site_site_types write', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's2',
+              name: 'Quarry',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      expect(
+        await fires(
+          StatisticsRepository().watchStatisticsChanges(),
+          () => db
+              .into(db.siteSiteTypes)
+              .insert(
+                SiteSiteTypesCompanion.insert(
+                  id: 'j1',
+                  siteId: 's2',
+                  siteTypeId: 'quarry',
+                  createdAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
   });
 
   group('equipment', () {

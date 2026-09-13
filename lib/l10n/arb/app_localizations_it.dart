@@ -19208,6 +19208,22 @@ class AppLocalizationsIt extends AppLocalizations {
       'Distribuzione visibilita';
 
   @override
+  String get statistics_conditions_siteType_error =>
+      'Failed to load site type data';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'Bar chart. Dives per site type. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'Site Types';
+
+  @override
   String get statistics_conditions_waterType_error =>
       'Impossibile caricare i dati sul tipo di acqua';
 

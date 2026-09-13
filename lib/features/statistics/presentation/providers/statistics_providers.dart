@@ -281,6 +281,20 @@ final waterTypeDistributionProvider = FutureProvider<List<DistributionSegment>>(
   },
 );
 
+/// Dives per site type (issue #1765); segment labels are site type ids.
+final siteTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(statisticsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getSiteTypeDistribution(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
 final entryMethodDistributionProvider =
     FutureProvider<List<DistributionSegment>>((ref) async {
       _keepAliveWithExpiry(ref);

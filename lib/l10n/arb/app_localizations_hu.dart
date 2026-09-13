@@ -19155,6 +19155,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_conditions_visibility_title => 'Lathato megoszlas';
 
   @override
+  String get statistics_conditions_siteType_error =>
+      'Failed to load site type data';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'Bar chart. Dives per site type. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'Site Types';
+
+  @override
   String get statistics_conditions_waterType_error =>
       'Nem sikerult a viztipus adatok betoltese';
 

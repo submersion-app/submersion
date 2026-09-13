@@ -5,6 +5,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
+import 'package:submersion/features/statistics/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -34,6 +37,8 @@ class StatisticsConditionsPage extends ConsumerWidget {
           _buildVisibilitySection(context, ref),
           const SizedBox(height: 16),
           _buildWaterTypeSection(context, ref),
+          const SizedBox(height: 16),
+          _buildSiteTypeSection(context, ref),
           const SizedBox(height: 16),
           _buildEntryMethodSection(context, ref),
           const SizedBox(height: 16),
@@ -151,6 +156,52 @@ class StatisticsConditionsPage extends ConsumerWidget {
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
           message: context.l10n.statistics_conditions_waterType_error,
+        ),
+      ),
+    );
+  }
+
+  /// Dives per site type (issue #1765). Bars, not a pie: a dive at a site
+  /// with several types counts toward each, so the shares overlap.
+  Widget _buildSiteTypeSection(BuildContext context, WidgetRef ref) {
+    final distAsync = ref.watch(siteTypeDistributionProvider);
+    final typesById = ref.watch(siteTypesByIdProvider).value ?? const {};
+
+    return StatSectionCard(
+      title: context.l10n.statistics_conditions_siteType_title,
+      subtitle: context.l10n.statistics_conditions_siteType_subtitle,
+      child: distAsync.when(
+        data: (raw) {
+          // The repository emits type ids; names resolve here so custom
+          // types show the diver's name and built-ins translate.
+          final data = [
+            for (final s in raw)
+              (
+                label:
+                    typesById[s.label]?.localizedName(context.l10n) ?? s.label,
+                count: s.count,
+              ),
+          ];
+          final description = data
+              .map((d) => '${d.label}: ${d.count}')
+              .join(', ');
+          return Semantics(
+            label: context.l10n.statistics_conditions_siteType_semanticLabel(
+              description,
+            ),
+            child: HorizontalCategoryBarChart(
+              data: data,
+              barColor: Colors.teal.shade400,
+            ),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 120,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => StatEmptyState(
+          icon: Icons.error_outline,
+          message: context.l10n.statistics_conditions_siteType_error,
         ),
       ),
     );

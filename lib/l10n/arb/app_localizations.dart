@@ -31704,6 +31704,30 @@ abstract class AppLocalizations {
   /// **'Visibility Distribution'**
   String get statistics_conditions_visibility_title;
 
+  /// No description provided for @statistics_conditions_siteType_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load site type data'**
+  String get statistics_conditions_siteType_error;
+
+  /// No description provided for @statistics_conditions_siteType_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar chart. Dives per site type. {description}'**
+  String statistics_conditions_siteType_semanticLabel(String description);
+
+  /// No description provided for @statistics_conditions_siteType_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.'**
+  String get statistics_conditions_siteType_subtitle;
+
+  /// No description provided for @statistics_conditions_siteType_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get statistics_conditions_siteType_title;
+
   /// No description provided for @statistics_conditions_waterType_error.
   ///
   /// In en, this message translates to:
