@@ -19275,6 +19275,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_action_deleteTag => '删除标签';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '显示带有「$tagName」标签的潜水';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return '确定要删除「$tagName」吗？这将从所有潜水中移除该标签。';
   }
@@ -25577,10 +25582,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      '没有记录潜水服厚度的潜水';
+      '没有关联湿衣或干衣的潜水';
 
   @override
   String get statistics_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => '未知';
 
   @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';

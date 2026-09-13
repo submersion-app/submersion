@@ -20301,6 +20301,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_action_deleteTag => 'Tag löschen';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Tauchgänge mit Tag \"$tagName\" anzeigen';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Möchten Sie \"$tagName\" wirklich löschen? Dies entfernt es von allen Tauchgängen.';
   }
@@ -26913,11 +26918,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Keine Tauchgänge mit erfasster Anzugdicke';
+      'Keine Tauchgänge mit verknüpftem Neopren- oder Trockentauchanzug';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Anzugdicken-Daten konnten nicht geladen werden';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Unbekannt';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';

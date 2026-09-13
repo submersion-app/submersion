@@ -19994,6 +19994,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_action_deleteTag => 'Delete tag';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Show dives tagged \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Are you sure you want to delete \"$tagName\"? This will remove it from all dives.';
   }
@@ -26517,11 +26522,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'No dives with a suit thickness recorded';
+      'No dives with a wetsuit or drysuit linked';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Could not load suit thickness data';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Unknown';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';

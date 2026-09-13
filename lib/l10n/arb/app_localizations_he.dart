@@ -19821,6 +19821,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_action_deleteTag => 'מחק תגית';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'הצג צלילות עם התגית \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'האם אתה בטוח שברצונך למחוק את \"$tagName\"? פעולה זו תסיר אותה מכל הצלילות.';
   }
@@ -26302,11 +26307,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'אין צלילות עם עובי חליפה מתועד';
+      'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'לא ניתן לטעון נתוני עובי חליפה';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'לא ידוע';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';

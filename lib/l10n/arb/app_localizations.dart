@@ -33504,6 +33504,12 @@ abstract class AppLocalizations {
   /// **'Delete tag'**
   String get tags_action_deleteTag;
 
+  /// Tooltip on a tag chip; tapping the chip opens the dive list filtered to that tag
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives tagged \"{tagName}\"'**
+  String tags_action_showDives(String tagName);
+
   /// No description provided for @tags_dialog_deleteMessage.
   ///
   /// In en, this message translates to:
@@ -44390,7 +44396,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_progression_divesBySuitThickness_empty.
   ///
   /// In en, this message translates to:
-  /// **'No dives with a suit thickness recorded'**
+  /// **'No dives with a wetsuit or drysuit linked'**
   String get statistics_progression_divesBySuitThickness_empty;
 
   /// No description provided for @statistics_progression_divesBySuitThickness_error.
@@ -44398,6 +44404,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load suit thickness data'**
   String get statistics_progression_divesBySuitThickness_error;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get statistics_progression_divesBySuitThickness_unknown;
 
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///
