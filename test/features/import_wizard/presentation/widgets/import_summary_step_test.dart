@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -1446,6 +1447,110 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('2 rows not imported'), findsOneWidget);
+    });
+  });
+
+  group('ImportSummaryStep - by profile (#1893)', () {
+    const outcomes = [
+      DiverImportOutcome(
+        diverId: 'me',
+        name: 'Marci Glazer',
+        isNew: false,
+        isActive: true,
+        diveIds: ['d1', 'd2'],
+      ),
+      DiverImportOutcome(
+        diverId: 'bo',
+        name: 'Alex Glazer',
+        isNew: true,
+        isActive: false,
+        diveIds: ['d3'],
+      ),
+    ];
+
+    testWidgets('lists what each profile received', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: outcomes,
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('By profile'), findsOneWidget);
+      expect(find.text('Marci Glazer'), findsOneWidget);
+      expect(find.text('2 dives imported'), findsOneWidget);
+      expect(find.text('Alex Glazer'), findsOneWidget);
+      expect(find.text('New profile'), findsOneWidget);
+      expect(
+        find.text('Switch to Alex Glazer to see these dives'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a later failure keeps the success view', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'me',
+              name: 'Marci Glazer',
+              isNew: false,
+              isActive: true,
+              diveIds: ['d1', 'd2'],
+            ),
+          ],
+          errorMessage: 'Imported Marci Glazer, then stopped before Alex',
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_success_title')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Imported Marci Glazer, then stopped before Alex'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('one active profile adds no section', (tester) async {
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'me',
+              name: 'Marci Glazer',
+              isNew: false,
+              isActive: true,
+              diveIds: ['d1'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+      expect(find.text('By profile'), findsNothing);
     });
   });
 }

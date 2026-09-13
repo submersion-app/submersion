@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_diver_outcomes.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/unreadable_dates_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -46,7 +48,9 @@ class ImportSummaryStep extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (result.errorMessage != null) {
+    // A failure after some profiles already imported keeps the success view,
+    // with the error above what landed (issue #1893).
+    if (result.errorMessage != null && result.diverOutcomes.isEmpty) {
       return _ErrorView(errorMessage: result.errorMessage!, onDone: onDone);
     }
 
@@ -60,6 +64,8 @@ class ImportSummaryStep extends ConsumerWidget {
       importedDiveIds: result.importedDiveIds,
       fileOutcomes: result.fileOutcomes,
       notices: result.notices,
+      diverOutcomes: result.diverOutcomes,
+      partialError: result.errorMessage,
       onDone: onDone,
       onViewDives: onViewDives,
     );
@@ -80,6 +86,8 @@ class _SuccessView extends StatelessWidget {
   final List<String> importedDiveIds;
   final List<ImportFileOutcome> fileOutcomes;
   final List<ImportNotice> notices;
+  final List<DiverImportOutcome> diverOutcomes;
+  final String? partialError;
   final VoidCallback onDone;
   final VoidCallback onViewDives;
 
@@ -93,6 +101,8 @@ class _SuccessView extends StatelessWidget {
     this.importedDiveIds = const [],
     this.fileOutcomes = const [],
     this.notices = const [],
+    this.diverOutcomes = const [],
+    this.partialError,
     required this.onDone,
     required this.onViewDives,
   });
@@ -244,6 +254,14 @@ class _SuccessView extends StatelessWidget {
                   );
                 },
               ),
+            if (partialError != null ||
+                ImportSummaryDiverOutcomes.isWorthShowing(diverOutcomes)) ...[
+              const SizedBox(height: 16),
+              ImportSummaryDiverOutcomes(
+                outcomes: diverOutcomes,
+                errorMessage: partialError,
+              ),
+            ],
             if (fileNotices.isNotEmpty) ...[
               const SizedBox(height: 16),
               Column(
