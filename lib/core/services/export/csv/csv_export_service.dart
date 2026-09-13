@@ -5,9 +5,11 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -26,6 +28,10 @@ class CsvExportService {
   /// carriage return, pipe) with a single quote, which forces spreadsheet
   /// applications to treat the value as plain text.
   ///
+  /// A value that already starts with a quote gets one more, so an import
+  /// can undo the guard unambiguously: one leading quote is dropped when a
+  /// dangerous character or another quote follows it (#1814).
+  ///
   /// References:
   /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
   String sanitizeCsvField(String? value) {
@@ -40,7 +46,8 @@ class CsvExportService {
         firstChar == '@' ||
         firstChar == '\t' ||
         firstChar == '\r' ||
-        firstChar == '|') {
+        firstChar == '|' ||
+        firstChar == "'") {
       return "'$value";
     }
 
@@ -174,42 +181,12 @@ class CsvExportService {
     }
     final sortedCustomKeys = allCustomFieldKeys.toList()..sort();
 
+    // The built-in Submersion import preset reads these same constants.
     final headers = [
-      'Dive Number',
-      'Name',
-      'Date',
-      'Time',
-      'Site',
-      'Location',
-      'Max Depth (m)',
-      'Avg Depth (m)',
-      'Bottom Time (min)',
-      'Runtime (min)',
-      'Water Temp (°C)',
-      'Air Temp (°C)',
-      // Split at v144: the measured distance is machine-readable, the rating
-      // column carries a pre-v144 dive's bucket label.
-      'Visibility (m)',
-      'Visibility Rating',
-      'Dive Type',
-      'Buddy',
-      'Dive Master',
-      'Rating',
-      'Start Pressure (bar)',
-      'End Pressure (bar)',
-      'Tank Volume (L)',
-      'O2 %',
-      'Dive Computer',
-      'Serial Number',
-      'Firmware Version',
-      'Notes',
-      'Wind Speed (m/s)',
-      'Wind Direction',
-      'Cloud Cover',
-      'Precipitation',
-      'Humidity (%)',
-      'Weather Description',
-      ...sortedCustomKeys.map((key) => sanitizeCsvField('custom:$key')),
+      ...DiveCsvColumns.fixed,
+      ...sortedCustomKeys.map(
+        (key) => sanitizeCsvField('${DiveCsvColumns.customFieldPrefix}$key'),
+      ),
     ];
 
     final rows = <List<dynamic>>[headers];
@@ -231,7 +208,7 @@ class CsvExportService {
         dive.airTemp?.toStringAsFixed(0) ?? '',
         dive.visibilityMeters?.toStringAsFixed(1) ?? '',
         dive.visibility?.displayName ?? '',
-        dive.diveTypeNames.join('; '),
+        dive.diveTypeNames.join(DiveCsvColumns.diveTypeSeparator),
         dive.buddy ?? '',
         dive.diveMaster ?? '',
         dive.rating ?? '',
@@ -249,6 +226,12 @@ class CsvExportService {
         dive.precipitation?.displayName ?? '',
         dive.humidity?.toStringAsFixed(0) ?? '',
         dive.weatherDescription ?? '',
+        dive.site?.city ?? '',
+        dive.site?.region ?? '',
+        dive.site?.country ?? '',
+        dive.site?.island ?? '',
+        tank?.gasMix.he.toStringAsFixed(0) ?? '',
+        _customFieldsJson(dive.customFields),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)
@@ -259,6 +242,17 @@ class CsvExportService {
     }
 
     return const ListToCsvConverter().convert(rows);
+  }
+
+  /// The [DiveCsvColumns.customFields] cell: [fields] as a JSON list of
+  /// `{key, value}` objects in sort order, or empty when there are none.
+  String _customFieldsJson(List<DiveCustomField> fields) {
+    if (fields.isEmpty) return '';
+    final ordered = [...fields]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return jsonEncode([
+      for (final field in ordered) {'key': field.key, 'value': field.value},
+    ]);
   }
 
   /// Generate CSV content for sites (without sharing).
