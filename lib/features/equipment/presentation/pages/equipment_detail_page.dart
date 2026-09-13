@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -283,13 +284,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
           CircleAvatar(
             radius: 20,
             backgroundColor: isServiceOverdue
-                ? colorScheme.errorContainer
+                ? StatusColors.of(context).alert.container
                 : colorScheme.tertiaryContainer,
             child: Icon(
               equipmentTypeIcon(equipment.type),
               size: 20,
               color: isServiceOverdue
-                  ? colorScheme.onErrorContainer
+                  ? StatusColors.of(context).alert.onContainer
                   : colorScheme.onTertiaryContainer,
             ),
           ),
@@ -380,13 +381,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 CircleAvatar(
                   radius: 32,
                   backgroundColor: isServiceOverdue
-                      ? Theme.of(context).colorScheme.errorContainer
+                      ? StatusColors.of(context).alert.container
                       : Theme.of(context).colorScheme.tertiaryContainer,
                   child: Icon(
                     equipmentTypeIcon(equipment.type),
                     size: 32,
                     color: isServiceOverdue
-                        ? Theme.of(context).colorScheme.onErrorContainer
+                        ? StatusColors.of(context).alert.onContainer
                         : Theme.of(context).colorScheme.onTertiaryContainer,
                   ),
                 ),
@@ -429,21 +430,24 @@ class _EquipmentDetailContent extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer,
+                  color: StatusColors.of(context).alert.container,
+                  border: Border.all(
+                    color: StatusColors.of(context).alert.outline,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.warning,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      color: StatusColors.of(context).alert.onContainer,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         context.l10n.equipment_detail_serviceOverdue,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
+                          color: StatusColors.of(context).alert.onContainer,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

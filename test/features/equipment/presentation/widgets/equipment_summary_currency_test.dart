@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -25,6 +26,7 @@ void main() {
     WidgetTester tester,
     List<EquipmentItem> equipment, {
     String defaultCurrency = 'USD',
+    List<EquipmentItem> serviceDue = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1600);
@@ -54,7 +56,7 @@ void main() {
         overrides: [
           ...overrides,
           allEquipmentProvider.overrideWith((ref) async => equipment),
-          serviceDueEquipmentProvider.overrideWith((ref) async => const []),
+          serviceDueEquipmentProvider.overrideWith((ref) async => serviceDue),
         ],
       ),
     );
@@ -63,6 +65,30 @@ void main() {
 
   String card(double total, String code) =>
       '${currencySymbol(code)}${total.toStringAsFixed(0)}';
+
+  testWidgets('the service-due section uses the alert palette', (tester) async {
+    final due = _priced('d1', null, 'USD');
+    await pumpSummary(tester, [due], serviceDue: [due]);
+
+    final alert = StatusColors.light.alert;
+    final heading = find.text('Service Due');
+    final icon = tester.widget<Icon>(
+      find.descendant(
+        of: find.ancestor(of: heading, matching: find.byType(Row)).first,
+        matching: find.byIcon(Icons.warning),
+      ),
+    );
+    expect(icon.color, alert.accent);
+
+    // The item is listed twice: in the service-due card and again under
+    // recent items. The service-due section renders first.
+    final card = tester.widget<Card>(
+      find
+          .ancestor(of: find.text('Item d1').first, matching: find.byType(Card))
+          .first,
+    );
+    expect(card.color, alert.container);
+  });
 
   testWidgets('one currency yields a single total in that currency', (
     tester,

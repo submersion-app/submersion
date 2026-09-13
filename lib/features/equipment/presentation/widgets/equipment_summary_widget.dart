@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -135,7 +136,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 icon: Icons.build,
                 value: '${serviceDue.length}',
                 label: context.l10n.equipment_summary_serviceDue,
-                color: Colors.red,
+                color: StatusColors.of(context).alert.accent,
               ),
             for (final entry in totalsByCurrency)
               if (entry.value > 0)
@@ -222,7 +223,11 @@ class EquipmentSummaryWidget extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.warning, size: 20, color: Colors.red),
+            Icon(
+              Icons.warning,
+              size: 20,
+              color: StatusColors.of(context).alert.accent,
+            ),
             const SizedBox(width: 8),
             Text(
               context.l10n.equipment_summary_serviceDueTitle,
@@ -234,7 +239,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Card(
-          color: Theme.of(context).colorScheme.errorContainer,
+          color: StatusColors.of(context).alert.container,
           child: Column(
             children: serviceDue.take(3).map((item) {
               return Semantics(
@@ -255,19 +260,19 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                   title: Text(
                     item.name,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      color: StatusColors.of(context).alert.onContainer,
                     ),
                   ),
                   subtitle: Text(
                     item.type.localizedName(context.l10n),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      color: StatusColors.of(context).alert.onContainer,
                     ),
                   ),
                   trailing: ExcludeSemantics(
                     child: Icon(
                       Icons.chevron_right,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      color: StatusColors.of(context).alert.onContainer,
                     ),
                   ),
                   onTap: () {

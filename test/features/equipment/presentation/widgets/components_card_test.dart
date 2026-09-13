@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
@@ -10,6 +11,9 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
@@ -130,6 +134,7 @@ void main() {
     List<PartOfEntry> partOf = const [],
     Object? partOfError,
     bool routed = false,
+    Map<String, DueClock> worst = const {},
   }) {
     return ProviderScope(
       overrides: [
@@ -148,7 +153,7 @@ void main() {
         equipmentComponentsIndexProvider.overrideWith(
           (ref) async => ComponentsIndex.fromRows(parts),
         ),
-        equipmentWorstClockProvider.overrideWith((ref) async => {}),
+        equipmentWorstClockProvider.overrideWith((ref) async => worst),
         activeEquipmentProvider.overrideWith(
           (ref) async => const [first, hose, spare],
         ),
@@ -360,6 +365,48 @@ void main() {
     // A part with no role falls back to its type label.
     expect(find.text('Hose'), findsOneWidget);
     expect(find.text('Retired'), findsOneWidget);
+  });
+
+  testWidgets('a part with a clock coming due gets the warn dot', (
+    tester,
+  ) async {
+    final dueSoon = (
+      item: first,
+      status: ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's1',
+          equipmentId: first.id,
+          serviceKindId: 'annual',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: ServiceKind(
+          id: 'annual',
+          name: 'Annual service',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        anchor: t0,
+        dueDate: t0.add(const Duration(days: 360)),
+        severity: ServiceClockSeverity.dueSoon,
+        now: t0.add(const Duration(days: 340)),
+      ),
+    );
+    await tester.pumpWidget(
+      build(
+        [part('c1', first, order: 0), part('c2', spare, order: 1)],
+        _FakeComponentRepository(),
+        worst: {first.id: dueSoon},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dots = tester
+        .widgetList<Icon>(find.byIcon(Icons.circle))
+        .map((d) => d.color)
+        .toList();
+    expect(dots, contains(StatusColors.light.warn.accent));
+    expect(dots, isNot(contains(StatusColors.light.alert.accent)));
   });
 
   testWidgets('a sold part keeps its Sold status, not Retired', (tester) async {

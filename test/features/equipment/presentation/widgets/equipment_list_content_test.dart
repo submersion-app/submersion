@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -15,6 +16,9 @@ import 'package:submersion/features/equipment/domain/services/equipment_arranger
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -633,11 +637,15 @@ void main() {
       serviceIntervalDays: 365,
     );
 
-    Widget buildTile(EquipmentItem item, ColorScheme scheme) {
+    Widget buildTile(
+      EquipmentItem item,
+      ColorScheme scheme, {
+      Map<String, RollupClock> rollup = const {},
+    }) {
       return ProviderScope(
         overrides: [
           // Ledger map resolved but empty -> worstClock is null for this item.
-          equipmentRollupClockProvider.overrideWith((ref) async => {}),
+          equipmentRollupClockProvider.overrideWith((ref) async => rollup),
           equipmentComponentsIndexProvider.overrideWith(
             (ref) async => ComponentsIndex.empty,
           ),
@@ -668,6 +676,84 @@ void main() {
       expect(avatar.backgroundColor, scheme.tertiaryContainer);
       expect(avatar.backgroundColor, isNot(scheme.errorContainer));
       expect(find.text('Service Due'), findsNothing);
+    });
+
+    RollupClock clock(EquipmentItem item, ServiceClockSeverity severity) {
+      final t0 = DateTime(2026, 1, 1);
+      return (
+        ownerId: item.id,
+        ownerName: item.name,
+        status: ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 's-${item.id}',
+            equipmentId: item.id,
+            serviceKindId: 'annual',
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+          kind: ServiceKind(
+            id: 'annual',
+            name: 'Annual service',
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+          anchor: t0,
+          dueDate: DateTime.now().add(const Duration(days: 5)),
+          severity: severity,
+          now: DateTime.now(),
+        ),
+      );
+    }
+
+    const reg = EquipmentItem(
+      id: 'reg1',
+      name: 'Reg',
+      type: EquipmentType.regulator,
+    );
+
+    testWidgets('an overdue clock paints the avatar and label as alerts', (
+      tester,
+    ) async {
+      final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+      await tester.pumpWidget(
+        buildTile(
+          reg,
+          scheme,
+          rollup: {reg.id: clock(reg, ServiceClockSeverity.overdue)},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+      expect(avatar.backgroundColor, StatusColors.light.alert.container);
+      final glyph = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(CircleAvatar),
+          matching: find.byType(Icon),
+        ),
+      );
+      expect(glyph.color, StatusColors.light.alert.onContainer);
+      final label = tester.widget<Text>(find.textContaining('Annual service'));
+      expect(label.style?.color, StatusColors.light.alert.accent);
+    });
+
+    testWidgets('a due-soon clock labels in warn and keeps the plain avatar', (
+      tester,
+    ) async {
+      final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+      await tester.pumpWidget(
+        buildTile(
+          reg,
+          scheme,
+          rollup: {reg.id: clock(reg, ServiceClockSeverity.dueSoon)},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+      expect(avatar.backgroundColor, scheme.tertiaryContainer);
+      final label = tester.widget<Text>(find.text('Annual service'));
+      expect(label.style?.color, StatusColors.light.warn.accent);
     });
 
     testWidgets('renders non-overdue avatar when nothing is due', (

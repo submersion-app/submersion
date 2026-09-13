@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -120,7 +121,7 @@ void main() {
     // The overdue signal must survive: tinting it with the feature accent
     // would hide a service warning behind a cosmetic preference.
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
-    expect(avatar.backgroundColor, theme.colorScheme.errorContainer);
+    expect(avatar.backgroundColor, StatusColors.light.alert.container);
 
     final icon = tester.widget<Icon>(
       find.descendant(
@@ -128,7 +129,7 @@ void main() {
         matching: find.byType(Icon),
       ),
     );
-    expect(icon.color, theme.colorScheme.onErrorContainer);
+    expect(icon.color, StatusColors.light.alert.onContainer);
   });
 }
 

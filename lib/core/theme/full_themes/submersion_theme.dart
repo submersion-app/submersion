@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 
 // ---------------------------------------------------------------------------
 // Submersion Theme -- the default ocean-blue Material 3 theme
@@ -12,7 +13,10 @@ const _seedColor = Color(0xFF0077B6);
 final ThemeData submersionLight = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
-  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
+  extensions: const <ThemeExtension<dynamic>>[
+    FeatureAccentColors.light,
+    StatusColors.light,
+  ],
   colorScheme: ColorScheme.fromSeed(
     seedColor: _seedColor,
     brightness: Brightness.light,
@@ -38,7 +42,10 @@ final ThemeData submersionLight = ThemeData(
 final ThemeData submersionDark = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
-  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.dark],
+  extensions: const <ThemeExtension<dynamic>>[
+    FeatureAccentColors.dark,
+    StatusColors.dark,
+  ],
   colorScheme: ColorScheme.fromSeed(
     seedColor: _seedColor,
     brightness: Brightness.dark,
