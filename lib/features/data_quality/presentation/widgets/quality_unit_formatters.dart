@@ -6,16 +6,15 @@ import 'package:submersion/features/data_quality/presentation/widgets/quality_fi
 /// Takes an already-built [UnitFormatter] rather than a `WidgetRef` so any
 /// caller that has one can reuse it, instead of watching the settings provider
 /// a second time just to reach these five closures.
-QualityUnitFormatters qualityUnitFormattersFor(
-  UnitFormatter units,
-) => QualityUnitFormatters(
-  depth: (m) => units.formatDepth(m),
-  pressure: (bar) => units.formatPressure(bar),
-  temperature: (c) => units.formatTemperature(c),
-  // Surface air consumption is a volume rate; honor the volume unit
-  // preference (L/min vs cuft/min); this is an RMV, never a pressure rate.
-  sac: (lpm) =>
-      '${units.convertVolume(lpm).toStringAsFixed(1)} ${units.volumeSymbol}/min',
-  date: (d) => units.formatDate(d),
-  dateTime: (d) => '${units.formatDate(d)} ${units.formatTime(d)}',
-);
+QualityUnitFormatters qualityUnitFormattersFor(UnitFormatter units) =>
+    QualityUnitFormatters(
+      depth: (m) => units.formatDepth(m),
+      pressure: (bar) => units.formatPressure(bar),
+      temperature: (c) => units.formatTemperature(c),
+      // Surface air consumption is a volume rate; honor the volume unit
+      // preference (L/min vs cuft/min); this is an RMV, never a pressure rate.
+      // formatRmv keeps 2 decimals for cuft/min, where values sit below 1.
+      sac: (lpm) => units.formatRmv(lpm),
+      date: (d) => units.formatDate(d),
+      dateTime: (d) => '${units.formatDate(d)} ${units.formatTime(d)}',
+    );
