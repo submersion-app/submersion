@@ -146,6 +146,51 @@ void main() {
     expect(types.map((t) => t.id).toSet(), {'wreck', 'lake'});
   });
 
+  group('suggested site types (Shearwater Environment)', () {
+    Map<String, dynamic> siteMap(String name) => {
+      'uddfId': name,
+      'name': name,
+      'suggestedSiteTypeRefs': ['quarry'],
+    };
+
+    test('apply to a site the import creates', () async {
+      final diverId = await createTestDiver();
+      final data = UddfImportResult(sites: [siteMap('Dutch Springs')]);
+      await UddfEntityImporter().import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+
+      final site = (await SiteRepository().getAllSites()).single;
+      final types = await SiteClassificationRepository().getTypesForSite(
+        site.id,
+      );
+      expect(types.map((t) => t.id), ['quarry']);
+    });
+
+    test('never override the types a matched site already has', () async {
+      final diverId = await createTestDiver();
+      final local = await SiteRepository().createSite(
+        DiveSite(id: '', name: 'Dutch Springs', diverId: diverId),
+        classification: const SiteClassification(typeIds: ['lake']),
+      );
+
+      await UddfEntityImporter().import(
+        data: UddfImportResult(sites: [siteMap('Dutch Springs')]),
+        selections: UddfImportSelections(siteOverrides: {0: local.id}),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+
+      final types = await SiteClassificationRepository().getTypesForSite(
+        local.id,
+      );
+      expect(types.map((t) => t.id), ['lake']);
+    });
+  });
+
   test('a re-imported custom type reuses the existing one by name', () async {
     final diverId = await createTestDiver();
     final mine = await SiteTypeRepository().createSiteType(

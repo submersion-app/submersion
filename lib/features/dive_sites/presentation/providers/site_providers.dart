@@ -802,8 +802,11 @@ class ExternalSiteSearchNotifier
       // Convert to local dive site
       final site = externalSite.toDiveSite(diverId: validatedDiverId);
 
-      // Save to database
-      final savedSite = await _siteListNotifier.addSite(site);
+      // Save to database, with its bundled features as site types (#1765)
+      final savedSite = await _siteListNotifier.addSite(
+        site,
+        classification: SiteClassification(typeIds: externalSite.siteTypeIds),
+      );
 
       return savedSite;
     } catch (e) {
