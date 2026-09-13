@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -18,8 +18,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-typedef Override = riverpod.Override;
 
 /// Mock SettingsNotifier that does not access the database.
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -43,11 +41,15 @@ AppSettings _buddiesOnly() => AppSettings(
       .toList(),
 );
 
-/// The Buddies card's solo copy, read from the generated English strings so
-/// a wording change does not silently turn these into always-green tests.
-final String _soloDive = lookupAppLocalizations(
-  const Locale('en'),
-).diveLog_detail_soloDive;
+/// The generated English strings, read so a wording change cannot break
+/// these tests or silently turn a "findsNothing" into an always-green check.
+final AppLocalizations _en = lookupAppLocalizations(const Locale('en'));
+
+/// The Buddies card's solo copy.
+final String _soloDive = _en.diveLog_detail_soloDive;
+
+/// The label on the diver's own role tile.
+final String _me = _en.buddies_picker_me;
 
 BuddyWithRole _linkedBuddy() => BuddyWithRole(
   buddy: Buddy(
@@ -155,7 +157,7 @@ void main() {
       );
     });
 
-    testWidgets('a text-only buddy is shown below the diver own role', (
+    testWidgets("a text-only buddy is shown below the diver's own role", (
       tester,
     ) async {
       await _pump(
@@ -165,9 +167,9 @@ void main() {
         diverRoleId: 'mysterySlug',
       );
 
-      expect(find.text('Me'), findsOneWidget);
+      expect(find.text(_me), findsOneWidget);
       expect(find.text('Bob Brown'), findsOneWidget);
-      final meY = tester.getCenter(find.text('Me')).dy;
+      final meY = tester.getCenter(find.text(_me)).dy;
       final bobY = tester.getCenter(find.text('Bob Brown')).dy;
       expect(meY, lessThan(bobY));
     });
