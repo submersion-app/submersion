@@ -12208,6 +12208,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'Borrar';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'Filtrar equipo';
 
   @override

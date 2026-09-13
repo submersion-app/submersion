@@ -4021,6 +4021,7 @@
   "equipment_list_typeFilterAll": "Todos os Tipos",
   "equipment_list_filterTooltip": "Filtrar equipamento",
   "equipment_list_activeFilter_clear": "Limpar",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
   "equipment_filter_title": "Filtrar Equipamento",
   "equipment_filter_clearAll": "Limpar Tudo",
   "equipment_filter_apply": "Aplicar Filtros",

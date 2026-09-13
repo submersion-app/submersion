@@ -3937,6 +3937,7 @@
   "equipment_list_typeFilterAll": "כל הסוגים",
   "equipment_list_filterTooltip": "סינון ציוד",
   "equipment_list_activeFilter_clear": "נקה",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
   "equipment_filter_title": "סנן ציוד",
   "equipment_filter_clearAll": "נקה הכל",
   "equipment_filter_apply": "החל מסננים",

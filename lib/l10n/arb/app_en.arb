@@ -6917,6 +6917,18 @@
   "equipment_list_typeFilterAll": "All Types",
   "equipment_list_filterTooltip": "Filter equipment",
   "equipment_list_activeFilter_clear": "Clear",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
+  "@equipment_list_activeFilter_attribute": {
+    "description": "Active-filter chip for an equipment attribute filter. {field} is the field name (e.g. Hose type), {values} the selected options joined with commas.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "values": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_filter_title": "Filter Equipment",
   "equipment_filter_clearAll": "Clear All",
   "equipment_filter_apply": "Apply Filters",

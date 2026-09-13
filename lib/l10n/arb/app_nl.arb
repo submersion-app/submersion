@@ -4021,6 +4021,7 @@
   "equipment_list_typeFilterAll": "Alle types",
   "equipment_list_filterTooltip": "Uitrusting filteren",
   "equipment_list_activeFilter_clear": "Wissen",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
   "equipment_filter_title": "Uitrusting filteren",
   "equipment_filter_clearAll": "Alles wissen",
   "equipment_filter_apply": "Filters toepassen",

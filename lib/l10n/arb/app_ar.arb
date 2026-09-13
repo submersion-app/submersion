@@ -4021,6 +4021,7 @@
   "equipment_list_typeFilterAll": "جميع الأنواع",
   "equipment_list_filterTooltip": "تصفية المعدات",
   "equipment_list_activeFilter_clear": "مسح",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
   "equipment_filter_title": "تصفية المعدات",
   "equipment_filter_clearAll": "مسح الكل",
   "equipment_filter_apply": "تطبيق الفلاتر",

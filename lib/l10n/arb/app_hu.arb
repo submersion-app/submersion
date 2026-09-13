@@ -3937,6 +3937,7 @@
   "equipment_list_typeFilterAll": "Összes típus",
   "equipment_list_filterTooltip": "Felszereles szurese",
   "equipment_list_activeFilter_clear": "Torles",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
   "equipment_filter_title": "Felszereles szurese",
   "equipment_filter_clearAll": "Osszes torlese",
   "equipment_filter_apply": "Szurok alkalmazasa",

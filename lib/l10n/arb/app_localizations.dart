@@ -20488,6 +20488,12 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get equipment_list_activeFilter_clear;
 
+  /// Active-filter chip for an equipment attribute filter. {field} is the field name (e.g. Hose type), {values} the selected options joined with commas.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {values}'**
+  String equipment_list_activeFilter_attribute(String field, String values);
+
   /// No description provided for @equipment_filter_title.
   ///
   /// In en, this message translates to:

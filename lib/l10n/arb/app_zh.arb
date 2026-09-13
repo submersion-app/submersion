@@ -4166,6 +4166,7 @@
   "equipment_list_typeFilterAll": "全部类型",
   "equipment_list_filterTooltip": "筛选装备",
   "equipment_list_activeFilter_clear": "清除",
+  "equipment_list_activeFilter_attribute": "{field}：{values}",
   "equipment_filter_title": "筛选装备",
   "equipment_filter_clearAll": "清除全部",
   "equipment_filter_apply": "应用筛选",

@@ -3937,6 +3937,7 @@
   "equipment_list_typeFilterAll": "Tous les types",
   "equipment_list_filterTooltip": "Filtrer l'équipement",
   "equipment_list_activeFilter_clear": "Effacer",
+  "equipment_list_activeFilter_attribute": "{field} : {values}",
   "equipment_filter_title": "Filtrer l'équipement",
   "equipment_filter_clearAll": "Tout effacer",
   "equipment_filter_apply": "Appliquer les filtres",

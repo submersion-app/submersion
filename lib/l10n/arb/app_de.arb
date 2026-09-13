@@ -4021,6 +4021,7 @@
   "equipment_list_typeFilterAll": "Alle Typen",
   "equipment_list_filterTooltip": "Ausrüstung filtern",
   "equipment_list_activeFilter_clear": "Löschen",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
   "equipment_filter_title": "Ausrüstung filtern",
   "equipment_filter_clearAll": "Alle löschen",
   "equipment_filter_apply": "Filter anwenden",
