@@ -740,6 +740,13 @@ void main() {
 
     const errorText = 'Something went wrong. Please try again.';
 
+    // Inside the dialog, not a SnackBar: the page's SnackBar renders under
+    // the dialog's barrier, dimmed and out of reach.
+    final dialogError = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.text(errorText),
+    );
+
     TextButton button(WidgetTester tester, String label) =>
         tester.widget<TextButton>(find.widgetWithText(TextButton, label));
 
@@ -774,7 +781,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text(errorText), findsOneWidget);
+      expect(dialogError, findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
       expect(find.text('Edit Tag'), findsOneWidget);
       expect(
         find.widgetWithText(TextField, 'Night Dive Renamed'),
@@ -799,7 +807,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text(errorText), findsOneWidget);
+      expect(dialogError, findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.widgetWithText(TextField, 'Wreck'), findsOneWidget);
       expect(button(tester, 'Save').onPressed, isNotNull, reason: 'retry');
@@ -859,6 +868,28 @@ void main() {
       expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
     });
 
+    testWidgets('a retry clears the error while it runs', (tester) async {
+      final notifier = _FailOnceTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(dialogError, findsOneWidget);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+      expect(dialogError, findsNothing, reason: 'the retry is under way');
+
+      notifier.gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
+    });
+
     testWidgets('two taps in one frame save once', (tester) async {
       final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
       await tester.pumpWidget(
@@ -905,7 +936,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text(errorText), findsOneWidget);
+      expect(dialogError, findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
       expect(
         find.widgetWithText(TextField, 'Night Dive Renamed'),
         findsOneWidget,
@@ -955,6 +987,25 @@ void main() {
       expect(saved.appliesToSites, isTrue);
     });
   });
+}
+
+/// A notifier whose first edit save fails and whose second waits on [gate],
+/// so a test can watch a retry while it is in flight.
+class _FailOnceTagListNotifier extends _MockTagListNotifier {
+  _FailOnceTagListNotifier(super.tags);
+
+  final Completer<void> gate = Completer<void>();
+  bool _failed = false;
+
+  @override
+  Future<void> updateTag(Tag tag) async {
+    if (!_failed) {
+      _failed = true;
+      throw StateError('update failed for ${tag.id}');
+    }
+    updated.add(tag);
+    await gate.future;
+  }
 }
 
 /// A repository whose usage read waits on [usage], so a test can act while
