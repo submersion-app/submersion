@@ -57,7 +57,11 @@ const _myssi = CsvPreset(
       ],
     ),
   },
-  supportedEntities: {ImportEntityType.dives},
+  supportedEntities: {
+    ImportEntityType.dives,
+    ImportEntityType.sites,
+    ImportEntityType.buddies,
+  },
 );
 
 // ======================== 1. Subsurface (multi-file) ========================
