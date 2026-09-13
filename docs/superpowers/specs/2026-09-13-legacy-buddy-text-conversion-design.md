@@ -136,9 +136,12 @@ dive-master text the link keeps the Dive Master role.
 
 `LegacyBuddyConversionService`, provided through Riverpod.
 
-- `Future<ConversionPlan> planFor(Dive dive, String diverId)`, where the
-  caller passes the dive's own diver, falling back to the active diver.
-- `Future<List<CandidateDive>> planCandidates(String diverId)`: one query
+- `Future<(ConversionPlan, BuddyNameMatcher)> planFor(Dive dive, String
+  diverId)`, where the caller passes the dive's own diver, falling back
+  to the active diver. The matcher travels with the plan because the
+  review sheet re-matches edited names against it.
+- `Future<LinkBuddyNamesData> planCandidates(String diverId)` (the
+  diver id, the matcher, and a `List<CandidateDive>`): one query
   for the diver's dives (scoped exactly as the dive list scopes dives to
   the active diver, so neither surface sees a dive the other hides) with
   no `dive_buddies` row and a non-blank
@@ -177,22 +180,24 @@ the UI shows an error snackbar and nothing is half-written. `apply`
 returns an empty receipt, and the UI offers no Undo, when every plan was
 skipped.
 
-### 5. Repository additions (`BuddyRepository`)
+### 5. Repository (`BuddyConversionRepository`, reached through `BuddyRepository`)
 
-Following the existing `bulk*` convention: no notify and no transaction
-of their own, the service owns both.
+`buddy_repository.dart` is already 1,230 lines, past the project's 800
+line cap, so the conversion's reads and writes live in
+`lib/features/buddies/data/repositories/buddy_conversion_repository.dart`
+and `BuddyRepository` exposes thin delegating methods, the same shape as
+`BuddyMergeRepository` behind `mergeBuddies` and `bulkDeleteBuddies`.
+Every write still goes through the sync-aware buddy repository layer.
 
-- `insertBuddyUnnotified(Buddy, int now)`: insert and mark `buddies`
-  pending.
-- `insertDiveBuddyLinks(List<(String diveId, String buddyId, String
-  roleId)>, int now) -> List<String>`: insert and mark each
-  `diveBuddies` row pending, returning the new ids.
-- `deleteDiveBuddyLinksByIds(List<String>)`: delete and `logDeletion`.
-- `deleteBuddiesIfUnlinked(List<String>) -> List<String>`: delete, with
-  certification tombstones, only records with no dive link.
-- `setBuddyDiverIdUnnotified(String id, String? diverId, int now)`.
-- `conversionCandidates(String diverId)`: the candidate buddies with
-  linked-dive counts.
+- `candidateBuddies(String diverId) -> List<MatchCandidate>`: the
+  diver's own and unowned buddies with linked-dive counts.
+- `unlinkedTextDives(String diverId) -> List<UnlinkedTextDive>`.
+- `apply(plans, diverId, newBuddyNote) -> ConversionReceipt`: owns its
+  transaction and its single notify, like `mergeBuddies`.
+- `undo(ConversionReceipt)`: likewise.
+
+The service in section 4 delegates `apply` and `undo` to these through
+`BuddyRepository`, and keeps planning (parse and match) for itself.
 
 Sync: these mark only `buddies` and `diveBuddies` rows. They do **not**
 stamp the parent dive. `diveBuddies` is a parent-gated child
@@ -247,9 +252,18 @@ Ana Ruiz                [Dive master ▾]  ⋮
 - Add a name appends a row with the Buddy role.
 - The Link button reads "Link N" and is disabled at zero rows.
 - The sheet returns the edited plan; the caller applies it, refreshes
-  `buddiesForDiveProvider(diveId)`, the buddy list providers and the
-  dive list providers (the table's Buddy column reads the junction), and
-  shows "Linked N buddies" with Undo.
+  the affected providers explicitly, and shows "Linked N buddies" with
+  Undo. The refresh cannot be left to table-change streams: the
+  paginated dive list's stream does not watch `dive_buddies`, and the
+  buddy count providers tick only on `buddies` and `dives`, which a
+  links-only conversion does not write. It invalidates the
+  `buddiesForDiveProvider`, `buddyStatsProvider`,
+  `diveIdsForBuddyProvider` and `divesForBuddyProvider` families,
+  `allBuddiesProvider`, `allBuddiesWithDiveCountProvider`,
+  `divesProvider` and `diveListNotifierProvider` (the table's Buddy
+  column reads `getAllDives`), and the bulk page's data provider. It
+  runs through the `ProviderContainer`, never a `WidgetRef`, because
+  Undo can be tapped after the page that ran the conversion is gone.
 
 The bulk page opens this same sheet for a single dive.
 
