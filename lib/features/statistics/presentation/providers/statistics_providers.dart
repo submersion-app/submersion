@@ -11,6 +11,7 @@ import 'package:submersion/features/statistics/data/repositories/statistics_repo
 import 'package:submersion/features/statistics/presentation/providers/statistics_gas_lane_provider.dart';
 import 'package:submersion/features/statistics/data/services/deco_classification_service.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
+import 'package:submersion/features/statistics/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 
@@ -45,6 +46,10 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(statisticsFilterProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // An attribute condition makes the totals read the gear tables (#1805).
+  if (filter.equipmentAttrConditions.isNotEmpty) {
+    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
+  }
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
@@ -65,6 +70,10 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(statisticsFilterProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // An attribute condition makes the records read the gear tables (#1805).
+  if (filter.equipmentAttrConditions.isNotEmpty) {
+    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
+  }
   return repository.getRecords(diverId: currentDiverId, filter: filter);
 });
 
@@ -223,17 +232,18 @@ final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
   return repository.getDivesPerYear(diverId: currentDiverId, filter: filter);
 });
 
-final divesBySuitThicknessProvider =
-    FutureProvider<List<({double mm, int count})>>((ref) async {
-      _keepAliveWithExpiry(ref);
-      final repository = ref.watch(statisticsRepositoryProvider);
-      final currentDiverId = ref.watch(currentDiverIdProvider);
-      final filter = ref.watch(statisticsFilterProvider);
-      return repository.getDivesBySuitThickness(
-        diverId: currentDiverId,
-        filter: filter,
-      );
-    });
+final divesBySuitThicknessProvider = FutureProvider<SuitThicknessStats>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(statisticsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getDivesBySuitThickness(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
 
 final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((
   ref,
