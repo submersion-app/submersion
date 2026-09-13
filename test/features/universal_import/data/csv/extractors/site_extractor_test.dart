@@ -216,5 +216,35 @@ void main() {
       expect(sites[0]['latitude'], closeTo(24.0786, 0.0001));
       expect(sites[0]['longitude'], closeTo(-76.1234, 0.0001));
     });
+
+    test('carries city, region and country from the first occurrence', () {
+      final rows = <Map<String, dynamic>>[
+        {
+          'siteName': 'Blue Hole',
+          'siteCity': 'Victoria',
+          'siteRegion': 'Gozo',
+          'siteCountry': 'Malta',
+        },
+        {'siteName': 'Blue Hole', 'siteCountry': 'Elsewhere'},
+      ];
+
+      final site = extractor.extractFromRows(rows).single;
+
+      expect(site['city'], 'Victoria');
+      expect(site['region'], 'Gozo');
+      expect(site['country'], 'Malta');
+    });
+
+    test('leaves out blank place fields', () {
+      final rows = <Map<String, dynamic>>[
+        {'siteName': 'Blue Hole', 'siteCity': '  ', 'siteCountry': 'Malta'},
+      ];
+
+      final site = extractor.extractFromRows(rows).single;
+
+      expect(site.containsKey('city'), isFalse);
+      expect(site.containsKey('region'), isFalse);
+      expect(site['country'], 'Malta');
+    });
   });
 }

@@ -904,4 +904,62 @@ void main() {
       expect(result.rows[0]['diveNum'], 42);
     });
   });
+
+  group('CsvTransformer custom field columns (#1814)', () {
+    const dateOnly = FieldMapping(
+      name: 'Test',
+      columns: [ColumnMapping(sourceColumn: 'Date', targetField: 'date')],
+    );
+
+    test('reads every non-empty custom:<key> cell into customFields', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'custom:camera', 'custom:formula', 'custom:empty'],
+        rows: [
+          ['2024-06-15', 'GoPro', "'=1+1", ''],
+          ['2024-06-16', '', '', ''],
+        ],
+      );
+
+      final result = transformer.transform(
+        csv,
+        const ImportConfiguration(mappings: {'primary': dateOnly}),
+      );
+
+      expect(result.rows[0]['customFields'], [
+        {'key': 'camera', 'value': 'GoPro'},
+        {'key': 'formula', 'value': '=1+1'},
+      ]);
+      expect(result.rows[1].containsKey('customFields'), isFalse);
+    });
+
+    test('leaves a custom column the mapping claims to that mapping', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'custom:buddy'],
+        rows: [
+          ['2024-06-15', 'Alex'],
+        ],
+      );
+
+      final result = transformer.transform(
+        csv,
+        const ImportConfiguration(
+          mappings: {
+            'primary': FieldMapping(
+              name: 'Test',
+              columns: [
+                ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+                ColumnMapping(
+                  sourceColumn: 'custom:buddy',
+                  targetField: 'buddy',
+                ),
+              ],
+            ),
+          },
+        ),
+      );
+
+      expect(result.rows.single['buddy'], 'Alex');
+      expect(result.rows.single.containsKey('customFields'), isFalse);
+    });
+  });
 }

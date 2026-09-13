@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
 
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/unit_detector.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 
@@ -202,6 +203,58 @@ class ValueConverter {
 
     return 'recreational';
   }
+
+  // ---------------------------------------------------------------------------
+  /// Parse a cell listing several dive types ("Night; Deep wreck") into
+  /// dive type ids, in order and without repeats.
+  ///
+  /// Each name becomes its slug ([DiveTypeEntity.generateSlug]), which inverts
+  /// the `Dive.diveTypeDisplayName` form Submersion's CSV export writes, so a
+  /// custom type keeps its id. Returns an empty list when no name survives.
+  List<String> parseDiveTypeIds(String raw) {
+    final ids = <String>[];
+    for (final part in raw.split(';')) {
+      final slug = DiveTypeEntity.generateSlug(part);
+      if (slug.isNotEmpty && !ids.contains(slug)) ids.add(slug);
+    }
+    return ids;
+  }
+
+  // ---------------------------------------------------------------------------
+  /// Match [raw] against [values] by enum name or by [displayName], ignoring
+  /// case, and return the matching enum's name.
+  ///
+  /// The importer stores enums by name, while Submersion's CSV export writes
+  /// display names ("North-East", "Partly Cloudy"). Returns null when nothing
+  /// matches.
+  String? parseEnumName<T extends Enum>(
+    String raw,
+    List<T> values,
+    String Function(T value) displayName,
+  ) {
+    final s = raw.trim().toLowerCase();
+    if (s.isEmpty) return null;
+    for (final value in values) {
+      if (value.name.toLowerCase() == s ||
+          displayName(value).toLowerCase() == s) {
+        return value.name;
+      }
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  /// Undo the CSV-injection guard Submersion's export applies to free text:
+  /// a leading `'` in front of `=`, `+`, `-`, `@` or `|` is dropped.
+  ///
+  /// Mirrors `CsvExportService.sanitizeCsvField`. Any other value, including
+  /// one that merely starts with `'`, is returned unchanged.
+  String unescapeCsvInjectionGuard(String value) {
+    if (value.length < 2 || value[0] != "'") return value;
+    return _injectionLeadChars.contains(value[1]) ? value.substring(1) : value;
+  }
+
+  static const _injectionLeadChars = {'=', '+', '-', '@', '|', '\t', '\r'};
 
   // ---------------------------------------------------------------------------
   /// Parse [raw] as a [double], stripping commas and trailing non-numeric

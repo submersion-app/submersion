@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -561,104 +562,150 @@ const _shearwater = CsvPreset(
 
 // ======================== 7. Submersion (native roundtrip) ========================
 
+/// Submersion's own dives CSV (`CsvExportService.generateDivesCsvContent`).
+///
+/// Headers come from [DiveCsvColumns], the constants the export writes, so
+/// the two cannot drift apart (#1814). [DiveCsvColumns.location] is display
+/// text and stays unmapped; the site city, region and country columns carry
+/// the same data. `custom:<key>` columns need no mapping: the transformer
+/// reads every such column into the dive's custom fields.
 const _submersionNative = CsvPreset(
   id: 'submersion_native',
   name: 'Submersion',
   source: PresetSource.builtIn,
   sourceApp: SourceApp.submersion,
-  signatureHeaders: [
-    'diveNumber',
-    'date',
-    'time',
-    'site',
-    'maxDepth',
-    'avgDepth',
-    'duration',
-    'waterTemp',
-    'airTemp',
-    'visibility',
-    'diveType',
-    'rating',
-    'notes',
-    'buddy',
-    'divemaster',
-    'suit',
-    'weight',
-    'tags',
-    'startPressure',
-    'endPressure',
-    'tankVolume',
-    'o2Percent',
-    'hePercent',
-    'sac',
-    'weather',
-    'windSpeed',
-    'currentStrength',
-    'surfaceConditions',
-    'runtime',
-  ],
+  signatureHeaders: DiveCsvColumns.fixed,
   matchThreshold: 0.5,
   mappings: {
     'primary': FieldMapping(
       name: 'Submersion Native',
       sourceApp: SourceApp.submersion,
       columns: [
-        ColumnMapping(sourceColumn: 'diveNumber', targetField: 'diveNumber'),
-        ColumnMapping(sourceColumn: 'date', targetField: 'date'),
-        ColumnMapping(sourceColumn: 'time', targetField: 'time'),
-        ColumnMapping(sourceColumn: 'site', targetField: 'siteName'),
-        ColumnMapping(sourceColumn: 'maxDepth', targetField: 'maxDepth'),
-        ColumnMapping(sourceColumn: 'avgDepth', targetField: 'avgDepth'),
         ColumnMapping(
-          sourceColumn: 'duration',
+          sourceColumn: DiveCsvColumns.diveNumber,
+          targetField: 'diveNumber',
+        ),
+        ColumnMapping(sourceColumn: DiveCsvColumns.name, targetField: 'name'),
+        ColumnMapping(sourceColumn: DiveCsvColumns.date, targetField: 'date'),
+        ColumnMapping(sourceColumn: DiveCsvColumns.time, targetField: 'time'),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.site,
+          targetField: 'siteName',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.maxDepth,
+          targetField: 'maxDepth',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.avgDepth,
+          targetField: 'avgDepth',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.bottomTime,
           targetField: 'duration',
           transform: ValueTransform.minutesToSeconds,
         ),
-        ColumnMapping(sourceColumn: 'waterTemp', targetField: 'waterTemp'),
-        ColumnMapping(sourceColumn: 'airTemp', targetField: 'airTemp'),
         ColumnMapping(
-          sourceColumn: 'visibility',
+          sourceColumn: DiveCsvColumns.runtime,
+          targetField: 'runtime',
+          transform: ValueTransform.minutesToSeconds,
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.waterTemp,
+          targetField: 'waterTemp',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.airTemp,
+          targetField: 'airTemp',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.visibility,
+          targetField: 'visibilityMeters',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.visibilityRating,
           targetField: 'visibility',
           transform: ValueTransform.visibilityScale,
         ),
         ColumnMapping(
-          sourceColumn: 'diveType',
-          targetField: 'diveType',
-          transform: ValueTransform.diveTypeMap,
+          sourceColumn: DiveCsvColumns.diveType,
+          targetField: 'diveTypeIds',
         ),
-        ColumnMapping(sourceColumn: 'rating', targetField: 'rating'),
-        ColumnMapping(sourceColumn: 'notes', targetField: 'notes'),
-        ColumnMapping(sourceColumn: 'buddy', targetField: 'buddy'),
-        ColumnMapping(sourceColumn: 'divemaster', targetField: 'diveMaster'),
-        ColumnMapping(sourceColumn: 'suit', targetField: 'suit'),
-        ColumnMapping(sourceColumn: 'weight', targetField: 'weight'),
-        ColumnMapping(sourceColumn: 'tags', targetField: 'tags'),
+        ColumnMapping(sourceColumn: DiveCsvColumns.buddy, targetField: 'buddy'),
         ColumnMapping(
-          sourceColumn: 'startPressure',
-          targetField: 'startPressure_1',
+          sourceColumn: DiveCsvColumns.diveMaster,
+          targetField: 'diveMaster',
         ),
         ColumnMapping(
-          sourceColumn: 'endPressure',
-          targetField: 'endPressure_1',
+          sourceColumn: DiveCsvColumns.rating,
+          targetField: 'rating',
         ),
-        ColumnMapping(sourceColumn: 'tankVolume', targetField: 'tankVolume_1'),
-        ColumnMapping(sourceColumn: 'o2Percent', targetField: 'o2Percent_1'),
-        ColumnMapping(sourceColumn: 'hePercent', targetField: 'hePercent_1'),
-        ColumnMapping(sourceColumn: 'sac', targetField: 'sac'),
-        ColumnMapping(sourceColumn: 'weather', targetField: 'weather'),
-        ColumnMapping(sourceColumn: 'windSpeed', targetField: 'windSpeed'),
+        // Single-tank export: the flat fields keep pressures even when the
+        // tank has no volume, which the numbered tank groups would drop.
         ColumnMapping(
-          sourceColumn: 'currentStrength',
-          targetField: 'currentStrength',
+          sourceColumn: DiveCsvColumns.startPressure,
+          targetField: 'startPressure',
         ),
         ColumnMapping(
-          sourceColumn: 'surfaceConditions',
-          targetField: 'surfaceConditions',
+          sourceColumn: DiveCsvColumns.endPressure,
+          targetField: 'endPressure',
         ),
         ColumnMapping(
-          sourceColumn: 'runtime',
-          targetField: 'runtime',
-          transform: ValueTransform.minutesToSeconds,
+          sourceColumn: DiveCsvColumns.tankVolume,
+          targetField: 'tankVolume',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.o2Percent,
+          targetField: 'o2Percent',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.diveComputer,
+          targetField: 'diveComputerModel',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.serialNumber,
+          targetField: 'diveComputerSerial',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.firmwareVersion,
+          targetField: 'diveComputerFirmware',
+        ),
+        ColumnMapping(sourceColumn: DiveCsvColumns.notes, targetField: 'notes'),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.windSpeed,
+          targetField: 'windSpeed',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.windDirection,
+          targetField: 'windDirection',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.cloudCover,
+          targetField: 'cloudCover',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.precipitation,
+          targetField: 'precipitation',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.humidity,
+          targetField: 'humidity',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.weatherDescription,
+          targetField: 'weatherDescription',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.siteCity,
+          targetField: 'siteCity',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.siteRegion,
+          targetField: 'siteRegion',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.siteCountry,
+          targetField: 'siteCountry',
         ),
       ],
     ),
@@ -666,7 +713,7 @@ const _submersionNative = CsvPreset(
   supportedEntities: {
     ImportEntityType.dives,
     ImportEntityType.sites,
-    ImportEntityType.tags,
     ImportEntityType.buddies,
+    ImportEntityType.diveTypes,
   },
 );

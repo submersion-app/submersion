@@ -1,5 +1,7 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+
 /// Extracts tank records from a transformed CSV row.
 ///
 /// Two strategies are tried in order:
@@ -92,14 +94,18 @@ class TankExtractor {
     double? o2Percent,
     double? hePercent,
   }) {
+    final o2 = o2Percent ?? 21.0;
+    final he = hePercent ?? 0.0;
     return {
       'id': _uuid.v4(),
       'diveId': diveId,
       'volume': volume,
       'startPressure': startPressure,
       'endPressure': endPressure,
-      'o2Percent': o2Percent ?? 21.0,
-      'hePercent': hePercent ?? 0.0,
+      'o2Percent': o2,
+      'hePercent': he,
+      // The importer builds the tank's gas from this key alone (#1814).
+      'gasMix': GasMix(o2: o2, he: he),
       'order': order,
     };
   }

@@ -1,5 +1,7 @@
+import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -73,6 +75,37 @@ void main() {
       // Pressures exported with 1 decimal for round-trip fidelity
       expect(csv, contains('206.8'));
       expect(csv, contains('50.5'));
+    });
+
+    test('writes the shared column constants, then the site place columns '
+        '(#1814)', () {
+      final dive = Dive(
+        id: 'dive-1',
+        dateTime: DateTime(2026, 3, 28, 10, 0),
+        site: const DiveSite(
+          id: 'site-1',
+          name: 'Blue Hole',
+          city: 'Victoria',
+          region: 'Gozo',
+          country: 'Malta',
+        ),
+      );
+
+      final rows = const CsvToListConverter().convert(
+        service.generateDivesCsvContent([dive]),
+      );
+
+      expect(rows.first, DiveCsvColumns.fixed);
+      // The place columns come after every pre-#1814 column, so a sheet that
+      // addresses the export by position keeps its offsets.
+      expect(
+        rows.first.indexOf(DiveCsvColumns.siteCity),
+        rows.first.indexOf(DiveCsvColumns.weatherDescription) + 1,
+      );
+      final row = rows[1];
+      expect(row[rows.first.indexOf(DiveCsvColumns.siteCity)], 'Victoria');
+      expect(row[rows.first.indexOf(DiveCsvColumns.siteRegion)], 'Gozo');
+      expect(row[rows.first.indexOf(DiveCsvColumns.siteCountry)], 'Malta');
     });
   });
 
