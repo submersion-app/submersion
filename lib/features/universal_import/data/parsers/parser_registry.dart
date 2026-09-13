@@ -7,6 +7,7 @@ import 'package:submersion/features/universal_import/data/parsers/macdive_xml_pa
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/ratio_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/shearwater_cloud_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_dives_csv_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_equipment_csv_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_sites_csv_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
@@ -25,6 +26,7 @@ ImportParser parserForFormat(ImportFormat format) {
     ImportFormat.fit => const FitImportParser(),
     ImportFormat.shearwaterDb => ShearwaterCloudParser(),
     ImportFormat.ratioXml => const RatioXmlParser(),
+    ImportFormat.submersionDivesCsv => const SubmersionDivesCsvParser(),
     ImportFormat.submersionSitesCsv => const SubmersionSitesCsvParser(),
     ImportFormat.submersionEquipmentCsv => const SubmersionEquipmentCsvParser(),
     _ => const PlaceholderParser(),
