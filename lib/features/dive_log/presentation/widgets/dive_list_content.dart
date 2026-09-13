@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
@@ -34,6 +36,7 @@ import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.d
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
@@ -759,8 +762,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       title: formatLabel,
       showRawDataToggle: format == _BulkExportFormat.uddf,
       showDiveContentToggles: format == _BulkExportFormat.uddf,
+      showCsvUnitsToggle: format == _BulkExportFormat.csv,
+      initialCsvUnitMode: ref.read(csvUnitModeProvider),
     );
     if (choice == null || !mounted) return BulkActionOutcome.cancelled;
+    if (format == _BulkExportFormat.csv) {
+      unawaited(ref.read(csvUnitModeProvider.notifier).set(choice.csvUnitMode));
+    }
+    final csvUnits = CsvExportUnits.forMode(
+      choice.csvUnitMode,
+      ref.read(settingsProvider),
+    );
     final destination = choice.destination;
     // Resolved while the context is known to be mounted; used after awaits.
     final csvSaveTitle = context.l10n.settings_export_saveDivesCsvDialogTitle;
@@ -885,11 +897,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           sharing
               ? await exportService.exportDivesToCsv(
                   selectedDives,
+                  units: csvUnits,
                   diveTypesById: diveTypesById,
                 )
               : await exportService.saveDivesCsvToFile(
                   selectedDives,
                   dialogTitle: csvSaveTitle,
+                  units: csvUnits,
                   diveTypesById: diveTypesById,
                 ),
         _BulkExportFormat.uddf =>
