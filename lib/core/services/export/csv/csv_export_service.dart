@@ -5,6 +5,10 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_text.dart'
+    as csv_text;
+import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -16,7 +20,6 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 /// Handles all CSV export operations: share, generate content, and save to file.
 class CsvExportService {
   final _dateFormat = DateFormat('yyyy-MM-dd');
-  final _timeFormat = DateFormat('HH:mm');
 
   // ==================== CSV Injection Prevention ====================
 
@@ -28,30 +31,16 @@ class CsvExportService {
   ///
   /// References:
   /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
-  String sanitizeCsvField(String? value) {
-    if (value == null || value.isEmpty) {
-      return '';
-    }
-
-    final firstChar = value[0];
-    if (firstChar == '=' ||
-        firstChar == '+' ||
-        firstChar == '-' ||
-        firstChar == '@' ||
-        firstChar == '\t' ||
-        firstChar == '\r' ||
-        firstChar == '|') {
-      return "'$value";
-    }
-
-    return value;
-  }
+  String sanitizeCsvField(String? value) => csv_text.sanitizeCsvField(value);
 
   // ==================== Share via System Sheet ====================
 
   /// Export dives to CSV format and share via system sheet.
-  Future<String> exportDivesToCsv(List<Dive> dives) async {
-    final csvData = generateDivesCsvContent(dives);
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final csvData = generateDivesCsvContent(dives, units: units);
     return saveAndShareFile(csvData, 'dives_export.csv', 'text/csv');
   }
 
@@ -163,103 +152,12 @@ class CsvExportService {
 
   // ==================== Content Generation ====================
 
-  /// Generate CSV content for dives (without sharing).
-  String generateDivesCsvContent(List<Dive> dives) {
-    // Collect all distinct custom field keys across exported dives
-    final allCustomFieldKeys = <String>{};
-    for (final dive in dives) {
-      for (final field in dive.customFields) {
-        allCustomFieldKeys.add(field.key);
-      }
-    }
-    final sortedCustomKeys = allCustomFieldKeys.toList()..sort();
-
-    final headers = [
-      'Dive Number',
-      'Name',
-      'Date',
-      'Time',
-      'Site',
-      'Location',
-      'Max Depth (m)',
-      'Avg Depth (m)',
-      'Bottom Time (min)',
-      'Runtime (min)',
-      'Water Temp (°C)',
-      'Air Temp (°C)',
-      // Split at v144: the measured distance is machine-readable, the rating
-      // column carries a pre-v144 dive's bucket label.
-      'Visibility (m)',
-      'Visibility Rating',
-      'Dive Type',
-      'Buddy',
-      'Dive Master',
-      'Rating',
-      'Start Pressure (bar)',
-      'End Pressure (bar)',
-      'Tank Volume (L)',
-      'O2 %',
-      'Dive Computer',
-      'Serial Number',
-      'Firmware Version',
-      'Notes',
-      'Wind Speed (m/s)',
-      'Wind Direction',
-      'Cloud Cover',
-      'Precipitation',
-      'Humidity (%)',
-      'Weather Description',
-      ...sortedCustomKeys.map((key) => sanitizeCsvField('custom:$key')),
-    ];
-
-    final rows = <List<dynamic>>[headers];
-
-    for (final dive in dives) {
-      final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
-      rows.add([
-        dive.diveNumber ?? '',
-        dive.effectiveName?.replaceAll('\n', ' ') ?? '',
-        _dateFormat.format(dive.dateTime),
-        _timeFormat.format(dive.dateTime),
-        dive.site?.name ?? '',
-        dive.site?.locationString ?? '',
-        dive.maxDepth?.toStringAsFixed(1) ?? '',
-        dive.avgDepth?.toStringAsFixed(1) ?? '',
-        dive.bottomTime?.inMinutes ?? '',
-        dive.runtime?.inMinutes ?? '',
-        dive.waterTemp?.toStringAsFixed(0) ?? '',
-        dive.airTemp?.toStringAsFixed(0) ?? '',
-        dive.visibilityMeters?.toStringAsFixed(1) ?? '',
-        dive.visibility?.displayName ?? '',
-        dive.diveTypeNames.join('; '),
-        dive.buddy ?? '',
-        dive.diveMaster ?? '',
-        dive.rating ?? '',
-        tank?.startPressure?.toStringAsFixed(1) ?? '',
-        tank?.endPressure?.toStringAsFixed(1) ?? '',
-        tank?.volume?.toStringAsFixed(0) ?? '',
-        tank?.gasMix.o2.toStringAsFixed(0) ?? '',
-        dive.diveComputerModel ?? '',
-        dive.diveComputerSerial ?? '',
-        dive.diveComputerFirmware ?? '',
-        dive.notes.replaceAll('\n', ' '),
-        dive.windSpeed?.toStringAsFixed(1) ?? '',
-        dive.windDirection?.displayName ?? '',
-        dive.cloudCover?.displayName ?? '',
-        dive.precipitation?.displayName ?? '',
-        dive.humidity?.toStringAsFixed(0) ?? '',
-        dive.weatherDescription ?? '',
-        ...sortedCustomKeys.map((key) {
-          final field = dive.customFields
-              .where((f) => f.key == key)
-              .firstOrNull;
-          return sanitizeCsvField(field?.value ?? '');
-        }),
-      ]);
-    }
-
-    return const ListToCsvConverter().convert(rows);
-  }
+  /// Generate CSV content for dives (without sharing). [units] defaults to
+  /// the historical metric format.
+  String generateDivesCsvContent(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => CsvDivesWriter(units).write(dives);
 
   /// Generate CSV content for sites (without sharing).
   String generateSitesCsvContent(List<DiveSite> sites) {
@@ -383,8 +281,9 @@ class CsvExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
   }) async {
-    final csvContent = generateDivesCsvContent(dives);
+    final csvContent = generateDivesCsvContent(dives, units: units);
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 
