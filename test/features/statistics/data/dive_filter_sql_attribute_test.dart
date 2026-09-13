@@ -1,50 +1,49 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 
 void main() {
-  test('attribute axis compiles to a dive_equipment join', () {
+  const hose = EquipmentAttrCondition(
+    key: 'hose_type',
+    choices: {'hp'},
+    types: {EquipmentType.hose},
+  );
+
+  test('each condition becomes the shared EXISTS clause, in order', () {
+    final suit = EquipmentAttrCondition.suitThickness(min: 5.0, max: 7.0);
     final result = buildFilteredDiveIdSubquery(
-      const DiveFilterState(
-        equipmentAttrKey: 'thickness_mm',
-        equipmentAttrMin: 5.0,
-        equipmentAttrMax: 7.0,
-      ),
+      DiveFilterState(equipmentAttrConditions: [hose, suit]),
     );
-    expect(result.subquery, contains('dive_equipment'));
-    expect(result.subquery, contains('equipment_attributes'));
-    expect(result.subquery, contains('ea.attr_key = ?'));
-    expect(result.subquery, contains('ea.value_num >= ?'));
-    expect(result.subquery, contains('ea.value_num <= ?'));
-    // Suit thickness is restricted to exposure suits, mirroring
-    // getDivesBySuitThickness().
-    expect(result.subquery, contains("eqf.type IN ('wetsuit', 'drysuit')"));
-    expect(result.params, ['thickness_mm', 5.0, 7.0]);
+    final hoseSql = equipmentAttrConditionSql(hose, diveIdRef: 'dives.id');
+    final suitSql = equipmentAttrConditionSql(suit, diveIdRef: 'dives.id');
+    expect(result.subquery, contains(hoseSql.sql));
+    expect(result.subquery, contains(suitSql.sql));
+    expect(result.params, [...hoseSql.params, ...suitSql.params]);
   });
 
-  test('choice variant binds value_text and is not suit-restricted', () {
-    final result = buildFilteredDiveIdSubquery(
-      const DiveFilterState(
-        equipmentAttrKey: 'valve_type',
-        equipmentAttrChoice: 'din',
-      ),
-    );
-    expect(result.subquery, contains('ea.value_text = ?'));
-    // Only thickness_mm carries the suit-type restriction.
-    expect(result.subquery, isNot(contains("eqf.type IN")));
-    expect(result.params, ['valve_type', 'din']);
-  });
-
-  test('no attribute axis -> no attribute SQL', () {
+  test('no conditions, no attribute SQL', () {
     final result = buildFilteredDiveIdSubquery(const DiveFilterState());
     expect(result.subquery, isNot(contains('equipment_attributes')));
   });
 
-  test('hasActiveFilters reflects the attribute axis', () {
+  test('hasActiveFilters reflects the conditions', () {
     expect(
-      const DiveFilterState(equipmentAttrKey: 'thickness_mm').hasActiveFilters,
+      const DiveFilterState(equipmentAttrConditions: [hose]).hasActiveFilters,
       isTrue,
     );
     expect(const DiveFilterState().hasActiveFilters, isFalse);
+  });
+
+  test('copyWith sets and clears the conditions', () {
+    final set = const DiveFilterState().copyWith(
+      equipmentAttrConditions: [hose],
+    );
+    expect(set.equipmentAttrConditions, [hose]);
+    expect(
+      set.copyWith(clearEquipmentAttrConditions: true).equipmentAttrConditions,
+      isEmpty,
+    );
   });
 }

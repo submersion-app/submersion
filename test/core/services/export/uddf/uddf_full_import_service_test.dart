@@ -913,4 +913,89 @@ $appData
       expect(await volumeFor('11.1', unit: 'm3'), closeTo(11.1, 0.001));
     });
   });
+
+  group('inline buddy names (#1806)', () {
+    /// A dive whose participants are the declared people [declared] (name
+    /// by `<buddy id>`), linked by [links], plus the inline `<buddy>` names
+    /// [inline] in informationbeforedive.
+    Future<Map<String, dynamic>> diveWith({
+      required Map<String, String> declared,
+      List<String> links = const [],
+      List<String> inline = const [],
+    }) async {
+      String person(String name) {
+        final parts = name.split(' ');
+        return '<personal><firstname>${parts.first}</firstname>'
+            '<lastname>${parts.skip(1).join(' ')}</lastname></personal>';
+      }
+
+      final doc =
+          '''<uddf version="3.2.1">
+  <diver>
+    ${[for (final e in declared.entries) '<buddy id="${e.key}">${person(e.value)}</buddy>'].join('\n    ')}
+  </diver>
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive_1">
+        <informationbeforedive>
+          <datetime>2026-03-01T09:00:00</datetime>
+          ${[for (final ref in links) '<link ref="$ref"/>'].join()}
+          ${[for (final name in inline) '<buddy>${person(name)}</buddy>'].join()}
+        </informationbeforedive>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+      return (await UddfFullImportService().importAllDataFromUddf(
+        doc,
+      )).dives.single;
+    }
+
+    test('a linked person named inline too is that person', () async {
+      // Submersion's export links each participant and names them inline;
+      // the name must not come back as a second, unmatched person.
+      final dive = await diveWith(
+        declared: {'buddy_p': 'Pat Kim'},
+        links: ['buddy_p'],
+        inline: ['Pat Kim'],
+      );
+
+      expect(dive['buddyRefs'], ['buddy_p']);
+      expect(dive['unmatchedBuddyNames'], isNull);
+    });
+
+    test('namesakes named inline pair off with the linked people', () async {
+      final dive = await diveWith(
+        declared: {'buddy_1': 'Joe Bloggs', 'buddy_2': 'Joe Bloggs'},
+        links: ['buddy_1', 'buddy_2'],
+        inline: ['Joe Bloggs', 'Joe Bloggs'],
+      );
+
+      expect(dive['buddyRefs'], ['buddy_1', 'buddy_2']);
+      expect(dive['unmatchedBuddyNames'], isNull);
+    });
+
+    test('an inline name links a declared person the dive does not', () async {
+      // Third-party files may name a declared person inline only.
+      final dive = await diveWith(
+        declared: {'buddy_p': 'Pat Kim', 'buddy_s': 'Sam Park'},
+        links: ['buddy_p'],
+        inline: ['Pat Kim', 'Sam Park'],
+      );
+
+      expect(dive['buddyRefs'], ['buddy_p', 'buddy_s']);
+      expect(dive['unmatchedBuddyNames'], isNull);
+    });
+
+    test('an inline name nobody declares stays unmatched', () async {
+      final dive = await diveWith(
+        declared: {'buddy_p': 'Pat Kim'},
+        links: ['buddy_p'],
+        inline: ['Pat Kim', 'Walk In'],
+      );
+
+      expect(dive['buddyRefs'], ['buddy_p']);
+      expect(dive['unmatchedBuddyNames'], ['Walk In']);
+    });
+  });
 }

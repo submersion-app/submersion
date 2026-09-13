@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_type_or
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -1465,6 +1466,49 @@ void main() {
       );
       await tester.pumpAndSettle();
     }
+
+    testWidgets('a hose type chip narrows the list and shows in the bar', (
+      tester,
+    ) async {
+      EquipmentItem hose(String id, String name, String kind) => EquipmentItem(
+        id: id,
+        name: name,
+        type: EquipmentType.hose,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: id,
+            key: 'hose_type',
+            valueText: kind,
+          ),
+        ],
+      );
+      await pumpPhoneList(
+        tester,
+        equipment: [
+          ...items,
+          hose('h1', 'Gauge Hose', 'hp'),
+          hose('h2', 'Reg Hose', 'lp'),
+        ],
+      );
+
+      await _filterVia(tester, [
+        _typeChipKey(EquipmentType.hose),
+        'equipment_filter_attr_hose_type_hp',
+      ]);
+
+      expect(find.text('Gauge Hose'), findsOneWidget);
+      expect(find.text('Reg Hose'), findsNothing);
+      final chip = find.widgetWithText(
+        InputChip,
+        'Hose type: HP (high pressure)',
+      );
+      expect(chip, findsOneWidget);
+
+      tester.widget<InputChip>(chip).onDeleted!();
+      await tester.pumpAndSettle();
+      expect(chip, findsNothing);
+      expect(find.text('Reg Hose'), findsOneWidget);
+    });
 
     /// Pump a list whose source lists are driven by [source], so a test can
     /// shrink the gear out from under an active filter.

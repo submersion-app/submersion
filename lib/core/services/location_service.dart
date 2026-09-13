@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io' show Platform, HttpClient, SocketException;
 import 'dart:ui' show Locale;
 
-import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -153,16 +154,20 @@ class LocationService {
     '&accept-language=$defaultLanguageCode',
   );
 
-  /// Routes reverse geocoding through the platform geocoder.
+  /// Routes reverse geocoding through the platform geocoder: iOS only.
   ///
-  /// True on mobile in production. `Platform.isIOS`/`isAndroid` are
-  /// natively-resolved statics with no override hook, so the mobile branch
-  /// is otherwise unreachable on a desktop test host -- including the
-  /// English-locale contract below, the part of #214 most worth asserting.
-  @visibleForTesting
-  static bool debugForceNativeGeocoder = false;
-
-  static bool get _useNativeGeocoder => debugForceNativeGeocoder || _isMobile;
+  /// Apple's geocoder answers every field in the requested language. The
+  /// Android one (Play services) translates only the country name and
+  /// returns the region in the local language, and not even consistently:
+  /// one Attersee lookup in English mixed 'Oberösterreich' and 'Upper
+  /// Austria' across its results. A place name language refresh on Android
+  /// therefore wrote local region names back (#1762), so Android shares the
+  /// Nominatim path the desktops use.
+  ///
+  /// Keyed on [defaultTargetPlatform] rather than `Platform.isIOS` so tests
+  /// can reach both branches through `debugDefaultTargetPlatformOverride`.
+  static bool get _useNativeGeocoder =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Process-wide spacing for every Nominatim request. Tests replace it with
   /// a zero-gap instance so lookups do not wait a real second each.
@@ -319,9 +324,9 @@ class LocationService {
   /// Reverse geocode a coordinate into country, region and locality, in the
   /// language named by [languageCode] (an ISO 639-1 code such as 'en').
   ///
-  /// Uses the platform geocoder on mobile and falls back to OpenStreetMap
-  /// Nominatim everywhere else. Never throws: a geocoder that cannot be
-  /// reached yields [PlaceLookup.unavailable].
+  /// Uses the platform geocoder on iOS, and OpenStreetMap Nominatim
+  /// everywhere else and whenever the iOS geocoder fails. Never throws: a
+  /// geocoder that cannot be reached yields [PlaceLookup.unavailable].
   Future<PlaceLookup> reverseGeocode(
     double latitude,
     double longitude, {
@@ -330,7 +335,7 @@ class LocationService {
     try {
       _log.info('Reverse geocoding: $latitude, $longitude ($languageCode)');
 
-      // Try native geocoding first (works on iOS/Android)
+      // Try native geocoding first (iOS only, see _useNativeGeocoder)
       if (_useNativeGeocoder) {
         try {
           // Built per call rather than cached in a static: construction only
