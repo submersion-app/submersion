@@ -31,7 +31,7 @@ class CsvCorrelator {
   /// 4. Extract sites via [SiteExtractor] (deduplicated).
   /// 5. Link each dive to its site using [SiteExtractor.siteIdForName].
   /// 6. Conditionally extract buddies, tags, and gear.
-  /// 7. Attach tanks list to each dive map.
+  /// 7. Attach tanks list to each dive map, and link buddies and tags.
   /// 8. If [profileRows] provided, run [ProfileExtractor] and attach profiles.
   /// 9. Build metadata and return [CorrelatedPayload].
   CorrelatedPayload correlate({
@@ -88,9 +88,11 @@ class CsvCorrelator {
     }
 
     // Step 6b: Extract tags if requested.
+    TagExtractor? tagExtractor;
     final tags = <Map<String, dynamic>>[];
     if (entityTypes.contains(ImportEntityType.tags)) {
-      tags.addAll(TagExtractor().extractFromRows(rows));
+      tagExtractor = TagExtractor();
+      tags.addAll(tagExtractor.extractFromRows(rows));
     }
 
     // Step 6c: Extract gear/equipment if requested.
@@ -113,10 +115,16 @@ class CsvCorrelator {
         ? _attachBuddyRefs(divesWithTanks, buddyExtractor)
         : divesWithTanks;
 
+    // Step 7c: Link tags to dives so the importer's _linkTagsToDive method
+    // attaches them; without tagRefs the tags import linked to no dive.
+    final divesWithTagRefs = tagExtractor != null
+        ? _attachTagRefs(divesWithBuddyRefs, rows, tagExtractor)
+        : divesWithBuddyRefs;
+
     // Step 8: Attach profile data if provided.
     final finalDives = profileRows != null
-        ? _attachProfiles(divesWithBuddyRefs, profileRows.rows)
-        : divesWithBuddyRefs;
+        ? _attachProfiles(divesWithTagRefs, profileRows.rows)
+        : divesWithTagRefs;
 
     // Step 9: Build metadata and entities map.
     final metadata = <String, dynamic>{
@@ -195,6 +203,24 @@ class CsvCorrelator {
 
       return updated;
     }).toList();
+  }
+
+  /// Set each dive's tagRefs to the ids of the tags in its source row, as
+  /// [UddfEntityImporter._linkTagsToDive] expects. [dives] and [rows] are
+  /// index-aligned: every dive was extracted from the row at its index.
+  List<Map<String, dynamic>> _attachTagRefs(
+    List<Map<String, dynamic>> dives,
+    List<Map<String, dynamic>> rows,
+    TagExtractor extractor,
+  ) {
+    return [
+      for (var i = 0; i < dives.length; i++)
+        if (extractor.tagIdsForRow(rows[i]) case final refs
+            when refs.isNotEmpty)
+          Map<String, dynamic>.from(dives[i])..['tagRefs'] = refs
+        else
+          dives[i],
+    ];
   }
 
   /// Normalize field name aliases to canonical names for extractors.
