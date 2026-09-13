@@ -46,7 +46,10 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
+import 'package:submersion/features/import_wizard/data/adapters/diver_slice_review.dart';
 import 'package:submersion/features/import_wizard/data/adapters/existing_import_records.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/universal_import/data/services/diver_slice_duplicates.dart';
 import 'package:submersion/features/universal_import/data/services/payload_slicer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
@@ -636,38 +639,23 @@ class UniversalAdapter implements ImportSourceAdapter {
     );
   }
 
-  @override
-  Future<UnifiedImportResult> performImport(
-    ImportBundle bundle,
-    Map<wizard.ImportEntityType, Set<int>> selections,
-    Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
-    bool retainSourceDiveNumbers = false,
+  /// One importer run: [payload] with the review state that indexes it,
+  /// written to [diverId]. A single-diver import runs this once for the
+  /// whole payload; a multi-diver import once per profile (issue #1893).
+  Future<UddfEntityImportResult> _runImporter({
+    required UddfEntityImporter importer,
+    required ImportRepositories repos,
+    required ImportPayload payload,
+    required ImportBundle bundle,
+    required Map<wizard.ImportEntityType, Set<int>> selections,
+    required Map<wizard.ImportEntityType, Map<int, DuplicateAction>>
+    duplicateActions,
+    required String diverId,
+    required bool retainSourceDiveNumbers,
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
-  }) async {
+  }) {
     final notifierState = _ref.read(universalImportNotifierProvider);
-    final payload = notifierState.payload;
-
-    if (payload == null) {
-      return const UnifiedImportResult(
-        importedCounts: {},
-        consolidatedCount: 0,
-        skippedCount: 0,
-        errorMessage: 'No parsed data available',
-      );
-    }
-
-    final currentDiver = await _ref.read(currentDiverProvider.future);
-    if (currentDiver == null) {
-      return const UnifiedImportResult(
-        importedCounts: {},
-        consolidatedCount: 0,
-        skippedCount: 0,
-        errorMessage: 'Please create a diver profile before importing',
-      );
-    }
-
-    final skipped = _countSkipped(selections, duplicateActions);
 
     // Resolve selections for all entity types: include duplicate items
     // whose action is importAsNew (not just the base selection set).
@@ -729,27 +717,11 @@ class UniversalAdapter implements ImportSourceAdapter {
       courses: resolve(wizard.ImportEntityType.courses),
     );
 
-    final repos = universalImportRepositories(_ref);
-
-    final settings = _ref.read(settingsProvider);
-    final resolver = DefaultTankPresetResolver(
-      repository: _ref.read(tankPresetRepositoryProvider),
-    );
-    final defaultTankPreset = await resolver.resolve(
-      settings.defaultTankPreset,
-    );
-    final importer = UddfEntityImporter(
-      defaultTankPreset: defaultTankPreset,
-      defaultStartPressure: settings.defaultStartPressure,
-      applyDefaultTankToImports: settings.applyDefaultTankToImports,
-      placeNameLanguage: settings.placeNameLanguage,
-    );
-
-    final result = await importer.import(
+    return importer.import(
       data: uddfData,
       selections: uddfSelections,
       repositories: repos,
-      diverId: currentDiver.id,
+      diverId: diverId,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       // The confirmed options, not the raw auto-detection: Source
       // Confirmation lets the diver override a wrong guess, the parse
@@ -780,6 +752,239 @@ class UniversalAdapter implements ImportSourceAdapter {
       onProgress: onProgress,
       cancelToken: cancelToken,
     );
+  }
+
+  Future<UddfEntityImporter> _buildImporter() async {
+    final settings = _ref.read(settingsProvider);
+    final resolver = DefaultTankPresetResolver(
+      repository: _ref.read(tankPresetRepositoryProvider),
+    );
+    final defaultTankPreset = await resolver.resolve(
+      settings.defaultTankPreset,
+    );
+    return UddfEntityImporter(
+      defaultTankPreset: defaultTankPreset,
+      defaultStartPressure: settings.defaultStartPressure,
+      applyDefaultTankToImports: settings.applyDefaultTankToImports,
+      placeNameLanguage: settings.placeNameLanguage,
+    );
+  }
+
+  /// Imports each slice into its profile, creating new profiles just before
+  /// their own slice, so a failure never leaves an empty profile behind. A
+  /// slice with nothing selected is skipped and creates nothing. A failure
+  /// in the first imported slice fails the import as before; a later one
+  /// stops the loop and is reported next to what already landed.
+  Future<
+    ({
+      UddfEntityImportResult result,
+      List<DiverImportOutcome> outcomes,
+      String? error,
+    })
+  >
+  _importSlices({
+    required List<DiverSlice> slices,
+    required UddfEntityImporter importer,
+    required ImportRepositories repos,
+    required ImportPayload payload,
+    required ImportBundle bundle,
+    required Map<wizard.ImportEntityType, Set<int>> selections,
+    required Map<wizard.ImportEntityType, Map<int, DuplicateAction>>
+    duplicateActions,
+    required String activeDiverId,
+    required bool retainSourceDiveNumbers,
+    ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
+  }) async {
+    final profiles = await _ref.read(allDiversProvider.future);
+    final nameById = {for (final p in profiles) p.id: p.name};
+    var total = const UddfEntityImportResult();
+    final outcomes = <DiverImportOutcome>[];
+
+    for (final slice in slices) {
+      if (cancelToken?.isCancelled ?? false) break;
+      final review = DiverSliceReview.of(
+        slice,
+        bundle,
+        selections,
+        duplicateActions,
+      );
+      if (!_importsAnything(review)) continue;
+
+      final targetKey = slice.targetKey!;
+      final newSourceKey = DiverTarget.newSourceKeyOf(targetKey);
+      var name = newSourceKey ?? '';
+      try {
+        final String diverId;
+        if (newSourceKey != null) {
+          final source = payload.sourceDivers
+              .where((d) => d.key == newSourceKey)
+              .firstOrNull;
+          if (source == null) {
+            throw StateError('No source diver $newSourceKey');
+          }
+          name = source.name;
+          diverId = await _createProfile(source);
+        } else {
+          diverId = DiverTarget.diverIdOf(targetKey)!;
+          name = nameById[diverId] ?? diverId;
+        }
+
+        final sliceResult = await _runImporter(
+          importer: importer,
+          repos: repos,
+          payload: slice.payload,
+          bundle: review.bundle,
+          selections: review.selections,
+          duplicateActions: review.duplicateActions,
+          diverId: diverId,
+          retainSourceDiveNumbers: retainSourceDiveNumbers,
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
+        total = addSliceResult(total, slice, sliceResult);
+        outcomes.add(
+          DiverImportOutcome(
+            diverId: diverId,
+            name: name,
+            isNew: newSourceKey != null,
+            isActive: diverId == activeDiverId,
+            diveIds: sliceResult.diveIds,
+          ),
+        );
+      } catch (e, stackTrace) {
+        if (outcomes.isEmpty) rethrow;
+        _log.error(
+          'Import stopped before profile $name',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return (
+          result: total,
+          outcomes: outcomes,
+          error:
+              'Imported ${outcomes.map((o) => o.name).join(', ')}, '
+              'then stopped before $name: $e',
+        );
+      }
+    }
+    return (result: total, outcomes: outcomes, error: null);
+  }
+
+  /// Whether a slice's review imports anything at all.
+  bool _importsAnything(DiverSliceReview review) =>
+      wizard.ImportEntityType.values.any(
+        (type) => _resolveSelections(
+          type,
+          review.selections,
+          review.duplicateActions,
+        ).isNotEmpty,
+      ) ||
+      _resolveSiteOverrides(review.duplicateActions, review.bundle).isNotEmpty;
+
+  /// Creates the profile a new-profile target asked for, seeded from what
+  /// the source logbook knows about the diver.
+  Future<String> _createProfile(SourceDiver source) async {
+    final now = DateTime.now();
+    final created = await _ref
+        .read(diverRepositoryProvider)
+        .createDiver(
+          Diver(
+            id: '',
+            name: source.name,
+            email: source.email,
+            phone: source.phone,
+            emergencyContact: EmergencyContact(name: source.emergencyContact),
+            bloodType: source.bloodType,
+            insurance: source.danNumber == null
+                ? const DiverInsurance()
+                : DiverInsurance(
+                    provider: 'DAN',
+                    policyNumber: source.danNumber,
+                  ),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    return created.id;
+  }
+
+  @override
+  Future<UnifiedImportResult> performImport(
+    ImportBundle bundle,
+    Map<wizard.ImportEntityType, Set<int>> selections,
+    Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
+    bool retainSourceDiveNumbers = false,
+    ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
+  }) async {
+    final notifierState = _ref.read(universalImportNotifierProvider);
+    final payload = notifierState.payload;
+
+    if (payload == null) {
+      return const UnifiedImportResult(
+        importedCounts: {},
+        consolidatedCount: 0,
+        skippedCount: 0,
+        errorMessage: 'No parsed data available',
+      );
+    }
+
+    final currentDiver = await _ref.read(currentDiverProvider.future);
+    if (currentDiver == null) {
+      return const UnifiedImportResult(
+        importedCounts: {},
+        consolidatedCount: 0,
+        skippedCount: 0,
+        errorMessage: 'Please create a diver profile before importing',
+      );
+    }
+
+    final skipped = _countSkipped(selections, duplicateActions);
+    final repos = universalImportRepositories(_ref);
+    final importer = await _buildImporter();
+
+    // Every profile this import writes to, the active one first (#1893). A
+    // payload the Divers step never split is one untargeted slice, imported
+    // into the active diver exactly as before.
+    final slices = PayloadSlicer.slice(
+      payload,
+      firstTargetKey: ExistingDiverTarget(currentDiver.id).targetKey,
+    );
+    final UddfEntityImportResult result;
+    var outcomes = const <DiverImportOutcome>[];
+    String? stoppedEarly;
+    if (slices.length == 1 && slices.single.targetKey == null) {
+      result = await _runImporter(
+        importer: importer,
+        repos: repos,
+        payload: payload,
+        bundle: bundle,
+        selections: selections,
+        duplicateActions: duplicateActions,
+        diverId: currentDiver.id,
+        retainSourceDiveNumbers: retainSourceDiveNumbers,
+        onProgress: onProgress,
+        cancelToken: cancelToken,
+      );
+    } else {
+      final run = await _importSlices(
+        slices: slices,
+        importer: importer,
+        repos: repos,
+        payload: payload,
+        bundle: bundle,
+        selections: selections,
+        duplicateActions: duplicateActions,
+        activeDiverId: currentDiver.id,
+        retainSourceDiveNumbers: retainSourceDiveNumbers,
+        onProgress: onProgress,
+        cancelToken: cancelToken,
+      );
+      result = run.result;
+      outcomes = run.outcomes;
+      stoppedEarly = run.error;
+    }
 
     // Fold consolidate-flagged dives (imported as standalone above) into their
     // matched existing dive. These indices come only from an explicit user
@@ -972,16 +1177,29 @@ class UniversalAdapter implements ImportSourceAdapter {
       ?numberConflict,
     ];
 
+    final diverOutcomes = [
+      for (final outcome in outcomes) outcome.withoutDives(removedDiveIds),
+    ];
     return UnifiedImportResult(
       notices: notices,
       importedCounts: counts,
       consolidatedCount: consolidated,
       skippedCount: skipped + cleanedUpFailures,
-      importedDiveIds: netImportedDiveIds,
+      // "View Dives", the quality count and site matching all work in the
+      // active profile, so they get only its dives; every profile's dives
+      // are in diverOutcomes.
+      importedDiveIds: diverOutcomes.isEmpty
+          ? netImportedDiveIds
+          : [
+              for (final outcome in diverOutcomes)
+                if (outcome.isActive) ...outcome.diveIds,
+            ],
       fileOutcomes: fileOutcomes,
       attachedPhotoCount: attachedPhotos + resolvedPhotos,
       unmatchedPhotoCount:
           notifierState.unmatchedPhotoCount + (resolution?.notFoundCount ?? 0),
+      diverOutcomes: diverOutcomes,
+      errorMessage: stoppedEarly,
     );
   }
 
