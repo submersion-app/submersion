@@ -5259,6 +5259,44 @@ class DiveRepository {
     return _mapDiveTimesRow(rows.first);
   }
 
+  /// The chronologically earliest dive of [diverId] whose effective start
+  /// (entryTime, falling back to the legacy diveDateTime) is at or after
+  /// [notBefore]. Mirrors [getPreviousDive]'s predicate and ordering in
+  /// reverse, with an explicit diver filter -- unlike [getPreviousDive],
+  /// which is used for the surface-interval lookback and does not need one.
+  /// Used by ChecklistDiveLinker to find a checklist run's next dive.
+  Future<domain.Dive?> getNextDive({
+    required String? diverId,
+    required DateTime notBefore,
+  }) async {
+    try {
+      final cutoffMs = notBefore.millisecondsSinceEpoch;
+      final query = _db.select(_db.dives)
+        ..where(
+          (t) =>
+              t.entryTime.isBiggerOrEqualValue(cutoffMs) |
+              (t.entryTime.isNull() &
+                  t.diveDateTime.isBiggerOrEqualValue(cutoffMs)),
+        )
+        ..orderBy([
+          (t) => OrderingTerm.asc(coalesce([t.entryTime, t.diveDateTime])),
+        ])
+        ..limit(1);
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      } else {
+        query.where((t) => t.diverId.isNull());
+      }
+
+      final rows = await query.get();
+      if (rows.isEmpty) return null;
+      return await _mapRowToDive(rows.first);
+    } catch (e, stackTrace) {
+      _log.error('Failed to get next dive', error: e, stackTrace: stackTrace);
+      return null;
+    }
+  }
+
   /// Times-only equivalent of [getPreviousDive] (identical predicate and
   /// ordering), for lookback chains that need only id and timestamps.
   Future<domain.DiveTimes?> getPreviousDiveTimes(String diveId) async {

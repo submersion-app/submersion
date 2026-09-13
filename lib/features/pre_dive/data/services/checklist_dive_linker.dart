@@ -1,25 +1,30 @@
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart'
     as domain;
 
-/// Auto-links pre-dive checklist sessions to dives created afterwards.
-/// Best-effort: linking failures must never abort a dive import
-/// (mirrors DiveEquipmentDefaulter).
+/// Auto-links pre-dive checklist sessions to the dive they belong to,
+/// re-evaluated on every dive import so a later, chronologically earlier
+/// import can still steal a check away from a dive it was previously linked
+/// to. Best-effort: linking failures must never abort a dive import (mirrors
+/// DiveEquipmentDefaulter).
 class ChecklistDiveLinker {
   final PreDiveSessionRepository _sessions;
+  final DiveRepository _dives;
 
-  ChecklistDiveLinker({PreDiveSessionRepository? sessions})
-    : _sessions = sessions ?? PreDiveSessionRepository();
+  ChecklistDiveLinker({
+    PreDiveSessionRepository? sessions,
+    DiveRepository? dives,
+  }) : _sessions = sessions ?? PreDiveSessionRepository(),
+       _dives = dives ?? DiveRepository();
 
-  /// A checklist run belongs to the dive that splashed within this window
-  /// after the run finished.
-  static const linkWindow = Duration(hours: 3);
-
-  /// Absorbs dive-computer wall-clock skew relative to the phone: a session
-  /// timestamped slightly after the recorded dive start still links.
-  static const forwardGrace = Duration(minutes: 15);
+  /// Absorbs dive-computer wall-clock skew relative to the phone, including a
+  /// daylight-saving change between the check and the dive: a session
+  /// completed up to this long after the recorded dive start still counts as
+  /// having happened before it.
+  static const forwardGrace = Duration(hours: 3);
 
   /// When a run counts as "done" for the purpose of matching it to a dive.
   ///
@@ -28,20 +33,24 @@ class ChecklistDiveLinker {
   /// last item ticked and the splash. Anchoring on [startedAt] instead
   /// measured from the wrong end and dropped every run that took a while --
   /// a CCR build or a gear-packing list worked through over an hour would
-  /// fall out of the window even when it ended minutes before the dive.
+  /// read as having happened long before the dive even when it ended
+  /// minutes before the splash.
   ///
   /// A run still in progress anchors on its start. The status decides that,
   /// not the presence of the stamp: `completedAt` is only written alongside a
   /// terminal status, so a running row carrying one is contradictory data,
-  /// and trusting it would anchor the run on a time it never finished at and
-  /// hand it to the wrong dive -- or, if that time falls outside the window,
-  /// to none at all. Mirrors the same defence in the sessions list's
-  /// `_whenLabel`.
+  /// and trusting it would anchor the run on a time it never finished at.
+  /// Mirrors the same defence in the sessions list's `_whenLabel`.
   static DateTime anchorOf(domain.PreDiveSession session) =>
       session.status == domain.PreDiveSessionStatus.inProgress
       ? session.startedAt
       : session.completedAt ?? session.startedAt;
 
+  /// Links every checklist run of [diverId] whose true next dive is
+  /// [diveId] -- there is no time limit on how long a run may have been
+  /// waiting, no cap on how many runs may share one dive, and a run already
+  /// linked elsewhere is moved here if [diveId] is now its closer next dive.
+  /// A dive with no preceding run is simply left alone.
   Future<bool> autoLinkForDive({
     required String diveId,
     required String? diverId,
@@ -49,27 +58,30 @@ class ChecklistDiveLinker {
   }) async {
     if (DatabaseService.instance.databaseOrNull == null) return false;
     try {
-      // One-to-one: never steal onto a dive that already has a session.
-      if (await _sessions.getSessionForDive(diveId) != null) return false;
-
-      final candidates = await _sessions.getUnlinkedSessions(diverId: diverId);
-      domain.PreDiveSession? best;
-      Duration? bestDistance;
+      final candidates = await _sessions.getAllSessions(diverId: diverId);
+      var changed = false;
       for (final s in candidates) {
-        // getUnlinkedSessions filters exactly; belt-and-braces re-check.
+        // getAllSessions matches loosely (diverId or unscoped); belt-and-
+        // braces re-check, as the old unlinked-only lookup did.
         if (s.diverId != diverId) continue;
-        final delta = diveStart.difference(anchorOf(s));
-        final inWindow = delta <= linkWindow && delta >= -forwardGrace;
-        if (!inWindow) continue;
-        final distance = delta.abs();
-        if (bestDistance == null || distance < bestDistance) {
-          best = s;
-          bestDistance = distance;
-        }
+        final anchor = anchorOf(s);
+
+        // Cheap pre-filter: a dive that splashed more than forwardGrace
+        // before this run's anchor cannot be its next dive, so skip the
+        // getNextDive lookup entirely for it.
+        if (diveStart.difference(anchor) < -forwardGrace) continue;
+
+        final next = await _dives.getNextDive(
+          diverId: diverId,
+          notBefore: anchor.subtract(forwardGrace),
+        );
+        if (next == null || next.id != diveId) continue;
+        if (s.diveId == diveId) continue; // already correctly linked
+
+        await _sessions.linkToDive(s.id, diveId);
+        changed = true;
       }
-      if (best == null) return false;
-      await _sessions.linkToDive(best.id, diveId);
-      return true;
+      return changed;
     } catch (_) {
       return false;
     }
@@ -78,6 +90,6 @@ class ChecklistDiveLinker {
   Future<bool> applyForImportedDive(Dive dive) => autoLinkForDive(
     diveId: dive.id,
     diverId: dive.diverId,
-    diveStart: dive.dateTime,
+    diveStart: dive.effectiveEntryTime,
   );
 }
