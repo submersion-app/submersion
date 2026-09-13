@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -248,5 +251,67 @@ void main() {
     final stored = (await DiveRepository().getAllDives()).single;
     expect(stored.name, '=HYPERLINK("x")');
     expect(stored.buddy, '-Ana');
+  });
+
+  test('ambiguous list text and custom keys survive the round trip', () async {
+    // Copilot review on #1847: a "; " inside a value or a part name, and a
+    // custom attribute sharing a curated key, used to break on re-import.
+    const part = EquipmentItem(
+      id: 'p',
+      name: 'Hose; long',
+      type: EquipmentType.hose,
+    );
+    final suit = goldenEquipment()[1].copyWith(
+      attributes: [
+        ...goldenEquipment()[1].attributes,
+        EquipmentAttribute.curated(
+          equipmentId: 'e-suit',
+          key: 'retailer',
+          valueText: 'Shop; Two',
+        ),
+        const EquipmentAttribute(
+          id: 'custom-size',
+          equipmentId: 'e-suit',
+          key: 'size',
+          isCustom: true,
+          valueText: 'XL',
+        ),
+      ],
+    );
+    const reg = EquipmentItem(
+      id: 'r',
+      name: 'Reg',
+      type: EquipmentType.regulator,
+    );
+    final diverId = await importCsv(
+      CsvEquipmentWriter(CsvExportUnits.metric).write(
+        [part, suit, reg],
+        componentNames: {
+          'r': ['Hose; long'],
+        },
+      ),
+      ImportFormat.submersionEquipmentCsv,
+    );
+    final stored = {
+      for (final e in await EquipmentRepository().getAllEquipment(
+        diverId: diverId,
+      ))
+        e.name: e,
+    };
+    expect(stored.keys, containsAll(['Hose; long', 'Suit', 'Reg']));
+    final storedSuit = stored['Suit']!;
+    expect(storedSuit.attrText('retailer'), 'Shop; Two');
+    expect(storedSuit.size, 'L');
+    expect(
+      storedSuit.attributes
+          .where((a) => a.isCustom && a.key == 'size')
+          .single
+          .valueText,
+      'XL',
+    );
+    final parts = await EquipmentComponentRepository().getComponents(
+      stored['Reg']!.id,
+    );
+    expect(parts.single.componentEquipmentId, stored['Hose; long']!.id);
   });
 }

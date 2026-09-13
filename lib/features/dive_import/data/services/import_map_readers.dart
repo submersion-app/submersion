@@ -3,9 +3,11 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 
 /// Equipment attribute rows from an import map's `attributes` list. Input
 /// is untrusted: entries that are not maps, have a blank key, carry no
-/// value, or repeat a key already taken ([takenKeys], or an earlier entry)
-/// are skipped rather than aborting the import. Curated rows get their
-/// deterministic id; custom rows get [newId].
+/// value, or repeat a key already taken are skipped rather than aborting the
+/// import. Curated keys are unique per item ([takenKeys] holds those already
+/// set); custom keys are tracked apart, since a custom "size" may sit beside
+/// the curated one. Curated rows get their deterministic id; custom rows get
+/// [newId].
 List<EquipmentAttribute> equipmentAttributesFromImport(
   Object? raw, {
   required String equipmentId,
@@ -13,11 +15,14 @@ List<EquipmentAttribute> equipmentAttributesFromImport(
   Set<String> takenKeys = const {},
 }) {
   if (raw is! List) return const [];
-  final taken = {...takenKeys};
+  final takenCurated = {...takenKeys};
+  final takenCustom = <String>{};
   final result = <EquipmentAttribute>[];
   for (final entry in raw) {
     if (entry is! Map) continue;
     final key = entry['key'];
+    final isCustom = entry['isCustom'] == true;
+    final taken = isCustom ? takenCustom : takenCurated;
     if (key is! String || key.trim().isEmpty || taken.contains(key)) continue;
     final text = entry['valueText'] is String
         ? entry['valueText'] as String
@@ -26,7 +31,6 @@ List<EquipmentAttribute> equipmentAttributesFromImport(
         ? (entry['valueNum'] as num).toDouble()
         : null;
     if ((text == null || text.trim().isEmpty) && number == null) continue;
-    final isCustom = entry['isCustom'] == true;
     result.add(
       isCustom
           ? EquipmentAttribute(

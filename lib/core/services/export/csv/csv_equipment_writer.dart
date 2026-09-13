@@ -3,6 +3,7 @@ import 'package:csv/csv.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_attribute_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -71,16 +72,21 @@ class CsvEquipmentWriter {
         units.value(CsvColumns.buoyancy, item.buoyancyKg),
         units.value(CsvColumns.dryWeight, item.weightKg),
         sanitizeCsvField(
-          item.attributes
-              .where(
-                (a) =>
-                    a.hasValue &&
-                    (a.isCustom || !_dedicatedAttrKeys.contains(a.key)),
-              )
-              .map((a) => formatAttributePair(a, units))
-              .join('; '),
+          joinAttributePairs(
+            item.attributes
+                .where(
+                  (a) =>
+                      a.hasValue &&
+                      (a.isCustom || !_dedicatedAttrKeys.contains(a.key)),
+                )
+                .map((a) => formatAttributePair(a, units)),
+          ),
         ),
-        sanitizeCsvField(componentNames[item.id]?.join('; ')),
+        sanitizeCsvField(
+          componentNames[item.id] == null
+              ? null
+              : joinCsvList(componentNames[item.id]!),
+        ),
         item.isActive ? 'Yes' : 'No',
         sanitizeCsvField(item.notes.replaceAll('\n', ' ')),
       ]);

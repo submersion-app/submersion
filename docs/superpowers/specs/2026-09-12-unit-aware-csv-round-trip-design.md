@@ -307,9 +307,12 @@ the current code before any exporter change.
   it may get reformatted dates. The header still names the intended format;
   values that fail to parse add a per-row warning instead of aborting the
   import.
-- **Custom attribute key collisions.** The export does not mark custom
-  attributes, so a custom key equal to a curated key (or its stripped base)
-  imports as the curated attribute. This matches how the Metric export
-  already behaves.
+- **Ambiguous list text (resolved in review).** A custom attribute whose
+  key equals a curated key (or its stripped base) is written as
+  `custom:<key>=value`, and a pair or part name containing `;` (or ending in
+  a backslash) is escaped (`\;`, `\\`), so both read back exactly. Only
+  those values change bytes; every other Metric cell is unchanged, and a
+  pre-escaping file with a raw `; ` inside a text value still reads as one
+  pair.
 - **File size.** `uddf_entity_importer.dart` and `enums.dart` are large;
   new helpers go into their own files.

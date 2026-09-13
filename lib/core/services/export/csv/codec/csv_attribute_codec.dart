@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_date_formats.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -55,9 +56,12 @@ final Map<String, EquipmentAttributeDef> _defByMyUnitsKey = {
 /// attributes are the same in both modes.
 String formatAttributePair(EquipmentAttribute attribute, CsvExportUnits units) {
   final raw = '${attribute.key}=${attribute.valueText ?? attribute.valueNum}';
+  if (attribute.isCustom) {
+    return _customCollides(attribute.key) ? '$_customPrefix$raw' : raw;
+  }
   final formatter = units.formatter;
   final number = attribute.valueNum;
-  if (units.isMetric || attribute.isCustom || formatter == null) return raw;
+  if (units.isMetric || formatter == null) return raw;
   final def = EquipmentAttributeCatalog.defFor(attribute.key);
   if (def == null || number == null) return raw;
   if (def.kind == AttributeKind.date) {
@@ -78,10 +82,34 @@ String formatAttributePair(EquipmentAttribute attribute, CsvExportUnits units) {
   return '$key=${trimFixed(display, decimals)} $symbol';
 }
 
-/// Splits an Attributes cell into pairs. The export joins pairs with '; ';
-/// a '; ' inside a text value stays in it unless `key=` follows.
-List<String> splitAttributePairs(String cell) =>
-    cell.trim().isEmpty ? const [] : cell.split(RegExp(r'; (?=[^;=]+=)'));
+/// Marks a custom attribute whose key a curated attribute also uses (or
+/// that already starts with the marker), so it reads back as custom.
+const _customPrefix = 'custom:';
+
+bool _customCollides(String key) =>
+    EquipmentAttributeCatalog.defFor(key) != null ||
+    _defByMyUnitsKey.containsKey(key) ||
+    key.startsWith(_customPrefix);
+
+/// Joins formatted pairs into an Attributes cell, escaping a pair only when
+/// a ';' in it would otherwise split it on import (see `csv_list_codec`).
+String joinAttributePairs(Iterable<String> pairs) => joinCsvList(pairs);
+
+/// Splits an Attributes cell into decoded pairs. A segment with no `=` is
+/// the tail of the previous value: files written before escaping existed
+/// kept a '; ' inside a text value raw.
+List<String> splitAttributePairs(String cell) {
+  final pairs = <String>[];
+  for (final item in splitCsvList(cell)) {
+    final pair = unescapeCsvListItem(item);
+    if (pairs.isNotEmpty && !pair.contains('=')) {
+      pairs[pairs.length - 1] = '${pairs.last}; $pair';
+    } else {
+      pairs.add(pair);
+    }
+  }
+  return pairs;
+}
 
 final _numberWithSymbol = RegExp(r'^(-?\d+(?:\.\d+)?)\s+(\S.*)$');
 
@@ -101,6 +129,12 @@ CsvAttribute? parseAttributePair(
   final key = pair.substring(0, eq).trim();
   final value = pair.substring(eq + 1).trim();
   if (key.isEmpty || value.isEmpty) return null;
+  if (key.startsWith(_customPrefix)) {
+    final customKey = key.substring(_customPrefix.length);
+    return customKey.isEmpty
+        ? null
+        : (key: customKey, isCustom: true, valueText: value, valueNum: null);
+  }
 
   final def = EquipmentAttributeCatalog.defFor(key);
   if (def != null) return _readCurated(def, value, dateFormat);

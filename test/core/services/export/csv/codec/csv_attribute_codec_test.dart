@@ -142,4 +142,56 @@ void main() {
     ]);
     expect(splitAttributePairs(''), isEmpty);
   });
+
+  test('a custom key that collides with a curated one is marked', () {
+    const custom = EquipmentAttribute(
+      id: 'c',
+      equipmentId: 'e',
+      key: 'size',
+      isCustom: true,
+      valueText: 'XL',
+    );
+    for (final units in [
+      CsvExportUnits.metric,
+      CsvExportUnits.fromSettings(_imperial),
+    ]) {
+      final pair = formatAttributePair(custom, units);
+      expect(pair, 'custom:size=XL');
+      expect(parseAttributePair(pair), (
+        key: 'size',
+        isCustom: true,
+        valueText: 'XL',
+        valueNum: null,
+      ));
+    }
+    // A stripped My units key collides too.
+    const hose = EquipmentAttribute(
+      id: 'h',
+      equipmentId: 'e',
+      key: 'hose_length',
+      isCustom: true,
+      valueText: 'long',
+    );
+    expect(
+      formatAttributePair(hose, CsvExportUnits.metric),
+      'custom:hose_length=long',
+    );
+  });
+
+  test('a custom key that collides with nothing is written as before', () {
+    const custom = EquipmentAttribute(
+      id: 'c',
+      equipmentId: 'e',
+      key: 'Batch',
+      isCustom: true,
+      valueText: 'B-77',
+    );
+    expect(formatAttributePair(custom, CsvExportUnits.metric), 'Batch=B-77');
+  });
+
+  test('a new file escapes "; " inside a value so it cannot split', () {
+    final cell = joinAttributePairs(['retailer=A; sku=9', 'sku=7']);
+    expect(cell, r'retailer=A\; sku=9; sku=7');
+    expect(splitAttributePairs(cell), ['retailer=A; sku=9', 'sku=7']);
+  });
 }

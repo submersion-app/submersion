@@ -51,4 +51,17 @@ void main() {
     ]);
     expect(diveCustomFieldsFromImport(null), isEmpty);
   });
+
+  test('a custom "size" sits beside the curated one', () {
+    final attrs = equipmentAttributesFromImport(
+      [
+        {'key': 'size', 'isCustom': true, 'valueText': 'XL'},
+      ],
+      equipmentId: 'e1',
+      newId: newId,
+      takenKeys: {'size'},
+    );
+    expect(attrs.single.isCustom, isTrue);
+    expect(attrs.single.valueText, 'XL');
+  });
 }

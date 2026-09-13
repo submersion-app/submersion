@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enum_display_lookup.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_attribute_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -185,7 +186,9 @@ class SubmersionEquipmentCsvParser implements ImportParser {
     for (final MapEntry(key: index, value: cell) in cells.entries) {
       final owner = items[index]['name'];
       final parts = <Map<String, dynamic>>[];
-      for (final name in cell.split('; ').map((s) => s.trim())) {
+      for (final name in splitCsvList(
+        cell,
+      ).map((s) => unescapeCsvListItem(s).trim())) {
         if (name.isEmpty) continue;
         final ids = idsByName[name] ?? const [];
         if (ids.length != 1) {
