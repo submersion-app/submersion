@@ -39,6 +39,16 @@ class TagExtractor implements EntityExtractor<Map<String, dynamic>> {
   /// Returns the generated UUID for a tag name, or null if not seen.
   String? tagIdForName(String name) => _tagNameToId[name];
 
+  /// Returns the generated UUIDs of the tags named in [row]'s 'tags' field,
+  /// in order and without repeats, so the row's dive can link to them.
+  List<String> tagIdsForRow(Map<String, dynamic> row) {
+    final raw = row['tags'];
+    if (raw == null) return const [];
+    return {
+      for (final name in _splitNames(raw.toString())) ?_tagNameToId[name],
+    }.toList();
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------

@@ -82,14 +82,16 @@ void main() {
       }
     });
 
-    // A mapped site or buddy column only becomes a linked record when the
-    // correlator extracts that entity type; otherwise every dive imports
-    // with no site, and buddies stay free text (#1830). This table is kept
-    // separate from the parser's own rule so a preset cannot silently drift.
+    // A mapped site, buddy or tags column only becomes a linked record when
+    // the correlator extracts that entity type; otherwise every dive imports
+    // with no site, buddies stay free text (#1830), and tags are dropped.
+    // This table is kept separate from the parser's own rule so a preset
+    // cannot silently drift.
     const entityTypeForTargetField = {
       'siteName': ImportEntityType.sites,
       'site': ImportEntityType.sites,
       'buddy': ImportEntityType.buddies,
+      'tags': ImportEntityType.tags,
     };
 
     test('every preset imports the entity types its mapped columns need', () {

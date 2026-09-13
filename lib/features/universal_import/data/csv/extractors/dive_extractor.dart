@@ -48,7 +48,8 @@ class DiveExtractor {
 
   /// Extract a single dive map from [row].
   ///
-  /// Only known dive fields are copied. A new UUID is generated for 'id'.
+  /// Only known dive fields are copied, plus a 'suit' line appended to the
+  /// notes. A new UUID is generated for 'id'.
   Map<String, dynamic> extract(Map<String, dynamic> row) {
     final dive = <String, dynamic>{'id': _uuid.v4()};
 
@@ -56,6 +57,16 @@ class DiveExtractor {
       if (row.containsKey(field)) {
         dive[field] = row[field];
       }
+    }
+
+    // A dive has no suit field and the presets create no gear from it, so
+    // the suit is kept in the notes, as the Subsurface XML import keeps it.
+    final suit = row['suit']?.toString().trim() ?? '';
+    if (suit.isNotEmpty) {
+      final notes = dive['notes']?.toString() ?? '';
+      dive['notes'] = notes.trim().isEmpty
+          ? 'Suit: $suit'
+          : '$notes\nSuit: $suit';
     }
 
     return dive;

@@ -1011,8 +1011,8 @@ void main() {
       },
     );
 
-    test('custom mapping without detected preset adds mapped buddies to the '
-        'default entity types', () async {
+    test('custom mapping without detected preset adds mapped buddies and '
+        'tags to the default entity types', () async {
       // Headers that do not match any known preset.
       const csv =
           'my_date,my_time,my_depth,my_buddy,my_tags\n'
@@ -1035,18 +1035,14 @@ void main() {
       );
 
       // Without a detected preset the default entity types are
-      // {dives, sites}. A mapped buddy column still adds buddies (#1830),
-      // but tags are not part of that rule and stay unextracted.
+      // {dives, sites}. Mapped buddy (#1830) and tags columns add their
+      // entity types, so neither column is dropped.
       final buddies = result.entitiesOf(ImportEntityType.buddies);
       final tags = result.entitiesOf(ImportEntityType.tags);
       expect(buddies.map((b) => b['name']), ['Alice']);
-      expect(
-        tags,
-        isEmpty,
-        reason:
-            'Without detected preset, default entity types should not '
-            'include tags',
-      );
+      expect(tags.map((t) => t['name']), ['reef']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [tags.single['id']]);
     });
   });
 
@@ -1190,6 +1186,50 @@ void main() {
       expect(sites.map((s) => s['name']), ['Blue Hole']);
       final buddies = result.entitiesOf(ImportEntityType.buddies);
       expect(buddies.map((b) => b['name']), ['Alice']);
+    });
+  });
+
+  group('a mapped tags column imports linked tags', () {
+    test('a custom mapping adds tags to a preset without them', () async {
+      // Garmin Connect is detected and imports dives only, but the user
+      // mapped a tags column by hand.
+      const csv =
+          'Date,Activity Type,Max Depth,Avg Depth,Bottom Time,'
+          'Water Temperature,Labels\n'
+          '2024-01-15,Single-Gas Dive,25.5,18.0,00:45:00,27,"night, wreck"\n';
+
+      const customMapping = FieldMapping(
+        name: 'Garmin plus tags',
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+          ColumnMapping(sourceColumn: 'Labels', targetField: 'tags'),
+        ],
+      );
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        customMappingOverride: customMapping,
+      );
+
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags.map((t) => t['name']), ['night', 'wreck']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [for (final tag in tags) tag['id']]);
+    });
+
+    test('an auto-mapped tags column imports tags', () async {
+      // No preset matches these headers, so they are keyword-mapped.
+      const csv =
+          'Date,Max Depth,Tags\n'
+          '2024-01-15,25.5,reef\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags.map((t) => t['name']), ['reef']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [tags.single['id']]);
     });
   });
 }
