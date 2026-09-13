@@ -33444,6 +33444,12 @@ abstract class AppLocalizations {
   /// **'Delete tag'**
   String get tags_action_deleteTag;
 
+  /// Tooltip on a tag chip; tapping the chip opens the dive list filtered to that tag
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives tagged \"{tagName}\"'**
+  String tags_action_showDives(String tagName);
+
   /// No description provided for @tags_dialog_deleteMessage.
   ///
   /// In en, this message translates to:
@@ -41250,6 +41256,12 @@ abstract class AppLocalizations {
   /// **'Use dive numbers from the imported file instead of auto-assigning'**
   String get universalImport_label_retainDiveNumbersSubtitle;
 
+  /// Switch subtitle when the import source provides no dive numbers, so the switch is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'This source does not provide dive numbers, so dives are numbered automatically'**
+  String get universalImport_label_retainDiveNumbersUnavailable;
+
   /// Switch title for the session-only auto-tag override in the import options sheet
   ///
   /// In en, this message translates to:
@@ -44363,7 +44375,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_progression_divesBySuitThickness_empty.
   ///
   /// In en, this message translates to:
-  /// **'No dives with a suit thickness recorded'**
+  /// **'No dives with a wetsuit or drysuit linked'**
   String get statistics_progression_divesBySuitThickness_empty;
 
   /// No description provided for @statistics_progression_divesBySuitThickness_error.
@@ -44371,6 +44383,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load suit thickness data'**
   String get statistics_progression_divesBySuitThickness_error;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get statistics_progression_divesBySuitThickness_unknown;
 
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///
@@ -63948,6 +63966,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assign transmitters'**
   String get universalImport_summary_noticeAssignTransmitters;
+
+  /// No description provided for @universalImport_summary_noticeDiveNumberConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive numbers already in use'**
+  String get universalImport_summary_noticeDiveNumberConflictTitle;
+
+  /// No description provided for @universalImport_summary_noticeDiveNumberConflictBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.'**
+  String get universalImport_summary_noticeDiveNumberConflictBody;
 
   /// No description provided for @dataQuality_detector_unknown_transmitter.
   ///

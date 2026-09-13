@@ -20262,6 +20262,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_action_deleteTag => 'Tag löschen';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Tauchgänge mit Tag \"$tagName\" anzeigen';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Möchten Sie \"$tagName\" wirklich löschen? Dies entfernt es von allen Tauchgängen.';
   }
@@ -25148,6 +25153,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchgangsnummern aus der importierten Datei verwenden, statt automatisch zuzuweisen';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Diese Quelle liefert keine Tauchgangsnummern, daher werden die Tauchgänge automatisch nummeriert';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Diesen Import automatisch taggen';
 
@@ -26918,11 +26927,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Keine Tauchgänge mit erfasster Anzugdicke';
+      'Keine Tauchgänge mit verknüpftem Neopren- oder Trockentauchanzug';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Anzugdicken-Daten konnten nicht geladen werden';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Unbekannt';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';
@@ -39202,6 +39214,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Sender zuweisen';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Tauchgangsnummern bereits vergeben';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Diese Tauchgänge haben die Nummer aus ihrer Quelle behalten, doch andere Tauchgänge in deinem Logbuch verwenden bereits dieselben Nummern. Öffne „Tauchgangnummerierung“ im Menü der Tauchgangsliste, um sie neu zu nummerieren.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

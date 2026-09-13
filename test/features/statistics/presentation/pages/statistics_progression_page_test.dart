@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/statistics/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_progression_page.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
+import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/trend_control_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -28,7 +30,10 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    Future<SuitThicknessStats> Function()? suits,
+  }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -36,6 +41,8 @@ void main() {
           ...overrides,
           depthProgressionTrendProvider.overrideWith((ref) async => series(20)),
           bottomTimeTrendProvider.overrideWith((ref) async => series(20)),
+          if (suits != null)
+            divesBySuitThicknessProvider.overrideWith((ref) => suits()),
         ].cast(),
         child: const MaterialApp(
           locale: Locale('en'),
@@ -107,5 +114,90 @@ void main() {
 
     expect(find.text('Cumulative Dive Count'), findsOneWidget);
     expect(find.text('Dives Per Year'), findsOneWidget);
+  });
+
+  group('suit thickness chart (issue #1824)', () {
+    // The per-year chart is empty on the test database and shows its empty
+    // state, so the only CategoryBarChart on the page is the suit chart.
+    List<({String label, int count})> suitBars(WidgetTester tester) =>
+        tester.widget<CategoryBarChart>(find.byType(CategoryBarChart)).data;
+
+    testWidgets('draws thickness, unknown and drysuit bars in that order', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        suits: () async => (
+          byThickness: [(mm: 3.0, count: 1), (mm: 6.5, count: 2)],
+          unknownThicknessCount: 4,
+          drysuitCount: 5,
+        ),
+      );
+
+      expect(suitBars(tester), [
+        (label: '3 mm', count: 1),
+        (label: '6.5 mm', count: 2),
+        (label: 'Unknown', count: 4),
+        (label: 'Drysuit', count: 5),
+      ]);
+    });
+
+    testWidgets('a drysuit-only logbook draws a chart, not the empty state', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        suits: () async => (
+          byThickness: const <({double mm, int count})>[],
+          unknownThicknessCount: 0,
+          drysuitCount: 7,
+        ),
+      );
+
+      expect(suitBars(tester), [(label: 'Drysuit', count: 7)]);
+      expect(
+        find.text('No dives with a wetsuit or drysuit linked'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('empty buckets are left off the chart', (tester) async {
+      await pumpPage(
+        tester,
+        suits: () async => (
+          byThickness: [(mm: 5.0, count: 2)],
+          unknownThicknessCount: 0,
+          drysuitCount: 0,
+        ),
+      );
+
+      expect(suitBars(tester), [(label: '5 mm', count: 2)]);
+    });
+
+    testWidgets('no linked suit at all shows the empty state', (tester) async {
+      await pumpPage(
+        tester,
+        suits: () async => (
+          byThickness: const <({double mm, int count})>[],
+          unknownThicknessCount: 0,
+          drysuitCount: 0,
+        ),
+      );
+
+      expect(find.byType(CategoryBarChart), findsNothing);
+      expect(
+        find.text('No dives with a wetsuit or drysuit linked'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failed query shows the error state', (tester) async {
+      await pumpPage(
+        tester,
+        suits: () async => throw StateError('query failed'),
+      );
+
+      expect(find.text('Could not load suit thickness data'), findsOneWidget);
+    });
   });
 }

@@ -453,6 +453,13 @@ _FileNoticeWording? _fileNoticeWording(
       route: '/transmitters',
     ),
   ),
+  // No action button: Dive Numbering is a dialog on the dive list, not
+  // a route, so the body tells the diver where to find it.
+  ImportNoticeKind.diveNumberConflict => (
+    title: l10n.universalImport_summary_noticeDiveNumberConflictTitle,
+    body: l10n.universalImport_summary_noticeDiveNumberConflictBody,
+    action: null,
+  ),
   ImportNoticeKind.unreadableDates => null,
 };
 

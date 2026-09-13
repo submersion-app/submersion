@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -859,6 +860,72 @@ void main() {
 
         expect(isImportingValues, contains(true));
         expect(notifier.state.isImporting, isFalse);
+      });
+
+      group('retain source dive numbers (issue #1832)', () {
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        );
+
+        void stubImport() {
+          when(
+            mockAdapter.performImport(
+              any,
+              any,
+              any,
+              retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+              onProgress: anyNamed('onProgress'),
+              cancelToken: anyNamed('cancelToken'),
+            ),
+          ).thenAnswer((_) async => importResult);
+        }
+
+        bool? retainedFlag() =>
+            verify(
+                  mockAdapter.performImport(
+                    any,
+                    any,
+                    any,
+                    retainSourceDiveNumbers: captureAnyNamed(
+                      'retainSourceDiveNumbers',
+                    ),
+                    onProgress: anyNamed('onProgress'),
+                    cancelToken: anyNamed('cancelToken'),
+                  ),
+                ).captured.single
+                as bool?;
+
+        test('passes the option on when a dive carries a number', () async {
+          notifier.setBundle(
+            buildBundle(
+              diveItems: [
+                const EntityItem(
+                  title: 'Dive 1',
+                  subtitle: '',
+                  diveData: IncomingDiveData(diveNumber: 4),
+                ),
+              ],
+            ),
+          );
+          notifier.setRetainSourceDiveNumbers(true);
+          stubImport();
+
+          await notifier.performImport();
+
+          expect(retainedFlag(), isTrue);
+        });
+
+        test('drops the option when no dive carries a number', () async {
+          notifier.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+          notifier.setRetainSourceDiveNumbers(true);
+          stubImport();
+
+          await notifier.performImport();
+
+          expect(retainedFlag(), isFalse);
+        });
       });
 
       test(

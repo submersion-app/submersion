@@ -20253,6 +20253,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_action_deleteTag => 'Címke törlése';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '\"$tagName\" címkéjű merülések megjelenítése';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Biztosan törölni szeretnéd: \"$tagName\"? Ez eltávolítja az összes merülésről.';
   }
@@ -25122,6 +25127,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az importált fájl merülésszámainak használata az automatikus kiosztás helyett';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Ez a forrás nem ad meg merülésszámokat, ezért a merülések automatikusan kapnak számot';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Ennek az importnak az automatikus címkézése';
 
@@ -26867,11 +26876,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nincs merülés rögzített ruhavastagsággal';
+      'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Nem sikerült betölteni a vastagsági adatokat';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Ismeretlen';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
@@ -39124,6 +39137,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Jeladók hozzárendelése';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'A merülésszámok már foglaltak';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Ezek a merülések megtartották a forrásuk szerinti számot, de a naplódban más merülések már ugyanezeket a számokat használják. Az újraszámozáshoz nyisd meg a Merülésszámozás menüpontot a merüléslista menüjében.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

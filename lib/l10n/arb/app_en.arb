@@ -12334,6 +12334,15 @@
     }
   },
   "tags_action_deleteTag": "Delete tag",
+  "tags_action_showDives": "Show dives tagged \"{tagName}\"",
+  "@tags_action_showDives": {
+    "description": "Tooltip on a tag chip; tapping the chip opens the dive list filtered to that tag",
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      }
+    }
+  },
   "tags_dialog_deleteMessage": "Are you sure you want to delete \"{tagName}\"? This will remove it from all dives.",
   "tags_dialog_deleteTitle": "Delete Tag?",
   "tags_empty": "No tags yet. Create tags when editing dives.",
@@ -16156,6 +16165,10 @@
   "@universalImport_label_retainDiveNumbersSubtitle": {
     "description": "Switch subtitle for retaining dive numbers"
   },
+  "universalImport_label_retainDiveNumbersUnavailable": "This source does not provide dive numbers, so dives are numbered automatically",
+  "@universalImport_label_retainDiveNumbersUnavailable": {
+    "description": "Switch subtitle when the import source provides no dive numbers, so the switch is disabled"
+  },
   "universalImport_label_autoTagThisImport": "Tag this import automatically",
   "@universalImport_label_autoTagThisImport": {
     "description": "Switch title for the session-only auto-tag override in the import options sheet"
@@ -17264,8 +17277,9 @@
   "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
   "statistics_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
   "statistics_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
-  "statistics_progression_divesBySuitThickness_empty": "No dives with a suit thickness recorded",
+  "statistics_progression_divesBySuitThickness_empty": "No dives with a wetsuit or drysuit linked",
   "statistics_progression_divesBySuitThickness_error": "Could not load suit thickness data",
+  "statistics_progression_divesBySuitThickness_unknown": "Unknown",
   "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
   "diveLog_filter_sectionGearAttributes": "Gear attributes",
   "diveLog_filter_gearCategory": "Gear category",
@@ -23894,6 +23908,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Unassigned transmitters",
   "universalImport_summary_noticeUnknownTransmitterBody": "One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.",
   "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",
+  "universalImport_summary_noticeDiveNumberConflictTitle": "Dive numbers already in use",
+  "universalImport_summary_noticeDiveNumberConflictBody": "These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.",
   "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",
   "dataQuality_msg_unknownTransmitter": "Transmitter {serial} is not assigned to a cylinder",
   "@dataQuality_msg_unknownTransmitter": {

@@ -1268,6 +1268,30 @@ void main() {
       expect(find.text('Affects 1 dive'), findsOneWidget);
     });
 
+    testWidgets('explains retained dive numbers that clash (issue #1832)', (
+      tester,
+    ) async {
+      await pumpWithNotices(tester, const [
+        ImportNotice(
+          kind: ImportNoticeKind.diveNumberConflict,
+          affectedDives: 2,
+        ),
+      ]);
+
+      expect(find.text('Dive numbers already in use'), findsOneWidget);
+      expect(find.textContaining('Dive Numbering'), findsOneWidget);
+      expect(find.text('Affects 2 dives'), findsOneWidget);
+      // Dive Numbering is a dialog on the dive list, not a route, so the card
+      // has no action button to push.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('import_summary_notices')),
+          matching: find.byType(FilledButton),
+        ),
+        findsNothing,
+      );
+    });
+
     testWidgets('shows no notices section when there are none', (tester) async {
       await pumpWithNotices(tester, const []);
 
