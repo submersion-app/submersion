@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
@@ -180,23 +181,26 @@ class ReparseService {
       // otherwise the merge's own surface-gap markers are deleted (#1164).
       final rewritesEvents = !isMultiSource && ownsStrand;
 
-      // Whether this parse actually reports any tank/gas-mix/pressure
-      // information to carry over. A re-parse reads the exact same raw bytes
-      // as the original download, so both empty here means the parser or
-      // resolver produced less than a previous parse of those same bytes did
-      // -- never a genuine "the diver's tank is gone", which the raw bytes
-      // cannot express. Gating the tank/gas-switch/pressure rewrite on it
-      // stops such a parse from permanently deleting tank pressure history
-      // it has nothing to replace (issue #1853).
-      final parsedHasTankData =
-          parsed.tanks.isNotEmpty ||
-          parsed.gasMixes.isNotEmpty ||
-          parsed.samples.any(
-            (s) =>
-                s.pressureBar != null ||
-                (s.tankPressuresBar?.isNotEmpty ?? false),
-          );
-      final rewritesTanks = rewritesEvents && parsedHasTankData;
+      // The cylinders this parse resolves to. A re-parse reads the exact same
+      // raw bytes as the original download, so resolving to none means the
+      // parser or resolver produced less than a previous parse of those same
+      // bytes did, never a genuine "the diver's tank is gone", which the raw
+      // bytes cannot express. With no cylinder the tank/gas-switch/pressure
+      // rewrite could only delete: pressure and switches attach to a
+      // cylinder, so there would be nothing to put back. Gating the rewrite
+      // on it stops such a parse from permanently deleting tank pressure
+      // history it has nothing to replace (issue #1853).
+      //
+      // This checks the resolved cylinders, not the raw parsed fields,
+      // because the two can disagree: a gauge dive reporting a gas mix, or
+      // sample pressure with no tank record or gas mix, resolves to none.
+      final resolvedTanks = rewritesEvents
+          ? resolveParsedTanks(
+              parsed,
+              trimAtSurfacing: trimTankPressureAtSurfacing,
+            )
+          : const <DownloadedTank>[];
+      final rewritesTanks = resolvedTanks.isNotEmpty;
 
       if (rewritesEvents) {
         // Tombstoned: a peer's import only upserts these, so a row removed
@@ -225,14 +229,14 @@ class ReparseService {
       // ------------------------------------------------------------------
       // 6. DiveTanks carry-over (primary + single-source only)
       //    Skip for non-primary or multi-source dives to avoid overwriting
-      //    tank data owned by other sources, and for a parse reporting no
-      //    tank data at all (see [parsedHasTankData] above).
+      //    tank data owned by other sources, and for a parse resolving to
+      //    no cylinder at all (see [resolvedTanks] above).
       // ------------------------------------------------------------------
       if (rewritesTanks) {
         final tankIdsByIndex = await _carryOverTanks(
           diveId: diveId,
           computerId: computerId,
-          parsed: parsed,
+          resolvedTanks: resolvedTanks,
         );
         await _replaceTankPressureProfiles(
           diveId: diveId,
@@ -764,12 +768,13 @@ class ReparseService {
     });
   }
 
-  /// Re-creates/updates dive_tanks from parsed data and returns a map of
-  /// tank index -> tank row id, used to attach tank pressure profiles.
+  /// Re-creates/updates dive_tanks from the parse's [resolvedTanks] and
+  /// returns a map of tank index -> tank row id, used to attach tank pressure
+  /// profiles.
   Future<Map<int, String>> _carryOverTanks({
     required String diveId,
     required String? computerId,
-    required pigeon.ParsedDive parsed,
+    required List<DownloadedTank> resolvedTanks,
   }) async {
     final tankIdsByIndex = <int, String>{};
     // Get existing tanks
@@ -782,10 +787,7 @@ class ReparseService {
     // Build a map of existing tanks by tankOrder
     final matcher = await _loadMatcher();
     final parsedTanks = applyTransmitterRegistry(
-      resolveParsedTanks(
-        parsed,
-        trimAtSurfacing: trimTankPressureAtSurfacing,
-      ).map(DiveParser.tankDataFrom).toList(),
+      resolvedTanks.map(DiveParser.tankDataFrom).toList(),
       matcher,
       computerId: computerId,
     );
