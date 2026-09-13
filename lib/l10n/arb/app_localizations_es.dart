@@ -16502,6 +16502,79 @@ class AppLocalizationsEs extends AppLocalizations {
       'Computadoras de buceo conectadas, gestion de fuentes';
 
   @override
+  String get siteDetailSection_map_name => 'Mapa';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Vista previa del mapa de la ubicación del sitio';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Número de inmersiones, profundidades alcanzadas, inmersiones más largas y más recientes';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Descripción del sitio';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'País, región, masa de agua, coordenadas GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Rango de profundidad indicado y profundidades alcanzadas en las inmersiones';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Altitud y categoría de inmersión en altitud';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Características marcadas en el mapa del sitio';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Gráfico del ciclo de mareas y horarios';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Condiciones del agua por satélite en el sitio';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Especies vistas en este sitio';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Fotos, vídeos y documentos del sitio';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Nivel de dificultad del sitio';
+
+  @override
+  String get siteDetailSection_rating_description =>
+      'Tu calificación del sitio';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Peligros y notas de seguridad';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Entrada y salida, aparcamiento, amarre, notas de acceso';
+
+  @override
+  String get siteDetailSection_notes_description => 'Tus notas sobre el sitio';
+
+  @override
+  String get settings_siteDetailSections_title =>
+      'Secciones del detalle del sitio';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Detalles del sitio';
+
+  @override
   String get settings_appearance_header_language => 'Idioma';
 
   @override

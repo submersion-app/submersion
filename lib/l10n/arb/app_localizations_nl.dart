@@ -16377,6 +16377,79 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verbonden duikcomputers, bronbeheer';
 
   @override
+  String get siteDetailSection_map_name => 'Kaart';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Kaartvoorbeeld van de duikstek';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Aantal duiken, bereikte diepten, langste en laatste duiken';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Beschrijving van de duikstek';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Land, regio, wateroppervlak, GPS-coördinaten';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Opgegeven dieptebereik en bij duiken bereikte diepten';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Hoogte en categorie hoogteduik';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Kenmerken gemarkeerd op de kaart van de duikstek';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Getijdecyclusgrafiek en timing';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Satellietwateromstandigheden bij de duikstek';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Soorten gezien bij deze duikstek';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Foto\'s, video\'s en documenten van de duikstek';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Moeilijkheidsgraad van de duikstek';
+
+  @override
+  String get siteDetailSection_rating_description =>
+      'Jouw beoordeling van de duikstek';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Gevaren en veiligheidsnotities';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'In- en uitstap, parkeren, meerboei, toegangsnotities';
+
+  @override
+  String get siteDetailSection_notes_description =>
+      'Jouw notities over de duikstek';
+
+  @override
+  String get settings_siteDetailSections_title => 'Secties duikstekdetails';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Duikstekdetails';
+
+  @override
   String get settings_appearance_header_language => 'Taal';
 
   @override

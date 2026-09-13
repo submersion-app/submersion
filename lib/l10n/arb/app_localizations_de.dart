@@ -16480,6 +16480,78 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verbundene Tauchcomputer, Quellenverwaltung';
 
   @override
+  String get siteDetailSection_map_name => 'Karte';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Kartenvorschau des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Beschreibung des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Land, Region, Gewässer, GPS-Koordinaten';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Angegebener Tiefenbereich und bei Tauchgängen erreichte Tiefen';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Höhenlage und Kategorie des Höhentauchgangs';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Auf der Tauchplatzkarte markierte Merkmale';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Gezeitenzyklusdiagramm und Zeiten';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Satellitengestützte Wasserbedingungen am Tauchplatz';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'An diesem Tauchplatz gesichtete Arten';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Fotos, Videos und Dokumente zum Tauchplatz';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Schwierigkeitsgrad des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_rating_description =>
+      'Bewertung des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Gefahren und Sicherheitshinweise';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Ein- und Ausstieg, Parken, Boje, Zugangshinweise';
+
+  @override
+  String get siteDetailSection_notes_description => 'Notizen zum Tauchplatz';
+
+  @override
+  String get settings_siteDetailSections_title => 'Tauchplatz-Detailabschnitte';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Tauchplatz-Details';
+
+  @override
   String get settings_appearance_header_language => 'Sprache';
 
   @override

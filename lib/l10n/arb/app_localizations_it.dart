@@ -16503,6 +16503,78 @@ class AppLocalizationsIt extends AppLocalizations {
       'Computer subacquei collegati, gestione sorgenti';
 
   @override
+  String get siteDetailSection_map_name => 'Mappa';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Anteprima della mappa della posizione del sito';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Numero di immersioni, profondità raggiunte, immersioni più lunghe e più recenti';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Descrizione del sito';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Paese, regione, specchio d\'acqua, coordinate GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Intervallo di profondità indicato e profondità raggiunte nelle immersioni';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Altitudine e categoria di immersione in quota';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Elementi segnati sulla mappa del sito';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Grafico ciclo marea e tempi';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Condizioni dell\'acqua da satellite presso il sito';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Specie avvistate in questo sito';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Foto, video e documenti del sito';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Livello di difficoltà del sito';
+
+  @override
+  String get siteDetailSection_rating_description =>
+      'La tua valutazione del sito';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Pericoli e note di sicurezza';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Entrata e uscita, parcheggio, ormeggio, note di accesso';
+
+  @override
+  String get siteDetailSection_notes_description => 'Le tue note sul sito';
+
+  @override
+  String get settings_siteDetailSections_title => 'Sezioni del dettaglio sito';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Dettagli sito';
+
+  @override
   String get settings_appearance_header_language => 'Lingua';
 
   @override

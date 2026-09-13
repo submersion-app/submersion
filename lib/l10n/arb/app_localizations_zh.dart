@@ -15698,6 +15698,64 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_dataSources_description => '已连接的潜水电脑、数据源管理';
 
   @override
+  String get siteDetailSection_map_name => '地图';
+
+  @override
+  String get siteDetailSection_map_description => '潜水点位置的地图预览';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      '潜水次数、到达深度、最长和最近的潜水';
+
+  @override
+  String get siteDetailSection_description_description => '潜水点描述';
+
+  @override
+  String get siteDetailSection_location_description => '国家、地区、水域、GPS 坐标';
+
+  @override
+  String get siteDetailSection_depth_description => '标注深度范围及潜水实际到达深度';
+
+  @override
+  String get siteDetailSection_altitude_description => '海拔及高海拔潜水类别';
+
+  @override
+  String get siteDetailSection_features_description => '在潜水点地图上标记的特征';
+
+  @override
+  String get siteDetailSection_tide_description => '潮汐周期图和时间';
+
+  @override
+  String get siteDetailSection_reefHealth_description => '潜水点的卫星水况';
+
+  @override
+  String get siteDetailSection_marineLife_description => '在此潜水点见到的物种';
+
+  @override
+  String get siteDetailSection_media_description => '潜水点的照片、视频和文档';
+
+  @override
+  String get siteDetailSection_difficulty_description => '潜水点难度等级';
+
+  @override
+  String get siteDetailSection_rating_description => '你对潜水点的评分';
+
+  @override
+  String get siteDetailSection_hazards_description => '危险与安全须知';
+
+  @override
+  String get siteDetailSection_access_description => '入水与出水、停车、系泊、到达说明';
+
+  @override
+  String get siteDetailSection_notes_description => '你对潜水点的备注';
+
+  @override
+  String get settings_siteDetailSections_title => '潜水点详情区块';
+
+  @override
+  String get settings_appearance_header_siteDetails => '潜水点详情';
+
+  @override
   String get settings_appearance_header_language => '语言';
 
   @override

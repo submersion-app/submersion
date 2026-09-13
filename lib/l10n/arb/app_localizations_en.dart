@@ -16234,6 +16234,77 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connected dive computers, source management';
 
   @override
+  String get siteDetailSection_map_name => 'Map';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Map preview of the site location';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Dive count, depths reached, longest and latest dives';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Your description of the site';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Country, region, body of water, GPS coordinates';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Rated depth range and depths reached on dives';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Altitude and altitude dive category';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Features marked on the site map';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Tide cycle graph and timing';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Satellite water conditions at the site';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Species seen at this site';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Photos, videos and documents for the site';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Difficulty level of the site';
+
+  @override
+  String get siteDetailSection_rating_description => 'Your rating of the site';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Hazards and safety notes';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Entry and exit, parking, mooring, access notes';
+
+  @override
+  String get siteDetailSection_notes_description => 'Your notes about the site';
+
+  @override
+  String get settings_siteDetailSections_title => 'Site Detail Sections';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Site Details';
+
+  @override
   String get settings_appearance_header_language => 'Language';
 
   @override

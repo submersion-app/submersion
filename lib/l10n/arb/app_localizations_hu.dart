@@ -16454,6 +16454,79 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csatlakoztatott merülőszámítógépek, forráskezelés';
 
   @override
+  String get siteDetailSection_map_name => 'Térkép';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'A merülőhely helyének térképes előnézete';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Merülések száma, elért mélységek, leghosszabb és legutóbbi merülések';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'A merülőhely leírása';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Ország, régió, víztest, GPS-koordináták';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Megadott mélységtartomány és a merüléseken elért mélységek';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Tengerszint feletti magasság és magashegyi merülési kategória';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'A merülőhely térképén jelölt jellemzők';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Árapály-ciklus grafikon és időzítés';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Műholdas vízviszonyok a merülőhelyen';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Ezen a merülőhelyen látott fajok';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'A merülőhely fotói, videói és dokumentumai';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'A merülőhely nehézségi szintje';
+
+  @override
+  String get siteDetailSection_rating_description => 'A merülőhely értékelése';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Veszélyek és biztonsági megjegyzések';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Be- és kiszállás, parkolás, kikötés, megközelítési megjegyzések';
+
+  @override
+  String get siteDetailSection_notes_description =>
+      'Megjegyzések a merülőhelyről';
+
+  @override
+  String get settings_siteDetailSections_title =>
+      'Merülőhely-részletek szekciói';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Merülőhely részletei';
+
+  @override
   String get settings_appearance_header_language => 'Nyelv';
 
   @override

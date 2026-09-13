@@ -16210,6 +16210,74 @@ class AppLocalizationsAr extends AppLocalizations {
       'أجهزة الغوص المتصلة، إدارة المصادر';
 
   @override
+  String get siteDetailSection_map_name => 'الخريطة';
+
+  @override
+  String get siteDetailSection_map_description => 'معاينة خريطة لموقع الغوص';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها';
+
+  @override
+  String get siteDetailSection_description_description => 'وصف الموقع';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'نطاق العمق المصنف والأعماق التي تم بلوغها في الغوصات';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'الارتفاع وفئة الغوص على ارتفاع';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'المعالم المحددة على خريطة الموقع';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'رسم بياني لدورة المد والجزر والتوقيت';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'أحوال المياه عبر الأقمار الصناعية في الموقع';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'الأنواع التي شوهدت في هذا الموقع';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'صور ومقاطع فيديو ومستندات الموقع';
+
+  @override
+  String get siteDetailSection_difficulty_description => 'مستوى صعوبة الموقع';
+
+  @override
+  String get siteDetailSection_rating_description => 'تقييمك للموقع';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'المخاطر وملاحظات السلامة';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'الدخول والخروج، مواقف السيارات، الرسو، ملاحظات الوصول';
+
+  @override
+  String get siteDetailSection_notes_description => 'ملاحظاتك عن الموقع';
+
+  @override
+  String get settings_siteDetailSections_title => 'أقسام تفاصيل الموقع';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'تفاصيل الموقع';
+
+  @override
   String get settings_appearance_header_language => 'اللغة';
 
   @override

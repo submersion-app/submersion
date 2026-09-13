@@ -16102,6 +16102,72 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשבי צלילה מחוברים, ניהול מקורות';
 
   @override
+  String get siteDetailSection_map_name => 'מפה';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'תצוגה מקדימה של מפת מיקום האתר';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
+
+  @override
+  String get siteDetailSection_description_description => 'תיאור האתר';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'מדינה, אזור, מקווה מים, קואורדינטות GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'טווח עומק מדורג ועומקים שהושגו בצלילות';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'גובה וקטגוריית צלילת גובה';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'מאפיינים שסומנו במפת האתר';
+
+  @override
+  String get siteDetailSection_tide_description => 'גרף מחזור גאות ושפל וזמן';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'תנאי מים לווייניים באתר';
+
+  @override
+  String get siteDetailSection_marineLife_description => 'מינים שנצפו באתר זה';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'תמונות, סרטונים ומסמכים של האתר';
+
+  @override
+  String get siteDetailSection_difficulty_description => 'רמת הקושי של האתר';
+
+  @override
+  String get siteDetailSection_rating_description => 'הדירוג שלך לאתר';
+
+  @override
+  String get siteDetailSection_hazards_description => 'סכנות והערות בטיחות';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'כניסה ויציאה, חניה, עגינה, הערות גישה';
+
+  @override
+  String get siteDetailSection_notes_description => 'ההערות שלך על האתר';
+
+  @override
+  String get settings_siteDetailSections_title => 'סעיפי פרטי האתר';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'פרטי האתר';
+
+  @override
   String get settings_appearance_header_language => 'שפה';
 
   @override

@@ -27256,6 +27256,120 @@ abstract class AppLocalizations {
   /// **'Connected dive computers, source management'**
   String get diveDetailSection_dataSources_description;
 
+  /// No description provided for @siteDetailSection_map_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get siteDetailSection_map_name;
+
+  /// No description provided for @siteDetailSection_map_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Map preview of the site location'**
+  String get siteDetailSection_map_description;
+
+  /// No description provided for @siteDetailSection_diveStatistics_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count, depths reached, longest and latest dives'**
+  String get siteDetailSection_diveStatistics_description;
+
+  /// No description provided for @siteDetailSection_description_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your description of the site'**
+  String get siteDetailSection_description_description;
+
+  /// No description provided for @siteDetailSection_location_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Country, region, body of water, GPS coordinates'**
+  String get siteDetailSection_location_description;
+
+  /// No description provided for @siteDetailSection_depth_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Rated depth range and depths reached on dives'**
+  String get siteDetailSection_depth_description;
+
+  /// No description provided for @siteDetailSection_altitude_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude and altitude dive category'**
+  String get siteDetailSection_altitude_description;
+
+  /// No description provided for @siteDetailSection_features_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Features marked on the site map'**
+  String get siteDetailSection_features_description;
+
+  /// No description provided for @siteDetailSection_tide_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tide cycle graph and timing'**
+  String get siteDetailSection_tide_description;
+
+  /// No description provided for @siteDetailSection_reefHealth_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite water conditions at the site'**
+  String get siteDetailSection_reefHealth_description;
+
+  /// No description provided for @siteDetailSection_marineLife_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Species seen at this site'**
+  String get siteDetailSection_marineLife_description;
+
+  /// No description provided for @siteDetailSection_media_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos, videos and documents for the site'**
+  String get siteDetailSection_media_description;
+
+  /// No description provided for @siteDetailSection_difficulty_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty level of the site'**
+  String get siteDetailSection_difficulty_description;
+
+  /// No description provided for @siteDetailSection_rating_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating of the site'**
+  String get siteDetailSection_rating_description;
+
+  /// No description provided for @siteDetailSection_hazards_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Hazards and safety notes'**
+  String get siteDetailSection_hazards_description;
+
+  /// No description provided for @siteDetailSection_access_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry and exit, parking, mooring, access notes'**
+  String get siteDetailSection_access_description;
+
+  /// No description provided for @siteDetailSection_notes_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes about the site'**
+  String get siteDetailSection_notes_description;
+
+  /// No description provided for @settings_siteDetailSections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Detail Sections'**
+  String get settings_siteDetailSections_title;
+
+  /// No description provided for @settings_appearance_header_siteDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Details'**
+  String get settings_appearance_header_siteDetails;
+
   /// No description provided for @settings_appearance_header_language.
   ///
   /// In en, this message translates to:

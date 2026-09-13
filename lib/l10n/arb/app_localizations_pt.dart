@@ -16504,6 +16504,77 @@ class AppLocalizationsPt extends AppLocalizations {
       'Computadores de mergulho conectados, gerenciamento de fontes';
 
   @override
+  String get siteDetailSection_map_name => 'Mapa';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Pré-visualização do mapa da localização do ponto';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Número de mergulhos, profundidades alcançadas, mergulhos mais longos e mais recentes';
+
+  @override
+  String get siteDetailSection_description_description => 'Descrição do ponto';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'País, região, corpo de água, coordenadas GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Faixa de profundidade indicada e profundidades alcançadas nos mergulhos';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Altitude e categoria de mergulho em altitude';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Elementos marcados no mapa do ponto';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Gráfico do ciclo de maré e horários';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Condições da água por satélite no ponto';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Espécies vistas neste ponto';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Fotos, vídeos e documentos do ponto';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Nível de dificuldade do ponto';
+
+  @override
+  String get siteDetailSection_rating_description => 'Sua avaliação do ponto';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Perigos e notas de segurança';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Entrada e saída, estacionamento, amarração, notas de acesso';
+
+  @override
+  String get siteDetailSection_notes_description =>
+      'Suas observações sobre o ponto';
+
+  @override
+  String get settings_siteDetailSections_title => 'Seções de detalhes do ponto';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Detalhes do Ponto';
+
+  @override
   String get settings_appearance_header_language => 'Idioma';
 
   @override
