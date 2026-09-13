@@ -1008,6 +1008,29 @@ void main() {
       expect(result.diveTypes, 0);
     });
 
+    test('creates a type with no id under the slug of its name', () async {
+      when(mockDiveTypeRepo.createDiveType(any)).thenAnswer(
+        (invocation) async =>
+            invocation.positionalArguments[0] as DiveTypeEntity,
+      );
+
+      await importer.import(
+        data: const UddfImportResult(
+          customDiveTypes: [
+            {'name': 'Search Recovery'},
+          ],
+        ),
+        selections: const UddfImportSelections(diveTypes: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final created =
+          verify(mockDiveTypeRepo.createDiveType(captureAny)).captured.single
+              as DiveTypeEntity;
+      expect(created.id, 'search_recovery');
+    });
+
     group('dive links (#1834)', () {
       setUp(() {
         when(mockDiveRepo.createDive(any)).thenAnswer(
