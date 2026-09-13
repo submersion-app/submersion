@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// One folded section row in the dive detail page's list layout.
+/// One folded section row in a detail page's list layout (Dive Details and
+/// Site Details).
 ///
 /// Unlike [CollapsibleSection], this draws no [Card] of its own: the sections
 /// it folds already build cards, and a card inside a card reads as a boxing
@@ -12,8 +13,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// The row carries no drag handle: reordering lives in the display-options
 /// menu, so the header stays a single tap target with one affordance.
-class DiveSectionFold extends StatelessWidget {
-  const DiveSectionFold({
+class SectionFold extends StatelessWidget {
+  const SectionFold({
     super.key,
     required this.title,
     required this.icon,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/features/dive_log/presentation/widgets/dive_section_fold.dart';
+import 'package:submersion/shared/widgets/section_fold.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -14,7 +14,7 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: DiveSectionFold(
+        body: SectionFold(
           title: 'Notes',
           icon: Icons.notes,
           isExpanded: isExpanded,

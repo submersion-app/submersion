@@ -105,7 +105,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/playback_contr
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_section_fold.dart';
+import 'package:submersion/shared/widgets/section_fold.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
@@ -872,7 +872,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     List<Widget> content, {
     required bool isExpanded,
   }) {
-    return DiveSectionFold(
+    return SectionFold(
       key: ValueKey('diveSectionFold_${id.name}'),
       title: id.localizedDisplayName(context.l10n),
       icon: id.icon,
