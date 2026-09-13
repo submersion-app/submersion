@@ -65166,6 +65166,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show on chart'**
   String get plannerCanvas_compare_showOnChart;
+
+  /// No description provided for @numberInput_invalidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number'**
+  String get numberInput_invalidValue;
 }
 
 class _AppLocalizationsDelegate

@@ -12109,5 +12109,6 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "verbraucht: {reading}",
-  "plannerCanvas_gas_endReading": "ende: {reading}"
+  "plannerCanvas_gas_endReading": "ende: {reading}",
+  "numberInput_invalidValue": "Geben Sie eine gültige Zahl ein"
 }

@@ -235,6 +235,71 @@ void main() {
       expect(updatedTank!.transmitterSerial, '180777');
     });
 
+    testWidgets('an unparseable He% keeps the last known-good mix instead of '
+        'silently turning it into air (issue #1900)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final builtInPresets = TankPresets.all
+          .map((p) => TankPresetEntity.fromBuiltIn(p))
+          .toList();
+
+      const tank = DiveTank(
+        id: 'tank-5',
+        volume: 11.1,
+        workingPressure: 206.843,
+        gasMix: GasMix(o2: 21.0, he: 35.0),
+      );
+
+      DiveTank? updatedTank;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(builtInPresets),
+            ),
+            tankPresetsProvider.overrideWith(
+              (ref) => Future.value(builtInPresets),
+            ),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: TankEditor(
+                  tank: tank,
+                  tankNumber: 1,
+                  onChanged: (t) => updatedTank = t,
+                  onRemove: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final heField = find.widgetWithText(TextFormField, '35');
+      expect(heField, findsOneWidget);
+      await tester.enterText(heField, 'abc');
+      await tester.pump();
+
+      // The validator's inline error is shown...
+      expect(find.text('Enter a valid number'), findsOneWidget);
+      // ...and the persisted mix keeps the tank's real He, not 0 (air).
+      expect(updatedTank, isNotNull);
+      expect(updatedTank!.gasMix.he, 35.0);
+      expect(updatedTank!.gasMix.o2, 21.0);
+    });
+
     testWidgets('applyPreset shows volumeCuft in imperial mode', (
       tester,
     ) async {

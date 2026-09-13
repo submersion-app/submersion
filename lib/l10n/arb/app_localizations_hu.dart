@@ -39956,4 +39956,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Adjon meg érvényes számot';
 }

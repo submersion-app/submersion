@@ -37771,4 +37771,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => '请输入有效的数字';
 }

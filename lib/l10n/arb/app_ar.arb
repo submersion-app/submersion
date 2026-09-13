@@ -12109,5 +12109,6 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "مستخدم: {reading}",
-  "plannerCanvas_gas_endReading": "النهاية: {reading}"
+  "plannerCanvas_gas_endReading": "النهاية: {reading}",
+  "numberInput_invalidValue": "أدخل رقمًا صالحًا"
 }

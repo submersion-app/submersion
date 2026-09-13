@@ -39707,4 +39707,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'أدخل رقمًا صالحًا';
 }

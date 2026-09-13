@@ -106,6 +106,44 @@ void main() {
     });
   });
 
+  group('PlanTankList gas percent validation (issue #1900)', () {
+    testWidgets('an unparseable O2% blocks save instead of silently '
+        'becoming air', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tanksBefore = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      ).read(divePlanNotifierProvider).tanks.length;
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      final o2Field = find.widgetWithText(TextFormField, 'O₂ %');
+      await tester.enterText(o2Field, 'abc');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      // The dialog stayed open (the tank list is unchanged) and shows the
+      // validator's error instead of silently saving 21% air.
+      expect(find.text('Enter a valid number'), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      expect(
+        container.read(divePlanNotifierProvider).tanks.length,
+        tanksBefore,
+      );
+    });
+  });
+
   group('PlanTankList edit dialog displays converted values', () {
     testWidgets('shows existing pressure in psi and volume in cuft', (
       tester,

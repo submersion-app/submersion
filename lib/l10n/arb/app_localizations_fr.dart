@@ -40222,4 +40222,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Saisissez un nombre valide';
 }
