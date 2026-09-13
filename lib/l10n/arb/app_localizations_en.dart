@@ -21927,6 +21927,85 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nothing was imported: the dates in $count rows could not be read.',
+      one: 'Nothing was imported: the date in 1 row could not be read.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Check that the date and time columns are mapped on this step, and that they hold dates.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'No importable data was found in this file.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'No importable data was found in this file: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'No importable data was found in the selected files.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'The selected file could not be read. Pick it again.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'The file could not be read: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'No importable files were found in the archive.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'No importable files were found in the selected folder.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'The file could not be loaded: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'The file could not be opened: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'The folder could not be scanned: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'No connected Garmin device found. Connect it by cable, or use Choose Folder to select the device\'s GARMIN/Activity folder.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'The Garmin device could not be read: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'No dives were found on the connected Garmin device.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'The additional file could not be opened: $details';
+  }
+
+  @override
   String get universalImport_label_columnMapping => 'Column Mapping';
 
   @override

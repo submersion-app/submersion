@@ -21136,6 +21136,77 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '未导入任何内容：有 $count 行的日期无法读取。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      '请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。';
+
+  @override
+  String get universalImport_error_noDataInFile => '此文件中未找到可导入的数据。';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return '此文件中未找到可导入的数据：$details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles => '所选文件中未找到可导入的数据。';
+
+  @override
+  String get universalImport_error_fileUnreadable => '无法读取所选文件。请重新选择。';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return '无法读取该文件：$details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive => '压缩包中未找到可导入的文件。';
+
+  @override
+  String get universalImport_error_noFilesInFolder => '所选文件夹中未找到可导入的文件。';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return '无法加载该文件：$details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return '无法打开该文件：$details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return '无法扫描该文件夹：$details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      '未找到已连接的 Garmin 设备。请用数据线连接设备，或使用“选择文件夹”选择设备的 GARMIN/Activity 文件夹。';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return '无法读取 Garmin 设备：$details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives => '已连接的 Garmin 设备上未找到潜水记录。';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return '无法打开附加文件：$details';
+  }
+
+  @override
   String get universalImport_label_columnMapping => '列映射';
 
   @override

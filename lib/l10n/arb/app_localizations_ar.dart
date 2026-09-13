@@ -21914,6 +21914,84 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يتم استيراد أي شيء: تعذّرت قراءة التواريخ في $count صفوف.',
+      one: 'لم يتم استيراد أي شيء: تعذّرت قراءة التاريخ في صف واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'لم يتم العثور على بيانات قابلة للاستيراد في الملفات المحددة.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'تعذّرت قراءة الملف المحدد. اختره مرة أخرى.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'تعذّرت قراءة الملف: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'لم يتم العثور على ملفات قابلة للاستيراد في الأرشيف.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'لم يتم العثور على ملفات قابلة للاستيراد في المجلد المحدد.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'تعذّر تحميل الملف: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'تعذّر فتح الملف: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'تعذّر فحص المجلد: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'لم يتم العثور على جهاز Garmin متصل. وصّله بالكابل، أو استخدم «اختيار مجلد» لتحديد مجلد GARMIN/Activity في الجهاز.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'تعذّرت قراءة جهاز Garmin: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'لم يتم العثور على غطسات في جهاز Garmin المتصل.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'تعذّر فتح الملف الإضافي: $details';
+  }
+
+  @override
   String get universalImport_label_columnMapping => 'تعيين الأعمدة';
 
   @override
