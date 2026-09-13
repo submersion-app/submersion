@@ -1004,18 +1004,24 @@ class DatabaseService {
       // keeps its existing handling, which may legitimately want the
       // swapped-in file left in place for recovery.
       //
-      // Best-effort: the rollback below only needs asidePath, not the
-      // removal of the too-new file it is about to overwrite anyway (rename
-      // replaces its destination). A transient failure to delete it must not
-      // skip the rollback and leave the too-new file live with no database
-      // open.
-      await _bestEffortDelete(destinationPath);
-      await _bestEffortDelete('$destinationPath-wal');
-      await _bestEffortDelete('$destinationPath-shm');
+      // The rejected file's journal goes FIRST and strictly. SQLite replays
+      // whatever -wal sits beside a database, and the pre-restore copy
+      // usually has no sidecar of its own to overwrite it (a clean close
+      // checkpoints it away). If it cannot be removed, stop here: the
+      // original stays untouched at asidePath rather than being paired with
+      // a foreign journal, and a reopen would only reject the same file.
+      await _deleteIfExists('$destinationPath-wal');
+      await _deleteIfExists('$destinationPath-shm');
       if (hadDest && await File(asidePath).exists()) {
+        // No delete first: rename replaces its destination on every
+        // platform, so the live path always holds a complete database. A
+        // delete-then-rename would leave a window with no file there, in
+        // which a failed rename makes the next open create an empty one.
         await File(asidePath).rename(destinationPath);
         await _moveIfExists('$asidePath-wal', '$destinationPath-wal');
         await _moveIfExists('$asidePath-shm', '$destinationPath-shm');
+      } else {
+        await _deleteIfExists(destinationPath);
       }
       await initialize();
       rethrow;
@@ -1040,11 +1046,13 @@ class DatabaseService {
     await source.rename(to);
   }
 
-  /// Test seam: paths on which the next [_deleteIfExists] call raises instead
-  /// of deleting, simulating a transient locked-file condition (e.g. a
-  /// cloud-sync provider materializing/evicting the file) that real
-  /// permission errors on desktop otherwise need flaky OS-level setup to
-  /// reproduce. [resetForTesting] also clears it.
+  /// Test seam: paths on which EVERY [_deleteIfExists] call raises instead of
+  /// deleting, until the set is cleared, simulating a locked-file condition
+  /// that outlasts the restore (e.g. a cloud-sync provider materializing or
+  /// evicting the file) that real permission errors on desktop otherwise
+  /// need flaky OS-level setup to reproduce. It raises before the existence
+  /// check, so a path behaves as present-but-locked whether or not the file
+  /// is there. [resetForTesting] also clears it.
   @visibleForTesting
   Set<String>? debugFailDeleteFor;
 

@@ -453,6 +453,50 @@ void main() {
     expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
   });
 
+  test('a newer-schema rollback never puts the original back beside a '
+      'journal it could not remove', () async {
+    // SQLite replays whatever -wal sits beside a database file, and WAL frames
+    // carry no identity of the database they came from. The pre-restore copy
+    // normally has no -wal of its own (a clean close checkpoints it away), so
+    // nothing would overwrite a leftover journal of the rejected file. If
+    // removing that journal fails, the rollback must stop with the original
+    // untouched at .pre-restore rather than pair it with a foreign journal.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+
+    final raw = sqlite3.sqlite3.open(backupPath);
+    raw.execute(
+      'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
+    );
+    raw.close();
+
+    // The seam raises before the existence check, which is exactly how a
+    // present-but-locked journal looks to the rollback. The swap never deletes
+    // this path (it only moves an existing -wal aside), so the first delete of
+    // it is the rollback's own.
+    DatabaseService.instance.debugFailDeleteFor = {'$defaultPath-wal'};
+
+    await expectLater(
+      DatabaseService.instance.restore(backupPath),
+      throwsA(isA<FileSystemException>()),
+    );
+
+    expect(
+      File('$defaultPath.pre-restore').existsSync(),
+      isTrue,
+      reason:
+          'the original must stay aside, not be moved next to a journal '
+          'that belongs to the rejected file',
+    );
+  });
+
   test(
     'a failed swap rolls back the WAL sidecar too, not just the main file',
     () async {
