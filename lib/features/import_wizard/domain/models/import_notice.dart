@@ -12,6 +12,12 @@ enum ImportNoticeKind {
   /// so size and role came from the default preset rather than the diver's
   /// own cylinder (issue #1365).
   unknownTransmitter,
+
+  /// With "Retain source dive numbers" on, an imported dive kept a number
+  /// that another dive in the log already uses. The number is kept as the
+  /// diver asked rather than silently changed, so the diver is told instead
+  /// (issue #1832).
+  diveNumberConflict,
 }
 
 /// One grouped notice for the import summary screen.
