@@ -44330,7 +44330,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_progression_divesBySuitThickness_empty.
   ///
   /// In en, this message translates to:
-  /// **'No dives with a suit thickness recorded'**
+  /// **'No dives with a wetsuit or drysuit linked'**
   String get statistics_progression_divesBySuitThickness_empty;
 
   /// No description provided for @statistics_progression_divesBySuitThickness_error.
@@ -44338,6 +44338,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load suit thickness data'**
   String get statistics_progression_divesBySuitThickness_error;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get statistics_progression_divesBySuitThickness_unknown;
 
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///

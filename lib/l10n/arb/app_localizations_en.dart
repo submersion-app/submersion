@@ -26479,11 +26479,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'No dives with a suit thickness recorded';
+      'No dives with a wetsuit or drysuit linked';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Could not load suit thickness data';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Unknown';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
