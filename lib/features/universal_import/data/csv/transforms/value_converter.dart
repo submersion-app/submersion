@@ -213,8 +213,9 @@ class ValueConverter {
   /// With [ids], those are the types, verbatim: a name cannot be turned back
   /// into its id, since slugging drops characters like `&` and a colliding
   /// custom type's id carries a suffix. Names pair with ids by position. A
-  /// name containing ';' splits into more parts than there are ids, so then
-  /// a lone id takes the whole cell and several ids pair with no name.
+  /// name containing ';' splits into more parts than there are ids (or an
+  /// empty part), so then a lone id takes the whole cell and several ids
+  /// pair with no name.
   ///
   /// Without [ids] (an older export, or a hand-made file), each name's slug
   /// ([DiveTypeEntity.generateSlug]) is its id. That inverts the
@@ -234,9 +235,15 @@ class ValueConverter {
     }
 
     final idParts = _listCell(ids);
+    // Every segment, empty ones included: 'Rec;' then 'Night' joins to
+    // 'Rec;; Night', whose non-empty parts would pair as 'Rec' and 'Night'.
+    final segments = names?.split(';').map((s) => s.trim()).toList();
     final List<String?> pairedNames;
-    if (nameParts.length == idParts.length) {
-      pairedNames = nameParts;
+    if (idParts.length > 1 &&
+        segments != null &&
+        segments.length == idParts.length &&
+        segments.every((s) => s.isNotEmpty)) {
+      pairedNames = segments;
     } else if (idParts.length == 1 && nameParts.isNotEmpty) {
       pairedNames = [names!.trim()];
     } else {

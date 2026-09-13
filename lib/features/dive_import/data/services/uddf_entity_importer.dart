@@ -1064,6 +1064,16 @@ class UddfEntityImporter {
     return resolved;
   }
 
+  /// Whether an incoming type named [name] under [id] is the [existing] row
+  /// on that id: the same name, ignoring case, or a name that is only the
+  /// display form of the id, which is how exports before #1834 wrote every
+  /// type and so says nothing about the type beyond its id.
+  static bool _isSameDiveType(DiveTypeEntity existing, String id, String name) {
+    final incoming = name.trim().toLowerCase();
+    return existing.name.trim().toLowerCase() == incoming ||
+        Dive.diveTypeDisplayName(id).toLowerCase() == incoming;
+  }
+
   /// Imports the selected custom types, recording in [idMapping] the id each
   /// one was stored under, keyed by the id the file's dives reference.
   Future<int> _importDiveTypes(
@@ -1092,8 +1102,13 @@ class UddfEntityImporter {
       // createDiveType does not reject a colliding id - it suffixes it and
       // inserts anyway. Without this check a source whose vocabulary overlaps
       // the built-ins ("Shore", "Boat", "Night") would add a near-duplicate
-      // custom type beside every one of them.
-      if (await repository.getDiveTypeById(typeId) != null) continue;
+      // custom type beside every one of them. A row that is another type
+      // under the same id is not reused: the incoming type is created under
+      // the suffixed id, and its dives follow the mapping (#1834).
+      final existing = await repository.getDiveTypeById(typeId);
+      if (existing != null && _isSameDiveType(existing, typeId, name)) {
+        continue;
+      }
 
       final diveType = DiveTypeEntity(
         id: typeId,

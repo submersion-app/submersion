@@ -1074,6 +1074,86 @@ void main() {
         expect(importedDiveTypeIds(), ['existing']);
       });
 
+      group('an incoming id the library already uses', () {
+        UddfImportResult typedDive(String name) => UddfImportResult(
+          customDiveTypes: [
+            {
+              'id': 'search_recovery',
+              'uddfId': 'search_recovery',
+              'name': name,
+            },
+          ],
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'diveTypeIds': ['search_recovery'],
+            },
+          ],
+        );
+
+        void existingNamed(String name) {
+          when(mockDiveTypeRepo.getDiveTypeById('search_recovery')).thenAnswer(
+            (_) async => DiveTypeEntity(
+              id: 'search_recovery',
+              name: name,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+        }
+
+        setUp(() {
+          when(mockDiveTypeRepo.createDiveType(any)).thenAnswer(
+            (invocation) async =>
+                (invocation.positionalArguments[0] as DiveTypeEntity).copyWith(
+                  id: 'search_recovery_1a2b3c4d',
+                ),
+          );
+        });
+
+        Future<void> importTyped(String name) => importer.import(
+          data: typedDive(name),
+          selections: const UddfImportSelections(diveTypes: {0}, dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        test('by a differently named type gets a type of its own', () async {
+          existingNamed('Search Recovery');
+
+          await importTyped('Search & Recovery');
+
+          final created =
+              verify(
+                    mockDiveTypeRepo.createDiveType(captureAny),
+                  ).captured.single
+                  as DiveTypeEntity;
+          expect(created.name, 'Search & Recovery');
+          expect(importedDiveTypeIds(), ['search_recovery_1a2b3c4d']);
+        });
+
+        test('by the same type reuses it', () async {
+          existingNamed('Search Recovery');
+
+          await importTyped('search recovery');
+
+          verifyNever(mockDiveTypeRepo.createDiveType(any));
+          expect(importedDiveTypeIds(), ['search_recovery']);
+        });
+
+        test('under a name rebuilt from the id reuses it', () async {
+          // Exports before #1834 wrote every type as its id's display form,
+          // which says nothing about the type beyond its id.
+          existingNamed('Search & Recovery');
+
+          await importTyped('Search recovery');
+
+          verifyNever(mockDiveTypeRepo.createDiveType(any));
+          expect(importedDiveTypeIds(), ['search_recovery']);
+        });
+      });
+
       test(
         'links the dive to the id a created type was stored under',
         () async {

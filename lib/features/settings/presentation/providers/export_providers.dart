@@ -12,7 +12,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_o
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -183,22 +182,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
   /// The diver's dive types by id, so the CSV, Excel and PDF exports name each
   /// type as the diver did rather than rebuilding a name from its id (#1834).
-  ///
-  /// A failed lookup does not fail the export: the names then fall back to
-  /// that rebuilt form, and the dives CSV still carries each type's id.
-  Future<Map<String, DiveTypeEntity>> _diveTypesById() async {
-    try {
-      final types = await _ref.read(diveTypesProvider.future);
-      return {for (final type in types) type.id: type};
-    } catch (e, stackTrace) {
-      LoggerService.forClass(ExportNotifier).warning(
-        'Exporting dive types under names rebuilt from their ids',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return const {};
-    }
-  }
+  Future<Map<String, DiveTypeEntity>> _diveTypesById() =>
+      diveTypesByIdOrEmpty(_ref.read(diveTypesByIdProvider.future));
 
   /// Localizations for the status messages this notifier publishes.
   ///

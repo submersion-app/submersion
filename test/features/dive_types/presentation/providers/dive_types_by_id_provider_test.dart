@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -13,7 +11,7 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
-  test('keys the loaded dive types by id', () async {
+  test('keys the diver\'s dive types by id once they load', () async {
     final night = type('night', 'Night');
     final custom = type('search_recovery', 'Search & Recovery');
     final container = ProviderContainer(
@@ -23,24 +21,26 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(diveTypesProvider.future);
-
-    expect(container.read(diveTypesByIdProvider), {
+    expect(await container.read(diveTypesByIdProvider.future), {
       'night': night,
       'search_recovery': custom,
     });
   });
 
-  test('is empty while the dive types load', () {
-    final container = ProviderContainer(
-      overrides: [
-        diveTypesProvider.overrideWith(
-          (ref) => Completer<List<DiveTypeEntity>>().future,
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+  group('diveTypesByIdOrEmpty', () {
+    test('passes the loaded types through', () async {
+      final night = type('night', 'Night');
 
-    expect(container.read(diveTypesByIdProvider), isEmpty);
+      expect(await diveTypesByIdOrEmpty(Future.value({'night': night})), {
+        'night': night,
+      });
+    });
+
+    test('is empty when the lookup fails', () async {
+      expect(
+        await diveTypesByIdOrEmpty(Future.error(StateError('no database'))),
+        isEmpty,
+      );
+    });
   });
 }

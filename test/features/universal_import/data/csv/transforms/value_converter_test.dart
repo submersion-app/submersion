@@ -328,6 +328,15 @@ void main() {
         );
       });
 
+      test('pairs no names when a ";" in one leaves an empty segment', () {
+        // 'Rec;' then 'Night' joins to 'Rec;; Night': two non-empty parts
+        // for two ids, but not the two names.
+        expect(
+          converter.parseDiveTypes(names: 'Rec;; Night', ids: 'rec; night'),
+          [('rec', null), ('night', null)],
+        );
+      });
+
       test('leaves names unknown without a names cell', () {
         expect(converter.parseDiveTypes(ids: 'night'), [('night', null)]);
       });

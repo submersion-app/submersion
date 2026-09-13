@@ -181,7 +181,7 @@ void main() {
     WidgetTester tester, {
     Diver? diver,
     DiverPhotoLoader? photoLoader,
-    List<DiveTypeEntity>? diveTypes,
+    Future<List<DiveTypeEntity>>? diveTypes,
   }) async {
     final base = await getBaseOverrides();
 
@@ -230,8 +230,11 @@ void main() {
           // completes inside testWidgets' FakeAsync zone.
           if (photoLoader != null)
             diverPhotoLoaderProvider.overrideWithValue(photoLoader),
-          if (diveTypes != null)
-            diveTypesProvider.overrideWith((ref) async => diveTypes),
+          // The exports wait for the diver's dive types, which would
+          // otherwise reach the database these tests do not have.
+          diveTypesProvider.overrideWith(
+            (ref) => diveTypes ?? Future.value(const <DiveTypeEntity>[]),
+          ),
         ],
         child: MaterialApp(
           // Pinned: the finders below are English, and the host machine's
@@ -359,15 +362,31 @@ void main() {
     );
 
     testWidgets('CSV export passes the diver\'s dive types', (tester) async {
-      await pumpAndOpenExportSheet(tester, diveTypes: [custom]);
+      await pumpAndOpenExportSheet(tester, diveTypes: Future.value([custom]));
       await chooseFormatAndDestination(tester, 'CSV', 'Save to File');
 
       expect(exportService.diveTypesById, {custom.id: custom});
     });
 
     testWidgets('PDF export passes the diver\'s dive types', (tester) async {
-      await pumpAndOpenExportSheet(tester, diveTypes: [custom]);
+      await pumpAndOpenExportSheet(tester, diveTypes: Future.value([custom]));
       await choosePdfAndDestination(tester, 'Save to Files');
+
+      expect(exportService.diveTypesById, {custom.id: custom});
+    });
+
+    testWidgets('CSV export waits for dive types still loading', (
+      tester,
+    ) async {
+      final load = Completer<List<DiveTypeEntity>>();
+      await pumpAndOpenExportSheet(tester, diveTypes: load.future);
+      await tester.tap(find.text('CSV'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save to File'));
+      await tester.pump();
+
+      load.complete([custom]);
+      await tester.pumpAndSettle();
 
       expect(exportService.diveTypesById, {custom.id: custom});
     });
