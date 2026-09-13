@@ -1011,6 +1011,69 @@ class DiveComputerRepository {
     }
   }
 
+  /// Existing dive ids on [computerId] whose OWN recorded profile window
+  /// (that computer's `dive_profile_series` first/last sample, not the
+  /// dive's declared runtime) contains [time].
+  ///
+  /// Answers "did this computer already record something at this instant",
+  /// for the case [findMatchingDiveWithScore]'s whole-dive time/depth/
+  /// duration comparison cannot: a dive computer that splits one physical
+  /// dive into two native log entries on a brief surface pause. If the
+  /// first entry was later merged (in this app or another) into a longer
+  /// dive, that merged dive's declared start no longer sits within
+  /// [findMatchingDiveWithScore]'s tolerance window of the second entry's
+  /// own start -- but the merged dive's profile still spans it, which this
+  /// checks directly. Ordered most-recent-first; capped at 5 since this
+  /// backs a per-candidate profile-curve comparison the caller does next.
+  Future<List<String>> findComputerDivesContainingTime({
+    required String computerId,
+    required DateTime time,
+    String? diverId,
+  }) async {
+    try {
+      final timeMs = time.millisecondsSinceEpoch;
+      final normalizedDiverId = diverId?.trim().isEmpty == true
+          ? null
+          : diverId;
+      final diverClause = normalizedDiverId != null ? 'AND d.diver_id = ?' : '';
+      final diverVars = normalizedDiverId != null
+          ? [Variable(normalizedDiverId)]
+          : <Variable>[];
+
+      final result = await _db
+          .customSelect(
+            '''
+        SELECT DISTINCT d.id,
+          COALESCE(d.entry_time, d.dive_date_time) as effective_start
+        FROM dives d
+        JOIN dive_profile_series dps ON dps.dive_id = d.id
+        WHERE dps.computer_id = ?
+          AND (COALESCE(d.entry_time, d.dive_date_time) + dps.start_timestamp * 1000) <= ?
+          AND (COALESCE(d.entry_time, d.dive_date_time) + dps.end_timestamp * 1000) >= ?
+          $diverClause
+        ORDER BY effective_start DESC
+        LIMIT 5
+      ''',
+            variables: [
+              Variable(computerId),
+              Variable(timeMs),
+              Variable(timeMs),
+              ...diverVars,
+            ],
+          )
+          .get();
+
+      return result.map((row) => row.data['id'] as String).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to find computer dives containing time: $computerId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
   /// Get dive IDs that were imported from a specific computer.
   Future<List<String>> getDiveIdsForComputer(
     String computerId, {
