@@ -298,6 +298,10 @@ class MacDiveRawCertification {
   final String? diverNumber;
   final String? cardFrontPath;
   final String? cardBackPath;
+
+  /// `ZRELATIONSHIPDIVER` - the MacDive diver the card belongs to (#1893).
+  final int? diverFk;
+
   const MacDiveRawCertification({
     required this.pk,
     required this.uuid,
@@ -311,6 +315,7 @@ class MacDiveRawCertification {
     this.diverNumber,
     this.cardFrontPath,
     this.cardBackPath,
+    this.diverFk,
   });
 }
 
@@ -391,12 +396,30 @@ class MacDiveRawDiver {
   final String? lastName;
   final String? email;
 
+  /// `ZPHONE` and `ZMOBILE`.
+  final String? phone;
+  final String? mobile;
+
+  /// `ZEMERGENCYCONTACT`, free text.
+  final String? emergencyContact;
+
+  /// `ZBLOODTYPE`.
+  final String? bloodType;
+
+  /// `ZINSURANCEDAN`, the diver's DAN membership number.
+  final String? danNumber;
+
   const MacDiveRawDiver({
     required this.pk,
     required this.uuid,
     this.firstName,
     this.lastName,
     this.email,
+    this.phone,
+    this.mobile,
+    this.emergencyContact,
+    this.bloodType,
+    this.danNumber,
   });
 
   /// Display name, or null when the row carries neither name part.
