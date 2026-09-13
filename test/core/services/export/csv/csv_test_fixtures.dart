@@ -167,3 +167,27 @@ List<EquipmentItem> goldenEquipment() => [
 Map<String, List<String>> goldenComponentNames() => {
   'e-reg': ['Mk25', 'Long hose'],
 };
+
+/// [goldenEquipment] with the installed date stored the way the date picker
+/// stores it (local midnight). The golden keeps a literal UTC epoch so its
+/// bytes are the same everywhere, but My units writes a date attribute as a
+/// calendar date, and that epoch is the previous day west of Greenwich.
+List<EquipmentItem> roundTripEquipment() => [
+  for (final item in goldenEquipment())
+    item.id == 'e-cell'
+        ? item.copyWith(
+            attributes: [
+              for (final a in item.attributes)
+                a.key == 'installed_date'
+                    ? a.copyWith(
+                        valueNum: DateTime(
+                          2025,
+                          3,
+                          15,
+                        ).millisecondsSinceEpoch.toDouble(),
+                      )
+                    : a,
+            ],
+          )
+        : item,
+];
