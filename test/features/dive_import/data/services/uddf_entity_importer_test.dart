@@ -1007,6 +1007,107 @@ void main() {
       // Error caught, count stays at 0
       expect(result.diveTypes, 0);
     });
+
+    group('dive links (#1834)', () {
+      setUp(() {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+      });
+
+      List<String> importedDiveTypeIds() =>
+          (verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive)
+              .diveTypeIds;
+
+      test('preResolvedDiveTypeIds links the dive to the existing type the '
+          'reviewer matched by name', () async {
+        final data = UddfImportResult(
+          customDiveTypes: const [
+            {
+              'id': 'search_recovery',
+              'uddfId': 'search_recovery',
+              'name': 'Search & Recovery',
+            },
+          ],
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'diveTypeIds': ['search_recovery', 'night'],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+          preResolvedDiveTypeIds: const {
+            'search_recovery': 'search_recovery_1a2b3c4d',
+          },
+        );
+
+        verifyNever(mockDiveTypeRepo.createDiveType(any));
+        expect(importedDiveTypeIds(), ['search_recovery_1a2b3c4d', 'night']);
+      });
+
+      test('two source ids resolved to one type link it once', () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'diveTypeIds': ['a', 'b'],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+          preResolvedDiveTypeIds: const {'a': 'existing', 'b': 'existing'},
+        );
+
+        expect(importedDiveTypeIds(), ['existing']);
+      });
+
+      test(
+        'links the dive to the id a created type was stored under',
+        () async {
+          // createDiveType suffixes an id that is already taken.
+          when(mockDiveTypeRepo.createDiveType(any)).thenAnswer(
+            (invocation) async =>
+                (invocation.positionalArguments[0] as DiveTypeEntity).copyWith(
+                  id: 'cave_1a2b3c4d',
+                ),
+          );
+          final data = UddfImportResult(
+            customDiveTypes: const [
+              {'id': 'cave', 'uddfId': 'cave', 'name': 'Cave'},
+            ],
+            dives: [
+              {
+                'dateTime': now,
+                'maxDepth': 25.0,
+                'diveTypeIds': ['cave'],
+              },
+            ],
+          );
+
+          await importer.import(
+            data: data,
+            selections: const UddfImportSelections(diveTypes: {0}, dives: {0}),
+            repositories: repos,
+            diverId: diverId,
+          );
+
+          expect(importedDiveTypeIds(), ['cave_1a2b3c4d']);
+        },
+      );
+    });
   });
 
   group('Import sites', () {

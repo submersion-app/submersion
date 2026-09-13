@@ -141,6 +141,7 @@ class CsvTransformer {
         }
       }
 
+      _resolveDiveTypes(mapped);
       mappedRows.add(mapped);
     }
 
@@ -264,6 +265,23 @@ class CsvTransformer {
     ];
   }
 
+  /// Replaces the raw 'diveTypeNames' and 'diveTypeIds' cells of [mapped]
+  /// with the dive's type ids (a list) and the name of each id the cells
+  /// name (an id-to-name map), or removes both when neither gives a type.
+  void _resolveDiveTypes(Map<String, dynamic> mapped) {
+    final names = mapped.remove('diveTypeNames');
+    final ids = mapped.remove('diveTypeIds');
+    if (names is! String && ids is! String) return;
+
+    final types = _valueConverter.parseDiveTypes(
+      names: names is String ? names : null,
+      ids: ids is String ? ids : null,
+    );
+    if (types.isEmpty) return;
+    mapped['diveTypeIds'] = [for (final (id, _) in types) id];
+    mapped['diveTypeNames'] = {for (final (id, name) in types) id: ?name};
+  }
+
   /// Apply a [ValueTransform] to [rawValue] and return the typed result.
   dynamic _applyTransform(
     ValueTransform transform,
@@ -310,10 +328,10 @@ class CsvTransformer {
       return _inferDuration(rawValue);
     }
 
-    // A list of dive types ("Night; Wreck"), one id per type.
-    if (lower == 'divetypeids') {
-      final ids = _valueConverter.parseDiveTypeIds(rawValue);
-      return ids.isEmpty ? null : ids;
+    // A dive's types come in two cells, their names ("Night; Wreck") and
+    // their ids, which pair up once the whole row is read (_resolveDiveTypes).
+    if (lower == 'divetypenames' || lower == 'divetypeids') {
+      return _valueConverter.unescapeCsvInjectionGuard(rawValue);
     }
 
     // Weather enums: stored by name, exported by display name.

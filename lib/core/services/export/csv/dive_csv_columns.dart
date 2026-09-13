@@ -56,6 +56,12 @@ abstract final class DiveCsvColumns {
   /// back as nitrox.
   static const hePercent = 'He %';
 
+  /// Ids of the types named in [diveType], in the same order and joined by
+  /// the same [diveTypeSeparator] (#1834). A name cannot be turned back into
+  /// its id: slugging drops characters like `&`, and a colliding custom type
+  /// carries a suffix. Ids are slugs, so they never contain the separator.
+  static const diveTypeIds = 'Dive Type IDs';
+
   /// Separator between a dive's types in the [diveType] cell.
   static const diveTypeSeparator = '; ';
 
@@ -101,5 +107,6 @@ abstract final class DiveCsvColumns {
     siteCountry,
     siteIsland,
     hePercent,
+    diveTypeIds,
   ];
 }

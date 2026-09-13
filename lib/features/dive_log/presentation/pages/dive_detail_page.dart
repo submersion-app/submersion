@@ -3215,6 +3215,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         certifications: certifications,
         diver: diver,
         diverPhoto: diverPhoto,
+        // The page keeps the types loaded for its own type labels.
+        diveTypesById: ref.read(diveTypesByIdProvider),
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues
@@ -5553,10 +5555,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ref,
                   title: context.l10n.diveLog_export_csv,
                   shareFn: (_) =>
-                      ref.read(exportServiceProvider).exportDivesToCsv([dive]),
+                      ref.read(exportServiceProvider).exportDivesToCsv([
+                        dive,
+                      ], diveTypesById: ref.read(diveTypesByIdProvider)),
                   saveFn: (_) => ref
                       .read(exportServiceProvider)
-                      .saveDivesCsvToFile([dive], dialogTitle: saveTitle),
+                      .saveDivesCsvToFile(
+                        [dive],
+                        dialogTitle: saveTitle,
+                        diveTypesById: ref.read(diveTypesByIdProvider),
+                      ),
                 );
               },
             ),

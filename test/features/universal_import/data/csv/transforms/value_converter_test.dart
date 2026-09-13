@@ -283,17 +283,62 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  group('parseDiveTypeIds', () {
-    test('turns each listed type into its slug, in order', () {
-      expect(converter.parseDiveTypeIds('Night; Deep wreck'), [
-        'night',
-        'deep_wreck',
-      ]);
+  group('parseDiveTypes', () {
+    group('from names alone', () {
+      test('keys each name by its slug, in order', () {
+        expect(converter.parseDiveTypes(names: 'Night; Search & Recovery'), [
+          ('night', 'Night'),
+          ('search_recovery', 'Search & Recovery'),
+        ]);
+      });
+
+      test('drops blanks and repeated slugs, keeping the first name', () {
+        expect(converter.parseDiveTypes(names: 'Night;; night ; '), [
+          ('night', 'Night'),
+        ]);
+        expect(converter.parseDiveTypes(names: ' ; '), isEmpty);
+      });
     });
 
-    test('drops blanks and repeats', () {
-      expect(converter.parseDiveTypeIds('Night;; night ; '), ['night']);
-      expect(converter.parseDiveTypeIds(' ; '), isEmpty);
+    group('with ids (#1834)', () {
+      test('takes the ids verbatim and pairs names by position', () {
+        // A slug of either name would give neither id.
+        expect(
+          converter.parseDiveTypes(
+            names: 'Search & Recovery; Deep wreck',
+            ids: 'search_recovery_1a2b3c4d; deep_wreck',
+          ),
+          [
+            ('search_recovery_1a2b3c4d', 'Search & Recovery'),
+            ('deep_wreck', 'Deep wreck'),
+          ],
+        );
+      });
+
+      test('gives a lone id the whole names cell', () {
+        expect(converter.parseDiveTypes(names: 'Rec; Tech', ids: 'rec_tech'), [
+          ('rec_tech', 'Rec; Tech'),
+        ]);
+      });
+
+      test('pairs no names when a ";" in one leaves the counts unequal', () {
+        expect(
+          converter.parseDiveTypes(names: 'Rec; Tech; Night', ids: 'rt; night'),
+          [('rt', null), ('night', null)],
+        );
+      });
+
+      test('leaves names unknown without a names cell', () {
+        expect(converter.parseDiveTypes(ids: 'night'), [('night', null)]);
+      });
+
+      test('drops blank and repeated ids', () {
+        expect(
+          converter.parseDiveTypes(names: 'Night; Night', ids: 'night; night'),
+          [('night', 'Night')],
+        );
+        expect(converter.parseDiveTypes(ids: ' ; '), isEmpty);
+      });
     });
   });
 

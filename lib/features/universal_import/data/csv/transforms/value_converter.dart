@@ -205,20 +205,54 @@ class ValueConverter {
   }
 
   // ---------------------------------------------------------------------------
-  /// Parse a cell listing several dive types ("Night; Deep wreck") into
-  /// dive type ids, in order and without repeats.
+  /// Parse a dive's types from Submersion's CSV: the [names] cell ("Night;
+  /// Search & Recovery") and, in exports since #1834, the [ids] cell listing
+  /// their ids in the same order. Returns each type's id with its name, or a
+  /// null name when the cells do not give one, in order and without repeats.
   ///
-  /// Each name becomes its slug ([DiveTypeEntity.generateSlug]), which inverts
-  /// the `Dive.diveTypeDisplayName` form Submersion's CSV export writes, so a
-  /// custom type keeps its id. Returns an empty list when no name survives.
-  List<String> parseDiveTypeIds(String raw) {
-    final ids = <String>[];
-    for (final part in raw.split(';')) {
-      final slug = DiveTypeEntity.generateSlug(part);
-      if (slug.isNotEmpty && !ids.contains(slug)) ids.add(slug);
+  /// With [ids], those are the types, verbatim: a name cannot be turned back
+  /// into its id, since slugging drops characters like `&` and a colliding
+  /// custom type's id carries a suffix. Names pair with ids by position. A
+  /// name containing ';' splits into more parts than there are ids, so then
+  /// a lone id takes the whole cell and several ids pair with no name.
+  ///
+  /// Without [ids] (an older export, or a hand-made file), each name's slug
+  /// ([DiveTypeEntity.generateSlug]) is its id. That inverts the
+  /// `Dive.diveTypeDisplayName` form older exports wrote.
+  List<(String, String?)> parseDiveTypes({String? names, String? ids}) {
+    final nameParts = names == null ? const <String>[] : _listCell(names);
+    final types = <(String, String?)>[];
+    void add(String id, String? name) {
+      if (id.isNotEmpty && !types.any((t) => t.$1 == id)) types.add((id, name));
     }
-    return ids;
+
+    if (ids == null) {
+      for (final name in nameParts) {
+        add(DiveTypeEntity.generateSlug(name), name);
+      }
+      return types;
+    }
+
+    final idParts = _listCell(ids);
+    final List<String?> pairedNames;
+    if (nameParts.length == idParts.length) {
+      pairedNames = nameParts;
+    } else if (idParts.length == 1 && nameParts.isNotEmpty) {
+      pairedNames = [names!.trim()];
+    } else {
+      pairedNames = List<String?>.filled(idParts.length, null);
+    }
+    for (var i = 0; i < idParts.length; i++) {
+      add(idParts[i], pairedNames[i]);
+    }
+    return types;
   }
+
+  /// The trimmed, non-blank entries of a ';'-separated list cell.
+  static List<String> _listCell(String raw) => [
+    for (final part in raw.split(';'))
+      if (part.trim().isNotEmpty) part.trim(),
+  ];
 
   // ---------------------------------------------------------------------------
   /// Match [raw] against [values] by enum name or by [displayName], ignoring

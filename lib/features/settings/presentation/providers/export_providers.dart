@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_o
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -39,6 +40,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -179,6 +181,25 @@ class ExportNotifier extends StateNotifier<ExportState> {
     ).namesByParent({for (final e in equipment) e.id: e});
   }
 
+  /// The diver's dive types by id, so the CSV, Excel and PDF exports name each
+  /// type as the diver did rather than rebuilding a name from its id (#1834).
+  ///
+  /// A failed lookup does not fail the export: the names then fall back to
+  /// that rebuilt form, and the dives CSV still carries each type's id.
+  Future<Map<String, DiveTypeEntity>> _diveTypesById() async {
+    try {
+      final types = await _ref.read(diveTypesProvider.future);
+      return {for (final type in types) type.id: type};
+    } catch (e, stackTrace) {
+      LoggerService.forClass(ExportNotifier).warning(
+        'Exporting dive types under names rebuilt from their ids',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const {};
+    }
+  }
+
   /// Localizations for the status messages this notifier publishes.
   ///
   /// A provider has no BuildContext, so the persisted locale setting is
@@ -200,7 +221,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         return;
       }
-      final path = await _exportService.exportDivesToCsv(dives);
+      final path = await _exportService.exportDivesToCsv(
+        dives,
+        diveTypesById: await _diveTypesById(),
+      );
       state = state.copyWith(
         status: ExportStatus.success,
         message: _l10n.settings_export_success_dives,
@@ -555,6 +579,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       profiles: profiles,
       diverPhoto: diverPhoto,
       includeVerificationAreas: exportOptions.includeVerificationAreas,
+      diveTypesById: await _diveTypesById(),
     );
   }
 
@@ -767,6 +792,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
         observationRows: await _observationRows(equipment, dives),
+        diveTypesById: await _diveTypesById(),
       );
 
       state = state.copyWith(
@@ -876,6 +902,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
         observationRows: await _observationRows(equipment, dives),
+        diveTypesById: await _diveTypesById(),
       );
 
       if (path == null) {
@@ -1082,6 +1109,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveDivesCsvToFile(
         dives,
         dialogTitle: _l10n.settings_export_saveDivesCsvDialogTitle,
+        diveTypesById: await _diveTypesById(),
       );
 
       if (path == null) {

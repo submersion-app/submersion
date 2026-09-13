@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/preset_registry.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -197,6 +198,7 @@ void main() {
       DiveCsvColumns.siteCountry,
       DiveCsvColumns.siteIsland,
       DiveCsvColumns.hePercent,
+      DiveCsvColumns.diveTypeIds,
     };
     final rows = const CsvToListConverter(
       shouldParseNumbers: false,
@@ -219,5 +221,98 @@ void main() {
     expect(d['duration'], const Duration(minutes: 45));
     expect(d['runtime'], const Duration(minutes: 50));
     expect(d['name'], 'Probe dive');
+  });
+
+  group('custom dive types (#1834)', () {
+    DiveTypeEntity type(String id, String name) => DiveTypeEntity(
+      id: id,
+      name: name,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    /// Exports [dive] typed as [names] (id to name), then parses it back.
+    Future<ImportPayload> roundTrip(Map<String, String> names) => parse(
+      CsvExportService().generateDivesCsvContent(
+        [dive.copyWith(diveTypeIds: names.keys.toList())],
+        diveTypesById: {
+          for (final e in names.entries) e.key: type(e.key, e.value),
+        },
+      ),
+    );
+
+    List<(Object?, Object?)> typesOf(ImportPayload payload) => payload
+        .entitiesOf(ImportEntityType.diveTypes)
+        .map((t) => (t['id'], t['name']))
+        .toList();
+
+    test('a custom type comes back under its own id and name', () async {
+      // The id carries a collision suffix, so no slug of the name gives it.
+      final payload = await roundTrip({
+        'search_recovery_1a2b3c4d': 'Search & Recovery',
+        'night': 'Night',
+      });
+
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['diveTypeIds'], ['search_recovery_1a2b3c4d', 'night']);
+      expect(typesOf(payload), [
+        ('search_recovery_1a2b3c4d', 'Search & Recovery'),
+        ('night', 'Night'),
+      ]);
+    });
+
+    test('a name containing ";" stays one type with that name', () async {
+      final payload = await roundTrip({'rec_tech': 'Rec; Tech'});
+
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['diveTypeIds'], ['rec_tech']);
+      expect(typesOf(payload), [('rec_tech', 'Rec; Tech')]);
+    });
+
+    test('a ";" in one of several names cannot add a type', () async {
+      final payload = await roundTrip({
+        'rec_tech': 'Rec; Tech',
+        'night': 'Night',
+      });
+
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['diveTypeIds'], ['rec_tech', 'night']);
+      // Three names for two ids cannot be paired, so each name is rebuilt
+      // from its id, as it was before the export wrote real names.
+      expect(typesOf(payload), [('rec_tech', 'Rec tech'), ('night', 'Night')]);
+    });
+
+    test('a guarded name comes back without the guard', () async {
+      final payload = await roundTrip({'sum': '=SUM(A1)'});
+
+      expect(typesOf(payload), [('sum', '=SUM(A1)')]);
+    });
+
+    test('a file without Dive Type IDs slugs each name and keeps it', () async {
+      final exported = CsvExportService().generateDivesCsvContent(
+        [
+          dive.copyWith(diveTypeIds: const ['search_recovery', 'night']),
+        ],
+        diveTypesById: {
+          'search_recovery': type('search_recovery', 'Search & Recovery'),
+        },
+      );
+      final rows = const CsvToListConverter(
+        shouldParseNumbers: false,
+      ).convert(exported);
+      final idsCol = headersOf(exported).indexOf(DiveCsvColumns.diveTypeIds);
+      final withoutIds = const ListToCsvConverter().convert([
+        for (final row in rows) [...row]..removeAt(idsCol),
+      ]);
+
+      final payload = await parse(withoutIds);
+
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['diveTypeIds'], ['search_recovery', 'night']);
+      expect(typesOf(payload), [
+        ('search_recovery', 'Search & Recovery'),
+        ('night', 'Night'),
+      ]);
+    });
   });
 }

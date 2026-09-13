@@ -852,6 +852,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       }
 
       final sharing = destination == ExportDestination.share;
+      // The list keeps the types loaded for its type badges.
+      final diveTypesById = ref.read(diveTypesByIdProvider);
       final path = switch (format) {
         _BulkExportFormat.pdf =>
           sharing
@@ -863,6 +865,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   certifications: certifications,
                   diver: diver,
                   diverPhoto: diverPhoto,
+                  diveTypesById: diveTypesById,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
@@ -872,13 +875,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   certifications: certifications,
                   diver: diver,
                   diverPhoto: diverPhoto,
+                  diveTypesById: diveTypesById,
                 ),
         _BulkExportFormat.csv =>
           sharing
-              ? await exportService.exportDivesToCsv(selectedDives)
+              ? await exportService.exportDivesToCsv(
+                  selectedDives,
+                  diveTypesById: diveTypesById,
+                )
               : await exportService.saveDivesCsvToFile(
                   selectedDives,
                   dialogTitle: csvSaveTitle,
+                  diveTypesById: diveTypesById,
                 ),
         _BulkExportFormat.uddf =>
           sharing

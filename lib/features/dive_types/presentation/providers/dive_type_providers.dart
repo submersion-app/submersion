@@ -27,6 +27,15 @@ final diveTypesProvider = FutureProvider<List<DiveTypeEntity>>((ref) async {
   return repository.getAllDiveTypes(diverId: validatedDiverId);
 });
 
+/// The loaded [diveTypesProvider] keyed by id, for surfaces that only hold a
+/// dive's type ids, such as the exports, which name each type as the diver
+/// did (#1834). Empty while the types load: an export then rebuilds each
+/// name from its id.
+final diveTypesByIdProvider = Provider<Map<String, DiveTypeEntity>>((ref) {
+  final types = ref.watch(diveTypesProvider).value ?? const [];
+  return {for (final type in types) type.id: type};
+});
+
 /// Built-in dive types only
 final builtInDiveTypesProvider = FutureProvider<List<DiveTypeEntity>>((
   ref,
