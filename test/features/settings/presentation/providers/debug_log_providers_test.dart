@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
@@ -14,6 +17,28 @@ import 'package:submersion/l10n/l10n_extension.dart';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// getTemporaryDirectory() is a platform channel with no implementation under
+/// flutter_test; shareLogFile writes its export copy there.
+class _FakePathProvider extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  _FakePathProvider(this.temporaryPath);
+  final String temporaryPath;
+
+  @override
+  Future<String?> getTemporaryPath() async => temporaryPath;
+}
+
+/// Records what reached the share sheet.
+class _FakeSharePlatform extends SharePlatform {
+  final List<ShareParams> calls = [];
+
+  @override
+  Future<ShareResult> share(ShareParams params) async {
+    calls.add(params);
+    return const ShareResult('ok', ShareResultStatus.success);
+  }
+}
 
 /// English localizations for the share/save helpers, which now take their
 /// subject and dialog title from the app's translations.
@@ -807,22 +832,26 @@ void main() {
       // Should complete without error
     });
 
-    test('attempts to share when log file exists', () async {
+    test('shares a header-prefixed, redacted copy of the log', () async {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
+      final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
+      PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
+      final sharePlatform = _FakeSharePlatform();
+      SharePlatform.instance = sharePlatform;
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
+      await service.writeLine(
+        _entry(message: 'share test ?access_token=legacy-secret').toLogLine(),
+      );
 
-      // Write an entry so the file exists
-      await service.writeLine(_entry(message: 'share test').toLogLine());
+      await shareLogFile(service, _l10n, environment: _environment);
 
-      // SharePlus may throw MissingPluginException in test env.
-      // The key is that we reach the share call (covering those lines).
-      try {
-        await shareLogFile(service, _l10n, environment: _environment);
-      } catch (_) {
-        // Expected in test environment
-      }
+      final shared = sharePlatform.calls.single.files!.single;
+      final text = File(shared.path).readAsStringSync();
+      expect(text, startsWith(_environment.toExportHeader()));
+      expect(text, contains('share test'));
+      expect(text, isNot(contains('legacy-secret')));
     });
   });
 

@@ -56,6 +56,12 @@ void main() {
       expect(out, contains('user=x'));
     });
 
+    test('redacts an opaque Bearer token that has no known shape', () {
+      final out = redactSecrets('retrying with Bearer 0a1b2c3d4e5f6a7b8c9d');
+      expect(out, isNot(contains('0a1b2c3d4e5f6a7b8c9d')));
+      expect(out, contains('retrying with Bearer '));
+    });
+
     test('redacts a Bearer token and a whole Authorization header', () {
       final bearer = redactSecrets('headers: Bearer eyJhbGciOi.payload.sig');
       expect(bearer, isNot(contains('eyJhbGciOi.payload.sig')));

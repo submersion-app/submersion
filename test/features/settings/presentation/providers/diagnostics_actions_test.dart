@@ -127,6 +127,14 @@ void main() {
     });
   });
 
+  test('canOpenLogFolder is offered on desktop hosts only', () {
+    expect(
+      canOpenLogFolder,
+      Platform.isMacOS || Platform.isWindows || Platform.isLinux,
+    );
+    expect(canOpenLogFolder, isNot(Platform.isAndroid || Platform.isIOS));
+  });
+
   group('openLogFolder', () {
     test('hands the log directory to the launcher', () async {
       final launched = <Uri>[];
