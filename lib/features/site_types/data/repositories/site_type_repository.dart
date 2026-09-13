@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -19,6 +20,16 @@ class SiteTypeRepository {
 
   Stream<void> watchSiteTypesChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.siteTypes));
+
+  /// Emits when anything [getSiteTypeStatistics] counts changes: the
+  /// vocabulary, a site's type links, or the sites themselves (visibility).
+  Stream<void> watchSiteTypeUsageChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([
+      _db.siteTypes,
+      _db.siteSiteTypes,
+      _db.diveSites,
+    ]),
+  );
 
   /// Built-ins, then [diverId]'s custom types, each in sort order. Without a
   /// diver only the built-ins are returned.
@@ -73,8 +84,13 @@ class SiteTypeRepository {
     return mapSiteTypeRow(_db.siteTypes.map(rows.single.data));
   }
 
-  /// Creates a custom type for `type.diverId`. A slug already taken (by a
-  /// built-in or another custom type) gets a random suffix, as dive types do.
+  /// Creates a custom type for `type.diverId`.
+  ///
+  /// The id is the name's slug plus a random suffix, always. The id is the
+  /// row's sync identity, so a bare slug would let two devices that each
+  /// create "Mine" (or "Mine!", the same slug) mint the same id; the sync
+  /// upsert would then overwrite one with the other, down to its diver.
+  /// Nothing looks a custom type up by slug: importers match by name.
   Future<SiteTypeEntity> createSiteType(SiteTypeEntity type) async {
     try {
       if (type.diverId == null) {
@@ -84,9 +100,7 @@ class SiteTypeRepository {
       final slug = type.id.isEmpty
           ? SiteTypeEntity.generateSlug(name)
           : type.id;
-      final uniqueId = await getSiteTypeById(slug) != null
-          ? '${slug}_${_uuid.v4().substring(0, 8)}'
-          : slug;
+      final uniqueId = '${slug}_${_uuid.v4().substring(0, 8)}';
       final now = DateTime.now().millisecondsSinceEpoch;
       final sortOrder = type.sortOrder > 0
           ? type.sortOrder
@@ -156,44 +170,42 @@ class SiteTypeRepository {
     if (existing != null && existing.isBuiltIn) {
       throw Exception('Cannot delete built-in site types');
     }
-    await _db.transaction(() async {
-      final links = await (_db.select(
-        _db.siteSiteTypes,
-      )..where((t) => t.siteTypeId.equals(id))).get();
-      for (final link in links) {
-        await (_db.delete(
-          _db.siteSiteTypes,
-        )..where((t) => t.id.equals(link.id))).go();
-        await _syncRepository.logDeletion(
-          entityType: 'siteSiteTypes',
-          recordId: link.id,
-        );
-      }
-      await (_db.delete(_db.siteTypes)..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(entityType: 'siteTypes', recordId: id);
-    });
+    await _db.transaction(
+      () => deleteSiteTypesWithLinks(_db, _syncRepository, [id]),
+    );
     SyncEventBus.notifyLocalChange();
   }
 
-  /// Every type [diverId] can see, with the number of sites using it.
+  /// Every type [diverId] can see, with the number of sites using it. Only
+  /// sites the diver can see count (their own and shared ones, as in the
+  /// site list), so another profile's sites never inflate the number.
   Future<List<SiteTypeStatistic>> getSiteTypeStatistics({
     String? diverId,
   }) async {
+    final visible = VisibilityFilter.sqlFragment(
+      tableAlias: 'ds',
+      diverId: diverId,
+      conjunction: 'AND',
+    );
     final where = diverId != null
         ? 'WHERE st.is_built_in = 1 OR (st.is_built_in = 0 AND st.diver_id = ?)'
         : 'WHERE st.is_built_in = 1';
     final rows = await _db
         .customSelect(
           '''
-      SELECT st.*, COUNT(sst.id) AS site_count
+      SELECT st.*,
+        (SELECT COUNT(*) FROM site_site_types sst
+          JOIN dive_sites ds ON ds.id = sst.site_id
+          WHERE sst.site_type_id = st.id${visible.whereClause}) AS site_count
       FROM site_types st
-      LEFT JOIN site_site_types sst ON sst.site_type_id = st.id
       $where
-      GROUP BY st.id
       ORDER BY st.is_built_in DESC, st.sort_order, st.name
     ''',
-          variables: [if (diverId != null) Variable.withString(diverId)],
-          readsFrom: {_db.siteTypes, _db.siteSiteTypes},
+          variables: [
+            ...visible.variables,
+            if (diverId != null) Variable.withString(diverId),
+          ],
+          readsFrom: {_db.siteTypes, _db.siteSiteTypes, _db.diveSites},
         )
         .get();
     return [
@@ -210,6 +222,37 @@ class SiteTypeRepository {
         .customSelect('SELECT MAX(sort_order) AS max_order FROM site_types')
         .getSingleOrNull();
     return (result?.data['max_order'] as int?) ?? 0;
+  }
+}
+
+/// Deletes the site types [typeIds] and every site link to them, logging a
+/// deletion for each row so peers drop them too. Run it inside the caller's
+/// transaction.
+///
+/// `site_site_types.site_type_id` has no foreign key (built-ins are seeded,
+/// not synced), so nothing cascades: a type deleted without this leaves its
+/// links behind. Shared by [SiteTypeRepository.deleteSiteType] and the diver
+/// deletion, which removes the diver's custom types.
+Future<void> deleteSiteTypesWithLinks(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  Iterable<String> typeIds,
+) async {
+  for (final typeId in typeIds) {
+    final links = await (db.select(
+      db.siteSiteTypes,
+    )..where((t) => t.siteTypeId.equals(typeId))).get();
+    for (final link in links) {
+      await (db.delete(
+        db.siteSiteTypes,
+      )..where((t) => t.id.equals(link.id))).go();
+      await syncRepository.logDeletion(
+        entityType: 'siteSiteTypes',
+        recordId: link.id,
+      );
+    }
+    await (db.delete(db.siteTypes)..where((t) => t.id.equals(typeId))).go();
+    await syncRepository.logDeletion(entityType: 'siteTypes', recordId: typeId);
   }
 }
 

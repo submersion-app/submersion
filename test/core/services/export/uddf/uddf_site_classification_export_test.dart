@@ -4,6 +4,7 @@ import 'package:submersion/core/services/export/models/uddf_export_options.dart'
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
@@ -111,6 +112,15 @@ void main() {
     expect(siteEl.findElements('tags'), isEmpty);
   });
 
+  test('mergeById keeps the base and adds only ids it lacks', () {
+    final merged = mergeById(
+      [(id: 'a', v: 1)],
+      [(id: 'a', v: 2), (id: 'b', v: 3), (id: 'b', v: 4)],
+      (item) => item.id,
+    );
+    expect(merged, [(id: 'a', v: 1), (id: 'b', v: 3)]);
+  });
+
   group('the dives-only loader', () {
     setUp(() async {
       await setUpTestDatabase();
@@ -144,6 +154,25 @@ void main() {
     });
 
     tearDown(tearDownTestDatabase);
+
+    test(
+      'the full export loader resolves definitions by id, whoever owns them',
+      () async {
+        // 'mine' is diver-1's type. A full export run as another profile that
+        // can see s1 (a shared site) still needs its definition in the file.
+        final source = await loadSiteClassificationForExport(
+          SiteClassificationRepository(),
+          SiteTypeRepository(),
+          ['s1'],
+        );
+
+        expect(source.typeIdsBySite, {
+          's1': ['wreck', 'mine'],
+        });
+        expect(source.customSiteTypes.map((t) => t.id), ['mine']);
+        expect(source.siteTags.map((t) => t.id), ['t1']);
+      },
+    );
 
     test(
       "loads only the exported dives' sites and their definitions",

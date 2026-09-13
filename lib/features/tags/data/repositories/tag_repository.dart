@@ -24,6 +24,11 @@ class TagRepository {
   Stream<void> watchTagsChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.tags));
 
+  /// Emits when a site gains or loses a tag, which moves the site counts
+  /// in [getTagStatistics] (issue #1765).
+  Stream<void> watchSiteTagsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.siteTags));
+
   /// Get all tags, ordered by name. [scope] limits the list to tags offered
   /// on dives or on sites (issue #1765); null returns every tag.
   Future<List<domain.Tag>> getAllTags({

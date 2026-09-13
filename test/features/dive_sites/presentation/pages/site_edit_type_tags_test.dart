@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +11,8 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -33,6 +37,8 @@ void main() {
   Future<void> pumpEdit(
     WidgetTester tester, {
     void Function(String)? onSaved,
+    // Riverpod does not re-export its sealed Override type (see testApp).
+    List<dynamic> overrides = const [],
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -45,6 +51,7 @@ void main() {
           allDiversProvider.overrideWith((_) async => const <Diver>[]),
           shareByDefaultProvider.overrideWith((_) async => false),
           validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          ...overrides,
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -75,6 +82,35 @@ void main() {
     );
     expect(wall.selected, isTrue);
     expect(lake.selected, isFalse);
+  });
+
+  testWidgets('a pick made before the stored types load is kept', (
+    tester,
+  ) async {
+    final stored = Completer<List<SiteTypeEntity>>();
+    await pumpEdit(
+      tester,
+      overrides: [
+        siteTypesForSiteProvider('site-1').overrideWith((_) => stored.future),
+      ],
+    );
+
+    await tester.tap(find.widgetWithText(FilterChip, 'Lake'));
+    await tester.pump();
+    stored.complete(
+      (await tester.runAsync(
+        () => SiteClassificationRepository().getTypesForSite('site-1'),
+      ))!,
+    );
+    await tester.pumpAndSettle();
+
+    // The diver chose Lake on an empty section; the late load must not
+    // swap that for the stored Wall.
+    bool selected(String label) => tester
+        .widget<FilterChip>(find.widgetWithText(FilterChip, label))
+        .selected;
+    expect(selected('Lake'), isTrue);
+    expect(selected('Wall'), isFalse);
   });
 
   testWidgets('saving writes the chosen types', (tester) async {

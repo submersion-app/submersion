@@ -118,6 +118,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   List<Tag> _selectedTags = [];
   Set<String> _originalTypeIds = {};
   Set<String> _originalTagIds = {};
+  // Set once the diver edits the section, so a classification load that
+  // finishes afterwards cannot overwrite the pick.
+  bool _typesTouched = false;
+  bool _tagsTouched = false;
   late final Future<_MergeLoadData>? _mergeLoadFuture;
   final Map<String, List<_MergeFieldCandidate<String>>> _mergeTextCandidates =
       {};
@@ -335,15 +339,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   }
 
   /// Loads the site's types and tags into the Type & Tags section.
+  ///
+  /// The stored values always become the baseline a save compares against,
+  /// but they fill the section only if the diver has not already edited it:
+  /// a pick made before the load finished is what the diver saw and chose.
   Future<void> _loadClassification(String siteId) async {
     final types = await ref.read(siteTypesForSiteProvider(siteId).future);
     final tags = await ref.read(tagsForSiteProvider(siteId).future);
     if (!mounted) return;
     setState(() {
-      _selectedTypeIds = {for (final t in types) t.id};
-      _originalTypeIds = {..._selectedTypeIds};
-      _selectedTags = tags;
+      _originalTypeIds = {for (final t in types) t.id};
       _originalTagIds = {for (final t in tags) t.id};
+      if (!_typesTouched) _selectedTypeIds = {..._originalTypeIds};
+      if (!_tagsTouched) _selectedTags = tags;
     });
   }
 
@@ -1011,11 +1019,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               selectedTypeIds: _selectedTypeIds,
               onTypesChanged: (ids) => setState(() {
                 _selectedTypeIds = ids;
+                _typesTouched = true;
                 _hasChanges = true;
               }),
               selectedTags: _selectedTags,
               onTagsChanged: (tags) => setState(() {
                 _selectedTags = tags;
+                _tagsTouched = true;
                 _hasChanges = true;
               }),
               onManageTypes: () => context.push('/site-types'),

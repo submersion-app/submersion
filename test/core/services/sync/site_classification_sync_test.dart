@@ -67,6 +67,35 @@ void main() {
     expect(rows.single.name, 'Old mine');
   });
 
+  test("a site type's tombstone takes the type's links with it", () async {
+    await db.customStatement(
+      "INSERT INTO site_types (id, name, is_built_in, sort_order, "
+      "created_at, updated_at) VALUES ('mine_1a2b3c4d', 'Mine', 0, 100, 1, 1)",
+    );
+    await db.customStatement(
+      "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "
+      "VALUES ('gone', 's1', 'mine_1a2b3c4d', 1), ('kept', 's1', 'lake', 2)",
+    );
+
+    await serializer.deleteRecord('siteTypes', 'mine_1a2b3c4d');
+
+    final links = await db.select(db.siteSiteTypes).get();
+    expect(links.map((l) => l.id), ['kept']);
+    expect(await serializer.fetchRecord('siteTypes', 'mine_1a2b3c4d'), isNull);
+  });
+
+  test('a tombstone naming a built-in type is ignored', () async {
+    await db.customStatement(
+      "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "
+      "VALUES ('link', 's1', 'wreck', 1)",
+    );
+
+    await serializer.deleteRecord('siteTypes', 'wreck');
+
+    expect((await db.select(db.siteSiteTypes).get()).single.id, 'link');
+    expect(await serializer.fetchRecord('siteTypes', 'wreck'), isNotNull);
+  });
+
   test('a site junction row round-trips through fetch and upsert', () async {
     await db.customStatement(
       "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "

@@ -257,14 +257,21 @@ class SiteRepository {
       }
 
       await _db.transaction(() async {
-        await (_db.update(
-          _db.diveSites,
-        )..where((t) => t.id.equals(site.id))).write(companion);
-        await _syncRepository.markRecordPending(
-          entityType: 'diveSites',
-          recordId: site.id,
-          localUpdatedAt: now,
-        );
+        // A save that changes only the site's types or tags must not
+        // re-stamp the site: the junctions sync as clockless children
+        // (#1769), and a fresh updated_at would let this copy of the other
+        // fields beat a newer edit made on another device.
+        if (classification == null ||
+            await _siteColumnsChange(site.id, companion)) {
+          await (_db.update(
+            _db.diveSites,
+          )..where((t) => t.id.equals(site.id))).write(companion);
+          await _syncRepository.markRecordPending(
+            entityType: 'diveSites',
+            recordId: site.id,
+            localUpdatedAt: now,
+          );
+        }
         await _writeClassification(site.id, classification);
       });
       SyncEventBus.notifyLocalChange();
@@ -277,6 +284,22 @@ class SiteRepository {
       );
       rethrow;
     }
+  }
+
+  /// Whether writing [companion] would change any stored column of [siteId]
+  /// other than `updated_at`. A missing row counts as a change.
+  Future<bool> _siteColumnsChange(
+    String siteId,
+    DiveSitesCompanion companion,
+  ) async {
+    final current = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+    if (current == null) return true;
+    final written = current.copyWithCompanion(
+      companion.copyWith(updatedAt: Value(current.updatedAt)),
+    );
+    return written != current;
   }
 
   /// Apply a partial [DiveSitesCompanion] update to a site row.

@@ -93,8 +93,8 @@ void main() {
       "created_at, updated_at) VALUES ('mine', 'diver-1', 'Mine', 0, 100, 0, 0)",
     );
     await db.customStatement(
-      "INSERT INTO dive_sites (id, name, created_at, updated_at) "
-      "VALUES ('s1', 'Site', 0, 0)",
+      "INSERT INTO dive_sites (id, diver_id, name, created_at, updated_at) "
+      "VALUES ('s1', 'diver-1', 'Site', 0, 0)",
     );
     await db.customStatement(
       "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "

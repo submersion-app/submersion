@@ -12,6 +12,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
+import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -5742,6 +5743,17 @@ class SyncDataSerializer {
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'siteTypes':
+        // The type's links go too, as a cascade would if
+        // site_site_types.site_type_id had a foreign key: a link made here
+        // concurrently, or whose own tombstone never arrives, must not
+        // outlive its type. Local cleanup, not a user delete, so no
+        // tombstones are logged (the deleting device logged them).
+        // Built-ins are seeded on every device and never synced, so a
+        // tombstone naming one is ignored rather than stripping every site.
+        if (kBuiltInSiteTypeIds.contains(recordId)) return;
+        await (_db.delete(
+          _db.siteSiteTypes,
+        )..where((t) => t.siteTypeId.equals(recordId))).go();
         await (_db.delete(
           _db.siteTypes,
         )..where((t) => t.id.equals(recordId))).go();

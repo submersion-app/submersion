@@ -1315,10 +1315,18 @@ class StatisticsRepository {
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
+      // A built-in is labelled by its slug, which the page translates. A
+      // custom type carries its stored name, because a shared site can hold
+      // another profile's custom type that the current diver's vocabulary
+      // does not include. A link whose type is gone falls back to its id.
       final results = await _db.customSelect('''
-        SELECT sst.site_type_id AS site_type, COUNT(*) AS count
+        SELECT
+          CASE WHEN st.is_built_in = 0 THEN st.name
+            ELSE sst.site_type_id END AS site_type,
+          COUNT(*) AS count
         FROM dives d
         JOIN site_site_types sst ON sst.site_id = d.site_id
+        LEFT JOIN site_types st ON st.id = sst.site_type_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY sst.site_type_id
         ORDER BY count DESC, sst.site_type_id

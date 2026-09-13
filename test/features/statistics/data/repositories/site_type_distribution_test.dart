@@ -102,6 +102,28 @@ void main() {
     });
   });
 
+  test(
+    'a custom type is labelled by its stored name, a built-in by its slug',
+    () async {
+      // Any profile's custom type: a shared site can carry one the current
+      // diver's vocabulary does not include, so the page cannot resolve it.
+      await db.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('other', 'Other', 0, 0)",
+      );
+      await db.customStatement(
+        "INSERT INTO site_types (id, diver_id, name, is_built_in, sort_order, "
+        "created_at, updated_at) "
+        "VALUES ('mine_1a2b3c4d', 'other', 'Old mine', 0, 100, 0, 0)",
+      );
+      await insertSite('s', types: ['mine_1a2b3c4d', 'lake', 'gone']);
+      await insertDive('d1', siteId: 's');
+
+      // A link whose type row is gone falls back to its id.
+      expect(await counts(), {'Old mine': 1, 'lake': 1, 'gone': 1});
+    },
+  );
+
   test('segments come most-dived first', () async {
     await insertSite('reef', types: ['reef']);
     await insertSite('wall', types: ['wall']);

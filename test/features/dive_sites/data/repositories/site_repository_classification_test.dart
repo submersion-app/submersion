@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
@@ -67,6 +68,67 @@ void main() {
 
     expect(typeIds(await classification.getTypesForSite(site.id)), ['wall']);
     expect(await classification.getTagsForSite(site.id), isEmpty);
+  });
+
+  group('a save that changes only types or tags (#1769)', () {
+    final db = DatabaseService.instance;
+
+    Future<int> storedUpdatedAt(String id) async =>
+        (await db.database
+                .customSelect(
+                  'SELECT updated_at FROM dive_sites WHERE id = ?',
+                  variables: [Variable.withString(id)],
+                )
+                .getSingle())
+            .read<int>('updated_at');
+
+    Future<bool> sitePending(String id) async =>
+        (await db.database
+                .customSelect(
+                  "SELECT 1 FROM sync_records "
+                  "WHERE entity_type = 'diveSites' AND record_id = ?",
+                  variables: [Variable.withString(id)],
+                )
+                .get())
+            .isNotEmpty;
+
+    Future<DiveSite> freshSite() async {
+      final site = await sites.createSite(
+        const DiveSite(id: '', name: 'Reef'),
+        classification: const SiteClassification(typeIds: ['reef']),
+      );
+      await db.database.customStatement(
+        'UPDATE dive_sites SET updated_at = 5 WHERE id = ?',
+        [site.id],
+      );
+      await db.database.customStatement('DELETE FROM sync_records');
+      return site;
+    }
+
+    test('leaves the site row unstamped and not pending', () async {
+      final site = await freshSite();
+
+      await sites.updateSite(
+        site,
+        classification: const SiteClassification(typeIds: ['wall']),
+      );
+
+      expect(typeIds(await classification.getTypesForSite(site.id)), ['wall']);
+      expect(await storedUpdatedAt(site.id), 5);
+      expect(await sitePending(site.id), isFalse);
+    });
+
+    test('still stamps the site when one of its fields changed', () async {
+      final site = await freshSite();
+
+      await sites.updateSite(
+        site.copyWith(name: 'Reef renamed'),
+        classification: const SiteClassification(typeIds: ['wall']),
+      );
+
+      expect(await storedUpdatedAt(site.id), isNot(5));
+      expect(await sitePending(site.id), isTrue);
+    });
   });
 
   test(

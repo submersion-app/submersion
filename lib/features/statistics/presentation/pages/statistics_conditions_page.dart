@@ -172,8 +172,8 @@ class StatisticsConditionsPage extends ConsumerWidget {
       subtitle: context.l10n.statistics_conditions_siteType_subtitle,
       child: distAsync.when(
         data: (raw) {
-          // The repository emits type ids; names resolve here so custom
-          // types show the diver's name and built-ins translate.
+          // The repository emits a built-in's slug, translated here, and a
+          // custom type's stored name, shown as is.
           final data = [
             for (final s in raw)
               (

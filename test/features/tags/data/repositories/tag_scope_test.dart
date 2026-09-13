@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show SiteTagsCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -25,6 +26,32 @@ void main() {
         "INSERT INTO site_tags (id, site_id, tag_id, created_at) "
         "VALUES ('st-$siteId-$tagId', '$siteId', '$tagId', 0)",
       );
+
+  test('site tag changes emit, so the site counts refresh', () async {
+    final tag = await repository.getOrCreateTag(
+      'To try',
+      scope: TagScope.sites,
+    );
+    final emitted = <void>[];
+    final sub = repository.watchSiteTagsChanges().listen(emitted.add);
+    addTearDown(sub.cancel);
+
+    // A typed insert: Drift cannot tell which table a raw statement touched.
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.siteTags)
+        .insert(
+          SiteTagsCompanion.insert(
+            id: 'st1',
+            siteId: 's1',
+            tagId: tag.id,
+            createdAt: 0,
+          ),
+        );
+    await pumpEventQueue();
+
+    expect(emitted, isNotEmpty);
+  });
 
   test('a tag created from the site picker applies to sites only', () async {
     final tag = await repository.getOrCreateTag(

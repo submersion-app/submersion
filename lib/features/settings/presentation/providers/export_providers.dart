@@ -14,6 +14,7 @@ import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -595,22 +596,24 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
-      // Site types and site tags (issue #1765). tagsProvider is unscoped,
-      // so `tags` above already includes site-only tags.
-      final siteClassification = _ref.read(
-        siteClassificationRepositoryProvider,
+      // Site types and site tags (issue #1765). The definitions are the
+      // diver's own vocabulary plus whatever the exported sites reference,
+      // resolved by id: a shared site can carry another profile's custom
+      // type or tag, and a reference without its definition is dropped on
+      // import.
+      final siteClassification = await loadSiteClassificationForExport(
+        _ref.read(siteClassificationRepositoryProvider),
+        _ref.read(siteTypeRepositoryProvider),
+        [for (final s in sites) s.id],
       );
-      final exportedSiteIds = [for (final s in sites) s.id];
-      final siteTypeIdsBySite = await siteClassification.getTypeIdsBySite(
-        exportedSiteIds,
+      final customSiteTypes = mergeById(
+        [
+          for (final type in await _ref.read(siteTypesProvider.future))
+            if (!type.isBuiltIn) type,
+        ],
+        siteClassification.customSiteTypes,
+        (type) => type.id,
       );
-      final siteTagIdsBySite = await siteClassification.getTagIdsBySite(
-        exportedSiteIds,
-      );
-      final customSiteTypes = [
-        for (final type in await _ref.read(siteTypesProvider.future))
-          if (!type.isBuiltIn) type,
-      ];
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -703,12 +706,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: tags,
+        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
         diveTags: diveTags,
         customDiveTypes: customDiveTypes,
         customSiteTypes: customSiteTypes,
-        siteTypeIdsBySite: siteTypeIdsBySite,
-        siteTagIdsBySite: siteTagIdsBySite,
+        siteTypeIdsBySite: siteClassification.typeIdsBySite,
+        siteTagIdsBySite: siteClassification.tagIdsBySite,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
@@ -1254,22 +1257,24 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
-      // Site types and site tags (issue #1765). tagsProvider is unscoped,
-      // so `tags` above already includes site-only tags.
-      final siteClassification = _ref.read(
-        siteClassificationRepositoryProvider,
+      // Site types and site tags (issue #1765). The definitions are the
+      // diver's own vocabulary plus whatever the exported sites reference,
+      // resolved by id: a shared site can carry another profile's custom
+      // type or tag, and a reference without its definition is dropped on
+      // import.
+      final siteClassification = await loadSiteClassificationForExport(
+        _ref.read(siteClassificationRepositoryProvider),
+        _ref.read(siteTypeRepositoryProvider),
+        [for (final s in sites) s.id],
       );
-      final exportedSiteIds = [for (final s in sites) s.id];
-      final siteTypeIdsBySite = await siteClassification.getTypeIdsBySite(
-        exportedSiteIds,
+      final customSiteTypes = mergeById(
+        [
+          for (final type in await _ref.read(siteTypesProvider.future))
+            if (!type.isBuiltIn) type,
+        ],
+        siteClassification.customSiteTypes,
+        (type) => type.id,
       );
-      final siteTagIdsBySite = await siteClassification.getTagIdsBySite(
-        exportedSiteIds,
-      );
-      final customSiteTypes = [
-        for (final type in await _ref.read(siteTypesProvider.future))
-          if (!type.isBuiltIn) type,
-      ];
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -1359,12 +1364,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: tags,
+        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
         diveTags: diveTags,
         customDiveTypes: customDiveTypes,
         customSiteTypes: customSiteTypes,
-        siteTypeIdsBySite: siteTypeIdsBySite,
-        siteTagIdsBySite: siteTagIdsBySite,
+        siteTypeIdsBySite: siteClassification.typeIdsBySite,
+        siteTagIdsBySite: siteClassification.tagIdsBySite,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,

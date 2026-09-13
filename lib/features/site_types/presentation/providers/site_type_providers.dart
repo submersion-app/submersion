@@ -31,7 +31,7 @@ final siteTypeStatisticsProvider = FutureProvider<List<SiteTypeStatistic>>((
 ) async {
   final repository = ref.watch(siteTypeRepositoryProvider);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-  ref.invalidateSelfWhen(repository.watchSiteTypesChanges());
+  ref.invalidateSelfWhen(repository.watchSiteTypeUsageChanges());
   return repository.getSiteTypeStatistics(diverId: diverId);
 });
 

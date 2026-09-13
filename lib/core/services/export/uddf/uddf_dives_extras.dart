@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -122,27 +123,19 @@ Future<UddfDivesExtras> resolveDivesExtras(
     );
   }
 
-  final siteIds = await classification.getSiteIdsForDives(diveIds);
-  final typeIdsBySite = await classification.getTypeIdsBySite(siteIds);
-  final tagIdsBySite = await classification.getTagIdsBySite(siteIds);
-  final tagsBySite = await classification.getTagsBySite();
-  final siteTags = <String, Tag>{
-    for (final siteId in siteIds)
-      for (final tag in tagsBySite[siteId] ?? const <Tag>[]) tag.id: tag,
-  };
-  final customSiteTypes = <SiteTypeEntity>[];
-  for (final typeId in {for (final ids in typeIdsBySite.values) ...ids}) {
-    final type = await siteTypes?.getSiteTypeById(typeId);
-    if (type != null && !type.isBuiltIn) customSiteTypes.add(type);
-  }
+  final source = await loadSiteClassificationForExport(
+    classification,
+    siteTypes,
+    await classification.getSiteIdsForDives(diveIds),
+  );
 
   return UddfDivesExtras(
     diveBuddies: diveBuddies,
     components: gear,
     diveRoles: diveRoles,
-    siteTypeIdsBySite: typeIdsBySite,
-    siteTagIdsBySite: tagIdsBySite,
-    customSiteTypes: customSiteTypes,
-    siteTags: siteTags.values.toList(),
+    siteTypeIdsBySite: source.typeIdsBySite,
+    siteTagIdsBySite: source.tagIdsBySite,
+    customSiteTypes: source.customSiteTypes,
+    siteTags: source.siteTags,
   );
 }
