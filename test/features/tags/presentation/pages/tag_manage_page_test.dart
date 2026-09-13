@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -160,6 +161,11 @@ Widget _buildRoutedTestWidget({
         path: '/dives',
         builder: (context, state) =>
             const Scaffold(body: Text('DIVES_LIST_PAGE')),
+      ),
+      GoRoute(
+        path: '/sites',
+        builder: (context, state) =>
+            const Scaffold(body: Text('SITES_LIST_PAGE')),
       ),
     ],
   );
@@ -511,6 +517,54 @@ void main() {
       expect(filter.tagIds, ['tag1']);
       expect(filter.siteId, isNull);
       expect(filter.favoritesOnly, isNull);
+    });
+
+    group('a tag used on sites (issue #1765)', () {
+      TagStatistic siteStat({required bool forDives}) => TagStatistic(
+        tag: Tag(
+          id: 'site-tag',
+          name: 'To try',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          appliesToDives: forDives,
+          appliesToSites: true,
+        ),
+        diveCount: forDives ? 2 : 0,
+        siteCount: 3,
+      );
+
+      testWidgets('a sites-only tag opens the site list filtered to it', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _buildRoutedTestWidget(stats: [siteStat(forDives: false)]),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('To try'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('SITES_LIST_PAGE'), findsOneWidget);
+        final container = ProviderScope.containerOf(
+          tester.element(find.text('SITES_LIST_PAGE')),
+        );
+        expect(container.read(siteFilterProvider).tagIds, {'site-tag'});
+        expect(container.read(diveFilterProvider).tagIds, isEmpty);
+      });
+
+      testWidgets('a tag also used on dives still opens its dives', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _buildRoutedTestWidget(stats: [siteStat(forDives: true)]),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('To try'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
+      });
     });
 
     testWidgets('a row tap while selecting toggles it and stays put', (

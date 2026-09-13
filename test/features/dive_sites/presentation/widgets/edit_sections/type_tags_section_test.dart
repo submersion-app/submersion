@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/type_tags_section.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -34,18 +35,21 @@ void main() {
     ),
   ];
 
-  Widget harness(Widget child) => ProviderScope(
-    overrides: [
-      // The tag input reads the tag list; an empty list keeps this test off
-      // the database.
-      tagListNotifierProvider.overrideWith((ref) => _EmptyTagList(ref)),
-    ],
-    child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: SingleChildScrollView(child: child)),
-    ),
-  );
+  Widget harness(Widget child, {List<TagStatistic> tagStats = const []}) =>
+      ProviderScope(
+        overrides: [
+          // The tag input reads the tag list; an empty list keeps this test off
+          // the database.
+          tagListNotifierProvider.overrideWith((ref) => _EmptyTagList(ref)),
+          // The Browse sheet reads the usage statistics.
+          tagStatisticsProvider.overrideWith((ref) async => tagStats),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SingleChildScrollView(child: child)),
+        ),
+      );
 
   testWidgets('shows every type, built-ins translated, custom by name', (
     tester,
@@ -111,6 +115,56 @@ void main() {
 
     await tester.tap(find.text('Manage types'));
     expect(tapped, isTrue);
+  });
+
+  testWidgets('Browse picks from the site tags, as dive edit does', (
+    tester,
+  ) async {
+    Tag tag(String id, String name, {bool dives = false, bool sites = true}) =>
+        Tag(
+          id: id,
+          name: name,
+          createdAt: now,
+          updatedAt: now,
+          appliesToDives: dives,
+          appliesToSites: sites,
+        );
+    final avoid = tag('avoid', 'Avoid');
+    final toTry = tag('try', 'To try');
+    final night = tag('night', 'Night', dives: true, sites: false);
+    List<Tag>? reported;
+    await tester.pumpWidget(
+      harness(
+        TypeTagsSection(
+          allTypes: types,
+          selectedTypeIds: const {},
+          onTypesChanged: (_) {},
+          selectedTags: [avoid],
+          onTagsChanged: (tags) => reported = tags,
+        ),
+        tagStats: [
+          TagStatistic(tag: night, diveCount: 9),
+          TagStatistic(tag: toTry, diveCount: 0, siteCount: 3),
+          TagStatistic(tag: avoid, diveCount: 0, siteCount: 1),
+        ],
+      ),
+    );
+
+    await tester.tap(find.text('Browse'));
+    await tester.pumpAndSettle();
+
+    // Only site tags, minus the one the site already has.
+    expect(find.widgetWithText(CheckboxListTile, 'To try'), findsOneWidget);
+    expect(find.widgetWithText(CheckboxListTile, 'Night'), findsNothing);
+    expect(find.widgetWithText(CheckboxListTile, 'Avoid'), findsNothing);
+
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'To try'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1 tag'));
+    await tester.pumpAndSettle();
+
+    expect(reported?.map((t) => t.id), ['avoid', 'try']);
+    expect(find.byType(CheckboxListTile), findsNothing, reason: 'sheet closed');
   });
 }
 

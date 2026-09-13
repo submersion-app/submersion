@@ -4,6 +4,7 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 
@@ -72,7 +73,28 @@ class TypeTagsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Text(l10n.diveSites_edit_typeTags_tagsLabel, style: labelStyle),
+        // Browse opens the same tag picker the dive edit page does, listing
+        // the diver's site tags most used first.
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.diveSites_edit_typeTags_tagsLabel,
+                style: labelStyle,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => showTagPickerSheet(
+                context,
+                selected: selectedTags,
+                onPicked: onTagsChanged,
+                scope: TagScope.sites,
+              ),
+              icon: const Icon(Icons.label_outline, size: 18),
+              label: Text(l10n.tags_action_browse),
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
         TagInputWidget(
           selectedTags: selectedTags,

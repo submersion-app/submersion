@@ -3,23 +3,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/site_classification_chips.dart';
-import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// The site detail chip row (issue #1765).
+/// The Tags card on site detail (issue #1765), the twin of the dive one.
 void main() {
   final now = DateTime(2026);
 
-  ProviderContainer containerWith({
-    List<SiteTypeEntity> types = const [],
-    List<Tag> tags = const [],
-  }) => ProviderContainer(
-    overrides: [
-      siteTypesForSiteProvider('s1').overrideWith((ref) async => types),
-      tagsForSiteProvider('s1').overrideWith((ref) async => tags),
-    ],
+  Tag tag(String id, String name) => Tag(
+    id: id,
+    name: name,
+    createdAt: now,
+    updatedAt: now,
+    appliesToSites: true,
+  );
+
+  ProviderContainer containerWith(List<Tag> tags) => ProviderContainer(
+    overrides: [tagsForSiteProvider('s1').overrideWith((ref) async => tags)],
   );
 
   Future<void> pump(WidgetTester tester, ProviderContainer container) async {
@@ -29,8 +30,7 @@ void main() {
         GoRoute(path: '/sites', builder: (_, _) => const Text('site list')),
         GoRoute(
           path: '/sites/:id',
-          builder: (_, _) =>
-              const Scaffold(body: SiteClassificationChips(siteId: 's1')),
+          builder: (_, _) => const Scaffold(body: SiteTagsCard(siteId: 's1')),
         ),
       ],
     );
@@ -47,38 +47,24 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  final wreck = SiteTypeEntity(
-    id: 'wreck',
-    name: 'Wreck',
-    isBuiltIn: true,
-    createdAt: now,
-    updatedAt: now,
-  );
-  final toTry = Tag(
-    id: 't1',
-    name: 'To try',
-    createdAt: now,
-    updatedAt: now,
-    appliesToSites: true,
-  );
-
-  testWidgets('shows types then tags', (tester) async {
-    final container = containerWith(types: [wreck], tags: [toTry]);
+  testWidgets('a card titled Tags, with the count and a chip per tag', (
+    tester,
+  ) async {
+    final container = containerWith([tag('t1', 'To try'), tag('t2', 'Avoid')]);
     addTearDown(container.dispose);
     await pump(tester, container);
 
-    expect(find.text('Wreck'), findsOneWidget);
-    expect(find.text('To try'), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('Wreck')).dx,
-      lessThan(tester.getTopLeft(find.text('To try')).dx),
-    );
+    expect(find.byType(Card), findsOneWidget);
+    expect(find.text('Tags'), findsOneWidget);
+    expect(find.text('2 tags'), findsOneWidget);
+    expect(find.widgetWithText(ActionChip, 'To try'), findsOneWidget);
+    expect(find.widgetWithText(ActionChip, 'Avoid'), findsOneWidget);
   });
 
   testWidgets('tapping a tag opens the site list filtered to it', (
     tester,
   ) async {
-    final container = containerWith(types: [wreck], tags: [toTry]);
+    final container = containerWith([tag('t1', 'To try')]);
     addTearDown(container.dispose);
     await pump(tester, container);
 
@@ -90,26 +76,30 @@ void main() {
     expect(container.read(siteFilterProvider).siteTypeIds, isEmpty);
   });
 
-  testWidgets('tapping a type opens the site list filtered to it', (
-    tester,
-  ) async {
-    final container = containerWith(types: [wreck]);
+  testWidgets('the tag filter replaces any filter already set', (tester) async {
+    final container = containerWith([tag('t1', 'To try')]);
     addTearDown(container.dispose);
+    container.read(siteFilterProvider.notifier).state = const SiteFilterState(
+      country: 'Malta',
+      siteTypeIds: {'wreck'},
+    );
     await pump(tester, container);
 
-    await tester.tap(find.text('Wreck'));
+    await tester.tap(find.text('To try'));
     await tester.pumpAndSettle();
 
-    expect(container.read(siteFilterProvider).siteTypeIds, {'wreck'});
+    final filter = container.read(siteFilterProvider);
+    expect(filter.tagIds, {'t1'});
+    expect(filter.country, isNull);
+    expect(filter.siteTypeIds, isEmpty);
   });
 
-  testWidgets('renders nothing for a site with no types or tags', (
-    tester,
-  ) async {
-    final container = containerWith();
+  testWidgets('renders nothing for a site without tags', (tester) async {
+    final container = containerWith(const []);
     addTearDown(container.dispose);
     await pump(tester, container);
 
-    expect(find.byType(ActionChip), findsNothing);
+    expect(find.byType(Card), findsNothing);
+    expect(find.text('Tags'), findsNothing);
   });
 }

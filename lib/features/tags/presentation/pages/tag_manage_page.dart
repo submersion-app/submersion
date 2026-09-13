@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/site_tag_navigation.dart';
 import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
@@ -260,8 +261,12 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         ],
       ),
       selected: isSelected,
+      // A tag used only on sites has no dives to show, so it opens its
+      // sites instead (issue #1765); every other tag opens its dives.
       onTap: _isSelectionMode
           ? () => _toggleSelection(tag.id)
+          : tag.appliesToSites && !tag.appliesToDives
+          ? () => openSitesWithTag(context, ref, tag.id)
           : () => openDivesWithTag(context, ref, tag.id),
       // Without a handler a long press falls through to onTap, which is how
       // it used to open the editor. Keep that, but not while selecting, where
