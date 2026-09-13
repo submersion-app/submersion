@@ -18,7 +18,6 @@ import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
-import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
@@ -171,15 +170,8 @@ class PdfExportService {
     Diver? diver,
     Uint8List? diverPhoto,
   }) async {
-    final signatureService = SignatureStorageService();
-    final diveSignatures = <String, List<Signature>>{};
-
-    for (final dive in dives) {
-      final sigs = await signatureService.getAllSignaturesForDive(dive.id);
-      if (sigs.isNotEmpty) {
-        diveSignatures[dive.id] = sigs;
-      }
-    }
+    final diveSignatures = await SignatureStorageService()
+        .getSignaturesForDives([for (final dive in dives) dive.id]);
 
     // The legacy builder never did this, so accented site names were dropped.
     await PdfFonts.instance.initialize();
