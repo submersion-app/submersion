@@ -74,10 +74,7 @@ class AssetResolutionService {
   Future<ResolutionResult> resolveAssetId(MediaItem item) async {
     // Desktop platforms don't use gallery asset IDs
     if (!_photoPickerService.supportsGalleryBrowsing) {
-      return ResolutionResult(
-        localAssetId: item.platformAssetId,
-        status: ResolutionStatus.resolved,
-      );
+      return _withoutGallery(item);
     }
 
     if (item.platformAssetId == null) {
@@ -134,6 +131,11 @@ class AssetResolutionService {
   /// Self-limiting: a genuinely dead item ends up cached as `unresolved`, and
   /// the backoff branch in [resolveAssetId] then short-circuits later renders
   /// before any caller can reach this method again.
+  ///
+  /// Where there is no photo library to search (Windows and Linux),
+  /// [_resolveFromGallery] returns the stored id without searching, so
+  /// nothing is cached and no backoff applies; the answer is the one
+  /// [resolveAssetId] gives there.
   Future<ResolutionResult> reresolve(MediaItem item) async {
     if (item.platformAssetId == null) {
       return const ResolutionResult(status: ResolutionStatus.unavailable);
@@ -145,6 +147,15 @@ class AssetResolutionService {
 
   /// Attempt to resolve by trying the original ID, then metadata matching.
   Future<ResolutionResult> _resolveFromGallery(MediaItem item) async {
+    // Every path into the gallery search funnels through here, so this is
+    // where the no-gallery guard has to live. On Windows and Linux the
+    // picker's getAssetsInDateRange is not a query but an interactive file
+    // dialog; reaching it from a thumbnail fetch opened one dialog per photo
+    // and time reading, and reopened it on every cancel.
+    if (!_photoPickerService.supportsGalleryBrowsing) {
+      return _withoutGallery(item);
+    }
+
     _log.info('Resolving asset for media ${item.id}');
 
     // Step 2: Try original platformAssetId
@@ -283,6 +294,15 @@ class AssetResolutionService {
     _log.info('Could not resolve media ${item.id} -- marked unresolved');
     return const ResolutionResult(status: ResolutionStatus.unavailable);
   }
+
+  /// The answer on a platform with no photo library to search: the stored id,
+  /// passed through unchanged. Deliberately not [ResolutionStatus.unavailable],
+  /// which is a positive "gone" finding a caller may orphan the row on, when
+  /// nothing was actually consulted.
+  ResolutionResult _withoutGallery(MediaItem item) => ResolutionResult(
+    localAssetId: item.platformAssetId,
+    status: ResolutionStatus.resolved,
+  );
 
   /// Verify that a platformAssetId actually loads on this device.
   ///

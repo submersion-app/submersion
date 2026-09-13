@@ -12219,6 +12219,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'Borrar';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'Filtrar equipo';
 
   @override
@@ -20319,6 +20324,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tags_action_deleteTag => 'Eliminar etiqueta';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Mostrar inmersiones con la etiqueta \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return '¿Estás seguro de que deseas eliminar \"$tagName\"? Esto la eliminará de todas las inmersiones.';
   }
@@ -22306,9 +22316,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Importar como nuevo';
-
-  @override
-  String get universalImport_label_importComplete => 'Importación Completa';
 
   @override
   String get universalImport_label_importing => 'Importando';
@@ -25175,6 +25182,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Usar los números de inmersión del archivo importado en lugar de asignarlos automáticamente';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Esta fuente no proporciona números de inmersión, así que las inmersiones se numeran automáticamente';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Etiquetar esta importación automáticamente';
 
@@ -26340,6 +26351,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Longitud del latiguillo';
 
   @override
+  String get attrLabel_hose_type => 'Tipo de latiguillo';
+
+  @override
   String get attrLabel_plate_material => 'Material de la placa';
 
   @override
@@ -26676,6 +26690,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Yugo (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (baja presión)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (alta presión)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflador (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Chaleco';
 
   @override
@@ -26932,14 +26955,27 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'No hay inmersiones con grosor de traje registrado';
+      'No hay inmersiones con un traje de neopreno o traje seco vinculado';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'No se pudieron cargar los datos de grosor del traje';
 
   @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Desconocido';
+
+  @override
   String get diveLog_filter_sectionSuitThickness => 'Grosor del traje (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Atributos del equipo';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Categoría de equipo';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Cualquier categoría';
 
   @override
   String get diveLog_filter_thicknessMin => 'Mín';
@@ -39255,6 +39291,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Asignar transmisores';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Números de inmersión ya en uso';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Estas inmersiones conservaron el número de su origen, pero otras inmersiones de tu registro ya usan esos mismos números. Abre Numeración de inmersiones en el menú de la lista de inmersiones para renumerarlas.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

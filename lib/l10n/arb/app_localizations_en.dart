@@ -12034,6 +12034,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'Clear';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'Filter Equipment';
 
   @override
@@ -19951,6 +19956,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_action_deleteTag => 'Delete tag';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Show dives tagged \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Are you sure you want to delete \"$tagName\"? This will remove it from all dives.';
   }
@@ -21906,9 +21916,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Import as New';
-
-  @override
-  String get universalImport_label_importComplete => 'Import Complete';
 
   @override
   String get universalImport_label_importing => 'Importing';
@@ -24724,6 +24731,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use dive numbers from the imported file instead of auto-assigning';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'This source does not provide dive numbers, so dives are numbered automatically';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Tag this import automatically';
 
@@ -25872,6 +25883,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Hose length';
 
   @override
+  String get attrLabel_hose_type => 'Hose type';
+
+  @override
   String get attrLabel_plate_material => 'Plate material';
 
   @override
@@ -26205,6 +26219,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Yoke (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (low pressure)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (high pressure)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'LPI (inflator)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Jacket';
 
   @override
@@ -26462,14 +26485,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'No dives with a suit thickness recorded';
+      'No dives with a wetsuit or drysuit linked';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Could not load suit thickness data';
 
   @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Unknown';
+
+  @override
   String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Gear attributes';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Gear category';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Any category';
 
   @override
   String get diveLog_filter_thicknessMin => 'Min';
@@ -38611,6 +38646,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assign transmitters';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Dive numbers already in use';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

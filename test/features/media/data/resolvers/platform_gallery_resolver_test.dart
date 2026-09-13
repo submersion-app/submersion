@@ -80,6 +80,25 @@ AssetResolutionService _accessDeniedService() => _FakeAssetResolutionService(
   const ResolutionResult(status: ResolutionStatus.accessDenied),
 );
 
+/// Fails the test if consulted: on a platform with no photo library there is
+/// nothing for the resolution service to search, and on Windows and Linux
+/// its gallery search is an interactive file dialog.
+class _UnconsultedResolutionService extends AssetResolutionService {
+  _UnconsultedResolutionService()
+    : super(
+        cacheRepository: LocalAssetCacheRepository(),
+        photoPickerService: _StubPhotoPickerService(),
+      );
+
+  @override
+  Future<ResolutionResult> resolveAssetId(MediaItem item) =>
+      throw StateError('resolveAssetId consulted without a photo library');
+
+  @override
+  Future<ResolutionResult> reresolve(MediaItem item) =>
+      throw StateError('reresolve consulted without a photo library');
+}
+
 MediaItem _gallery({String? assetId, String? originDeviceId}) => MediaItem(
   id: 'x',
   mediaType: MediaType.photo,
@@ -96,10 +115,52 @@ MediaItem _gallery({String? assetId, String? originDeviceId}) => MediaItem(
 // ---------------------------------------------------------------------------
 
 void main() {
-  test('canResolveOnThisDevice is always true for gallery items', () {
+  test('canResolveOnThisDevice is true wherever there is a photo library', () {
     final r = PlatformGalleryResolver(resolutionService: _unavailableService());
     expect(r.canResolveOnThisDevice(_gallery(assetId: 'A')), isTrue);
     expect(r.canResolveOnThisDevice(_gallery(originDeviceId: 'other')), isTrue);
+  });
+
+  // Windows and Linux have no photo library, so every gallery row there was
+  // linked on another device. notFound is the one verdict that orphans a row,
+  // and that write syncs, so reporting it here would mark photos that are
+  // still safe in a Mac's or phone's library missing on every device.
+  group('a platform with no photo library', () {
+    PlatformGalleryResolver resolver() => PlatformGalleryResolver(
+      resolutionService: _UnconsultedResolutionService(),
+      hasPhotoLibrary: false,
+    );
+
+    test('cannot resolve gallery rows on this device', () {
+      expect(
+        resolver().canResolveOnThisDevice(_gallery(assetId: 'A')),
+        isFalse,
+      );
+    });
+
+    test('resolve reports fromOtherDevice', () async {
+      final data = await resolver().resolve(_gallery(assetId: 'A'));
+      expect((data as UnavailableData).kind, UnavailableKind.fromOtherDevice);
+    });
+
+    test('resolveThumbnail reports fromOtherDevice', () async {
+      final data = await resolver().resolveThumbnail(
+        _gallery(assetId: 'A'),
+        target: const Size(200, 200),
+      );
+      expect((data as UnavailableData).kind, UnavailableKind.fromOtherDevice);
+    });
+
+    test('verify reports fromOtherDevice', () async {
+      expect(
+        await resolver().verify(_gallery(assetId: 'A')),
+        VerifyResult.fromOtherDevice,
+      );
+    });
+
+    test('extractMetadata returns null', () async {
+      expect(await resolver().extractMetadata(_gallery(assetId: 'A')), isNull);
+    });
   });
 
   test('resolve returns Unavailable.notFound when assetId missing', () async {

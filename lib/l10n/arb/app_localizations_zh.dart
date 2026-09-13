@@ -11664,6 +11664,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_activeFilter_clear => '清除';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field：$values';
+  }
+
+  @override
   String get equipment_filter_title => '筛选装备';
 
   @override
@@ -19234,6 +19239,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_action_deleteTag => '删除标签';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '显示带有「$tagName」标签的潜水';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return '确定要删除「$tagName」吗？这将从所有潜水中移除该标签。';
   }
@@ -21119,9 +21129,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => '作为新导入';
-
-  @override
-  String get universalImport_label_importComplete => '导入完成';
 
   @override
   String get universalImport_label_importing => '正在导入';
@@ -23848,6 +23855,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '使用导入文件中的潜水编号而不是自动分配';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      '此来源不提供潜水编号，因此潜水将自动编号';
+
+  @override
   String get universalImport_label_autoTagThisImport => '自动为此次导入打标签';
 
   @override
@@ -24937,6 +24948,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_hose_length_m => '软管长度';
 
   @override
+  String get attrLabel_hose_type => '软管类型';
+
+  @override
   String get attrLabel_plate_material => '背板材质';
 
   @override
@@ -25270,6 +25284,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_connection_yoke => '卡箍式 (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP（低压）';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP（高压）';
+
+  @override
+  String get attrChoice_hose_type_lpi => '充气管（LPI）';
+
+  @override
   String get attrChoice_bcd_style_jacket => '夹克式';
 
   @override
@@ -25524,13 +25547,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      '没有记录潜水服厚度的潜水';
+      '没有关联湿衣或干衣的潜水';
 
   @override
   String get statistics_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
 
   @override
+  String get statistics_progression_divesBySuitThickness_unknown => '未知';
+
+  @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => '装备属性';
+
+  @override
+  String get diveLog_filter_gearCategory => '装备类别';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => '任意类别';
 
   @override
   String get diveLog_filter_thicknessMin => '最小';
@@ -36922,6 +36957,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => '分配发射器';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      '潜水编号已被使用';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      '这些潜水保留了来源中的编号，但您的日志中已有其他潜水使用相同的编号。请在潜水列表菜单中打开“潜水编号”重新编号。';
 
   @override
   String get dataQuality_detector_unknown_transmitter => '未分配的发射器';

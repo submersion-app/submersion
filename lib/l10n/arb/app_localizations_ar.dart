@@ -12015,6 +12015,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'مسح';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'تصفية المعدات';
 
   @override
@@ -19929,6 +19934,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_action_deleteTag => 'حذف الوسم';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'عرض الغطسات الموسومة بـ \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'هل أنت متأكد من حذف \"$tagName\"؟ سيتم إزالته من جميع الغطسات.';
   }
@@ -21893,9 +21903,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'استيراد كجديد';
-
-  @override
-  String get universalImport_label_importComplete => 'اكتمل الاستيراد';
 
   @override
   String get universalImport_label_importing => 'جارٍ الاستيراد';
@@ -24714,6 +24721,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'لا يوفّر هذا المصدر أرقام الغطسات، لذا تُرقَّم الغطسات تلقائياً';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'وسم هذا الاستيراد تلقائيا';
 
@@ -25855,6 +25866,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_hose_length_m => 'طول الخرطوم';
 
   @override
+  String get attrLabel_hose_type => 'نوع الخرطوم';
+
+  @override
   String get attrLabel_plate_material => 'مادة اللوحة';
 
   @override
@@ -26188,6 +26202,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrChoice_connection_yoke => 'يوك (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (ضغط منخفض)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (ضغط عالٍ)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'منفاخ (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';
 
   @override
@@ -26445,14 +26468,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'لا توجد غطسات مسجلة بسماكة بدلة';
+      'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'تعذر تحميل بيانات سماكة البدلة';
 
   @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'غير معروف';
+
+  @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'خصائص المعدات';
+
+  @override
+  String get diveLog_filter_gearCategory => 'فئة المعدات';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'أي فئة';
 
   @override
   String get diveLog_filter_thicknessMin => 'الأدنى';
@@ -38814,6 +38849,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'تعيين أجهزة الإرسال';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'أرقام الغطسات مستخدمة بالفعل';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'احتفظت هذه الغطسات بالرقم الوارد من مصدرها، لكن غطسات أخرى في سجلك تستخدم الأرقام نفسها بالفعل. افتح «ترقيم الغوصات» من قائمة صفحة الغطسات لإعادة ترقيمها.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'جهاز إرسال غير معيّن';

@@ -67,6 +67,11 @@ void main() {
             (ref) => MockCurrentDiverIdNotifier(),
           ),
           highlightedDiveIdProvider.overrideWith((ref) => diveId),
+          // The panel previews the highlight only while the table lists it.
+          allDivesForTableProvider.overrideWith(
+            (ref) =>
+                AsyncValue.data([createTestDiveWithBottomTime(id: diveId)]),
+          ),
           diveOverride,
           analysisOverride,
           // The panel's analysis now comes from sourceProfileAnalysisProvider,
