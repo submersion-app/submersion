@@ -28,6 +28,7 @@ import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_failure.dart';
 import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
+import 'package:submersion/core/presentation/widgets/interrupted_restore_view.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
 import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
@@ -44,6 +45,7 @@ import 'package:submersion/core/services/security/database_security_sidecar.dart
 import 'package:submersion/core/services/security/locked_database_escape.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -106,6 +108,7 @@ Future<void> timeStartupStep(
 enum _StartupState {
   initializing,
   locked,
+  interruptedRestore,
   backingUp,
   migrating,
   backupFailed,
@@ -170,6 +173,11 @@ class StartupWrapper extends StatefulWidget {
   )?
   restoreOverride;
 
+  /// Optional override for the restore journal consulted before anything is
+  /// opened (used in tests, which must not stat or move real files).
+  @visibleForTesting
+  final RestoreJournal Function(String dbPath)? restoreJournalFactory;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
@@ -183,6 +191,7 @@ class StartupWrapper extends StatefulWidget {
     this.downgradeCandidateProbeOverride,
     this.enginePreflightOverride,
     this.restoreOverride,
+    this.restoreJournalFactory,
   });
 
   @override
@@ -226,6 +235,10 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// terminal failure screen wants the NEWEST copy, while a mismatch needs
   /// the newest copy that is still OLD enough to open here.
   BackupRecord? _downgradeBackup;
+
+  /// An earlier restore that stopped with the diver's previous database still
+  /// aside, found before anything was opened. Null otherwise (issue #1901).
+  InterruptedRestore? _interruptedRestore;
 
   StartupRestoreStatus _restoreStatus = StartupRestoreStatus.idle;
   String? _restoreError;
@@ -290,6 +303,23 @@ class _StartupWrapperState extends State<StartupWrapper>
       // App Security gate: must resolve BEFORE the schema probe below, which
       // needs the cipher key to read an encrypted file.
       await _resolveSecurityGate(dbPath);
+
+      // An earlier restore that never settled left the previous database
+      // aside. Checked after the security gate (probing an encrypted file
+      // needs the key) and before the schema probe on purpose: a missing live
+      // file would otherwise be created fresh by onCreate, and a rejected one
+      // would route to the version-mismatch screen, neither of which is what
+      // happened.
+      final interrupted = _restoreJournal(dbPath).findInterrupted();
+      if (interrupted != null) {
+        if (mounted) {
+          setState(() {
+            _interruptedRestore = interrupted;
+            _state = _StartupState.interruptedRestore;
+          });
+        }
+        return;
+      }
 
       final int? storedVersion;
       final bool needsMigration;
@@ -1215,6 +1245,52 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
   }
 
+  RestoreJournal _restoreJournal(String dbPath) =>
+      widget.restoreJournalFactory?.call(dbPath) ??
+      DatabaseService.instance.restoreJournalFor(dbPath);
+
+  /// Puts the database from before the interrupted restore back.
+  Future<void> _recoverInterruptedRestore() =>
+      _settleInterruptedRestore((journal) => journal.recover());
+
+  /// Keeps what is live now; the previous database stays on disk under a
+  /// timestamped name.
+  Future<void> _keepCurrentDatabase() =>
+      _settleInterruptedRestore((journal) => journal.keepCurrent());
+
+  /// Shared body of both interrupted-restore actions: run [action] with the
+  /// database closed, then resume startup from the top, like
+  /// [_restoreAtStartup], so the security gate, migrations and the
+  /// version-mismatch screen all run as on a normal launch. A failure keeps
+  /// the diver on this screen; neither action deletes a database file.
+  Future<void> _settleInterruptedRestore(
+    Future<void> Function(RestoreJournal journal) action,
+  ) async {
+    if (_restoreStatus == StartupRestoreStatus.running) return;
+    setState(() {
+      _restoreStatus = StartupRestoreStatus.running;
+      _restoreError = null;
+    });
+    try {
+      final dbPath = await widget.locationService.getDatabasePath();
+      await action(_restoreJournal(dbPath));
+      if (!mounted) return;
+      setState(() {
+        _restoreStatus = StartupRestoreStatus.idle;
+        _interruptedRestore = null;
+        _state = _StartupState.initializing;
+      });
+      await _runInitialization();
+    } catch (e) {
+      debugPrint('Interrupted restore could not be settled: $e');
+      if (!mounted) return;
+      setState(() {
+        _restoreStatus = StartupRestoreStatus.failed;
+        _restoreError = '$e';
+      });
+    }
+  }
+
   /// True where "show me that folder" means something. Mobile file managers
   /// have no addressable folder concept to hand off to.
   bool get _canRevealBackupsFolder =>
@@ -1379,6 +1455,7 @@ class _StartupWrapperState extends State<StartupWrapper>
                     resolveAppLocale(preferred, supported),
                 home:
                     (_state == _StartupState.error ||
+                        _state == _StartupState.interruptedRestore ||
                         _state == _StartupState.backupFailed ||
                         _state == _StartupState.recoveryRequired ||
                         _state == _StartupState.recovering ||
@@ -1510,6 +1587,20 @@ class _StartupWrapperState extends State<StartupWrapper>
     Color textColor,
     Color subtitleColor,
   ) {
+    final interrupted = _interruptedRestore;
+    if (_state == _StartupState.interruptedRestore && interrupted != null) {
+      return InterruptedRestoreView(
+        interrupted: interrupted,
+        textColor: textColor,
+        subtitleColor: subtitleColor,
+        onRecover: _recoverInterruptedRestore,
+        onKeepCurrent: _keepCurrentDatabase,
+        onClose: _closeApp,
+        status: _restoreStatus,
+        error: _restoreError,
+      );
+    }
+
     if (_state == _StartupState.backupFailed && _backupError != null) {
       return BackupFailedView(
         error: _backupError!,

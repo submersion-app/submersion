@@ -14,6 +14,7 @@ import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_failure.dart';
 import 'package:submersion/core/presentation/startup_theme.dart';
+import 'package:submersion/core/presentation/widgets/interrupted_restore_view.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
 import 'package:submersion/core/presentation/widgets/startup_restore_card.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart'
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/pre_downgrade_backup_service.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
@@ -142,6 +144,39 @@ class _RecordingPreDowngradeService extends PreDowngradeBackupService {
   }
 }
 
+/// A [RestoreJournal] that touches no files: startup asks it whether a
+/// restore was interrupted, and it records what the diver chose.
+class _FakeRestoreJournal extends RestoreJournal {
+  _FakeRestoreJournal({this.found, this.error})
+    : super('/tmp/test.db', readSchemaVersion: _noVersion);
+
+  static int? _noVersion(String _) => null;
+
+  InterruptedRestore? found;
+  final Object? error;
+  final List<String> calls = [];
+
+  @override
+  InterruptedRestore? findInterrupted() {
+    calls.add('find');
+    return found;
+  }
+
+  @override
+  Future<void> recover() async {
+    calls.add('recover');
+    if (error != null) throw error!;
+    found = null;
+  }
+
+  @override
+  Future<void> keepCurrent() async {
+    calls.add('keep');
+    if (error != null) throw error!;
+    found = null;
+  }
+}
+
 /// Factory for the no-op backup service used by tests that exercise the
 /// migration path but do not want to test backup behaviour.
 PreMigrationBackupService _noOpBackupFactory({
@@ -176,6 +211,7 @@ Widget _buildStartupWrapper({
     void Function(int currentStep, int totalSteps) onMigrationProgress,
   )?
   restoreOverride,
+  RestoreJournal Function(String dbPath)? restoreJournalFactory,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -191,6 +227,11 @@ Widget _buildStartupWrapper({
     // linked SQLite. Tests that WANT an engine failure pass their own.
     enginePreflightOverride: enginePreflightOverride ?? () {},
     restoreOverride: restoreOverride,
+    // Default to a journal that finds nothing, so widget tests never stat
+    // real files beside the fixture path. Tests of the recovery screen pass
+    // their own.
+    restoreJournalFactory:
+        restoreJournalFactory ?? (_) => _FakeRestoreJournal(),
   );
 }
 
@@ -1129,6 +1170,145 @@ void main() {
       expect(find.textContaining('schema v100'), findsOneWidget);
       expect(find.textContaining('schema v50'), findsOneWidget);
       expect(find.textContaining('Your data is safe'), findsOneWidget);
+    });
+
+    testWidgets('an interrupted restore is offered before the database is '
+        'probed or opened', (tester) async {
+      var probes = 0;
+      var inits = 0;
+      final journal = _FakeRestoreJournal(
+        found: const InterruptedRestore(startedAt: null, liveExists: true),
+      );
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) {
+            probes++;
+            return (needsMigration: false, totalSteps: 0);
+          },
+          initializerOverride: (_) async {
+            inits++;
+          },
+          restoreJournalFactory: (_) => journal,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(InterruptedRestoreView), findsOneWidget);
+      expect(probes, 0, reason: 'nothing may touch the live file first');
+      expect(inits, 0, reason: 'opening would create an empty database');
+      expect(journal.calls, ['find']);
+    });
+
+    testWidgets('recovering settles the restore, then startup resumes from '
+        'the top', (tester) async {
+      var inits = 0;
+      final journal = _FakeRestoreJournal(
+        found: const InterruptedRestore(startedAt: null, liveExists: true),
+      );
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) {
+            inits++;
+            return Completer<void>().future;
+          },
+          restoreJournalFactory: (_) => journal,
+        ),
+      );
+      await tester.pump();
+
+      final recover = find.byKey(const ValueKey('interruptedRestore_recover'));
+      await tester.ensureVisible(recover);
+      await tester.tap(recover);
+      await tester.pump();
+      await tester.pump();
+
+      expect(journal.calls, ['find', 'recover', 'find']);
+      expect(inits, 1);
+      expect(find.byType(InterruptedRestoreView), findsNothing);
+
+      // Drain the 1-second splash delay timer.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('keeping the current database settles the restore the same '
+        'way', (tester) async {
+      var inits = 0;
+      final journal = _FakeRestoreJournal(
+        found: const InterruptedRestore(startedAt: null, liveExists: true),
+      );
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) {
+            inits++;
+            return Completer<void>().future;
+          },
+          restoreJournalFactory: (_) => journal,
+        ),
+      );
+      await tester.pump();
+
+      final keep = find.byKey(const ValueKey('interruptedRestore_keep'));
+      await tester.ensureVisible(keep);
+      await tester.tap(keep);
+      await tester.pump();
+      await tester.pump();
+
+      expect(journal.calls, ['find', 'keep', 'find']);
+      expect(inits, 1);
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('a failed recovery stays on the screen with the error', (
+      tester,
+    ) async {
+      var inits = 0;
+      final journal = _FakeRestoreJournal(
+        found: const InterruptedRestore(startedAt: null, liveExists: true),
+        error: StateError('still locked'),
+      );
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            inits++;
+          },
+          restoreJournalFactory: (_) => journal,
+        ),
+      );
+      await tester.pump();
+
+      final recover = find.byKey(const ValueKey('interruptedRestore_recover'));
+      await tester.ensureVisible(recover);
+      await tester.tap(recover);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(InterruptedRestoreView), findsOneWidget);
+      expect(find.textContaining('still locked'), findsOneWidget);
+      expect(journal.calls, ['find', 'recover']);
+      expect(inits, 0);
     });
   });
 
