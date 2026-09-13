@@ -7126,6 +7126,74 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get siteTypes_addTooltip => 'Add Site Type';
+
+  @override
+  String get siteTypes_builtIn => 'Built-in';
+
+  @override
+  String get siteTypes_custom => 'Custom';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" is used by $count sites. Deleting it removes it from those sites.',
+      one:
+          '\"$name\" is used by 1 site. Deleting it removes it from that site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'Delete Site Type?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'Delete site type';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'Add Site Type';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'Edit Site Type';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'Name';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'Please enter a name';
+
+  @override
+  String get siteTypes_editTooltip => 'Edit site type';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '1 site',
+      zero: 'No sites',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'Could not save the site type: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'Site Types';
+
+  @override
   String get siteType_builtin_artificial_reef => 'Artificial reef';
 
   @override
@@ -18055,6 +18123,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Gérer les types de plongée personnalisés';
 
   @override
+  String get settings_manage_siteTypes => 'Site Types';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'Built-in and custom dive site types';
+
+  @override
   String get settings_manage_header_manageData => 'Gestion des données';
 
   @override
@@ -20580,6 +20655,66 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Couleur';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'Remove';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'This tag is on $count dives. Turning off \"Use for dives\" removes it from those dives.',
+      one:
+          'This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'This tag is on $count sites. Turning off \"Use for sites\" removes it from those sites.',
+      one:
+          'This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title =>
+      'Remove tag from existing items?';
+
+  @override
+  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+
+  @override
+  String get tags_manage_scope_dives => 'Dives';
+
+  @override
+  String get tags_manage_scope_sites => 'Sites';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '1 site',
+      zero: '0 sites',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'Use for dives';
+
+  @override
+  String get tags_manage_useForSites => 'Use for sites';
 
   @override
   String get tags_manage_nameRequired => 'Le nom de l\'étiquette est requis';

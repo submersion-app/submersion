@@ -11,12 +11,12 @@ import 'package:submersion/shared/constants/entity_field.dart';
 /// Site type and tag layout columns (issue #1765).
 void main() {
   final adapter = SiteFieldAdapter.instance;
-  final units = UnitFormatter(const AppSettings());
+  const units = UnitFormatter(AppSettings());
   final now = DateTime(2026);
 
   test('the new fields are appended after every existing member', () {
     // Saved layouts store members by name, so these must come last.
-    final values = SiteField.values;
+    const values = SiteField.values;
     expect(values[values.length - 2], SiteField.siteTypes);
     expect(values.last, SiteField.tags);
     expect(SiteField.siteTypes.categoryName, 'details');

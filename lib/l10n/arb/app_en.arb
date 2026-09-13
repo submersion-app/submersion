@@ -3887,6 +3887,52 @@
       }
     }
   },
+  "siteTypes_addTooltip": "Add Site Type",
+  "siteTypes_builtIn": "Built-in",
+  "siteTypes_custom": "Custom",
+  "siteTypes_deleteDialog_content": "Delete \"{name}\"?",
+  "@siteTypes_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "siteTypes_deleteDialog_inUse": "{count, plural, =1{\"{name}\" is used by 1 site. Deleting it removes it from that site.} other{\"{name}\" is used by {count} sites. Deleting it removes it from those sites.}}",
+  "@siteTypes_deleteDialog_inUse": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "siteTypes_deleteDialog_title": "Delete Site Type?",
+  "siteTypes_deleteTooltip": "Delete site type",
+  "siteTypes_dialog_addTitle": "Add Site Type",
+  "siteTypes_dialog_editTitle": "Edit Site Type",
+  "siteTypes_dialog_nameLabel": "Name",
+  "siteTypes_dialog_nameRequired": "Please enter a name",
+  "siteTypes_editTooltip": "Edit site type",
+  "siteTypes_siteCount": "{count, plural, =0{No sites} =1{1 site} other{{count} sites}}",
+  "@siteTypes_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "siteTypes_snackbar_error": "Could not save the site type: {error}",
+  "@siteTypes_snackbar_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "siteTypes_title": "Site Types",
   "siteType_builtin_artificial_reef": "Artificial reef",
   "siteType_builtin_blue_hole": "Blue hole",
   "siteType_builtin_cave": "Cave",
@@ -10577,6 +10623,8 @@
   "settings_manage_diveRoles_subtitle": "Manage custom dive roles",
   "settings_manage_diveTypes": "Dive Types",
   "settings_manage_diveTypes_subtitle": "Manage custom dive types",
+  "settings_manage_siteTypes": "Site Types",
+  "settings_manage_siteTypes_subtitle": "Built-in and custom dive site types",
   "settings_manage_header_manageData": "Manage Data",
   "settings_manage_species": "Species",
   "settings_manage_species_subtitle": "Manage the species catalog",
@@ -12466,6 +12514,37 @@
   "tags_manage_editTitle": "Edit Tag",
   "tags_manage_nameLabel": "Tag Name",
   "tags_manage_colorLabel": "Color",
+  "tags_manage_narrowDialog_confirm": "Remove",
+  "tags_manage_narrowDialog_dives": "{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}",
+  "@tags_manage_narrowDialog_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_narrowDialog_sites": "{count, plural, =1{This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.} other{This tag is on {count} sites. Turning off \"Use for sites\" removes it from those sites.}}",
+  "@tags_manage_narrowDialog_sites": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_narrowDialog_title": "Remove tag from existing items?",
+  "tags_manage_scopeRequired": "Choose dives, sites, or both",
+  "tags_manage_scope_dives": "Dives",
+  "tags_manage_scope_sites": "Sites",
+  "tags_manage_siteCount": "{count, plural, =0{0 sites} =1{1 site} other{{count} sites}}",
+  "@tags_manage_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_useForDives": "Use for dives",
+  "tags_manage_useForSites": "Use for sites",
   "tags_manage_nameRequired": "Tag name is required",
   "tags_manage_deleteTitle": "Delete Tag?",
   "tags_manage_deleteMessage": "\"{tagName}\" will be removed from {count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}. This cannot be undone.",

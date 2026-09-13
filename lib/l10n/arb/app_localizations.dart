@@ -11685,6 +11685,96 @@ abstract class AppLocalizations {
   /// **'Assigned {name}'**
   String siteSuggestion_assignedSnack(Object name);
 
+  /// No description provided for @siteTypes_addTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Site Type'**
+  String get siteTypes_addTooltip;
+
+  /// No description provided for @siteTypes_builtIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get siteTypes_builtIn;
+
+  /// No description provided for @siteTypes_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get siteTypes_custom;
+
+  /// No description provided for @siteTypes_deleteDialog_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String siteTypes_deleteDialog_content(String name);
+
+  /// No description provided for @siteTypes_deleteDialog_inUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{\"{name}\" is used by 1 site. Deleting it removes it from that site.} other{\"{name}\" is used by {count} sites. Deleting it removes it from those sites.}}'**
+  String siteTypes_deleteDialog_inUse(int count, String name);
+
+  /// No description provided for @siteTypes_deleteDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Site Type?'**
+  String get siteTypes_deleteDialog_title;
+
+  /// No description provided for @siteTypes_deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete site type'**
+  String get siteTypes_deleteTooltip;
+
+  /// No description provided for @siteTypes_dialog_addTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Site Type'**
+  String get siteTypes_dialog_addTitle;
+
+  /// No description provided for @siteTypes_dialog_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Site Type'**
+  String get siteTypes_dialog_editTitle;
+
+  /// No description provided for @siteTypes_dialog_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get siteTypes_dialog_nameLabel;
+
+  /// No description provided for @siteTypes_dialog_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get siteTypes_dialog_nameRequired;
+
+  /// No description provided for @siteTypes_editTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit site type'**
+  String get siteTypes_editTooltip;
+
+  /// No description provided for @siteTypes_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No sites} =1{1 site} other{{count} sites}}'**
+  String siteTypes_siteCount(int count);
+
+  /// No description provided for @siteTypes_snackbar_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the site type: {error}'**
+  String siteTypes_snackbar_error(String error);
+
+  /// No description provided for @siteTypes_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get siteTypes_title;
+
   /// No description provided for @siteType_builtin_artificial_reef.
   ///
   /// In en, this message translates to:
@@ -29633,6 +29723,18 @@ abstract class AppLocalizations {
   /// **'Manage custom dive types'**
   String get settings_manage_diveTypes_subtitle;
 
+  /// No description provided for @settings_manage_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get settings_manage_siteTypes;
+
+  /// No description provided for @settings_manage_siteTypes_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in and custom dive site types'**
+  String get settings_manage_siteTypes_subtitle;
+
   /// No description provided for @settings_manage_header_manageData.
   ///
   /// In en, this message translates to:
@@ -33719,6 +33821,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get tags_manage_colorLabel;
+
+  /// No description provided for @tags_manage_narrowDialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get tags_manage_narrowDialog_confirm;
+
+  /// No description provided for @tags_manage_narrowDialog_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}'**
+  String tags_manage_narrowDialog_dives(int count);
+
+  /// No description provided for @tags_manage_narrowDialog_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.} other{This tag is on {count} sites. Turning off \"Use for sites\" removes it from those sites.}}'**
+  String tags_manage_narrowDialog_sites(int count);
+
+  /// No description provided for @tags_manage_narrowDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove tag from existing items?'**
+  String get tags_manage_narrowDialog_title;
+
+  /// No description provided for @tags_manage_scopeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dives, sites, or both'**
+  String get tags_manage_scopeRequired;
+
+  /// No description provided for @tags_manage_scope_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get tags_manage_scope_dives;
+
+  /// No description provided for @tags_manage_scope_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get tags_manage_scope_sites;
+
+  /// No description provided for @tags_manage_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 sites} =1{1 site} other{{count} sites}}'**
+  String tags_manage_siteCount(int count);
+
+  /// No description provided for @tags_manage_useForDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for dives'**
+  String get tags_manage_useForDives;
+
+  /// No description provided for @tags_manage_useForSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for sites'**
+  String get tags_manage_useForSites;
 
   /// No description provided for @tags_manage_nameRequired.
   ///

@@ -8,6 +8,7 @@ import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -309,7 +310,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('1 selected'), findsNothing);
-      expect(find.byType(Checkbox), findsNothing);
+      // Selection checkboxes only: the tag edit dialog has scope checkboxes
+      // of its own (issue #1765).
+      expect(
+        find.descendant(
+          of: find.byType(SelectionLeading),
+          matching: find.byType(Checkbox),
+        ),
+        findsNothing,
+      );
       expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
     });
 

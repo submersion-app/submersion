@@ -90,6 +90,25 @@ void main() {
       expect(find.text('31 dives'), findsOneWidget);
     });
 
+    testWidgets('never lists a sites-only tag (issue #1765)', (tester) async {
+      final siteOnly = TagStatistic(
+        tag: Tag(
+          id: 'site-tag',
+          name: 'To try',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          appliesToDives: false,
+          appliesToSites: true,
+        ),
+        diveCount: 0,
+        siteCount: 3,
+      );
+      await tester.pumpWidget(buildTestWidget(stats: [...testStats, siteOnly]));
+      await tester.pumpAndSettle();
+
+      expect(renderedTagNames(tester), ['Wreck', 'Night', 'Deco', 'Training']);
+    });
+
     testWidgets('hides tags already attached to the dive', (tester) async {
       await tester.pumpWidget(
         buildTestWidget(selectedTagIds: {'tag2', 'tag4'}),
