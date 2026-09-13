@@ -12158,6 +12158,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'مسح';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'تصفية المعدات';
 
   @override
@@ -26084,6 +26089,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_hose_length_m => 'طول الخرطوم';
 
   @override
+  String get attrLabel_hose_type => 'نوع الخرطوم';
+
+  @override
   String get attrLabel_plate_material => 'مادة اللوحة';
 
   @override
@@ -26417,6 +26425,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrChoice_connection_yoke => 'يوك (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (ضغط منخفض)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (ضغط عالٍ)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'منفاخ (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';
 
   @override
@@ -26682,6 +26699,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'خصائص المعدات';
+
+  @override
+  String get diveLog_filter_gearCategory => 'فئة المعدات';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'أي فئة';
 
   @override
   String get diveLog_filter_thicknessMin => 'الأدنى';

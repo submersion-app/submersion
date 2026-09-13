@@ -30,17 +30,35 @@ class PlatformGalleryResolver implements MediaSourceResolver {
   /// production injects the singleton from [galleryThumbnailCacheProvider].
   final GalleryThumbnailCache _thumbnailCache;
 
+  /// False on Windows and Linux, which have no photo library for
+  /// photo_manager to read (it has no backend there). Every gallery row on
+  /// such a device was linked on another one, so this resolver answers
+  /// [UnavailableKind.fromOtherDevice] for all of them without consulting
+  /// [AssetResolutionService], whose gallery search is an interactive file
+  /// dialog on those platforms.
+  ///
+  /// Never [UnavailableKind.notFound]: that is the one verdict that orphans a
+  /// row, and the write syncs, so a Linux device would mark photos that are
+  /// still safe in a Mac's or phone's library missing everywhere.
+  final bool _hasPhotoLibrary;
+
+  static const _elsewhere = UnavailableData(
+    kind: UnavailableKind.fromOtherDevice,
+  );
+
   PlatformGalleryResolver({
     required AssetResolutionService resolutionService,
     GalleryThumbnailCache? thumbnailCache,
+    bool hasPhotoLibrary = true,
   }) : _resolutionService = resolutionService,
-       _thumbnailCache = thumbnailCache ?? GalleryThumbnailCache();
+       _thumbnailCache = thumbnailCache ?? GalleryThumbnailCache(),
+       _hasPhotoLibrary = hasPhotoLibrary;
 
   @override
   MediaSourceType get sourceType => MediaSourceType.platformGallery;
 
   @override
-  bool canResolveOnThisDevice(MediaItem item) => true;
+  bool canResolveOnThisDevice(MediaItem item) => _hasPhotoLibrary;
 
   @override
   Future<MediaSourceData> resolve(MediaItem item) async {
@@ -48,6 +66,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
+    if (!_hasPhotoLibrary) return _elsewhere;
     final resolution = await _resolutionService.resolveAssetId(item);
     // Checked before the id, because accessDenied always carries a null id
     // and collapsing the two would report "your photo is gone" for what is
@@ -83,6 +102,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
+    if (!_hasPhotoLibrary) return _elsewhere;
     final width = target.width.toInt();
     final height = target.height.toInt();
     // Keyed by size as well as item: the grid and the viewer ask for different
@@ -147,7 +167,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
   @override
   Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async {
     final assetId = item.platformAssetId;
-    if (assetId == null || assetId.isEmpty) return null;
+    if (assetId == null || assetId.isEmpty || !_hasPhotoLibrary) return null;
     final resolvedId = await _resolveId(item);
     if (resolvedId == null) return null;
     // coverage:ignore-start
@@ -170,6 +190,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
   Future<VerifyResult> verify(MediaItem item) async {
     final assetId = item.platformAssetId;
     if (assetId == null || assetId.isEmpty) return VerifyResult.notFound;
+    if (!_hasPhotoLibrary) return VerifyResult.fromOtherDevice;
     final resolution = await _resolutionService.resolveAssetId(item);
     // Before the id check: accessDenied always carries a null id, and
     // returning notFound here is what used to let a revoked permission mark

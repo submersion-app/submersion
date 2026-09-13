@@ -12089,6 +12089,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'נקה';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'סנן ציוד';
 
   @override
@@ -25885,6 +25890,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_hose_length_m => 'אורך הצינור';
 
   @override
+  String get attrLabel_hose_type => 'סוג צינור';
+
+  @override
   String get attrLabel_plate_material => 'חומר הפלטה';
 
   @override
@@ -26218,6 +26226,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_connection_yoke => 'יוק (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (לחץ נמוך)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (לחץ גבוה)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'מנפח (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';
 
   @override
@@ -26482,6 +26499,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'מאפייני ציוד';
+
+  @override
+  String get diveLog_filter_gearCategory => 'קטגוריית ציוד';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'כל קטגוריה';
 
   @override
   String get diveLog_filter_thicknessMin => 'מינ\'';
