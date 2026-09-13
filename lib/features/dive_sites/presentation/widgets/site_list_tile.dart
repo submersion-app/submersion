@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/domain/constants/site_field.dart'
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
@@ -135,6 +136,9 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
     }
 
     final chipTextColor = primaryTextColor ?? colorScheme.onSurface;
+    final typeIds = {for (final t in entry.siteTypes) t.id};
+    final shownTags = entry.tags.take(3).toList();
+    final hiddenTagCount = entry.tags.length - shownTags.length;
     final chips = <Widget>[
       if (site.difficulty != null)
         _SiteChip(
@@ -150,11 +154,36 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
           color: statColor,
           textColor: chipTextColor,
         ),
-      for (final typeName in entry.featureTypes)
+      // Site types (issue #1765) before feature pins.
+      for (final type in entry.siteTypes)
         _SiteChip(
-          icon: SiteFeatureGlyph.styleFor(typeName).$1,
-          label: siteFeatureTypeLabel(l10n, typeName),
-          color: SiteFeatureGlyph.styleFor(typeName).$2,
+          icon: Icons.category_outlined,
+          label: type.localizedName(l10n),
+          color: statColor,
+          textColor: chipTextColor,
+        ),
+      // A wreck pin on a site typed wreck would read "Wreck Wreck".
+      for (final typeName in entry.featureTypes)
+        if (!(typeName == 'wreck' && typeIds.contains('wreck')))
+          _SiteChip(
+            icon: SiteFeatureGlyph.styleFor(typeName).$1,
+            label: siteFeatureTypeLabel(l10n, typeName),
+            color: SiteFeatureGlyph.styleFor(typeName).$2,
+            textColor: chipTextColor,
+          ),
+      // Tags (issue #1765): the first three, then a count of the rest.
+      for (final tag in shownTags)
+        _SiteChip(
+          icon: Icons.sell_outlined,
+          label: tag.name,
+          color: tag.color,
+          textColor: chipTextColor,
+        ),
+      if (hiddenTagCount > 0)
+        _SiteChip(
+          icon: Icons.sell_outlined,
+          label: l10n.diveSites_list_moreTags(hiddenTagCount),
+          color: statColor,
           textColor: chipTextColor,
         ),
     ];

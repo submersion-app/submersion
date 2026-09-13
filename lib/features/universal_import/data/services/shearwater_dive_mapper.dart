@@ -198,6 +198,11 @@ class ShearwaterDiveMapper {
           site['longitude'] = coords.$2;
         }
 
+        // A suggestion only (issue #1765): the importer applies it while the
+        // site has no types, so it never overrides the diver's own choice.
+        final siteType = ShearwaterValueMapper.mapSiteType(dive.environment);
+        if (siteType != null) site['suggestedSiteTypeRefs'] = [siteType];
+
         return site;
       });
     }

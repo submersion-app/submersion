@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// Per-site aggregate over the dives table: how many dives were logged at
 /// the site, the span they cover, and the depths and durations they reached.
@@ -57,6 +59,12 @@ class SiteWithDiveCount extends Equatable {
   final double? averageDurationSeconds;
   final List<String> featureTypes;
 
+  /// The site's types in the diver's chosen order (issue #1765).
+  final List<SiteTypeEntity> siteTypes;
+
+  /// The site's tags, by name (issue #1765).
+  final List<Tag> tags;
+
   const SiteWithDiveCount({
     required this.site,
     required this.diveCount,
@@ -67,6 +75,8 @@ class SiteWithDiveCount extends Equatable {
     this.longestDiveSeconds,
     this.averageDurationSeconds,
     this.featureTypes = const [],
+    this.siteTypes = const [],
+    this.tags = const [],
   });
 
   SiteWithDiveCount copyWith({
@@ -79,6 +89,8 @@ class SiteWithDiveCount extends Equatable {
     int? longestDiveSeconds,
     double? averageDurationSeconds,
     List<String>? featureTypes,
+    List<SiteTypeEntity>? siteTypes,
+    List<Tag>? tags,
   }) {
     return SiteWithDiveCount(
       site: site ?? this.site,
@@ -91,6 +103,8 @@ class SiteWithDiveCount extends Equatable {
       averageDurationSeconds:
           averageDurationSeconds ?? this.averageDurationSeconds,
       featureTypes: featureTypes ?? this.featureTypes,
+      siteTypes: siteTypes ?? this.siteTypes,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -105,5 +119,7 @@ class SiteWithDiveCount extends Equatable {
     longestDiveSeconds,
     averageDurationSeconds,
     featureTypes,
+    siteTypes,
+    tags,
   ];
 }

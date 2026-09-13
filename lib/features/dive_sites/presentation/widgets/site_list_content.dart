@@ -36,6 +36,10 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_locatio
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 class SiteListContent extends ConsumerStatefulWidget {
@@ -1149,6 +1153,29 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 context.l10n.diveSites_list_activeFilter_hasDives,
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearHasDives: true),
+              ),
+            // One chip per filtered site type and tag (issue #1765).
+            for (final typeId in filter.siteTypeIds)
+              _buildFilterChip(
+                ref
+                        .watch(siteTypesByIdProvider)
+                        .value?[typeId]
+                        ?.localizedName(context.l10n) ??
+                    typeId,
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(
+                      siteTypeIds: {...filter.siteTypeIds}..remove(typeId),
+                    ),
+              ),
+            for (final tagId in filter.tagIds)
+              _buildFilterChip(
+                (ref.watch(tagsProvider).value ?? const <Tag>[])
+                        .where((t) => t.id == tagId)
+                        .firstOrNull
+                        ?.name ??
+                    tagId,
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(tagIds: {...filter.tagIds}..remove(tagId)),
               ),
           ],
         ),
