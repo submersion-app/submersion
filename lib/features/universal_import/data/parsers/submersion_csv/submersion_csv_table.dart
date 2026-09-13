@@ -9,6 +9,8 @@ import 'package:submersion/core/services/export/csv/codec/csv_date_formats.dart'
 import 'package:submersion/core/services/export/csv/codec/csv_header.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_unit.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 
 /// A Submersion CSV export read as text cells, looked up by column base
 /// name, with every unit and date/time format taken from the headers. A
@@ -119,6 +121,42 @@ class SubmersionCsvTable {
     return value == null
         ? null
         : parseCsvTime(value, timeFormatForSuffix(_header(base)?.suffix));
+  }
+
+  /// One warning per cell in [row] that has text but cannot be read as the
+  /// kind its column holds: a number under [numbers], a date under [dates],
+  /// a time under [times]. Such a cell is left out of the import, so a
+  /// spreadsheet edit never drops a value without saying so. [rowIndex] is
+  /// the row's index in [rows]; messages count the header as row 1.
+  List<ImportWarning> cellWarnings(
+    List<String> row,
+    int rowIndex,
+    ImportEntityType entityType, {
+    Iterable<String> numbers = const [],
+    Iterable<String> dates = const [],
+    Iterable<String> times = const [],
+  }) {
+    ImportWarning warn(String base, String value) => ImportWarning(
+      severity: ImportWarningSeverity.warning,
+      message:
+          'Row ${rowIndex + 2}: "$value" under "${_header(base)}" could not '
+          'be read and was left out',
+      entityType: entityType,
+      itemIndex: rowIndex,
+      field: base,
+    );
+    return [
+      for (final base in numbers)
+        if (text(row, base) case final value?
+            when double.tryParse(value) == null)
+          warn(base, value),
+      for (final base in dates)
+        if (text(row, base) case final value? when date(row, base) == null)
+          warn(base, value),
+      for (final base in times)
+        if (text(row, base) case final value? when time(row, base) == null)
+          warn(base, value),
+    ];
   }
 
   /// `custom:<key>` cells with a value, in column order. A value keeps its

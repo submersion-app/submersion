@@ -38,6 +38,16 @@ class SubmersionDivesCsvParser implements ImportParser {
     CsvColumns.windSpeed,
   ];
 
+  /// Plain numeric columns, read without a unit.
+  static const _numberColumns = [
+    'Dive Number',
+    'Bottom Time',
+    'Runtime',
+    'Rating',
+    'O2 %',
+    'Humidity',
+  ];
+
   static Duration? _minutes(double? minutes) =>
       minutes == null ? null : Duration(seconds: (minutes * 60).round());
 
@@ -81,6 +91,18 @@ class SubmersionDivesCsvParser implements ImportParser {
         );
         continue;
       }
+      warnings.addAll(
+        table.cellWarnings(
+          row,
+          i,
+          ImportEntityType.dives,
+          numbers: [
+            for (final column in _unitColumns) column.base,
+            ..._numberColumns,
+          ],
+          times: const ['Time'],
+        ),
+      );
       final time = table.time(row, 'Time');
       final visibilityMeters = table.quantity(row, CsvColumns.visibility);
 
@@ -211,7 +233,11 @@ class SubmersionDivesCsvParser implements ImportParser {
         _ => null,
       };
     }
-    if (volume == null && start == null && end == null && o2 == null) {
+    if (volume == null &&
+        workingPressure == null &&
+        start == null &&
+        end == null &&
+        o2 == null) {
       return null;
     }
     return <String, dynamic>{

@@ -9,21 +9,32 @@ const _formulaLeaders = {'=', '+', '-', '@', '\t', '\r', '|'};
 ///
 /// References:
 /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
+///
+/// A value the diver typed as a quote followed by a formula character
+/// (`'=1+1`) is inert already, but it gets a second quote too, so that
+/// [unsanitizeCsvField] hands it back exactly.
 String sanitizeCsvField(String? value) {
   if (value == null || value.isEmpty) return '';
-  return _formulaLeaders.contains(value[0]) ? "'$value" : value;
+  final guarded =
+      _formulaLeaders.contains(value[0]) ||
+      (value.length >= 2 &&
+          value[0] == "'" &&
+          _formulaLeaders.contains(value[1]));
+  return guarded ? "'$value" : value;
 }
 
-/// Reverses [sanitizeCsvField]: drops a leading quote only when it guards a
-/// formula character, so a value the diver typed with a leading quote
-/// survives the round trip.
+/// Reverses [sanitizeCsvField]: drops one leading quote only when it guards
+/// a formula character, or a typed quote before one, so every value the
+/// diver typed survives the round trip.
 String unsanitizeCsvField(String value) {
-  if (value.length >= 2 &&
+  final guarded =
+      value.length >= 2 &&
       value[0] == "'" &&
-      _formulaLeaders.contains(value[1])) {
-    return value.substring(1);
-  }
-  return value;
+      (_formulaLeaders.contains(value[1]) ||
+          (value.length >= 3 &&
+              value[1] == "'" &&
+              _formulaLeaders.contains(value[2])));
+  return guarded ? value.substring(1) : value;
 }
 
 /// [value] with [decimals] places, trailing zeros (and a bare point)

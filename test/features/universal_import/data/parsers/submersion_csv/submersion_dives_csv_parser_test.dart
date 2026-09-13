@@ -102,4 +102,43 @@ void main() {
     expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
     expect(payload.warnings.single.severity, ImportWarningSeverity.error);
   });
+
+  test('a hand-edited unreadable number is left out with a warning', () async {
+    final csv = CsvDivesWriter(
+      CsvExportUnits.metric,
+    ).write(goldenDives()).replaceFirst(',30.5,', ',oops,');
+    final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+    final dive = payload.entitiesOf(ImportEntityType.dives).first;
+    expect(dive.containsKey('maxDepth'), isFalse);
+    expect(payload.warnings.single.field, 'Max Depth');
+    expect(payload.warnings.single.severity, ImportWarningSeverity.warning);
+  });
+
+  test('a tank carrying only a working pressure is kept', () async {
+    final header = CsvDivesWriter(CsvExportUnits.metric)
+        .write(goldenDives())
+        .split('\r\n')
+        .first
+        .replaceFirst(
+          'Tank Volume (L),',
+          'Tank Volume (L),Working Pressure (bar),',
+        );
+    // Dive Number, Name, Date, Time; everything else blank except the
+    // working pressure column.
+    final row = [
+      '1',
+      '',
+      '2025-03-15',
+      '09:05',
+      ...List.filled(17, ''),
+      '232.0',
+      ...List.filled(12, ''),
+    ].join(',');
+    final payload = await const SubmersionDivesCsvParser().parse(
+      _bytes('$header\r\n$row'),
+    );
+    final dive = payload.entitiesOf(ImportEntityType.dives).single;
+    final tank = (dive['tanks'] as List<Map<String, dynamic>>).single;
+    expect(tank['workingPressure'], 232.0);
+  });
 }

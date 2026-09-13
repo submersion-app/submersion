@@ -73,6 +73,15 @@ class SubmersionEquipmentCsvParser implements ImportParser {
         continue;
       }
 
+      warnings.addAll(
+        table.cellWarnings(
+          row,
+          i,
+          ImportEntityType.equipment,
+          numbers: const ['Buoyancy', 'Dry Weight'],
+          dates: const ['Purchase Date', 'Last Service', 'Next Service Due'],
+        ),
+      );
       final attributes = <Map<String, dynamic>>[];
       final thickness = table.text(row, 'Thickness');
       if (thickness != null) {

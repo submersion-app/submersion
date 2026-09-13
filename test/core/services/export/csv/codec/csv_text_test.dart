@@ -28,4 +28,12 @@ void main() {
     expect(trimFixed(1.50, 2), '1.5');
     expect(trimFixed(100, 1), '100');
   });
+
+  test("a typed leading quote before a formula character round trips", () {
+    // "'=1+1" is already inert in a spreadsheet, but the reader strips one
+    // guard quote, so the writer doubles it to hand the value back intact.
+    expect(sanitizeCsvField("'=1+1"), "''=1+1");
+    expect(unsanitizeCsvField(sanitizeCsvField("'=1+1")), "'=1+1");
+    expect(unsanitizeCsvField(sanitizeCsvField("'-x")), "'-x");
+  });
 }

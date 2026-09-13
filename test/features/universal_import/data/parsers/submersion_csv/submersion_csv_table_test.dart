@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_unit.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_csv_table.dart';
 
 SubmersionCsvTable _table(String csv) =>
@@ -66,5 +67,35 @@ void main() {
     expect(t.text(row, 'Name'), '=cmd');
     expect(t.text(row, 'Notes'), '-deep');
     expect(t.quantity(row, CsvColumns.waterTemp), -2);
+  });
+
+  test('unreadable numbers, dates and times become row warnings', () {
+    final t = _table(
+      'Max Depth (ft),Rating,Date,Time\n'
+      'oops,4,someday,25:99\n'
+      ',,2025-03-15,09:05\n',
+    );
+    final bad = t.cellWarnings(
+      t.rows[0],
+      0,
+      ImportEntityType.dives,
+      numbers: const ['Max Depth', 'Rating'],
+      dates: const ['Date'],
+      times: const ['Time'],
+    );
+    expect(bad.map((w) => w.field), ['Max Depth', 'Date', 'Time']);
+    expect(bad.first.message, contains('Row 2'));
+    expect(bad.first.message, contains('"oops"'));
+    expect(
+      t.cellWarnings(
+        t.rows[1],
+        1,
+        ImportEntityType.dives,
+        numbers: const ['Max Depth', 'Rating'],
+        dates: const ['Date'],
+        times: const ['Time'],
+      ),
+      isEmpty,
+    );
   });
 }

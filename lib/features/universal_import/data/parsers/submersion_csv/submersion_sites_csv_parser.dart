@@ -54,6 +54,14 @@ class SubmersionSitesCsvParser implements ImportParser {
         );
         continue;
       }
+      warnings.addAll(
+        table.cellWarnings(
+          row,
+          i,
+          ImportEntityType.sites,
+          numbers: const ['Latitude', 'Longitude', 'Max Depth', 'Rating'],
+        ),
+      );
       final lat = table.number(row, 'Latitude');
       final lon = table.number(row, 'Longitude');
       sites.add(
