@@ -1,8 +1,14 @@
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
+import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
 
 /// Reads and writes that turn legacy buddy text into buddy records (#1831).
 ///
@@ -14,6 +20,9 @@ import 'package:submersion/features/buddies/domain/entities/legacy_buddy_convers
 /// newer edit made on another device.
 class BuddyConversionRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _sync = SyncRepository();
+  final _uuid = const Uuid();
+  final _log = LoggerService.forClass(BuddyConversionRepository);
 
   /// The buddies a legacy name may match: [diverId]'s own and unowned ones,
   /// each with the number of dives it is linked to.
@@ -81,4 +90,165 @@ class BuddyConversionRepository {
         ),
     ];
   }
+
+  /// Writes [plans] in one transaction and returns what it wrote. Dives that
+  /// are gone or gained links since planning are skipped, so a stale preview
+  /// cannot double-link. Announces the change once, after the commit.
+  Future<ConversionReceipt> apply(
+    List<ConversionPlan> plans, {
+    required String diverId,
+    required String newBuddyNote,
+  }) async {
+    try {
+      final receipt = await _db.transaction(() async {
+        final run = _ApplyRun(
+          matcher: BuddyNameMatcher(
+            await candidateBuddies(diverId),
+            diverId: diverId,
+          ),
+          diverId: diverId,
+          newBuddyNote: newBuddyNote,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        for (final plan in plans) {
+          if (plan.isEmpty || !await _isUnlinkedDive(plan.diveId)) continue;
+          final linked = <String>{};
+          for (final link in plan.links) {
+            final buddyId = await _resolve(link.target, run);
+            if (!linked.add(buddyId)) continue;
+            final linkId = _uuid.v4();
+            await _db
+                .into(_db.diveBuddies)
+                .insert(
+                  DiveBuddiesCompanion(
+                    id: Value(linkId),
+                    diveId: Value(plan.diveId),
+                    buddyId: Value(buddyId),
+                    role: Value(link.roleId),
+                    createdAt: Value(run.now),
+                  ),
+                );
+            await _sync.markRecordPending(
+              entityType: 'diveBuddies',
+              recordId: linkId,
+              localUpdatedAt: run.now,
+            );
+            run.linkIds.add(linkId);
+          }
+          run.diveIds.add(plan.diveId);
+        }
+        return run.toReceipt();
+      });
+      if (!receipt.isEmpty) SyncEventBus.notifyLocalChange();
+      return receipt;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to link legacy buddy text',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  Future<bool> _isUnlinkedDive(String diveId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT (SELECT COUNT(*) FROM dives WHERE id = ?) AS present, '
+          '(SELECT COUNT(*) FROM dive_buddies WHERE dive_id = ?) AS links',
+          variables: [Variable.withString(diveId), Variable.withString(diveId)],
+        )
+        .getSingle();
+    return row.read<int>('present') == 1 && row.read<int>('links') == 0;
+  }
+
+  /// The buddy [target] writes to, creating or claiming it as needed.
+  Future<String> _resolve(LinkTarget target, _ApplyRun run) async {
+    if (target case ExistingBuddyTarget(:final buddyId)) {
+      final row = await (_db.select(
+        _db.buddies,
+      )..where((t) => t.id.equals(buddyId))).getSingleOrNull();
+      if (row != null) {
+        await _claimIfUnowned(row.id, row.diverId, run);
+        return row.id;
+      }
+      // Deleted since planning (a sync, another window): use the name.
+    }
+    final key = legacyNameKey(target.name);
+    final created = run.createdByKey[key];
+    if (created != null) return created;
+    if (run.matcher.match(target.name) case ExactMatch(:final candidate)) {
+      await _claimIfUnowned(candidate.id, candidate.diverId, run);
+      return candidate.id;
+    }
+    final id = _uuid.v4();
+    await _db
+        .into(_db.buddies)
+        .insert(
+          BuddiesCompanion(
+            id: Value(id),
+            diverId: Value(run.diverId),
+            name: Value(target.name.trim()),
+            notes: Value(run.newBuddyNote),
+            createdAt: Value(run.now),
+            updatedAt: Value(run.now),
+          ),
+        );
+    await _sync.markRecordPending(
+      entityType: 'buddies',
+      recordId: id,
+      localUpdatedAt: run.now,
+    );
+    run.createdByKey[key] = id;
+    run.createdIds.add(id);
+    return id;
+  }
+
+  /// Gives an unowned buddy to the diver, as the UDDF importer does (#1806):
+  /// `getAllBuddies(diverId:)` filters strictly on `diver_id`, so an
+  /// unclaimed buddy would be linked yet missing from the diver's list.
+  Future<void> _claimIfUnowned(
+    String id,
+    String? ownerId,
+    _ApplyRun run,
+  ) async {
+    if (ownerId != null || run.claimedIds.contains(id)) return;
+    await (_db.update(_db.buddies)..where((t) => t.id.equals(id))).write(
+      BuddiesCompanion(diverId: Value(run.diverId), updatedAt: Value(run.now)),
+    );
+    await _sync.markRecordPending(
+      entityType: 'buddies',
+      recordId: id,
+      localUpdatedAt: run.now,
+    );
+    run.claimedIds.add(id);
+  }
+}
+
+/// What one [BuddyConversionRepository.apply] run has written so far.
+class _ApplyRun {
+  _ApplyRun({
+    required this.matcher,
+    required this.diverId,
+    required this.newBuddyNote,
+    required this.now,
+  });
+
+  final BuddyNameMatcher matcher;
+  final String diverId;
+  final String newBuddyNote;
+  final int now;
+  final Map<String, String> createdByKey = {};
+  final List<String> createdIds = [];
+  final Set<String> claimedIds = {};
+  final List<String> linkIds = [];
+  final List<String> diveIds = [];
+
+  ConversionReceipt toReceipt() => ConversionReceipt(
+    diverId: diverId,
+    diveIds: List.unmodifiable(diveIds),
+    linkIds: List.unmodifiable(linkIds),
+    createdBuddyIds: List.unmodifiable(createdIds),
+    claimedBuddyIds: List.unmodifiable(claimedIds),
+  );
 }
