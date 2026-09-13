@@ -36585,6 +36585,102 @@ abstract class AppLocalizations {
   /// **'Import could not continue: {details}'**
   String universalImport_error_stepFailed(Object details);
 
+  /// First line of the error shown when every CSV row was skipped because its date could not be read
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Nothing was imported: the date in 1 row could not be read.} other{Nothing was imported: the dates in {count} rows could not be read.}}'**
+  String universalImport_error_unreadableDatesHeadline(int count);
+
+  /// Last line of the unreadable-dates error, pointing the user at the date column mapping on the Map Fields step
+  ///
+  /// In en, this message translates to:
+  /// **'Check that the date and time columns are mapped on this step, and that they hold dates.'**
+  String get universalImport_error_unreadableDatesHint;
+
+  /// Error shown when a file produced nothing to import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable data was found in this file.'**
+  String get universalImport_error_noDataInFile;
+
+  /// Error shown when a file produced nothing to import, followed by the parser's own explanation
+  ///
+  /// In en, this message translates to:
+  /// **'No importable data was found in this file: {details}'**
+  String universalImport_error_noDataInFileWithDetails(String details);
+
+  /// Error shown when none of several selected files produced anything to import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable data was found in the selected files.'**
+  String get universalImport_error_noDataInFiles;
+
+  /// Error shown when the selected file's contents are no longer available
+  ///
+  /// In en, this message translates to:
+  /// **'The selected file could not be read. Pick it again.'**
+  String get universalImport_error_fileUnreadable;
+
+  /// Error shown when reading the file failed unexpectedly
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be read: {details}'**
+  String universalImport_error_parseFailed(String details);
+
+  /// Error shown when a ZIP archive holds no file the app can import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable files were found in the archive.'**
+  String get universalImport_error_noFilesInArchive;
+
+  /// Error shown when a chosen folder holds no file the app can import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable files were found in the selected folder.'**
+  String get universalImport_error_noFilesInFolder;
+
+  /// Error shown when a dropped or shared file could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be loaded: {details}'**
+  String universalImport_error_loadFailed(String details);
+
+  /// Error shown when a picked file could not be opened
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be opened: {details}'**
+  String universalImport_error_pickFailed(String details);
+
+  /// Error shown when a chosen folder could not be scanned for importable files
+  ///
+  /// In en, this message translates to:
+  /// **'The folder could not be scanned: {details}'**
+  String universalImport_error_folderScanFailed(String details);
+
+  /// Error shown when Import from Garmin Device finds no connected device; names the Choose Folder button
+  ///
+  /// In en, this message translates to:
+  /// **'No connected Garmin device found. Connect it by cable, or use Choose Folder to select the device\'s GARMIN/Activity folder.'**
+  String get universalImport_error_garminNotFound;
+
+  /// Error shown when a connected Garmin device could not be read
+  ///
+  /// In en, this message translates to:
+  /// **'The Garmin device could not be read: {details}'**
+  String universalImport_error_garminReadFailed(String details);
+
+  /// Error shown when a connected Garmin device holds no dive activities
+  ///
+  /// In en, this message translates to:
+  /// **'No dives were found on the connected Garmin device.'**
+  String get universalImport_error_garminNoDives;
+
+  /// Error shown when the optional additional (profile) file could not be opened
+  ///
+  /// In en, this message translates to:
+  /// **'The additional file could not be opened: {details}'**
+  String universalImport_error_additionalFilePickFailed(String details);
+
   /// Title for the CSV column mapping step
   ///
   /// In en, this message translates to:

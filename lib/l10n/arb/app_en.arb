@@ -13480,6 +13480,118 @@
   "universalImport_error_duplicateCheckFailed": "Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.",
   "universalImport_error_noColumnsToMap": "This file has no columns to map. Go back and select the file again, or choose a different source.",
   "universalImport_error_stepFailed": "Import could not continue: {details}",
+  "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Nothing was imported: the date in 1 row could not be read.} other{Nothing was imported: the dates in {count} rows could not be read.}}",
+  "@universalImport_error_unreadableDatesHeadline": {
+    "description": "First line of the error shown when every CSV row was skipped because its date could not be read",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "universalImport_error_unreadableDatesHint": "Check that the date and time columns are mapped on this step, and that they hold dates.",
+  "@universalImport_error_unreadableDatesHint": {
+    "description": "Last line of the unreadable-dates error, pointing the user at the date column mapping on the Map Fields step"
+  },
+  "universalImport_error_noDataInFile": "No importable data was found in this file.",
+  "@universalImport_error_noDataInFile": {
+    "description": "Error shown when a file produced nothing to import"
+  },
+  "universalImport_error_noDataInFileWithDetails": "No importable data was found in this file: {details}",
+  "@universalImport_error_noDataInFileWithDetails": {
+    "description": "Error shown when a file produced nothing to import, followed by the parser's own explanation",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "Failed to parse XML: Expected a single root element at 1:25"
+      }
+    }
+  },
+  "universalImport_error_noDataInFiles": "No importable data was found in the selected files.",
+  "@universalImport_error_noDataInFiles": {
+    "description": "Error shown when none of several selected files produced anything to import"
+  },
+  "universalImport_error_fileUnreadable": "The selected file could not be read. Pick it again.",
+  "@universalImport_error_fileUnreadable": {
+    "description": "Error shown when the selected file's contents are no longer available"
+  },
+  "universalImport_error_parseFailed": "The file could not be read: {details}",
+  "@universalImport_error_parseFailed": {
+    "description": "Error shown when reading the file failed unexpectedly",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FormatException: unexpected end of input"
+      }
+    }
+  },
+  "universalImport_error_noFilesInArchive": "No importable files were found in the archive.",
+  "@universalImport_error_noFilesInArchive": {
+    "description": "Error shown when a ZIP archive holds no file the app can import"
+  },
+  "universalImport_error_noFilesInFolder": "No importable files were found in the selected folder.",
+  "@universalImport_error_noFilesInFolder": {
+    "description": "Error shown when a chosen folder holds no file the app can import"
+  },
+  "universalImport_error_loadFailed": "The file could not be loaded: {details}",
+  "@universalImport_error_loadFailed": {
+    "description": "Error shown when a dropped or shared file could not be loaded",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
+  "universalImport_error_pickFailed": "The file could not be opened: {details}",
+  "@universalImport_error_pickFailed": {
+    "description": "Error shown when a picked file could not be opened",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
+  "universalImport_error_folderScanFailed": "The folder could not be scanned: {details}",
+  "@universalImport_error_folderScanFailed": {
+    "description": "Error shown when a chosen folder could not be scanned for importable files",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "PathNotFoundException: Directory listing failed"
+      }
+    }
+  },
+  "universalImport_error_garminNotFound": "No connected Garmin device found. Connect it by cable, or use Choose Folder to select the device's GARMIN/Activity folder.",
+  "@universalImport_error_garminNotFound": {
+    "description": "Error shown when Import from Garmin Device finds no connected device; names the Choose Folder button"
+  },
+  "universalImport_error_garminReadFailed": "The Garmin device could not be read: {details}",
+  "@universalImport_error_garminReadFailed": {
+    "description": "Error shown when a connected Garmin device could not be read",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Directory listing failed"
+      }
+    }
+  },
+  "universalImport_error_garminNoDives": "No dives were found on the connected Garmin device.",
+  "@universalImport_error_garminNoDives": {
+    "description": "Error shown when a connected Garmin device holds no dive activities"
+  },
+  "universalImport_error_additionalFilePickFailed": "The additional file could not be opened: {details}",
+  "@universalImport_error_additionalFilePickFailed": {
+    "description": "Error shown when the optional additional (profile) file could not be opened",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
   "universalImport_label_columnMapping": "Column Mapping",
   "universalImport_label_columnsMapped": "{mapped} of {total} columns mapped",
   "universalImport_label_consolidate": "Consolidate",

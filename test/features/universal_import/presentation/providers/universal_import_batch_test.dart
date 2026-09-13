@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' show Locale;
 
 import 'package:archive/archive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -27,6 +29,9 @@ class _FakeFilePicker extends FilePickerPlatform
     with MockPlatformInterfaceMixin {
   List<String>? nextPickPaths;
   String? nextDirectory;
+
+  /// When set, every pick and directory request throws it instead.
+  Object? failWith;
 
   @override
   Future<List<PlatformFile>> pickFiles({
@@ -41,6 +46,7 @@ class _FakeFilePicker extends FilePickerPlatform
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
   }) async {
+    if (failWith case final error?) throw error;
     final paths = nextPickPaths;
     if (paths == null) return const [];
     return [
@@ -61,6 +67,7 @@ class _FakeFilePicker extends FilePickerPlatform
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
   }) async {
+    if (failWith case final error?) throw error;
     final paths = nextPickPaths;
     if (paths == null || paths.isEmpty) return null;
     return FakePlatformFile(paths.first, name: p.basename(paths.first));
@@ -75,9 +82,13 @@ class _FakeFilePicker extends FilePickerPlatform
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
   }) async {
+    if (failWith case final error?) throw error;
     return nextDirectory;
   }
 }
+
+final _en = lookupAppLocalizations(const Locale('en'));
+final _de = lookupAppLocalizations(const Locale('de'));
 
 /// Batch parse service that simulates the user cancelling right after the
 /// first file parsed: file 0 comes back [ImportFileStatus.parsed], the rest
@@ -196,6 +207,18 @@ void main() {
       expect(notifier.state.files, isEmpty);
       expect(notifier.state.isLoading, isFalse);
     });
+
+    test('a failing picker is reported with its cause', () async {
+      picker.failWith = StateError('picker gone');
+
+      await notifier.pickFiles();
+
+      expect(
+        notifier.state.error,
+        _en.universalImport_error_pickFailed('Bad state: picker gone'),
+      );
+      expect(notifier.state.isLoading, isFalse);
+    });
   });
 
   group('pickAdditionalFile', () {
@@ -226,6 +249,20 @@ void main() {
       expect(notifier.state.additionalFileBytes, isNull);
       expect(notifier.state.additionalFileName, isNull);
       expect(notifier.state.isLoading, isFalse);
+    });
+
+    test('a failing pick is reported with its cause', () async {
+      picker.failWith = StateError('picker gone');
+
+      await notifier.pickAdditionalFile();
+
+      expect(
+        notifier.state.error,
+        _en.universalImport_error_additionalFilePickFailed(
+          'Bad state: picker gone',
+        ),
+      );
+      expect(notifier.state.additionalFileBytes, isNull);
     });
   });
 
@@ -260,7 +297,7 @@ void main() {
         throwsA(isA<ImportStepFailure>()),
       );
 
-      expect(notifier.state.error, isNotNull);
+      expect(notifier.state.error, _en.universalImport_error_noDataInFiles);
       expect(notifier.state.currentStep, isNot(ImportWizardStep.review));
       // Detection is cleared so the Confirm Source step's Next gate goes false
       // -- there is no payload to advance to.
@@ -350,8 +387,44 @@ void main() {
 
       await notifier.pickFolder();
 
-      expect(notifier.state.error, isNotNull);
+      expect(notifier.state.error, _en.universalImport_error_noFilesInFolder);
       expect(notifier.state.files, isEmpty);
+    });
+
+    test(
+      'a folder that cannot be scanned is reported with its cause',
+      () async {
+        picker.failWith = StateError('no access');
+
+        await notifier.pickFolder();
+
+        expect(
+          notifier.state.error,
+          _en.universalImport_error_folderScanFailed('Bad state: no access'),
+        );
+        expect(notifier.state.isLoading, isFalse);
+      },
+    );
+
+    test('the folder error follows the language setting', () async {
+      final prefs = await SharedPreferences.getInstance();
+      final germanContainer = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          localeProvider.overrideWithValue('de'),
+        ],
+      );
+      addTearDown(germanContainer.dispose);
+      final german = germanContainer.read(
+        universalImportNotifierProvider.notifier,
+      );
+      await writeFile('notes.txt', 'hello');
+      picker.nextDirectory = tmp.path;
+
+      await german.pickFolder();
+
+      expect(german.state.error, _de.universalImport_error_noFilesInFolder);
     });
   });
 
@@ -455,7 +528,62 @@ void main() {
       final detection = await notifier.loadFileFromBytes(bytes, 'junk.zip');
       final state = notifier.state;
       expect(detection.format, ImportFormat.unknown);
-      expect(state.error, contains('No importable files'));
+      expect(state.error, _en.universalImport_error_noFilesInArchive);
+      expect(detection.warnings, [_en.universalImport_error_noFilesInArchive]);
+    });
+
+    test('a shared archive that cannot be read is reported', () async {
+      // A ZIP signature over garbage: detected as a ZIP, fails to decode.
+      final bytes = Uint8List.fromList([0x50, 0x4B, 0x03, 0x04, 1, 2, 3, 4]);
+
+      final detection = await notifier.loadFileFromBytes(bytes, 'broken.zip');
+
+      final error = notifier.state.error;
+      expect(error, startsWith(_en.universalImport_error_loadFailed('')));
+      expect(error, contains('FormatException'));
+      expect(detection.format, ImportFormat.unknown);
+      expect(detection.warnings, [error]);
+    });
+
+    group('an archive with nothing importable', () {
+      Future<String> writeJunkZip() async {
+        final zipPath = '${tmp.path}/junk.zip';
+        await File(zipPath).writeAsBytes(
+          buildZip({
+            'readme.txt': [65, 66],
+          }),
+        );
+        return zipPath;
+      }
+
+      test('is reported when picked', () async {
+        picker.nextPickPaths = [await writeJunkZip()];
+
+        await notifier.pickFiles();
+
+        expect(
+          notifier.state.error,
+          _en.universalImport_error_noFilesInArchive,
+        );
+      });
+
+      test('is reported when dropped', () async {
+        await notifier.loadFilesFromPaths([await writeJunkZip()]);
+
+        expect(
+          notifier.state.error,
+          _en.universalImport_error_noFilesInArchive,
+        );
+      });
+
+      test('leaves a picked folder with nothing importable', () async {
+        await writeJunkZip();
+        picker.nextDirectory = tmp.path;
+
+        await notifier.pickFolder();
+
+        expect(notifier.state.error, _en.universalImport_error_noFilesInFolder);
+      });
     });
 
     test(

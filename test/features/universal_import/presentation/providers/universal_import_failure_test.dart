@@ -9,8 +9,10 @@
 
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui' show Locale;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
@@ -19,8 +21,12 @@ import 'package:submersion/features/universal_import/data/models/detection_resul
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+
+final _en = lookupAppLocalizations(const Locale('en'));
+final _de = lookupAppLocalizations(const Locale('de'));
 
 const _emptyUddf = '<uddf version="3.2.0"></uddf>';
 
@@ -50,11 +56,20 @@ PickedImportFile _file(Uint8List bytes) => PickedImportFile(
   status: ImportFileStatus.pending,
 );
 
-Future<UniversalImportNotifier> _notifier() async {
+/// [locale] is the language setting (`en`, `de`, ...); left null, the
+/// notifier follows the test platform, which is English.
+Future<UniversalImportNotifier> _notifier({
+  String? locale,
+  List<Override> overrides = const [],
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final container = ProviderContainer(
-    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(prefs),
+      if (locale != null) localeProvider.overrideWithValue(locale),
+      ...overrides,
+    ],
   );
   addTearDown(container.dispose);
   return container.read(universalImportNotifierProvider.notifier);
@@ -173,6 +188,61 @@ void main() {
       expect(notifier.state.isLoading, isFalse);
     });
 
+    test('leads the parser\'s complaint with the diver\'s language', () async {
+      // The parser's text is kept for what it says about the file, but the
+      // sentence around it follows the language setting.
+      final notifier = await _notifier(locale: 'de');
+      notifier.state = notifier.state.copyWith(
+        detectionResult: const DetectionResult(
+          format: ImportFormat.subsurfaceXml,
+          sourceApp: SourceApp.subsurface,
+          confidence: 0.9,
+        ),
+        files: [_file(_bytes('not valid xml at all {{{'))],
+      );
+
+      await expectLater(
+        notifier.confirmSource(
+          overrideApp: SourceApp.subsurface,
+          overrideFormat: ImportFormat.subsurfaceXml,
+        ),
+        throwsA(isA<ImportStepFailure>()),
+      );
+      expect(
+        notifier.state.error,
+        startsWith(_de.universalImport_error_noDataInFileWithDetails('')),
+      );
+      expect(notifier.state.error, contains('Failed to parse XML'));
+    });
+
+    test('reports a parse that throws, in the diver\'s language', () async {
+      // Reading the surfacing-pressure setting is part of producing the
+      // payload, so a settings failure lands in the parse step's catch.
+      final notifier = await _notifier(
+        locale: 'de',
+        overrides: [
+          settingsProvider.overrideWith((ref) => throw StateError('boom')),
+        ],
+      );
+      _seed(notifier, _bytes(_oneDiveUddf));
+
+      // Riverpod wraps the provider's own error, so the cause is contained in
+      // the details rather than being all of them.
+      await expectLater(
+        notifier.confirmSource(),
+        throwsA(
+          isA<ImportStepFailure>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              startsWith(_de.universalImport_error_parseFailed('')),
+              contains('Bad state: boom'),
+            ),
+          ),
+        ),
+      );
+    });
+
     test('reports the failure when the picked file carries no bytes', () async {
       final notifier = await _notifier();
       notifier.state = notifier.state.copyWith(
@@ -198,7 +268,79 @@ void main() {
         notifier.confirmSource(),
         throwsA(isA<ImportStepFailure>()),
       );
-      expect(notifier.state.error, isNotNull);
+      expect(notifier.state.error, _en.universalImport_error_fileUnreadable);
+    });
+  });
+
+  group('a CSV whose every date is unreadable', () {
+    // Issue #1828's day-first fix leaves only genuinely unreadable dates
+    // skipped. When that is every row, the Map Fields step used to show the
+    // first raw transformer warning, in English: "Row 2: could not resolve
+    // dateTime, skipping".
+    setUp(setUpTestDatabase);
+    tearDown(tearDownTestDatabase);
+
+    const csv =
+        'Date,Time,Max Depth\n'
+        '15 Apr 2024,10:00,20\n'
+        '16 Apr 2024,11:00,18\n';
+
+    Future<UniversalImportNotifier> atMapFields({String? locale}) async {
+      final notifier = await _notifier(locale: locale);
+      notifier.state = notifier.state.copyWith(
+        detectionResult: const DetectionResult(
+          format: ImportFormat.csv,
+          sourceApp: SourceApp.generic,
+          confidence: 0.9,
+        ),
+        files: [
+          PickedImportFile(
+            name: 'logbook.csv',
+            bytes: _bytes(csv),
+            detection: const DetectionResult(
+              format: ImportFormat.csv,
+              confidence: 0.9,
+            ),
+            status: ImportFileStatus.pending,
+          ),
+        ],
+      );
+      await notifier.confirmSource();
+      expect(notifier.state.currentStep, ImportWizardStep.fieldMapping);
+      return notifier;
+    }
+
+    String summary(AppLocalizations l10n) => [
+      l10n.universalImport_error_unreadableDatesHeadline(2),
+      l10n.universalImport_summary_unreadableDatesRows(2, '2, 3'),
+      l10n.universalImport_error_unreadableDatesHint,
+    ].join('\n');
+
+    test('counts the rows, names them, and points at the mapping', () async {
+      final notifier = await atMapFields();
+
+      await expectLater(
+        notifier.confirmFieldMapping(),
+        throwsA(
+          isA<ImportStepFailure>().having(
+            (e) => e.message,
+            'message',
+            summary(_en),
+          ),
+        ),
+      );
+      expect(notifier.state.error, summary(_en));
+      expect(notifier.state.payload, isNull);
+    });
+
+    test('is written in the diver\'s language', () async {
+      final notifier = await atMapFields(locale: 'de');
+
+      await expectLater(
+        notifier.confirmFieldMapping(),
+        throwsA(isA<ImportStepFailure>()),
+      );
+      expect(notifier.state.error, summary(_de));
     });
   });
 
