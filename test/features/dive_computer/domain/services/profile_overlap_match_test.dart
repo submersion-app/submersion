@@ -132,5 +132,32 @@ void main() {
         closeTo((5.0 + 0.2 + 5.0) / 3, 0.01),
       );
     });
+
+    test(
+      'two existing samples sharing a timestamp resolve to the first depth',
+      () {
+        // A degenerate but real-world input: noisy raw data can log two
+        // samples at the same offset. Division by a zero span must not
+        // happen; the first of the tied pair wins. Existing starts AT the
+        // tie (no earlier bracket to resolve it first), so a lookup at that
+        // exact offset can only be answered by the tie branch itself.
+        final existing = [_s(50, 5.0), _s(50, 9.0), _s(100, 3.0)];
+        final incoming = [_s(0, 5.0), _s(50, 3.0)];
+
+        final result = compareProfileOverlap(
+          existing: existing,
+          incoming: incoming,
+          incomingOffsetSeconds: 50,
+          minOverlapSamples: 1,
+        );
+
+        expect(result, isNotNull);
+        expect(result!.comparedSamples, 2);
+        // Offset 50 (on existing's clock) hits the tie, taking 5.0 -- not
+        // 9.0 -- and offset 100 interpolates normally to 3.0. Both incoming
+        // samples match exactly.
+        expect(result.meanAbsDepthErrorMeters, closeTo(0.0, 0.001));
+      },
+    );
   });
 }
