@@ -25,6 +25,11 @@ enum ImportWarningCode {
   /// cannot be derived. Not a defect in the file or the parser: several dive
   /// computers and vendor export apps simply do not write it.
   noTankPressure,
+
+  /// A CSV row was not imported because its date could not be read. Unlike
+  /// the other codes this is about a dive that is missing from the import, so
+  /// the warning carries the row in [ImportWarning.sourceRow].
+  unreadableDate,
 }
 
 /// A warning or error encountered during import parsing or validation.
@@ -48,6 +53,10 @@ class ImportWarning extends Equatable {
   /// Field name that caused the warning, if applicable.
   final String? field;
 
+  /// The row in the source file the warning is about, numbered as a
+  /// spreadsheet shows it (header = row 1), if the parser knows it.
+  final int? sourceRow;
+
   const ImportWarning({
     required this.severity,
     required this.message,
@@ -55,6 +64,7 @@ class ImportWarning extends Equatable {
     this.entityType,
     this.itemIndex,
     this.field,
+    this.sourceRow,
   });
 
   // `code` is appended rather than placed alongside `severity` so the existing
@@ -67,5 +77,6 @@ class ImportWarning extends Equatable {
     itemIndex,
     field,
     code,
+    sourceRow,
   ];
 }

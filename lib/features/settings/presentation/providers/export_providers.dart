@@ -14,6 +14,7 @@ import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -290,6 +291,18 @@ class ExportNotifier extends StateNotifier<ExportState> {
     return _ref
         .read(equipmentObservationRepositoryProvider)
         .getAll(diverId: diverId);
+  }
+
+  /// [_validatedDiverDives] with each dive's recorded profile, for the full
+  /// UDDF backup. The dive list leaves profiles out, and the backup writes its
+  /// samples and tank pressures from them (issue #1874); the workbook draws no
+  /// profile, so it keeps the lean list.
+  Future<List<Dive>> _validatedDiverDivesWithProfiles() async {
+    final dives = await _validatedDiverDives();
+    state = state.copyWith(
+      message: _l10n.settings_export_progress_loadingProfiles,
+    );
+    return attachMergedProfiles(_ref.read(diveRepositoryProvider), dives);
   }
 
   /// The active diver's dives for the full UDDF export and the workbook,
@@ -575,7 +588,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_uddf,
     );
     try {
-      final dives = await _validatedDiverDives();
+      final dives = await _validatedDiverDivesWithProfiles();
 
       // Collect all data for comprehensive export
       state = state.copyWith(
@@ -1220,7 +1233,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingUddf,
     );
     try {
-      final dives = await _validatedDiverDives();
+      final dives = await _validatedDiverDivesWithProfiles();
 
       // Collect all data for comprehensive export
       state = state.copyWith(

@@ -21637,6 +21637,50 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'חלק מהשורות לא יובאו';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'לא ניתן היה לקרוא את התאריך בשורות אלה. בדקו את עמודת התאריך בקובץ, תקנו את השורות האלה וייבאו את הקובץ שוב.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שורות לא יובאו',
+      one: 'שורה אחת לא יובאה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שורות $rows',
+      one: 'שורה $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שורות $rows ועוד $count',
+      one: 'שורות $rows ועוד אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21704,6 +21748,84 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return 'לא ניתן להמשיך בייבוא: $details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא יובא דבר: לא ניתן היה לקרוא את התאריכים ב-$count שורות.',
+      one: 'לא יובא דבר: לא ניתן היה לקרוא את התאריך בשורה אחת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'לא נמצאו בקובץ הזה נתונים שניתן לייבא.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'לא נמצאו בקובץ הזה נתונים שניתן לייבא: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'לא נמצאו בקבצים שנבחרו נתונים שניתן לייבא.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'לא ניתן היה לקרוא את הקובץ שנבחר. בחר אותו שוב.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'לא ניתן היה לקרוא את הקובץ: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'לא נמצאו בארכיון קבצים שניתן לייבא.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'לא נמצאו בתיקייה שנבחרה קבצים שניתן לייבא.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'לא ניתן היה לטעון את הקובץ: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'לא ניתן היה לפתוח את הקובץ: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'לא ניתן היה לסרוק את התיקייה: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'לא נמצא מכשיר Garmin מחובר. חבר אותו בכבל, או השתמש ב״בחירת תיקייה״ כדי לבחור את תיקיית GARMIN/Activity של המכשיר.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'לא ניתן היה לקרוא את מכשיר ה-Garmin: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'לא נמצאו צלילות במכשיר ה-Garmin המחובר.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'לא ניתן היה לפתוח את הקובץ הנוסף: $details';
   }
 
   @override

@@ -111,6 +111,20 @@ class TankPressureSeriesRepository {
     return [for (final row in rows) ?_decodeOrNull(row)];
   }
 
+  /// [getSeriesForDive] for many dives at once, keyed by dive id, in the
+  /// same tank, start, id order; a dive with no decodable series is absent.
+  /// Chunked through [getRowsForDives].
+  Future<Map<String, List<domain.TankPressureSeries>>> getSeriesForDives(
+    List<String> diveIds,
+  ) async {
+    final byDive = <String, List<domain.TankPressureSeries>>{};
+    for (final row in await getRowsForDives(diveIds)) {
+      final series = _decodeOrNull(row);
+      if (series != null) byDive.putIfAbsent(row.diveId, () => []).add(series);
+    }
+    return byDive;
+  }
+
   Future<List<domain.TankPressureSeries>> getSeriesForTank(
     String diveId,
     String tankId,
