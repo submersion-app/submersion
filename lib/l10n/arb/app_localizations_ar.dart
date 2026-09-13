@@ -26445,11 +26445,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'لا توجد غطسات مسجلة بسماكة بدلة';
+      'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'تعذر تحميل بيانات سماكة البدلة';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'غير معروف';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';

@@ -26247,11 +26247,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'אין צלילות עם עובי חליפה מתועד';
+      'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'לא ניתן לטעון נתוני עובי חליפה';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'לא ידוע';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';

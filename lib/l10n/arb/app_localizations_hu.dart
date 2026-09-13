@@ -26806,11 +26806,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nincs merülés rögzített ruhavastagsággal';
+      'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Nem sikerült betölteni a vastagsági adatokat';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Ismeretlen';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';

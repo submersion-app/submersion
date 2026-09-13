@@ -27008,11 +27008,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Aucune plongée avec une épaisseur de combinaison enregistrée';
+      'Aucune plongée liée à une combinaison humide ou étanche';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Impossible de charger les données d\'épaisseur';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Inconnue';
 
   @override
   String get diveLog_filter_sectionSuitThickness =>

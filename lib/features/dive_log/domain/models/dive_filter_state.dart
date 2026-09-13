@@ -449,9 +449,9 @@ class DiveFilterState {
       // Equipment-attribute axis: mirror the SQL subquery (curated rows only,
       // value_text exact-matches choice, value_num bounded by min/max).
       if (equipmentAttrKey != null) {
-        // "Suit thickness" (thickness_mm) matches only exposure suits, mirroring
-        // getDivesBySuitThickness() and the SQL axis; hoods/gloves/boots also
-        // carry thickness_mm but are not suits.
+        // "Suit thickness" (thickness_mm) matches only exposure suits, the
+        // suits getDivesBySuitThickness() counts, mirroring the SQL axis;
+        // hoods/gloves/boots also carry thickness_mm but are not suits.
         final suitOnly = equipmentAttrKey == EquipmentAttrKeys.thicknessMm;
         final matches = dive.equipment.any((item) {
           if (suitOnly &&

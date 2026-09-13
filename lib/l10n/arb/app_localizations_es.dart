@@ -26932,11 +26932,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'No hay inmersiones con grosor de traje registrado';
+      'No hay inmersiones con un traje de neopreno o traje seco vinculado';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'No se pudieron cargar los datos de grosor del traje';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Desconocido';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Grosor del traje (mm)';

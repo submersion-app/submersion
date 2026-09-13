@@ -93,8 +93,10 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
   // attribute matches. value_num bounds are canonical metric.
   if (filter.equipmentAttrKey != null) {
     // The "Suit thickness" axis (thickness_mm) must match only exposure suits,
-    // mirroring getDivesBySuitThickness(): the same attr_key also exists on
-    // hoods/gloves/boots, which are not suits.
+    // the suits getDivesBySuitThickness() counts: the same attr_key also
+    // exists on hoods/gloves/boots, which are not suits. The chart puts every
+    // drysuit in a bucket of its own (issue #1824), so a drysuit carrying a
+    // legacy thickness matches here yet charts as a drysuit.
     final suitOnly = filter.equipmentAttrKey == EquipmentAttrKeys.thicknessMm;
     final sub = StringBuffer(
       'id IN (SELECT de.dive_id FROM dive_equipment de '
