@@ -125,6 +125,8 @@ void main() {
       extras: await resolveDivesExtras(
         buddies,
         EquipmentComponentRepository(),
+        DiveRoleRepository(),
+        diverId,
         ['d1'],
         options,
       ),
