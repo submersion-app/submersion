@@ -79,15 +79,16 @@ void main() {
       );
     });
 
-    test('an ambiguous dotted or dashed column makes no decision', () {
+    test('an ambiguous dotted or dashed column stays day first', () {
       // Dots and dashes have always read day first; the device locale is not
-      // a reason to start reading 03.04.1991 as 4 March.
+      // a reason to start reading 03.04.1991 as 4 March. The order is still
+      // reported, so a companion profile file can read its dates the same way.
       expect(
         detectColumnDateOrder([
           '03.04.1991',
           '01-02-1992',
         ], localeOrder: DateOrder.monthFirst),
-        isNull,
+        DateOrder.dayFirst,
       );
     });
 

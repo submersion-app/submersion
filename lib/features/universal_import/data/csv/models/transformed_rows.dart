@@ -17,8 +17,8 @@ class TransformedRows extends Equatable {
 
   /// How this file's year-last numeric dates were read (the date column, or
   /// the combined date-time column if there is none). Null when the file had
-  /// no such dates, or only dotted or dashed ones with nothing to decide
-  /// them. A companion profile file uses it so both files read alike.
+  /// no such dates. A companion profile file uses it so both files read
+  /// alike.
   final DateOrder? dateOrder;
 
   const TransformedRows({

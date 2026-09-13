@@ -149,5 +149,58 @@ void main() {
       expect(firstDive['dateTime'], DateTime.utc(1991, 4, 3, 9));
       expect(firstDive['profile'], hasLength(2));
     });
+
+    test('a dotted dive list passes its day-first reading to the profile', () {
+      // 03.04.1991 is read day first even though nothing in the column proves
+      // it; an ambiguous slash-dated profile must follow that reading rather
+      // than the (month-first) locale, or its samples never attach.
+      ParsedCsv csvOf(String content) =>
+          pipeline.parse(Uint8List.fromList(utf8.encode(content)));
+
+      final diveList = csvOf(
+        'No,Date,Time,Depth\n'
+        '1,03.04.1991,09:00,20\n',
+      );
+      final profile = csvOf(
+        'No,Date,Time,Sample,SampleDepth\n'
+        '1,03/04/1991,09:00,0:00,0\n'
+        '1,03/04/1991,09:00,1:00,5\n',
+      );
+      const common = [
+        ColumnMapping(sourceColumn: 'No', targetField: 'diveNumber'),
+        ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+        ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+      ];
+      const config = ImportConfiguration(
+        mappings: {
+          'dive_list': FieldMapping(
+            name: 'Dives',
+            columns: [
+              ...common,
+              ColumnMapping(sourceColumn: 'Depth', targetField: 'maxDepth'),
+            ],
+          ),
+          'dive_profile': FieldMapping(
+            name: 'Profile',
+            columns: [
+              ...common,
+              ColumnMapping(sourceColumn: 'Sample', targetField: 'sampleTime'),
+              ColumnMapping(
+                sourceColumn: 'SampleDepth',
+                targetField: 'sampleDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final payload = CsvPipeline(
+        transformer: CsvTransformer(localeDateOrder: DateOrder.monthFirst),
+      ).execute(primaryCsv: diveList, profileCsv: profile, config: config);
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['dateTime'], DateTime.utc(1991, 4, 3, 9));
+      expect(dive['profile'], hasLength(2));
+    });
   });
 }

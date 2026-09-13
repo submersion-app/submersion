@@ -116,9 +116,11 @@ DateOrder _orderOfPattern(String pattern) {
 ///
 /// When the column has no such evidence, or contradicts itself, a column
 /// written with slashes follows [localeOrder]. A column written only with dots
-/// or dashes returns null, keeping the day-first reading those separators
-/// have always had: the device locale is no reason to start reading
-/// `03.04.1991` as 4 March.
+/// or dashes stays [DateOrder.dayFirst], the reading those separators have
+/// always had: the device locale is no reason to start reading `03.04.1991`
+/// as 4 March. The result is always the order the column is actually read in,
+/// so a companion profile file can follow it. Null means the column holds no
+/// year-last dates at all.
 ///
 /// Combined date-time values are accepted; only the part before the first
 /// space or `T` is read.
@@ -129,11 +131,13 @@ DateOrder? detectColumnDateOrder(
   var dayFirstEvidence = false;
   var monthFirstEvidence = false;
   var hasSlashes = false;
+  var hasYearLastDates = false;
 
   for (final value in values) {
     if (value == null) continue;
     final date = matchYearLastDate(value.trim().split(_dateTimeBoundary).first);
     if (date == null) continue;
+    hasYearLastDates = true;
     if (date.separator == '/') hasSlashes = true;
     if (_canOnlyBeDay(date.first) && date.second <= 12) {
       dayFirstEvidence = true;
@@ -145,7 +149,8 @@ DateOrder? detectColumnDateOrder(
 
   if (dayFirstEvidence && !monthFirstEvidence) return DateOrder.dayFirst;
   if (monthFirstEvidence && !dayFirstEvidence) return DateOrder.monthFirst;
-  return hasSlashes ? localeOrder : null;
+  if (hasSlashes) return localeOrder;
+  return hasYearLastDates ? DateOrder.dayFirst : null;
 }
 
 bool _canOnlyBeDay(int field) => field > 12 && field <= 31;
