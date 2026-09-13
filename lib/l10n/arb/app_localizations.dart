@@ -36462,31 +36462,31 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}'**
   String universalImport_summary_noticeAffectedDives(int count);
 
-  /// No description provided for @universalImport_summary_unreadableDatesTitle.
+  /// Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app.
   ///
   /// In en, this message translates to:
   /// **'Some rows were not imported'**
   String get universalImport_summary_unreadableDatesTitle;
 
-  /// No description provided for @universalImport_summary_unreadableDatesBody.
+  /// Body of the import summary card for CSV rows skipped because their date could not be read. 'These rows' are the spreadsheet rows listed below it; 'it' is the CSV file.
   ///
   /// In en, this message translates to:
   /// **'The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.'**
   String get universalImport_summary_unreadableDatesBody;
 
-  /// No description provided for @universalImport_summary_unreadableDatesCount.
+  /// How many spreadsheet rows of the CSV file were skipped because their date could not be read.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 row not imported} other{{count} rows not imported}}'**
   String universalImport_summary_unreadableDatesCount(int count);
 
-  /// No description provided for @universalImport_summary_unreadableDatesRows.
+  /// Names the skipped spreadsheet rows so the user can find them in the file. {rows} is a comma-separated list of row numbers such as '4, 9, 12' (the header is row 1); {count} is how many numbers it lists.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{Row {rows}} other{Rows {rows}}}'**
   String universalImport_summary_unreadableDatesRows(int count, String rows);
 
-  /// No description provided for @universalImport_summary_unreadableDatesRowsMore.
+  /// The long form of universalImport_summary_unreadableDatesRows: {rows} lists the first ten skipped spreadsheet row numbers, and {count} is how many more rows were skipped but not listed.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{Rows {rows} and 1 more} other{Rows {rows} and {count} more}}'**
