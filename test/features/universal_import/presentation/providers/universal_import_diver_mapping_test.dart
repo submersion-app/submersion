@@ -103,8 +103,8 @@ void main() {
     notifier.initDiverMapping(profiles: [_me], activeDiverId: 'me');
     notifier.applyDiverMapping(activeDiverId: 'me');
     notifier.state = notifier.state.copyWith(
-      photoResolution: ImportMediaResolution(
-        resolvedPathByIndex: const {0: '/p/b.jpg'},
+      photoResolution: const ImportMediaResolution(
+        resolvedPathByIndex: {0: '/p/b.jpg'},
         reRootedCount: 0,
         filenameOnlyCount: 0,
         notFoundCount: 0,
