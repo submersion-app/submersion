@@ -108,6 +108,15 @@ void main() {
       return db.select(db.siteTags).get();
     });
     expect(links, hasLength(1));
+    // Declining is not a failure: the editor stays open with its buttons
+    // live, so the diver can change their mind (#1907).
+    expect(find.text('Edit Tag'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, 'Save'))
+          .onPressed,
+      isNotNull,
+    );
   });
 
   testWidgets('unticking both scopes shows an error and does not save', (

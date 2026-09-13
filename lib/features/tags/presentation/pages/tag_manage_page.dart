@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -38,6 +39,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   Set<String> get _selectedIds => _selection.value.checkedIds;
 
   static const _uuid = Uuid();
+  static final _log = LoggerService.forClass(TagManagePage);
 
   @override
   void dispose() {
@@ -280,6 +282,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     String selectedColor = TagColors.predefined.first;
     bool forDives = true;
     bool forSites = false;
+    bool saving = false;
 
     showDialog(
       context: context,
@@ -319,21 +322,35 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: saving ? null : () => Navigator.pop(dialogContext),
               child: Text(context.l10n.common_action_cancel),
             ),
             TextButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isEmpty || (!forDives && !forSites)) return;
-                final newTag = Tag.create(
-                  id: _uuid.v4(),
-                  name: name,
-                  colorHex: selectedColor,
-                ).copyWith(appliesToDives: forDives, appliesToSites: forSites);
-                ref.read(tagListNotifierProvider.notifier).addTag(newTag);
-                Navigator.pop(dialogContext);
-              },
+              onPressed: saving
+                  ? null
+                  : () {
+                      final name = controller.text.trim();
+                      if (name.isEmpty || (!forDives && !forSites)) return;
+                      final newTag =
+                          Tag.create(
+                            id: _uuid.v4(),
+                            name: name,
+                            colorHex: selectedColor,
+                          ).copyWith(
+                            appliesToDives: forDives,
+                            appliesToSites: forSites,
+                          );
+                      _saveFromDialog(
+                        dialogContext,
+                        setSaving: (v) => setDialogState(() => saving = v),
+                        save: () async {
+                          await ref
+                              .read(tagListNotifierProvider.notifier)
+                              .addTag(newTag);
+                          return true;
+                        },
+                      );
+                    },
               child: Text(context.l10n.common_action_save),
             ),
           ],
@@ -347,6 +364,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     String selectedColor = tag.colorHex ?? TagColors.predefined.first;
     bool forDives = tag.appliesToDives;
     bool forSites = tag.appliesToSites;
+    bool saving = false;
 
     showDialog(
       context: context,
@@ -386,40 +404,84 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: saving ? null : () => Navigator.pop(dialogContext),
               child: Text(context.l10n.common_action_cancel),
             ),
             TextButton(
-              onPressed: () async {
-                final name = controller.text.trim();
-                if (name.isEmpty || (!forDives && !forSites)) return;
-                final confirmed = await _confirmNarrowing(
-                  tag,
-                  forDives: forDives,
-                  forSites: forSites,
-                );
-                if (!confirmed) return;
-                await ref
-                    .read(tagListNotifierProvider.notifier)
-                    .updateTag(
-                      tag.copyWith(
-                        name: name,
-                        colorHex: selectedColor,
-                        updatedAt: DateTime.now(),
-                        appliesToDives: forDives,
-                        appliesToSites: forSites,
-                      ),
-                    );
-                // Site cards and the site filter read tags too.
-                ref.invalidate(sitesWithCountsProvider);
-                if (dialogContext.mounted) Navigator.pop(dialogContext);
-              },
+              onPressed: saving
+                  ? null
+                  : () {
+                      final name = controller.text.trim();
+                      if (name.isEmpty || (!forDives && !forSites)) return;
+                      _saveFromDialog(
+                        dialogContext,
+                        setSaving: (v) => setDialogState(() => saving = v),
+                        save: () async {
+                          final confirmed = await _confirmNarrowing(
+                            tag,
+                            forDives: forDives,
+                            forSites: forSites,
+                          );
+                          if (!confirmed) return false;
+                          await ref
+                              .read(tagListNotifierProvider.notifier)
+                              .updateTag(
+                                tag.copyWith(
+                                  name: name,
+                                  colorHex: selectedColor,
+                                  updatedAt: DateTime.now(),
+                                  appliesToDives: forDives,
+                                  appliesToSites: forSites,
+                                ),
+                              );
+                          // Site cards and the site filter read tags too.
+                          ref.invalidate(sitesWithCountsProvider);
+                          return true;
+                        },
+                      );
+                    },
               child: Text(context.l10n.common_action_save),
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// Runs a tag dialog's [save], closing the dialog only once it lands.
+  ///
+  /// [save] returns false when it chose not to write (the diver declined the
+  /// narrowing confirmation), which leaves the dialog open without an error.
+  /// A failure is logged and reported, and the dialog stays open with its
+  /// edits so the diver can retry (#1907). [setSaving] disables the dialog's
+  /// buttons meanwhile, so a second tap cannot start a second write.
+  ///
+  /// Every failure is caught here, so the Future a button drops cannot reach
+  /// the zone unattributed.
+  Future<void> _saveFromDialog(
+    BuildContext dialogContext, {
+    required ValueChanged<bool> setSaving,
+    required Future<bool> Function() save,
+  }) async {
+    setSaving(true);
+    try {
+      if (await save() && dialogContext.mounted) {
+        Navigator.pop(dialogContext);
+      }
+    } catch (e, stackTrace) {
+      _log.error('Failed to save a tag', error: e, stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.common_error_tryAgain),
+            duration: const Duration(seconds: 4),
+            showCloseIcon: true,
+          ),
+        );
+      }
+    } finally {
+      if (dialogContext.mounted) setSaving(false);
+    }
   }
 
   /// "Use for dives" and "Use for sites" (issue #1765), with an error line
