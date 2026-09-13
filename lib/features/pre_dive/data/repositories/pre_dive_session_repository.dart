@@ -332,10 +332,11 @@ class PreDiveSessionRepository {
   /// Dives that already have a checklist run attached, across all divers.
   ///
   /// The manual link picker (#1066) subtracts these from its candidates so a
-  /// hand-made link keeps the one-run-per-dive rule [ChecklistDiveLinker]
-  /// enforces; a second run on the same dive would leave the older one
-  /// invisible from the dive side, since [getSessionForDive] returns only the
-  /// latest.
+  /// hand-made link does not silently shadow an existing run: [ChecklistDiveLinker]
+  /// itself allows several runs to share one dive (a check re-done, or
+  /// several checks before one dive), but [getSessionForDive] surfaces only
+  /// the latest, so a second manual link on the same dive would leave an
+  /// older run invisible from the dive side.
   Future<Set<String>> getLinkedDiveIds() async {
     try {
       final query = _db.selectOnly(_db.preDiveSessions, distinct: true)
