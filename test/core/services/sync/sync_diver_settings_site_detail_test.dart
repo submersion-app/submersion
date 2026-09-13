@@ -6,7 +6,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// The site detail columns (v216) ride the generic diverSettings row, so
+/// The site detail columns (v218) ride the generic diverSettings row, so
 /// they reach other devices with no serializer change, and a payload from a
 /// peer that predates them still applies.
 void main() {
@@ -46,22 +46,22 @@ void main() {
       (db.select(db.diverSettings)..where((t) => t.id.equals(id))).getSingle();
 
   test('both columns export and re-import unchanged', () async {
-    await insertRow('ds-216');
-    final exported = await serializer.fetchRecord('diverSettings', 'ds-216');
+    await insertRow('ds-218');
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-218');
     expect(exported!['siteDetailSections'], sectionsJson);
     expect(exported['siteDetailLayout'], 'list');
 
     await (db.delete(
       db.diverSettings,
-    )..where((t) => t.id.equals('ds-216'))).go();
+    )..where((t) => t.id.equals('ds-218'))).go();
     await serializer.upsertRecord('diverSettings', exported);
 
-    final row = await readRow('ds-216');
+    final row = await readRow('ds-218');
     expect(row.siteDetailSections, sectionsJson);
     expect(row.siteDetailLayout, 'list');
   });
 
-  test('a pre-v216 payload without the columns still applies', () async {
+  test('a pre-v218 payload without the columns still applies', () async {
     await insertRow('ds-215');
     final exported = await serializer.fetchRecord('diverSettings', 'ds-215');
     final legacy = Map<String, dynamic>.from(exported!)

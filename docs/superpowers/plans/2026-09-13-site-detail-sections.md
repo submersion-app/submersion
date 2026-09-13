@@ -12,6 +12,8 @@
 
 **Issue:** #1884
 
+**Executed note:** the rung was renumbered from 216 to **218** after the plan ran, because open PR #1860 moved onto 216 and #1849 holds 217. Read every "216" below as 218.
+
 ## Global Constraints
 
 - Never write an em-dash or an en-dash used as punctuation, and never use ` -- ` as prose punctuation, anywhere: code, comments, docs, commit messages, PR text. Rewrite with commas, colons, semicolons or parentheses.

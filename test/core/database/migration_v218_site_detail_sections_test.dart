@@ -6,11 +6,11 @@ import 'package:submersion/core/database/database.dart';
 const _columns = ['site_detail_sections', 'site_detail_layout'];
 
 void main() {
-  test('v216 is the current schema version and is in the ladder', () {
+  test('v218 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 216);
-    expect(AppDatabase.migrationVersions, contains(216));
+    expect(AppDatabase.currentSchemaVersion, 218);
+    expect(AppDatabase.migrationVersions, contains(218));
   });
 
   test('the columns are additive, so the sync floor does not move', () {
@@ -32,7 +32,7 @@ void main() {
   });
 
   test(
-    'a database stranded before v216 gains both columns via beforeOpen',
+    'a database stranded before v218 gains both columns via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {

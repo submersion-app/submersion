@@ -8,7 +8,7 @@ void main() {
     // Renumbered repeatedly (202, 212) as main shipped 211 and 213 while this
     // branch was open, including the 212 main had reserved for it: a rung at
     // or below the shipped version never runs its onUpgrade step.
-    // Stop-minimums took 214. Relaxed once v216 (site detail sections)
+    // Stop-minimums took 214. Relaxed once v218 (site detail sections)
     // landed on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(215));
     expect(AppDatabase.migrationVersions, contains(215));

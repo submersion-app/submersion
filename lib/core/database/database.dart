@@ -2241,10 +2241,10 @@ class DiverSettings extends Table {
   // Dive detail page layout: detailed | list (v185). A stored "compact",
   // from before that layout was dropped, reads back as detailed.
   TextColumn get diveDetailLayout => text().nullable()();
-  // Site detail page card order, visibility and fold state (v216): JSON
+  // Site detail page card order, visibility and fold state (v218): JSON
   // array in the dive_detail_sections format. Null reads as the defaults.
   TextColumn get siteDetailSections => text().nullable()();
-  // Site detail page layout: detailed | list (v216). Null reads as detailed.
+  // Site detail page layout: detailed | list (v218). Null reads as detailed.
   TextColumn get siteDetailLayout => text().nullable()();
   // Table view profile panel default visibility (v61)
   BoolColumn get showProfilePanelInTableView =>
@@ -4108,7 +4108,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 216;
+  static const int currentSchemaVersion = 218;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4699,10 +4699,13 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 202, then 212, for the same collisions; stop-minimums
     // took 214.
     215,
-    // v216: diver_settings.site_detail_sections and site_detail_layout, the
+    // v218: diver_settings.site_detail_sections and site_detail_layout, the
     // Site Details page's card order, visibility, fold state and layout
-    // (issue #1884). Additive nullable columns, no backfill.
-    216,
+    // (issue #1884). Additive nullable columns, no backfill. Takes 218, not
+    // 216: open PRs hold 216 (metric-source defaults) and 217 (site types
+    // and tags), and a rung at or below the shipped version never runs its
+    // onUpgrade step, so this one sits above both.
+    218,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6146,7 +6149,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v216: diver_settings.site_detail_sections and site_detail_layout (issue
+  /// v218: diver_settings.site_detail_sections and site_detail_layout (issue
   /// #1884). Idempotent, so it is safe to call from both onUpgrade and the
   /// beforeOpen backstop, and a no-op when the table does not exist yet.
   Future<void> _assertSiteDetailColumns() async {
@@ -12031,12 +12034,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertPlanGasOptionColumns();
         }
         if (from < 215) await reportProgress();
-        // v216: diver_settings site detail columns. Column-only rung, no
+        // v218: diver_settings site detail columns. Column-only rung, no
         // backfill: null reads back as the default order and layout.
-        if (from < 216) {
+        if (from < 218) {
           await _assertSiteDetailColumns();
         }
-        if (from < 216) await reportProgress();
+        if (from < 218) await reportProgress();
       },
       beforeOpen: (details) async {
         // v211 backstop: re-assert diver_settings.auto_tag_imports.
@@ -12388,7 +12391,7 @@ class AppDatabase extends _$AppDatabase {
         // default layout.
         await _assertDiveDetailLayoutColumn();
 
-        // v216 backstop: re-assert the diver_settings site detail columns.
+        // v218 backstop: re-assert the diver_settings site detail columns.
         // Every settings read selects the whole row, so a database that
         // arrives by restore or sync-adopt without them would throw on the
         // first read.

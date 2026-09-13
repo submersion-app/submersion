@@ -222,21 +222,21 @@ adjacency, so a card added in a later release lands in a sensible place.
 `DiverSettingsRepository` writes both columns on insert and on update and
 reads them back, following the dive columns.
 
-**Migration, schema v216.**
+**Migration, schema v218.**
 
-- `currentSchemaVersion` 215 -> 216. Main reached 215 on 2026-09-13 (#1639);
-  open PR #1849 claims 217, and #1860 still reads 214 (below main, so it
-  must renumber at its own merge). Re-scan the ladder immediately before
-  pushing.
+- `currentSchemaVersion` 215 -> 218. Main reached 215 on 2026-09-13 (#1639).
+  Open PR #1860 renumbered to 216 and #1849 claims 217, so this rung takes
+  218 and should merge after both (ascending merges). Re-scan the ladder
+  immediately before pushing.
 - `_assertSiteDetailColumns()` is PRAGMA-guarded and idempotent, and adds any
-  missing column of the two. It runs from `onUpgrade` under `from < 216` and
+  missing column of the two. It runs from `onUpgrade` under `from < 218` and
   again from the `beforeOpen` backstop, like
   `_assertDiveDetailLayoutColumn`.
 - `minimumCompatibleSchemaVersion` stays at 210. The change is additive and
   nullable, so older peers still sync.
 - Tests that assert the previous scalar as shorthand for "the ladder
   finished" are pointed at `AppDatabase.currentSchemaVersion`; only the new
-  rung's test pins 216.
+  rung's test pins 218.
 
 **Sync.** `diver_settings` syncs at row level through the generic
 `SyncDataSerializer` table entry, so the new columns travel with no
@@ -303,8 +303,8 @@ type references; neither changes an assertion.
   defaults.
 - `settings_providers_test`: each setter, reset, and the
   `setSiteDetailSectionExpanded` no-op.
-- `migration_v216_test`: a v215 database gains both columns; the backstop is
-  idempotent; the 216 tripwire. Older "ladder finished" literals now read
+- `migration_v218_test`: a v215 database gains both columns; the backstop is
+  idempotent; the 218 tripwire. Older "ladder finished" literals now read
   `currentSchemaVersion`.
 - Sync: both columns survive an export/import round trip of the
   `diverSettings` row.
