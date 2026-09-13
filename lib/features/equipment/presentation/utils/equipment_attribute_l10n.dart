@@ -18,6 +18,7 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'connection' => l10n.attrLabel_connection,
   'plate_material' => l10n.attrLabel_plate_material,
   'hose_length_m' => l10n.attrLabel_hose_length_m,
+  'hose_type' => l10n.attrLabel_hose_type,
   'cold_water_rated' => l10n.attrLabel_cold_water_rated,
   'bcd_style' => l10n.attrLabel_bcd_style,
   'lift_capacity_kg' => l10n.attrLabel_lift_capacity_kg,
@@ -209,5 +210,8 @@ String attributeChoiceLabel(
   'tool_type_save_a_dive_kit' => l10n.attrChoice_tool_type_save_a_dive_kit,
   'tool_type_torque_wrench' => l10n.attrChoice_tool_type_torque_wrench,
   'tool_type_spares_kit' => l10n.attrChoice_tool_type_spares_kit,
+  'hose_type_lp' => l10n.attrChoice_hose_type_lp,
+  'hose_type_hp' => l10n.attrChoice_hose_type_hp,
+  'hose_type_lpi' => l10n.attrChoice_hose_type_lpi,
   _ => option,
 };

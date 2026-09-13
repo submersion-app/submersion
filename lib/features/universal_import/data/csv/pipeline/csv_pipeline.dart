@@ -105,10 +105,17 @@ class CsvPipeline {
       fileRole: primaryRole,
     );
 
-    // Transform the profile CSV if provided and a mapping exists.
+    // Transform the profile CSV if provided and a mapping exists. Profiles
+    // attach to dives by date, so an ambiguous profile file reads its dates
+    // the way the dive list did rather than by the device locale.
     final profileRows =
         (profileCsv != null && config.mappings.containsKey('dive_profile'))
-        ? _transformer.transform(profileCsv, config, fileRole: 'dive_profile')
+        ? _transformer.transform(
+            profileCsv,
+            config,
+            fileRole: 'dive_profile',
+            fallbackDateOrder: diveListRows.dateOrder,
+          )
         : null;
 
     // Correlate all extracted entities.

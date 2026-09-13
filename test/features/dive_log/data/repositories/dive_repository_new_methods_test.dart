@@ -1111,6 +1111,67 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // countDivesSharingDiveNumber
+  // ---------------------------------------------------------------------------
+
+  group('countDivesSharingDiveNumber (issue #1832)', () {
+    test('counts the given dives whose number another dive uses', () async {
+      await insertTestDiver('diver-a');
+      await insertTestDive(id: 'existing', diverId: 'diver-a', diveNumber: 7);
+      await insertTestDive(id: 'clash', diverId: 'diver-a', diveNumber: 7);
+      await insertTestDive(id: 'unique', diverId: 'diver-a', diveNumber: 8);
+
+      final count = await repository.countDivesSharingDiveNumber([
+        'clash',
+        'unique',
+      ]);
+
+      expect(count, 1);
+    });
+
+    test('counts both imported dives that share a number', () async {
+      await insertTestDiver('diver-a');
+      await insertTestDive(id: 'first', diverId: 'diver-a', diveNumber: 3);
+      await insertTestDive(id: 'second', diverId: 'diver-a', diveNumber: 3);
+
+      final count = await repository.countDivesSharingDiveNumber([
+        'first',
+        'second',
+      ]);
+
+      expect(count, 2);
+    });
+
+    test('ignores another diver using the same number', () async {
+      await insertTestDiver('diver-a');
+      await insertTestDiver('diver-b');
+      await insertTestDive(id: 'mine', diverId: 'diver-a', diveNumber: 12);
+      await insertTestDive(id: 'theirs', diverId: 'diver-b', diveNumber: 12);
+
+      final count = await repository.countDivesSharingDiveNumber(['mine']);
+
+      expect(count, 0);
+    });
+
+    test('ignores unnumbered dives', () async {
+      await insertTestDiver('diver-a');
+      await insertTestDive(id: 'blank-1', diverId: 'diver-a');
+      await insertTestDive(id: 'blank-2', diverId: 'diver-a');
+
+      final count = await repository.countDivesSharingDiveNumber([
+        'blank-1',
+        'blank-2',
+      ]);
+
+      expect(count, 0);
+    });
+
+    test('returns 0 for an empty id list', () async {
+      expect(await repository.countDivesSharingDiveNumber(const []), 0);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // getDiveNumberForDate
   // ---------------------------------------------------------------------------
 

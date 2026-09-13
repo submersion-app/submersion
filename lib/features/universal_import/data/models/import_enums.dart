@@ -1,6 +1,11 @@
 /// File format types that can be detected by the universal import wizard.
 enum ImportFormat {
   csv,
+  // Submersion's own CSV exports (issue #1813): self-describing, so they
+  // skip Map Fields and parse like UDDF.
+  submersionDivesCsv,
+  submersionSitesCsv,
+  submersionEquipmentCsv,
   uddf,
   macdiveXml,
   macdiveSqlite,
@@ -18,6 +23,9 @@ enum ImportFormat {
 
   String get displayName => switch (this) {
     csv => 'CSV',
+    submersionDivesCsv => 'Submersion Dives CSV',
+    submersionSitesCsv => 'Submersion Sites CSV',
+    submersionEquipmentCsv => 'Submersion Equipment CSV',
     uddf => 'UDDF',
     macdiveXml => 'MacDive XML',
     macdiveSqlite => 'MacDive SQLite',
@@ -37,6 +45,9 @@ enum ImportFormat {
   /// Whether this format has a parser implemented in v1.5.
   bool get isSupported => switch (this) {
     csv ||
+    submersionDivesCsv ||
+    submersionSitesCsv ||
+    submersionEquipmentCsv ||
     uddf ||
     subsurfaceXml ||
     fit ||
@@ -132,6 +143,21 @@ class SourceOverrideOption {
       sourceApp: SourceApp.submersion,
       format: ImportFormat.uddf,
       displayName: 'Submersion (UDDF)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.submersion,
+      format: ImportFormat.submersionDivesCsv,
+      displayName: 'Submersion (Dives CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.submersion,
+      format: ImportFormat.submersionSitesCsv,
+      displayName: 'Submersion (Sites CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.submersion,
+      format: ImportFormat.submersionEquipmentCsv,
+      displayName: 'Submersion (Equipment CSV)',
     ),
     SourceOverrideOption(
       sourceApp: SourceApp.subsurface,

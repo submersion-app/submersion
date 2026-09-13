@@ -1,0 +1,8 @@
+Name,Type,Brand,Model,Serial Number,Size,Thickness,Purchase Date,Last Service,Next Service Due,Buoyancy (kg),Dry Weight (kg),Attributes,Components,Active,Notes
+Long hose,Hose,,,,,,,,,,,hose_length_m=0.5588,,Yes,
+Suit,Wetsuit,Fourth Element,Proteus,,L,5/4,,,,2.5,3.25,suit_style=full,,Yes,
+AL80,Tank,,,00123,,,,,,,,volume_l=11.1; working_pressure_bar=206.843; tank_material=aluminum,,Yes,
+Scooter,DPV,,,,,,,,,,,speed_mps=0.5; burn_time_h=1.5,,Yes,
+Cell A,O2 Cell,,,,,,,,,,,cell_slot=2.0; installed_date=1741996800000.0; Batch=B-77,,Yes,
+Mk25,First Stage,,,,,,2023-06-01,2025-01-10,2026-01-10,,,,,No,DIN serviced
+Primary reg,Regulator,,,,,,,,,,,,Mk25; Long hose,Yes,

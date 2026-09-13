@@ -1159,6 +1159,60 @@ void main() {
           .firstWhere((s) => s['name'] == 'Test Reef');
       expect(salt['sourceUuid'], 'site-uuid-1');
     });
+
+    // The import summary shows coded warnings only, grouped by code, so each
+    // warning here must carry its code and the count or names the summary
+    // cards print.
+    group('summary codes', () {
+      test('undecodable profiles carry their code and dive count', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _rawDataLogbook(computer: 'Oceanic Matrix Master'),
+          fetchDescriptors: _fakeDescriptors,
+          parseRaw: (v, p, m, d) async =>
+              fail('parser must not be reached for an unknown model'),
+        );
+
+        final w = payload.warnings.single;
+        expect(w.code, ImportWarningCode.macdiveProfileUndecodable);
+        expect(w.count, 2);
+      });
+
+      test(
+        'platform-blocked profiles carry their code and dive count',
+        () async {
+          final payload = await MacDiveDiveMapper.toPayload(
+            _rawDataLogbook(),
+            fetchDescriptors: _fakeDescriptors,
+            parseRaw: (v, p, m, d) async =>
+                throw MissingPluginException('no channel'),
+          );
+
+          final w = payload.warnings.single;
+          expect(w.code, ImportWarningCode.profileUndecodableOnPlatform);
+          expect(w.count, 2);
+        },
+      );
+
+      test('a multi-diver library names its divers', () async {
+        final payload = await MacDiveDiveMapper.toPayload(_multiDiverLogbook());
+
+        final w = payload.warnings.singleWhere(
+          (w) => w.code == ImportWarningCode.multipleDivers,
+        );
+        expect(w.names, ['Ann Lee', 'Bo Ray']);
+      });
+
+      test('logbooks that were not imported are named', () async {
+        final logbook = await MacDiveDbReader.readAll(bytes);
+        final payload = await MacDiveDiveMapper.toPayload(logbook);
+
+        final w = payload.warnings.singleWhere(
+          (w) => w.code == ImportWarningCode.macdiveLogbooksNotImported,
+        );
+        expect(w.names, contains('Tropical'));
+        expect(w.names, everyElement(isNotEmpty));
+      });
+    });
   });
 }
 

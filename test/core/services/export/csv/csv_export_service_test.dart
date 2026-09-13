@@ -1,6 +1,11 @@
+import 'dart:convert';
+
+import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
@@ -13,6 +18,48 @@ void main() {
 
   setUp(() {
     service = CsvExportService();
+  });
+
+  group('Custom Fields column (#1814)', () {
+    test('holds the dive\'s fields as JSON in their own order', () {
+      final dive = Dive(
+        id: 'dive-1',
+        dateTime: DateTime(2026, 3, 28, 10, 0),
+        customFields: const [
+          DiveCustomField(id: 'b', key: 'flag', sortOrder: 1),
+          DiveCustomField(id: 'a', key: 'zulu', value: 'x', sortOrder: 0),
+        ],
+      );
+
+      final rows = const CsvToListConverter().convert(
+        service.generateDivesCsvContent([dive]),
+      );
+      final cell = rows[1][rows.first.indexOf(DiveCsvColumns.customFields)];
+
+      expect(jsonDecode(cell as String), [
+        {'key': 'zulu', 'value': 'x'},
+        {'key': 'flag', 'value': ''},
+      ]);
+    });
+  });
+
+  group('sanitizeCsvField', () {
+    test('quotes a value that starts with a formula character', () {
+      expect(service.sanitizeCsvField('=1+1'), "'=1+1");
+      expect(service.sanitizeCsvField('-5'), "'-5");
+    });
+
+    test('quotes a value that already starts with a quote, so the import '
+        'can tell the guard from the text (#1814)', () {
+      expect(service.sanitizeCsvField("'=1+1"), "''=1+1");
+      expect(service.sanitizeCsvField("'hello"), "''hello");
+    });
+
+    test('leaves plain text and empty values alone', () {
+      expect(service.sanitizeCsvField('GoPro'), 'GoPro');
+      expect(service.sanitizeCsvField(''), '');
+      expect(service.sanitizeCsvField(null), '');
+    });
   });
 
   group('generateDivesCsvContent', () {
@@ -73,6 +120,38 @@ void main() {
       // Pressures exported with 1 decimal for round-trip fidelity
       expect(csv, contains('206.8'));
       expect(csv, contains('50.5'));
+    });
+
+    test('writes the shared column constants, then the site place columns '
+        '(#1814)', () {
+      final dive = Dive(
+        id: 'dive-1',
+        dateTime: DateTime(2026, 3, 28, 10, 0),
+        site: const DiveSite(
+          id: 'site-1',
+          name: 'Blue Hole',
+          city: 'Victoria',
+          region: 'Gozo',
+          country: 'Malta',
+        ),
+      );
+
+      final rows = const CsvToListConverter().convert(
+        service.generateDivesCsvContent([dive]),
+      );
+
+      expect(rows.first, DiveCsvColumns.fixed);
+      // The place columns come after every pre-#1814 column, so a sheet that
+      // addresses the export by position keeps its offsets.
+      expect(
+        rows.first.indexOf(DiveCsvColumns.siteCity),
+        rows.first.indexOf(DiveCsvColumns.weatherDescription) + 1,
+      );
+      final row = rows[1];
+      expect(row[rows.first.indexOf(DiveCsvColumns.customFields)], '');
+      expect(row[rows.first.indexOf(DiveCsvColumns.siteCity)], 'Victoria');
+      expect(row[rows.first.indexOf(DiveCsvColumns.siteRegion)], 'Gozo');
+      expect(row[rows.first.indexOf(DiveCsvColumns.siteCountry)], 'Malta');
     });
   });
 

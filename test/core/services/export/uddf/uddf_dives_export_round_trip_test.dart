@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'uddf_raw_data_round_trip_test.dart'
@@ -126,6 +127,7 @@ void main() {
         buddies,
         EquipmentComponentRepository(),
         DiveRoleRepository(),
+        TankPressureRepository(),
         diverId,
         ['d1'],
         options,

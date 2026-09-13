@@ -7,9 +7,10 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 /// [domain.DivePlan] aggregate.
 ///
 /// The UI state carries a subset of the aggregate; [existing] preserves
-/// fields the state does not know about (air breaks) across an edit-save
-/// cycle so a plan touched by the UI does not lose them. Mode, setpoints,
-/// contingency config, water type, and dive links travel WITH the state.
+/// fields the state does not know about across an edit-save cycle so a
+/// plan touched by the UI does not lose them. Mode, setpoints,
+/// contingency config, water type, dive links, and air breaks travel WITH
+/// the state.
 domain.DivePlan divePlanFromState(
   DivePlanState state, {
   domain.DivePlan? existing,
@@ -58,13 +59,27 @@ domain.DivePlan divePlanFromState(
     gfLow: state.gfLow,
     gfHigh: state.gfHigh,
     sacBottom: state.sacRate,
+    sacDeco: state.sacDeco,
+    clearSacDeco: state.sacDeco == null,
     ascentRate: state.ascentRate,
     intermediateAscentRate: state.intermediateAscentRate,
     shallowAscentRate: state.shallowAscentRate,
     finalAscentRate: state.finalAscentRate,
     lastStopDepth: state.lastStopDepth,
     descentRate: state.descentRate,
+    airBreaks: state.airBreaks,
+    clearAirBreaks: state.airBreaks == null,
     reservePressure: state.reservePressure,
+    sacFactor: state.sacFactor,
+    problemSolvingMinutes: state.problemSolvingMinutes,
+    ppO2Bottom: state.ppO2Bottom,
+    clearPpO2Bottom: state.ppO2Bottom == null,
+    ppO2Deco: state.ppO2Deco,
+    clearPpO2Deco: state.ppO2Deco == null,
+    bestMixEndMeters: state.bestMixEndMeters,
+    o2Narcotic: state.o2Narcotic,
+    clearO2Narcotic: state.o2Narcotic == null,
+    stopMinimums: state.stopMinimums,
     surfaceInterval: state.surfaceInterval,
     clearSurfaceInterval: state.surfaceInterval == null,
     segments: state.segments,
@@ -112,13 +127,22 @@ DivePlanState stateFromDivePlan(domain.DivePlan plan) {
     gfLow: plan.gfLow,
     gfHigh: plan.gfHigh,
     sacRate: plan.sacBottom,
+    sacDeco: plan.sacDeco,
     ascentRate: plan.ascentRate,
     intermediateAscentRate: plan.intermediateAscentRate,
     shallowAscentRate: plan.shallowAscentRate,
     finalAscentRate: plan.finalAscentRate,
     lastStopDepth: plan.lastStopDepth,
     descentRate: plan.descentRate,
+    airBreaks: plan.airBreaks,
     reservePressure: plan.reservePressure,
+    sacFactor: plan.sacFactor,
+    problemSolvingMinutes: plan.problemSolvingMinutes,
+    ppO2Bottom: plan.ppO2Bottom,
+    ppO2Deco: plan.ppO2Deco,
+    bestMixEndMeters: plan.bestMixEndMeters,
+    o2Narcotic: plan.o2Narcotic,
+    stopMinimums: plan.stopMinimums,
     surfaceInterval: plan.surfaceInterval,
     segments: segments,
     tanks: plan.tanks,

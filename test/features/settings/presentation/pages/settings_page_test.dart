@@ -1038,6 +1038,19 @@ void main() {
       ];
     }
 
+    testWidgets('shows a Diagnostics card without debug mode (#1826)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Copy diagnostics'), 100);
+      expect(find.text('Diagnostics'), findsOneWidget);
+      expect(find.text('View log'), findsOneWidget);
+      expect(find.text('Copy diagnostics'), findsOneWidget);
+    });
+
     testWidgets('shows the channel selector on stable', (tester) async {
       await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
       await tester.pumpAndSettle();
@@ -1756,6 +1769,10 @@ void main() {
             builder: (context, state) => const Text('Service Types Stub'),
           ),
           GoRoute(
+            path: '/site-types',
+            builder: (context, state) => const Text('Site Types Stub'),
+          ),
+          GoRoute(
             path: '/settings/trimix-mixer',
             builder: (context, state) => const Text('Trimix Mixer Stub'),
           ),
@@ -1807,10 +1824,28 @@ void main() {
         findsOneWidget,
       );
 
+      await tester.ensureVisible(find.text('Service types'));
       await tester.tap(find.text('Service types'));
       await tester.pumpAndSettle();
 
       expect(find.text('Service Types Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders the site types tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Site Types'), findsOneWidget);
+      expect(find.text('Built-in and custom dive site types'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Site Types'));
+      await tester.tap(find.text('Site Types'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Site Types Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

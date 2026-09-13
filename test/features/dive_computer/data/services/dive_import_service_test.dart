@@ -498,6 +498,91 @@ void main() {
       ).called(1);
     });
 
+    group('retaining source dive numbers (issue #1832)', () {
+      DownloadedDive numberedDive({int? diveNumber}) => DownloadedDive(
+        diveNumber: diveNumber,
+        fingerprint: 'fp-numbered',
+        startTime: DateTime(2026, 3, 10, 10, 0),
+        durationSeconds: 1800,
+        maxDepth: 12.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+      );
+
+      int? importedDiveNumber() =>
+          verify(
+                mockComputerRepo.importProfile(
+                  computerId: anyNamed('computerId'),
+                  profileStartTime: anyNamed('profileStartTime'),
+                  points: anyNamed('points'),
+                  durationSeconds: anyNamed('durationSeconds'),
+                  maxDepth: anyNamed('maxDepth'),
+                  avgDepth: anyNamed('avgDepth'),
+                  isPrimary: anyNamed('isPrimary'),
+                  diverId: anyNamed('diverId'),
+                  tanks: anyNamed('tanks'),
+                  decoAlgorithm: anyNamed('decoAlgorithm'),
+                  gfLow: anyNamed('gfLow'),
+                  gfHigh: anyNamed('gfHigh'),
+                  decoConservatism: anyNamed('decoConservatism'),
+                  events: anyNamed('events'),
+                  gasSwitches: anyNamed('gasSwitches'),
+                  diveNumber: captureAnyNamed('diveNumber'),
+                  forceNew: anyNamed('forceNew'),
+                  rawData: anyNamed('rawData'),
+                  rawFingerprint: anyNamed('rawFingerprint'),
+                  descriptorVendor: anyNamed('descriptorVendor'),
+                  descriptorProduct: anyNamed('descriptorProduct'),
+                  descriptorModel: anyNamed('descriptorModel'),
+                  libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+                ),
+              ).captured.single
+              as int?;
+
+      setUp(() {
+        when(
+          mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+        ).thenAnswer((_) async => 5);
+      });
+
+      test('uses the dive number the source reported', () async {
+        await service.importSingleDiveAsNew(
+          numberedDive(diveNumber: 412),
+          computerId: computer.id,
+          diverId: 'diver-1',
+          retainSourceDiveNumber: true,
+        );
+
+        expect(importedDiveNumber(), 412);
+        verifyNever(
+          mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+        );
+      });
+
+      test('numbers the dive chronologically when the source has no '
+          'number', () async {
+        await service.importSingleDiveAsNew(
+          numberedDive(),
+          computerId: computer.id,
+          diverId: 'diver-1',
+          retainSourceDiveNumber: true,
+        );
+
+        expect(importedDiveNumber(), 5);
+      });
+
+      test('ignores the source number unless asked to retain it', () async {
+        await service.importSingleDiveAsNew(
+          numberedDive(diveNumber: 412),
+          computerId: computer.id,
+          diverId: 'diver-1',
+        );
+
+        expect(importedDiveNumber(), 5);
+      });
+    });
+
     test('resolveConflict with importAsNew assigns dive number', () async {
       final dive = DownloadedDive(
         fingerprint: 'fp-conflict',

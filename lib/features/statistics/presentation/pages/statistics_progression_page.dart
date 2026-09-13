@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
@@ -164,8 +166,26 @@ class StatisticsProgressionPage extends ConsumerWidget {
       subtitle:
           context.l10n.statistics_progression_divesBySuitThickness_subtitle,
       child: thicknessAsync.when(
-        data: (data) {
-          if (data.isEmpty) {
+        data: (stats) {
+          // Thickness bars ascending, then the suits a thickness cannot
+          // place (issue #1824). Empty buckets are left off the chart.
+          final chartData = [
+            for (final d in stats.byThickness)
+              (label: label(d.mm), count: d.count),
+            if (stats.unknownThicknessCount > 0)
+              (
+                label: context
+                    .l10n
+                    .statistics_progression_divesBySuitThickness_unknown,
+                count: stats.unknownThicknessCount,
+              ),
+            if (stats.drysuitCount > 0)
+              (
+                label: EquipmentType.drysuit.localizedName(context.l10n),
+                count: stats.drysuitCount,
+              ),
+          ];
+          if (chartData.isEmpty) {
             return StatEmptyState(
               icon: Icons.bar_chart,
               message: context
@@ -173,13 +193,10 @@ class StatisticsProgressionPage extends ConsumerWidget {
                   .statistics_progression_divesBySuitThickness_empty,
             );
           }
-          final chartData = data
-              .map((d) => (label: label(d.mm), count: d.count))
-              .toList();
           // Locale-neutral label:count pairs so the screen-reader summary
           // matches the app locale rather than hard-coded English prose.
-          final description = data
-              .map((d) => '${label(d.mm)}: ${d.count}')
+          final description = chartData
+              .map((d) => '${d.label}: ${d.count}')
               .join(', ');
           return Semantics(
             label: context.l10n

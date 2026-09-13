@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -45,6 +46,7 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/resolved_photo_attachment.dart';
@@ -519,7 +521,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     Set<int> resolve(wizard.ImportEntityType type) =>
         _resolveSelections(type, selections, duplicateActions);
 
-    final uddfData = _payloadToUddfResult(payload);
+    final uddfData = payloadToUddfResult(payload);
 
     // #756: flagged duplicates whose action is skip (or explicit link via
     // consolidate) must LINK the dive to the matched existing record rather
@@ -540,8 +542,8 @@ class UniversalAdapter implements ImportSourceAdapter {
         // wizard gates advancement on pending decisions, so that state is
         // not reachable today, but dropping the association silently is the
         // exact defect this fix exists to prevent. A seed is harmless when
-        // the entity IS imported: _importBuddies/_importTags overwrite the
-        // mapping with the newly created id.
+        // the entity IS imported: _importBuddies/_importTags/_importEquipment
+        // overwrite the mapping with the newly created id.
         final links =
             action == null ||
             action == DuplicateAction.skip ||
@@ -549,7 +551,11 @@ class UniversalAdapter implements ImportSourceAdapter {
         if (!links) continue;
         if (entry.key < 0 || entry.key >= items.length) continue;
         final item = items[entry.key];
-        final ref = (item['uddfId'] as String?) ?? (item['name'] as String?);
+        // A dive references its types by id (the slug), not by uddfId or
+        // name, and a UDDF type record carries no uddfId at all (#1834).
+        final ref = type == wizard.ImportEntityType.diveTypes
+            ? (item['id'] as String?) ?? (item['uddfId'] as String?)
+            : (item['uddfId'] as String?) ?? (item['name'] as String?);
         if (ref != null) map[ref] = entry.value.existingId;
       }
       return map;
@@ -609,6 +615,14 @@ class UniversalAdapter implements ImportSourceAdapter {
       preResolvedTagIds: preResolvedIdsFor(
         wizard.ImportEntityType.tags,
         uddfData.tags,
+      ),
+      preResolvedEquipmentIds: preResolvedIdsFor(
+        wizard.ImportEntityType.equipment,
+        uddfData.equipment,
+      ),
+      preResolvedDiveTypeIds: preResolvedIdsFor(
+        wizard.ImportEntityType.diveTypes,
+        uddfData.customDiveTypes,
       ),
       onProgress: onProgress,
       cancelToken: cancelToken,
@@ -795,7 +809,15 @@ class UniversalAdapter implements ImportSourceAdapter {
     // merged into the batch above when there is one, so no extra pass.
     scheduleAllConditionFindingsRefresh();
 
-    final notices = groupImportNotices(payload.warnings, netDives);
+    final numberConflict = await diveNumberConflictNotice(
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      diveRepository: repos.diveRepository,
+      importedDiveIds: netImportedDiveIds,
+    );
+    final notices = [
+      ...groupImportNotices(payload.warnings, netDives),
+      ?numberConflict,
+    ];
 
     return UnifiedImportResult(
       notices: notices,
@@ -1361,7 +1383,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     return counts;
   }
 
-  static UddfImportResult _payloadToUddfResult(ImportPayload payload) {
+  /// The entity importer's input for [payload]. Exposed so round-trip
+  /// tests import exactly what the wizard would.
+  @visibleForTesting
+  static UddfImportResult payloadToUddfResult(ImportPayload payload) {
     return UddfImportResult(
       dives: payload.entitiesOf(ui.ImportEntityType.dives),
       sites: payload.entitiesOf(ui.ImportEntityType.sites),
@@ -1380,6 +1405,13 @@ class UniversalAdapter implements ImportSourceAdapter {
             in (payload.metadata[ImportPayload.customDiveRolesKey] as List?) ??
                 const [])
           if (role is Map<String, dynamic>) role,
+      ],
+      // Issue #1765: carried as metadata for the same reason as the roles.
+      customSiteTypes: [
+        for (final type
+            in (payload.metadata[ImportPayload.customSiteTypesKey] as List?) ??
+                const [])
+          if (type is Map<String, dynamic>) type,
       ],
     );
   }
@@ -1409,6 +1441,12 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // 3a); the field is optional only for legacy callers.
     equipmentObservationRepository: ref.read(
       equipmentObservationRepositoryProvider,
+    ),
+    // Site types and site tags (issue #1765); without them an import
+    // restores sites but not their classification.
+    siteTypeRepository: ref.read(siteTypeRepositoryProvider),
+    siteClassificationRepository: ref.read(
+      siteClassificationRepositoryProvider,
     ),
   );
 }

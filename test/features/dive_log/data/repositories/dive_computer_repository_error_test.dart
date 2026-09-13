@@ -113,6 +113,10 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
+        repository.getEventsForDives(['test-id']),
+        throwsA(anything),
+      );
+      await expectLater(
         repository.addProfileEvent(
           diveId: 'test-id',
           timestamp: 0,

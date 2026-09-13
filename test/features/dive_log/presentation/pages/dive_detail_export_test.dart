@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -23,6 +24,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -69,6 +72,9 @@ class _RecordingExportService implements ExportService {
   Diver? pdfDiver;
   Uint8List? pdfDiverPhoto;
 
+  /// The dive types the last CSV or PDF export was handed (#1834).
+  Map<String, DiveTypeEntity>? diveTypesById;
+
   @override
   Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
     List<Dive> dives, {
@@ -80,10 +86,12 @@ class _RecordingExportService implements ExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     calls.add('generate:pdf');
     pdfDiver = diver;
     pdfDiverPhoto = diverPhoto;
+    this.diveTypesById = diveTypesById;
     if (failure != null) throw failure!;
     return (bytes: const <int>[1], fileName: 'dive.pdf');
   }
@@ -92,15 +100,30 @@ class _RecordingExportService implements ExportService {
   Future<String?> savePdfToFile(List<int> bytes, String fileName) =>
       _save('pdf');
 
+  /// The units the last CSV export was written in (#1813).
+  CsvExportUnits? csvUnits;
+
   @override
-  Future<String> exportDivesToCsv(List<Dive> dives) => _share('csv');
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) {
+    csvUnits = units;
+    this.diveTypesById = diveTypesById;
+    return _share('csv');
+  }
 
   @override
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) {
     csvSaveTitle = dialogTitle;
+    csvUnits = units;
+    this.diveTypesById = diveTypesById;
     return _save('csv');
   }
 
@@ -166,6 +189,7 @@ void main() {
     WidgetTester tester, {
     Diver? diver,
     DiverPhotoLoader? photoLoader,
+    Future<List<DiveTypeEntity>>? diveTypes,
   }) async {
     final base = await getBaseOverrides();
 
@@ -214,6 +238,11 @@ void main() {
           // completes inside testWidgets' FakeAsync zone.
           if (photoLoader != null)
             diverPhotoLoaderProvider.overrideWithValue(photoLoader),
+          // The exports wait for the diver's dive types, which would
+          // otherwise reach the database these tests do not have.
+          diveTypesProvider.overrideWith(
+            (ref) => diveTypes ?? Future.value(const <DiveTypeEntity>[]),
+          ),
         ],
         child: MaterialApp(
           // Pinned: the finders below are English, and the host machine's
@@ -329,6 +358,46 @@ void main() {
 
     expect(exportService.calls, ['share:csv']);
     expect(find.text('Dive exported successfully'), findsOneWidget);
+  });
+
+  group('names each dive type as the diver did (#1834)', () {
+    final custom = DiveTypeEntity(
+      id: 'search_recovery_1a2b3c4d',
+      diverId: 'me',
+      name: 'Search & Recovery',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    testWidgets('CSV export passes the diver\'s dive types', (tester) async {
+      await pumpAndOpenExportSheet(tester, diveTypes: Future.value([custom]));
+      await chooseFormatAndDestination(tester, 'CSV', 'Save to File');
+
+      expect(exportService.diveTypesById, {custom.id: custom});
+    });
+
+    testWidgets('PDF export passes the diver\'s dive types', (tester) async {
+      await pumpAndOpenExportSheet(tester, diveTypes: Future.value([custom]));
+      await choosePdfAndDestination(tester, 'Save to Files');
+
+      expect(exportService.diveTypesById, {custom.id: custom});
+    });
+
+    testWidgets('CSV export waits for dive types still loading', (
+      tester,
+    ) async {
+      final load = Completer<List<DiveTypeEntity>>();
+      await pumpAndOpenExportSheet(tester, diveTypes: load.future);
+      await tester.tap(find.text('CSV'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save to File'));
+      await tester.pump();
+
+      load.complete([custom]);
+      await tester.pumpAndSettle();
+
+      expect(exportService.diveTypesById, {custom.id: custom});
+    });
   });
 
   testWidgets('UDDF export passes the dive site through either delivery', (
@@ -454,5 +523,33 @@ void main() {
 
     expect(find.text('Include gear'), findsNothing);
     expect(find.text('Include dive participants'), findsNothing);
+  });
+
+  testWidgets('CSV export defaults to My units (#1813)', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await chooseFormatAndDestination(tester, 'CSV', 'Share');
+
+    expect(exportService.csvUnits?.isMetric, isFalse);
+  });
+
+  testWidgets('the CSV unit choice reaches the export (#1813)', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('CSV'));
+    await tester.pumpAndSettle();
+    expect(find.text('My units'), findsOneWidget);
+    await tester.tap(find.text('Metric'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    expect(exportService.csvUnits, same(CsvExportUnits.metric));
+  });
+
+  testWidgets('UDDF export offers no unit choice', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('UDDF'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('My units'), findsNothing);
   });
 }

@@ -7,10 +7,17 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// rock-bottom about text only ever handle a volume rate (L/min), which the
 /// app calls RMV. SAC is reserved for the pressure rate (bar/min). German
 /// keeps AMV, its established term for the volume rate.
+///
+/// The planner's own gas-options labels are covered too: the state fields and
+/// the stored columns keep their historical `sac` names, but every one of
+/// them is a volume rate, so the label a diver reads must say RMV.
 void main() {
   List<String> volumeOnlyLabels(AppLocalizations l10n) => [
     l10n.divePlanner_label_sacRate,
     l10n.divePlanner_semantics_sacRate('15', 'L'),
+    l10n.divePlanner_gasOptions_sacBottom,
+    l10n.divePlanner_gasOptions_sacDeco,
+    l10n.divePlanner_gasOptions_sacFactor,
     l10n.gasCalculators_sacRate,
     l10n.gasCalculators_rockBottom_yourSac,
     l10n.gasCalculators_rockBottom_buddySac,
@@ -25,6 +32,9 @@ void main() {
     final en = lookupAppLocalizations(const Locale('en'));
     expect(en.divePlanner_label_sacRate, 'RMV:');
     expect(en.divePlanner_semantics_sacRate('15', 'L'), 'RMV: 15 L per minute');
+    expect(en.divePlanner_gasOptions_sacBottom, 'Bottom RMV');
+    expect(en.divePlanner_gasOptions_sacDeco, 'Deco RMV');
+    expect(en.divePlanner_gasOptions_sacFactor, 'RMV factor');
     expect(en.gasCalculators_sacRate, 'RMV');
     expect(en.gasCalculators_rockBottom_yourSac, 'Your RMV');
     expect(en.gasCalculators_rockBottom_buddySac, 'Buddy RMV');
@@ -54,5 +64,7 @@ void main() {
     final de = lookupAppLocalizations(const Locale('de'));
     expect(de.gasCalculators_rockBottom_yourSac, 'Dein AMV');
     expect(de.divePlanner_label_sacRate, 'AMV:');
+    expect(de.divePlanner_gasOptions_sacBottom, 'Grund-AMV');
+    expect(de.divePlanner_gasOptions_sacDeco, 'Deko-AMV');
   });
 }

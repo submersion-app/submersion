@@ -71,6 +71,10 @@ void main() {
     );
     expect(await container.read(temperatureByMonthProvider.future), isEmpty);
     expect(await container.read(waterTempTrendProvider.future), isEmpty);
+    expect(
+      await container.read(waterTempBandDistributionProvider.future),
+      isEmpty,
+    );
     expect(await container.read(topBuddiesProvider.future), isEmpty);
     final soloVsBuddy = await container.read(soloVsBuddyCountProvider.future);
     expect(soloVsBuddy.solo, 0);
@@ -99,7 +103,10 @@ void main() {
     );
     expect(ascentDescent.avgAscent, isNull);
     expect(await container.read(timeAtDepthRangesProvider.future), isEmpty);
-    expect(await container.read(divesBySuitThicknessProvider.future), isEmpty);
+    final suits = await container.read(divesBySuitThicknessProvider.future);
+    expect(suits.byThickness, isEmpty);
+    expect(suits.unknownThicknessCount, 0);
+    expect(suits.drysuitCount, 0);
     final deco = await container.read(decoObligationStatsProvider.future);
     expect(deco.decoCount, 0);
     expect(deco.noDecoCount, 0);

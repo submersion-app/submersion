@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
@@ -46,6 +47,10 @@ class UddfExportService {
     final encodedById = <String, String?>{
       for (var i = 0; i < withBytes.length; i++) withBytes[i].id: encoded[i],
     };
+
+    // Sample pressures: the export actions load them into the extras; an
+    // explicit map is for callers that assemble the document themselves.
+    final pressuresByDive = diveTankPressures ?? extras.diveTankPressures;
 
     // Participants (issue #1796): only the people on the exported dives,
     // in dive order, and nobody at all when the user left them out of a
@@ -225,6 +230,13 @@ class UddfExportService {
                         site.notes != site.description) {
                       builder.element('sitenotesadditional', nest: site.notes);
                     }
+                    // Shared with the full export's site builder (#1765).
+                    UddfSiteClassificationWriters.writeSiteRefs(
+                      builder,
+                      siteTypeIds:
+                          extras.siteTypeIdsBySite[site.id] ?? const [],
+                      tagIds: extras.siteTagIdsBySite[site.id] ?? const [],
+                    );
                   },
                 );
               }
@@ -383,33 +395,19 @@ class UddfExportService {
                           },
                         );
 
-                        // Samples (dive profile)
-                        builder.element(
-                          'samples',
-                          nest: () {
-                            final tank = dive.tanks.isNotEmpty
-                                ? dive.tanks.first
-                                : null;
-                            final mixId = tank != null
-                                ? 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}'
-                                : 'mix_21_0';
-
-                            // Add tank switch at start
-                            builder.element(
-                              'waypoint',
-                              nest: () {
-                                builder.element('divetime', nest: '0');
-                                builder.element('depth', nest: '0');
-                                builder.element(
-                                  'switchmix',
-                                  attributes: {'ref': mixId},
-                                );
-                              },
-                            );
-
-                            if (dive.profile.isNotEmpty) {
-                              // Use actual profile data
-                              for (final point in dive.profile) {
+                        // Samples: only what was recorded. <samples> is
+                        // optional in UDDF 3.2.1, so a dive without a profile
+                        // writes none rather than an invented one a restore
+                        // would store (issue #1874).
+                        if (dive.profile.isNotEmpty) {
+                          builder.element(
+                            'samples',
+                            nest: () {
+                              final startMix = UddfExportBuilders.startMixId(
+                                dive,
+                              );
+                              for (final (index, point)
+                                  in dive.profile.indexed) {
                                 builder.element(
                                   'waypoint',
                                   nest: () {
@@ -421,6 +419,14 @@ class UddfExportService {
                                       'depth',
                                       nest: point.depth.toString(),
                                     );
+                                    // The starting mix rides on the first
+                                    // recorded sample, as in the full backup.
+                                    if (index == 0) {
+                                      builder.element(
+                                        'switchmix',
+                                        attributes: {'ref': startMix},
+                                      );
+                                    }
                                     if (point.temperature != null) {
                                       builder.element(
                                         'temperature',
@@ -428,9 +434,10 @@ class UddfExportService {
                                             .toString(),
                                       ); // Kelvin
                                     }
-                                    // Tank pressure from tank_pressure_series
+                                    // Tank pressure from tank_pressure_series,
+                                    // naming the <tankdata> declared below.
                                     final divePressures =
-                                        diveTankPressures?[dive.id];
+                                        pressuresByDive[dive.id];
                                     if (divePressures != null) {
                                       for (final entry
                                           in divePressures.entries) {
@@ -442,6 +449,9 @@ class UddfExportService {
                                         if (pressure != null) {
                                           builder.element(
                                             'tankpressure',
+                                            attributes: {
+                                              'ref': 'tank_${entry.key}',
+                                            },
                                             nest: (pressure * 100000)
                                                 .toString(),
                                           );
@@ -451,68 +461,17 @@ class UddfExportService {
                                   },
                                 );
                               }
-                            } else {
-                              // Generate basic profile from dive data
-                              final durationSecs =
-                                  dive.bottomTime?.inSeconds ?? 0;
-                              if (dive.maxDepth != null && durationSecs > 0) {
-                                // Descent to max depth (assume 1/5 of dive)
-                                final descentTime = (durationSecs * 0.2)
-                                    .toInt();
-                                builder.element(
-                                  'waypoint',
-                                  nest: () {
-                                    builder.element(
-                                      'divetime',
-                                      nest: descentTime.toString(),
-                                    );
-                                    builder.element(
-                                      'depth',
-                                      nest: dive.maxDepth.toString(),
-                                    );
-                                    if (dive.waterTemp != null) {
-                                      builder.element(
-                                        'temperature',
-                                        nest: (dive.waterTemp! + 273.15)
-                                            .toString(),
-                                      );
-                                    }
-                                  },
-                                );
+                            },
+                          );
+                        }
 
-                                // Bottom time at avg depth (3/5 of dive)
-                                final bottomTime = (durationSecs * 0.8).toInt();
-                                builder.element(
-                                  'waypoint',
-                                  nest: () {
-                                    builder.element(
-                                      'divetime',
-                                      nest: bottomTime.toString(),
-                                    );
-                                    builder.element(
-                                      'depth',
-                                      nest:
-                                          (dive.avgDepth ??
-                                                  dive.maxDepth! * 0.7)
-                                              .toString(),
-                                    );
-                                  },
-                                );
-
-                                // Ascent to surface
-                                builder.element(
-                                  'waypoint',
-                                  nest: () {
-                                    builder.element(
-                                      'divetime',
-                                      nest: durationSecs.toString(),
-                                    );
-                                    builder.element('depth', nest: '0');
-                                  },
-                                );
-                              }
-                            }
-                          },
+                        // The dive's cylinders, where the full backup
+                        // declares them; their name and transmitter only
+                        // travel with the gear.
+                        UddfExportBuilders.writeTankData(
+                          builder,
+                          dive,
+                          includeIdentity: options.includeGear,
                         );
 
                         builder.element(
@@ -693,6 +652,9 @@ class UddfExportService {
           customDiveRoles: customRoles,
           dataSources: sources,
           dataSourceDumps: encodedById,
+          // The definitions the sites' type and tag references need.
+          tags: extras.siteTags,
+          customSiteTypes: extras.customSiteTypes,
         );
 
         // Last section, per the UDDF specification. A dump links only to a

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/dan_dl7_import_parser.dart';
 
 const _fixtureDir = 'test/features/universal_import/data/parsers/fixtures/dl7';
@@ -178,6 +179,63 @@ void main() {
       final payload = await parser.parse(Uint8List(0));
       expect(payload.isEmpty, isTrue);
       expect(payload.warnings, isNotEmpty);
+    });
+
+    test('a dive with no readable start time is a skipped dive', () async {
+      // Such a dive cannot be placed in the log, so it is left out. The
+      // summary must count it rather than let it vanish silently.
+      final payload = await parser.parse(
+        Uint8List.fromList(
+          [
+            'FSH|^~<>{}|OCI201^^|ZXU|20240402090000|',
+            'ZRH|^~<>{}|NEM001|SC02201|FSWG|ThFt|F|PSIA|CF|',
+            'ZDH|1|7|I|Q1M|20240401140000|85|||',
+            'ZDT|1|7|60.0|20240401140300|75||',
+            'ZDH|2|8|I|Q1M|not-a-time|85|||',
+            'ZDT|2|8|60.0|20240401160300|75||',
+          ].join('\n').codeUnits,
+        ),
+      );
+
+      expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(payload.warnings.single.code, ImportWarningCode.divesSkipped);
+    });
+
+    test('a dive whose samples cannot be read is a skipped dive', () async {
+      // double.tryParse accepts "Infinity", and rounding it to a timestamp
+      // throws: a corrupt sample must cost only its own dive.
+      final payload = await parser.parse(
+        Uint8List.fromList(
+          [
+            'FSH|^~<>{}|OCI201^^|ZXU|20240402090000|',
+            'ZRH|^~<>{}|NEM001|SC02201|FSWG|ThFt|F|PSIA|CF|',
+            'ZDH|1|7|I|Q1M|20240401140000|85|||',
+            'ZDT|1|7|60.0|20240401140300|75||',
+            'ZDH|2|8|I|Q1M|20240401160000|85|||',
+            'ZDP{',
+            '|Infinity|30.0|',
+            'ZDP}',
+            'ZDT|2|8|60.0|20240401160300|75||',
+          ].join('\n').codeUnits,
+        ),
+      );
+
+      expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+      final warning = payload.warnings.single;
+      expect(warning.code, ImportWarningCode.divesSkipped);
+      expect(warning.message, startsWith('Skipped dive 2:'));
+    });
+
+    test('structural oddities are recorded but not shown', () async {
+      // A stray ZDT after the last dive is ignored by the reader. The dive
+      // still imports normally, so the summary has nothing to tell the diver.
+      final bytes = await _fixture('dl7_imperial.zxu');
+      final payload = await parser.parse(
+        Uint8List.fromList([...bytes, ...'\nZDT|||\n'.codeUnits]),
+      );
+
+      expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(payload.warnings.single.code, ImportWarningCode.diagnostic);
     });
 
     test('file with no dives produces an error warning', () async {

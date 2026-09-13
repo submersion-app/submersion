@@ -10,6 +10,8 @@ import 'package:submersion/core/database/performance_indexes.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
+import 'package:submersion/core/database/site_classification_uniqueness.dart';
+import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 import 'package:submersion/core/constants/enums.dart';
 
@@ -629,6 +631,21 @@ class DivePlans extends Table {
   /// keyed by WeightType.name -> kg.
   RealColumn get plannedWeightKg => real().nullable()();
   TextColumn get plannedWeightPlacement => text().nullable()();
+
+  /// Diver-authored minimum stop hold times (replan-this-dive feature). JSON
+  /// object keyed by whole-metre stop depth (string, JSON object keys must
+  /// be strings) -> seconds; null = no minimums set.
+  TextColumn get stopMinimumsJson => text().nullable()();
+
+  /// Gas options (Subsurface parity). See [DivePlan.sacFactor] and siblings
+  /// for the semantics of each field.
+  RealColumn get sacFactor => real().withDefault(const Constant(2.0))();
+  IntColumn get problemSolvingMinutes =>
+      integer().withDefault(const Constant(2))();
+  RealColumn get ppO2Bottom => real().nullable()();
+  RealColumn get ppO2Deco => real().nullable()();
+  RealColumn get bestMixEndMeters => real().withDefault(const Constant(30.0))();
+  BoolColumn get o2Narcotic => boolean().nullable()();
 
   /// Denormalized list-display summary (no engine run per list row).
   RealColumn get summaryMaxDepth => real().nullable()();
@@ -2434,6 +2451,16 @@ class Tags extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
+  /// Whether the tag is offered on dives (v217, issue #1765). Every tag that
+  /// existed before v217 is a dive tag.
+  BoolColumn get appliesToDives =>
+      boolean().withDefault(const Constant(true))();
+
+  /// Whether the tag is offered on dive sites (v217, issue #1765). A tag
+  /// always applies to at least one of the two; TagRepository enforces it.
+  BoolColumn get appliesToSites =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -2512,6 +2539,63 @@ class DiveDiveTypes extends Table {
   /// v210: this child's own clock, stamped when it is marked pending. The
   /// merge refuses a remote copy strictly older than the local one, so a
   /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
+/// Dive site type vocabulary (v217, issue #1765). The twin of [DiveTypes]:
+/// slug ids, built-ins (diverId null) seeded identically on every device by
+/// `kSeedBuiltInSiteTypesSql` and never synced, custom types per diver.
+class SiteTypes extends Table {
+  TextColumn get id => text()(); // Unique identifier (slug)
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id)(); // null for built-ins
+  TextColumn get name => text()();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for a site's types (many-to-many, v217). Surrogate uuid
+/// primary key, as [DiveDiveTypes]. `siteTypeId` has no foreign key for the
+/// same reason as `DiveDiveTypes.diveTypeId`: a custom type can arrive by
+/// sync after a junction row that references it.
+class SiteSiteTypes extends Table {
+  TextColumn get id => text()();
+  TextColumn get siteId =>
+      text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+  TextColumn get siteTypeId => text()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
+/// Junction table for a site's tags (many-to-many, v217), the twin of
+/// [DiveTags].
+class SiteTags extends Table {
+  TextColumn get id => text()();
+  TextColumn get siteId =>
+      text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
   /// (SyncDataSerializer.parentGatedChildEntities).
   TextColumn get hlc => text().nullable()();
 }
@@ -4028,6 +4112,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Site-species junction
     SiteSpecies,
     SiteFeatures,
+    // Site classification (v217, issue #1765)
+    SiteTypes,
+    SiteSiteTypes,
+    SiteTags,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -4088,7 +4176,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 213;
+  static const int currentSchemaVersion = 217;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4665,8 +4753,28 @@ class AppDatabase extends _$AppDatabase {
     211,
     // v213: service_schedules.anchor_set_at, so a baseline date the diver
     // sets outranks the service records logged before it. Column-only, no
-    // backfill. 212 is claimed by #1639 (planner gas options), still open.
+    // backfill.
     213,
+    // v214: dive_plans.stop_minimums_json (replan-this-dive minimum stop
+    // durations). Additive nullable column, no backfill. Renumbered from 201,
+    // then 209, then 211: main shipped 211 and 213 while this branch was open,
+    // and a rung at or below the shipped version never runs its onUpgrade
+    // step. The 212 main reserved for this branch is below 213 and so is dead
+    // for the same reason.
+    214,
+    // v215: dive_plans gas-options columns (sac_factor, problem_solving_
+    // minutes, pp_o2_bottom, pp_o2_deco, best_mix_end_meters, o2_narcotic).
+    // Renumbered from 202, then 212, for the same collisions; stop-minimums
+    // took 214.
+    215,
+    // v217: dive site types and tags (issue #1765). Three new tables
+    // (site_types, site_site_types, site_tags), the built-in site type seed,
+    // both junction unique indexes, and tags.applies_to_dives /
+    // applies_to_sites. Additive only, so the compatibility floor stays.
+    // Renumbered from 212, then 214: main shipped 213, 214 and 215 while
+    // this branch was open, and 216 is claimed by the site detail sections
+    // work.
+    217,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5104,6 +5212,8 @@ class AppDatabase extends _$AppDatabase {
       'dive_custom_fields',
       'dive_data_sources',
       'site_species',
+      'site_site_types',
+      'site_tags',
       'dive_profile_events',
       'dive_safety_reviews',
       'dive_safety_findings',
@@ -7932,6 +8042,64 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// v214: dive_plans.stop_minimums_json (replan-this-dive minimum stop
+  /// durations). Additive, nullable column, no backfill: an existing plan
+  /// reads back with no minimums set, exactly its prior behavior.
+  Future<void> _assertPlanStopMinimumsColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_plans')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('stop_minimums_json')) return;
+    await customStatement(
+      'ALTER TABLE dive_plans ADD COLUMN stop_minimums_json TEXT',
+    );
+  }
+
+  /// v215: dive_plans gas-options columns (Subsurface parity: SAC factor,
+  /// problem solving time, bottom/deco ppO2 overrides, best-mix END, O2
+  /// narcotic override). Additive; the two non-nullable columns backfill
+  /// existing rows with the same defaults [DivePlan] already assumes when a
+  /// column is missing, so a plan's minimum-gas figure and END limit are
+  /// unchanged by the migration itself.
+  Future<void> _assertPlanGasOptionColumns() async {
+    final cols = await customSelect("PRAGMA table_info('dive_plans')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('sac_factor')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN sac_factor REAL NOT NULL '
+        'DEFAULT 2.0',
+      );
+    }
+    if (!names.contains('problem_solving_minutes')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN problem_solving_minutes INTEGER '
+        'NOT NULL DEFAULT 2',
+      );
+    }
+    if (!names.contains('pp_o2_bottom')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN pp_o2_bottom REAL',
+      );
+    }
+    if (!names.contains('pp_o2_deco')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN pp_o2_deco REAL',
+      );
+    }
+    if (!names.contains('best_mix_end_meters')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN best_mix_end_meters REAL NOT '
+        'NULL DEFAULT 30.0',
+      );
+    }
+    if (!names.contains('o2_narcotic')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN o2_narcotic BOOLEAN',
+      );
+    }
+  }
+
   /// Owning-source FK on dive_profiles (issue #1149). PRAGMA-guarded so a
   /// healthy database no-ops and a partial schema does not throw.
   Future<void> _assertProfileSourceIdColumn() async {
@@ -7968,6 +8136,49 @@ class AppDatabase extends _$AppDatabase {
   /// matching the _assertDiveTypeShortNameColumn pattern so a schema-version
   /// collision cannot strand a database without them. Self-guarding when the
   /// table is absent (minimal migration-test fixtures).
+  /// Idempotent DDL for the tag scope flags (v217, issue #1765). Existing
+  /// tags are dive tags; none applies to sites until the diver says so.
+  Future<void> _assertTagScopeColumns() async {
+    final cols = await customSelect("PRAGMA table_info('tags')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('applies_to_dives')) {
+      await customStatement(
+        'ALTER TABLE tags ADD COLUMN applies_to_dives '
+        'INTEGER NOT NULL DEFAULT 1 CHECK (applies_to_dives IN (0, 1))',
+      );
+    }
+    if (!names.contains('applies_to_sites')) {
+      await customStatement(
+        'ALTER TABLE tags ADD COLUMN applies_to_sites '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (applies_to_sites IN (0, 1))',
+      );
+    }
+  }
+
+  /// Idempotent creation of the v217 site classification schema: the three
+  /// tables, the built-in seed, and the junction unique indexes. Called from
+  /// the v217 rung and the beforeOpen backstop.
+  ///
+  /// Skipped on a partial migration-test fixture that lacks the parent
+  /// tables: with foreign keys on (as they are in beforeOpen), SQLite refuses
+  /// the seed insert into `site_types` when `divers` does not exist, even for
+  /// a NULL diver id.
+  Future<void> _assertSiteClassificationSchema() async {
+    for (final parent in const ['divers', 'dive_sites', 'tags']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(siteTypes);
+    await createMigrator().createTable(siteSiteTypes);
+    await createMigrator().createTable(siteTags);
+    await customStatement(kSeedBuiltInSiteTypesSql);
+    await assertSiteClassificationUniqueness(this);
+  }
+
   Future<void> _assertDiveTypeVisibilityColumns() async {
     final cols = await customSelect("PRAGMA table_info('dive_types')").get();
     if (cols.isEmpty) return;
@@ -8296,6 +8507,12 @@ class AppDatabase extends _$AppDatabase {
         // reason as the tag indexes above -- createAll() does not build
         // raw-SQL indexes.
         await assertDiveTypeUniqueness(this);
+
+        // Built-in site types and the site junction unique indexes (v217,
+        // issue #1765). createAll() builds the tables but never raw-SQL
+        // indexes or seeds.
+        await customStatement(kSeedBuiltInSiteTypesSql);
+        await assertSiteClassificationUniqueness(this);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -11900,8 +12117,34 @@ class AppDatabase extends _$AppDatabase {
           await _assertServiceScheduleAnchorSetAtColumn();
         }
         if (from < 213) await reportProgress();
+        // v214: dive_plans.stop_minimums_json (replan-this-dive minimum stop
+        // durations). Additive nullable column, no backfill. Renumbered from
+        // 201, then 209, then 211: main shipped 211 and 213 while this branch
+        // was open.
+        if (from < 214) {
+          await _assertPlanStopMinimumsColumn();
+        }
+        if (from < 214) await reportProgress();
+        // v215: dive_plans gas-options columns (SAC factor, problem solving
+        // time, ppO2 bottom/deco overrides, best-mix END, O2 narcotic
+        // override). Additive, defaults preserve prior behavior. Renumbered
+        // from 202, then 212: stop-minimums took 214.
+        if (from < 215) {
+          await _assertPlanGasOptionColumns();
+        }
+        if (from < 215) await reportProgress();
+        // v217: dive site types and tags (issue #1765). Table-and-column
+        // rung, no backfill beyond the built-in seed.
+        if (from < 217) {
+          await _assertTagScopeColumns();
+          await _assertSiteClassificationSchema();
+        }
+        if (from < 217) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v217 backstop: the tag scope flags.
+        await _assertTagScopeColumns();
+
         // v211 backstop: re-assert diver_settings.auto_tag_imports.
         await _assertAutoTagImportsColumn();
 
@@ -12009,6 +12252,10 @@ class AppDatabase extends _$AppDatabase {
         // v152 backstop: site features table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await createMigrator().createTable(siteFeatures);
+
+        // v217 backstop: site classification tables, seed and indexes
+        // (parallel-branch version-collision self-heal; all idempotent).
+        await _assertSiteClassificationSchema();
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it
@@ -12131,6 +12378,16 @@ class AppDatabase extends _$AppDatabase {
 
         // v204 backstop: re-assert diver_settings.group_trips_in_dive_list.
         await _assertGroupTripsInDiveListColumn();
+
+        // v214 backstop: re-assert the dive_plans stop-minimums column. A
+        // database that arrives by restore or sync-adopt never runs
+        // onUpgrade, and reading a plan without it throws.
+        await _assertPlanStopMinimumsColumn();
+
+        // v215 backstop: re-assert the dive_plans gas-options columns. A
+        // database that arrives by restore or sync-adopt never runs
+        // onUpgrade, and reading a plan without them throws.
+        await _assertPlanGasOptionColumns();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

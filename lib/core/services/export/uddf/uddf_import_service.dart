@@ -874,6 +874,7 @@ class UddfImportService {
       diveData['buddy'] = buddyNames.join(', ');
     }
 
+    UddfImportParsers.dropInventedSubmersionProfile(diveElement, diveData);
     return diveData;
   }
 

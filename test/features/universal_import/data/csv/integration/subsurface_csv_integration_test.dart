@@ -158,6 +158,47 @@ void main() {
       expect(tagNames, contains('student'));
     });
 
+    test('links each tagged dive to its tags', () {
+      final bytes = diveListFile.readAsBytesSync();
+      final parsed = pipeline.parse(bytes);
+      final detected = pipeline.detect(parsed);
+      final config = _configFromPreset(detected.matchedPreset!);
+      final payload = pipeline.execute(primaryCsv: parsed, config: config);
+
+      final tagIdByName = {
+        for (final tag in payload.entitiesOf(ImportEntityType.tags))
+          tag['name'] as String: tag['id'] as String,
+      };
+      final divesByNumber = {
+        for (final dive in payload.entitiesOf(ImportEntityType.dives))
+          if (dive['diveNumber'] != null) dive['diveNumber'].toString(): dive,
+      };
+
+      // Dives 1-5 are tagged "shore, student"; dive 6 has no tags. Without
+      // tagRefs the importer creates the tags but links them to no dive.
+      expect(divesByNumber['1']?['tagRefs'], [
+        tagIdByName['shore'],
+        tagIdByName['student'],
+      ]);
+      expect(divesByNumber['6']?.containsKey('tagRefs'), isFalse);
+    });
+
+    test('keeps the suit in the dive notes', () {
+      final bytes = diveListFile.readAsBytesSync();
+      final parsed = pipeline.parse(bytes);
+      final detected = pipeline.detect(parsed);
+      final config = _configFromPreset(detected.matchedPreset!);
+      final payload = pipeline.execute(primaryCsv: parsed, config: config);
+
+      final dive = payload
+          .entitiesOf(ImportEntityType.dives)
+          .firstWhere((d) => d['diveNumber']?.toString() == '1');
+
+      // The preset maps the suit column but creates no gear, so the suit
+      // is kept the way the Subsurface XML import keeps it.
+      expect(dive['notes'], 'Summary:\nSuit: 3mm Bare wetsuit');
+    });
+
     test('all dive times are UTC wall-clock and not shifted '
         '(first numbered dive at 07:44 remains 07:44)', () {
       final bytes = diveListFile.readAsBytesSync();

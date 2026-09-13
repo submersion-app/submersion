@@ -3,9 +3,14 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
+import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
+import 'package:submersion/features/universal_import/data/csv/presets/preset_registry.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 
@@ -374,6 +379,60 @@ void main() {
     });
   });
 
+  // Issues #1828 and #1829, end to end from the file's bytes.
+  group('parse: day-first, two-digit and unreadable dates', () {
+    const options = ImportOptions(
+      sourceApp: SourceApp.generic,
+      format: ImportFormat.csv,
+    );
+
+    List<DateTime> diveDates(ImportPayload payload) => [
+      for (final dive in payload.entitiesOf(ImportEntityType.dives))
+        dive['dateTime'] as DateTime,
+    ];
+
+    test('a UK logbook imports every row in day-first order', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '03/04/1991,09:00,20\n'
+          '15/04/1991,10:00,18\n';
+
+      final payload = await parser.parse(csvBytes(csv), options: options);
+
+      expect(diveDates(payload), [
+        DateTime.utc(1991, 4, 3, 9),
+        DateTime.utc(1991, 4, 15, 10),
+      ]);
+    });
+
+    test('a two-digit year is not stored as the year 91', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '4/15/91,09:00,20\n';
+
+      final payload = await parser.parse(csvBytes(csv), options: options);
+
+      expect(diveDates(payload).single.year, 1991);
+    });
+
+    test('an unreadable row is reported with its spreadsheet row', () async {
+      // The blank line is row 3, so the unreadable row is row 4.
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,10:00,20\n'
+          '\n'
+          '15 Apr 2024,11:00,18\n';
+
+      final payload = await parser.parse(csvBytes(csv), options: options);
+
+      expect(diveDates(payload), hasLength(1));
+      final skipped = payload.warnings.where(
+        (w) => w.code == ImportWarningCode.unreadableDate,
+      );
+      expect(skipped.single.sourceRow, 4);
+    });
+  });
+
   group('parse - new pipeline features', () {
     test('each dive has a generated UUID', () async {
       const csv =
@@ -603,9 +662,12 @@ void main() {
 
       final result = await parser.parse(csvBytes(csv));
 
+      // A mapped buddy column imports as a linked buddy record (#1830).
+      final buddies = result.entitiesOf(ImportEntityType.buddies);
+      expect(buddies.map((b) => b['name']), ['Alice']);
       final dives = result.entitiesOf(ImportEntityType.dives);
       expect(dives, isNotEmpty);
-      expect(dives.first['buddy'], 'Alice');
+      expect(dives.first['buddyRefs'], [buddies.single['id']]);
     });
 
     test('maps visibility header to visibility field', () async {
@@ -739,7 +801,19 @@ void main() {
       expect(dives.first['weatherDescription'], 'Sunny and warm');
     });
 
-    test('maps wind direction header', () async {
+    test('maps wind direction header to the enum name', () async {
+      const csv =
+          'Date,Wind Direction\n'
+          '2024-01-15,North-East\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['windDirection'], 'northEast');
+    });
+
+    test('reports a wind direction it cannot read', () async {
       const csv =
           'Date,Wind Direction\n'
           '2024-01-15,NNW\n';
@@ -747,24 +821,25 @@ void main() {
       final result = await parser.parse(csvBytes(csv));
 
       final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives, isNotEmpty);
-      expect(dives.first['windDirection'], 'NNW');
+      expect(dives.first.containsKey('windDirection'), isFalse);
+      final warning = result.warnings.single;
+      expect(warning.severity, ImportWarningSeverity.info);
+      expect(warning.field, 'windDirection');
+      expect(warning.message, contains('"NNW"'));
     });
 
-    test('maps serial number and firmware headers via auto-mapping', () async {
-      // The auto-mapper maps "Serial Number" -> "serialNumber" and
-      // "Firmware" -> "firmware". These are not in DiveExtractor's known
-      // fields (it uses diveComputerSerial/diveComputerFirmware), so
-      // they are dropped from the final output. This test verifies the
-      // auto-mapping and parse succeed without error.
+    test('maps computer, serial and firmware headers to the dive computer '
+        'fields', () async {
       const csv =
-          'Date,Serial Number,Firmware\n'
-          '2024-01-15,SN12345,v2.1\n';
+          'Date,Dive Computer,Serial Number,Firmware\n'
+          '2024-01-15,Perdix 2,SN12345,v2.1\n';
 
       final result = await parser.parse(csvBytes(csv));
 
-      final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives, isNotEmpty);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['diveComputerModel'], 'Perdix 2');
+      expect(dive['diveComputerSerial'], 'SN12345');
+      expect(dive['diveComputerFirmware'], 'v2.1');
     });
 
     test('maps rating header', () async {
@@ -839,16 +914,152 @@ void main() {
       expect(dives.first['duration'], isNotNull);
     });
 
-    test('maps runtime header to duration', () async {
+    test('maps runtime header to runtime', () async {
       const csv =
           'Date,Runtime\n'
           '2024-01-15,50\n';
 
       final result = await parser.parse(csvBytes(csv));
 
-      final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives, isNotEmpty);
-      expect(dives.first['duration'], isNotNull);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['runtime'], const Duration(minutes: 50));
+      expect(dive.containsKey('duration'), isFalse);
+    });
+
+    test('keeps bottom time and runtime apart (#1814)', () async {
+      const csv =
+          'Date,Bottom Time (min),Runtime (min)\n'
+          '2024-01-15,45,50\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['duration'], const Duration(minutes: 45));
+      expect(dive['runtime'], const Duration(minutes: 50));
+      expect(result.warnings, isEmpty);
+    });
+
+    test('first column claiming a field keeps it and a warning names the '
+        'dropped one (#1814)', () async {
+      const csv =
+          'Date,Site,Location\n'
+          '2024-01-15,Blue Hole,Gozo\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['siteName'], 'Blue Hole');
+      final warning = result.warnings.single;
+      expect(warning.severity, ImportWarningSeverity.warning);
+      expect(warning.field, 'siteName');
+      expect(warning.message, contains('"Location"'));
+      expect(warning.message, contains('"Site"'));
+      // The import summary names the dropped column in its own card.
+      expect(warning.code, ImportWarningCode.columnsNotImported);
+      expect(warning.names, ['Location']);
+    });
+
+    test('maps "Dive Name" and "Title" headers to the dive name', () async {
+      for (final header in ['Dive Name', 'Title']) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,Wreck day\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['name'], 'Wreck day', reason: header);
+      }
+    });
+
+    test('maps a visibility in metres to visibilityMeters, beside the '
+        'rating bucket', () async {
+      const csv =
+          'Date,Visibility (m),Visibility Rating\n'
+          '2024-01-15,15.0,Good\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['visibilityMeters'], 15.0);
+      expect(dive['visibility'], 'good');
+      expect(result.warnings, isEmpty);
+    });
+
+    test('keeps a bare or non-metre visibility on the bucket field', () async {
+      for (final header in ['Visibility', 'Visibility (ft)']) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,Good\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['visibility'], 'good', reason: header);
+        expect(dive.containsKey('visibilityMeters'), isFalse, reason: header);
+      }
+    });
+
+    test('keeps Visibility Rating and Rating apart in export order', () async {
+      const csv =
+          'Date,Visibility Rating,Rating\n'
+          '2024-01-15,Good,4\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['visibility'], 'good');
+      expect(dive['rating'], 4);
+      expect(result.warnings, isEmpty);
+    });
+
+    test('maps computer serial and firmware headers ahead of the model '
+        'rule', () async {
+      const csv =
+          'Date,Computer Serial,Computer Firmware\n'
+          '2024-01-15,SN12345,v2.1\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['diveComputerSerial'], 'SN12345');
+      expect(dive['diveComputerFirmware'], 'v2.1');
+      expect(dive.containsKey('diveComputerModel'), isFalse);
+    });
+
+    test('leaves a wind speed in a unit other than m/s unmapped', () async {
+      for (final header in [
+        'Wind Speed (km/h)',
+        'Wind Speed (kph)',
+        'Wind Speed (kts)',
+        'Wind Speed (knots)',
+        'Wind Speed (mph)',
+      ]) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,20\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('windSpeed'), isFalse, reason: header);
+      }
+    });
+
+    test('maps a wind speed in m/s or with no unit', () async {
+      for (final header in ['Wind Speed (m/s)', 'Wind Speed']) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,5\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['windSpeed'], 5.0, reason: header);
+      }
+    });
+
+    test('leaves a bare "Name" header unmapped', () async {
+      const csv =
+          'Date,Name\n'
+          '2024-01-15,Alex\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive.containsKey('name'), isFalse);
     });
 
     test('maps dateTime combined header', () async {
@@ -1003,22 +1214,109 @@ void main() {
       },
     );
 
+    test('custom mapping without detected preset adds mapped buddies and '
+        'tags to the default entity types', () async {
+      // Headers that do not match any known preset.
+      const csv =
+          'my_date,my_time,my_depth,my_buddy,my_tags\n'
+          '2024-01-15,10:00,25.5,Alice,reef\n';
+
+      const customMapping = FieldMapping(
+        name: 'Unknown Source',
+        columns: [
+          ColumnMapping(sourceColumn: 'my_date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'my_time', targetField: 'time'),
+          ColumnMapping(sourceColumn: 'my_depth', targetField: 'maxDepth'),
+          ColumnMapping(sourceColumn: 'my_buddy', targetField: 'buddy'),
+          ColumnMapping(sourceColumn: 'my_tags', targetField: 'tags'),
+        ],
+      );
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        customMappingOverride: customMapping,
+      );
+
+      // Without a detected preset the default entity types are
+      // {dives, sites}. Mapped buddy (#1830) and tags columns add their
+      // entity types, so neither column is dropped.
+      final buddies = result.entitiesOf(ImportEntityType.buddies);
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(buddies.map((b) => b['name']), ['Alice']);
+      expect(tags.map((t) => t['name']), ['reef']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [tags.single['id']]);
+    });
+  });
+
+  group('entity types follow the mapped site and buddy columns (#1830)', () {
+    const myssiCsv =
+        'dive #,Dive Site,Country,Date / Time,Dive Activity,'
+        'Specialty Dive,Dive type,Duration,Depth,'
+        'Dive Buddy / Instructor / Center\n'
+        '1,Coral Garden,Egypt,2026-01-15 09:00,Fun Dive,,Open Water,45,'
+        '18.5,Alice\n'
+        '2,Coral Garden,Egypt,2026-01-15 14:00,Fun Dive,,Open Water,50,'
+        '16.0,Alice\n';
+
+    void expectLinkedSiteAndBuddy(ImportPayload result) {
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.map((s) => s['name']), ['Coral Garden']);
+
+      final buddies = result.entitiesOf(ImportEntityType.buddies);
+      expect(buddies.map((b) => b['name']), ['Alice']);
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, hasLength(2));
+      for (final dive in dives) {
+        expect(dive['siteId'], sites.single['id']);
+        expect(dive['buddyRefs'], [buddies.single['id']]);
+        expect(
+          dive.containsKey('buddy'),
+          isFalse,
+          reason: 'the buddy column must not also be kept as free text',
+        );
+      }
+    }
+
+    test('a detected MySSI export imports linked sites and buddies', () async {
+      final result = await parser.parse(csvBytes(myssiCsv));
+
+      expectLinkedSiteAndBuddy(result);
+    });
+
+    test('a MySSI export imported through the mapping step keeps its sites and '
+        'buddies', () async {
+      // The wizard always hands its Map Fields mapping back as an override,
+      // so this is the path a real MySSI import takes.
+      final myssi = builtInCsvPresets.firstWhere((p) => p.id == 'myssi');
+
+      final result = await parser.parse(
+        csvBytes(myssiCsv),
+        customMappingOverride: myssi.primaryMapping,
+      );
+
+      expectLinkedSiteAndBuddy(result);
+    });
+
     test(
-      'custom mapping without detected preset falls back to default entity types',
+      'a custom mapping adds sites and buddies to a dives-only preset',
       () async {
-        // Headers that do not match any known preset.
+        // Garmin Connect is detected and imports dives only, but the user
+        // mapped the two extra columns by hand.
         const csv =
-            'my_date,my_time,my_depth,my_buddy,my_tags\n'
-            '2024-01-15,10:00,25.5,Alice,reef\n';
+            'Date,Activity Type,Max Depth,Avg Depth,Bottom Time,'
+            'Water Temperature,Location,Buddy\n'
+            '2024-01-15,Single-Gas Dive,25.5,18.0,00:45:00,27,Blue Hole,'
+            'Alice\n';
 
         const customMapping = FieldMapping(
-          name: 'Unknown Source',
+          name: 'Garmin plus people',
           columns: [
-            ColumnMapping(sourceColumn: 'my_date', targetField: 'date'),
-            ColumnMapping(sourceColumn: 'my_time', targetField: 'time'),
-            ColumnMapping(sourceColumn: 'my_depth', targetField: 'maxDepth'),
-            ColumnMapping(sourceColumn: 'my_buddy', targetField: 'buddy'),
-            ColumnMapping(sourceColumn: 'my_tags', targetField: 'tags'),
+            ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+            ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+            ColumnMapping(sourceColumn: 'Location', targetField: 'siteName'),
+            ColumnMapping(sourceColumn: 'Buddy', targetField: 'buddy'),
           ],
         );
 
@@ -1027,25 +1325,114 @@ void main() {
           customMappingOverride: customMapping,
         );
 
-        // Without a detected preset, the default entity types are
-        // {dives, sites} only. Buddies and tags should not be extracted.
+        final sites = result.entitiesOf(ImportEntityType.sites);
+        expect(sites.map((s) => s['name']), ['Blue Hole']);
         final buddies = result.entitiesOf(ImportEntityType.buddies);
-        final tags = result.entitiesOf(ImportEntityType.tags);
-        expect(
-          buddies,
-          isEmpty,
-          reason:
-              'Without detected preset, default entity types should not '
-              'include buddies',
-        );
-        expect(
-          tags,
-          isEmpty,
-          reason:
-              'Without detected preset, default entity types should not '
-              'include tags',
-        );
+        expect(buddies.map((b) => b['name']), ['Alice']);
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['siteId'], sites.single['id']);
+        expect(dive['buddyRefs'], [buddies.single['id']]);
       },
     );
+
+    test('a saved preset that maps sites and buddies imports them even when '
+        'its entity set omits them', () async {
+      // A preset saved from an earlier MySSI detection inherited
+      // {dives} only.
+      final registry = PresetRegistry(builtInPresets: builtInCsvPresets)
+        ..addUserPreset(
+          const CsvPreset(
+            id: 'user-spots',
+            name: 'My Spots',
+            source: PresetSource.userSaved,
+            signatureHeaders: ['Day', 'Spot', 'Deepest', 'Mate'],
+            mappings: {
+              'primary': FieldMapping(
+                name: 'My Spots',
+                columns: [
+                  ColumnMapping(sourceColumn: 'Day', targetField: 'date'),
+                  ColumnMapping(sourceColumn: 'Spot', targetField: 'site'),
+                  ColumnMapping(
+                    sourceColumn: 'Deepest',
+                    targetField: 'maxDepth',
+                  ),
+                  ColumnMapping(sourceColumn: 'Mate', targetField: 'buddy'),
+                ],
+              ),
+            },
+            supportedEntities: {ImportEntityType.dives},
+          ),
+        );
+      final savedPresetParser = CsvImportParser(
+        pipeline: CsvPipeline(registry: registry),
+      );
+
+      final result = await savedPresetParser.parse(
+        csvBytes('Day,Spot,Deepest,Mate\n2024-01-15,Blue Hole,25.5,Alice\n'),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.map((s) => s['name']), ['Blue Hole']);
+      final buddies = result.entitiesOf(ImportEntityType.buddies);
+      expect(buddies.map((b) => b['name']), ['Alice']);
+    });
+
+    test('an auto-mapped buddy column imports buddies', () async {
+      // No preset matches these headers, so they are keyword-mapped.
+      const csv =
+          'Date,Max Depth,Site,Buddy\n'
+          '2024-01-15,25.5,Blue Hole,Alice\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.map((s) => s['name']), ['Blue Hole']);
+      final buddies = result.entitiesOf(ImportEntityType.buddies);
+      expect(buddies.map((b) => b['name']), ['Alice']);
+    });
+  });
+
+  group('a mapped tags column imports linked tags', () {
+    test('a custom mapping adds tags to a preset without them', () async {
+      // Garmin Connect is detected and imports dives only, but the user
+      // mapped a tags column by hand.
+      const csv =
+          'Date,Activity Type,Max Depth,Avg Depth,Bottom Time,'
+          'Water Temperature,Labels\n'
+          '2024-01-15,Single-Gas Dive,25.5,18.0,00:45:00,27,"night, wreck"\n';
+
+      const customMapping = FieldMapping(
+        name: 'Garmin plus tags',
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+          ColumnMapping(sourceColumn: 'Labels', targetField: 'tags'),
+        ],
+      );
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        customMappingOverride: customMapping,
+      );
+
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags.map((t) => t['name']), ['night', 'wreck']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [for (final tag in tags) tag['id']]);
+    });
+
+    test('an auto-mapped tags column imports tags', () async {
+      // No preset matches these headers, so they are keyword-mapped.
+      const csv =
+          'Date,Max Depth,Tags\n'
+          '2024-01-15,25.5,reef\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags.map((t) => t['name']), ['reef']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [tags.single['id']]);
+    });
   });
 }

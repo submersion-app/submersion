@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -300,6 +301,190 @@ void main() {
         expect(levels, contains(LogLevel.warning));
         expect(levels, contains(LogLevel.error));
       });
+    });
+  });
+
+  group('LoggerService file logging level (#1826)', () {
+    late Directory tempDir;
+    late LogFileService fileService;
+
+    setUp(() async {
+      tempDir = Directory.systemTemp.createTempSync('logger_level_test_');
+      fileService = LogFileService(logDirectory: tempDir.path);
+      await fileService.initialize();
+    });
+
+    tearDown(() async {
+      await flushLogs();
+      LoggerService.setFileService(null);
+      LoggerService.setMinimumFileLevel(LogLevel.debug);
+      tempDir.deleteSync(recursive: true);
+    });
+
+    test('configureFileLogging(verbose: false) persists only warnings '
+        'and errors', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+
+      const logger = LoggerService('TestLogger');
+      logger.debug('debug line');
+      logger.info('info line');
+      logger.warning('warning line');
+      logger.error('error line');
+      await flushLogs();
+
+      final entries = await fileService.readEntries();
+      expect(entries.map((e) => e.message), ['warning line', 'error line']);
+    });
+
+    test('configureFileLogging(verbose: true) persists every level', () async {
+      LoggerService.configureFileLogging(fileService, verbose: true);
+
+      const logger = LoggerService('TestLogger');
+      logger.debug('debug line');
+      logger.info('info line');
+      logger.warning('warning line');
+      logger.error('error line');
+      await flushLogs();
+
+      final entries = await fileService.readEntries();
+      expect(entries.map((e) => e.level), [
+        LogLevel.debug,
+        LogLevel.info,
+        LogLevel.warning,
+        LogLevel.error,
+      ]);
+    });
+
+    test('filtered levels still reach live listeners', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      final seen = <LogEntry>[];
+      final sub = LoggerService.logStream.listen(seen.add);
+      addTearDown(sub.cancel);
+
+      const LoggerService('TestLogger').debug('only on the stream');
+      await flushLogs();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(seen.map((e) => e.message), contains('only on the stream'));
+      expect(await fileService.readEntries(), isEmpty);
+    });
+
+    test('info(alwaysPersist: true) is written below the floor', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+
+      const logger = LoggerService('TestLogger');
+      logger.info('session marker', alwaysPersist: true);
+      logger.info('ordinary info');
+      await flushLogs();
+
+      final entries = await fileService.readEntries();
+      expect(entries.map((e) => e.message), ['session marker']);
+    });
+
+    test('secrets in a message or its error are redacted before the '
+        'line is written', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+
+      const LoggerService('TestLogger').error(
+        'Token refresh failed for https://x.test/cb?access_token=leak1',
+        error: 'Authorization: Bearer leak2',
+      );
+      await flushLogs();
+
+      final raw = File(fileService.logFilePath).readAsStringSync();
+      expect(raw, contains('Token refresh failed'));
+      expect(raw, isNot(contains('leak1')));
+      expect(raw, isNot(contains('leak2')));
+    });
+
+    test('lines logged before a file is attached are written once '
+        'startup buffering is on', () async {
+      LoggerService.bufferUntilFileAttached();
+      const logger = LoggerService('TestLogger');
+      logger.error('startup failure');
+      logger.debug('startup chatter');
+
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      await flushLogs();
+
+      final entries = await fileService.readEntries();
+      expect(entries.map((e) => e.message), ['startup failure']);
+    });
+
+    test('without startup buffering, earlier lines are not replayed', () async {
+      const LoggerService('TestLogger').error('logged with no file');
+
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      await flushLogs();
+
+      expect(await fileService.readEntries(), isEmpty);
+    });
+
+    test('the startup buffer keeps only the newest lines', () async {
+      LoggerService.bufferUntilFileAttached();
+      const logger = LoggerService('TestLogger');
+      for (var i = 0; i < LoggerService.startupBufferLimit + 5; i++) {
+        logger.error('line $i');
+      }
+
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      await flushLogs();
+
+      final messages = (await fileService.readEntries()).map((e) => e.message);
+      expect(messages, hasLength(LoggerService.startupBufferLimit));
+      expect(messages.first, 'line 5');
+    });
+
+    test('persistedLogStream fires after a line is written, and only for '
+        'lines that reach the file', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      final persisted = <String>[];
+      final onDisk = <bool>[];
+      final sub = LoggerService.persistedLogStream.listen((entry) {
+        persisted.add(entry.message);
+        onDisk.add(
+          File(
+            fileService.logFilePath,
+          ).readAsStringSync().contains(entry.message),
+        );
+      });
+      addTearDown(sub.cancel);
+
+      const logger = LoggerService('TestLogger');
+      logger.debug('not persisted');
+      logger.error('persisted');
+      await flushLogs();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(persisted, ['persisted']);
+      expect(onDisk, [true]);
+    });
+
+    test(
+      'infoInOrder holds its place ahead of lines logged after it',
+      () async {
+        LoggerService.configureFileLogging(fileService, verbose: false);
+        final marker = Completer<String>();
+
+        const logger = LoggerService('TestLogger');
+        logger.infoInOrder(marker.future, alwaysPersist: true);
+        logger.error('logged after the marker');
+        marker.complete('session marker');
+        await flushLogs();
+
+        final entries = await fileService.readEntries();
+        expect(entries.map((e) => e.message), [
+          'session marker',
+          'logged after the marker',
+        ]);
+      },
+    );
+
+    test('minimumFileLevel reports the configured floor', () {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      expect(LoggerService.minimumFileLevel, LogLevel.warning);
+      LoggerService.configureFileLogging(fileService, verbose: true);
+      expect(LoggerService.minimumFileLevel, LogLevel.debug);
     });
   });
 

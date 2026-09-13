@@ -5,7 +5,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
+import 'package:submersion/features/statistics/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
@@ -35,11 +39,15 @@ class StatisticsConditionsPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildWaterTypeSection(context, ref),
           const SizedBox(height: 16),
+          _buildSiteTypeSection(context, ref),
+          const SizedBox(height: 16),
           _buildEntryMethodSection(context, ref),
           const SizedBox(height: 16),
           _buildTemperatureTrendSection(context, ref, units),
           const SizedBox(height: 16),
           _buildTemperatureSection(context, ref, units),
+          const SizedBox(height: 16),
+          _buildTemperatureBandSection(context, ref, units),
         ],
       ),
     );
@@ -151,6 +159,52 @@ class StatisticsConditionsPage extends ConsumerWidget {
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
           message: context.l10n.statistics_conditions_waterType_error,
+        ),
+      ),
+    );
+  }
+
+  /// Dives per site type (issue #1765). Bars, not a pie: a dive at a site
+  /// with several types counts toward each, so the shares overlap.
+  Widget _buildSiteTypeSection(BuildContext context, WidgetRef ref) {
+    final distAsync = ref.watch(siteTypeDistributionProvider);
+    final typesById = ref.watch(siteTypesByIdProvider).value ?? const {};
+
+    return StatSectionCard(
+      title: context.l10n.statistics_conditions_siteType_title,
+      subtitle: context.l10n.statistics_conditions_siteType_subtitle,
+      child: distAsync.when(
+        data: (raw) {
+          // The repository emits a built-in's slug, translated here, and a
+          // custom type's stored name, shown as is.
+          final data = [
+            for (final s in raw)
+              (
+                label:
+                    typesById[s.label]?.localizedName(context.l10n) ?? s.label,
+                count: s.count,
+              ),
+          ];
+          final description = data
+              .map((d) => '${d.label}: ${d.count}')
+              .join(', ');
+          return Semantics(
+            label: context.l10n.statistics_conditions_siteType_semanticLabel(
+              description,
+            ),
+            child: HorizontalCategoryBarChart(
+              data: data,
+              barColor: Colors.teal.shade400,
+            ),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 120,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => StatEmptyState(
+          icon: Icons.error_outline,
+          message: context.l10n.statistics_conditions_siteType_error,
         ),
       ),
     );
@@ -299,4 +353,73 @@ class StatisticsConditionsPage extends ConsumerWidget {
       ),
     );
   }
+
+  /// Dives per water-temperature band (issue #1827).
+  ///
+  /// The bands arrive already defined in the diver's temperature unit, so
+  /// each tick carries just the numbers and the unit shows once on the
+  /// x-axis, as the time-at-depth chart does.
+  Widget _buildTemperatureBandSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
+    final bandsAsync = ref.watch(waterTempBandDistributionProvider);
+    final l10n = context.l10n;
+
+    return StatSectionCard(
+      title: l10n.statistics_conditions_waterTempBands_title,
+      subtitle: l10n.statistics_conditions_waterTempBands_subtitle,
+      child: bandsAsync.when(
+        data: (bands) {
+          if (bands.isEmpty) {
+            return StatEmptyState(
+              icon: Icons.thermostat,
+              message: l10n.statistics_conditions_waterTempBands_empty,
+            );
+          }
+          final symbol = units.temperatureSymbol;
+          final chartData = [
+            for (final band in bands)
+              (label: _waterTempBandLabel(band), count: band.count),
+          ];
+          final description = chartData
+              .map(
+                (d) =>
+                    '${d.label}$symbol: ${l10n.statistics_summary_tagUsage_diveCount(d.count)}',
+              )
+              .join(', ');
+          return Semantics(
+            label: l10n.statistics_conditions_waterTempBands_semanticLabel(
+              description,
+            ),
+            child: CategoryBarChart(
+              data: chartData,
+              barColor: Colors.cyan.shade600,
+              valueFormatter: l10n.statistics_summary_tagUsage_diveCount,
+              xAxisLabel: symbol,
+            ),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => StatEmptyState(
+          icon: Icons.error_outline,
+          message: l10n.statistics_conditions_waterTempBands_error,
+        ),
+      ),
+    );
+  }
+}
+
+/// Tick label for one band: "<10", "10-18" or "24+". The unit is left to the
+/// axis label.
+String _waterTempBandLabel(WaterTempBandCount band) {
+  final lower = band.lower;
+  final upper = band.upper;
+  if (lower == null) return '<$upper';
+  if (upper == null) return '$lower+';
+  return '$lower-$upper';
 }

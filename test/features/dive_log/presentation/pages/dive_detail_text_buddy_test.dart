@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -26,8 +26,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../buddies/helpers/fake_legacy_buddy_conversion_service.dart';
 
-typedef Override = riverpod.Override;
-
 /// Mock SettingsNotifier that does not access the database.
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -50,13 +48,15 @@ AppSettings _buddiesOnly() => AppSettings(
       .toList(),
 );
 
-/// The Buddies card's solo copy, read from the generated English strings so
-/// a wording change does not silently turn these into always-green tests.
-final String _soloDive = lookupAppLocalizations(
-  const Locale('en'),
-).diveLog_detail_soloDive;
+/// The generated English strings, read so a wording change cannot break
+/// these tests or silently turn a "findsNothing" into an always-green check.
+final AppLocalizations _en = lookupAppLocalizations(const Locale('en'));
 
-final _l10n = lookupAppLocalizations(const Locale('en'));
+/// The Buddies card's solo copy.
+final String _soloDive = _en.diveLog_detail_soloDive;
+
+/// The label on the diver's own role tile.
+final String _me = _en.buddies_picker_me;
 
 BuddyWithRole _linkedBuddy() => BuddyWithRole(
   buddy: Buddy(
@@ -171,7 +171,7 @@ void main() {
       );
     });
 
-    testWidgets('a text-only buddy is shown below the diver own role', (
+    testWidgets("a text-only buddy is shown below the diver's own role", (
       tester,
     ) async {
       await _pump(
@@ -181,9 +181,9 @@ void main() {
         diverRoleId: 'mysterySlug',
       );
 
-      expect(find.text('Me'), findsOneWidget);
+      expect(find.text(_me), findsOneWidget);
       expect(find.text('Bob Brown'), findsOneWidget);
-      final meY = tester.getCenter(find.text('Me')).dy;
+      final meY = tester.getCenter(find.text(_me)).dy;
       final bobY = tester.getCenter(find.text('Bob Brown')).dy;
       expect(meY, lessThan(bobY));
     });
@@ -211,7 +211,7 @@ void main() {
 
       expect(find.text(_soloDive), findsOneWidget);
       expect(find.text('None'), findsNothing);
-      expect(find.text(_l10n.buddies_linkText_action), findsNothing);
+      expect(find.text(_en.buddies_linkText_action), findsNothing);
     });
 
     testWidgets('dive-master text shows with the Dive master role', (
@@ -220,7 +220,7 @@ void main() {
       await _pump(tester, prefs, textDiveMaster: 'Ana Ruiz');
 
       expect(find.text('Ana Ruiz'), findsOneWidget);
-      expect(find.text(_l10n.diveRole_builtin_diveMaster), findsOneWidget);
+      expect(find.text(_en.diveRole_builtin_diveMaster), findsOneWidget);
       expect(find.text(_soloDive), findsNothing);
     });
 
@@ -228,7 +228,7 @@ void main() {
       tester,
     ) async {
       await _pump(tester, prefs, textBuddy: 'Bob Brown');
-      expect(find.text(_l10n.buddies_linkText_action), findsOneWidget);
+      expect(find.text(_en.buddies_linkText_action), findsOneWidget);
 
       // Unmount first: re-pumping a ProviderScope in place keeps each
       // provider's computed value, so the new overrides would not apply.
@@ -239,7 +239,7 @@ void main() {
         textBuddy: 'Bob Brown',
         linked: [_linkedBuddy()],
       );
-      expect(find.text(_l10n.buddies_linkText_action), findsNothing);
+      expect(find.text(_en.buddies_linkText_action), findsNothing);
     });
 
     testWidgets('linking applies the reviewed plan and offers Undo', (
@@ -256,18 +256,15 @@ void main() {
       );
       await _pump(tester, prefs, textBuddy: 'Bob Brown', service: service);
 
-      await tester.tap(find.text(_l10n.buddies_linkText_action));
+      await tester.tap(find.text(_en.buddies_linkText_action));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(_l10n.buddies_linkText_linkCount(1)));
+      await tester.tap(find.text(_en.buddies_linkText_linkCount(1)));
       await tester.pumpAndSettle();
 
       expect(service.applied.single.single.diveId, 'd1');
-      expect(
-        find.text(_l10n.buddies_linkText_linkedSnackbar(1)),
-        findsOneWidget,
-      );
+      expect(find.text(_en.buddies_linkText_linkedSnackbar(1)), findsOneWidget);
 
-      await tester.tap(find.text(_l10n.diveLog_bulkDelete_undo));
+      await tester.tap(find.text(_en.diveLog_bulkDelete_undo));
       await tester.pumpAndSettle();
 
       expect(service.undone, [FakeLegacyBuddyConversionService.defaultReceipt]);
@@ -282,10 +279,10 @@ void main() {
       final service = FakeLegacyBuddyConversionService()..planForGate = gate;
       await _pump(tester, prefs, textBuddy: 'Bob Brown', service: service);
 
-      await tester.tap(find.text(_l10n.buddies_linkText_action));
+      await tester.tap(find.text(_en.buddies_linkText_action));
       await tester.pump();
       await tester.tap(
-        find.text(_l10n.buddies_linkText_action),
+        find.text(_en.buddies_linkText_action),
         warnIfMissed: false,
       );
       await tester.pump();
@@ -293,7 +290,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(service.planForCalls, 1);
-      expect(find.text(_l10n.buddies_linkText_sheetTitle), findsOneWidget);
+      expect(find.text(_en.buddies_linkText_sheetTitle), findsOneWidget);
     });
   });
 }

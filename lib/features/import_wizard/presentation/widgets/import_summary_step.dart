@@ -8,6 +8,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -105,12 +106,20 @@ class _SuccessView extends StatelessWidget {
     );
     final hasActivity =
         totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
+    final l10n = context.l10n;
+    // "Import notes" explain dives that imported. Dives that did not (rows
+    // whose date could not be read, dives a parser could not read) get their
+    // own card.
+    final fileNotices = [
+      for (final notice in notices)
+        if (_fileNoticeWording(l10n, notice) case final wording?)
+          (notice: notice, wording: wording),
+    ];
 
     final String title;
     final IconData icon;
     final Color iconColor;
     final Color iconBg;
-    final l10n = context.l10n;
     if (hasActivity) {
       if (totalImported > 0) {
         title = l10n.universalImport_title_successImported;
@@ -201,6 +210,18 @@ class _SuccessView extends StatelessWidget {
                 count: skippedCount,
                 key: const Key('import_summary_skipped_row'),
               ),
+            for (final notice in notices)
+              if (notice.kind.reportsMissingDives) ...[
+                const SizedBox(height: 8),
+                MissingDivesCard(
+                  key: Key(switch (notice.kind) {
+                    ImportNoticeKind.divesSkipped =>
+                      'import_summary_dives_skipped',
+                    _ => 'import_summary_unreadable_dates',
+                  }),
+                  notice: notice,
+                ),
+              ],
             if (importedDiveIds.isNotEmpty)
               Consumer(
                 builder: (context, ref, _) {
@@ -228,7 +249,7 @@ class _SuccessView extends StatelessWidget {
                   );
                 },
               ),
-            if (notices.isNotEmpty) ...[
+            if (fileNotices.isNotEmpty) ...[
               const SizedBox(height: 16),
               Column(
                 key: const Key('import_summary_notices'),
@@ -239,7 +260,8 @@ class _SuccessView extends StatelessWidget {
                     style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  for (final notice in notices) _NoticeCard(notice: notice),
+                  for (final entry in fileNotices)
+                    _NoticeCard(notice: entry.notice, wording: entry.wording),
                 ],
               ),
             ],
@@ -409,36 +431,116 @@ class _ErrorView extends StatelessWidget {
 // Per-file outcome row (bulk imports)
 // ---------------------------------------------------------------------------
 
-/// Explains data the source files did not contain.
+/// Title, body and optional follow-up action for an import notes card.
+typedef _FileNoticeWording = ({
+  String title,
+  String body,
+  ({String label, String route})? action,
+});
+
+/// The wording for an import notes card, or null for a kind shown elsewhere.
+/// Dives that did not import at all are reported by [MissingDivesCard].
+_FileNoticeWording? _fileNoticeWording(
+  AppLocalizations l10n,
+  ImportNotice notice,
+) {
+  final names = notice.names.join(', ');
+  return switch (notice.kind) {
+    ImportNoticeKind.divesSkipped || ImportNoticeKind.unreadableDates => null,
+    ImportNoticeKind.multipleDivers => (
+      title: l10n.universalImport_summary_noticeMultipleDiversTitle,
+      body: l10n.universalImport_summary_noticeMultipleDiversBody(names),
+      action: null,
+    ),
+    ImportNoticeKind.profileUnreadable => (
+      title: l10n.universalImport_summary_noticeProfileUnreadableTitle,
+      body: l10n.universalImport_summary_noticeProfileUnreadableBody,
+      action: null,
+    ),
+    ImportNoticeKind.macdiveProfileUndecodable => (
+      title: l10n.universalImport_summary_noticeMacdiveProfileUndecodableTitle,
+      body: l10n.universalImport_summary_noticeMacdiveProfileUndecodableBody,
+      action: null,
+    ),
+    ImportNoticeKind.profileUndecodableOnPlatform => (
+      title:
+          l10n.universalImport_summary_noticeProfileUndecodableOnPlatformTitle,
+      body: l10n.universalImport_summary_noticeProfileUndecodableOnPlatformBody,
+      action: null,
+    ),
+    ImportNoticeKind.noTankPressure => (
+      title: l10n.universalImport_summary_noticeNoTankPressureTitle,
+      body: l10n.universalImport_summary_noticeNoTankPressureBody,
+      action: null,
+    ),
+    ImportNoticeKind.unknownTransmitter => (
+      title: l10n.universalImport_summary_noticeUnknownTransmitterTitle,
+      body: l10n.universalImport_summary_noticeUnknownTransmitterBody,
+      action: (
+        label: l10n.universalImport_summary_noticeAssignTransmitters,
+        route: '/transmitters',
+      ),
+    ),
+    ImportNoticeKind.columnsNotImported => (
+      title: l10n.universalImport_summary_noticeColumnsNotImportedTitle,
+      body: l10n.universalImport_summary_noticeColumnsNotImportedBody(names),
+      action: null,
+    ),
+    ImportNoticeKind.valuesNotConverted => (
+      title: l10n.universalImport_summary_noticeValuesNotConvertedTitle,
+      body: l10n.universalImport_summary_noticeValuesNotConvertedBody(
+        notice.count,
+      ),
+      action: null,
+    ),
+    ImportNoticeKind.photosSkipped => (
+      title: l10n.universalImport_summary_noticePhotosSkippedTitle,
+      body: l10n.universalImport_summary_noticePhotosSkippedBody(notice.count),
+      action: null,
+    ),
+    ImportNoticeKind.macdiveXmlOmitsCertsAndService => (
+      title: l10n.universalImport_summary_noticeMacdiveXmlCertsTitle,
+      body: l10n.universalImport_summary_noticeMacdiveXmlCertsBody,
+      action: null,
+    ),
+    ImportNoticeKind.macdiveLogbooksNotImported => (
+      title: l10n.universalImport_summary_noticeMacdiveLogbooksTitle,
+      body: l10n.universalImport_summary_noticeMacdiveLogbooksBody(names),
+      action: null,
+    ),
+    // No action button: Dive Numbering is a dialog on the dive list, not
+    // a route, so the body tells the diver where to find it.
+    ImportNoticeKind.diveNumberConflict => (
+      title: l10n.universalImport_summary_noticeDiveNumberConflictTitle,
+      body: l10n.universalImport_summary_noticeDiveNumberConflictBody,
+      action: null,
+    ),
+  };
+}
+
+/// Explains something the diver should know about an import that succeeded:
+/// data the source did not contain, or items that could not come across.
 ///
-/// Styled as information, not as a problem: the dives imported fine, and the
-/// gap is in the file rather than in the import. Uses the theme's surface
+/// Styled as information, not as a problem: the import itself worked, and the
+/// gap is in the source rather than in the import. Uses the theme's surface
 /// container rather than an error colour for exactly that reason.
 class _NoticeCard extends StatelessWidget {
   final ImportNotice notice;
+  final _FileNoticeWording wording;
 
-  const _NoticeCard({required this.notice});
+  const _NoticeCard({required this.notice, required this.wording});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+    final (:title, :body, :action) = wording;
 
-    final (title, body, action) = switch (notice.kind) {
-      ImportNoticeKind.noTankPressure => (
-        l10n.universalImport_summary_noticeNoTankPressureTitle,
-        l10n.universalImport_summary_noticeNoTankPressureBody,
-        null,
-      ),
-      ImportNoticeKind.unknownTransmitter => (
-        l10n.universalImport_summary_noticeUnknownTransmitterTitle,
-        l10n.universalImport_summary_noticeUnknownTransmitterBody,
-        (
-          label: l10n.universalImport_summary_noticeAssignTransmitters,
-          route: '/transmitters',
-        ),
-      ),
-    };
+    // Kinds that count values, photos or columns carry the count or names in
+    // their body instead.
+    final String? countLine = notice.kind.countsImportedDives
+        ? l10n.universalImport_summary_noticeAffectedDives(notice.count)
+        : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -467,15 +569,15 @@ class _NoticeCard extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.universalImport_summary_noticeAffectedDives(
-                      notice.affectedDives,
+                  if (countLine != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      countLine,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  ],
                   if (action != null) ...[
                     const SizedBox(height: 8),
                     Align(
@@ -523,28 +625,53 @@ class _FileOutcomeRow extends StatelessWidget {
         l10n.universalImport_summary_fileUnsupported,
     };
 
+    // Why a file failed, verbatim from its parser. Only failures carry one.
+    final reason = outcome.status == ImportFileOutcomeStatus.parseFailed
+        ? outcome.error
+        : null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
-          const SizedBox(width: 10),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 200),
-            child: Text(
-              outcome.fileName,
-              style: theme.textTheme.bodySmall,
-              overflow: TextOverflow.ellipsis,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: 10),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 200),
+                child: Text(
+                  outcome.fileName,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          if (reason != null && reason.isNotEmpty)
+            Padding(
+              // Indented past the icon so the reason sits under the name.
+              padding: const EdgeInsetsDirectional.only(start: 28, top: 2),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: Text(
+                  reason,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );

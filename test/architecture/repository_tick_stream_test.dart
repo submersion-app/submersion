@@ -196,6 +196,8 @@ void main() {
           CsvPresetRepository().watchPresetsChanges,
       'DiveRepository.watchAnalysisInputChanges':
           DiveRepository().watchAnalysisInputChanges,
+      'DiveRepository.watchEquipmentAttrFilterChanges':
+          DiveRepository().watchEquipmentAttrFilterChanges,
     };
 
     for (final entry in ticks.entries) {
@@ -259,6 +261,33 @@ void main() {
       );
     });
 
+    test(
+      'watchStatisticsChanges fires on an equipment_attributes write',
+      () async {
+        // The equipment-attribute filter (#1805) and the suit-thickness chart
+        // read attribute rows, and saveAttributes or a sync pull writes only
+        // that table.
+        await seedParents();
+        expect(
+          await fires(
+            StatisticsRepository().watchStatisticsChanges(),
+            () => db
+                .into(db.equipmentAttributes)
+                .insert(
+                  EquipmentAttributesCompanion.insert(
+                    id: 'attr_e1_connection',
+                    equipmentId: 'e1',
+                    attrKey: 'connection',
+                    createdAt: now,
+                    updatedAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
+
     test('watchStatisticsChanges fires on a dive_sites write', () async {
       expect(
         await fires(
@@ -271,6 +300,37 @@ void main() {
                   name: 'Blue Hole',
                   createdAt: now,
                   updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    // Site type links are clockless children: typing a site writes only the
+    // junction, never dive_sites, so the chart must listen to it (#1765).
+    test('watchStatisticsChanges fires on a site_site_types write', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's2',
+              name: 'Quarry',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      expect(
+        await fires(
+          StatisticsRepository().watchStatisticsChanges(),
+          () => db
+              .into(db.siteSiteTypes)
+              .insert(
+                SiteSiteTypesCompanion.insert(
+                  id: 'j1',
+                  siteId: 's2',
+                  siteTypeId: 'quarry',
+                  createdAt: now,
                 ),
               ),
         ),

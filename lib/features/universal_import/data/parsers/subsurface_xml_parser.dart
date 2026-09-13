@@ -113,15 +113,11 @@ class SubsurfaceXmlParser implements ImportParser {
               _collectPictures(diveElement, dives.length, allMedia, warnings);
               dives.add(diveData);
               tripDives.add(diveData);
+            } else {
+              warnings.add(_skippedDive('no date'));
             }
           } catch (e) {
-            warnings.add(
-              ImportWarning(
-                severity: ImportWarningSeverity.warning,
-                message: 'Skipped dive: $e',
-                entityType: ImportEntityType.dives,
-              ),
-            );
+            warnings.add(_skippedDive(e));
           }
         }
 
@@ -146,15 +142,11 @@ class SubsurfaceXmlParser implements ImportParser {
             _collectBuddies(diveElement, diveData, allBuddies);
             _collectPictures(diveElement, dives.length, allMedia, warnings);
             dives.add(diveData);
+          } else {
+            warnings.add(_skippedDive('no date'));
           }
         } catch (e) {
-          warnings.add(
-            ImportWarning(
-              severity: ImportWarningSeverity.warning,
-              message: 'Skipped dive: $e',
-              entityType: ImportEntityType.dives,
-            ),
-          );
+          warnings.add(_skippedDive(e));
         }
       }
 
@@ -176,6 +168,17 @@ class SubsurfaceXmlParser implements ImportParser {
     );
   }
 
+  /// A dive left out of the import, counted by the summary's "dives could not
+  /// be read" notice.
+  static ImportWarning _skippedDive(Object reason) => ImportWarning(
+    severity: ImportWarningSeverity.warning,
+    code: ImportWarningCode.divesSkipped,
+    message: 'Skipped dive: $reason',
+    entityType: ImportEntityType.dives,
+  );
+
+  /// Returns null when the dive has no date, since it cannot be placed in the
+  /// log without one.
   Map<String, dynamic>? _parseDive(
     XmlElement dive, {
     Map<String, String> siteAliases = const {},
@@ -493,6 +496,7 @@ class SubsurfaceXmlParser implements ImportParser {
         warnings.add(
           const ImportWarning(
             severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.photosSkipped,
             message: 'Skipped a photo with no filename',
             entityType: ImportEntityType.media,
           ),

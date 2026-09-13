@@ -41,7 +41,10 @@ Future<void> _seedDecoPlan(WidgetTester tester, Finder anchor) async {
 
 /// A hand-built outcome: a descent, a level leg and an ascent straight to
 /// the surface with no stops, so the table has lines but no deco.
-PlanOutcome _noDecoOutcome({int airBreakSeconds = 0}) {
+PlanOutcome _noDecoOutcome({
+  int airBreakSeconds = 0,
+  List<PlanTankUsage> tankUsages = const [],
+}) {
   PlanScheduleRow row(
     PlanScheduleRowKind kind,
     double depth,
@@ -69,7 +72,7 @@ PlanOutcome _noDecoOutcome({int airBreakSeconds = 0}) {
       row(PlanScheduleRowKind.ascent, 0, 180, 1620),
     ],
     segmentOutcomes: const [],
-    tankUsages: const [],
+    tankUsages: tankUsages,
     cnsEnd: 5,
     otuTotal: 10,
     issues: const [],
@@ -92,6 +95,37 @@ Widget _outcomeHarness(PlanOutcome outcome) => testApp(
 );
 
 void main() {
+  testWidgets('gas row shows used and end liters/pressure readings', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _outcomeHarness(
+        _noDecoOutcome(
+          tankUsages: const [
+            PlanTankUsage(
+              tankId: 'back',
+              litersUsed: 411,
+              totalLiters: 2000,
+              startPressure: 200,
+              remainingPressure: 163,
+              percentUsed: 18.5,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('used: 411L/37bar'), findsOneWidget);
+    expect(find.text('end: 1589L/163bar'), findsOneWidget);
+    final usedFinder = find.text('used: 411L/37bar');
+    final theme = Theme.of(tester.element(usedFinder));
+    expect(
+      tester.widget<Text>(usedFinder).style?.fontSize,
+      theme.textTheme.labelSmall?.fontSize,
+    );
+  });
+
   testWidgets('runtime table says no deco above the rows when there are '
       'lines but no stops', (tester) async {
     await tester.pumpWidget(_outcomeHarness(_noDecoOutcome()));
