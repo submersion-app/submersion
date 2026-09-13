@@ -56,10 +56,16 @@ abstract final class DiveCsvColumns {
   /// back as nitrox.
   static const hePercent = 'He %';
 
+  /// The dive's custom fields as a JSON list of `{key, value}` objects, in
+  /// the dive's own order. Unlike the per-key columns, it keeps a field
+  /// whose value is empty and the order the diver set; an import prefers it.
+  static const customFields = 'Custom Fields';
+
   /// Separator between a dive's types in the [diveType] cell.
   static const diveTypeSeparator = '; ';
 
   /// Prefix of the per-key custom field columns that follow the fixed ones.
+  /// They are a spreadsheet view of [customFields].
   static const customFieldPrefix = 'custom:';
 
   /// Every fixed column, in export order. Custom field columns follow.
@@ -101,5 +107,6 @@ abstract final class DiveCsvColumns {
     siteCountry,
     siteIsland,
     hePercent,
+    customFields,
   ];
 }

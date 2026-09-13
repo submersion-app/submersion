@@ -319,6 +319,36 @@ void main() {
     });
   });
 
+  group('parseCustomFieldsJson', () {
+    test('reads key/value pairs in order, empty values included', () {
+      expect(
+        converter.parseCustomFieldsJson(
+          '[{"key":"zulu","value":" a "},{"key":"flag","value":""}]',
+        ),
+        [
+          {'key': 'zulu', 'value': ' a '},
+          {'key': 'flag', 'value': ''},
+        ],
+      );
+    });
+
+    test('skips entries without a string key', () {
+      expect(
+        converter.parseCustomFieldsJson(
+          '[{"value":"x"},{"key":3},"text",{"key":"ok"}]',
+        ),
+        [
+          {'key': 'ok', 'value': ''},
+        ],
+      );
+    });
+
+    test('returns null for text that is not a JSON list', () {
+      expect(converter.parseCustomFieldsJson('not json'), isNull);
+      expect(converter.parseCustomFieldsJson('{"key":"a"}'), isNull);
+    });
+  });
+
   group('unescapeCsvInjectionGuard', () {
     test('drops the quote the export adds before a formula character', () {
       for (final value in ['=1+1', '+5', '-5', '@a', '|b']) {

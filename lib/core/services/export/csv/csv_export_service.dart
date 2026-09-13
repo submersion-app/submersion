@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -230,6 +231,7 @@ class CsvExportService {
         dive.site?.country ?? '',
         dive.site?.island ?? '',
         tank?.gasMix.he.toStringAsFixed(0) ?? '',
+        _customFieldsJson(dive.customFields),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)
@@ -240,6 +242,17 @@ class CsvExportService {
     }
 
     return const ListToCsvConverter().convert(rows);
+  }
+
+  /// The [DiveCsvColumns.customFields] cell: [fields] as a JSON list of
+  /// `{key, value}` objects in sort order, or empty when there are none.
+  String _customFieldsJson(List<DiveCustomField> fields) {
+    if (fields.isEmpty) return '';
+    final ordered = [...fields]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return jsonEncode([
+      for (final field in ordered) {'key': field.key, 'value': field.value},
+    ]);
   }
 
   /// Generate CSV content for sites (without sharing).

@@ -62,12 +62,15 @@ void main() {
     precipitation: Precipitation.lightRain,
     humidity: 70,
     weatherDescription: 'Sunny',
+    // Not in alphabetical order, which is the per-key columns' order.
     customFields: const [
-      DiveCustomField(id: 'cf-1', key: 'camera', value: '  GoPro 12  '),
+      DiveCustomField(id: 'cf-1', key: 'zulu', value: '  GoPro 12  '),
       // Starts with '=', so the export guards it against CSV injection.
       DiveCustomField(id: 'cf-2', key: 'formula', value: '=1+1', sortOrder: 1),
       // Already looks like a guarded value, so the guard must not eat it.
       DiveCustomField(id: 'cf-3', key: 'quoted', value: "'=1+1", sortOrder: 2),
+      // A key with no value; its per-key cell is empty like a missing key's.
+      DiveCustomField(id: 'cf-4', key: 'flag', sortOrder: 3),
     ],
   );
 
@@ -161,10 +164,12 @@ void main() {
     expect(d['precipitation'], 'lightRain');
     expect(d['humidity'], 70.0);
     expect(d['weatherDescription'], 'Sunny');
+    // From the Custom Fields column: the dive's own order, empty value kept.
     expect(d['customFields'], [
-      {'key': 'camera', 'value': '  GoPro 12  '},
+      {'key': 'zulu', 'value': '  GoPro 12  '},
       {'key': 'formula', 'value': '=1+1'},
       {'key': 'quoted', 'value': "'=1+1"},
+      {'key': 'flag', 'value': ''},
     ]);
 
     final tank = (d['tanks'] as List).single as Map<String, dynamic>;
@@ -189,35 +194,45 @@ void main() {
     ]);
   });
 
-  test('a pre-#1814 export without the site place columns still '
-      'round-trips', () async {
-    const placeColumns = {
-      DiveCsvColumns.siteCity,
-      DiveCsvColumns.siteRegion,
-      DiveCsvColumns.siteCountry,
-      DiveCsvColumns.siteIsland,
-      DiveCsvColumns.hePercent,
-    };
-    final rows = const CsvToListConverter(
-      shouldParseNumbers: false,
-    ).convert(csv);
-    final legacy = const ListToCsvConverter().convert([
-      for (final row in rows)
-        [
-          for (var i = 0; i < row.length; i++)
-            if (!placeColumns.contains(headers[i])) row[i],
-        ],
-    ]);
+  test(
+    'a pre-#1814 export without the new columns still round-trips',
+    () async {
+      const newColumns = {
+        DiveCsvColumns.siteCity,
+        DiveCsvColumns.siteRegion,
+        DiveCsvColumns.siteCountry,
+        DiveCsvColumns.siteIsland,
+        DiveCsvColumns.hePercent,
+        DiveCsvColumns.customFields,
+      };
+      final rows = const CsvToListConverter(
+        shouldParseNumbers: false,
+      ).convert(csv);
+      final legacy = const ListToCsvConverter().convert([
+        for (final row in rows)
+          [
+            for (var i = 0; i < row.length; i++)
+              if (!newColumns.contains(headers[i])) row[i],
+          ],
+      ]);
 
-    final matches = PresetRegistry(
-      builtInPresets: builtInCsvPresets,
-    ).detectPreset(headersOf(legacy));
-    expect(matches.first.preset.id, 'submersion_native');
+      final matches = PresetRegistry(
+        builtInPresets: builtInCsvPresets,
+      ).detectPreset(headersOf(legacy));
+      expect(matches.first.preset.id, 'submersion_native');
 
-    final payload = await parse(legacy);
-    final d = payload.entitiesOf(ImportEntityType.dives).single;
-    expect(d['duration'], const Duration(minutes: 45));
-    expect(d['runtime'], const Duration(minutes: 50));
-    expect(d['name'], 'Probe dive');
-  });
+      final payload = await parse(legacy);
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['duration'], const Duration(minutes: 45));
+      expect(d['runtime'], const Duration(minutes: 50));
+      expect(d['name'], 'Probe dive');
+      // Without the Custom Fields column the per-key columns are read:
+      // alphabetical, and a key with no value is indistinguishable from none.
+      expect(d['customFields'], [
+        {'key': 'formula', 'value': '=1+1'},
+        {'key': 'quoted', 'value': "'=1+1"},
+        {'key': 'zulu', 'value': '  GoPro 12  '},
+      ]);
+    },
+  );
 }

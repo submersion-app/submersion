@@ -310,6 +310,12 @@ class CsvTransformer {
       return _inferDuration(rawValue);
     }
 
+    // Submersion's JSON custom fields column. Mapped after the per-key
+    // columns are read, so a readable cell replaces what they gave.
+    if (lower == 'customfields') {
+      return _valueConverter.parseCustomFieldsJson(rawValue);
+    }
+
     // A list of dive types ("Night; Wreck"), one id per type.
     if (lower == 'divetypeids') {
       final ids = _valueConverter.parseDiveTypeIds(rawValue);

@@ -567,8 +567,10 @@ const _shearwater = CsvPreset(
 /// Headers come from [DiveCsvColumns], the constants the export writes, so
 /// the two cannot drift apart (#1814). [DiveCsvColumns.location] is display
 /// text and stays unmapped; the site city, island, region and country
-/// columns carry the same data. `custom:<key>` columns need no mapping: the transformer
-/// reads every such column into the dive's custom fields.
+/// columns carry the same data. Custom fields come from the
+/// [DiveCsvColumns.customFields] JSON column when a cell is readable; the
+/// per-key `custom:<key>` columns need no mapping, since the transformer
+/// reads every such column, and serve older exports without it.
 const _submersionNative = CsvPreset(
   id: 'submersion_native',
   name: 'Submersion',
@@ -714,6 +716,10 @@ const _submersionNative = CsvPreset(
         ColumnMapping(
           sourceColumn: DiveCsvColumns.siteIsland,
           targetField: 'siteIsland',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.customFields,
+          targetField: 'customFields',
         ),
       ],
     ),

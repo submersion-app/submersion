@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
@@ -241,6 +242,30 @@ class ValueConverter {
       }
     }
     return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  /// Parse the JSON list of `{key, value}` objects in Submersion's
+  /// "Custom Fields" column, keeping order and empty values.
+  ///
+  /// Entries without a string key are skipped; a missing or non-string
+  /// value reads as empty. Returns null when [raw] is not a JSON list.
+  List<Map<String, String>>? parseCustomFieldsJson(String raw) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(raw);
+    } on FormatException {
+      return null;
+    }
+    if (decoded is! List) return null;
+    return [
+      for (final entry in decoded)
+        if (entry is Map && entry['key'] is String)
+          {
+            'key': entry['key'] as String,
+            'value': entry['value'] is String ? entry['value'] as String : '',
+          },
+    ];
   }
 
   // ---------------------------------------------------------------------------

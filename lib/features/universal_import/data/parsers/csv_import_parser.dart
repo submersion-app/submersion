@@ -239,8 +239,11 @@ class CsvImportParser implements ImportParser {
     }
     if (header == 'divemaster') return 'diveMaster';
     // Visibility, ahead of rating so "Visibility Rating" cannot claim the
-    // rating field from a later "Rating" column.
-    if (header.contains('visibility')) return 'visibility';
+    // rating field from a later "Rating" column. A distance in metres is the
+    // measured value; any other visibility header is the bucket label.
+    if (header.contains('visibility')) {
+      return _metresUnit.hasMatch(header) ? 'visibilityMeters' : 'visibility';
+    }
     // Rating.
     if (header.contains('rating')) return 'rating';
     // Notes.
@@ -303,6 +306,8 @@ class CsvImportParser implements ImportParser {
   bool _isRuntime(String h) => h.contains('runtime') || h.contains('run time');
 
   static final _nonMetricSpeedUnit = RegExp(r'km|kph|kt|knot|mph');
+
+  static final _metresUnit = RegExp(r'\(m\)|\[m\]|\bmet(er|re)s?\b');
 
   bool _namesNonMetricSpeedUnit(String h) => _nonMetricSpeedUnit.hasMatch(h);
 
