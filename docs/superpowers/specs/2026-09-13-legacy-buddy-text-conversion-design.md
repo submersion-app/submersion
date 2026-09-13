@@ -75,8 +75,10 @@ and the only unlinked values in that library are the placeholder `None`.
 3. Split on these separators, except inside `(...)` or `[...]`:
    - characters `,` `;` `/` `&` `+`, newline, full-width comma `，`,
      ideographic comma `、`;
-   - the whole words `and`, `und`, `et`, `y`, `e`, `en`, `és`, matched
-     case-insensitively and only when surrounded by whitespace.
+   - the whole words `and`, `und`, `et`, `en`, `és`, matched
+     case-insensitively, and the single letters `e` and `y` only when
+     written in lowercase (a capital one, as in `John E Smith`, is a
+     middle initial), all only when surrounded by whitespace.
 4. Trim each part. Drop a part that is empty, holds no letter
    (`--`, `3`), or is a placeholder. Placeholders, compared
    case-insensitively after trimming: `none`, `solo`, `n/a`, `na`, `-`,

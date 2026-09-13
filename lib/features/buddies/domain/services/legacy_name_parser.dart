@@ -27,16 +27,12 @@ abstract final class LegacyNameParser {
   };
 
   /// Conjunctions for the app's Latin-script locales. One splits a part only
-  /// when that part has more than one word, so a lone initial survives.
-  static const Set<String> _conjunctions = {
-    'and',
-    'und',
-    'et',
-    'y',
-    'e',
-    'en',
-    'és',
-  };
+  /// when that part has more than one word, so a lone name survives. Words
+  /// match case-insensitively; the single letters `e` and `y` split only
+  /// when written in lowercase, because a capital one (`John E Smith`) is a
+  /// middle initial.
+  static const Set<String> _conjunctions = {'and', 'und', 'et', 'en', 'és'};
+  static const Set<String> _letterConjunctions = {'e', 'y'};
 
   static const Set<String> _placeholders = {
     'none',
@@ -115,7 +111,7 @@ abstract final class LegacyNameParser {
     var current = <String>[];
     var depth = 0;
     for (final word in words) {
-      if (depth == 0 && _conjunctions.contains(word.toLowerCase())) {
+      if (depth == 0 && _isConjunction(word)) {
         pieces.add(current.join(' '));
         current = <String>[];
       } else {
@@ -126,6 +122,10 @@ abstract final class LegacyNameParser {
     pieces.add(current.join(' '));
     return pieces;
   }
+
+  static bool _isConjunction(String word) =>
+      _letterConjunctions.contains(word) ||
+      _conjunctions.contains(word.toLowerCase());
 
   /// Bracket depth after reading [text], starting from [depth]. A stray
   /// closing bracket never takes it below zero.

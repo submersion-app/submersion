@@ -37,6 +37,12 @@ void main() {
       ('Anderson', ['Anderson']),
       ('Andy and Eve', ['Andy', 'Eve']),
       ('Nadia', ['Nadia']),
+      // A capital single letter is a middle initial, not a conjunction.
+      ('John E Smith', ['John E Smith']),
+      ('Mary Y Chen', ['Mary Y Chen']),
+      ('Ana y Luis', ['Ana', 'Luis']),
+      // Word conjunctions stay case-insensitive.
+      ('Jim AND Ann', ['Jim', 'Ann']),
       // The accepted cost of splitting on "y": pinned so a change is a
       // deliberate decision, not a silent one.
       ('Ortega y Gasset', ['Ortega', 'Gasset']),
