@@ -128,7 +128,8 @@ class _CapturingExportService implements ExportService {
           ? Future<String>.value('/tmp/logbook.pdf')
           : Future<String?>.value('/tmp/logbook.pdf');
     }
-    return null;
+    // Any other delivery is a path these tests did not expect: fail loudly.
+    return super.noSuchMethod(invocation);
   }
 }
 

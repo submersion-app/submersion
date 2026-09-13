@@ -12,16 +12,19 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 /// treated as junction-authoritative and both frozen, never-migrated scalars
 /// are ignored. Stale legacy text therefore cannot leak onto a modern dive, nor
 /// duplicate a name the junction already shows.
+///
+/// Either source is normalized the same way: names are trimmed and a blank one
+/// is nobody, matching how the dive detail page reads the scalar (#1831).
 extension DiveParticipantNames on Dive {
   /// Every recorded participant whose role is NOT a guide/divemaster (see
   /// [_guideRoleIds]), comma-joined; null when there is no one to show.
   String? get resolvedBuddyNames =>
-      buddies.isEmpty ? buddy : _joinedNames(guides: false);
+      buddies.isEmpty ? _nonBlank(buddy) : _joinedNames(guides: false);
 
   /// Every recorded participant whose role is a guide/divemaster,
   /// comma-joined; null when there is no one to show.
   String? get resolvedDiveMasterNames =>
-      buddies.isEmpty ? diveMaster : _joinedNames(guides: true);
+      buddies.isEmpty ? _nonBlank(diveMaster) : _joinedNames(guides: true);
 
   String? _joinedNames({required bool guides}) {
     final names = buddies
@@ -31,6 +34,12 @@ extension DiveParticipantNames on Dive {
         .toList();
     return names.isEmpty ? null : names.join(', ');
   }
+}
+
+/// [text] trimmed, or null when nothing but whitespace is left.
+String? _nonBlank(String? text) {
+  final trimmed = text?.trim() ?? '';
+  return trimmed.isEmpty ? null : trimmed;
 }
 
 /// `dive_roles` ids representing someone guiding the dive rather than a peer
