@@ -21000,6 +21000,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Sites';
 
   @override
+  String get transfer_csvExport_unitsHeader => 'Unités';
+
+  @override
+  String get transfer_csvExport_unitsMetric => 'Métrique';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      'Valeurs métriques et dates ISO, au même format que les exports précédents';
+
+  @override
+  String get transfer_csvExport_unitsMine => 'Mes unités';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      'Valeurs selon vos réglages d\'unités, de date et d\'heure, indiqués dans l\'en-tête de chaque colonne';
+
+  @override
   String get transfer_detail_backTooltip => 'Retour au transfert';
 
   @override

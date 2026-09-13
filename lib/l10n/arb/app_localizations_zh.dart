@@ -19814,6 +19814,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_typeSites => '潜水点';
 
   @override
+  String get transfer_csvExport_unitsHeader => '单位';
+
+  @override
+  String get transfer_csvExport_unitsMetric => '公制';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      '公制数值和 ISO 日期，与以前的导出格式相同';
+
+  @override
+  String get transfer_csvExport_unitsMine => '我的单位';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      '按你的单位、日期和时间设置输出，并在每列标题中注明';
+
+  @override
   String get transfer_detail_backTooltip => '返回传输';
 
   @override

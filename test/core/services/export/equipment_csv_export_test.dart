@@ -47,10 +47,11 @@ void main() {
     expect(lines[1], contains('2.5'));
   });
 
-  test('a hose length exports in canonical metres, as its key says', () {
-    // The app shows a hose in cm or inches (issue #1804), but the CSV is a
-    // raw data export: "hose_length_m=15" would claim metres for an inch
-    // value, so the stored metres go out unconverted.
+  test('Metric mode writes a hose length in canonical metres, as its key '
+      'says', () {
+    // Metric mode is the raw data export: "hose_length_m=15" would claim
+    // metres for an inch value, so the stored metres go out unconverted. My
+    // units writes "hose_length=<n> in" instead (issue #1813).
     final csv = CsvExportService().generateEquipmentCsvContent([
       EquipmentItem(
         id: 'h1',

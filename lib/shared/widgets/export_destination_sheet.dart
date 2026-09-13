@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/csv_unit_mode_selector.dart';
 
 /// Where an export should be delivered.
 enum ExportDestination {
@@ -33,10 +35,12 @@ Future<ExportDestination?> showExportDestinationSheet(
 }
 
 /// What the user chose in an export destination sheet: where to deliver the
-/// file, and the UDDF content checkboxes as options.
+/// file, the UDDF content checkboxes as options, and, for a CSV, the unit
+/// mode ([CsvUnitMode.myUnits] when the sheet did not offer the choice).
 typedef ExportChoice = ({
   ExportDestination destination,
   UddfExportOptions options,
+  CsvUnitMode csvUnitMode,
 });
 
 /// The destination sheet, plus the UDDF content checkboxes.
@@ -47,14 +51,19 @@ typedef ExportChoice = ({
 /// export honours; the full backup always carries both. Every checkbox
 /// starts from [initialOptions], whose defaults are all on, so the code
 /// level default and what the user sees never diverge.
+/// [showCsvUnitsToggle] adds the My units / Metric choice for a CSV,
+/// starting from [initialCsvUnitMode].
 Future<ExportChoice?> showExportDestinationSheetWithOptions(
   BuildContext context, {
   required String title,
   bool showRawDataToggle = false,
   bool showDiveContentToggles = false,
+  bool showCsvUnitsToggle = false,
+  CsvUnitMode initialCsvUnitMode = CsvUnitMode.myUnits,
   UddfExportOptions initialOptions = const UddfExportOptions(),
 }) {
   var options = initialOptions;
+  var csvUnitMode = initialCsvUnitMode;
 
   return showModalBottomSheet<ExportChoice>(
     context: context,
@@ -121,6 +130,17 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
                 ),
                 const Divider(height: 1),
               ],
+              if (showCsvUnitsToggle) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: CsvUnitModeSelector(
+                    value: csvUnitMode,
+                    onChanged: (mode) =>
+                        setSheetState(() => csvUnitMode = mode),
+                  ),
+                ),
+                const Divider(height: 1),
+              ],
               ListTile(
                 leading: const Icon(Icons.save_alt),
                 title: Text(sheetContext.l10n.transfer_export_optionSaveTitle),
@@ -130,6 +150,7 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
                 onTap: () => Navigator.pop(sheetContext, (
                   destination: ExportDestination.saveToFile,
                   options: options,
+                  csvUnitMode: csvUnitMode,
                 )),
               ),
               const Divider(height: 1),
@@ -142,6 +163,7 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
                 onTap: () => Navigator.pop(sheetContext, (
                   destination: ExportDestination.share,
                   options: options,
+                  csvUnitMode: csvUnitMode,
                 )),
               ),
             ],

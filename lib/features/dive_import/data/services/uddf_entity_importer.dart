@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/deco_dive_detector.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
+import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_import/domain/import_source_file.dart';
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
@@ -663,6 +664,9 @@ class UddfEntityImporter {
       final equipType = _parseEquipmentType(equipData['type']);
       final equipStatus = _parseEquipmentStatus(equipData['status']);
 
+      final sizeText = (equipData['size'] as String?)?.trim();
+      final size = sizeText == null || sizeText.isEmpty ? null : sizeText;
+
       final item = EquipmentItem(
         id: newId,
         diverId: diverId,
@@ -680,12 +684,21 @@ class UddfEntityImporter {
         notes: equipData['notes'] as String? ?? '',
         isActive: equipData['isActive'] as bool? ?? true,
         attributes: [
-          if ((equipData['size'] as String?)?.trim().isNotEmpty ?? false)
+          if (size != null)
             EquipmentAttribute.curated(
               equipmentId: newId,
               key: EquipmentAttrKeys.size,
-              valueText: (equipData['size'] as String).trim(),
+              valueText: size,
             ),
+          // Every other attribute the source carried (the Submersion CSV
+          // writes them all; issue #1813). A size in the list defers to the
+          // dedicated key above.
+          ...equipmentAttributesFromImport(
+            equipData['attributes'],
+            equipmentId: newId,
+            newId: _uuid.v4,
+            takenKeys: {if (size != null) EquipmentAttrKeys.size},
+          ),
         ],
       );
 
@@ -1293,6 +1306,7 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
+        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
       );
 
       // Core fields and the importer-only metadata columns go out as one
@@ -1368,6 +1382,7 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
+        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
       );
 
       final createdSite = await repository.createSite(newSite);
@@ -2218,6 +2233,21 @@ class UddfEntityImporter {
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
         waterType: _parseEnum(diveData['waterType'], WaterType.values),
         altitude: asDoubleOrNull(diveData['altitude']),
+        // Weather and custom fields (issue #1813): the Submersion dives CSV
+        // carries them; createDive already persists all of them.
+        windSpeed: asDoubleOrNull(diveData['windSpeed']),
+        windDirection: _parseEnum(
+          diveData['windDirection'],
+          CurrentDirection.values,
+        ),
+        cloudCover: _parseEnum(diveData['cloudCover'], CloudCover.values),
+        precipitation: _parseEnum(
+          diveData['precipitation'],
+          Precipitation.values,
+        ),
+        humidity: asDoubleOrNull(diveData['humidity']),
+        weatherDescription: diveData['weatherDescription'] as String?,
+        customFields: diveCustomFieldsFromImport(diveData['customFields']),
         // Entry/exit GPS, so file-imported dives become eligible for the
         // existing site matcher.
         entryLocation: gps.entry,

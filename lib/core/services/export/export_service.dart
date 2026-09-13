@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/excel/blender_invoice_excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
@@ -78,32 +79,47 @@ class ExportService {
 
   // ==================== CSV Export ====================
 
-  Future<String> exportDivesToCsv(List<Dive> dives) =>
-      _csv.exportDivesToCsv(dives);
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.exportDivesToCsv(dives, units: units);
 
-  Future<String> exportSitesToCsv(List<DiveSite> sites) =>
-      _csv.exportSitesToCsv(sites);
+  Future<String> exportSitesToCsv(
+    List<DiveSite> sites, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.exportSitesToCsv(sites, units: units);
 
   Future<String> exportEquipmentToCsv(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
-  }) => _csv.exportEquipmentToCsv(equipment, componentNames: componentNames);
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.exportEquipmentToCsv(
+    equipment,
+    componentNames: componentNames,
+    units: units,
+  );
 
   Future<String> exportTripsToCsv(List<Trip> trips) =>
       _csv.exportTripsToCsv(trips);
 
-  String generateDivesCsvContent(List<Dive> dives) =>
-      _csv.generateDivesCsvContent(dives);
+  String generateDivesCsvContent(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.generateDivesCsvContent(dives, units: units);
 
-  String generateSitesCsvContent(List<DiveSite> sites) =>
-      _csv.generateSitesCsvContent(sites);
+  String generateSitesCsvContent(
+    List<DiveSite> sites, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.generateSitesCsvContent(sites, units: units);
 
   String generateEquipmentCsvContent(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
   }) => _csv.generateEquipmentCsvContent(
     equipment,
     componentNames: componentNames,
+    units: units,
   );
 
   // Each CSV save takes its picker title from the caller, which has the
@@ -111,21 +127,25 @@ class ExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
-  }) => _csv.saveDivesCsvToFile(dives, dialogTitle: dialogTitle);
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.saveDivesCsvToFile(dives, dialogTitle: dialogTitle, units: units);
 
   Future<String?> saveSitesCsvToFile(
     List<DiveSite> sites, {
     required String dialogTitle,
-  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle);
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle, units: units);
 
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
   }) => _csv.saveEquipmentCsvToFile(
     equipment,
     componentNames: componentNames,
     dialogTitle: dialogTitle,
+    units: units,
   );
 
   Future<String> exportObservationsToCsv(List<ObservationExportRow> rows) =>

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -92,15 +93,26 @@ class _RecordingExportService implements ExportService {
   Future<String?> savePdfToFile(List<int> bytes, String fileName) =>
       _save('pdf');
 
+  /// The units the last CSV export was written in (#1813).
+  CsvExportUnits? csvUnits;
+
   @override
-  Future<String> exportDivesToCsv(List<Dive> dives) => _share('csv');
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) {
+    csvUnits = units;
+    return _share('csv');
+  }
 
   @override
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
   }) {
     csvSaveTitle = dialogTitle;
+    csvUnits = units;
     return _save('csv');
   }
 
@@ -454,5 +466,33 @@ void main() {
 
     expect(find.text('Include gear'), findsNothing);
     expect(find.text('Include dive participants'), findsNothing);
+  });
+
+  testWidgets('CSV export defaults to My units (#1813)', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await chooseFormatAndDestination(tester, 'CSV', 'Share');
+
+    expect(exportService.csvUnits?.isMetric, isFalse);
+  });
+
+  testWidgets('the CSV unit choice reaches the export (#1813)', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('CSV'));
+    await tester.pumpAndSettle();
+    expect(find.text('My units'), findsOneWidget);
+    await tester.tap(find.text('Metric'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    expect(exportService.csvUnits, same(CsvExportUnits.metric));
+  });
+
+  testWidgets('UDDF export offers no unit choice', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('UDDF'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('My units'), findsNothing);
   });
 }

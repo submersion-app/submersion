@@ -20731,6 +20731,23 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Duikstekken';
 
   @override
+  String get transfer_csvExport_unitsHeader => 'Eenheden';
+
+  @override
+  String get transfer_csvExport_unitsMetric => 'Metrisch';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      'Metrische waarden en ISO-datums, in hetzelfde formaat als eerdere exports';
+
+  @override
+  String get transfer_csvExport_unitsMine => 'Mijn eenheden';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      'Waarden in je eigen instellingen voor eenheden, datum en tijd, vermeld in elke kolomkop';
+
+  @override
   String get transfer_detail_backTooltip => 'Terug naar overdracht';
 
   @override
