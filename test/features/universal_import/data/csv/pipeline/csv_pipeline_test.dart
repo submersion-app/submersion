@@ -3,8 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
+import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
+import 'package:submersion/features/universal_import/data/csv/pipeline/csv_transformer.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/date_order.dart';
+import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 
 /// Build an [ImportConfiguration] from a detected preset for testing.
@@ -88,6 +92,62 @@ void main() {
       // Sites should be extracted and deduplicated.
       final sites = payload.entitiesOf(ImportEntityType.sites);
       expect(sites.length, greaterThanOrEqualTo(1));
+    });
+
+    test('a profile file reads its dates in the dive list\'s order', () {
+      // The dive list proves day first (15/04); the profile file only has an
+      // ambiguous date. Read by the (month-first) locale instead, its samples
+      // would key to 4 March and never attach to the 3 April dive.
+      ParsedCsv csvOf(String content) =>
+          pipeline.parse(Uint8List.fromList(utf8.encode(content)));
+
+      final diveList = csvOf(
+        'No,Date,Time,Depth\n'
+        '1,03/04/1991,09:00,20\n'
+        '2,15/04/1991,10:00,18\n',
+      );
+      final profile = csvOf(
+        'No,Date,Time,Sample,SampleDepth\n'
+        '1,03/04/1991,09:00,0:00,0\n'
+        '1,03/04/1991,09:00,1:00,5\n',
+      );
+      const common = [
+        ColumnMapping(sourceColumn: 'No', targetField: 'diveNumber'),
+        ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+        ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+      ];
+      const config = ImportConfiguration(
+        mappings: {
+          'dive_list': FieldMapping(
+            name: 'Dives',
+            columns: [
+              ...common,
+              ColumnMapping(sourceColumn: 'Depth', targetField: 'maxDepth'),
+            ],
+          ),
+          'dive_profile': FieldMapping(
+            name: 'Profile',
+            columns: [
+              ...common,
+              ColumnMapping(sourceColumn: 'Sample', targetField: 'sampleTime'),
+              ColumnMapping(
+                sourceColumn: 'SampleDepth',
+                targetField: 'sampleDepth',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final payload = CsvPipeline(
+        transformer: CsvTransformer(localeDateOrder: DateOrder.monthFirst),
+      ).execute(primaryCsv: diveList, profileCsv: profile, config: config);
+
+      final firstDive = payload
+          .entitiesOf(ImportEntityType.dives)
+          .singleWhere((dive) => dive['diveNumber'] == 1);
+      expect(firstDive['dateTime'], DateTime.utc(1991, 4, 3, 9));
+      expect(firstDive['profile'], hasLength(2));
     });
   });
 }

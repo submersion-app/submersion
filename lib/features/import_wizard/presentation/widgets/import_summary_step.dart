@@ -8,6 +8,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/unreadable_dates_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -105,6 +106,12 @@ class _SuccessView extends StatelessWidget {
     );
     final hasActivity =
         totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
+    // "Not in the file" explains gaps in dives that imported. Rows whose date
+    // could not be read are dives that did not, so they get their own card.
+    final fileNotices = [
+      for (final notice in notices)
+        if (notice.kind != ImportNoticeKind.unreadableDates) notice,
+    ];
 
     final String title;
     final IconData icon;
@@ -201,6 +208,14 @@ class _SuccessView extends StatelessWidget {
                 count: skippedCount,
                 key: const Key('import_summary_skipped_row'),
               ),
+            for (final notice in notices)
+              if (notice.kind == ImportNoticeKind.unreadableDates) ...[
+                const SizedBox(height: 8),
+                UnreadableDatesCard(
+                  key: const Key('import_summary_unreadable_dates'),
+                  notice: notice,
+                ),
+              ],
             if (importedDiveIds.isNotEmpty)
               Consumer(
                 builder: (context, ref, _) {
@@ -228,7 +243,7 @@ class _SuccessView extends StatelessWidget {
                   );
                 },
               ),
-            if (notices.isNotEmpty) ...[
+            if (fileNotices.isNotEmpty) ...[
               const SizedBox(height: 16),
               Column(
                 key: const Key('import_summary_notices'),
@@ -239,7 +254,7 @@ class _SuccessView extends StatelessWidget {
                     style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  for (final notice in notices) _NoticeCard(notice: notice),
+                  for (final notice in fileNotices) _NoticeCard(notice: notice),
                 ],
               ),
             ],
@@ -437,6 +452,13 @@ class _NoticeCard extends StatelessWidget {
           label: l10n.universalImport_summary_noticeAssignTransmitters,
           route: '/transmitters',
         ),
+      ),
+      // Normally shown by UnreadableDatesCard instead; worded the same here so
+      // the switch stays exhaustive without a blank card.
+      ImportNoticeKind.unreadableDates => (
+        l10n.universalImport_summary_unreadableDatesTitle,
+        l10n.universalImport_summary_unreadableDatesBody,
+        null,
       ),
     };
 

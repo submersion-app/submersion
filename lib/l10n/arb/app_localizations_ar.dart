@@ -21800,6 +21800,50 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'لم يتم استيراد بعض الصفوف';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'تعذّرت قراءة التاريخ في هذه الصفوف. تحقق من عمود التاريخ في الملف، وصحّح هذه الصفوف، ثم أعد استيراد الملف.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يتم استيراد $count صفوف',
+      one: 'لم يتم استيراد صف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'الصفوف $rows',
+      one: 'الصف $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'الصفوف $rows و$count أخرى',
+      one: 'الصفوف $rows وصف آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

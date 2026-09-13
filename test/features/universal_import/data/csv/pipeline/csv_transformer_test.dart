@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
+import 'package:submersion/features/universal_import/data/csv/models/transformed_rows.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_transformer.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/date_order.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 
 void main() {
@@ -902,6 +905,303 @@ void main() {
       expect(result.rows, hasLength(1));
       expect(result.rows[0]['diveNum'], isA<int>());
       expect(result.rows[0]['diveNum'], 42);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Issue #1828: the day/month order is decided per column.
+  group('CsvTransformer: date order', () {
+    ImportConfiguration configFor(List<ColumnMapping> columns) =>
+        ImportConfiguration(
+          mappings: {'primary': FieldMapping(name: 'Test', columns: columns)},
+        );
+
+    final dateAndTime = configFor(const [
+      ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+      ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+    ]);
+
+    List<DateTime> datesOf(TransformedRows result) => [
+      for (final row in result.rows) row['dateTime'] as DateTime,
+    ];
+
+    test('one day above 12 makes the whole column day first', () {
+      // A UK logbook: only the second row proves the order, and it must fix
+      // the reading of the ambiguous first row as well.
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['03/04/1991', '09:00'],
+          ['15/04/1991', '10:00'],
+        ],
+      );
+
+      final result = CsvTransformer(
+        localeDateOrder: DateOrder.monthFirst,
+      ).transform(csv, dateAndTime);
+
+      expect(datesOf(result), [
+        DateTime.utc(1991, 4, 3, 9),
+        DateTime.utc(1991, 4, 15, 10),
+      ]);
+      expect(result.warnings, isEmpty);
+    });
+
+    test('one second field above 12 makes the column month first', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['03/04/1991', '09:00'],
+          ['04/15/1991', '10:00'],
+        ],
+      );
+
+      final result = CsvTransformer(
+        localeDateOrder: DateOrder.dayFirst,
+      ).transform(csv, dateAndTime);
+
+      expect(datesOf(result), [
+        DateTime.utc(1991, 3, 4, 9),
+        DateTime.utc(1991, 4, 15, 10),
+      ]);
+    });
+
+    test('an ambiguous column follows the device locale', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['03/04/1991', '09:00'],
+          ['01/02/1992', '10:00'],
+        ],
+      );
+
+      final uk = CsvTransformer(
+        localeDateOrder: DateOrder.dayFirst,
+      ).transform(csv, dateAndTime);
+      final us = CsvTransformer(
+        localeDateOrder: DateOrder.monthFirst,
+      ).transform(csv, dateAndTime);
+
+      expect(datesOf(uk), [
+        DateTime.utc(1991, 4, 3, 9),
+        DateTime.utc(1992, 2, 1, 10),
+      ]);
+      expect(datesOf(us), [
+        DateTime.utc(1991, 3, 4, 9),
+        DateTime.utc(1992, 1, 2, 10),
+      ]);
+    });
+
+    test('a date-only column is read in the detected order', () {
+      // Rows without a time go through the informal-time pass, which must use
+      // the same order.
+      const csv = ParsedCsv(
+        headers: ['Date'],
+        rows: [
+          ['03/04/1991'],
+          ['15/04/1991'],
+        ],
+      );
+
+      final result = CsvTransformer(localeDateOrder: DateOrder.monthFirst)
+          .transform(
+            csv,
+            configFor(const [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+            ]),
+          );
+
+      expect(datesOf(result).map((d) => (d.month, d.day)), [(4, 3), (4, 15)]);
+    });
+
+    test('reports the order it read the dates in', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['15/04/1991', '10:00'],
+        ],
+      );
+
+      final result = CsvTransformer(
+        localeDateOrder: DateOrder.monthFirst,
+      ).transform(csv, dateAndTime);
+
+      expect(result.dateOrder, DateOrder.dayFirst);
+    });
+
+    test('an ambiguous column prefers a given fallback to the locale', () {
+      // A profile file follows the order its dive list proved, so the two
+      // files' dates agree and the profiles attach.
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['03/04/1991', '09:00'],
+        ],
+      );
+
+      final result = CsvTransformer(
+        localeDateOrder: DateOrder.monthFirst,
+      ).transform(csv, dateAndTime, fallbackDateOrder: DateOrder.dayFirst);
+
+      expect(datesOf(result), [DateTime.utc(1991, 4, 3, 9)]);
+    });
+
+    test('a combined date-time column is detected on its own', () {
+      const csv = ParsedCsv(
+        headers: ['When'],
+        rows: [
+          ['03/04/1991 09:00'],
+          ['15/04/1991 14:30'],
+        ],
+      );
+
+      final result = CsvTransformer(localeDateOrder: DateOrder.monthFirst)
+          .transform(
+            csv,
+            configFor(const [
+              ColumnMapping(sourceColumn: 'When', targetField: 'dateTime'),
+            ]),
+          );
+
+      expect(datesOf(result), [
+        DateTime.utc(1991, 4, 3, 9),
+        DateTime.utc(1991, 4, 15, 14, 30),
+      ]);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('CsvTransformer: skipped rows', () {
+    const dateAndTime = ImportConfiguration(
+      mappings: {
+        'primary': FieldMapping(
+          name: 'Test',
+          columns: [
+            ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+            ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+          ],
+        ),
+      },
+    );
+
+    test('a skipped row carries a code and its spreadsheet row', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['2024-06-15', '09:00'],
+          ['15 Juin 2024', '10:00'],
+        ],
+      );
+
+      final result = CsvTransformer().transform(csv, dateAndTime);
+
+      expect(result.rows, hasLength(1));
+      final skipped = result.warnings.single;
+      expect(skipped.code, ImportWarningCode.unreadableDate);
+      expect(skipped.entityType, ImportEntityType.dives);
+      // Header is row 1, so the second data row is row 3.
+      expect(skipped.sourceRow, 3);
+      expect(skipped.message, startsWith('Row 3:'));
+    });
+
+    test('uses the row numbers the parser recorded', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['2024-06-15', '09:00'],
+          ['someday', '10:00'],
+        ],
+        sourceRowNumbers: [2, 7],
+      );
+
+      final result = CsvTransformer().transform(csv, dateAndTime);
+
+      expect(result.warnings.single.sourceRow, 7);
+    });
+
+    test('a failed transform names the same spreadsheet row', () {
+      // Both kinds of row message can appear in one import, so they must not
+      // count rows differently.
+      const csv = ParsedCsv(
+        headers: ['Date', 'Duration'],
+        rows: [
+          ['2024-06-15', 'not-a-duration'],
+        ],
+      );
+
+      final result = CsvTransformer().transform(
+        csv,
+        const ImportConfiguration(
+          mappings: {
+            'primary': FieldMapping(
+              name: 'Test',
+              columns: [
+                ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+                ColumnMapping(
+                  sourceColumn: 'Duration',
+                  targetField: 'duration',
+                  transform: ValueTransform.hmsToSeconds,
+                ),
+              ],
+            ),
+          },
+        ),
+      );
+
+      expect(result.warnings.single.message, startsWith('Row 2:'));
+    });
+
+    test('an unreadable date with no time is skipped, not dated 1970', () {
+      const csv = ParsedCsv(
+        headers: ['Date'],
+        rows: [
+          ['15 Juin 2024'],
+        ],
+      );
+
+      final result = CsvTransformer().transform(
+        csv,
+        const ImportConfiguration(
+          mappings: {
+            'primary': FieldMapping(
+              name: 'Test',
+              columns: [
+                ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ],
+            ),
+          },
+        ),
+      );
+
+      expect(result.rows, isEmpty);
+      expect(result.warnings.single.code, ImportWarningCode.unreadableDate);
+    });
+
+    test('a skipped profile sample is not reported as a skipped dive', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Time'],
+        rows: [
+          ['someday', '10:00'],
+        ],
+      );
+
+      final result = CsvTransformer().transform(
+        csv,
+        const ImportConfiguration(
+          mappings: {
+            'dive_profile': FieldMapping(
+              name: 'Profile',
+              columns: [
+                ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+                ColumnMapping(sourceColumn: 'Time', targetField: 'time'),
+              ],
+            ),
+          },
+        ),
+        fileRole: 'dive_profile',
+      );
+
+      expect(result.warnings.single.code, isNull);
     });
   });
 }

@@ -22009,6 +22009,50 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Sommige rijen zijn niet geïmporteerd';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'De datum in deze rijen kon niet worden gelezen. Controleer de datumkolom in het bestand, verbeter deze rijen en importeer het bestand opnieuw.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rijen niet geïmporteerd',
+      one: '1 rij niet geïmporteerd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rijen $rows',
+      one: 'Rij $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rijen $rows en nog $count',
+      one: 'Rijen $rows en nog 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

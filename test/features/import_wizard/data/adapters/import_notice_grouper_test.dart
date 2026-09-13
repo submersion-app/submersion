@@ -68,6 +68,62 @@ void main() {
     expect(notices, isEmpty);
   });
 
+  group('rows skipped for an unreadable date', () {
+    ImportWarning skippedRow(int? row) => ImportWarning(
+      severity: ImportWarningSeverity.warning,
+      code: ImportWarningCode.unreadableDate,
+      entityType: ImportEntityType.dives,
+      message: 'Row $row: could not resolve dateTime, skipping',
+      sourceRow: row,
+    );
+
+    test('collapse into one notice that lists the rows in order', () {
+      final notices = groupImportNotices([
+        skippedRow(12),
+        skippedRow(4),
+        skippedRow(9),
+      ], 20);
+
+      expect(notices, hasLength(1));
+      expect(notices.single.kind, ImportNoticeKind.unreadableDates);
+      expect(notices.single.affectedDives, 3);
+      expect(notices.single.rowNumbers, [4, 9, 12]);
+    });
+
+    test('are not capped by the number of dives imported', () {
+      // These rows are the dives that did NOT import, so the imported count
+      // says nothing about how many there are.
+      final notices = groupImportNotices(
+        List.generate(5, (i) => skippedRow(i + 2)),
+        1,
+      );
+
+      expect(notices.single.affectedDives, 5);
+    });
+
+    test('are reported even when nothing was imported', () {
+      final notices = groupImportNotices([skippedRow(2)], 0);
+
+      expect(notices.single.kind, ImportNoticeKind.unreadableDates);
+    });
+
+    test('are counted even without a row number', () {
+      final notices = groupImportNotices([skippedRow(null), skippedRow(3)], 5);
+
+      expect(notices.single.affectedDives, 2);
+      expect(notices.single.rowNumbers, [3]);
+    });
+
+    test('sit alongside the other notices', () {
+      final notices = groupImportNotices([_noPressure(), skippedRow(2)], 1);
+
+      expect(notices.map((n) => n.kind), [
+        ImportNoticeKind.noTankPressure,
+        ImportNoticeKind.unreadableDates,
+      ]);
+    });
+  });
+
   test('uncoded warnings are skipped', () {
     // These carry English-only messages with no localized summary wording.
     final notices = groupImportNotices(const [

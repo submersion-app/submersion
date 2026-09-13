@@ -36462,6 +36462,39 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}'**
   String universalImport_summary_noticeAffectedDives(int count);
 
+  /// No description provided for @universalImport_summary_unreadableDatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some rows were not imported'**
+  String get universalImport_summary_unreadableDatesTitle;
+
+  /// No description provided for @universalImport_summary_unreadableDatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.'**
+  String get universalImport_summary_unreadableDatesBody;
+
+  /// No description provided for @universalImport_summary_unreadableDatesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row not imported} other{{count} rows not imported}}'**
+  String universalImport_summary_unreadableDatesCount(int count);
+
+  /// No description provided for @universalImport_summary_unreadableDatesRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Row {rows}} other{Rows {rows}}}'**
+  String universalImport_summary_unreadableDatesRows(int count, String rows);
+
+  /// No description provided for @universalImport_summary_unreadableDatesRowsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Rows {rows} and 1 more} other{Rows {rows} and {count} more}}'**
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  );
+
   /// Per-file summary line for a successfully imported file
   ///
   /// In en, this message translates to:

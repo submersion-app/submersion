@@ -146,13 +146,14 @@ void main() {
         field: 'name',
       );
 
-      expect(warning.props, hasLength(6));
+      expect(warning.props, hasLength(7));
       expect(warning.props[0], ImportWarningSeverity.warning);
       expect(warning.props[1], 'test');
       expect(warning.props[2], ImportEntityType.sites);
       expect(warning.props[3], 5);
       expect(warning.props[4], 'name');
       expect(warning.props[5], isNull);
+      expect(warning.props[6], isNull);
     });
 
     test('props with null optional fields', () {
@@ -161,11 +162,12 @@ void main() {
         message: 'basic',
       );
 
-      expect(warning.props, hasLength(6));
+      expect(warning.props, hasLength(7));
       expect(warning.props[2], isNull);
       expect(warning.props[3], isNull);
       expect(warning.props[4], isNull);
       expect(warning.props[5], isNull);
+      expect(warning.props[6], isNull);
     });
 
     test('code participates in equality', () {
@@ -180,7 +182,27 @@ void main() {
       );
 
       expect(coded, isNot(equals(uncoded)));
-      expect(coded.props.last, ImportWarningCode.noTankPressure);
+      expect(coded.props[5], ImportWarningCode.noTankPressure);
+    });
+
+    test('source row participates in equality', () {
+      // Two unreadable rows share a message shape; their row is what tells
+      // them apart.
+      const row4 = ImportWarning(
+        severity: ImportWarningSeverity.warning,
+        message: 'Same',
+        code: ImportWarningCode.unreadableDate,
+        sourceRow: 4,
+      );
+      const row9 = ImportWarning(
+        severity: ImportWarningSeverity.warning,
+        message: 'Same',
+        code: ImportWarningCode.unreadableDate,
+        sourceRow: 9,
+      );
+
+      expect(row4, isNot(equals(row9)));
+      expect(row4.props.last, 4);
     });
 
     test('identical coded warnings compare equal, so they can be grouped', () {

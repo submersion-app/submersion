@@ -22192,6 +22192,50 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Alcune righe non sono state importate';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'Non è stato possibile leggere la data di queste righe. Controlla la colonna della data nel file, correggi queste righe e importalo di nuovo.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count righe non importate',
+      one: '1 riga non importata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Righe $rows',
+      one: 'Riga $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Righe $rows e altre $count',
+      one: 'Righe $rows e 1 altra',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

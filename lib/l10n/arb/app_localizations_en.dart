@@ -21813,6 +21813,50 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Some rows were not imported';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows not imported',
+      one: '1 row not imported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rows $rows',
+      one: 'Row $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rows $rows and $count more',
+      one: 'Rows $rows and 1 more',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

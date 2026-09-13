@@ -13424,6 +13424,38 @@
       }
     }
   },
+  "universalImport_summary_unreadableDatesTitle": "Some rows were not imported",
+  "universalImport_summary_unreadableDatesBody": "The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.",
+  "universalImport_summary_unreadableDatesCount": "{count, plural, =1{1 row not imported} other{{count} rows not imported}}",
+  "@universalImport_summary_unreadableDatesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_unreadableDatesRows": "{count, plural, =1{Row {rows}} other{Rows {rows}}}",
+  "@universalImport_summary_unreadableDatesRows": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_summary_unreadableDatesRowsMore": "{count, plural, =1{Rows {rows} and 1 more} other{Rows {rows} and {count} more}}",
+  "@universalImport_summary_unreadableDatesRowsMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_summary_fileImported": "{count, plural, =1{1 dive imported} other{{count} dives imported}}",
   "universalImport_summary_fileNeedsIndividualImport": "Needs individual import",
   "universalImport_summary_fileUnsupported": "Unsupported format",
