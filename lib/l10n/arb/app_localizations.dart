@@ -11661,6 +11661,102 @@ abstract class AppLocalizations {
   /// **'Assigned {name}'**
   String siteSuggestion_assignedSnack(Object name);
 
+  /// No description provided for @siteType_builtin_artificial_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Artificial reef'**
+  String get siteType_builtin_artificial_reef;
+
+  /// No description provided for @siteType_builtin_blue_hole.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue hole'**
+  String get siteType_builtin_blue_hole;
+
+  /// No description provided for @siteType_builtin_cave.
+  ///
+  /// In en, this message translates to:
+  /// **'Cave'**
+  String get siteType_builtin_cave;
+
+  /// No description provided for @siteType_builtin_cavern.
+  ///
+  /// In en, this message translates to:
+  /// **'Cavern'**
+  String get siteType_builtin_cavern;
+
+  /// No description provided for @siteType_builtin_cenote.
+  ///
+  /// In en, this message translates to:
+  /// **'Cenote'**
+  String get siteType_builtin_cenote;
+
+  /// No description provided for @siteType_builtin_kelp_forest.
+  ///
+  /// In en, this message translates to:
+  /// **'Kelp forest'**
+  String get siteType_builtin_kelp_forest;
+
+  /// No description provided for @siteType_builtin_lake.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake'**
+  String get siteType_builtin_lake;
+
+  /// No description provided for @siteType_builtin_muck.
+  ///
+  /// In en, this message translates to:
+  /// **'Muck'**
+  String get siteType_builtin_muck;
+
+  /// No description provided for @siteType_builtin_pier.
+  ///
+  /// In en, this message translates to:
+  /// **'Pier / jetty'**
+  String get siteType_builtin_pier;
+
+  /// No description provided for @siteType_builtin_pool.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool'**
+  String get siteType_builtin_pool;
+
+  /// No description provided for @siteType_builtin_quarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarry'**
+  String get siteType_builtin_quarry;
+
+  /// No description provided for @siteType_builtin_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Reef'**
+  String get siteType_builtin_reef;
+
+  /// No description provided for @siteType_builtin_river.
+  ///
+  /// In en, this message translates to:
+  /// **'River'**
+  String get siteType_builtin_river;
+
+  /// No description provided for @siteType_builtin_spring.
+  ///
+  /// In en, this message translates to:
+  /// **'Spring'**
+  String get siteType_builtin_spring;
+
+  /// No description provided for @siteType_builtin_wall.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall'**
+  String get siteType_builtin_wall;
+
+  /// No description provided for @siteType_builtin_wreck.
+  ///
+  /// In en, this message translates to:
+  /// **'Wreck'**
+  String get siteType_builtin_wreck;
+
   /// No description provided for @siteMatchReview_sourcePhoto.
   ///
   /// In en, this message translates to:

@@ -596,6 +596,10 @@ class DiverRepository {
           [id],
         );
         await _db.customStatement(
+          'DELETE FROM site_types WHERE diver_id = ? AND is_built_in = 0',
+          [id],
+        );
+        await _db.customStatement(
           'DELETE FROM tank_presets WHERE diver_id = ?',
           [id],
         );

@@ -7082,6 +7082,54 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get siteType_builtin_artificial_reef => 'Artificial reef';
+
+  @override
+  String get siteType_builtin_blue_hole => 'Blue hole';
+
+  @override
+  String get siteType_builtin_cave => 'Cave';
+
+  @override
+  String get siteType_builtin_cavern => 'Cavern';
+
+  @override
+  String get siteType_builtin_cenote => 'Cenote';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'Kelp forest';
+
+  @override
+  String get siteType_builtin_lake => 'Lake';
+
+  @override
+  String get siteType_builtin_muck => 'Muck';
+
+  @override
+  String get siteType_builtin_pier => 'Pier / jetty';
+
+  @override
+  String get siteType_builtin_pool => 'Pool';
+
+  @override
+  String get siteType_builtin_quarry => 'Quarry';
+
+  @override
+  String get siteType_builtin_reef => 'Reef';
+
+  @override
+  String get siteType_builtin_river => 'River';
+
+  @override
+  String get siteType_builtin_spring => 'Spring';
+
+  @override
+  String get siteType_builtin_wall => 'Wall';
+
+  @override
+  String get siteType_builtin_wreck => 'Wreck';
+
+  @override
   String get siteMatchReview_sourcePhoto => 'da foto';
 
   @override
