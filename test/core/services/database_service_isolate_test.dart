@@ -686,6 +686,44 @@ void main() {
     },
   );
 
+  test('a marker that cannot be cleared does not fail a restore that '
+      'succeeded', () async {
+    // The failure direction the journal promises: a stuck marker costs one
+    // unnecessary recovery prompt at the next launch, never a restore that
+    // already worked or a database left closed.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      domain.Diver(
+        id: '',
+        name: 'After Backup',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    DatabaseService.instance.debugFailDeleteFor = {
+      '$defaultPath.restore-pending',
+    };
+
+    await DatabaseService.instance.restore(backupPath);
+
+    final divers = await DiverRepository().getAllDivers();
+    expect(
+      divers.map((d) => d.name),
+      isNot(contains('After Backup')),
+      reason: 'the backup was restored and is open',
+    );
+    expect(File('$defaultPath.restore-pending').existsSync(), isTrue);
+  });
+
   test(
     'the restore window seam is one-shot and does not leak across restores',
     () async {
