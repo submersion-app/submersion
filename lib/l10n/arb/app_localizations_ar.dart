@@ -38060,6 +38060,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تحميل اتجاه درجة الحرارة';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'الغطسات حسب درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'توزيع غطساتك على نطاقات درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'لا توجد بيانات عن درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'تعذر تحميل نطاقات درجة حرارة الماء';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'مخطط أعمدة. الغطسات حسب درجة حرارة الماء. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'آخر 5 سنوات';
 
   @override

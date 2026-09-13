@@ -62756,6 +62756,36 @@ abstract class AppLocalizations {
   /// **'Failed to load temperature trend'**
   String get statistics_conditions_tempTrend_error;
 
+  /// No description provided for @statistics_conditions_waterTempBands_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by Water Temperature'**
+  String get statistics_conditions_waterTempBands_title;
+
+  /// No description provided for @statistics_conditions_waterTempBands_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across water temperature bands'**
+  String get statistics_conditions_waterTempBands_subtitle;
+
+  /// No description provided for @statistics_conditions_waterTempBands_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No water temperature data available'**
+  String get statistics_conditions_waterTempBands_empty;
+
+  /// No description provided for @statistics_conditions_waterTempBands_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load water temperature bands'**
+  String get statistics_conditions_waterTempBands_error;
+
+  /// Screen-reader summary of the dives-by-water-temperature-band bar chart
+  ///
+  /// In en, this message translates to:
+  /// **'Bar chart. Dives by water temperature. {description}'**
+  String statistics_conditions_waterTempBands_semanticLabel(String description);
+
   /// No description provided for @diveLog_filter_presetLast5Years.
   ///
   /// In en, this message translates to:

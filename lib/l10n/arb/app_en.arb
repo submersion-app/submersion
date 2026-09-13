@@ -23369,6 +23369,20 @@
   "statistics_conditions_tempTrend_subtitle": "Every dive in range",
   "statistics_conditions_tempTrend_empty": "No temperature data available",
   "statistics_conditions_tempTrend_error": "Failed to load temperature trend",
+  "statistics_conditions_waterTempBands_title": "Dives by Water Temperature",
+  "statistics_conditions_waterTempBands_subtitle": "How your dives split across water temperature bands",
+  "statistics_conditions_waterTempBands_empty": "No water temperature data available",
+  "statistics_conditions_waterTempBands_error": "Failed to load water temperature bands",
+  "statistics_conditions_waterTempBands_semanticLabel": "Bar chart. Dives by water temperature. {description}",
+  "@statistics_conditions_waterTempBands_semanticLabel": {
+    "description": "Screen-reader summary of the dives-by-water-temperature-band bar chart",
+    "placeholders": {
+      "description": {
+        "type": "String",
+        "example": "<10°C: 3 dives, 10-18°C: 12 dives"
+      }
+    }
+  },
   "diveLog_filter_presetLast5Years": "Last 5 years",
   "diveLog_filter_presetLast10Years": "Last 10 years",
   "statistics_trend_tooltip_lowest": "Lowest",

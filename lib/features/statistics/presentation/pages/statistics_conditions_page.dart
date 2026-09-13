@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
@@ -40,6 +41,8 @@ class StatisticsConditionsPage extends ConsumerWidget {
           _buildTemperatureTrendSection(context, ref, units),
           const SizedBox(height: 16),
           _buildTemperatureSection(context, ref, units),
+          const SizedBox(height: 16),
+          _buildTemperatureBandSection(context, ref, units),
         ],
       ),
     );
@@ -299,4 +302,73 @@ class StatisticsConditionsPage extends ConsumerWidget {
       ),
     );
   }
+
+  /// Dives per water-temperature band (issue #1827).
+  ///
+  /// The bands arrive already defined in the diver's temperature unit, so
+  /// each tick carries just the numbers and the unit shows once on the
+  /// x-axis, as the time-at-depth chart does.
+  Widget _buildTemperatureBandSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
+    final bandsAsync = ref.watch(waterTempBandDistributionProvider);
+    final l10n = context.l10n;
+
+    return StatSectionCard(
+      title: l10n.statistics_conditions_waterTempBands_title,
+      subtitle: l10n.statistics_conditions_waterTempBands_subtitle,
+      child: bandsAsync.when(
+        data: (bands) {
+          if (bands.isEmpty) {
+            return StatEmptyState(
+              icon: Icons.thermostat,
+              message: l10n.statistics_conditions_waterTempBands_empty,
+            );
+          }
+          final symbol = units.temperatureSymbol;
+          final chartData = [
+            for (final band in bands)
+              (label: _waterTempBandLabel(band), count: band.count),
+          ];
+          final description = chartData
+              .map(
+                (d) =>
+                    '${d.label}$symbol: ${l10n.statistics_summary_tagUsage_diveCount(d.count)}',
+              )
+              .join(', ');
+          return Semantics(
+            label: l10n.statistics_conditions_waterTempBands_semanticLabel(
+              description,
+            ),
+            child: CategoryBarChart(
+              data: chartData,
+              barColor: Colors.cyan.shade600,
+              valueFormatter: l10n.statistics_summary_tagUsage_diveCount,
+              xAxisLabel: symbol,
+            ),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => StatEmptyState(
+          icon: Icons.error_outline,
+          message: l10n.statistics_conditions_waterTempBands_error,
+        ),
+      ),
+    );
+  }
+}
+
+/// Tick label for one band: "<10", "10-18" or "24+". The unit is left to the
+/// axis label.
+String _waterTempBandLabel(WaterTempBandCount band) {
+  final lower = band.lower;
+  final upper = band.upper;
+  if (lower == null) return '<$upper';
+  if (upper == null) return '$lower+';
+  return '$lower-$upper';
 }

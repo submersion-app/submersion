@@ -38288,6 +38288,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'A hőmérséklet alakulása nem tölthető be';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Merülések vízhőmérséklet szerint';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Merüléseid megoszlása vízhőmérséklet-tartományok szerint';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Nincsenek vízhőmérséklet-adatok';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Nem sikerült betölteni a vízhőmérséklet-tartományokat';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Oszlopdiagram. Merülések vízhőmérséklet szerint. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Elmúlt 5 év';
 
   @override

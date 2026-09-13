@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
@@ -42,6 +43,10 @@ void main() {
       expect(await repository.getEntryMethodDistribution(), isEmpty);
       expect(await repository.getTemperatureByMonth(), isEmpty);
       expect(await repository.getWaterTempPerDive(), isEmpty);
+      expect(
+        await repository.getDivesByWaterTempBand(unit: TemperatureUnit.celsius),
+        isEmpty,
+      );
       expect(await repository.getTopBuddies(), isEmpty);
       expect(await repository.getTopDiveCenters(), isEmpty);
       expect(await repository.getCountriesVisited(), isEmpty);
