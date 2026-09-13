@@ -323,6 +323,7 @@ class SignatureStorageService {
   Future<Map<String, List<Signature>>> getSignaturesForDives(
     List<String> diveIds,
   ) async {
+    if (diveIds.isEmpty) return {};
     try {
       final byDive = <String, List<Signature>>{};
       for (final chunk in seriesIdChunks(diveIds)) {

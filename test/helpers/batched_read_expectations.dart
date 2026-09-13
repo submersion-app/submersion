@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+
 import 'export_logbook_fixture.dart';
 
 /// Registers the tests every batched "for many ids" read owes its per-id
@@ -47,14 +49,17 @@ void batchedReadTests<V>({
   });
 
   test('splits a long id list into bounded statements', () async {
-    // 1,000 ids with the seeded ones at both ends, so the second chunk of
-    // 900 has to be read and merged for the last of them to come back.
-    final padding = [for (var i = 0; i < 1000 - ids.length; i++) 'pad-$i'];
+    // One chunk's worth of padding with the seeded ids at both ends, so the
+    // last of them lands in the second chunk and only comes back if that
+    // chunk is read and merged.
+    final padding = [for (var i = 0; i < kSeriesIdChunkSize; i++) 'pad-$i'];
     final long = [ids.first, ...padding, ...ids.skip(1)];
+    final chunks = seriesIdChunks(long).length;
 
     final (result, statements) = await captureStatements(() => batched(long));
 
-    expect(statements, hasLength(2), reason: statements.join('\n'));
+    expect(chunks, greaterThan(1));
+    expect(statements, hasLength(chunks), reason: statements.join('\n'));
     for (final id in ids) {
       final expected = await silently(() => single(id));
       if (!holdsNothing(expected)) expect(result[id], expected, reason: id);

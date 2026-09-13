@@ -52,6 +52,7 @@ class ServiceRecordRepository {
   Future<Map<String, List<domain.ServiceRecord>>> getRecordsForEquipmentIds(
     List<String> equipmentIds,
   ) async {
+    if (equipmentIds.isEmpty) return {};
     final byItem = <String, List<domain.ServiceRecord>>{};
     for (final chunk in seriesIdChunks(equipmentIds)) {
       final rows =
