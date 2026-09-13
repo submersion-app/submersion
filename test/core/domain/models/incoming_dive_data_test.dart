@@ -363,4 +363,28 @@ void main() {
       expect(result.startTime, dt);
     });
   });
+
+  group('source dive number (issue #1832)', () {
+    test('fromDownloadedDive carries the number the computer reported', () {
+      final dive = DownloadedDive(
+        diveNumber: 412,
+        startTime: DateTime(2026, 3, 19, 10, 0),
+        durationSeconds: 3600,
+        maxDepth: 30.0,
+        profile: const [],
+      );
+
+      expect(IncomingDiveData.fromDownloadedDive(dive).diveNumber, 412);
+    });
+
+    test('fromImportMap carries the number the file recorded', () {
+      final data = IncomingDiveData.fromImportMap({'diveNumber': 88});
+
+      expect(data.diveNumber, 88);
+    });
+
+    test('is null when the source recorded none', () {
+      expect(IncomingDiveData.fromImportMap(const {}).diveNumber, isNull);
+    });
+  });
 }

@@ -19783,6 +19783,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_action_deleteTag => 'מחק תגית';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'הצג צלילות עם התגית \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'האם אתה בטוח שברצונך למחוק את \"$tagName\"? פעולה זו תסיר אותה מכל הצלילות.';
   }
@@ -21747,9 +21752,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'ייבוא כחדש';
-
-  @override
-  String get universalImport_label_importComplete => 'ייבוא הושלם';
 
   @override
   String get universalImport_label_importing => 'מייבא';
@@ -24546,6 +24548,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'השתמש במספרי הצלילה מהקובץ המיובא במקום להקצות אוטומטית';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'מקור זה אינו מספק מספרי צלילה, ולכן הצלילות ממוספרות אוטומטית';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'תיוג אוטומטי של ייבוא זה';
 
@@ -26281,11 +26287,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'אין צלילות עם עובי חליפה מתועד';
+      'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'לא ניתן לטעון נתוני עובי חליפה';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'לא ידוע';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
@@ -36016,6 +36025,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'שמירת יומני ניפוי באגים';
 
   @override
+  String get settings_diagnostics_header => 'אבחון';
+
+  @override
+  String get settings_diagnostics_viewLog => 'הצגת היומן';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'אזהרות ושגיאות נרשמות באופן אוטומטי';
+
+  @override
+  String get settings_diagnostics_copy => 'העתקת נתוני אבחון';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'גרסת האפליקציה, המכשיר ושורות יומן אחרונות לדיווח על באג';
+
+  @override
+  String get settings_diagnostics_copiedSnack => 'נתוני האבחון הועתקו ללוח';
+
+  @override
+  String get settings_diagnostics_openFolder => 'פתיחת תיקיית היומנים';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'לא ניתן לפתוח את תיקיית היומנים. היא נמצאת ב: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'לא ניתן להעתיק את נתוני האבחון: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'שמירה כתבנית';
 
   @override
@@ -37717,6 +37759,29 @@ class AppLocalizationsHe extends AppLocalizations {
       'טעינת מגמת הטמפרטורה נכשלה';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'צלילות לפי טמפרטורת מים';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי טמפרטורת מים';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'אין נתוני טמפרטורת מים זמינים';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'לא ניתן לטעון את טווחי טמפרטורת המים';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'תרשים עמודות. צלילות לפי טמפרטורת מים. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '5 השנים האחרונות';
 
   @override
@@ -38464,6 +38529,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => 'שיוך משדרים';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'מספרי צלילה כבר בשימוש';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'הצלילות האלה שמרו על המספר מהמקור שלהן, אבל צלילות אחרות ביומן שלך כבר משתמשות באותם מספרים. פתחו את „מספור צלילות” מתפריט רשימת הצלילות כדי למספר אותן מחדש.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'משדר לא משויך';

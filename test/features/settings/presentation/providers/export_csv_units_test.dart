@@ -8,6 +8,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
@@ -95,6 +96,7 @@ class _FakeExportService implements ExportService {
   Future<String> exportDivesToCsv(
     List<Dive> dives, {
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     this.units = units;
     return '/tmp/d.csv';
@@ -105,6 +107,7 @@ class _FakeExportService implements ExportService {
     List<Dive> dives, {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     this.units = units;
     return '/tmp/d.csv';

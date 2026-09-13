@@ -163,17 +163,7 @@ class SubmersionDivesCsvParser implements ImportParser {
         'weatherDescription': table.text(row, 'Weather Description'),
       }..removeWhere((_, value) => value == null);
 
-      final typeIds = <String>[];
-      for (final name in (table.text(row, 'Dive Type') ?? '').split(';')) {
-        final trimmed = name.trim();
-        final slug = DiveTypeEntity.generateSlug(trimmed);
-        if (slug.isEmpty || typeIds.contains(slug)) continue;
-        typeIds.add(slug);
-        diveTypesBySlug.putIfAbsent(
-          slug,
-          () => {'id': slug, 'name': trimmed, 'uddfId': slug},
-        );
-      }
+      final typeIds = _diveTypes(table, row, diveTypesBySlug);
       if (typeIds.isNotEmpty) dive['diveTypeIds'] = typeIds;
 
       final tank = _tank(table, row);
@@ -208,6 +198,57 @@ class SubmersionDivesCsvParser implements ImportParser {
       },
       warnings: warnings,
     );
+  }
+
+  /// The dive's type ids, registering each type in [types]. Files since
+  /// #1834 carry the ids verbatim in Dive Type IDs, paired with the names
+  /// only when the two lists line up (a name may contain the separator);
+  /// an unpaired id keeps a name rebuilt from it. An older file only has the
+  /// names, which are slugged.
+  static List<String> _diveTypes(
+    SubmersionCsvTable table,
+    List<String> row,
+    Map<String, Map<String, dynamic>> types,
+  ) {
+    const separator = DiveCsvColumns.diveTypeSeparator;
+    final namesCell = table.text(row, DiveCsvColumns.diveType);
+    final idsCell = table.text(row, DiveCsvColumns.diveTypeIds);
+    final ids = <String>[];
+    if (idsCell != null) {
+      final listed = [
+        for (final id in idsCell.split(separator))
+          if (id.trim().isNotEmpty) id.trim(),
+      ];
+      final names = namesCell?.split(separator).map((n) => n.trim()).toList();
+      final paired =
+          names != null &&
+          names.length == listed.length &&
+          names.every((n) => n.isNotEmpty);
+      for (final (i, id) in listed.indexed) {
+        if (ids.contains(id)) continue;
+        ids.add(id);
+        types.putIfAbsent(
+          id,
+          () => {
+            'id': id,
+            'name': paired ? names[i] : Dive.diveTypeDisplayName(id),
+            'uddfId': id,
+          },
+        );
+      }
+      return ids;
+    }
+    for (final name in (namesCell ?? '').split(';')) {
+      final trimmed = name.trim();
+      final slug = DiveTypeEntity.generateSlug(trimmed);
+      if (slug.isEmpty || ids.contains(slug)) continue;
+      ids.add(slug);
+      types.putIfAbsent(
+        slug,
+        () => {'id': slug, 'name': trimmed, 'uddfId': slug},
+      );
+    }
+    return ids;
   }
 
   /// A new site's place fields. Files since #1814 carry them in their own

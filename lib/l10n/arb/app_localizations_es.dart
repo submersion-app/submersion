@@ -20324,6 +20324,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tags_action_deleteTag => 'Eliminar etiqueta';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Mostrar inmersiones con la etiqueta \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return '¿Estás seguro de que deseas eliminar \"$tagName\"? Esto la eliminará de todas las inmersiones.';
   }
@@ -22328,9 +22333,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Importar como nuevo';
-
-  @override
-  String get universalImport_label_importComplete => 'Importación Completa';
 
   @override
   String get universalImport_label_importing => 'Importando';
@@ -25197,6 +25199,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Usar los números de inmersión del archivo importado en lugar de asignarlos automáticamente';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Esta fuente no proporciona números de inmersión, así que las inmersiones se numeran automáticamente';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Etiquetar esta importación automáticamente';
 
@@ -26966,11 +26972,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'No hay inmersiones con grosor de traje registrado';
+      'No hay inmersiones con un traje de neopreno o traje seco vinculado';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'No se pudieron cargar los datos de grosor del traje';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Desconocido';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Grosor del traje (mm)';
@@ -36774,6 +36784,40 @@ class AppLocalizationsEs extends AppLocalizations {
       'Guardar registros de depuración';
 
   @override
+  String get settings_diagnostics_header => 'Diagnóstico';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Ver registro';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Las advertencias y los errores se registran automáticamente';
+
+  @override
+  String get settings_diagnostics_copy => 'Copiar diagnóstico';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Versión de la app, dispositivo y líneas recientes del registro para un informe de error';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnóstico copiado al portapapeles';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Abrir carpeta de registros';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'No se pudo abrir la carpeta de registros. Se encuentra en: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'No se pudo copiar el diagnóstico: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Guardar como preajuste';
 
   @override
@@ -38532,6 +38576,29 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo cargar la evolución de la temperatura';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Inmersiones por temperatura del agua';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Cómo se reparten tus inmersiones entre rangos de temperatura del agua';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'No hay datos de temperatura del agua disponibles';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'No se pudieron cargar los rangos de temperatura del agua';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Gráfico de barras. Inmersiones por temperatura del agua. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Últimos 5 años';
 
   @override
@@ -39298,6 +39365,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Asignar transmisores';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Números de inmersión ya en uso';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Estas inmersiones conservaron el número de su origen, pero otras inmersiones de tu registro ya usan esos mismos números. Abre Numeración de inmersiones en el menú de la lista de inmersiones para renumerarlas.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

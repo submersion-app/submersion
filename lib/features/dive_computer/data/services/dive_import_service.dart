@@ -581,11 +581,17 @@ class DiveImportService {
   ///
   /// [defaultTankPreset], when given, fills the cylinder size the computer
   /// did not report so volumetric SAC is reachable on the new dive.
+  ///
+  /// [retainSourceDiveNumber] keeps the number the source reported in
+  /// [DownloadedDive.diveNumber] instead of assigning the next one. A dive
+  /// whose source reported no number is still numbered automatically, so
+  /// the option never leaves a dive unnumbered (issue #1832).
   Future<String> _importNewDive(
     DownloadedDive dive,
     String computerId,
     String? diverId, {
     bool forceNew = false,
+    bool retainSourceDiveNumber = false,
     TankPresetEntity? defaultTankPreset,
     TransmitterMatcher? transmitterMatcher,
     String? descriptorVendor,
@@ -593,9 +599,8 @@ class DiveImportService {
     int? descriptorModel,
     String? libdivecomputerVersion,
   }) async {
-    // Calculate chronological dive number
-    int? diveNumber;
-    if (_diveRepository != null) {
+    int? diveNumber = retainSourceDiveNumber ? dive.diveNumber : null;
+    if (diveNumber == null && _diveRepository != null) {
       diveNumber = await _diveRepository.getDiveNumberForDate(
         dive.startTime,
         diverId: diverId,
@@ -682,7 +687,8 @@ class DiveImportService {
   /// Import a single dive as a new dive, ignoring any duplicate match.
   ///
   /// Used when the user explicitly chooses "Import as New" from the
-  /// post-download consolidation review.
+  /// post-download consolidation review. [retainSourceDiveNumber] is the
+  /// wizard's "Retain source dive numbers" option; see [_importNewDive].
   Future<String> importSingleDiveAsNew(
     DownloadedDive dive, {
     required String computerId,
@@ -691,12 +697,14 @@ class DiveImportService {
     String? descriptorProduct,
     int? descriptorModel,
     String? libdivecomputerVersion,
+    bool retainSourceDiveNumber = false,
   }) async {
     return _importNewDive(
       dive,
       computerId,
       diverId,
       forceNew: true,
+      retainSourceDiveNumber: retainSourceDiveNumber,
       defaultTankPreset: await _loadDefaultTankPreset(),
       transmitterMatcher: await _loadTransmitterMatcher(),
       descriptorVendor: descriptorVendor,

@@ -164,6 +164,54 @@ void main() {
       expect(content, contains('number 19'));
     });
 
+    // The file is now written for every user, not only in debug mode (#1826),
+    // so one malformed byte (a device name, a native message) must not stop
+    // rotation, which would let the file grow without bound.
+    test('rotates a file that holds malformed UTF-8', () async {
+      final smallService = LogFileService(
+        logDirectory: tempDir.path,
+        maxFileSizeBytes: 200,
+      );
+      await smallService.initialize();
+      File(smallService.logFilePath).writeAsBytesSync([
+        ...'[2026-03-27T14:00:00.000] [BLE] [WARN] bad '.codeUnits,
+        0xC3,
+        0x28,
+        0x0A,
+      ]);
+
+      for (var i = 0; i < 20; i++) {
+        await smallService.writeLine(
+          LogEntry(
+            timestamp: DateTime(2026, 3, 27, 14, 0, i, 0),
+            category: LogCategory.app,
+            level: LogLevel.warning,
+            message: 'Log message number $i with some padding text',
+          ).toLogLine(),
+        );
+      }
+
+      final logFile = File(smallService.logFilePath);
+      expect(await logFile.length(), lessThan(200));
+      expect(await logFile.readAsString(), contains('number 19'));
+    });
+
+    test('readEntries tolerates malformed UTF-8', () async {
+      await service.initialize();
+      File(service.logFilePath).writeAsBytesSync([
+        ...'[2026-03-27T14:00:00.000] [BLE] [WARN] bad '.codeUnits,
+        0xC3,
+        0x28,
+        0x0A,
+        ...'[2026-03-27T14:00:01.000] [APP] [ERROR] good\n'.codeUnits,
+      ]);
+
+      final entries = await service.readEntries();
+
+      expect(entries.map((e) => e.level), [LogLevel.warning, LogLevel.error]);
+      expect(entries.last.message, 'good');
+    });
+
     group('initialization guard', () {
       test('writeLine throws StateError if not initialized', () async {
         expect(

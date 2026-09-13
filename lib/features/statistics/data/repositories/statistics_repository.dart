@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show compute, visibleForTesting;
 
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -17,7 +18,9 @@ import 'package:submersion/features/dive_sites/domain/entities/site_dive_statist
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/statistics/data/series_profile_aggregates.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
+import 'package:submersion/features/statistics/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
+import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 
 export 'package:submersion/features/statistics/domain/trend_aggregation.dart'
     show TrendDataPoint;
@@ -1023,10 +1026,16 @@ class StatisticsRepository {
     }
   }
 
-  /// Dives grouped by the primary thickness of linked exposure suits
-  /// (wetsuit/drysuit). COUNT(DISTINCT) so a dive with two suits of the same
-  /// thickness counts once per bucket.
-  Future<List<({double mm, int count})>> getDivesBySuitThickness({
+  /// Dives grouped by the exposure suits linked to them (issue #1824): a
+  /// bucket per wetsuit primary thickness, one for wetsuits with no numeric
+  /// thickness, and one for drysuits, which the attribute catalog gives no
+  /// thickness at all. The thickness join is a LEFT JOIN so a suit without
+  /// the attribute still reaches a bucket. COUNT(DISTINCT) so a dive with two
+  /// suits in the same bucket counts once there.
+  ///
+  /// Errors are rethrown after logging: an empty result would render as
+  /// "no suits linked" and hide the failure behind the card's empty state.
+  Future<SuitThicknessStats> getDivesBySuitThickness({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
@@ -1036,30 +1045,54 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT ea.value_num AS mm, COUNT(DISTINCT d.id) AS count
+        SELECT
+          CASE
+            WHEN e.type = 'drysuit' THEN 'drysuit'
+            WHEN ea.value_num IS NULL THEN 'unknown'
+            ELSE 'mm'
+          END AS bucket,
+          ea.value_num AS mm,
+          COUNT(DISTINCT d.id) AS count
         FROM dives d
         JOIN dive_equipment de ON de.dive_id = d.id
         JOIN equipment e ON e.id = de.equipment_id
           AND e.type IN ('wetsuit', 'drysuit')
-        JOIN equipment_attributes ea ON ea.equipment_id = e.id
+        LEFT JOIN equipment_attributes ea ON ea.equipment_id = e.id
+          AND e.type = 'wetsuit'
           AND ea.attr_key = 'thickness_mm'
           AND ea.is_custom = 0
           AND ea.value_num IS NOT NULL
         WHERE 1=1 $diverFilter ${df.clause}
-        GROUP BY ea.value_num
+        GROUP BY bucket, ea.value_num
         ORDER BY ea.value_num
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      return results.map((row) {
-        return (mm: row.read<double>('mm'), count: row.read<int>('count'));
-      }).toList();
+      final byThickness = <({double mm, int count})>[];
+      var unknownThicknessCount = 0;
+      var drysuitCount = 0;
+      for (final row in results) {
+        final count = row.read<int>('count');
+        switch (row.read<String>('bucket')) {
+          case 'drysuit':
+            drysuitCount = count;
+          case 'unknown':
+            unknownThicknessCount = count;
+          default:
+            byThickness.add((mm: row.read<double>('mm'), count: count));
+        }
+      }
+      return (
+        byThickness: List<({double mm, int count})>.unmodifiable(byThickness),
+        unknownThicknessCount: unknownThicknessCount,
+        drysuitCount: drysuitCount,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dives by suit thickness',
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1546,6 +1579,81 @@ class StatisticsRepository {
     }
   }
 
+  /// Dives counted per water-temperature band, coldest band first (issue
+  /// #1827).
+  ///
+  /// The bands are [waterTempBandEdges] for [unit], so an imperial diver gets
+  /// Fahrenheit bands rather than Celsius ones relabelled. Each dive's stored
+  /// Celsius reading is converted to [unit] and rounded to the one decimal
+  /// `UnitFormatter.formatTemperature` shows before it is compared, so a dive
+  /// displayed as "65°F" lands in the band that starts at 65 even when it
+  /// was stored as 18.33 °C (64.994 °F), as a Kelvin UDDF import leaves it.
+  ///
+  /// Every band is returned, empty ones included, so the chart keeps its
+  /// shape. Returns an empty list when no dive in scope has a water
+  /// temperature.
+  Future<List<WaterTempBandCount>> getDivesByWaterTempBand({
+    required TemperatureUnit unit,
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final edges = waterTempBandEdges(unit);
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final df = _diveFilter(filter, alias: 'dives');
+      // A fixed expression chosen by the enum, never user text.
+      final displayTemp = switch (unit) {
+        TemperatureUnit.celsius => 'water_temp',
+        TemperatureUnit.fahrenheit => 'water_temp * 9.0 / 5.0 + 32.0',
+      };
+      // Highest edge first so the first matching WHEN is the dive's band.
+      // Edge variables come first: they appear before the diver and filter
+      // placeholders in the statement below, and Drift binds positionally.
+      final whens = [
+        for (var i = edges.length - 1; i >= 0; i--)
+          'WHEN temp >= ? THEN ${i + 1}',
+      ].join('\n            ');
+      final params = [...edges.reversed, ?diverId, ...df.params];
+
+      final results = await _db.customSelect('''
+        SELECT band, COUNT(*) AS count FROM (
+          SELECT CASE
+            $whens
+            ELSE 0
+          END AS band
+          FROM (
+            SELECT ROUND($displayTemp, 1) AS temp
+            FROM dives
+            WHERE water_temp IS NOT NULL $diverFilter ${df.clause}
+          )
+        )
+        GROUP BY band
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      if (results.isEmpty) return [];
+      final counts = <int, int>{
+        for (final row in results)
+          row.read<int>('band'): row.read<int>('count'),
+      };
+
+      return [
+        for (var band = 0; band <= edges.length; band++)
+          (
+            lower: band == 0 ? null : edges[band - 1],
+            upper: band == edges.length ? null : edges[band],
+            count: counts[band] ?? 0,
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives by water temperature band',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
   // ============================================================================
   // Social & Buddies Statistics
   // ============================================================================
@@ -1590,7 +1698,12 @@ class StatisticsRepository {
     }
   }
 
-  /// Get solo vs buddy dive percentage
+  /// Get solo vs buddy dive percentage.
+  ///
+  /// Each dive counts exactly once: a dive is a buddy dive when it has at
+  /// least one linked buddy or a non-empty free-text buddy. The linked
+  /// buddies are tested with EXISTS rather than a join, because a join yields
+  /// one row per linked buddy and would count a group dive several times.
   Future<({int solo, int buddy})> getSoloVsBuddyCount({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1602,11 +1715,15 @@ class StatisticsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          SUM(CASE WHEN db.buddy_id IS NULL AND (d.buddy IS NULL OR d.buddy = '') THEN 1 ELSE 0 END) AS solo,
-          SUM(CASE WHEN db.buddy_id IS NOT NULL OR (d.buddy IS NOT NULL AND d.buddy != '') THEN 1 ELSE 0 END) AS buddy
-        FROM dives d
-        LEFT JOIN dive_buddies db ON db.dive_id = d.id
-        WHERE 1=1 $diverFilter ${df.clause}
+          SUM(CASE WHEN has_buddy THEN 0 ELSE 1 END) AS solo,
+          SUM(CASE WHEN has_buddy THEN 1 ELSE 0 END) AS buddy
+        FROM (
+          SELECT
+            EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
+              OR (d.buddy IS NOT NULL AND d.buddy != '') AS has_buddy
+          FROM dives d
+          WHERE 1=1 $diverFilter ${df.clause}
+        )
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (solo: 0, buddy: 0);

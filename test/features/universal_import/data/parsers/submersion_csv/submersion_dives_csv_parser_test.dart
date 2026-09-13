@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
@@ -192,5 +193,63 @@ void main() {
     expect(site['region'], 'Bay');
     expect(site['country'], 'Egypt');
     expect(site.containsKey('city'), isFalse);
+  });
+
+  test('dive types come back under their own ids and names (#1834)', () async {
+    final custom = DiveTypeEntity(
+      id: 'search_recovery_1a2b3c4d',
+      diverId: 'me',
+      name: 'Search & Recovery',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final dive = goldenDives().first.copyWith(diveTypeIds: ['boat', custom.id]);
+    for (final units in [
+      CsvExportUnits.metric,
+      CsvExportUnits.fromSettings(imperial),
+    ]) {
+      final csv = CsvDivesWriter(
+        units,
+        diveTypesById: {custom.id: custom},
+      ).write([dive]);
+      final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+      final parsed = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(parsed['diveTypeIds'], ['boat', custom.id]);
+      final types = payload.entitiesOf(ImportEntityType.diveTypes);
+      expect(
+        types.firstWhere((t) => t['id'] == custom.id)['name'],
+        'Search & Recovery',
+      );
+    }
+  });
+
+  test('a name ending in ";" still pairs with its id', () async {
+    // "Rec;" joined with "; " reads "Rec;; Night"; splitting on the real
+    // separator gives the two names back.
+    final payload = await const SubmersionDivesCsvParser().parse(
+      _bytes(
+        'Dive Number,Date,Time,Dive Type,Dive Type IDs\n'
+        '1,2025-03-15,09:05,"Rec;; Night",rec_1; night\n',
+      ),
+    );
+    final parsed = payload.entitiesOf(ImportEntityType.dives).single;
+    expect(parsed['diveTypeIds'], ['rec_1', 'night']);
+    expect(
+      payload.entitiesOf(ImportEntityType.diveTypes).map((t) => t['name']),
+      ['Rec;', 'Night'],
+    );
+  });
+
+  test('ids that cannot pair with the names keep a rebuilt name', () async {
+    final payload = await const SubmersionDivesCsvParser().parse(
+      _bytes(
+        'Dive Number,Date,Time,Dive Type,Dive Type IDs\n'
+        '1,2025-03-15,09:05,A; B; C,rec_1; night\n',
+      ),
+    );
+    expect(
+      payload.entitiesOf(ImportEntityType.diveTypes).map((t) => t['name']),
+      ['Rec 1', 'Night'],
+    );
   });
 }

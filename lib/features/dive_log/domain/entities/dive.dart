@@ -350,6 +350,25 @@ class Dive extends Equatable {
   List<String> get diveTypeNames =>
       diveTypeIds.map(diveTypeDisplayName).toList();
 
+  /// The names the diver gave this dive's types, looked up in [typesById]
+  /// (the loaded `dive_types` rows), then in [diveType] for the first id.
+  ///
+  /// [diveTypeNames] can only rebuild a name from its id, which loses a
+  /// custom type's own spelling: `Search & Recovery` is stored as
+  /// `search_recovery` and a colliding second type gains a suffix (#1834).
+  /// An id with no loaded row, or a blank name, falls back to that form.
+  List<String> diveTypeNamesFrom(Map<String, DiveTypeEntity> typesById) => [
+    for (final id in diveTypeIds)
+      _nonBlankName(typesById[id]) ??
+          (diveType?.id == id ? _nonBlankName(diveType) : null) ??
+          diveTypeDisplayName(id),
+  ];
+
+  static String? _nonBlankName(DiveTypeEntity? type) {
+    final name = type?.name.trim();
+    return (name == null || name.isEmpty) ? null : name;
+  }
+
   /// Capitalize a slug for display, e.g. 'deep_wreck' -> 'Deep wreck'.
   static String diveTypeDisplayName(String id) {
     if (id.isEmpty) return 'Recreational';

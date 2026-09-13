@@ -592,6 +592,62 @@ void main() {
       expect(merged.entitiesOf(ImportEntityType.diveTypes), hasLength(1));
     });
 
+    test('a dive follows its type into a namesake with another id (#1834)', () {
+      // Two devices' CSV exports: one custom type, whose id on the second
+      // carries a collision suffix.
+      final a = ImportPayload(
+        entities: {
+          ImportEntityType.diveTypes: [
+            {
+              'id': 'search_recovery',
+              'uddfId': 'search_recovery',
+              'name': 'Search & Recovery',
+            },
+          ],
+          ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 1, 1, 9),
+              'diveTypeIds': ['search_recovery'],
+            },
+          ],
+        },
+      );
+      final b = ImportPayload(
+        entities: {
+          ImportEntityType.diveTypes: [
+            {
+              'id': 'search_recovery_1a2b3c4d',
+              'uddfId': 'search_recovery_1a2b3c4d',
+              'name': 'Search & Recovery',
+            },
+          ],
+          ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 2, 1, 9),
+              'diveTypeIds': ['search_recovery_1a2b3c4d', 'night'],
+            },
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.csv', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.csv', payload: b),
+      ]);
+
+      expect(
+        merged.entitiesOf(ImportEntityType.diveTypes).map((t) => t['id']),
+        ['search_recovery'],
+      );
+      expect(
+        merged.entitiesOf(ImportEntityType.dives).map((d) => d['diveTypeIds']),
+        [
+          ['search_recovery'],
+          ['search_recovery', 'night'],
+        ],
+      );
+    });
+
     test('folds dive types sharing a slug, which is their id', () {
       const a = ImportPayload(
         entities: {

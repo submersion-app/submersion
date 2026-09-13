@@ -15,6 +15,7 @@ import 'package:submersion/core/services/export/excel/observations_excel_export_
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -44,8 +45,13 @@ class CsvExportService {
   Future<String> exportDivesToCsv(
     List<Dive> dives, {
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
-    final csvData = generateDivesCsvContent(dives, units: units);
+    final csvData = generateDivesCsvContent(
+      dives,
+      units: units,
+      diveTypesById: diveTypesById,
+    );
     return saveAndShareFile(csvData, 'dives_export.csv', 'text/csv');
   }
 
@@ -163,11 +169,15 @@ class CsvExportService {
   // ==================== Content Generation ====================
 
   /// Generate CSV content for dives (without sharing). [units] defaults to
-  /// the historical metric format.
+  /// the historical metric format. [diveTypesById] holds the loaded
+  /// `dive_types` rows, so each type is written under the name the diver
+  /// gave it (#1834); an id with no row falls back to a name rebuilt from
+  /// the id.
   String generateDivesCsvContent(
     List<Dive> dives, {
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => CsvDivesWriter(units).write(dives);
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) => CsvDivesWriter(units, diveTypesById: diveTypesById).write(dives);
 
   /// Generate CSV content for sites (without sharing).
   String generateSitesCsvContent(
@@ -193,8 +203,13 @@ class CsvExportService {
     List<Dive> dives, {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
-    final csvContent = generateDivesCsvContent(dives, units: units);
+    final csvContent = generateDivesCsvContent(
+      dives,
+      units: units,
+      diveTypesById: diveTypesById,
+    );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 

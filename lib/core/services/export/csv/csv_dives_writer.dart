@@ -10,6 +10,7 @@ import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 
 /// Writes the dives CSV. Every unit-bearing cell and every date and time
 /// goes through [units], so Metric mode reproduces the historical file and
@@ -17,9 +18,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 /// free-text cell goes through [sanitizeCsvField] so a spreadsheet never
 /// evaluates it as a formula; the importer reverses it.
 class CsvDivesWriter {
-  CsvDivesWriter(this.units);
+  CsvDivesWriter(this.units, {this.diveTypesById = const {}});
 
   final CsvExportUnits units;
+
+  /// The loaded `dive_types` rows, so each type is written under the name
+  /// the diver gave it (#1834); an id with no row falls back to a name
+  /// rebuilt from the id.
+  final Map<String, DiveTypeEntity> diveTypesById;
 
   bool get _cuft => units.unitFor(CsvQuantity.volume) == CsvUnit.cubicFeet;
 
@@ -79,6 +85,7 @@ class CsvDivesWriter {
       DiveCsvColumns.siteIsland,
       DiveCsvColumns.hePercent,
       DiveCsvColumns.customFields,
+      DiveCsvColumns.diveTypeIds,
       ...sortedCustomKeys.map(
         (key) => sanitizeCsvField('${DiveCsvColumns.customFieldPrefix}$key'),
       ),
@@ -104,7 +111,9 @@ class CsvDivesWriter {
         units.value(CsvColumns.visibility, dive.visibilityMeters),
         dive.visibility?.displayName ?? '',
         sanitizeCsvField(
-          dive.diveTypeNames.join(DiveCsvColumns.diveTypeSeparator),
+          dive
+              .diveTypeNamesFrom(diveTypesById)
+              .join(DiveCsvColumns.diveTypeSeparator),
         ),
         sanitizeCsvField(dive.buddy),
         sanitizeCsvField(dive.diveMaster),
@@ -131,6 +140,10 @@ class CsvDivesWriter {
         sanitizeCsvField(dive.site?.island),
         tank?.gasMix.he.toStringAsFixed(0) ?? '',
         _customFieldsJson(dive.customFields),
+        // A name cannot be turned back into its id, so the ids ride along.
+        sanitizeCsvField(
+          dive.diveTypeIds.join(DiveCsvColumns.diveTypeSeparator),
+        ),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)

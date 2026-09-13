@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -566,7 +567,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         final diveGroup = bundle.groups[ImportEntityType.dives];
         final matchResult = diveGroup?.matchResults?[index];
         if (matchResult != null) {
-          final result = await _consolidateDive(dive, matchResult.diveId, comp);
+          final result = await _consolidateDive(
+            dive,
+            matchResult.diveId,
+            comp,
+            // A dive the fold refuses is kept standalone, so it must carry
+            // the same number an import-as-new would have given it.
+            retainSourceDiveNumber: retainSourceDiveNumbers,
+          );
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
@@ -624,6 +632,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           descriptorProduct: _descriptorProduct,
           descriptorModel: _descriptorModel,
           libdivecomputerVersion: _libdivecomputerVersion,
+          retainSourceDiveNumber: retainSourceDiveNumbers,
         );
         imported++;
         importedDiveIds.add(diveId);
@@ -652,6 +661,11 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     scheduleSensorSummaryRefresh(importedDiveIds);
 
     final unmatched = _importService.unmatchedTransmitterSerials;
+    final numberConflict = await diveNumberConflictNotice(
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      diveRepository: _diveRepository,
+      importedDiveIds: importedDiveIds,
+    );
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
@@ -664,6 +678,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             kind: ImportNoticeKind.unknownTransmitter,
             affectedDives: _divesCarrying(unmatched, writtenDives),
           ),
+        ?numberConflict,
       ],
     );
   }
@@ -742,8 +757,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   Future<_ConsolidateResult> _consolidateDive(
     DownloadedDive dive,
     String targetDiveId,
-    DiveComputer comp,
-  ) async {
+    DiveComputer comp, {
+    required bool retainSourceDiveNumber,
+  }) async {
     final targetComputerId = await _diveRepository.getComputerIdForDive(
       targetDiveId,
     );
@@ -761,6 +777,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         descriptorProduct: _descriptorProduct,
         descriptorModel: _descriptorModel,
         libdivecomputerVersion: _libdivecomputerVersion,
+        retainSourceDiveNumber: retainSourceDiveNumber,
       );
       await _consolidationService.apply(
         targetDiveId: targetDiveId,

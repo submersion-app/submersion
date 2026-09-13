@@ -19239,6 +19239,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_action_deleteTag => '删除标签';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '显示带有「$tagName」标签的潜水';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return '确定要删除「$tagName」吗？这将从所有潜水中移除该标签。';
   }
@@ -21141,9 +21146,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => '作为新导入';
-
-  @override
-  String get universalImport_label_importComplete => '导入完成';
 
   @override
   String get universalImport_label_importing => '正在导入';
@@ -23870,6 +23872,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '使用导入文件中的潜水编号而不是自动分配';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      '此来源不提供潜水编号，因此潜水将自动编号';
+
+  @override
   String get universalImport_label_autoTagThisImport => '自动为此次导入打标签';
 
   @override
@@ -25558,10 +25564,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      '没有记录潜水服厚度的潜水';
+      '没有关联湿衣或干衣的潜水';
 
   @override
   String get statistics_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => '未知';
 
   @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
@@ -34631,6 +34640,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => '保存调试日志';
 
   @override
+  String get settings_diagnostics_header => '诊断';
+
+  @override
+  String get settings_diagnostics_viewLog => '查看日志';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle => '警告和错误会自动记录';
+
+  @override
+  String get settings_diagnostics_copy => '复制诊断信息';
+
+  @override
+  String get settings_diagnostics_copySubtitle => '应用版本、设备和最近的日志行，用于错误报告';
+
+  @override
+  String get settings_diagnostics_copiedSnack => '诊断信息已复制到剪贴板';
+
+  @override
+  String get settings_diagnostics_openFolder => '打开日志文件夹';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return '无法打开日志文件夹。其位置为：$path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return '无法复制诊断信息：$error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => '另存为预设';
 
   @override
@@ -36242,6 +36282,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_conditions_tempTrend_error => '无法加载水温趋势';
 
   @override
+  String get statistics_conditions_waterTempBands_title => '按水温统计的潜水次数';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle => '您的潜水在各水温区间的分布';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty => '没有可用的水温数据';
+
+  @override
+  String get statistics_conditions_waterTempBands_error => '无法加载水温区间数据';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return '柱状图。按水温区间统计的潜水次数。$description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '最近 5 年';
 
   @override
@@ -36965,6 +37024,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => '分配发射器';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      '潜水编号已被使用';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      '这些潜水保留了来源中的编号，但您的日志中已有其他潜水使用相同的编号。请在潜水列表菜单中打开“潜水编号”重新编号。';
 
   @override
   String get dataQuality_detector_unknown_transmitter => '未分配的发射器';

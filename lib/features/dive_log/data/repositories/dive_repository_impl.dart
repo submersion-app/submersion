@@ -2811,6 +2811,49 @@ class DiveRepository {
     }
   }
 
+  /// How many of [diveIds] carry a dive number that another dive of the same
+  /// diver also carries.
+  ///
+  /// Reports the clashes "Retain source dive numbers" can leave behind, with
+  /// an existing dive or between two dives of the same import, so the diver
+  /// is told instead of the number being silently changed (issue #1832).
+  /// Unnumbered dives never count.
+  // stats-scope-exempt: numbering integrity, must see every dive or it misses a clash
+  Future<int> countDivesSharingDiveNumber(List<String> diveIds) async {
+    try {
+      var count = 0;
+      for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
+        final placeholders = List.filled(chunk.length, '?').join(', ');
+        // The shared numbers are found in ONE grouped pass over `dives`,
+        // then joined to the imported rows. A correlated EXISTS per imported
+        // dive has no (diver_id, dive_number) index to use, so it scanned
+        // the whole table once per row: 0.68 s against 0.01 s for 900
+        // imported dives in a 50,000-dive log.
+        final row = await _db
+            .customSelect(
+              'SELECT COUNT(*) AS n FROM dives d '
+              'JOIN (SELECT diver_id, dive_number FROM dives '
+              'WHERE dive_number IS NOT NULL '
+              'GROUP BY diver_id, dive_number HAVING COUNT(*) > 1) shared '
+              'ON shared.dive_number = d.dive_number '
+              'AND shared.diver_id IS d.diver_id '
+              'WHERE d.id IN ($placeholders)',
+              variables: [for (final id in chunk) Variable.withString(id)],
+            )
+            .getSingle();
+        count += row.data['n'] as int;
+      }
+      return count;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives sharing a dive number',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get the next dive number for a given date.
   ///
   /// Delegates to [getNextDiveNumber] (MAX + 1) to avoid duplicate numbers

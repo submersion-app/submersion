@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -23,6 +24,7 @@ class _StubExportService implements ExportService {
   Future<String> exportDivesToCsv(
     List<Dive> dives, {
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     calls.add('share:csv');
     return '/tmp/shared_csv';
@@ -33,6 +35,7 @@ class _StubExportService implements ExportService {
     List<Dive> dives, {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     calls.add('save:csv');
     return '/tmp/saved_csv';

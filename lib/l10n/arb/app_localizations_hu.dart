@@ -20253,6 +20253,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_action_deleteTag => 'Címke törlése';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '\"$tagName\" címkéjű merülések megjelenítése';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Biztosan törölni szeretnéd: \"$tagName\"? Ez eltávolítja az összes merülésről.';
   }
@@ -22245,9 +22250,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Importalas ujkent';
-
-  @override
-  String get universalImport_label_importComplete => 'Importálás kész';
 
   @override
   String get universalImport_label_importing => 'Importálás';
@@ -25095,6 +25097,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az importált fájl merülésszámainak használata az automatikus kiosztás helyett';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Ez a forrás nem ad meg merülésszámokat, ezért a merülések automatikusan kapnak számot';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Ennek az importnak az automatikus címkézése';
 
@@ -26840,11 +26846,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nincs merülés rögzített ruhavastagsággal';
+      'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Nem sikerült betölteni a vastagsági adatokat';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Ismeretlen';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
@@ -36585,6 +36595,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Hibakeresési naplók mentése';
 
   @override
+  String get settings_diagnostics_header => 'Diagnosztika';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Napló megtekintése';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'A figyelmeztetések és a hibák rögzítése automatikus';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnosztika másolása';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Alkalmazásverzió, eszköz és a legutóbbi naplósorok hibajelentéshez';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'A diagnosztika a vágólapra másolva';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Naplómappa megnyitása';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'A naplómappa nem nyitható meg. Helye: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'A diagnosztika nem másolható: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Mentés előre beállításként';
 
   @override
@@ -38331,6 +38375,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'A hőmérséklet alakulása nem tölthető be';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Merülések vízhőmérséklet szerint';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Merüléseid megoszlása vízhőmérséklet-tartományok szerint';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Nincsenek vízhőmérséklet-adatok';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Nem sikerült betölteni a vízhőmérséklet-tartományokat';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Oszlopdiagram. Merülések vízhőmérséklet szerint. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Elmúlt 5 év';
 
   @override
@@ -39097,6 +39164,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Jeladók hozzárendelése';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'A merülésszámok már foglaltak';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Ezek a merülések megtartották a forrásuk szerinti számot, de a naplódban más merülések már ugyanezeket a számokat használják. Az újraszámozáshoz nyisd meg a Merülésszámozás menüpontot a merüléslista menüjében.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

@@ -131,6 +131,7 @@ import 'package:submersion/features/signatures/presentation/providers/signature_
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
+import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/reef/presentation/widgets/water_conditions_card.dart';
@@ -3205,6 +3206,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       } catch (_) {
         // Export the dive as loaded.
       }
+      // Awaited, not read from the page's snapshot: an export started while
+      // the types load would otherwise print every name rebuilt from its id.
+      final diveTypesById = await diveTypesByIdOrEmpty(
+        ref.read(diveTypesByIdProvider.future),
+      );
 
       final result = await exportService.generateDivePdfBytes(
         [exportDive],
@@ -3218,6 +3224,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         certifications: certifications,
         diver: diver,
         diverPhoto: diverPhoto,
+        diveTypesById: diveTypesById,
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues
@@ -4248,12 +4255,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               runSpacing: 8,
               children: dive.tags
                   .map(
-                    (tag) => Chip(
+                    (tag) => ActionChip(
                       label: Text(tag.name),
+                      tooltip: context.l10n.tags_action_showDives(tag.name),
                       backgroundColor: tag.color.withValues(alpha: 0.2),
                       side: BorderSide(color: tag.color),
                       labelStyle: TextStyle(color: tag.color),
                       visualDensity: VisualDensity.compact,
+                      onPressed: () => openDivesWithTag(context, ref, tag.id),
                     ),
                   )
                   .toList(),
@@ -4608,6 +4617,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     return buddiesAsync.when(
       data: (buddies) {
+        // The dive_buddies junction is authoritative once it holds anyone.
+        // The legacy free-text dives.buddy column is only a fallback for a
+        // dive whose buddy was never linked, such as a CSV import that did
+        // not bring in buddy records, so it is not called solo (#1831).
+        final textBuddy = buddies.isEmpty ? dive.buddy?.trim() ?? '' : '';
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -4633,7 +4647,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 const Divider(),
                 if (dive.diverRoleId != null)
                   _buildMyRoleTile(context, ref, dive),
-                if (buddies.isEmpty && dive.diverRoleId == null)
+                if (textBuddy.isNotEmpty)
+                  _buildTextBuddyTile(context, textBuddy)
+                else if (buddies.isEmpty && dive.diverRoleId == null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
@@ -4673,6 +4689,23 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       subtitle: Text(bwr.role.localizedName(context.l10n)),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () => context.push('/buddies/${bwr.buddy.id}'),
+    );
+  }
+
+  /// A buddy stored only as free text on the dive (#1831). There is no buddy
+  /// record behind it, so the tile has no role and nothing to open.
+  Widget _buildTextBuddyTile(BuildContext context, String name) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: colorScheme.primaryContainer,
+        child: Icon(
+          Icons.person_outline,
+          color: colorScheme.onPrimaryContainer,
+        ),
+      ),
+      title: Text(name),
     );
   }
 
@@ -5561,15 +5594,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ref,
                   title: context.l10n.diveLog_export_csv,
                   offerCsvUnits: true,
-                  shareFn: (choice) => ref
+                  shareFn: (choice) async => ref
                       .read(exportServiceProvider)
-                      .exportDivesToCsv([dive], units: csvUnitsFor(choice)),
-                  saveFn: (choice) => ref
+                      .exportDivesToCsv(
+                        [dive],
+                        units: csvUnitsFor(choice),
+                        diveTypesById: await diveTypesByIdOrEmpty(
+                          ref.read(diveTypesByIdProvider.future),
+                        ),
+                      ),
+                  saveFn: (choice) async => ref
                       .read(exportServiceProvider)
                       .saveDivesCsvToFile(
                         [dive],
                         dialogTitle: saveTitle,
                         units: csvUnitsFor(choice),
+                        diveTypesById: await diveTypesByIdOrEmpty(
+                          ref.read(diveTypesByIdProvider.future),
+                        ),
                       ),
                 );
               },
