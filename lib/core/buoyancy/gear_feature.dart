@@ -264,6 +264,12 @@ class GearFeature extends Equatable {
     EquipmentType.undersuit => 1.5,
     EquipmentType.baselayer => 0.4,
     EquipmentType.bcd => 3.5,
+    // Rig accessories (#1877) weigh a fraction of the 0.5 kg fallthrough, and
+    // divers log several. The weight pocket is the empty pouch: the lead
+    // inside it is a Weights item of its own.
+    EquipmentType.tankBand => 0.2,
+    EquipmentType.weightPocket => 0.3,
+    EquipmentType.gearPocket => 0.2,
     // A wrist computer's dry mass is negligible against the rig, and gear
     // twins (v175) put one on every downloaded dive: the 0.5 kg fallthrough
     // would move every diver's buoyancy by that much per computer. An explicit

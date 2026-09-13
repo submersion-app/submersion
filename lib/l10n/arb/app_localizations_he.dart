@@ -10752,6 +10752,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_harness => 'רתמה';
 
   @override
+  String get enum_equipmentType_tankBand => 'רצועת בלון';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'כיס משקולות';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'כיס ציוד';
+
+  @override
   String get enum_equipmentType_hose => 'צינור';
 
   @override
@@ -26469,6 +26478,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_tool_type => 'סוג הכלי';
 
   @override
+  String get attrLabel_band_style => 'סגנון';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'קיבולת';
+
+  @override
+  String get attrLabel_pocket_mount => 'התקנה';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'אלומיניום';
 
   @override
@@ -26605,6 +26623,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'מנפח (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'רצועה עם אבזם קאם';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'חבק נירוסטה';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'רתמה';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'חגורת מותניים';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'ירך';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';

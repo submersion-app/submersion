@@ -10813,6 +10813,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_harness => 'حزام';
 
   @override
+  String get enum_equipmentType_tankBand => 'حزام الأسطوانة';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'جيب الأثقال';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'جيب المعدات';
+
+  @override
   String get enum_equipmentType_hose => 'خرطوم';
 
   @override
@@ -26670,6 +26679,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_tool_type => 'نوع الأداة';
 
   @override
+  String get attrLabel_band_style => 'النمط';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'السعة';
+
+  @override
+  String get attrLabel_pocket_mount => 'التثبيت';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'ألومنيوم';
 
   @override
@@ -26806,6 +26824,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'منفاخ (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'حزام بإبزيم كامي';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'طوق فولاذي مقاوم للصدأ';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'حزام';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'حزام الخصر';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'الفخذ';
 
   @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';

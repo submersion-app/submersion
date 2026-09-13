@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/excel/pre_dive_excel_export_serv
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -280,8 +281,8 @@ class ExcelExportService {
         dive.visibility?.displayName ?? '',
         dive.diveTypeNamesFrom(diveTypesById).join('; '),
         dive.diveMode.displayName,
-        dive.buddy,
-        dive.diveMaster,
+        dive.resolvedBuddyNames,
+        dive.resolvedDiveMasterNames,
         dive.rating ?? '',
         convertPressure(tank?.startPressure, pressureUnit),
         convertPressure(tank?.endPressure, pressureUnit),

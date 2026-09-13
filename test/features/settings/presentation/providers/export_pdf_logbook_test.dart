@@ -11,6 +11,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -99,6 +100,26 @@ class _RecordingPicker extends MockFilePickerPlatform {
       initialDirectory: initialDirectory,
     );
   }
+}
+
+/// Serves a fixed dive list as the diver's logbook. Profile loading still goes
+/// to the real repository over the test database, as it did when the export
+/// read the dives from divesProvider.
+class _FixedDivesRepository implements DiveRepository {
+  _FixedDivesRepository(this.dives);
+  final List<Dive> dives;
+  final _real = DiveRepository();
+
+  @override
+  Future<List<Dive>> getAllDives({String? diverId}) async => dives;
+
+  @override
+  Future<Map<String, List<DiveProfilePoint>>> getMergedProfilesForDives(
+    List<String> diveIds,
+  ) => _real.getMergedProfilesForDives(diveIds);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Both PDF logbook paths - share and save-to-file - must run through the same
@@ -200,7 +221,12 @@ void main() {
   }) {
     final container = ProviderContainer(
       overrides: [
-        divesProvider.overrideWith((ref) async => divesOverride ?? dives),
+        // The logbook reads the dives fresh through the validated diver id
+        // (#1861), not through the cached divesProvider.
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => diver.id),
+        diveRepositoryProvider.overrideWithValue(
+          _FixedDivesRepository(divesOverride ?? dives),
+        ),
         currentDiverProvider.overrideWith((ref) async => diver),
         allCertificationsProvider.overrideWith((ref) async => certifications),
         // The PDF path reads the diver's date and time preferences (#964), and

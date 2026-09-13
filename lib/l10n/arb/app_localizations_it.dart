@@ -11008,6 +11008,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_harness => 'Imbrago';
 
   @override
+  String get enum_equipmentType_tankBand => 'Cinghia per bombola';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Tasca porta zavorra';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Tasca porta attrezzatura';
+
+  @override
   String get enum_equipmentType_hose => 'Frusta';
 
   @override
@@ -27142,6 +27151,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_tool_type => 'Tipo di attrezzo';
 
   @override
+  String get attrLabel_band_style => 'Stile';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capacità';
+
+  @override
+  String get attrLabel_pocket_mount => 'Montaggio';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alluminio';
 
   @override
@@ -27280,6 +27298,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Frusta inflator (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Cinghia con fibbia a camma';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'Fascetta in acciaio inox';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Imbrago';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Cintura ventrale';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Coscia';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

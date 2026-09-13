@@ -10984,6 +10984,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_harness => 'Heveder';
 
   @override
+  String get enum_equipmentType_tankBand => 'Palackpánt';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Súlyzseb';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Felszerelészseb';
+
+  @override
   String get enum_equipmentType_hose => 'Tömlő';
 
   @override
@@ -27038,6 +27047,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_tool_type => 'Szerszám típusa';
 
   @override
+  String get attrLabel_band_style => 'Fazon';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Kapacitás';
+
+  @override
+  String get attrLabel_pocket_mount => 'Rögzítés';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínium';
 
   @override
@@ -27174,6 +27192,22 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Inflátor (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Excentercsatos pánt';
+
+  @override
+  String get attrChoice_band_style_stainless_band =>
+      'Rozsdamentes acél bilincs';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Heveder';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Derékszíj';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Comb';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Mellény';
