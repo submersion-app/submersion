@@ -868,6 +868,50 @@ void main() {
       expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
     });
 
+    testWidgets('a create saves the chosen color and scope', (tester) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'To try');
+      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final created = notifier.added.single;
+      expect(created.name, 'To try');
+      expect(created.colorHex, '#22C55E');
+      expect(created.appliesToDives, isFalse);
+      expect(created.appliesToSites, isTrue);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('Cancel closes either dialog without saving', (tester) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+
+      expect(notifier.added, isEmpty);
+      expect(notifier.updated, isEmpty);
+    });
+
     testWidgets('a retry clears the error while it runs', (tester) async {
       final notifier = _FailOnceTagListNotifier(_tagsFromStats(_testStats));
       await tester.pumpWidget(
