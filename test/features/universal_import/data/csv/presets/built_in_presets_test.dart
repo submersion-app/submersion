@@ -88,10 +88,9 @@ void main() {
           (m) => m.columns.any((c) => c.targetField == 'suit'),
         ),
       );
-      expect(
-        suitPresets.map((p) => p.id),
-        containsAll(['subsurface', 'submersion_native']),
-      );
+      // Submersion's own export has no suit column (#1820), so only the
+      // Subsurface preset maps one today; the loop covers any future preset.
+      expect(suitPresets.map((p) => p.id), contains('subsurface'));
       for (final preset in suitPresets) {
         expect(
           preset.supportedEntities,

@@ -68,6 +68,9 @@ abstract final class EquipmentAttrKeys {
   static const insulationLevel = 'insulation_level';
   static const fillMaterial = 'fill_material';
 
+  // Hose kind (issue #1805): LP regulator, HP gauge/transmitter, LPI inflator.
+  static const hoseType = 'hose_type';
+
   // Cylinder specs (issue #1365): read by the transmitter registry editor.
   static const volumeL = 'volume_l';
   static const workingPressureBar = 'working_pressure_bar';
@@ -334,6 +337,14 @@ abstract final class EquipmentAttributeCatalog {
     EquipmentType.firstStage: [_connection, _coldWaterRated],
     EquipmentType.secondStage: [_coldWaterRated],
     EquipmentType.hose: [
+      // LP (low pressure, a regulator hose), HP (high pressure, to an SPG or
+      // transmitter) or LPI (the quick-disconnect inflator hose), issue
+      // #1805. A choice so the equipment and dive filters can match on it.
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.hoseType,
+        kind: AttributeKind.choice,
+        choiceKeys: ['lp', 'hp', 'lpi'],
+      ),
       // Stored in metres, shown in cm or inches: hoses are sold as 22" or
       // 56 cm, never as 1.8 ft or 0.56 m (issue #1804).
       EquipmentAttributeDef(
