@@ -12,6 +12,19 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+/// Drive a flow that mixes fake-clock waits (the version lookup's timeout)
+/// with real file IO, which only advances outside the fake-async zone.
+/// Alternates the two until [done] holds, with a bound so a regression fails
+/// instead of hanging. A fixed round count was flaky on a loaded machine.
+Future<void> pumpUntil(WidgetTester tester, bool Function() done) async {
+  for (var i = 0; i < 50 && !done(); i++) {
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+  }
+}
+
 void main() {
   late Directory tempDir;
   late LogFileService service;
@@ -113,15 +126,10 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Copy diagnostics'));
-    // The report waits on the version lookup's fake-clock timeout and then
-    // reads the log file with real IO, which only advances outside the
-    // fake-async zone; alternate the two until the clipboard write lands.
-    for (var i = 0; i < 5; i++) {
-      await tester.pump(const Duration(seconds: 1));
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 50)),
-      );
-    }
+    await pumpUntil(
+      tester,
+      () => clipboardCalls.any((c) => c.method == 'Clipboard.setData'),
+    );
     await tester.pumpAndSettle();
 
     final setData = clipboardCalls.where(
@@ -151,12 +159,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Copy diagnostics'));
-    for (var i = 0; i < 5; i++) {
-      await tester.pump(const Duration(seconds: 1));
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 50)),
-      );
-    }
+    await pumpUntil(
+      tester,
+      () => find
+          .textContaining('Could not copy diagnostics:')
+          .evaluate()
+          .isNotEmpty,
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Diagnostics copied to clipboard'), findsNothing);

@@ -55,7 +55,7 @@ Future<String> buildDiagnosticsReport(
 }
 
 Future<List<String>> _tailLines(File file, int maxLines) async {
-  if (!file.existsSync()) return const [];
+  if (!await file.exists()) return const [];
   final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
   final lines = const LineSplitter()
       .convert(text)
