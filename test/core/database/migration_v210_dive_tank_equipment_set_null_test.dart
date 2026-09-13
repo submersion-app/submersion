@@ -156,7 +156,7 @@ Future<void> _expectRebuilt(AppDatabase db) async {
 }
 
 void main() {
-  test('v210 is the current schema version and is in the ladder', () {
+  test('v210 is in the ladder', () {
     // Relaxed once v211 (issue #998's auto_tag_imports) landed on top; the
     // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(210));

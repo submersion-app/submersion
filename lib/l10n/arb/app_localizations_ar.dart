@@ -21,6 +21,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_components_add => 'إضافة مكوّن';
 
   @override
+  String get equipment_components_containsSection => 'يحتوي على';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'لا يحتوي على أجزاء خاصة به. أضفها إذا كان هذا العنصر يتكوّن من عناصر أخرى.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -96,6 +103,14 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'جزء من تجميعة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'جزء من';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role، في $rigs';
   }
 
   @override
@@ -5850,6 +5865,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم اختيار جميع المعدات بالفعل';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'المعدات المتبقية مصنفة كاحتياطية';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'خطأ في تحميل المعدات: $error';
   }
@@ -5860,6 +5879,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'أزل عناصر لإضافة عناصر مختلفة';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
 
   @override
   String get diveLog_equipmentPicker_title => 'إضافة معدات';
@@ -10570,6 +10593,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'تم بيعه';
 
   @override
+  String get enum_equipmentStatus_spare => 'احتياطي';
+
+  @override
   String get enum_equipmentType_backplate => 'لوحة ظهر';
 
   @override
@@ -11366,6 +11392,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'يُحتسب منذ $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'متأخر';
 
   @override
@@ -11542,7 +11573,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'يُستخدم عندما لا يوجد بعد سجل صيانة من هذا النوع';
+      'تعدّ الساعة من هذا التاريخ حتى تسجّل صيانة أحدث.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'مسح تاريخ الأساس';

@@ -65,6 +65,7 @@ class EquipmentComponentRepository {
   EquipmentComponent _map(
     EquipmentComponentRow row, {
     EquipmentItem? component,
+    EquipmentItem? parent,
   }) => EquipmentComponent(
     id: row.id,
     parentEquipmentId: row.parentEquipmentId,
@@ -74,6 +75,7 @@ class EquipmentComponentRepository {
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     component: component,
+    parent: parent,
   );
 
   /// Every row, unhydrated, ordered by parent then position, with the row
@@ -142,6 +144,28 @@ class EquipmentComponentRepository {
     return [
       for (final r in rows) _map(r, component: byId[r.componentEquipmentId]),
     ];
+  }
+
+  /// The assemblies [componentId] is a part of, each row's parent hydrated
+  /// whatever its status (a retired rig still holds the edge), in parent
+  /// name order with the row id breaking ties.
+  Future<List<EquipmentComponent>> getParents(String componentId) async {
+    final rows = await (_db.select(
+      _db.equipmentComponents,
+    )..where((t) => t.componentEquipmentId.equals(componentId))).get();
+    if (rows.isEmpty) return const [];
+    final items = await _equipment.getEquipmentByIds(
+      rows.map((r) => r.parentEquipmentId).toList(),
+    );
+    final byId = {for (final i in items) i.id: i};
+    String nameOf(EquipmentComponentRow r) =>
+        (byId[r.parentEquipmentId]?.name ?? r.parentEquipmentId).toLowerCase();
+    final sorted = [...rows]
+      ..sort((a, b) {
+        final byName = nameOf(a).compareTo(nameOf(b));
+        return byName != 0 ? byName : a.id.compareTo(b.id);
+      });
+    return [for (final r in sorted) _map(r, parent: byId[r.parentEquipmentId])];
   }
 
   /// Ids reachable upward from [id]: its parents, their parents, and so on.

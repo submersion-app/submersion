@@ -7,6 +7,17 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+
+/// No service records: the override dialog reads them to decide whether the
+/// stored baseline is still the one the clock counts from.
+class _NoServiceRecords extends ServiceRecordRepository {
+  @override
+  Future<List<ServiceRecord>> getRecordsForEquipment(
+    String equipmentId,
+  ) async => const [];
+}
 
 void main() {
   final t0 = DateTime(2025, 1, 1);
@@ -30,6 +41,11 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          serviceRecordRepositoryProvider.overrideWithValue(
+            _NoServiceRecords(),
+          ),
+        ],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -77,6 +93,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            serviceRecordRepositoryProvider.overrideWithValue(
+              _NoServiceRecords(),
+            ),
             serviceScheduleRepositoryProvider.overrideWithValue(
               _RecordingScheduleRepository(onSaved),
             ),

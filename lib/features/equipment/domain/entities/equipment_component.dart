@@ -23,6 +23,10 @@ class EquipmentComponent extends Equatable {
   /// The part itself, hydrated by reads that join it; null on bare rows.
   final EquipmentItem? component;
 
+  /// The assembly this row belongs to, hydrated only by the upward read
+  /// that lists what an item is a part of; null everywhere else.
+  final EquipmentItem? parent;
+
   const EquipmentComponent({
     required this.id,
     required this.parentEquipmentId,
@@ -32,6 +36,7 @@ class EquipmentComponent extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     this.component,
+    this.parent,
   });
 
   EquipmentComponent copyWith({
@@ -43,6 +48,7 @@ class EquipmentComponent extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     EquipmentItem? component,
+    EquipmentItem? parent,
   }) => EquipmentComponent(
     id: id ?? this.id,
     parentEquipmentId: parentEquipmentId ?? this.parentEquipmentId,
@@ -52,6 +58,7 @@ class EquipmentComponent extends Equatable {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     component: component ?? this.component,
+    parent: parent ?? this.parent,
   );
 
   @override
@@ -64,5 +71,6 @@ class EquipmentComponent extends Equatable {
     createdAt,
     updatedAt,
     component,
+    parent,
   ];
 }

@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Add component'**
   String get equipment_components_add;
 
+  /// No description provided for @equipment_components_containsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains'**
+  String get equipment_components_containsSection;
+
   /// No description provided for @equipment_components_count.
   ///
   /// In en, this message translates to:
@@ -157,6 +163,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No components. Add the parts this item is assembled from.'**
   String get equipment_components_empty;
+
+  /// No description provided for @equipment_components_emptyLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'No parts of its own. Add them if this item is assembled from others.'**
+  String get equipment_components_emptyLeaf;
 
   /// No description provided for @equipment_components_historyAlsoPast.
   ///
@@ -211,6 +223,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Part of 1 assembly} other{Part of {count} assemblies}}'**
   String equipment_components_partOfCount(num count);
+
+  /// No description provided for @equipment_components_partOfSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get equipment_components_partOfSection;
+
+  /// No description provided for @equipment_components_partOfSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{role}, in {rigs}'**
+  String equipment_components_partOfSubtitle(Object rigs, Object role);
 
   /// No description provided for @equipment_components_pickerConfirm.
   ///
@@ -9765,6 +9789,12 @@ abstract class AppLocalizations {
   /// **'All equipment already selected'**
   String get diveLog_equipmentPicker_allSelected;
 
+  /// No description provided for @diveLog_equipmentPicker_allSpare.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining gear is marked Spare'**
+  String get diveLog_equipmentPicker_allSpare;
+
   /// No description provided for @diveLog_equipmentPicker_errorLoading.
   ///
   /// In en, this message translates to:
@@ -9782,6 +9812,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
+
+  /// No description provided for @diveLog_equipmentPicker_spareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set an item\'s status to Active to add it to a dive'**
+  String get diveLog_equipmentPicker_spareHint;
 
   /// No description provided for @diveLog_equipmentPicker_title.
   ///
@@ -17950,6 +17986,12 @@ abstract class AppLocalizations {
   /// **'Sold'**
   String get enum_equipmentStatus_sold;
 
+  /// No description provided for @enum_equipmentStatus_spare.
+  ///
+  /// In en, this message translates to:
+  /// **'Spare'**
+  String get enum_equipmentStatus_spare;
+
   /// No description provided for @enum_equipmentType_backplate.
   ///
   /// In en, this message translates to:
@@ -19450,6 +19492,12 @@ abstract class AppLocalizations {
   /// **'Overdue since {date}'**
   String equipment_serviceClocks_overdueSince(String date);
 
+  /// No description provided for @equipment_serviceClocks_countingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting since {date}'**
+  String equipment_serviceClocks_countingSince(String date);
+
   /// No description provided for @equipment_serviceClocks_overdue.
   ///
   /// In en, this message translates to:
@@ -19717,7 +19765,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_scheduleDialog_anchorHint.
   ///
   /// In en, this message translates to:
-  /// **'Used when no service record of this kind exists yet'**
+  /// **'The clock counts from this date until you log a newer service.'**
   String get equipment_scheduleDialog_anchorHint;
 
   /// No description provided for @equipment_scheduleDialog_clearAnchor.
