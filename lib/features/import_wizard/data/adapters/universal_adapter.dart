@@ -432,13 +432,90 @@ class UniversalAdapter implements ImportSourceAdapter {
       _mediaToEntityItem,
     );
 
+    final targets = await _importTargets(payload);
     return ImportBundle(
       source: ImportSourceInfo(
         type: ImportSourceType.universal,
         displayName: _displayName,
       ),
-      groups: groups,
+      // One profile needs no labels; the counts already say where it goes.
+      groups: targets.length > 1
+          ? _labelTargets(groups, payload, targets)
+          : groups,
+      nextDiveNumberByTarget: await _nextDiveNumbers(targets.keys),
     );
+  }
+
+  /// The profile behind each target key of an expanded payload (#1893).
+  /// Empty for a payload that was never split across profiles.
+  Future<Map<String, ImportTarget>> _importTargets(
+    ImportPayload payload,
+  ) async {
+    final keys = <String>{
+      for (final items in payload.entities.values)
+        for (final item in items)
+          if (item[DiverTarget.itemKey] case final String key) key,
+    };
+    if (keys.isEmpty) return const {};
+    final profiles = await _ref.read(allDiversProvider.future);
+    final nameById = {for (final p in profiles) p.id: p.name};
+    final nameBySource = {for (final d in payload.sourceDivers) d.key: d.name};
+    return {
+      for (final key in keys)
+        key: switch (DiverTarget.diverIdOf(key)) {
+          final String id => ImportTarget(
+            key: key,
+            name: nameById[id] ?? id,
+            isNew: false,
+          ),
+          null => ImportTarget(
+            key: key,
+            name: nameBySource[DiverTarget.newSourceKeyOf(key)] ?? '',
+            isNew: true,
+          ),
+        },
+    };
+  }
+
+  /// [groups] with each item labelled with its target. Groups are built one
+  /// to one from the payload's lists, so index i is payload item i.
+  Map<wizard.ImportEntityType, EntityGroup> _labelTargets(
+    Map<wizard.ImportEntityType, EntityGroup> groups,
+    ImportPayload payload,
+    Map<String, ImportTarget> targets,
+  ) {
+    return {
+      for (final MapEntry(key: type, value: group) in groups.entries)
+        type: EntityGroup(
+          items: [
+            for (final (i, item) in group.items.indexed)
+              switch (payload.entitiesOf(
+                ui.ImportEntityType.values.byName(type.name),
+              )[i][DiverTarget.itemKey]) {
+                final String key when targets.containsKey(key) => item.copyWith(
+                  target: targets[key],
+                ),
+                _ => item,
+              },
+          ],
+          duplicateIndices: group.duplicateIndices,
+          matchResults: group.matchResults,
+          entityMatches: group.entityMatches,
+          autoSkipIndices: group.autoSkipIndices,
+        ),
+    };
+  }
+
+  /// Each target's next dive number: a new profile starts at 1.
+  Future<Map<String, int>> _nextDiveNumbers(Iterable<String> targetKeys) async {
+    final dives = _ref.read(diveRepositoryProvider);
+    return {
+      for (final key in targetKeys)
+        key: switch (DiverTarget.diverIdOf(key)) {
+          final String id => await dives.getNextDiveNumber(diverId: id),
+          null => 1,
+        },
+    };
   }
 
   @override
@@ -549,7 +626,11 @@ class UniversalAdapter implements ImportSourceAdapter {
       entityMatches: dupResult.entityMatches[ui.ImportEntityType.diveTypes],
     );
 
-    return ImportBundle(source: bundle.source, groups: updatedGroups);
+    return ImportBundle(
+      source: bundle.source,
+      groups: updatedGroups,
+      nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
+    );
   }
 
   @override

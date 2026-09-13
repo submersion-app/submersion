@@ -1364,6 +1364,64 @@ void main() {
       },
     );
   });
+
+  group('computeProjectedDiveNumbers per profile (#1893)', () {
+    EntityItem dive(DateTime start, {ImportTarget? target}) => EntityItem(
+      title: '',
+      subtitle: '',
+      diveData: IncomingDiveData(startTime: start),
+      target: target,
+    );
+    const me = ImportTarget(key: 'diver:me', name: 'Me', isNew: false);
+    const bo = ImportTarget(key: 'new:bo', name: 'Bo Ray', isNew: true);
+
+    Map<int, int>? project(ImportBundle bundle, {int? next}) =>
+        ReviewStep.computeProjectedDiveNumbers(
+          bundle: bundle,
+          nextDiveNumber: next,
+          retainSource: false,
+          selections: {0, 1, 2},
+          duplicateActions: const {},
+          duplicateIndices: const {},
+          nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
+        );
+
+    test('numbers each profile from its own next number', () {
+      final bundle = ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.universal,
+          displayName: 'MacDive',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: [
+              dive(DateTime(2024, 1, 2), target: me),
+              dive(DateTime(2024, 1, 1), target: bo),
+              dive(DateTime(2024, 1, 1), target: me),
+            ],
+          ),
+        },
+        nextDiveNumberByTarget: const {'diver:me': 40, 'new:bo': 1},
+      );
+      expect(project(bundle, next: 40), {0: 41, 1: 1, 2: 40});
+    });
+
+    test('a single target without labels uses its own base', () {
+      final bundle = ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.universal,
+          displayName: 'MacDive',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: [dive(DateTime(2024, 1, 1))],
+          ),
+        },
+        nextDiveNumberByTarget: const {'new:bo': 1},
+      );
+      expect(project(bundle, next: 40), {0: 1});
+    });
+  });
 }
 
 void _noop() {}

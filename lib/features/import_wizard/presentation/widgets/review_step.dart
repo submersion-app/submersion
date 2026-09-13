@@ -41,7 +41,7 @@ class ReviewStep extends ConsumerWidget {
 
     // Compute projected dive numbers for the review list.
     final nextDiveNumber = ref.watch(nextDiveNumberProvider).whenData((v) => v);
-    final projectedDiveNumbers = _computeProjectedDiveNumbers(
+    final projectedDiveNumbers = computeProjectedDiveNumbers(
       bundle: bundle,
       nextDiveNumber: nextDiveNumber.value,
       retainSource:
@@ -51,6 +51,7 @@ class ReviewStep extends ConsumerWidget {
           state.duplicateActions[ImportEntityType.dives] ?? const {},
       duplicateIndices:
           bundle.groups[ImportEntityType.dives]?.duplicateIndices ?? const {},
+      nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
     );
 
     final existingTags = ref.watch(tagsProvider).valueOrNull ?? const <Tag>[];
@@ -78,13 +79,15 @@ class ReviewStep extends ConsumerWidget {
   /// A dive whose source recorded none gets no projected number: what it
   /// ends up with depends on the source, so the preview does not guess
   /// (issue #1832).
-  static Map<int, int>? _computeProjectedDiveNumbers({
+  @visibleForTesting
+  static Map<int, int>? computeProjectedDiveNumbers({
     required ImportBundle bundle,
     required int? nextDiveNumber,
     required bool retainSource,
     required Set<int> selections,
     required Map<int, DuplicateAction> duplicateActions,
     required Set<int> duplicateIndices,
+    Map<String, int> nextDiveNumberByTarget = const {},
   }) {
     final group = bundle.groups[ImportEntityType.dives];
     if (group == null) return null;
@@ -108,21 +111,38 @@ class ReviewStep extends ConsumerWidget {
     if (retainSource) {
       return {for (final i in importIndices) i: ?items[i].diveData?.diveNumber};
     }
-    if (nextDiveNumber == null) return null;
+    if (nextDiveNumber == null && nextDiveNumberByTarget.isEmpty) return null;
 
-    // Build (index, startTime) pairs for sorting.
-    final indexed = <(int, DateTime)>[];
-    for (final i in importIndices) {
-      final time = items[i].diveData?.startTime ?? DateTime(0);
-      indexed.add((i, time));
+    // Each profile numbers its own dives (issue #1893). A dive without a
+    // target label belongs to the import's only profile when there is one,
+    // otherwise to the active profile.
+    int? baseFor(String? targetKey) {
+      if (targetKey != null) {
+        return nextDiveNumberByTarget[targetKey] ?? nextDiveNumber;
+      }
+      return nextDiveNumberByTarget.length == 1
+          ? nextDiveNumberByTarget.values.single
+          : nextDiveNumber;
     }
-    indexed.sort((a, b) => a.$2.compareTo(b.$2));
 
-    // Assign numbers oldest-first.
+    // Build (index, startTime) pairs per profile for sorting.
+    final byTarget = <String?, List<(int, DateTime)>>{};
+    for (final i in importIndices) {
+      (byTarget[items[i].target?.key] ??= []).add((
+        i,
+        items[i].diveData?.startTime ?? DateTime(0),
+      ));
+    }
+
+    // Assign numbers oldest-first within each profile.
     final result = <int, int>{};
-    for (var n = 0; n < indexed.length; n++) {
-      final itemIndex = indexed[n].$1;
-      result[itemIndex] = nextDiveNumber + n;
+    for (final MapEntry(key: target, value: indexed) in byTarget.entries) {
+      final base = baseFor(target);
+      if (base == null) continue;
+      indexed.sort((a, b) => a.$2.compareTo(b.$2));
+      for (var n = 0; n < indexed.length; n++) {
+        result[indexed[n].$1] = base + n;
+      }
     }
     return result;
   }

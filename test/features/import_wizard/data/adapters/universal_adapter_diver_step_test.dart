@@ -3,9 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
+    as wizard
+    show ImportEntityType;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/diver_target.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -50,6 +55,7 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(prefs),
         allDiversProvider.overrideWith((ref) async => [_me]),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        diveRepositoryProvider.overrideWithValue(_FakeDiveNumbers()),
       ],
     );
     addTearDown(container.dispose);
@@ -163,5 +169,35 @@ void main() {
         'new:$_bo',
       ]);
     });
+
+    testWidgets('buildBundle labels rows only across two profiles', (
+      tester,
+    ) async {
+      final (adapter, _) = await adapterFor(
+        tester,
+        const ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {'sourceUuid': 'd1', DiverTarget.itemKey: 'diver:me'},
+              {'sourceUuid': 'd2', DiverTarget.itemKey: 'new:$_bo'},
+            ],
+          },
+          sourceDivers: [
+            SourceDiver(key: _ann, name: 'Ann Lee', diveCount: 1),
+            SourceDiver(key: _bo, name: 'Bo Ray', diveCount: 1),
+          ],
+        ),
+      );
+      final bundle = (await tester.runAsync(adapter.buildBundle))!;
+      final items = bundle.groups[wizard.ImportEntityType.dives]!.items;
+      expect(items.map((i) => i.target?.name), ['Me', 'Bo Ray']);
+      expect(items.map((i) => i.target?.isNew), [false, true]);
+      expect(bundle.nextDiveNumberByTarget, {'diver:me': 7, 'new:$_bo': 1});
+    });
   });
+}
+
+class _FakeDiveNumbers extends Fake implements DiveRepository {
+  @override
+  Future<int> getNextDiveNumber({String? diverId}) async => 7;
 }
