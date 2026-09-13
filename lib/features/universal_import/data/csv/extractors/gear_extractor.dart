@@ -1,16 +1,16 @@
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/entity_extractor.dart';
 import 'package:submersion/features/universal_import/data/services/suit_classifier.dart';
 
 /// Extracts gear/equipment records from transformed CSV rows.
 ///
 /// Currently extracts suit information from the 'suit' field. A suit the
-/// text names as a wetsuit or drysuit gets that type, and a wetsuit with one
-/// stated thickness carries it under 'thickness' (see [classifySuit]); any
-/// other suit is typed `other`, which is what the importer always stored for
-/// it. Gear items are deduplicated by name.
+/// text names as a wetsuit or drysuit becomes gear of that type, and a
+/// wetsuit with one stated thickness carries it under 'thickness' (see
+/// [classifySuit]). A suit the text does not identify creates no gear: it
+/// stays in the dive notes only (DiveExtractor), as in the Subsurface XML
+/// import. Gear items are deduplicated by name.
 class GearExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
@@ -32,15 +32,17 @@ class GearExtractor implements EntityExtractor<Map<String, dynamic>> {
 
       if (nameToId.containsKey(name)) continue;
 
+      final suit = classifySuit(name);
+      if (suit == null) continue;
+
       final id = _uuid.v4();
       nameToId[name] = id;
-      final suit = classifySuit(name);
       gear.add({
         'id': id,
         'uddfId': id,
         'name': name,
-        'type': (suit?.type ?? EquipmentType.other).name,
-        'thickness': ?suit?.thickness,
+        'type': suit.type.name,
+        'thickness': ?suit.thickness,
       });
     }
 

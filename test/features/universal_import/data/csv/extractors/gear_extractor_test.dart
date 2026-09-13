@@ -41,18 +41,15 @@ void main() {
       expect(gear.single.containsKey('thickness'), isFalse);
     });
 
-    test(
-      'an unclear suit is kept as type other, as the importer stored it',
-      () {
-        final gear = extractor.extractFromRows([
-          {'suit': 'Full suit'},
-        ]);
+    test('an unclear suit creates no gear: it stays in the notes only', () {
+      final gear = extractor.extractFromRows([
+        {'suit': 'Full suit'},
+        {'suit': '7mm Wetsuit'},
+      ]);
 
-        expect(gear.single['name'], 'Full suit');
-        expect(gear.single['type'], 'other');
-        expect(gear.single.containsKey('thickness'), isFalse);
-      },
-    );
+      expect(gear.map((g) => g['name']), ['7mm Wetsuit']);
+      expect(extractor.gearIdForName('Full suit'), isNull);
+    });
 
     test('deduplicates by name across rows', () {
       final rows = <Map<String, dynamic>>[

@@ -438,6 +438,24 @@ void main() {
       expect(dives[3].containsKey('equipmentRefs'), isFalse);
     });
 
+    test('an unclear suit is kept in the notes with no gear or link', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': 'Full suit'},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(
+          entityTypes: {ImportEntityType.dives, ImportEntityType.equipment},
+        ),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.equipment), isEmpty);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive.containsKey('equipmentRefs'), isFalse);
+      expect(dive['notes'], 'Suit: Full suit');
+    });
+
     test('does not link suits when equipment is not imported', () {
       final rows = makeRows([
         {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},

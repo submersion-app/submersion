@@ -200,6 +200,7 @@ void main() {
           {'dateTime': DateTime(2025, 1, 15, 10), 'suit': 'Xcel 5/4'},
           {'dateTime': DateTime(2025, 1, 16, 10), 'suit': 'Membrane'},
           {'dateTime': DateTime(2025, 1, 17, 10), 'suit': 'Xcel 5/4'},
+          {'dateTime': DateTime(2025, 1, 18, 10), 'suit': 'Full suit'},
         ],
       ),
       config: const ImportConfiguration(
@@ -216,12 +217,14 @@ void main() {
       payload.entitiesOf(ImportEntityType.dives),
     );
 
-    expect(gearByDive, hasLength(3));
+    expect(gearByDive, hasLength(4));
     final wetsuit = gearByDive[0].single;
     expect(wetsuit.type, EquipmentType.wetsuit);
     _expectThickness(wetsuit, '5/4', 5.0);
     expect(gearByDive[2].single.id, wetsuit.id);
     expect(gearByDive[1].single.type, EquipmentType.drysuit);
+    // "Full suit" does not say which suit it is: no gear, notes only.
+    expect(gearByDive[3], isEmpty);
 
     // Two dives share the 5/4 suit, whose primary panel is 5 mm.
     await _expectSuitStats(
