@@ -339,6 +339,8 @@ class _EntityTab extends StatelessWidget {
         availableActions: availableActions,
         pendingIndices: state.pendingFor(type),
         onToggleSelection: (i) => notifier.toggleSelection(type, i),
+        onSetSelections: (indices, select) =>
+            notifier.setSelections(type, indices, select),
         onDuplicateActionChanged: (i, a) {
           notifier.setDuplicateAction(type, i, a);
           _showActionSnackbar(
