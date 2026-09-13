@@ -22150,7 +22150,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'Diese Tauchgänge wurden übersprungen, weil ihre Daten in der Datei nicht gelesen werden konnten. Prüfen Sie bei einer CSV-Datei, ob die Spalten für Datum und Uhrzeit zugeordnet sind.';
+      'Diese Tauchgänge wurden übersprungen, weil ihre Daten in der Datei nicht gelesen werden konnten.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -22195,6 +22195,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'Dieses Gerät konnte die Tauchcomputerdaten in der Datei nicht dekodieren, daher wurden diese Tauchgänge ohne Tiefenprofil importiert.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Einige Spalten wurden nicht importiert';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Diese Spalten passten zu einem Feld, das bereits eine andere Spalte füllt, und wurden daher ausgelassen: $names. Um stattdessen eine davon zu verwenden, importieren Sie die Datei erneut und wählen Sie sie im Schritt „Map Fields“ aus.';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

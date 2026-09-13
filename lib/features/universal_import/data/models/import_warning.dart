@@ -59,6 +59,10 @@ enum ImportWarningCode {
   /// dives.
   profileUndecodableOnPlatform,
 
+  /// An auto-mapped CSV column was left out because an earlier column
+  /// already fills the same field. [ImportWarning.names] holds the column.
+  columnsNotImported,
+
   /// A CSV value could not be converted to its field's type and was left
   /// blank. One warning per value.
   valuesNotConverted,

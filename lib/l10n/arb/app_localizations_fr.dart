@@ -22295,7 +22295,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'Ces plongées ont été ignorées car leurs données dans le fichier n\'ont pas pu être lues. Pour un fichier CSV, vérifiez que les colonnes de date et d\'heure sont associées.';
+      'Ces plongées ont été ignorées car leurs données dans le fichier n\'ont pas pu être lues.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -22340,6 +22340,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'Cet appareil n\'a pas pu décoder les données d\'ordinateur de plongée du fichier ; ces plongées ont donc été importées sans profil de profondeur.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Certaines colonnes n\'ont pas été importées';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Ces colonnes correspondaient à un champ déjà rempli par une autre colonne ; elles ont donc été ignorées : $names. Pour utiliser l\'une d\'elles à la place, importez à nouveau le fichier et choisissez-la à l\'étape « Map Fields ».';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

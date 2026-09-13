@@ -36477,7 +36477,7 @@ abstract class AppLocalizations {
   /// No description provided for @universalImport_summary_noticeDivesSkippedBody.
   ///
   /// In en, this message translates to:
-  /// **'These dives were skipped because their data in the file could not be read. For a CSV file, check that the date and time columns are mapped.'**
+  /// **'These dives were skipped because their data in the file could not be read.'**
   String get universalImport_summary_noticeDivesSkippedBody;
 
   /// No description provided for @universalImport_summary_noticeDivesSkippedCount.
@@ -36533,6 +36533,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.'**
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody;
+
+  /// No description provided for @universalImport_summary_noticeColumnsNotImportedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some columns were not imported'**
+  String get universalImport_summary_noticeColumnsNotImportedTitle;
+
+  /// No description provided for @universalImport_summary_noticeColumnsNotImportedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These columns matched a field that another column already fills, so they were left out: {names}. To use one of them instead, import the file again and choose it on the Map Fields step.'**
+  String universalImport_summary_noticeColumnsNotImportedBody(String names);
 
   /// No description provided for @universalImport_summary_noticeValuesNotConvertedTitle.
   ///

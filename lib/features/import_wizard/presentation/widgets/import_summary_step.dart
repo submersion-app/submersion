@@ -8,7 +8,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
-import 'package:submersion/features/import_wizard/presentation/widgets/unreadable_dates_card.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -107,8 +107,9 @@ class _SuccessView extends StatelessWidget {
     final hasActivity =
         totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
     final l10n = context.l10n;
-    // "Import notes" explain dives that imported. Rows whose date could not
-    // be read are dives that did not, so they get their own card.
+    // "Import notes" explain dives that imported. Dives that did not (rows
+    // whose date could not be read, dives a parser could not read) get their
+    // own card.
     final fileNotices = [
       for (final notice in notices)
         if (_fileNoticeWording(l10n, notice) case final wording?)
@@ -210,10 +211,14 @@ class _SuccessView extends StatelessWidget {
                 key: const Key('import_summary_skipped_row'),
               ),
             for (final notice in notices)
-              if (notice.kind == ImportNoticeKind.unreadableDates) ...[
+              if (notice.kind.reportsMissingDives) ...[
                 const SizedBox(height: 8),
-                UnreadableDatesCard(
-                  key: const Key('import_summary_unreadable_dates'),
+                MissingDivesCard(
+                  key: Key(switch (notice.kind) {
+                    ImportNoticeKind.divesSkipped =>
+                      'import_summary_dives_skipped',
+                    _ => 'import_summary_unreadable_dates',
+                  }),
                   notice: notice,
                 ),
               ],
@@ -434,20 +439,14 @@ typedef _FileNoticeWording = ({
 });
 
 /// The wording for an import notes card, or null for a kind shown elsewhere.
-/// Rows whose date could not be read are dives that did not import at all, so
-/// [UnreadableDatesCard] reports them instead.
+/// Dives that did not import at all are reported by [MissingDivesCard].
 _FileNoticeWording? _fileNoticeWording(
   AppLocalizations l10n,
   ImportNotice notice,
 ) {
   final names = notice.names.join(', ');
   return switch (notice.kind) {
-    ImportNoticeKind.divesSkipped => (
-      title: l10n.universalImport_summary_noticeDivesSkippedTitle,
-      body: l10n.universalImport_summary_noticeDivesSkippedBody,
-      action: null,
-    ),
-    ImportNoticeKind.unreadableDates => null,
+    ImportNoticeKind.divesSkipped || ImportNoticeKind.unreadableDates => null,
     ImportNoticeKind.multipleDivers => (
       title: l10n.universalImport_summary_noticeMultipleDiversTitle,
       body: l10n.universalImport_summary_noticeMultipleDiversBody(names),
@@ -481,6 +480,11 @@ _FileNoticeWording? _fileNoticeWording(
         label: l10n.universalImport_summary_noticeAssignTransmitters,
         route: '/transmitters',
       ),
+    ),
+    ImportNoticeKind.columnsNotImported => (
+      title: l10n.universalImport_summary_noticeColumnsNotImportedTitle,
+      body: l10n.universalImport_summary_noticeColumnsNotImportedBody(names),
+      action: null,
     ),
     ImportNoticeKind.valuesNotConverted => (
       title: l10n.universalImport_summary_noticeValuesNotConvertedTitle,
@@ -532,11 +536,9 @@ class _NoticeCard extends StatelessWidget {
     final l10n = context.l10n;
     final (:title, :body, :action) = wording;
 
-    // Skipped dives were never imported, so they get their own wording; kinds
-    // that count values or photos carry the count in their body instead.
-    final String? countLine = notice.kind == ImportNoticeKind.divesSkipped
-        ? l10n.universalImport_summary_noticeDivesSkippedCount(notice.count)
-        : notice.kind.countsImportedDives
+    // Kinds that count values, photos or columns carry the count or names in
+    // their body instead.
+    final String? countLine = notice.kind.countsImportedDives
         ? l10n.universalImport_summary_noticeAffectedDives(notice.count)
         : null;
 

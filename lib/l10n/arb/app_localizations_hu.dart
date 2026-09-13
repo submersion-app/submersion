@@ -22139,7 +22139,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'Ezeket a merüléseket kihagytuk, mert az adataikat nem sikerült beolvasni a fájlból. CSV-fájl esetén ellenőrizd, hogy a dátum és az idő oszlopa hozzá van-e rendelve.';
+      'Ezeket a merüléseket kihagytuk, mert az adataikat nem sikerült beolvasni a fájlból.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -22184,6 +22184,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'Ez az eszköz nem tudta dekódolni a fájlban lévő búvárkomputer-adatokat, ezért ezek a merülések mélységprofil nélkül lettek importálva.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Néhány oszlop nem lett importálva';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Ezek az oszlopok olyan mezőhöz illeszkedtek, amelyet már egy másik oszlop kitölt, ezért kimaradtak: $names. Ha inkább valamelyiket szeretnéd használni, importáld újra a fájlt, és válaszd ki a „Map Fields” lépésben.';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

@@ -21810,7 +21810,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف. إذا كان الملف بصيغة CSV، فتحقق من ربط عمودي التاريخ والوقت.';
+      'تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -21855,6 +21855,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'تعذّر على هذا الجهاز فك ترميز بيانات حاسوب الغوص في الملف، لذا تم استيراد هذه الغطسات بدون ملفات العمق.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'لم يتم استيراد بعض الأعمدة';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'طابقت هذه الأعمدة حقلًا يملؤه عمود آخر بالفعل، لذا تم استبعادها: $names. لاستخدام أحدها بدلاً من ذلك، استورد الملف مجددًا واختره في خطوة \"Map Fields\".';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

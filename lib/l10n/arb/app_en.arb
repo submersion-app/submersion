@@ -13434,7 +13434,7 @@
     }
   },
   "universalImport_summary_noticeDivesSkippedTitle": "Some dives could not be read",
-  "universalImport_summary_noticeDivesSkippedBody": "These dives were skipped because their data in the file could not be read. For a CSV file, check that the date and time columns are mapped.",
+  "universalImport_summary_noticeDivesSkippedBody": "These dives were skipped because their data in the file could not be read.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 dive skipped} other{{count} dives skipped}}",
   "@universalImport_summary_noticeDivesSkippedCount": {
     "placeholders": {
@@ -13458,6 +13458,15 @@
   "universalImport_summary_noticeMacdiveProfileUndecodableBody": "MacDive stored these profiles in a form Submersion cannot read. To import them, export from MacDive as XML (File > Export > MacDive XML) and import that file instead.",
   "universalImport_summary_noticeProfileUndecodableOnPlatformTitle": "Profiles not decoded on this device",
   "universalImport_summary_noticeProfileUndecodableOnPlatformBody": "This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.",
+  "universalImport_summary_noticeColumnsNotImportedTitle": "Some columns were not imported",
+  "universalImport_summary_noticeColumnsNotImportedBody": "These columns matched a field that another column already fills, so they were left out: {names}. To use one of them instead, import the file again and choose it on the Map Fields step.",
+  "@universalImport_summary_noticeColumnsNotImportedBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_summary_noticeValuesNotConvertedTitle": "Some values left blank",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.} other{{count} values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.}}",
   "@universalImport_summary_noticeValuesNotConvertedBody": {

@@ -1428,15 +1428,21 @@ void main() {
       }
     }
 
-    testWidgets('explains skipped dives with their own count', (tester) async {
+    testWidgets('names columns an auto-mapping left out', (tester) async {
       await expectCard(
         tester,
-        const ImportNotice(kind: ImportNoticeKind.divesSkipped, count: 3),
-        title: 'Some dives could not be read',
-        bodyFragment: 'check that the date and time columns are mapped',
-        countLine: '3 dives skipped',
+        const ImportNotice(
+          kind: ImportNoticeKind.columnsNotImported,
+          count: 2,
+          names: ['Location', 'Depth (ft)'],
+        ),
+        title: 'Some columns were not imported',
+        bodyFragment:
+            'already fills, so they were left out: Location, Depth (ft). '
+            'To use one of them instead, import the file again and choose it '
+            'on the Map Fields step.',
+        countLine: null,
       );
-      expect(find.textContaining('Affects'), findsNothing);
     });
 
     testWidgets('names the divers of a multi-diver library', (tester) async {
@@ -1545,6 +1551,85 @@ void main() {
         bodyFragment: 'MacDive logbooks (Tropical, Wrecks) are saved searches',
         countLine: null,
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Dives a parser could not read (DL7, Subsurface) are missing from the
+  // import, like CSV rows with an unreadable date, and are shown the same way.
+  group('ImportSummaryStep: dives that could not be read', () {
+    Future<void> pumpWithSkippedDives(
+      WidgetTester tester,
+      int skipped, {
+      int dives = 12,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: dives},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: [
+            ImportNotice(kind: ImportNoticeKind.divesSkipped, count: skipped),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+    }
+
+    testWidgets('get their own card with a count', (tester) async {
+      await pumpWithSkippedDives(tester, 3);
+
+      expect(
+        find.byKey(const Key('import_summary_dives_skipped')),
+        findsOneWidget,
+      );
+      expect(find.text('Some dives could not be read'), findsOneWidget);
+      expect(
+        find.text(
+          'These dives were skipped because their data in the file could '
+          'not be read.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('3 dives skipped'), findsOneWidget);
+      expect(find.textContaining('Affects'), findsNothing);
+    });
+
+    testWidgets('are not filed under import notes', (tester) async {
+      await pumpWithSkippedDives(tester, 1);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsNothing);
+      expect(find.text('1 dive skipped'), findsOneWidget);
+    });
+
+    testWidgets('are shown even when no dive imported', (tester) async {
+      await pumpWithSkippedDives(tester, 2, dives: 0);
+
+      expect(
+        find.byKey(const Key('import_summary_dives_skipped')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('are styled as a problem, like unreadable rows', (
+      tester,
+    ) async {
+      await pumpWithSkippedDives(tester, 2);
+
+      final card = tester.widget<Card>(
+        find.descendant(
+          of: find.byKey(const Key('import_summary_dives_skipped')),
+          matching: find.byType(Card),
+        ),
+      );
+      final context = tester.element(find.byType(ImportSummaryStep));
+      expect(card.color, Theme.of(context).colorScheme.errorContainer);
     });
   });
 

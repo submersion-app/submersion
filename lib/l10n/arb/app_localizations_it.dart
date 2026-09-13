@@ -22202,7 +22202,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'Queste immersioni sono state saltate perché i loro dati nel file non sono leggibili. Per un file CSV, verifica che le colonne di data e ora siano associate.';
+      'Queste immersioni sono state saltate perché i loro dati nel file non sono leggibili.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -22247,6 +22247,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'Questo dispositivo non è riuscito a decodificare i dati del computer subacqueo nel file, quindi queste immersioni sono state importate senza profilo di profondità.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Alcune colonne non sono state importate';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Queste colonne corrispondevano a un campo già compilato da un\'altra colonna, quindi sono state escluse: $names. Per usarne una al suo posto, importa di nuovo il file e sceglila nel passaggio «Map Fields».';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

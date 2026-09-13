@@ -22208,7 +22208,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'Esses mergulhos foram ignorados porque os dados deles no arquivo não puderam ser lidos. Para um arquivo CSV, verifique se as colunas de data e hora estão mapeadas.';
+      'Esses mergulhos foram ignorados porque os dados deles no arquivo não puderam ser lidos.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -22253,6 +22253,15 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'Este dispositivo não conseguiu decodificar os dados do computador de mergulho no arquivo, então esses mergulhos foram importados sem perfil de profundidade.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Algumas colunas não foram importadas';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Essas colunas correspondiam a um campo que outra coluna já preenche, então foram deixadas de fora: $names. Para usar uma delas no lugar, importe o arquivo novamente e escolha-a na etapa “Map Fields”.';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

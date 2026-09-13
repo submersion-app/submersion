@@ -21642,7 +21642,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ. בקובץ CSV, יש לוודא שעמודות התאריך והשעה ממופות.';
+      'הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -21687,6 +21687,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'המכשיר הזה לא הצליח לפענח את נתוני מחשב הצלילה שבקובץ, ולכן הצלילות האלה יובאו ללא פרופיל עומק.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'חלק מהעמודות לא יובאו';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'העמודות האלה התאימו לשדה שעמודה אחרת כבר ממלאת, ולכן הושמטו: $names. כדי להשתמש באחת מהן במקום, יש לייבא את הקובץ שוב ולבחור בה בשלב \"Map Fields\".';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

@@ -21823,7 +21823,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'These dives were skipped because their data in the file could not be read. For a CSV file, check that the date and time columns are mapped.';
+      'These dives were skipped because their data in the file could not be read.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -21868,6 +21868,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Some columns were not imported';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'These columns matched a field that another column already fills, so they were left out: $names. To use one of them instead, import the file again and choose it on the Map Fields step.';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

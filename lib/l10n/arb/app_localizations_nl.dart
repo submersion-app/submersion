@@ -22019,7 +22019,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      'Deze duiken zijn overgeslagen omdat hun gegevens in het bestand niet konden worden gelezen. Controleer bij een CSV-bestand of de kolommen voor datum en tijd zijn toegewezen.';
+      'Deze duiken zijn overgeslagen omdat hun gegevens in het bestand niet konden worden gelezen.';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -22064,6 +22064,15 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       'Dit apparaat kon de duikcomputergegevens in het bestand niet decoderen, dus deze duiken zijn zonder diepteprofiel geïmporteerd.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Sommige kolommen zijn niet geïmporteerd';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Deze kolommen kwamen overeen met een veld dat al door een andere kolom wordt gevuld en zijn daarom weggelaten: $names. Wil je een ervan gebruiken, importeer het bestand dan opnieuw en kies die kolom in de stap ‘Map Fields’.';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>

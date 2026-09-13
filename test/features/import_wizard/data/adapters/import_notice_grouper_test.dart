@@ -155,6 +155,7 @@ void main() {
           ImportNoticeKind.macdiveProfileUndecodable,
       ImportWarningCode.profileUndecodableOnPlatform:
           ImportNoticeKind.profileUndecodableOnPlatform,
+      ImportWarningCode.columnsNotImported: ImportNoticeKind.columnsNotImported,
       ImportWarningCode.valuesNotConverted: ImportNoticeKind.valuesNotConverted,
       ImportWarningCode.photosSkipped: ImportNoticeKind.photosSkipped,
       ImportWarningCode.macdiveXmlOmitsCertsAndService:
@@ -195,6 +196,17 @@ void main() {
       final notices = groupImportNotices([_coded(code, count: 9)], 2);
       expect(notices.single.count, 2, reason: '$code');
     }
+  });
+
+  test('skipped dives are reported even when nothing was imported', () {
+    // Like rows with an unreadable date, these are dives missing from the
+    // import, so a run that imported nothing still has them to report.
+    final notices = groupImportNotices([
+      _coded(ImportWarningCode.divesSkipped),
+      _noPressure(),
+    ], 0);
+
+    expect(notices.map((n) => n.kind), [ImportNoticeKind.divesSkipped]);
   });
 
   test('skipped dives are not clamped: they were never imported', () {

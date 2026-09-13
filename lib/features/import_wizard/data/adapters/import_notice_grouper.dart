@@ -68,6 +68,7 @@ ImportNoticeKind? _kindFor(ImportWarningCode? code) => switch (code) {
     ImportNoticeKind.macdiveProfileUndecodable,
   ImportWarningCode.profileUndecodableOnPlatform =>
     ImportNoticeKind.profileUndecodableOnPlatform,
+  ImportWarningCode.columnsNotImported => ImportNoticeKind.columnsNotImported,
   ImportWarningCode.valuesNotConverted => ImportNoticeKind.valuesNotConverted,
   ImportWarningCode.photosSkipped => ImportNoticeKind.photosSkipped,
   ImportWarningCode.macdiveXmlOmitsCertsAndService =>

@@ -21042,7 +21042,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDivesSkippedBody =>
-      '这些潜水已跳过，因为无法读取文件中的相关数据。如果是 CSV 文件，请检查日期和时间列是否已映射。';
+      '这些潜水已跳过，因为无法读取文件中的相关数据。';
 
   @override
   String universalImport_summary_noticeDivesSkippedCount(int count) {
@@ -21084,6 +21084,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
       '此设备无法解码文件中的潜水电脑数据，因此这些潜水在没有深度剖面的情况下导入。';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle => '部分列未导入';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return '这些列匹配的字段已由另一列填充，因此已被忽略：$names。如需改用其中一列，请重新导入文件，并在“Map Fields”步骤中选择它。';
+  }
 
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle => '部分值留空';

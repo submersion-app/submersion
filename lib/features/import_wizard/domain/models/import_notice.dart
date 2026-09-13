@@ -45,6 +45,10 @@ enum ImportNoticeKind {
   /// imported dives affected.
   unknownTransmitter,
 
+  /// Auto-mapped CSV columns left out because another column already fills
+  /// the same field. [ImportNotice.names] lists the columns.
+  columnsNotImported,
+
   /// CSV values that could not be converted and were left blank.
   /// [ImportNotice.count] is the number of values.
   valuesNotConverted,
@@ -72,7 +76,8 @@ enum ImportNoticeKind {
   /// Whether the notice reports dives that did not import. Such a notice is
   /// shown even when the run imported nothing, since the missing dives are
   /// exactly what the diver needs to hear about.
-  bool get reportsMissingDives => this == unreadableDates;
+  bool get reportsMissingDives =>
+      this == divesSkipped || this == unreadableDates;
 
   /// Whether [ImportNotice.count] counts imported dives, and so can never
   /// exceed the number of dives the run imported.
@@ -86,6 +91,7 @@ enum ImportNoticeKind {
     divesSkipped ||
     unreadableDates ||
     multipleDivers ||
+    columnsNotImported ||
     valuesNotConverted ||
     photosSkipped ||
     macdiveXmlOmitsCertsAndService ||
