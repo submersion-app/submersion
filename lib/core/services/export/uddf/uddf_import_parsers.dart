@@ -573,8 +573,34 @@ class UddfImportParsers {
 
     tag['name'] = getElementText(tagElement, 'name') ?? '';
     tag['colorHex'] = getElementText(tagElement, 'color');
+    // Where the tag is offered (issue #1765); null when a file predates it.
+    tag['appliesToDives'] = _parseBool(
+      getElementText(tagElement, 'appliestodives'),
+    );
+    tag['appliesToSites'] = _parseBool(
+      getElementText(tagElement, 'appliestosites'),
+    );
 
     return tag;
+  }
+
+  static bool? _parseBool(String? text) => switch (text?.trim().toLowerCase()) {
+    'true' || '1' => true,
+    'false' || '0' => false,
+    _ => null,
+  };
+
+  /// A custom site type definition from `<sitetypes>` (issue #1765):
+  /// `{id, name, sortOrder}`, or empty when the element lacks an id or name.
+  static Map<String, dynamic> parseSiteTypeElement(XmlElement element) {
+    final id = element.getAttribute('id');
+    final name = getElementText(element, 'name');
+    if (id == null || id.isEmpty || name == null || name.isEmpty) return {};
+    return {
+      'id': id,
+      'name': name,
+      'sortOrder': int.tryParse(getElementText(element, 'sortorder') ?? ''),
+    };
   }
 
   static Map<String, dynamic> parseDiveTypeElement(XmlElement typeElement) {
@@ -818,6 +844,25 @@ class UddfImportParsers {
     if (additionalNotes != null) {
       site['notes'] = additionalNotes;
     }
+
+    // Site types and tags (issue #1765). Carried on the site map because
+    // the import wizard keeps only entity lists.
+    final typeRefs = [
+      for (final ref
+          in siteElement
+              .findElements('sitetypes')
+              .expand((s) => s.findElements('sitetyperef')))
+        if (ref.innerText.trim().isNotEmpty) ref.innerText.trim(),
+    ];
+    if (typeRefs.isNotEmpty) site['siteTypeRefs'] = typeRefs;
+    final tagRefs = [
+      for (final ref
+          in siteElement
+              .findElements('tags')
+              .expand((s) => s.findElements('tagref')))
+        if (ref.innerText.trim().isNotEmpty) ref.innerText.trim(),
+    ];
+    if (tagRefs.isNotEmpty) site['tagRefs'] = tagRefs;
 
     return site;
   }

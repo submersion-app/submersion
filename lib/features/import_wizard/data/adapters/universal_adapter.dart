@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -1381,6 +1382,13 @@ class UniversalAdapter implements ImportSourceAdapter {
                 const [])
           if (role is Map<String, dynamic>) role,
       ],
+      // Issue #1765: carried as metadata for the same reason as the roles.
+      customSiteTypes: [
+        for (final type
+            in (payload.metadata[ImportPayload.customSiteTypesKey] as List?) ??
+                const [])
+          if (type is Map<String, dynamic>) type,
+      ],
     );
   }
 }
@@ -1409,6 +1417,12 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // 3a); the field is optional only for legacy callers.
     equipmentObservationRepository: ref.read(
       equipmentObservationRepositoryProvider,
+    ),
+    // Site types and site tags (issue #1765); without them an import
+    // restores sites but not their classification.
+    siteTypeRepository: ref.read(siteTypeRepositoryProvider),
+    siteClassificationRepository: ref.read(
+      siteClassificationRepositoryProvider,
     ),
   );
 }

@@ -30,6 +30,11 @@ class ImportPayload extends Equatable {
   /// of the dive links that reference them.
   static const customDiveRolesKey = 'customDiveRoles';
 
+  /// Metadata key for custom site type definitions (issue #1765): maps with
+  /// `id`, `name` and `sortOrder`. Like dive roles they have no review step;
+  /// site maps reference them by id in `siteTypeRefs`.
+  static const customSiteTypesKey = 'customSiteTypes';
+
   const ImportPayload({
     required this.entities,
     this.warnings = const [],
