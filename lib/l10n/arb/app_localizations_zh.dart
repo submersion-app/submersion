@@ -6349,6 +6349,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_group_location => '位置';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Type & Tags';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Manage types';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Tags';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Site types';
+
+  @override
   String get diveSites_edit_invite_accessSafety => '添加通行、停车、系泊或危险信息';
 
   @override

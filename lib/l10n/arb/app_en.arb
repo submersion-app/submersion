@@ -3666,6 +3666,13 @@
   "@diveSites_edit_group_location": {
     "description": "Site form group: GPS and altitude"
   },
+  "diveSites_edit_group_typeTags": "Type & Tags",
+  "@diveSites_edit_group_typeTags": {
+    "description": "Site form group: the site's types (reef, wreck, lake...) and its tags"
+  },
+  "diveSites_edit_typeTags_manageTypes": "Manage types",
+  "diveSites_edit_typeTags_tagsLabel": "Tags",
+  "diveSites_edit_typeTags_typesLabel": "Site types",
   "diveSites_edit_invite_accessSafety": "Add access, parking, mooring or hazards",
   "@diveSites_edit_invite_accessSafety": {
     "description": "Empty-state invitation for the Access & safety group"

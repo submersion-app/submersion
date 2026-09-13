@@ -6564,6 +6564,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_group_location => 'Location';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Type & Tags';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Manage types';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Tags';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Site types';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'Add access, parking, mooring or hazards';
 

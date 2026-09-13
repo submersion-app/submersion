@@ -6513,6 +6513,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_group_location => 'מיקום';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Type & Tags';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Manage types';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Tags';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Site types';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'הוספת גישה, חניה, עגינה או סכנות';
 

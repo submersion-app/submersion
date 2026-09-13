@@ -10977,6 +10977,30 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get diveSites_edit_group_location;
 
+  /// Site form group: the site's types (reef, wreck, lake...) and its tags
+  ///
+  /// In en, this message translates to:
+  /// **'Type & Tags'**
+  String get diveSites_edit_group_typeTags;
+
+  /// No description provided for @diveSites_edit_typeTags_manageTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage types'**
+  String get diveSites_edit_typeTags_manageTypes;
+
+  /// No description provided for @diveSites_edit_typeTags_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get diveSites_edit_typeTags_tagsLabel;
+
+  /// No description provided for @diveSites_edit_typeTags_typesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get diveSites_edit_typeTags_typesLabel;
+
   /// Empty-state invitation for the Access & safety group
   ///
   /// In en, this message translates to:
