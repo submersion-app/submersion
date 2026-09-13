@@ -42,6 +42,14 @@ void main() {
         expect(typeOf('Arctic Undersuit'), EquipmentType.undersuit.name);
       });
 
+      test('keeps a base layer that names itself', () {
+        expect(typeOf('Fourth Element Thermals'), EquipmentType.baselayer.name);
+      });
+
+      test('keeps a rash guard that names itself', () {
+        expect(typeOf('Lycra top'), EquipmentType.rashGuard.name);
+      });
+
       test('falls back to wetsuit when the name does not say', () {
         expect(typeOf('3mm Shorty'), EquipmentType.wetsuit.name);
       });
