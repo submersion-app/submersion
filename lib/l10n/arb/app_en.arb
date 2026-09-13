@@ -5098,6 +5098,15 @@
   "divePlanner_warning_otuWarning": "OTU accumulation high",
   "divePlanner_warning_ppO2Critical": "ppO₂ of {value} bar exceeds critical limit",
   "divePlanner_warning_ppO2High": "ppO₂ of {value} bar exceeds working limit",
+  "diveSites_detail_showSitesWith": "Show sites with {name}",
+  "@diveSites_detail_showSitesWith": {
+    "description": "Tooltip on a site type or tag chip; tapping it opens the site list filtered to it",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "diveSites_detail_access_accessNotes": "Access Notes",
   "diveSites_detail_access_mooring": "Mooring",
   "diveSites_detail_access_parking": "Parking",
@@ -5345,6 +5354,8 @@
   "diveSites_filter_section_location": "Location",
   "diveSites_filter_section_minRating": "Minimum Rating",
   "diveSites_filter_section_options": "Options",
+  "diveSites_filter_section_siteTypes": "Site type",
+  "diveSites_filter_section_tags": "Tags",
   "diveSites_filter_title": "Filter Sites",
   "diveSites_import_appBar_title": "Import Dive Site",
   "diveSites_import_badge_imported": "Imported",

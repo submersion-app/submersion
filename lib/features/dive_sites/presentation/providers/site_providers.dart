@@ -46,6 +46,12 @@ class SiteFilterState {
   final bool? hasCoordinates;
   final bool? hasDives;
 
+  /// Sites carrying any of these types (issue #1765). Empty means no filter.
+  final Set<String> siteTypeIds;
+
+  /// Sites carrying any of these tags (issue #1765). Empty means no filter.
+  final Set<String> tagIds;
+
   const SiteFilterState({
     this.country,
     this.region,
@@ -55,6 +61,8 @@ class SiteFilterState {
     this.minRating,
     this.hasCoordinates,
     this.hasDives,
+    this.siteTypeIds = const {},
+    this.tagIds = const {},
   });
 
   /// Whether any filter is currently active.
@@ -66,7 +74,9 @@ class SiteFilterState {
       maxDepth != null ||
       minRating != null ||
       hasCoordinates != null ||
-      hasDives != null;
+      hasDives != null ||
+      siteTypeIds.isNotEmpty ||
+      tagIds.isNotEmpty;
 
   /// Apply all active filters to a list of sites with dive counts.
   List<SiteWithDiveCount> apply(List<SiteWithDiveCount> sites) {
@@ -131,6 +141,16 @@ class SiteFilterState {
         }
       }
 
+      // Site type and tag filters (issue #1765): any-of within each set.
+      if (siteTypeIds.isNotEmpty &&
+          !siteWithCount.siteTypes.any((t) => siteTypeIds.contains(t.id))) {
+        return false;
+      }
+      if (tagIds.isNotEmpty &&
+          !siteWithCount.tags.any((t) => tagIds.contains(t.id))) {
+        return false;
+      }
+
       return true;
     }).toList();
   }
@@ -144,6 +164,9 @@ class SiteFilterState {
     double? minRating,
     bool? hasCoordinates,
     bool? hasDives,
+    // A non-null set replaces the current one; pass `const {}` to clear.
+    Set<String>? siteTypeIds,
+    Set<String>? tagIds,
     // Clear flags
     bool clearCountry = false,
     bool clearRegion = false,
@@ -165,6 +188,8 @@ class SiteFilterState {
           ? null
           : (hasCoordinates ?? this.hasCoordinates),
       hasDives: clearHasDives ? null : (hasDives ?? this.hasDives),
+      siteTypeIds: siteTypeIds ?? this.siteTypeIds,
+      tagIds: tagIds ?? this.tagIds,
     );
   }
 }

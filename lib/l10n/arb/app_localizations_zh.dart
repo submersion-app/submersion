@@ -8204,6 +8204,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Show sites with $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => '到达须知';
 
   @override
@@ -8858,6 +8863,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_filter_section_options => '选项';
+
+  @override
+  String get diveSites_filter_section_siteTypes => 'Site type';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tags';
 
   @override
   String get diveSites_filter_title => '筛选潜水点';

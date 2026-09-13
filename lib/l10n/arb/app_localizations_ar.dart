@@ -8447,6 +8447,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Show sites with $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'ملاحظات الوصول';
 
   @override
@@ -9125,6 +9130,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_filter_section_options => 'الخيارات';
+
+  @override
+  String get diveSites_filter_section_siteTypes => 'Site type';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tags';
 
   @override
   String get diveSites_filter_title => 'تصفية المواقع';

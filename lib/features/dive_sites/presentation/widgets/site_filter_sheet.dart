@@ -7,6 +7,10 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Bottom sheet for filtering dive sites.
 ///
@@ -31,6 +35,8 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   double? _minRating;
   bool? _hasCoordinates;
   bool? _hasDives;
+  Set<String> _siteTypeIds = {};
+  Set<String> _tagIds = {};
 
   // Controllers for text fields
   late TextEditingController _countryController;
@@ -51,6 +57,8 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     _minRating = filter.minRating;
     _hasCoordinates = filter.hasCoordinates;
     _hasDives = filter.hasDives;
+    _siteTypeIds = {...filter.siteTypeIds};
+    _tagIds = {...filter.tagIds};
 
     _countryController = TextEditingController(text: _country ?? '');
     _regionController = TextEditingController(text: _region ?? '');
@@ -134,6 +142,8 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                       const SizedBox(height: 24),
                       _buildDifficultySection(),
                       const SizedBox(height: 24),
+                      _buildSiteTypeSection(),
+                      _buildTagSection(),
                       _buildDepthSection(),
                       const SizedBox(height: 24),
                       _buildRatingSection(),
@@ -423,6 +433,8 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       _minRating = null;
       _hasCoordinates = null;
       _hasDives = null;
+      _siteTypeIds = {};
+      _tagIds = {};
 
       _countryController.clear();
       _regionController.clear();
@@ -441,7 +453,90 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       minRating: _minRating,
       hasCoordinates: _hasCoordinates,
       hasDives: _hasDives,
+      siteTypeIds: _siteTypeIds,
+      tagIds: _tagIds,
     );
     Navigator.of(context).pop();
+  }
+
+  /// Site type chips (issue #1765). Any chosen type matches. Renders nothing
+  /// until the types load, and leaves its own trailing gap.
+  Widget _buildSiteTypeSection() {
+    final types = ref.watch(siteTypesProvider).value ?? const [];
+    if (types.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.diveSites_filter_section_siteTypes,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final type in types)
+                FilterChip(
+                  label: Text(type.localizedName(context.l10n)),
+                  selected: _siteTypeIds.contains(type.id),
+                  onSelected: (selected) => setState(() {
+                    _siteTypeIds = {..._siteTypeIds};
+                    if (selected) {
+                      _siteTypeIds.add(type.id);
+                    } else {
+                      _siteTypeIds.remove(type.id);
+                    }
+                  }),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Site tag chips (issue #1765): only tags offered on sites. Any chosen
+  /// tag matches. Hidden when there are none.
+  Widget _buildTagSection() {
+    final tags = (ref.watch(tagsProvider).value ?? const <Tag>[])
+        .where((t) => t.appliesToSites)
+        .toList();
+    if (tags.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.diveSites_filter_section_tags,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final tag in tags)
+                FilterChip(
+                  avatar: CircleAvatar(backgroundColor: tag.color, radius: 6),
+                  label: Text(tag.name),
+                  selected: _tagIds.contains(tag.id),
+                  onSelected: (selected) => setState(() {
+                    _tagIds = {..._tagIds};
+                    if (selected) {
+                      _tagIds.add(tag.id);
+                    } else {
+                      _tagIds.remove(tag.id);
+                    }
+                  }),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

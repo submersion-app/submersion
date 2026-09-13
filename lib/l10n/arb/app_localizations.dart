@@ -14308,6 +14308,12 @@ abstract class AppLocalizations {
   /// **'ppO₂ of {value} bar exceeds working limit'**
   String divePlanner_warning_ppO2High(Object value);
 
+  /// Tooltip on a site type or tag chip; tapping it opens the site list filtered to it
+  ///
+  /// In en, this message translates to:
+  /// **'Show sites with {name}'**
+  String diveSites_detail_showSitesWith(String name);
+
   /// No description provided for @diveSites_detail_access_accessNotes.
   ///
   /// In en, this message translates to:
@@ -15470,6 +15476,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Options'**
   String get diveSites_filter_section_options;
+
+  /// No description provided for @diveSites_filter_section_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site type'**
+  String get diveSites_filter_section_siteTypes;
+
+  /// No description provided for @diveSites_filter_section_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get diveSites_filter_section_tags;
 
   /// No description provided for @diveSites_filter_title.
   ///

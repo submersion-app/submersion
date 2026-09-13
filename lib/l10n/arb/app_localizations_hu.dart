@@ -8597,6 +8597,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Show sites with $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes =>
       'Megkozelitesi megjegyzesek';
 
@@ -9286,6 +9291,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_filter_section_options => 'Opciok';
+
+  @override
+  String get diveSites_filter_section_siteTypes => 'Site type';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tags';
 
   @override
   String get diveSites_filter_title => 'Helyszinek szurese';

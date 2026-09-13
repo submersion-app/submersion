@@ -8614,6 +8614,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Show sites with $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'Note di accesso';
 
   @override
@@ -9306,6 +9311,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_filter_section_options => 'Opzioni';
+
+  @override
+  String get diveSites_filter_section_siteTypes => 'Site type';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tags';
 
   @override
   String get diveSites_filter_title => 'Filtra siti';
