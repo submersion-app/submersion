@@ -106,18 +106,19 @@ class _SuccessView extends StatelessWidget {
     );
     final hasActivity =
         totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
+    final l10n = context.l10n;
     // "Not in the file" explains gaps in dives that imported. Rows whose date
     // could not be read are dives that did not, so they get their own card.
     final fileNotices = [
       for (final notice in notices)
-        if (notice.kind != ImportNoticeKind.unreadableDates) notice,
+        if (_fileNoticeWording(l10n, notice.kind) case final wording?)
+          (notice: notice, wording: wording),
     ];
 
     final String title;
     final IconData icon;
     final Color iconColor;
     final Color iconBg;
-    final l10n = context.l10n;
     if (hasActivity) {
       if (totalImported > 0) {
         title = l10n.universalImport_title_successImported;
@@ -254,7 +255,8 @@ class _SuccessView extends StatelessWidget {
                     style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  for (final notice in fileNotices) _NoticeCard(notice: notice),
+                  for (final entry in fileNotices)
+                    _NoticeCard(notice: entry.notice, wording: entry.wording),
                 ],
               ),
             ],
@@ -424,6 +426,36 @@ class _ErrorView extends StatelessWidget {
 // Per-file outcome row (bulk imports)
 // ---------------------------------------------------------------------------
 
+/// Title, body and optional follow-up action for a "Not in the file" notice.
+typedef _FileNoticeWording = ({
+  String title,
+  String body,
+  ({String label, String route})? action,
+});
+
+/// The wording for a notice about data the file did not contain, or null for
+/// a kind that is not one. Rows whose date could not be read are dives that
+/// did not import at all, so [UnreadableDatesCard] reports them instead.
+_FileNoticeWording? _fileNoticeWording(
+  AppLocalizations l10n,
+  ImportNoticeKind kind,
+) => switch (kind) {
+  ImportNoticeKind.noTankPressure => (
+    title: l10n.universalImport_summary_noticeNoTankPressureTitle,
+    body: l10n.universalImport_summary_noticeNoTankPressureBody,
+    action: null,
+  ),
+  ImportNoticeKind.unknownTransmitter => (
+    title: l10n.universalImport_summary_noticeUnknownTransmitterTitle,
+    body: l10n.universalImport_summary_noticeUnknownTransmitterBody,
+    action: (
+      label: l10n.universalImport_summary_noticeAssignTransmitters,
+      route: '/transmitters',
+    ),
+  ),
+  ImportNoticeKind.unreadableDates => null,
+};
+
 /// Explains data the source files did not contain.
 ///
 /// Styled as information, not as a problem: the dives imported fine, and the
@@ -431,36 +463,15 @@ class _ErrorView extends StatelessWidget {
 /// container rather than an error colour for exactly that reason.
 class _NoticeCard extends StatelessWidget {
   final ImportNotice notice;
+  final _FileNoticeWording wording;
 
-  const _NoticeCard({required this.notice});
+  const _NoticeCard({required this.notice, required this.wording});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-
-    final (title, body, action) = switch (notice.kind) {
-      ImportNoticeKind.noTankPressure => (
-        l10n.universalImport_summary_noticeNoTankPressureTitle,
-        l10n.universalImport_summary_noticeNoTankPressureBody,
-        null,
-      ),
-      ImportNoticeKind.unknownTransmitter => (
-        l10n.universalImport_summary_noticeUnknownTransmitterTitle,
-        l10n.universalImport_summary_noticeUnknownTransmitterBody,
-        (
-          label: l10n.universalImport_summary_noticeAssignTransmitters,
-          route: '/transmitters',
-        ),
-      ),
-      // Normally shown by UnreadableDatesCard instead; worded the same here so
-      // the switch stays exhaustive without a blank card.
-      ImportNoticeKind.unreadableDates => (
-        l10n.universalImport_summary_unreadableDatesTitle,
-        l10n.universalImport_summary_unreadableDatesBody,
-        null,
-      ),
-    };
+    final (:title, :body, :action) = wording;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
