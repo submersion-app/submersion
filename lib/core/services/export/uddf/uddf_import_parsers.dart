@@ -138,6 +138,67 @@ class UddfImportParsers {
     return (latitude: latitude, longitude: longitude);
   }
 
+  /// Removes `diveData['profile']` when it is the outline Submersion's own
+  /// UDDF writers invented for a dive with no recorded samples (issue
+  /// #1874), so backups written before that fix stop restoring it.
+  ///
+  /// Those writers put a (0 s, 0 m) waypoint first on every dive and, when
+  /// the dive had a duration and a greatest depth but no samples, followed it
+  /// with the greatest depth at 20% of the duration, the average depth (or
+  /// 0.7 x the greatest) at 80%, and the surface at 100%. Only that exact
+  /// shape, or the lone first waypoint, is dropped, and only in a document
+  /// whose `<generator>` names Submersion; any other file or shape keeps its
+  /// profile. Call it once the dive's `maxDepth` and `avgDepth` are parsed,
+  /// since the invented depths were derived from them.
+  static void dropInventedSubmersionProfile(
+    XmlElement diveElement,
+    Map<String, dynamic> diveData,
+  ) {
+    final profile = diveData['profile'];
+    if (profile is! List<Map<String, dynamic>>) return;
+    if (!_writtenBySubmersion(diveElement)) return;
+    if (_isInventedOutline(
+      profile,
+      maxDepth: diveData['maxDepth'] as double?,
+      avgDepth: diveData['avgDepth'] as double?,
+    )) {
+      diveData.remove('profile');
+    }
+  }
+
+  static bool _writtenBySubmersion(XmlElement diveElement) =>
+      diveElement.document?.rootElement
+          .getElement('generator')
+          ?.getElement('name')
+          ?.innerText
+          .trim() ==
+      'Submersion';
+
+  static bool _isInventedOutline(
+    List<Map<String, dynamic>> profile, {
+    required double? maxDepth,
+    required double? avgDepth,
+  }) {
+    (int, double)? at(int i) => switch (profile[i]) {
+      {'timestamp': final int t, 'depth': final double d} => (t, d),
+      _ => null,
+    };
+    bool near(double a, double b) => (a - b).abs() < 1e-9;
+
+    if (profile.isEmpty || at(0) != (0, 0.0)) return false;
+    if (profile.length == 1) return true;
+    if (profile.length != 4 || maxDepth == null) return false;
+    final (descent, bottom, end) = (at(1), at(2), at(3));
+    if (descent == null || bottom == null || end == null) return false;
+    final duration = end.$1;
+    return duration > 0 &&
+        end.$2 == 0 &&
+        descent.$1 == (duration * 0.2).toInt() &&
+        near(descent.$2, maxDepth) &&
+        bottom.$1 == (duration * 0.8).toInt() &&
+        near(bottom.$2, avgDepth ?? maxDepth * 0.7);
+  }
+
   static void assignGasMixToTankIfMissing({
     required List<Map<String, dynamic>> tanks,
     required int tankIndex,

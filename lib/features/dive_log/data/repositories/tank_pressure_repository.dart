@@ -40,6 +40,15 @@ class TankPressureRepository {
     String diveId,
   ) async => _groupByTank(await _tankSeries.getSeriesForDive(diveId));
 
+  /// [getTankPressuresForDive] for many dives at once, keyed by dive id; a
+  /// dive with no pressure data is absent. One statement per chunk of ids
+  /// instead of one per dive (issue #1867).
+  Future<Map<String, Map<String, List<TankPressurePoint>>>>
+  getTankPressuresForDives(List<String> diveIds) async => {
+    for (final entry in (await _tankSeries.getSeriesForDives(diveIds)).entries)
+      entry.key: _groupByTank(entry.value),
+  };
+
   /// [getTankPressuresForDive] as one computer saw the dive: on a tank that
   /// [computerId] logged, only its series; on any other tank, every series.
   /// See [selectTankSeriesForComputer] for why a consolidated dive needs

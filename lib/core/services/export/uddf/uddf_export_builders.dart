@@ -282,26 +282,15 @@ class UddfExportBuilders {
           },
         );
 
-        // Samples (dive profile)
-        builder.element(
-          'samples',
-          nest: () {
-            final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
-            final mixId = tank != null
-                ? 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}'
-                : 'mix_21_0';
-
-            builder.element(
-              'waypoint',
-              nest: () {
-                builder.element('divetime', nest: '0');
-                builder.element('depth', nest: '0');
-                builder.element('switchmix', attributes: {'ref': mixId});
-              },
-            );
-
-            if (dive.profile.isNotEmpty) {
-              for (final point in dive.profile) {
+        // Samples (dive profile): only what was recorded. <samples> is
+        // optional in UDDF 3.2.1, so a dive without a profile writes none
+        // rather than an invented one a restore would store (issue #1874).
+        if (dive.profile.isNotEmpty) {
+          builder.element(
+            'samples',
+            nest: () {
+              final startMix = startMixId(dive);
+              for (final (index, point) in dive.profile.indexed) {
                 builder.element(
                   'waypoint',
                   nest: () {
@@ -310,6 +299,15 @@ class UddfExportBuilders {
                       nest: point.timestamp.toString(),
                     );
                     builder.element('depth', nest: point.depth.toString());
+                    // The starting mix rides on the first recorded sample. A
+                    // separate (0 s, 0 m) waypoint for it came back from
+                    // every restore as an extra sample.
+                    if (index == 0) {
+                      builder.element(
+                        'switchmix',
+                        attributes: {'ref': startMix},
+                      );
+                    }
                     if (point.temperature != null) {
                       builder.element(
                         'temperature',
@@ -350,124 +348,12 @@ class UddfExportBuilders {
                   },
                 );
               }
-            } else {
-              final durationSecs = dive.bottomTime?.inSeconds ?? 0;
-              if (dive.maxDepth != null && durationSecs > 0) {
-                final descentTime = (durationSecs * 0.2).toInt();
-                builder.element(
-                  'waypoint',
-                  nest: () {
-                    builder.element('divetime', nest: descentTime.toString());
-                    builder.element('depth', nest: dive.maxDepth.toString());
-                    if (dive.waterTemp != null) {
-                      builder.element(
-                        'temperature',
-                        nest: (dive.waterTemp! + 273.15).toString(),
-                      );
-                    }
-                  },
-                );
-
-                final bottomTime = (durationSecs * 0.8).toInt();
-                builder.element(
-                  'waypoint',
-                  nest: () {
-                    builder.element('divetime', nest: bottomTime.toString());
-                    builder.element(
-                      'depth',
-                      nest: (dive.avgDepth ?? dive.maxDepth! * 0.7).toString(),
-                    );
-                  },
-                );
-
-                builder.element(
-                  'waypoint',
-                  nest: () {
-                    builder.element('divetime', nest: durationSecs.toString());
-                    builder.element('depth', nest: '0');
-                  },
-                );
-              }
-            }
-          },
-        );
+            },
+          );
+        }
 
         // Tank data (complete tank information)
-        if (dive.tanks.isNotEmpty) {
-          for (final tank in dive.tanks) {
-            builder.element(
-              'tankdata',
-              attributes: {'id': 'tank_${tank.id}'},
-              nest: () {
-                // Link to gas mix
-                final mixId =
-                    'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
-                builder.element('link', attributes: {'ref': mixId});
-                // Tank name
-                if (tank.name != null && tank.name!.isNotEmpty) {
-                  builder.element('tankname', nest: tank.name);
-                }
-                // Volume: UDDF tankvolume is CUBIC METERS per spec (#158).
-                // Stored volume is liters, so divide by 1000 on the way out.
-                // Re-importing is exact at any volume because the file
-                // carries the <applicationdata><submersion> marker, which
-                // switches the importer to strict m3 instead of the
-                // exporter-quirk plausibility ladder.
-                if (tank.volume != null) {
-                  // The unit attribute is what makes re-import exact. It is
-                  // not UDDF-standard (other readers ignore it), but our own
-                  // exports before this change wrote LITERS into the same
-                  // element, and nothing else in the file distinguishes the
-                  // two conventions -- inferring from the Submersion marker
-                  // would silently scale those old files by 1000.
-                  builder.element(
-                    'tankvolume',
-                    attributes: {'unit': 'm3'},
-                    nest: (tank.volume! / 1000).toString(),
-                  );
-                }
-                // Working pressure in Pascal (UDDF standard)
-                if (tank.workingPressure != null) {
-                  builder.element(
-                    'tankworkingpressure',
-                    nest: (tank.workingPressure! * 100000).toStringAsFixed(0),
-                  );
-                }
-                // Start pressure in Pascal
-                if (tank.startPressure != null) {
-                  builder.element(
-                    'tankpressurebegin',
-                    nest: (tank.startPressure! * 100000).toStringAsFixed(0),
-                  );
-                }
-                // End pressure in Pascal
-                if (tank.endPressure != null) {
-                  builder.element(
-                    'tankpressureend',
-                    nest: (tank.endPressure! * 100000).toStringAsFixed(0),
-                  );
-                }
-                // Tank role (app-specific)
-                builder.element('tankrole', nest: tank.role.name);
-                // Tank material
-                if (tank.material != null) {
-                  builder.element('tankmaterial', nest: tank.material!.name);
-                }
-                // Tank order (for multi-tank configurations)
-                builder.element('tankorder', nest: tank.order.toString());
-                // Air-integration transmitter serial (app-specific): UDDF
-                // has no element for it, and it is the cylinder's identity
-                // across computers, so our own round trip must keep it.
-                final transmitterSerial = normalizeTransmitterSerial(
-                  tank.transmitterSerial,
-                );
-                if (transmitterSerial != null) {
-                  builder.element('transmitterserial', nest: transmitterSerial);
-                }
-              },
-            );
-          }
-        }
+        writeTankData(builder, dive);
 
         // Rebreather configuration (CCR/SCR data)
         if (dive.diveMode != DiveMode.oc) {
@@ -1907,6 +1793,102 @@ class UddfExportBuilders {
         }
       },
     );
+  }
+
+  /// One `<tankdata>` per cylinder [dive] used, each with the id its
+  /// samples' `<tankpressure ref>` names. Shared by the full backup and the
+  /// dives-only export, which declared no cylinders before issue #1874.
+  ///
+  /// [includeIdentity] false leaves out what identifies the diver's own
+  /// cylinder (its name and air-integration transmitter serial), for a
+  /// dives-only share without gear; the dive data is written either way.
+  static void writeTankData(
+    XmlBuilder builder,
+    Dive dive, {
+    bool includeIdentity = true,
+  }) {
+    for (final tank in dive.tanks) {
+      builder.element(
+        'tankdata',
+        attributes: {'id': 'tank_${tank.id}'},
+        nest: () {
+          // Link to gas mix
+          final mixId =
+              'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
+          builder.element('link', attributes: {'ref': mixId});
+          // Tank name
+          if (includeIdentity && tank.name != null && tank.name!.isNotEmpty) {
+            builder.element('tankname', nest: tank.name);
+          }
+          // Volume: UDDF tankvolume is CUBIC METERS per spec (#158).
+          // Stored volume is liters, so divide by 1000 on the way out.
+          // Re-importing is exact at any volume because the element
+          // declares its unit, which switches the importer to strict m3
+          // instead of the exporter-quirk plausibility ladder.
+          if (tank.volume != null) {
+            // The unit attribute is what makes re-import exact. It is
+            // not UDDF-standard (other readers ignore it), but our own
+            // exports before this change wrote LITERS into the same
+            // element, and nothing else in the file distinguishes the
+            // two conventions, so inferring from the Submersion marker
+            // would silently scale those old files by 1000.
+            builder.element(
+              'tankvolume',
+              attributes: {'unit': 'm3'},
+              nest: (tank.volume! / 1000).toString(),
+            );
+          }
+          // Working pressure in Pascal (UDDF standard)
+          if (tank.workingPressure != null) {
+            builder.element(
+              'tankworkingpressure',
+              nest: (tank.workingPressure! * 100000).toStringAsFixed(0),
+            );
+          }
+          // Start pressure in Pascal
+          if (tank.startPressure != null) {
+            builder.element(
+              'tankpressurebegin',
+              nest: (tank.startPressure! * 100000).toStringAsFixed(0),
+            );
+          }
+          // End pressure in Pascal
+          if (tank.endPressure != null) {
+            builder.element(
+              'tankpressureend',
+              nest: (tank.endPressure! * 100000).toStringAsFixed(0),
+            );
+          }
+          // Tank role (app-specific)
+          builder.element('tankrole', nest: tank.role.name);
+          // Tank material
+          if (tank.material != null) {
+            builder.element('tankmaterial', nest: tank.material!.name);
+          }
+          // Tank order (for multi-tank configurations)
+          builder.element('tankorder', nest: tank.order.toString());
+          // Air-integration transmitter serial (app-specific): UDDF
+          // has no element for it, and it is the cylinder's identity
+          // across computers, so our own round trip must keep it.
+          final transmitterSerial = normalizeTransmitterSerial(
+            tank.transmitterSerial,
+          );
+          if (includeIdentity && transmitterSerial != null) {
+            builder.element('transmitterserial', nest: transmitterSerial);
+          }
+        },
+      );
+    }
+  }
+
+  /// The gas mix id a dive starts on, for the `<switchmix>` on its first
+  /// sample: the first tank's mix, or air for a dive with no tanks. Both
+  /// dive writers use it, so the two exports name the same mix.
+  static String startMixId(Dive dive) {
+    final tank = dive.tanks.firstOrNull;
+    return tank == null
+        ? 'mix_21_0'
+        : 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
   }
 
   /// Find pressure at a given timestamp using binary search.
