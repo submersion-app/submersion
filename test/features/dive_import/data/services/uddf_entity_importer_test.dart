@@ -840,6 +840,30 @@ void main() {
         );
       });
 
+      test('the suit thickness wins over a thickness_mm in the attribute '
+          'list, as size does', () async {
+        final item = await importOne({
+          'name': 'Bare 7mm',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': '7mm',
+          'attributes': [
+            {
+              'key': EquipmentAttrKeys.thicknessMm,
+              'isCustom': false,
+              'valueText': '5',
+              'valueNum': 5.0,
+            },
+          ],
+        });
+
+        final rows = item.attributes.where(
+          (a) => a.key == EquipmentAttrKeys.thicknessMm,
+        );
+        expect(rows, hasLength(1));
+        expect(rows.single.valueNum, 7.0);
+      });
+
       test('a designation the catalog rejects records none', () async {
         final item = await importOne({
           'name': 'Thin wetsuit',
