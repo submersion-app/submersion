@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/import_wizard/data/adapters/cloud_computer_identity.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -393,6 +394,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
           diverId: _diverId,
           descriptorVendor: 'Garmin',
           descriptorProduct: parsed.deviceModel,
+          retainSourceDiveNumber: retainSourceDiveNumbers,
         );
         imported++;
         importedDiveIds.add(diveId);
@@ -411,12 +413,18 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     scheduleQualityScan(importedDiveIds);
     scheduleSensorSummaryRefresh(importedDiveIds);
 
+    final numberConflict = await diveNumberConflictNotice(
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      diveRepository: _diveRepository,
+      importedDiveIds: importedDiveIds,
+    );
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
       updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      notices: [?numberConflict],
     );
   }
 

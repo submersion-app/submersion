@@ -15,6 +15,7 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 @GenerateNiceMocks([
@@ -536,6 +537,90 @@ void main() {
         ),
       ).called(1);
       expect(result.importedCounts[ImportEntityType.dives], equals(1));
+    });
+
+    group('retaining source dive numbers (issue #1832)', () {
+      test('asks the import service to keep the computer number', () async {
+        final dive = makeDownloadedDive();
+        adapter.setDownloadedDives([dive]);
+        final bundle = await adapter.buildBundle();
+        when(
+          mockImportService.importSingleDiveAsNew(
+            dive,
+            computerId: computer.id,
+            diverId: diverId,
+            retainSourceDiveNumber: true,
+          ),
+        ).thenAnswer((_) async => 'new-dive-1');
+
+        await adapter.performImport(
+          bundle,
+          {
+            ImportEntityType.dives: {0},
+          },
+          {},
+          retainSourceDiveNumbers: true,
+        );
+
+        verify(
+          mockImportService.importSingleDiveAsNew(
+            dive,
+            computerId: computer.id,
+            diverId: diverId,
+            retainSourceDiveNumber: true,
+          ),
+        ).called(1);
+      });
+
+      test('reports imported dives whose number is already in use', () async {
+        final dive = makeDownloadedDive();
+        adapter.setDownloadedDives([dive]);
+        final bundle = await adapter.buildBundle();
+        when(
+          mockImportService.importSingleDiveAsNew(
+            dive,
+            computerId: computer.id,
+            diverId: diverId,
+            retainSourceDiveNumber: true,
+          ),
+        ).thenAnswer((_) async => 'new-dive-1');
+        when(
+          mockDiveRepo.countDivesSharingDiveNumber(['new-dive-1']),
+        ).thenAnswer((_) async => 1);
+
+        final result = await adapter.performImport(
+          bundle,
+          {
+            ImportEntityType.dives: {0},
+          },
+          {},
+          retainSourceDiveNumbers: true,
+        );
+
+        final notice = result.notices.single;
+        expect(notice.kind, ImportNoticeKind.diveNumberConflict);
+        expect(notice.affectedDives, 1);
+      });
+
+      test('does not look for number conflicts when auto-numbering', () async {
+        final dive = makeDownloadedDive();
+        adapter.setDownloadedDives([dive]);
+        final bundle = await adapter.buildBundle();
+        when(
+          mockImportService.importSingleDiveAsNew(
+            dive,
+            computerId: computer.id,
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => 'new-dive-1');
+
+        final result = await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        verifyNever(mockDiveRepo.countDivesSharingDiveNumber(any));
+        expect(result.notices, isEmpty);
+      });
     });
 
     test('handles DuplicateAction.skip', () async {

@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_import/domain/services/health_import_se
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -262,7 +263,16 @@ class HealthKitAdapter implements ImportSourceAdapter {
       }
     }
 
-    final sortedIndices = indicesToImport.toList()..sort();
+    // Oldest first, so auto-numbering follows the order the dives happened
+    // in rather than the order the review list happened to show them.
+    final sortedIndices =
+        indicesToImport.where((i) => i < _parsedDives.length).toList()
+          ..sort((a, b) {
+            final byTime = _parsedDives[a].startTime.compareTo(
+              _parsedDives[b].startTime,
+            );
+            return byTime != 0 ? byTime : a.compareTo(b);
+          });
     final total = sortedIndices.length;
     var imported = 0;
     final importedDiveIds = <String>[];
@@ -274,12 +284,18 @@ class HealthKitAdapter implements ImportSourceAdapter {
     for (var i = 0; i < sortedIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
 
-      final index = sortedIndices[i];
-
-      if (index >= _parsedDives.length) continue;
-
-      final importedDive = _parsedDives[index];
-      final dive = _converter.convert(importedDive, diverId: _diverId);
+      final importedDive = _parsedDives[sortedIndices[i]];
+      // HealthKit records no dive number of its own, but honour one if the
+      // source ever supplies it; otherwise number the dive like every other
+      // import does (issue #1832).
+      final diveNumber =
+          (retainSourceDiveNumbers ? importedDive.diveNumber : null) ??
+          await _diveRepository.getNextDiveNumber(diverId: _diverId);
+      final dive = _converter.convert(
+        importedDive,
+        diverId: _diverId,
+        diveNumber: diveNumber,
+      );
       await _diveRepository.createDive(dive);
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
       await ChecklistDiveLinker().applyForImportedDive(dive);
@@ -298,11 +314,17 @@ class HealthKitAdapter implements ImportSourceAdapter {
     scheduleQualityScan(importedDiveIds);
     scheduleSensorSummaryRefresh(importedDiveIds);
 
+    final numberConflict = await diveNumberConflictNotice(
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      diveRepository: _diveRepository,
+      importedDiveIds: importedDiveIds,
+    );
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: 0,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      notices: [?numberConflict],
     );
   }
 
@@ -352,6 +374,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       durationSeconds: dive.durationSeconds,
       waterTemp: dive.minTemperature,
       profile: profile,
+      diveNumber: dive.diveNumber,
     );
 
     return EntityItem(title: title, subtitle: subtitle, diveData: diveData);

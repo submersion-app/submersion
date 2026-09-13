@@ -264,6 +264,46 @@ void main() {
     });
   });
 
+  group('retaining source dive numbers (issue #1832)', () {
+    test('forwards the option to the import service', () async {
+      adapter.setParsedDives([makeParsedDive()]);
+      final bundle = await adapter.buildBundle();
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          retainSourceDiveNumber: true,
+        ),
+      ).thenAnswer((_) async => 'new-dive-id');
+
+      await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {},
+        retainSourceDiveNumbers: true,
+      );
+
+      verify(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: diverId,
+          descriptorVendor: 'Suunto',
+          descriptorProduct: 'Suunto Ocean',
+          retainSourceDiveNumber: true,
+        ),
+      ).called(1);
+      verify(
+        mockDiveRepo.countDivesSharingDiveNumber(['new-dive-id']),
+      ).called(1);
+    });
+  });
+
   group('performImport()', () {
     test('imports selected dives against their resolved computer', () async {
       adapter.setParsedDives([makeParsedDive()]);

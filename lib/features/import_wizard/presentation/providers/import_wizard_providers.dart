@@ -814,7 +814,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         bundle,
         state.selections,
         state.duplicateActions,
-        retainSourceDiveNumbers: state.retainSourceDiveNumbers,
+        // A source with no numbers has nothing to retain; the review step
+        // disables the option for it, and this keeps a stale "on" from
+        // reaching the adapter anyway (issue #1832).
+        retainSourceDiveNumbers:
+            state.retainSourceDiveNumbers && bundle.hasSourceDiveNumbers,
         onProgress: (phase, current, total) {
           state = state.copyWith(
             importPhase: phase,

@@ -24714,6 +24714,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'لا يوفّر هذا المصدر أرقام الغطسات، لذا تُرقَّم الغطسات تلقائياً';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'وسم هذا الاستيراد تلقائيا';
 
@@ -38814,6 +38818,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'تعيين أجهزة الإرسال';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'أرقام الغطسات مستخدمة بالفعل';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'احتفظت هذه الغطسات بالرقم الوارد من مصدرها، لكن غطسات أخرى في سجلك تستخدم الأرقام نفسها بالفعل. افتح «ترقيم الغوصات» من قائمة صفحة الغطسات لإعادة ترقيمها.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'جهاز إرسال غير معيّن';
