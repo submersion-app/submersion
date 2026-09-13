@@ -131,34 +131,36 @@ Future<void> _switchToUsbTab(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+Finder _findSearchField() {
+  // The search field has a search prefix icon, whereas the DropdownMenu's TextField does not.
+  return find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.decoration?.prefixIcon != null,
+  );
+}
+
+Finder _findListItem(String text) {
+  return find.descendant(of: find.byType(ListView), matching: find.text(text));
+}
+
 void main() {
   group('USB tab search UI', () {
-    testWidgets('shows a search icon button in the USB tab', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
-
-      expect(
-        find.byIcon(Icons.search),
-        findsOneWidget,
-        reason: 'USB tab should display a search icon button',
-      );
-    });
-
-    testWidgets('tapping search icon shows a search text field', (
+    testWidgets('shows a persistent search text field and brand dropdown', (
       tester,
     ) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
+      expect(
+        _findSearchField(),
+        findsOneWidget,
+        reason: 'USB tab should display a persistent search field',
+      );
 
       expect(
-        find.byType(TextField),
+        find.byType(DropdownMenu<String?>),
         findsOneWidget,
-        reason: 'Tapping search should reveal a text field',
+        reason: 'USB tab should display a manufacturer dropdown',
       );
     });
 
@@ -168,21 +170,18 @@ void main() {
       await _switchToUsbTab(tester);
 
       // All manufacturers visible initially.
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Suunto'), findsOneWidget);
-      expect(find.text('Mares'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Suunto'), findsOneWidget);
+      expect(_findListItem('Mares'), findsOneWidget);
 
       // Activate search and type a manufacturer name.
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Suunto');
+      await tester.enterText(_findSearchField(), 'Suunto');
       await tester.pumpAndSettle();
 
-      // Only Suunto devices should remain; the manufacturer header text
-      // appears once in the list (the TextField also contains "Suunto").
-      expect(find.text('D5'), findsOneWidget);
-      expect(find.text('Shearwater'), findsNothing);
-      expect(find.text('Mares'), findsNothing);
+      // Only Suunto devices should remain.
+      expect(_findListItem('D5'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
     });
 
     testWidgets('search filters devices by model name', (tester) async {
@@ -190,18 +189,15 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Perdix');
+      await tester.enterText(_findSearchField(), 'Perdix');
       await tester.pumpAndSettle();
 
-      // Shearwater header should still be visible (parent of matched model).
-      expect(find.text('Shearwater'), findsOneWidget);
-      // Perdix appears in both the TextField and the list tile.
-      expect(find.text('Perdix'), findsNWidgets(2));
-      expect(find.text('Teric'), findsNothing);
-      expect(find.text('Suunto'), findsNothing);
-      expect(find.text('Mares'), findsNothing);
+      // Shearwater header should still be visible.
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Perdix'), findsOneWidget);
+      expect(_findListItem('Teric'), findsNothing);
+      expect(_findListItem('Suunto'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
     });
 
     testWidgets('search is case-insensitive', (tester) async {
@@ -209,14 +205,12 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'mares');
+      await tester.enterText(_findSearchField(), 'mares');
       await tester.pumpAndSettle();
 
-      expect(find.text('Mares'), findsOneWidget);
-      expect(find.text('Genius'), findsOneWidget);
-      expect(find.text('Shearwater'), findsNothing);
+      expect(_findListItem('Mares'), findsOneWidget);
+      expect(_findListItem('Genius'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsNothing);
     });
 
     testWidgets('clearing search text restores all devices', (tester) async {
@@ -224,41 +218,19 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Suunto');
+      await tester.enterText(_findSearchField(), 'Suunto');
       await tester.pumpAndSettle();
 
-      expect(find.text('Shearwater'), findsNothing);
+      expect(_findListItem('Shearwater'), findsNothing);
 
       // Clear the search field.
-      await tester.enterText(find.byType(TextField), '');
+      await tester.enterText(_findSearchField(), '');
       await tester.pumpAndSettle();
 
       // All manufacturers should be visible again.
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Suunto'), findsOneWidget);
-      expect(find.text('Mares'), findsOneWidget);
-    });
-
-    testWidgets('close button exits search mode', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
-
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      expect(find.byType(TextField), findsOneWidget);
-
-      // Tap the close button to exit search.
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-
-      // Search field should be gone, all devices visible.
-      expect(find.byType(TextField), findsNothing);
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Suunto'), findsOneWidget);
-      expect(find.text('Mares'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Suunto'), findsOneWidget);
+      expect(_findListItem('Mares'), findsOneWidget);
     });
 
     testWidgets('search with no matches shows empty state', (tester) async {
@@ -266,15 +238,13 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'NonExistentBrand');
+      await tester.enterText(_findSearchField(), 'NonExistentBrand');
       await tester.pumpAndSettle();
 
       // No manufacturer headers or model names should be visible.
-      expect(find.text('Shearwater'), findsNothing);
-      expect(find.text('Suunto'), findsNothing);
-      expect(find.text('Mares'), findsNothing);
+      expect(_findListItem('Shearwater'), findsNothing);
+      expect(_findListItem('Suunto'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
 
       // Should show some kind of "no results" indication.
       expect(
@@ -284,21 +254,44 @@ void main() {
       );
     });
 
+    testWidgets('brand dropdown filters devices by manufacturer', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+      await _switchToUsbTab(tester);
+
+      // Tap the dropdown to open menu
+      await tester.tap(find.byType(DropdownMenu<String?>));
+      await tester.pumpAndSettle();
+
+      // Tap on 'Suunto'. DropdownMenu builds an offstage clone of every
+      // entry (an unkeyed MenuItemButton) purely to measure the widest
+      // label; the real, tappable one carries a GlobalKey and is the last
+      // match, so a bare find.text(...).last can hit the invisible clone
+      // instead.
+      await tester.tap(find.widgetWithText(MenuItemButton, 'Suunto').last);
+      await tester.pumpAndSettle();
+
+      // Only Suunto devices should remain
+      expect(_findListItem('D5'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
+    });
+
     testWidgets('search matches partial text', (tester) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Per');
+      await tester.enterText(_findSearchField(), 'Per');
       await tester.pumpAndSettle();
 
       // "Per" should match "Perdix".
-      expect(find.text('Perdix'), findsOneWidget);
-      expect(find.text('Shearwater'), findsOneWidget);
-      expect(find.text('Teric'), findsNothing);
-      expect(find.text('Suunto'), findsNothing);
+      expect(_findListItem('Perdix'), findsOneWidget);
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Teric'), findsNothing);
+      expect(_findListItem('Suunto'), findsNothing);
     });
   });
 }
