@@ -5683,6 +5683,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => '所有装备已选择';
 
   @override
+  String get diveLog_equipmentPicker_allSpare => '剩余装备均标记为备用';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return '加载装备出错：$error';
   }
@@ -5692,6 +5695,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint => '将物品状态设为活跃即可添加到潜水';
 
   @override
   String get diveLog_equipmentPicker_title => '添加装备';
@@ -10276,6 +10282,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => '已售出';
+
+  @override
+  String get enum_equipmentStatus_spare => '备用';
 
   @override
   String get enum_equipmentType_backplate => '背板';

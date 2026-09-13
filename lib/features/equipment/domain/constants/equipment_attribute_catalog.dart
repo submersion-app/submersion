@@ -32,12 +32,14 @@ enum AttributeGroup {
 /// Unit dimension for number attributes; drives UnitFormatter conversion.
 /// thicknessMm always displays in mm (industry convention in every market).
 ///
-/// Every dimension stores its canonical metric value, which for all of them
-/// except the two per-time ones is also what a metric diver reads:
+/// Every dimension stores its canonical metric value, which is also what a
+/// metric diver reads for all of them except these three:
 /// - [speedMps] stores m/s (matching wind speed and GPS track speed) and
 ///   displays as m/min or ft/min, the way a DPV's rated speed is quoted.
 /// - [durationH] stores hours and displays as minutes, the way a scooter's
 ///   rated run time is quoted.
+/// - [shortLengthM] stores metres and displays as cm or inches, the way a
+///   hose or an SMB is sold (issue #1804): a 15" hose, not a 1.25 ft one.
 enum AttributeDimension {
   none,
   thicknessMm,
@@ -45,6 +47,7 @@ enum AttributeDimension {
   pressureBar,
   massKg,
   lengthM,
+  shortLengthM,
   depthM,
   speedMps,
   durationH,
@@ -342,12 +345,12 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.choice,
         choiceKeys: ['lp', 'hp', 'lpi'],
       ),
-      // Stored in metres and shown in the diver's length unit through the
-      // existing lengthM dimension, like an SMB or a reel line.
+      // Stored in metres, shown in cm or inches: hoses are sold as 22" or
+      // 56 cm, never as 1.8 ft or 0.56 m (issue #1804).
       EquipmentAttributeDef(
         key: 'hose_length_m',
         kind: AttributeKind.number,
-        dimension: AttributeDimension.lengthM,
+        dimension: AttributeDimension.shortLengthM,
       ),
     ],
     EquipmentType.bcd: [
@@ -531,10 +534,12 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.choice,
         choiceKeys: ['open', 'closed'],
       ),
+      // Shown in cm or inches like a hose (issue #1804). A reel's line below
+      // stays in m / ft: 45 m of line is not read as 4500 cm.
       EquipmentAttributeDef(
         key: 'length_m',
         kind: AttributeKind.number,
-        dimension: AttributeDimension.lengthM,
+        dimension: AttributeDimension.shortLengthM,
       ),
     ],
     EquipmentType.reel: [

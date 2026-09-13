@@ -86,6 +86,6 @@ void main() {
     expect(keysFor(EquipmentType.housing), contains('depth_rating_m'));
     expect(keysFor(EquipmentType.strobe), contains('depth_rating_m'));
     final hose = EquipmentAttributeCatalog.defFor('hose_length_m')!;
-    expect(hose.dimension, AttributeDimension.lengthM);
+    expect(hose.dimension, AttributeDimension.shortLengthM);
   });
 }

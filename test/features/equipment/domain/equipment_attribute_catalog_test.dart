@@ -96,7 +96,10 @@ void main() {
       'lift_capacity_kg': AttributeDimension.massKg,
       'buoyancy_kg': AttributeDimension.massKg,
       'dry_weight_kg': AttributeDimension.massKg,
-      'length_m': AttributeDimension.lengthM,
+      // Hose and SMB lengths are read in cm / in; a reel's line stays in
+      // m / ft (issue #1804).
+      'hose_length_m': AttributeDimension.shortLengthM,
+      'length_m': AttributeDimension.shortLengthM,
       'line_length_m': AttributeDimension.lengthM,
       'depth_rating_m': AttributeDimension.depthM,
       'thickness_mm': AttributeDimension.thicknessMm,

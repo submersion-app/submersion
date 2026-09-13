@@ -5834,6 +5834,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => 'כל הציוד כבר נבחר';
 
   @override
+  String get diveLog_equipmentPicker_allSpare => 'הציוד הנותר מסומן כרזרבי';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'שגיאה בטעינת ציוד: $error';
   }
@@ -5843,6 +5846,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
 
   @override
   String get diveLog_equipmentPicker_title => 'הוספת ציוד';
@@ -10524,6 +10531,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'נמכר';
+
+  @override
+  String get enum_equipmentStatus_spare => 'רזרבי';
 
   @override
   String get enum_equipmentType_backplate => 'פלטת גב';

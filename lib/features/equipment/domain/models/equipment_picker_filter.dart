@@ -22,6 +22,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 ///
 /// [EquipmentStatus.retired] is absent from the picker by construction
 /// (`getActiveEquipment` excludes it, per #636), so it is never offered.
+/// [EquipmentStatus.spare] is absent too wherever the caller sets
+/// `EquipmentPickerSheet.hideSpare` (#1803).
 @immutable
 class EquipmentPickerFilter {
   /// One status, or null for every status the picker can show.

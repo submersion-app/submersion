@@ -381,5 +381,21 @@ void main() {
       expect(applied.type, EquipmentType.bcd);
       expect(applied.attrConditions, isEmpty);
     });
+
+    testWidgets('spare is offered as a status so spare gear is filterable '
+        '(#1803)', (tester) async {
+      _useTallSurface(tester);
+      final container = await _container();
+
+      await _openSheet(tester, container);
+
+      await tester.scrollUntilVisible(
+        _statusChip(EquipmentStatus.spare),
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(_statusChip(EquipmentStatus.spare), findsOneWidget);
+      expect(find.text('Spare'), findsOneWidget);
+    });
   });
 }
