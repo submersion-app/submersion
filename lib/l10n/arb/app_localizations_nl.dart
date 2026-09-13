@@ -20132,6 +20132,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_action_deleteTag => 'Tag verwijderen';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Duiken met tag \"$tagName\" tonen';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Weet je zeker dat je \"$tagName\" wilt verwijderen? Dit verwijdert het van alle duiken.';
   }

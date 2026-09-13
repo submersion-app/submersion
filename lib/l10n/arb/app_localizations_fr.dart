@@ -20392,6 +20392,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_action_deleteTag => 'Supprimer l\'étiquette';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Afficher les plongées avec l\'étiquette « $tagName »';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Voulez-vous vraiment supprimer « $tagName » ? Cela la supprimera de toutes les plongées.';
   }

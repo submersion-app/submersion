@@ -19778,6 +19778,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_action_deleteTag => 'מחק תגית';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'הצג צלילות עם התגית \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'האם אתה בטוח שברצונך למחוק את \"$tagName\"? פעולה זו תסיר אותה מכל הצלילות.';
   }

@@ -12322,6 +12322,15 @@
     }
   },
   "tags_action_deleteTag": "Delete tag",
+  "tags_action_showDives": "Show dives tagged \"{tagName}\"",
+  "@tags_action_showDives": {
+    "description": "Tooltip on a tag chip; tapping the chip opens the dive list filtered to that tag",
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      }
+    }
+  },
   "tags_dialog_deleteMessage": "Are you sure you want to delete \"{tagName}\"? This will remove it from all dives.",
   "tags_dialog_deleteTitle": "Delete Tag?",
   "tags_empty": "No tags yet. Create tags when editing dives.",

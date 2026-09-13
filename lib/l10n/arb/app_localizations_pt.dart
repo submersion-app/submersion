@@ -20315,6 +20315,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tags_action_deleteTag => 'Excluir tag';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Mostrar mergulhos com a tag \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Tem certeza de que deseja excluir \"$tagName\"? Isso irá removê-la de todos os mergulhos.';
   }

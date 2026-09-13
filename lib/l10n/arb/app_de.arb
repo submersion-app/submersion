@@ -6084,6 +6084,7 @@
   "tags_picker_noMatches": "Keine Tags entsprechen deiner Suche.",
   "tags_picker_addCount": "{count, plural, =0{Tags hinzufügen} =1{1 Tag hinzufügen} other{{count} Tags hinzufügen}}",
   "tags_action_deleteTag": "Tag löschen",
+  "tags_action_showDives": "Tauchgänge mit Tag \"{tagName}\" anzeigen",
   "tags_dialog_deleteMessage": "Möchten Sie \"{tagName}\" wirklich löschen? Dies entfernt es von allen Tauchgängen.",
   "tags_dialog_deleteTitle": "Tag löschen?",
   "tags_empty": "Noch keine Tags. Erstellen Sie Tags beim Bearbeiten von Tauchgängen.",

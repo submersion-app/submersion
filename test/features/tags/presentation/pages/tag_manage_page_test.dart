@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -130,6 +132,46 @@ Widget _buildTestWidget({
   );
 }
 
+/// Like [_buildTestWidget], but under a GoRouter with a stub dive list, so a
+/// row tap can navigate. [initialFilter] seeds the dive filter the diver had
+/// before opening Manage Tags.
+Widget _buildRoutedTestWidget({
+  required List<TagStatistic> stats,
+  DiveFilterState initialFilter = const DiveFilterState(),
+}) {
+  final router = GoRouter(
+    initialLocation: '/tags',
+    routes: [
+      GoRoute(
+        path: '/tags',
+        builder: (context, state) => const TagManagePage(),
+      ),
+      GoRoute(
+        path: '/dives',
+        builder: (context, state) =>
+            const Scaffold(body: Text('DIVES_LIST_PAGE')),
+      ),
+    ],
+  );
+  return ProviderScope(
+    overrides: [
+      tagStatisticsProvider.overrideWith((ref) => Future.value(stats)),
+      tagListNotifierProvider.overrideWith(
+        (ref) => _MockTagListNotifier(_tagsFromStats(stats)),
+      ),
+      tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      diveFilterProvider.overrideWith((ref) => initialFilter),
+    ],
+    child: MaterialApp.router(
+      routerConfig: router,
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+    ),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -246,18 +288,33 @@ void main() {
       expect(find.text('Photography'), findsNothing);
     });
 
-    testWidgets('tapping a tag opens edit dialog', (tester) async {
+    testWidgets('the edit button opens the edit dialog', (tester) async {
       await tester.pumpWidget(_buildTestWidget(stats: _testStats));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Night Dive'));
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag1')));
       await tester.pumpAndSettle();
 
-      // Edit dialog should appear
       expect(find.text('Edit Tag'), findsOneWidget);
       expect(find.text('Tag Name'), findsOneWidget);
       expect(find.text('Save'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
+      // The dialog edits the tag whose button was tapped.
+      expect(find.widgetWithText(TextField, 'Night Dive'), findsOneWidget);
+    });
+
+    testWidgets('the edit button is hidden while selecting', (tester) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('tag_edit_tag1')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      // A row tap toggles the row during selection, so a second tap target
+      // inside the row that does something else would be a trap.
+      expect(find.byKey(const ValueKey('tag_edit_tag1')), findsNothing);
+      expect(find.text('12 dives'), findsOneWidget);
     });
 
     testWidgets('FAB opens create dialog', (tester) async {
@@ -290,7 +347,7 @@ void main() {
       expect(find.byType(FloatingActionButton), findsNothing);
     });
 
-    testWidgets('long-press on a tag does not enter selection mode', (
+    testWidgets('long-press on a tag edits it and does not enter selection', (
       tester,
     ) async {
       await tester.pumpWidget(_buildTestWidget(stats: _testStats));
@@ -299,9 +356,26 @@ void main() {
       await tester.longPress(find.text('Night Dive'));
       await tester.pumpAndSettle();
 
+      // A long press opened the editor before a row tap started opening the
+      // tag's dives (#1833), and still does.
+      expect(find.text('Edit Tag'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Night Dive'), findsOneWidget);
       expect(find.text('1 selected'), findsNothing);
       expect(find.byType(Checkbox), findsNothing);
       expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+    });
+
+    testWidgets('long-press while selecting toggles the row', (tester) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.longPress(find.text('Night Dive'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 selected'), findsOneWidget);
+      expect(find.text('Edit Tag'), findsNothing);
     });
 
     testWidgets('delete button shows confirmation with dive count', (
@@ -372,6 +446,85 @@ void main() {
             .onPressed,
         isNotNull,
       );
+    });
+  });
+
+  group('tapping a tag opens its dives (#1833)', () {
+    testWidgets('a row tap opens the dive list filtered to that tag', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildRoutedTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Night Dive'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('DIVES_LIST_PAGE')),
+      );
+      expect(container.read(diveFilterProvider).tagIds, ['tag1']);
+    });
+
+    testWidgets('the tag filter replaces the filter the diver had before', (
+      tester,
+    ) async {
+      // A leftover filter would hide some of the tag's dives, so the list
+      // would no longer match the count shown on the row.
+      await tester.pumpWidget(
+        _buildRoutedTestWidget(
+          stats: _testStats,
+          initialFilter: const DiveFilterState(
+            siteId: 'site-1',
+            tagIds: ['tag2'],
+            favoritesOnly: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Night Dive'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('DIVES_LIST_PAGE')),
+      );
+      final filter = container.read(diveFilterProvider);
+      expect(filter.tagIds, ['tag1']);
+      expect(filter.siteId, isNull);
+      expect(filter.favoritesOnly, isNull);
+    });
+
+    testWidgets('a row tap while selecting toggles it and stays put', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildRoutedTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night Dive'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 selected'), findsOneWidget);
+      expect(find.text('DIVES_LIST_PAGE'), findsNothing);
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('Night Dive')),
+      );
+      expect(container.read(diveFilterProvider).tagIds, isEmpty);
+    });
+
+    testWidgets('the edit button edits without leaving the page', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildRoutedTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag2')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit Tag'), findsOneWidget);
+      expect(find.text('DIVES_LIST_PAGE'), findsNothing);
     });
   });
 

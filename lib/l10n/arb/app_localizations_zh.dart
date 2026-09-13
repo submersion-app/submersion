@@ -19234,6 +19234,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_action_deleteTag => '删除标签';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '显示带有「$tagName」标签的潜水';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return '确定要删除「$tagName」吗？这将从所有潜水中移除该标签。';
   }

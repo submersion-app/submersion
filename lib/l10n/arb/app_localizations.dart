@@ -33438,6 +33438,12 @@ abstract class AppLocalizations {
   /// **'Delete tag'**
   String get tags_action_deleteTag;
 
+  /// Tooltip on a tag chip; tapping the chip opens the dive list filtered to that tag
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives tagged \"{tagName}\"'**
+  String tags_action_showDives(String tagName);
+
   /// No description provided for @tags_dialog_deleteMessage.
   ///
   /// In en, this message translates to:

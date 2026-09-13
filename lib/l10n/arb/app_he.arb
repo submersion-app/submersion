@@ -6084,6 +6084,7 @@
   "tags_picker_noMatches": "אין תגיות התואמות לחיפוש שלך.",
   "tags_picker_addCount": "{count, plural, =0{הוספת תגיות} =1{הוספת תגית אחת} other{הוספת {count} תגיות}}",
   "tags_action_deleteTag": "מחק תגית",
+  "tags_action_showDives": "הצג צלילות עם התגית \"{tagName}\"",
   "tags_dialog_deleteMessage": "האם אתה בטוח שברצונך למחוק את \"{tagName}\"? פעולה זו תסיר אותה מכל הצלילות.",
   "tags_dialog_deleteTitle": "למחוק תגית?",
   "tags_empty": "עדיין אין תגיות. צור תגיות בעת עריכת צלילות.",

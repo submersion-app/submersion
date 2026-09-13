@@ -6000,6 +6000,7 @@
   "tags_picker_noMatches": "Aucun tag ne correspond à votre recherche.",
   "tags_picker_addCount": "{count, plural, =0{Ajouter des tags} =1{Ajouter 1 tag} other{Ajouter {count} tags}}",
   "tags_action_deleteTag": "Supprimer l'étiquette",
+  "tags_action_showDives": "Afficher les plongées avec l'étiquette « {tagName} »",
   "tags_dialog_deleteMessage": "Voulez-vous vraiment supprimer « {tagName} » ? Cela la supprimera de toutes les plongées.",
   "tags_dialog_deleteTitle": "Supprimer l'étiquette ?",
   "tags_empty": "Aucune étiquette pour le moment. Créez des étiquettes lors de la modification des plongées.",

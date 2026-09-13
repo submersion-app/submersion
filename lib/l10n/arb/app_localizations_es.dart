@@ -20319,6 +20319,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tags_action_deleteTag => 'Eliminar etiqueta';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Mostrar inmersiones con la etiqueta \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return '¿Estás seguro de que deseas eliminar \"$tagName\"? Esto la eliminará de todas las inmersiones.';
   }

@@ -19929,6 +19929,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_action_deleteTag => 'حذف الوسم';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'عرض الغطسات الموسومة بـ \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'هل أنت متأكد من حذف \"$tagName\"؟ سيتم إزالته من جميع الغطسات.';
   }

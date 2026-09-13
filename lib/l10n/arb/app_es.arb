@@ -6084,6 +6084,7 @@
   "tags_picker_noMatches": "Ninguna etiqueta coincide con tu búsqueda.",
   "tags_picker_addCount": "{count, plural, =0{Añadir etiquetas} =1{Añadir 1 etiqueta} other{Añadir {count} etiquetas}}",
   "tags_action_deleteTag": "Eliminar etiqueta",
+  "tags_action_showDives": "Mostrar inmersiones con la etiqueta \"{tagName}\"",
   "tags_dialog_deleteMessage": "¿Estás seguro de que deseas eliminar \"{tagName}\"? Esto la eliminará de todas las inmersiones.",
   "tags_dialog_deleteTitle": "¿Eliminar Etiqueta?",
   "tags_empty": "Aún no hay etiquetas. Crea etiquetas al editar inmersiones.",

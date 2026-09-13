@@ -20257,6 +20257,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_action_deleteTag => 'Tag löschen';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Tauchgänge mit Tag \"$tagName\" anzeigen';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Möchten Sie \"$tagName\" wirklich löschen? Dies entfernt es von allen Tauchgängen.';
   }

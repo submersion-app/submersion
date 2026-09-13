@@ -19951,6 +19951,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_action_deleteTag => 'Delete tag';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Show dives tagged \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Are you sure you want to delete \"$tagName\"? This will remove it from all dives.';
   }

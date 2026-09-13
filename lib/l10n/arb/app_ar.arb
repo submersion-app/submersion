@@ -6084,6 +6084,7 @@
   "tags_picker_noMatches": "لا توجد وسوم تطابق بحثك.",
   "tags_picker_addCount": "{count, plural, =0{إضافة وسوم} =1{إضافة وسم واحد} other{إضافة {count} وسم}}",
   "tags_action_deleteTag": "حذف الوسم",
+  "tags_action_showDives": "عرض الغطسات الموسومة بـ \"{tagName}\"",
   "tags_dialog_deleteMessage": "هل أنت متأكد من حذف \"{tagName}\"؟ سيتم إزالته من جميع الغطسات.",
   "tags_dialog_deleteTitle": "حذف الوسم؟",
   "tags_empty": "لا توجد وسوم بعد. أنشئ وسوماً عند تعديل الغطسات.",
