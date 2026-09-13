@@ -101,12 +101,42 @@ class CsvImportParser implements ImportParser {
   // Private helpers
   // ---------------------------------------------------------------------------
 
+  /// Entity types imported when neither a preset nor the mapping asks for more.
+  static const _defaultEntityTypes = {
+    ImportEntityType.dives,
+    ImportEntityType.sites,
+  };
+
+  /// Target fields whose values only become linked records when the
+  /// correlator extracts the matching entity type. Without it a mapped site
+  /// column is dropped and a mapped buddy column stays free text (#1830).
+  /// 'site' is the legacy alias the correlator normalizes to 'siteName'.
+  static const _entityTypeForTargetField = {
+    'siteName': ImportEntityType.sites,
+    'site': ImportEntityType.sites,
+    'buddy': ImportEntityType.buddies,
+  };
+
+  /// [entityTypes] plus every type a column in [mappings] needs, so a
+  /// preset's or saved mapping's entity set cannot drift from its columns.
+  static Set<ImportEntityType> _withMappedEntityTypes(
+    Set<ImportEntityType> entityTypes,
+    Iterable<FieldMapping> mappings,
+  ) => {
+    ...entityTypes,
+    for (final mapping in mappings)
+      for (final column in mapping.columns)
+        ?_entityTypeForTargetField[column.targetField],
+  };
+
   /// Build an [ImportConfiguration] from the resolved mapping source.
   ///
   /// Priority order:
   /// 1. Explicit custom mapping (user-provided).
   /// 2. Detected preset from pipeline Detect stage.
   /// 3. Auto-mapped from CSV headers using keyword matching.
+  ///
+  /// In every case the entity types are widened by [_withMappedEntityTypes].
   ImportConfiguration _buildConfiguration({
     required ParsedCsv parsedCsv,
     required DetectionResult detection,
@@ -121,9 +151,10 @@ class CsvImportParser implements ImportParser {
     if (resolvedMapping != null) {
       return ImportConfiguration(
         mappings: {'primary': resolvedMapping},
-        entityTypesToImport:
-            detection.matchedPreset?.supportedEntities ??
-            const {ImportEntityType.dives, ImportEntityType.sites},
+        entityTypesToImport: _withMappedEntityTypes(
+          detection.matchedPreset?.supportedEntities ?? _defaultEntityTypes,
+          [resolvedMapping],
+        ),
         timeInterpretation: timeInterpretation,
         specificUtcOffset: specificUtcOffset,
         sourceApp: options?.sourceApp,
@@ -135,7 +166,10 @@ class CsvImportParser implements ImportParser {
       final preset = detection.matchedPreset!;
       return ImportConfiguration(
         mappings: preset.mappings,
-        entityTypesToImport: preset.supportedEntities,
+        entityTypesToImport: _withMappedEntityTypes(
+          preset.supportedEntities,
+          preset.mappings.values,
+        ),
         sourceApp: preset.sourceApp ?? options?.sourceApp,
         preset: preset,
         timeInterpretation: timeInterpretation,
@@ -147,6 +181,9 @@ class CsvImportParser implements ImportParser {
     final autoMapping = _autoMapFromHeaders(parsedCsv.headers);
     return ImportConfiguration(
       mappings: {'primary': autoMapping},
+      entityTypesToImport: _withMappedEntityTypes(_defaultEntityTypes, [
+        autoMapping,
+      ]),
       timeInterpretation: timeInterpretation,
       specificUtcOffset: specificUtcOffset,
       sourceApp: options?.sourceApp,
