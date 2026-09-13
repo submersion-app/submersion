@@ -139,15 +139,14 @@ Finder _findSearchField() {
 }
 
 Finder _findListItem(String text) {
-  return find.descendant(
-    of: find.byType(ListView),
-    matching: find.text(text),
-  );
+  return find.descendant(of: find.byType(ListView), matching: find.text(text));
 }
 
 void main() {
   group('USB tab search UI', () {
-    testWidgets('shows a persistent search text field and brand dropdown', (tester) async {
+    testWidgets('shows a persistent search text field and brand dropdown', (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
@@ -157,7 +156,7 @@ void main() {
         findsOneWidget,
         reason: 'USB tab should display a persistent search field',
       );
-      
+
       expect(
         find.byType(DropdownMenu<String?>),
         findsOneWidget,
@@ -255,7 +254,9 @@ void main() {
       );
     });
 
-    testWidgets('brand dropdown filters devices by manufacturer', (tester) async {
+    testWidgets('brand dropdown filters devices by manufacturer', (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
@@ -263,11 +264,15 @@ void main() {
       // Tap the dropdown to open menu
       await tester.tap(find.byType(DropdownMenu<String?>));
       await tester.pumpAndSettle();
-      
-      // Tap on 'Suunto'
-      await tester.tap(find.text('Suunto').last);
+
+      // Tap on 'Suunto'. DropdownMenu builds an offstage clone of every
+      // entry (an unkeyed MenuItemButton) purely to measure the widest
+      // label; the real, tappable one carries a GlobalKey and is the last
+      // match, so a bare find.text(...).last can hit the invisible clone
+      // instead.
+      await tester.tap(find.widgetWithText(MenuItemButton, 'Suunto').last);
       await tester.pumpAndSettle();
-      
+
       // Only Suunto devices should remain
       expect(_findListItem('D5'), findsOneWidget);
       expect(_findListItem('Shearwater'), findsNothing);
