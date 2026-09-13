@@ -179,6 +179,25 @@ class ReparseService {
       // one original had one, so the ownership guard applies here too --
       // otherwise the merge's own surface-gap markers are deleted (#1164).
       final rewritesEvents = !isMultiSource && ownsStrand;
+
+      // Whether this parse actually reports any tank/gas-mix/pressure
+      // information to carry over. A re-parse reads the exact same raw bytes
+      // as the original download, so both empty here means the parser or
+      // resolver produced less than a previous parse of those same bytes did
+      // -- never a genuine "the diver's tank is gone", which the raw bytes
+      // cannot express. Gating the tank/gas-switch/pressure rewrite on it
+      // stops such a parse from permanently deleting tank pressure history
+      // it has nothing to replace (issue #1853).
+      final parsedHasTankData =
+          parsed.tanks.isNotEmpty ||
+          parsed.gasMixes.isNotEmpty ||
+          parsed.samples.any(
+            (s) =>
+                s.pressureBar != null ||
+                (s.tankPressuresBar?.isNotEmpty ?? false),
+          );
+      final rewritesTanks = rewritesEvents && parsedHasTankData;
+
       if (rewritesEvents) {
         // Tombstoned: a peer's import only upserts these, so a row removed
         // here without one would linger there beside its re-inserted copy.
@@ -186,11 +205,13 @@ class ReparseService {
           'diveProfileEvents',
           await _idsOf(db.diveProfileEvents, diveId),
         );
-        await _deleteAndTombstone(
-          'gasSwitches',
-          await _idsOf(db.gasSwitches, diveId),
-        );
-        await _tankSeries.deleteForDive(diveId);
+        if (rewritesTanks) {
+          await _deleteAndTombstone(
+            'gasSwitches',
+            await _idsOf(db.gasSwitches, diveId),
+          );
+          await _tankSeries.deleteForDive(diveId);
+        }
 
         // Re-insert events from parsed data
         await _insertEvents(
@@ -204,9 +225,9 @@ class ReparseService {
       // ------------------------------------------------------------------
       // 6. DiveTanks carry-over (primary + single-source only)
       //    Skip for non-primary or multi-source dives to avoid overwriting
-      //    tank data owned by other sources.
+      //    tank data owned by other sources, and for a parse reporting no
+      //    tank data at all (see [parsedHasTankData] above).
       // ------------------------------------------------------------------
-      final rewritesTanks = sourceRow.isPrimary && !isMultiSource;
       if (rewritesTanks) {
         final tankIdsByIndex = await _carryOverTanks(
           diveId: diveId,
@@ -255,8 +276,8 @@ class ReparseService {
       }
       if (rewritesTanks) {
         await stage('diveTanks', await _idsOf(db.diveTanks, diveId));
-      }
-      if (rewritesEvents || rewritesTanks) {
+        // gasSwitches is only touched (deleted + re-inserted) alongside
+        // tanks; see the guard above.
         await stage('gasSwitches', await _idsOf(db.gasSwitches, diveId));
       }
       if (sourceRow.isPrimary) await stage('dives', [diveId]);

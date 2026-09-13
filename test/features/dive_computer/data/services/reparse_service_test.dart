@@ -2073,6 +2073,81 @@ void main() {
       expect(tank.endPressure, 90.0);
     });
 
+    test('a parse reporting no tank or gas-mix data at all preserves the '
+        'existing tank and its pressure history (issue #1853)', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      // Existing tank with a real pressure history, exactly as an earlier
+      // parse of these same raw bytes recorded it.
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank-0'),
+              diveId: Value('dive-1'),
+              volume: Value(12.0),
+              startPressure: Value(220.0),
+              endPressure: Value(90.0),
+              o2Percent: Value(32.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(0),
+              tankRole: Value('backGas'),
+            ),
+          );
+      await insertTankPressureSeries(
+        id: 'pp-0',
+        diveId: 'dive-1',
+        tankId: 'tank-0',
+        computerId: 'comp-1',
+        timestamp: 0,
+        pressure: 220.0,
+      );
+
+      // This re-parse reports neither tank records nor gas mixes -- the raw
+      // bytes did not change, so this can only be the parser/resolver
+      // missing what it found before, never a genuine "tank removed".
+      final parsed = makeParsedDive(tanks: [], gasMixes: []);
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final tanks = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+      expect(
+        tanks,
+        hasLength(1),
+        reason:
+            'the existing tank must survive a parse with nothing to '
+            'replace it with',
+      );
+      expect(tanks.single.id, 'tank-0');
+
+      final pressureSeries = await tankSeries.getSeriesForDive('dive-1');
+      expect(
+        pressureSeries,
+        hasLength(1),
+        reason:
+            'existing tank-pressure history must not be wiped when '
+            'the fresh parse has no pressure data of its own',
+      );
+      expect(pressureSeries.single.samples.single.pressure, 220.0);
+    });
+
     test('keeps both transmitters when a sample reports two tank pressures '
         '(issue #1223)', () async {
       // A CCR dive with an O2 and a diluent transmitter: libdivecomputer
