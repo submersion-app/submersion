@@ -651,6 +651,8 @@ class TagRepository {
 
       // Dive count first: the dive tag picker lists "tags you use most" in
       // exactly this order. Site counts (issue #1765) only break ties.
+      // stats-scope-exempt: usage counts for managing tags, not a
+      // statistic. A planned or stats-excluded dive still carries the tag.
       final result = await _db.customSelect('''
         SELECT t.*,
           (SELECT COUNT(*) FROM dive_tags dt WHERE dt.tag_id = t.id)
