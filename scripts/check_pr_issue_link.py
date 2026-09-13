@@ -95,8 +95,9 @@ def _strip_blocks(text):
 
     Block structure is decided before inline markup, so a `<!--` inside a
     fence is content. A comment block starts with `<!--` at the start of a
-    line (it may interrupt a paragraph) and ends on the line holding `-->`.
-    An unclosed fence or comment block runs to the end of the text.
+    line (it may interrupt a paragraph) and ends at the `-->`; any text after
+    the closer stays. An unclosed fence or comment block runs to the end of
+    the text.
     """
     kept, fence, in_comment = [], None, False
     for line in text.splitlines():
@@ -105,7 +106,11 @@ def _strip_blocks(text):
                 fence = None
             continue
         if in_comment:
-            in_comment = "-->" not in line
+            end = line.find("-->")
+            if end >= 0:
+                in_comment = False
+                # Text after the closer is visible, so it can hold a link.
+                kept.append(line[end + 3:])
             continue
         opening = _FENCE_OPEN.match(line)
         # A backtick fence's info string cannot contain a backtick, so a line
@@ -115,9 +120,13 @@ def _strip_blocks(text):
         ):
             fence = opening.group(1)
             continue
-        if _COMMENT_BLOCK_OPEN.match(line):
-            in_comment = "-->" not in line[line.index("<!--") + 4:]
+        if _COMMENT_BLOCK_OPEN.match(line) and (
+            "-->" not in line[line.index("<!--") + 4:]
+        ):
+            in_comment = True
             continue
+        # A comment that also closes on this line is left to _strip_inline,
+        # which removes only the comment and keeps the text after it.
         kept.append(line)
     return "\n".join(kept)
 

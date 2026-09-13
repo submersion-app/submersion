@@ -12,9 +12,20 @@ name: PR Issue Link
 # required status check ("PR Issue Link") next to CI Success in main's branch
 # protection. No `paths` filter: a required check that never reports leaves
 # the PR waiting forever.
+#
+# pull_request_target, not pull_request: under pull_request the workflow and
+# the script come from the PR's merge ref, so a PR could edit either to report
+# green and walk through its own gate. pull_request_target runs both as they
+# exist on main, and its check run still lands on the PR's head commit, where
+# branch protection looks for it. That trigger is safe here only because this
+# job never checks out or executes PR code: the checkout below is main, and
+# the description is read through the API as data. Keep it that way. Two
+# consequences: a PR that changes the rule is judged by main's copy until it
+# merges (Script Tests still runs its own unit tests), and the PR that first
+# adds this file gets no run.
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main]
     types: [opened, edited, reopened, synchronize]
 
@@ -32,9 +43,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # No `ref:`: under pull_request_target the default is main. Never point
+      # this at the PR head; that would run untrusted code with this token.
       - uses: actions/checkout@v7
         with:
           sparse-checkout: scripts
+          persist-credentials: false
 
       - name: Fetch the current PR description
         # Read live rather than from the event payload: re-running a failed

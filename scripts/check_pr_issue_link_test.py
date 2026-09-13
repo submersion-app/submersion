@@ -77,6 +77,17 @@ class ClosingRefsTest(unittest.TestCase):
         self.assertEqual(closing("<!-- Closes #123 -->"), set())
         self.assertEqual(closing("<!--\nCloses #123\n-->\nFixes #4"), {"#4"})
 
+    def test_text_after_a_one_line_comment_is_kept(self):
+        self.assertEqual(closing("<!-- template note --> Closes #1800"), {"#1800"})
+        self.assertEqual(
+            closing("<!-- a --> Closes #1 <!-- Fixes #2 --> fixes #3"),
+            {"#1", "#3"},
+        )
+
+    def test_text_after_a_multi_line_comment_closes_is_kept(self):
+        body = "<!--\nCloses #5\n--> Closes #1800"
+        self.assertEqual(closing(body), {"#1800"})
+
     def test_an_unterminated_html_comment_hides_the_rest(self):
         self.assertEqual(closing("Fixes #4\n<!-- Closes #5"), {"#4"})
 
