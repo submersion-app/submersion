@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/services/legacy_buddy_conversion_service.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -28,6 +30,12 @@ final linkBuddyNamesDataProvider =
 /// providers tick only on `buddies` and `dives`, which a links-only
 /// conversion never writes. Takes the [ProviderContainer], not a
 /// `WidgetRef`, because Undo can run after the page that converted is gone.
+///
+/// The paginated list's buddy filters and the detail page's neighbor ids
+/// read `dive_buddies`. The list reloads in place rather than being
+/// invalidated: on a wide layout it sits beside the dive being linked, and
+/// an invalidate would drop it back to page one after every link. It is
+/// reloaded only when something already holds it.
 void refreshAfterLegacyBuddyConversion(ProviderContainer container) {
   container
     ..invalidate(buddiesForDiveProvider)
@@ -38,5 +46,11 @@ void refreshAfterLegacyBuddyConversion(ProviderContainer container) {
     ..invalidate(allBuddiesWithDiveCountProvider)
     ..invalidate(divesProvider)
     ..invalidate(diveListNotifierProvider)
+    ..invalidate(orderedDiveIdsProvider)
     ..invalidate(linkBuddyNamesDataProvider);
+  if (container.exists(paginatedDiveListProvider)) {
+    unawaited(
+      container.read(paginatedDiveListProvider.notifier).reloadLoadedPages(),
+    );
+  }
 }
