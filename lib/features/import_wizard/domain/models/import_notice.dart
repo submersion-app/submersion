@@ -12,6 +12,11 @@ enum ImportNoticeKind {
   /// so size and role came from the default preset rather than the diver's
   /// own cylinder (issue #1365).
   unknownTransmitter,
+
+  /// Rows of a CSV file that were not imported because their date could not
+  /// be read (issue #1828). Unlike the others this is about dives missing
+  /// from the import, not data missing from dives that imported.
+  unreadableDates,
 }
 
 /// One grouped notice for the import summary screen.
@@ -19,8 +24,17 @@ class ImportNotice {
   /// Which notice this is; drives the localized wording in the summary.
   final ImportNoticeKind kind;
 
-  /// How many imported dives the notice applies to.
+  /// How many imported dives the notice applies to. For
+  /// [ImportNoticeKind.unreadableDates], how many rows were not imported.
   final int affectedDives;
 
-  const ImportNotice({required this.kind, required this.affectedDives});
+  /// Spreadsheet rows (header = row 1) the notice is about, in order. Only
+  /// [ImportNoticeKind.unreadableDates] fills it in.
+  final List<int> rowNumbers;
+
+  const ImportNotice({
+    required this.kind,
+    required this.affectedDives,
+    this.rowNumbers = const [],
+  });
 }

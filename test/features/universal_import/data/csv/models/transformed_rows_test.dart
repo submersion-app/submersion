@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/csv/models/transformed_rows.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/date_order.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 
 void main() {
@@ -145,12 +146,14 @@ void main() {
         ],
         warnings: [warning],
         fileRole: 'profile',
+        dateOrder: DateOrder.dayFirst,
       );
 
-      expect(rows.props, hasLength(3));
+      expect(rows.props, hasLength(4));
       expect(rows.props[0], rows.rows);
       expect(rows.props[1], rows.warnings);
       expect(rows.props[2], rows.fileRole);
+      expect(rows.props[3], DateOrder.dayFirst);
     });
   });
 }

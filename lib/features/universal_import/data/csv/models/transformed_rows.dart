@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/universal_import/data/csv/transforms/date_order.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 
 /// Output of the Transform stage. Typed field maps with standardized names.
@@ -14,10 +15,17 @@ class TransformedRows extends Equatable {
   /// The file role these rows came from (e.g., 'primary', 'dive_profile').
   final String fileRole;
 
+  /// How this file's year-last numeric dates were read (the date column, or
+  /// the combined date-time column if there is none). Null when the file had
+  /// no such dates, or only dotted or dashed ones with nothing to decide
+  /// them. A companion profile file uses it so both files read alike.
+  final DateOrder? dateOrder;
+
   const TransformedRows({
     required this.rows,
     this.warnings = const [],
     this.fileRole = 'primary',
+    this.dateOrder,
   });
 
   bool get isEmpty => rows.isEmpty;
@@ -25,5 +33,5 @@ class TransformedRows extends Equatable {
   int get rowCount => rows.length;
 
   @override
-  List<Object?> get props => [rows, warnings, fileRole];
+  List<Object?> get props => [rows, warnings, fileRole, dateOrder];
 }

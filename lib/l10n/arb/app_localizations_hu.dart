@@ -22129,6 +22129,50 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Néhány sor nem lett importálva';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'Ezekben a sorokban nem olvasható a dátum. Ellenőrizd a fájl dátum oszlopát, javítsd ki ezeket a sorokat, majd importáld újra a fájlt.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sor nem lett importálva',
+      one: '1 sor nem lett importálva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sorok: $rows',
+      one: 'Sor: $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sorok: $rows és további $count',
+      one: 'Sorok: $rows és további 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -1341,4 +1341,87 @@ void main() {
       expect(find.text('Successfully Imported'), findsOneWidget);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Issue #1828: rows whose date could not be read used to vanish silently.
+  group('ImportSummaryStep: rows with an unreadable date', () {
+    Future<void> pumpWithSkippedRows(
+      WidgetTester tester,
+      List<int> rowNumbers, {
+      int dives = 12,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: dives},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: [
+            ImportNotice(
+              kind: ImportNoticeKind.unreadableDates,
+              affectedDives: rowNumbers.length,
+              rowNumbers: rowNumbers,
+            ),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+    }
+
+    testWidgets('counts the rows and names them', (tester) async {
+      await pumpWithSkippedRows(tester, const [4, 9, 12]);
+
+      expect(
+        find.byKey(const Key('import_summary_unreadable_dates')),
+        findsOneWidget,
+      );
+      expect(find.text('Some rows were not imported'), findsOneWidget);
+      expect(find.textContaining('date in these rows'), findsOneWidget);
+      expect(find.text('3 rows not imported'), findsOneWidget);
+      expect(find.text('Rows 4, 9, 12'), findsOneWidget);
+    });
+
+    testWidgets('uses the singular for a single row', (tester) async {
+      await pumpWithSkippedRows(tester, const [7]);
+
+      expect(find.text('1 row not imported'), findsOneWidget);
+      expect(find.text('Row 7'), findsOneWidget);
+    });
+
+    testWidgets('shortens a long list of rows', (tester) async {
+      await pumpWithSkippedRows(tester, [for (var r = 2; r <= 31; r++) r]);
+
+      expect(find.text('30 rows not imported'), findsOneWidget);
+      expect(
+        find.text('Rows 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 and 20 more'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('is not filed under data missing from the file', (
+      tester,
+    ) async {
+      // "Not in the file" explains gaps in dives that imported; these rows
+      // are dives that did not import at all.
+      await pumpWithSkippedRows(tester, const [4]);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsNothing);
+      expect(find.text('Not in the file'), findsNothing);
+    });
+
+    testWidgets('is shown even when no dive imported', (tester) async {
+      await pumpWithSkippedRows(tester, const [2, 3], dives: 0);
+
+      expect(
+        find.byKey(const Key('import_summary_unreadable_dates')),
+        findsOneWidget,
+      );
+      expect(find.text('2 rows not imported'), findsOneWidget);
+    });
+  });
 }

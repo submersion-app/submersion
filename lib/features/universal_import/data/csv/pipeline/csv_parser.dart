@@ -49,17 +49,26 @@ class CsvParser {
         .map((h) => (h?.toString() ?? '').trim())
         .toList();
 
-    final dataRows = allRows
-        .skip(1)
-        .where((row) => !_isEmptyRow(row))
-        .map((row) => row.map((cell) => cell?.toString() ?? '').toList())
-        .toList();
+    // Each record is one spreadsheet row (a quoted multi-line cell included),
+    // so record index + 1 is the row number the user sees, header = row 1.
+    final dataRows = <List<String>>[];
+    final sourceRowNumbers = <int>[];
+    for (var i = 1; i < allRows.length; i++) {
+      final row = allRows[i];
+      if (_isEmptyRow(row)) continue;
+      dataRows.add(row.map((cell) => cell?.toString() ?? '').toList());
+      sourceRowNumbers.add(i + 1);
+    }
 
     if (dataRows.isEmpty) {
       throw const CsvParseException('CSV file has headers but no data rows');
     }
 
-    return ParsedCsv(headers: headers, rows: dataRows);
+    return ParsedCsv(
+      headers: headers,
+      rows: dataRows,
+      sourceRowNumbers: sourceRowNumbers,
+    );
   }
 
   /// Normalize all line endings to \n.

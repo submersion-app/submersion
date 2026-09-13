@@ -22140,6 +22140,50 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Einige Zeilen wurden nicht importiert';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'Das Datum in diesen Zeilen konnte nicht gelesen werden. Prüfe die Datumsspalte in der Datei, korrigiere diese Zeilen und importiere die Datei erneut.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen nicht importiert',
+      one: '1 Zeile nicht importiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Zeilen $rows',
+      one: 'Zeile $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Zeilen $rows und $count weitere',
+      one: 'Zeilen $rows und 1 weitere',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
