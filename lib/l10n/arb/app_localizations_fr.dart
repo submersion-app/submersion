@@ -22333,6 +22333,69 @@ class AppLocalizationsFr extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Fichiers';
 
   @override
+  String universalImport_divers_intro(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ce carnet contient des plongées de $count plongeurs. Choisissez où importer les plongées et les brevets de chaque plongeur.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_certificationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count brevets',
+      one: '1 brevet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_divers_unownedRow => 'Plongées sans plongeur';
+
+  @override
+  String get universalImport_divers_targetLabel => 'Importer dans';
+
+  @override
+  String universalImport_divers_targetNew(String name) {
+    return 'Créer le profil « $name »';
+  }
+
+  @override
+  String get universalImport_divers_targetSkip => 'Ne pas importer';
+
+  @override
+  String universalImport_divers_newLabel(String name) {
+    return 'Nouveau : $name';
+  }
+
+  @override
+  String get universalImport_summary_byProfileTitle => 'Par profil';
+
+  @override
+  String get universalImport_summary_newProfile => 'Nouveau profil';
+
+  @override
+  String universalImport_summary_switchToSee(String name) {
+    return 'Passez à $name pour voir ces plongées';
+  }
+
+  @override
   String get universalImport_summary_noticesTitle => 'Absent du fichier';
 
   @override

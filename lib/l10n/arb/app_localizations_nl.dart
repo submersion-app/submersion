@@ -22057,6 +22057,69 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Bestanden';
 
   @override
+  String universalImport_divers_intro(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Dit logboek bevat duiken van $count duikers. Kies waar de duiken en brevetten van elke duiker naartoe gaan.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_certificationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count brevetten',
+      one: '1 brevet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_divers_unownedRow => 'Duiken zonder duiker';
+
+  @override
+  String get universalImport_divers_targetLabel => 'Importeren in';
+
+  @override
+  String universalImport_divers_targetNew(String name) {
+    return 'Nieuw profiel \"$name\" maken';
+  }
+
+  @override
+  String get universalImport_divers_targetSkip => 'Niet importeren';
+
+  @override
+  String universalImport_divers_newLabel(String name) {
+    return 'Nieuw: $name';
+  }
+
+  @override
+  String get universalImport_summary_byProfileTitle => 'Per profiel';
+
+  @override
+  String get universalImport_summary_newProfile => 'Nieuw profiel';
+
+  @override
+  String universalImport_summary_switchToSee(String name) {
+    return 'Schakel over naar $name om deze duiken te zien';
+  }
+
+  @override
   String get universalImport_summary_noticesTitle => 'Niet in het bestand';
 
   @override

@@ -21848,6 +21848,69 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'الملفات';
 
   @override
+  String universalImport_divers_intro(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'يحتوي هذا السجل على غطسات لـ $count غواصين. اختر وجهة غطسات وشهادات كل غواص.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_certificationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهادات',
+      one: 'شهادة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_divers_unownedRow => 'غطسات بلا غواص';
+
+  @override
+  String get universalImport_divers_targetLabel => 'استيراد إلى';
+
+  @override
+  String universalImport_divers_targetNew(String name) {
+    return 'إنشاء ملف غواص جديد \"$name\"';
+  }
+
+  @override
+  String get universalImport_divers_targetSkip => 'عدم الاستيراد';
+
+  @override
+  String universalImport_divers_newLabel(String name) {
+    return 'جديد: $name';
+  }
+
+  @override
+  String get universalImport_summary_byProfileTitle => 'حسب ملف الغواص';
+
+  @override
+  String get universalImport_summary_newProfile => 'ملف غواص جديد';
+
+  @override
+  String universalImport_summary_switchToSee(String name) {
+    return 'انتقل إلى $name لرؤية هذه الغطسات';
+  }
+
+  @override
   String get universalImport_summary_noticesTitle => 'غير موجود في الملف';
 
   @override

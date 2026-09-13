@@ -21680,6 +21680,69 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'קבצים';
 
   @override
+  String universalImport_divers_intro(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'יומן זה מכיל צלילות של $count צוללים. בחר לאן ייובאו הצלילות וההסמכות של כל צולל.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_certificationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count הסמכות',
+      one: 'הסמכה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_divers_unownedRow => 'צלילות ללא צולל';
+
+  @override
+  String get universalImport_divers_targetLabel => 'ייבוא אל';
+
+  @override
+  String universalImport_divers_targetNew(String name) {
+    return 'יצירת פרופיל חדש \"$name\"';
+  }
+
+  @override
+  String get universalImport_divers_targetSkip => 'לא לייבא';
+
+  @override
+  String universalImport_divers_newLabel(String name) {
+    return 'חדש: $name';
+  }
+
+  @override
+  String get universalImport_summary_byProfileTitle => 'לפי פרופיל';
+
+  @override
+  String get universalImport_summary_newProfile => 'פרופיל חדש';
+
+  @override
+  String universalImport_summary_switchToSee(String name) {
+    return 'עבור אל $name כדי לראות צלילות אלה';
+  }
+
+  @override
   String get universalImport_summary_noticesTitle => 'לא נמצא בקובץ';
 
   @override

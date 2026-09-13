@@ -21083,6 +21083,66 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_filesTitle => '文件';
 
   @override
+  String universalImport_divers_intro(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此日志包含 $count 名潜水员的潜水记录。请选择每位潜水员的潜水和证书导入到哪里。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_certificationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个证书',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_divers_unownedRow => '无潜水员的潜水';
+
+  @override
+  String get universalImport_divers_targetLabel => '导入到';
+
+  @override
+  String universalImport_divers_targetNew(String name) {
+    return '新建潜水员档案“$name”';
+  }
+
+  @override
+  String get universalImport_divers_targetSkip => '不导入';
+
+  @override
+  String universalImport_divers_newLabel(String name) {
+    return '新建：$name';
+  }
+
+  @override
+  String get universalImport_summary_byProfileTitle => '按潜水员档案';
+
+  @override
+  String get universalImport_summary_newProfile => '新潜水员档案';
+
+  @override
+  String universalImport_summary_switchToSee(String name) {
+    return '切换到 $name 以查看这些潜水';
+  }
+
+  @override
   String get universalImport_summary_noticesTitle => '文件中没有此数据';
 
   @override
