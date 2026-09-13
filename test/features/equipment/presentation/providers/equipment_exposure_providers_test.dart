@@ -4,9 +4,11 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -88,6 +90,52 @@ void main() {
     expect(totals.diveCount, 3);
     expect(totals.firstDive, DateTime.utc(2026, 1, 10));
     expect(totals.lastDive, DateTime.utc(2026, 3, 10));
+  });
+
+  Future<EquipmentItem> itemWithTwoDives(EquipmentType type) async {
+    final item = await EquipmentRepository().createEquipment(
+      EquipmentItem(id: '', name: type.name, type: type),
+    );
+    await insertDive('a', dateMs: t1);
+    await insertDive('b', dateMs: t2);
+    await link('a', item.id);
+    await link('b', item.id);
+    return item;
+  }
+
+  test('a BCD accrues no battery cycles', () async {
+    final bcd = await itemWithTwoDives(EquipmentType.bcd);
+    final totals = await container.read(
+      equipmentExposureTotalsProvider(bcd.id).future,
+    );
+    expect(totals.byUnit[ExposureUnit.dives], 2);
+    expect(totals.byUnit.containsKey(ExposureUnit.cycles), isFalse);
+  });
+
+  test('a light accrues one battery cycle per dive', () async {
+    final light = await itemWithTwoDives(EquipmentType.light);
+    final totals = await container.read(
+      equipmentExposureTotalsProvider(light.id).future,
+    );
+    expect(totals.byUnit[ExposureUnit.cycles], 2);
+  });
+
+  test('a cycles clock opts unpowered gear in', () async {
+    final bcd = await itemWithTwoDives(EquipmentType.bcd);
+    await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: bcd.id,
+        serviceKindId: 'o2-cell-replacement',
+        exposureIntervals: const {ExposureUnit.cycles: 50},
+        createdAt: DateTime(2025),
+        updatedAt: DateTime(2025),
+      ),
+    );
+    final totals = await container.read(
+      equipmentExposureTotalsProvider(bcd.id).future,
+    );
+    expect(totals.byUnit[ExposureUnit.cycles], 2);
   });
 
   test('an unknown item yields the empty totals', () async {

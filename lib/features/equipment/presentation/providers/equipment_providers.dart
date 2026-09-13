@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
+import 'package:submersion/features/equipment/domain/services/battery_cycles.dart';
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
@@ -768,9 +769,15 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
       .watch(equipmentRepositoryProvider)
       .getItemExposure(item, siblings: siblings);
   final usage = exposure.samples;
+  final kindsById = {for (final k in allKinds) k.id: k};
   final classifier = ExposureClassifier(
     thresholds: ref.watch(exposureThresholdsProvider),
     loopTimeOnly: exposure.isRebreather,
+    countsCycles: accruesBatteryCycles(
+      type: item.type,
+      schedules: schedules,
+      kindsById: kindsById,
+    ),
     hasBatteryChild: exposure.fittedChildren.any(
       (c) => c.type == EquipmentType.battery,
     ),
@@ -778,7 +785,7 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
   return const ServiceDueEngine().evaluate(
     schedules: schedules,
-    kindsById: {for (final k in allKinds) k.id: k},
+    kindsById: kindsById,
     records: records,
     usage: usage,
     classifier: classifier,
