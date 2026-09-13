@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
+import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 
 /// Stub diagnostics service used to drive the FutureProvider tests in this
 /// file. We override `localFilesDiagnosticsServiceProvider` so the providers
@@ -50,6 +52,13 @@ void Function() _disposeOnce(ProviderContainer container) {
 
   addTearDown(dispose);
   return dispose;
+}
+
+class _StubPicker extends Fake implements PhotoPickerService {
+  _StubPicker({required this.supportsGalleryBrowsing});
+
+  @override
+  final bool supportsGalleryBrowsing;
 }
 
 void main() {
@@ -180,5 +189,40 @@ void main() {
     // What unmounting a ProviderScope does, and what the binding does for
     // every widget test before it checks for stray timers.
     disposeContainer();
+  });
+
+  // The resolver's only production construction site. Windows and Linux have
+  // no photo library, and a resolver that thinks otherwise reports a synced
+  // gallery photo as notFound, which orphans the row on every device.
+  group('platformGalleryResolverProvider photo library wiring', () {
+    for (final hasLibrary in [true, false]) {
+      test('follows supportsGalleryBrowsing=$hasLibrary', () {
+        final container = ProviderContainer(
+          overrides: [
+            photoPickerServiceProvider.overrideWithValue(
+              _StubPicker(supportsGalleryBrowsing: hasLibrary),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final resolver = container.read(platformGalleryResolverProvider);
+
+        expect(
+          resolver.canResolveOnThisDevice(
+            MediaItem(
+              id: 'g1',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.platformGallery,
+              platformAssetId: 'A',
+              takenAt: DateTime(2026),
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          ),
+          hasLibrary,
+        );
+      });
+    }
   });
 }
