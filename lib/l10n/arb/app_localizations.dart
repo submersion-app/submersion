@@ -62804,6 +62804,36 @@ abstract class AppLocalizations {
   /// **'Failed to load temperature trend'**
   String get statistics_conditions_tempTrend_error;
 
+  /// Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by Water Temperature'**
+  String get statistics_conditions_waterTempBands_title;
+
+  /// Subtitle under the dives-by-water-temperature card title, explaining that the chart shows how many dives fall in each temperature range
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across water temperature bands'**
+  String get statistics_conditions_waterTempBands_subtitle;
+
+  /// Empty state of the dives-by-water-temperature card, shown when no dive in the current filter has a water temperature recorded
+  ///
+  /// In en, this message translates to:
+  /// **'No water temperature data available'**
+  String get statistics_conditions_waterTempBands_empty;
+
+  /// Error state of the dives-by-water-temperature card, shown when the band counts could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load water temperature bands'**
+  String get statistics_conditions_waterTempBands_error;
+
+  /// Screen-reader summary of the dives-by-water-temperature-band bar chart
+  ///
+  /// In en, this message translates to:
+  /// **'Bar chart. Dives by water temperature. {description}'**
+  String statistics_conditions_waterTempBands_semanticLabel(String description);
+
   /// No description provided for @diveLog_filter_presetLast5Years.
   ///
   /// In en, this message translates to:

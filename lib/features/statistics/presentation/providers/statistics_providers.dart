@@ -11,6 +11,7 @@ import 'package:submersion/features/statistics/data/repositories/statistics_repo
 import 'package:submersion/features/statistics/presentation/providers/statistics_gas_lane_provider.dart';
 import 'package:submersion/features/statistics/data/services/deco_classification_service.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
+import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 
 /// Repository provider.
@@ -332,6 +333,24 @@ final waterTempTrendProvider = FutureProvider<List<TrendDataPoint>>((
     filter: filter,
   );
 });
+
+/// Dives per water-temperature band, in the diver's temperature unit
+/// (issue #1827).
+final waterTempBandDistributionProvider =
+    FutureProvider<List<WaterTempBandCount>>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(statisticsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(statisticsFilterProvider);
+      // Watched, not read: the bands are defined per unit, so switching
+      // between Celsius and Fahrenheit must re-bin the chart.
+      final unit = ref.watch(settingsProvider.select((s) => s.temperatureUnit));
+      return repository.getDivesByWaterTempBand(
+        unit: unit,
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
 
 // ============================================================================
 // Social & Buddies Providers

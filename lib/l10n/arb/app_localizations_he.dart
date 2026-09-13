@@ -37700,6 +37700,29 @@ class AppLocalizationsHe extends AppLocalizations {
       'טעינת מגמת הטמפרטורה נכשלה';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'צלילות לפי טמפרטורת מים';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי טמפרטורת מים';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'אין נתוני טמפרטורת מים זמינים';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'לא ניתן לטעון את טווחי טמפרטורת המים';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'תרשים עמודות. צלילות לפי טמפרטורת מים. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '5 השנים האחרונות';
 
   @override

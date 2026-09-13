@@ -38515,6 +38515,29 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo cargar la evolución de la temperatura';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Inmersiones por temperatura del agua';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Cómo se reparten tus inmersiones entre rangos de temperatura del agua';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'No hay datos de temperatura del agua disponibles';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'No se pudieron cargar los rangos de temperatura del agua';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Gráfico de barras. Inmersiones por temperatura del agua. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Últimos 5 años';
 
   @override

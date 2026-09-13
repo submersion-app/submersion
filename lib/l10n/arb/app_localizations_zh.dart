@@ -36225,6 +36225,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_conditions_tempTrend_error => '无法加载水温趋势';
 
   @override
+  String get statistics_conditions_waterTempBands_title => '按水温统计的潜水次数';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle => '您的潜水在各水温区间的分布';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty => '没有可用的水温数据';
+
+  @override
+  String get statistics_conditions_waterTempBands_error => '无法加载水温区间数据';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return '柱状图。按水温区间统计的潜水次数。$description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '最近 5 年';
 
   @override

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show compute, visibleForTesting;
 
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/statistics/data/series_profile_aggregates.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
+import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 
 export 'package:submersion/features/statistics/domain/trend_aggregation.dart'
     show TrendDataPoint;
@@ -1539,6 +1541,81 @@ class StatisticsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get temperature by month',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// Dives counted per water-temperature band, coldest band first (issue
+  /// #1827).
+  ///
+  /// The bands are [waterTempBandEdges] for [unit], so an imperial diver gets
+  /// Fahrenheit bands rather than Celsius ones relabelled. Each dive's stored
+  /// Celsius reading is converted to [unit] and rounded to the one decimal
+  /// `UnitFormatter.formatTemperature` shows before it is compared, so a dive
+  /// displayed as "65°F" lands in the band that starts at 65 even when it
+  /// was stored as 18.33 °C (64.994 °F), as a Kelvin UDDF import leaves it.
+  ///
+  /// Every band is returned, empty ones included, so the chart keeps its
+  /// shape. Returns an empty list when no dive in scope has a water
+  /// temperature.
+  Future<List<WaterTempBandCount>> getDivesByWaterTempBand({
+    required TemperatureUnit unit,
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final edges = waterTempBandEdges(unit);
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final df = _diveFilter(filter, alias: 'dives');
+      // A fixed expression chosen by the enum, never user text.
+      final displayTemp = switch (unit) {
+        TemperatureUnit.celsius => 'water_temp',
+        TemperatureUnit.fahrenheit => 'water_temp * 9.0 / 5.0 + 32.0',
+      };
+      // Highest edge first so the first matching WHEN is the dive's band.
+      // Edge variables come first: they appear before the diver and filter
+      // placeholders in the statement below, and Drift binds positionally.
+      final whens = [
+        for (var i = edges.length - 1; i >= 0; i--)
+          'WHEN temp >= ? THEN ${i + 1}',
+      ].join('\n            ');
+      final params = [...edges.reversed, ?diverId, ...df.params];
+
+      final results = await _db.customSelect('''
+        SELECT band, COUNT(*) AS count FROM (
+          SELECT CASE
+            $whens
+            ELSE 0
+          END AS band
+          FROM (
+            SELECT ROUND($displayTemp, 1) AS temp
+            FROM dives
+            WHERE water_temp IS NOT NULL $diverFilter ${df.clause}
+          )
+        )
+        GROUP BY band
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      if (results.isEmpty) return [];
+      final counts = <int, int>{
+        for (final row in results)
+          row.read<int>('band'): row.read<int>('count'),
+      };
+
+      return [
+        for (var band = 0; band <= edges.length; band++)
+          (
+            lower: band == 0 ? null : edges[band - 1],
+            upper: band == edges.length ? null : edges[band],
+            count: counts[band] ?? 0,
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives by water temperature band',
         error: e,
         stackTrace: stackTrace,
       );

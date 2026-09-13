@@ -38578,6 +38578,29 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger l\'évolution de la température';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Plongées par température de l\'eau';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Répartition de vos plongées par plage de température de l\'eau';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Aucune donnée de température de l\'eau disponible';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Impossible de charger les plages de température de l\'eau';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Diagramme en barres. Plongées par température de l\'eau. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '5 dernières années';
 
   @override
