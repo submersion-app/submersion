@@ -905,6 +905,32 @@ void main() {
       }
     });
 
+    test('maps a visibility in metres to visibilityMeters, beside the '
+        'rating bucket', () async {
+      const csv =
+          'Date,Visibility (m),Visibility Rating\n'
+          '2024-01-15,15.0,Good\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['visibilityMeters'], 15.0);
+      expect(dive['visibility'], 'good');
+      expect(result.warnings, isEmpty);
+    });
+
+    test('keeps a bare or non-metre visibility on the bucket field', () async {
+      for (final header in ['Visibility', 'Visibility (ft)']) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,Good\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['visibility'], 'good', reason: header);
+        expect(dive.containsKey('visibilityMeters'), isFalse, reason: header);
+      }
+    });
+
     test('keeps Visibility Rating and Rating apart in export order', () async {
       const csv =
           'Date,Visibility Rating,Rating\n'

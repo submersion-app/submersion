@@ -10,6 +10,9 @@ This guide explains how to submit effective pull requests.
 2. Check [open PRs](https://github.com/submersion-app/submersion/pulls)
 3. Review the [roadmap](contributing/roadmap.md)
 
+Every PR must relate to an issue (see [Linking Issues](#linking-issues)). If
+none exists for your change, open one before you open the PR.
+
 ### Discuss Large Changes
 
 For significant changes:
@@ -32,7 +35,8 @@ git remote add upstream https://github.com/submersion-app/submersion.git
 
 # Create branch
 git checkout -b feature/your-feature
-```text
+```
+
 ### 2. Make Changes
 
 - Follow [code style](contributing/code-style.md)
@@ -48,12 +52,14 @@ git commit -m "feat: add nitrox calculator"
 git commit -m "fix: correct MOD calculation for trimix"
 git commit -m "docs: add calculator documentation"
 git commit -m "test: add unit tests for gas calculations"
-```text
+```
+
 ### 4. Push
 
 ```bash
 git push origin feature/your-feature
-```text
+```
+
 ### 5. Open PR
 
 1. Go to your fork on GitHub
@@ -62,46 +68,64 @@ git push origin feature/your-feature
 
 ## PR Template
 
+GitHub pre-fills new PRs from
+[`.github/PULL_REQUEST_TEMPLATE.md`](https://github.com/submersion-app/submersion/blob/main/.github/PULL_REQUEST_TEMPLATE.md).
+A filled-out description looks like this:
+
 ```markdown
-## Description
+## Related Issue
 
-Brief description of what this PR does.
+Closes #123
 
-## Type of Change
+## Summary
 
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation
+Fixes the MOD calculation for trimix, which used the O2 fraction of air.
 
-## Changes Made
+## Changes
 
-- Added X
-- Modified Y
-- Removed Z
+- Pass the mix's own O2 fraction into `calculateMod`
+- Add unit tests for air, EAN32 and 18/45 trimix
 
-## Testing
+## Test Plan
 
-- [ ] Unit tests added/updated
-- [ ] Widget tests added/updated
-- [ ] Manual testing performed
-
-## Checklist
-
-- [ ] Code follows style guidelines
-- [ ] Tests pass locally
-- [ ] Documentation updated
-- [ ] No new warnings from `flutter analyze`
+- [x] `flutter test` passes
+- [x] `flutter analyze` passes
+- [x] Manual testing on: macOS
 
 ## Screenshots
 
-(If applicable)
+(Delete this section if not applicable.)
+```
 
-## Related Issues
+## Linking Issues
 
-Fixes #123
-Related to #456
-```text
+Every PR must relate to an issue. The **PR Issue Link** check blocks the merge
+until the description links one, and re-runs whenever the description is
+edited.
+
+| The PR... | Write | On merge |
+| --- | --- | --- |
+| fully resolves the issue | `Closes #123` (or `Fixes` / `Resolves`) | the issue closes |
+| is one step of a larger issue | `Part of #123` | the issue stays open |
+| is related work or a follow-up | `Refs #123` or `Related to #123` | the issue stays open |
+
+Things that trip people up:
+
+- **Only the description counts.** GitHub closes an issue only when a closing
+  keyword sits directly before the number in the PR description. A number in
+  the PR title, or a passing mention like "builds on #123", links nothing.
+- **One keyword per issue.** `Closes #1, closes #2` closes both;
+  `Closes #1, #2` closes only #1.
+- **Comments and code do not count.** A link inside an HTML comment
+  (`<!-- -->`) or a code span is ignored, by GitHub and by the check. The
+  template's examples live in a comment for that reason, so an unedited
+  template fails.
+- **Branch names are checked.** If the branch name contains an issue number
+  (`issue-123-...`, `github-issue-123-...`, `feature-request-123-...`), the
+  description must link that issue, with `Refs` if the PR does not resolve it.
+- **No issue yet?** Open one first. Only bot-authored PRs (version bumps,
+  Dependabot) are exempt.
+
 ## PR Best Practices
 
 ### Keep PRs Small
@@ -114,7 +138,7 @@ Related to #456
 
 - Explain what and why
 - Include context
-- Link related issues
+- Link the issue with `Closes #N` or `Refs #N` (see [Linking Issues](#linking-issues))
 
 ### Add Screenshots
 
@@ -155,7 +179,8 @@ For UI changes:
 git add .
 git commit -m "fix: address review feedback"
 git push origin feature/your-feature
-```text
+```
+
 ## After Merge
 
 ### Clean Up
@@ -169,7 +194,8 @@ git branch -d feature/your-feature
 
 # Update from upstream
 git pull upstream main
-```text
+```
+
 ### Celebrate
 
 Your contribution is now part of Submersion!
@@ -179,6 +205,9 @@ Your contribution is now part of Submersion!
 ### Bug Fixes
 
 ```markdown
+## Related Issue
+Closes #123
+
 ## Description
 Fixes incorrect depth unit conversion when switching between metric and imperial.
 
@@ -191,10 +220,14 @@ Corrected the conversion factor from 3.28084 to 0.3048 for feet to meters.
 ## Testing
 - Added unit tests for both conversion directions
 - Manually verified in settings page
-```text
+```
+
 ### New Features
 
 ```markdown
+## Related Issue
+Closes #456
+
 ## Description
 Adds a nitrox calculator to the tools section.
 
@@ -209,10 +242,14 @@ Adds a nitrox calculator to the tools section.
 
 ## Documentation
 - Updated tools section in user guide
-```text
+```
+
 ### Refactoring
 
 ```markdown
+## Related Issue
+Refs #789
+
 ## Description
 Refactors dive repository to use a base repository class.
 
@@ -226,7 +263,8 @@ Reduces code duplication across repositories.
 
 ## Testing
 All existing tests pass without modification.
-```text
+```
+
 ## Common Issues
 
 ### Merge Conflicts

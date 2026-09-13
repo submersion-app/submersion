@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
@@ -15,6 +18,29 @@ void main() {
 
   setUp(() {
     service = CsvExportService();
+  });
+
+  group('Custom Fields column (#1814)', () {
+    test('holds the dive\'s fields as JSON in their own order', () {
+      final dive = Dive(
+        id: 'dive-1',
+        dateTime: DateTime(2026, 3, 28, 10, 0),
+        customFields: const [
+          DiveCustomField(id: 'b', key: 'flag', sortOrder: 1),
+          DiveCustomField(id: 'a', key: 'zulu', value: 'x', sortOrder: 0),
+        ],
+      );
+
+      final rows = const CsvToListConverter().convert(
+        service.generateDivesCsvContent([dive]),
+      );
+      final cell = rows[1][rows.first.indexOf(DiveCsvColumns.customFields)];
+
+      expect(jsonDecode(cell as String), [
+        {'key': 'zulu', 'value': 'x'},
+        {'key': 'flag', 'value': ''},
+      ]);
+    });
   });
 
   group('sanitizeCsvField', () {
@@ -122,6 +148,7 @@ void main() {
         rows.first.indexOf(DiveCsvColumns.weatherDescription) + 1,
       );
       final row = rows[1];
+      expect(row[rows.first.indexOf(DiveCsvColumns.customFields)], '');
       expect(row[rows.first.indexOf(DiveCsvColumns.siteCity)], 'Victoria');
       expect(row[rows.first.indexOf(DiveCsvColumns.siteRegion)], 'Gozo');
       expect(row[rows.first.indexOf(DiveCsvColumns.siteCountry)], 'Malta');

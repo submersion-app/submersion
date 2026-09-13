@@ -5,6 +5,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_exposure
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/services/battery_cycles.dart';
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
@@ -51,6 +52,7 @@ final equipmentExposureInputsProvider =
       final classifier = ExposureClassifier(
         thresholds: ref.watch(exposureThresholdsProvider),
         loopTimeOnly: exposure.isRebreather,
+        countsCycles: await _accruesBatteryCycles(ref, item),
         hasBatteryChild: children.any((c) => c.type == EquipmentType.battery),
       );
       return (
@@ -61,6 +63,25 @@ final equipmentExposureInputsProvider =
         classifier: classifier,
       );
     });
+
+/// The clocks' cycles rule, read the way the clocks read it. A powered type
+/// needs no lookup; any other item is opted in by a cycles clock, so its
+/// schedules (and the kinds they inherit from) are read and watched.
+Future<bool> _accruesBatteryCycles(Ref ref, EquipmentItem item) async {
+  if (kBatteryPoweredTypes.contains(item.type)) return true;
+  final scheduleRepository = ref.watch(serviceScheduleRepositoryProvider);
+  final kindRepository = ref.watch(serviceKindRepositoryProvider);
+  ref.invalidateSelfWhen(scheduleRepository.watchSchedulesChanges());
+  ref.invalidateSelfWhen(kindRepository.watchServiceKindsChanges());
+  final schedules = await scheduleRepository.getSchedulesForEquipment(item.id);
+  if (schedules.isEmpty) return false;
+  final kinds = await kindRepository.getAllKinds();
+  return accruesBatteryCycles(
+    type: item.type,
+    schedules: schedules,
+    kindsById: {for (final k in kinds) k.id: k},
+  );
+}
 
 /// Totals per unit for the exposure card. [EquipmentExposureTotals.empty]
 /// for an unknown item or one with no dives.

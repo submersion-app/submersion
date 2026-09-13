@@ -6920,6 +6920,18 @@
   "equipment_list_typeFilterAll": "All Types",
   "equipment_list_filterTooltip": "Filter equipment",
   "equipment_list_activeFilter_clear": "Clear",
+  "equipment_list_activeFilter_attribute": "{field}: {values}",
+  "@equipment_list_activeFilter_attribute": {
+    "description": "Active-filter chip for an equipment attribute filter. {field} is the field name (e.g. Hose type), {values} the selected options joined with commas.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "values": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_filter_title": "Filter Equipment",
   "equipment_filter_clearAll": "Clear All",
   "equipment_filter_apply": "Apply Filters",
@@ -17012,6 +17024,7 @@
   "media_unavailablePlaceholder_stillFetching": "Still loading. Tap to retry.",
   "media_unavailablePlaceholder_accessDenied": "No photo library access",
   "attrLabel_hose_length_m": "Hose length",
+  "attrLabel_hose_type": "Hose type",
   "attrLabel_plate_material": "Plate material",
   "attrLabel_size": "Size",
   "attrLabel_thickness_mm": "Thickness (mm)",
@@ -17123,6 +17136,9 @@
   "attrChoice_valve_type_convertible": "Convertible",
   "attrChoice_connection_din": "DIN",
   "attrChoice_connection_yoke": "Yoke (INT)",
+  "attrChoice_hose_type_lp": "LP (low pressure)",
+  "attrChoice_hose_type_hp": "HP (high pressure)",
+  "attrChoice_hose_type_lpi": "LPI (inflator)",
   "attrChoice_bcd_style_jacket": "Jacket",
   "attrChoice_bcd_style_back_inflate": "Back-inflate",
   "attrChoice_bcd_style_wing": "Wing",
@@ -17210,6 +17226,9 @@
   "statistics_progression_divesBySuitThickness_empty": "No dives with a suit thickness recorded",
   "statistics_progression_divesBySuitThickness_error": "Could not load suit thickness data",
   "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
+  "diveLog_filter_sectionGearAttributes": "Gear attributes",
+  "diveLog_filter_gearCategory": "Gear category",
+  "diveLog_filter_gearCategoryAny": "Any category",
   "diveLog_filter_thicknessMin": "Min",
   "diveLog_filter_thicknessMax": "Max",
   "safetySettings_noFlyHeader": "Flying after diving",

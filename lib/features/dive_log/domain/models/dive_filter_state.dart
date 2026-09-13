@@ -1,7 +1,6 @@
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 /// Filter state for dive list.
 ///
@@ -82,12 +81,12 @@ class DiveFilterState {
   final String? customFieldKey;
   final String? customFieldValue;
 
-  // Equipment-attribute axis (curated keys only). key selects the attribute;
-  // choice matches value_text; min/max bound value_num (canonical metric).
-  final String? equipmentAttrKey;
-  final String? equipmentAttrChoice;
-  final double? equipmentAttrMin;
-  final double? equipmentAttrMax;
+  /// Equipment-attribute conditions (curated keys only, issue #1805),
+  /// combined with AND. A dive satisfies one when any item linked to it
+  /// matches, directly or through a cylinder the transmitter registry
+  /// matched. Suit thickness is one of them
+  /// ([EquipmentAttrCondition.suitThickness]).
+  final List<EquipmentAttrCondition> equipmentAttrConditions;
 
   const DiveFilterState({
     this.startDate,
@@ -116,10 +115,7 @@ class DiveFilterState {
     this.computerId,
     this.customFieldKey,
     this.customFieldValue,
-    this.equipmentAttrKey,
-    this.equipmentAttrChoice,
-    this.equipmentAttrMin,
-    this.equipmentAttrMax,
+    this.equipmentAttrConditions = const [],
   });
 
   /// Inclusive lower bound for `dives.dive_date_time`, in the wall-clock-as-UTC
@@ -171,7 +167,7 @@ class DiveFilterState {
       maxBottomTimeMinutes != null ||
       computerId != null ||
       (customFieldKey != null && customFieldKey!.isNotEmpty) ||
-      equipmentAttrKey != null;
+      equipmentAttrConditions.isNotEmpty;
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -200,10 +196,7 @@ class DiveFilterState {
     String? computerId,
     String? customFieldKey,
     String? customFieldValue,
-    String? equipmentAttrKey,
-    String? equipmentAttrChoice,
-    double? equipmentAttrMin,
-    double? equipmentAttrMax,
+    List<EquipmentAttrCondition>? equipmentAttrConditions,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -230,7 +223,7 @@ class DiveFilterState {
     bool clearComputerId = false,
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
-    bool clearEquipmentAttr = false,
+    bool clearEquipmentAttrConditions = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -281,18 +274,9 @@ class DiveFilterState {
       customFieldValue: clearCustomFieldValue
           ? null
           : (customFieldValue ?? this.customFieldValue),
-      equipmentAttrKey: clearEquipmentAttr
-          ? null
-          : (equipmentAttrKey ?? this.equipmentAttrKey),
-      equipmentAttrChoice: clearEquipmentAttr
-          ? null
-          : (equipmentAttrChoice ?? this.equipmentAttrChoice),
-      equipmentAttrMin: clearEquipmentAttr
-          ? null
-          : (equipmentAttrMin ?? this.equipmentAttrMin),
-      equipmentAttrMax: clearEquipmentAttr
-          ? null
-          : (equipmentAttrMax ?? this.equipmentAttrMax),
+      equipmentAttrConditions: clearEquipmentAttrConditions
+          ? const []
+          : (equipmentAttrConditions ?? this.equipmentAttrConditions),
     );
   }
 
@@ -300,12 +284,15 @@ class DiveFilterState {
   /// Used as a fallback for non-paginated code paths (e.g., export, table/map
   /// views).
   ///
-  /// equipmentAttr* is applied in-memory here to mirror the SQL axis (see
-  /// buildFilteredDiveIdSubquery), so non-paginated views stay consistent with
-  /// the SQL-backed list. It relies on dive.equipment being hydrated with its
-  /// curated attributes (getAllDives does this).
+  /// Two axes are NOT applied here, because the entity cannot answer them.
   ///
-  /// [decoOnly] is the one axis this method does NOT apply. getAllDives skips
+  /// [equipmentAttrConditions]: a cylinder matched through the transmitter
+  /// registry reaches the entity without its item or attributes, so only SQL
+  /// can see it. Callers that honour the axis intersect this result with
+  /// `equipmentAttrFilteredDiveIdsProvider`, which uses the same
+  /// `equipmentAttrConditionSql` as the paginated list.
+  ///
+  /// [decoOnly]: getAllDives skips
   /// profile hydration for list views and deco-stop events never reach the
   /// entity, so there is nothing here to classify a dive from; evaluating it
   /// anyway would silently match no dive at all. Callers that honour the deco
@@ -445,38 +432,6 @@ class DiveFilterState {
           return true;
         });
         if (!hasMatch) return false;
-      }
-      // Equipment-attribute axis: mirror the SQL subquery (curated rows only,
-      // value_text exact-matches choice, value_num bounded by min/max).
-      if (equipmentAttrKey != null) {
-        // "Suit thickness" (thickness_mm) matches only exposure suits, mirroring
-        // getDivesBySuitThickness() and the SQL axis; hoods/gloves/boots also
-        // carry thickness_mm but are not suits.
-        final suitOnly = equipmentAttrKey == EquipmentAttrKeys.thicknessMm;
-        final matches = dive.equipment.any((item) {
-          if (suitOnly &&
-              item.type != EquipmentType.wetsuit &&
-              item.type != EquipmentType.drysuit) {
-            return false;
-          }
-          return item.attributes.any((attr) {
-            if (attr.isCustom || attr.key != equipmentAttrKey) return false;
-            if (equipmentAttrChoice != null &&
-                attr.valueText != equipmentAttrChoice) {
-              return false;
-            }
-            if (equipmentAttrMin != null &&
-                (attr.valueNum == null || attr.valueNum! < equipmentAttrMin!)) {
-              return false;
-            }
-            if (equipmentAttrMax != null &&
-                (attr.valueNum == null || attr.valueNum! > equipmentAttrMax!)) {
-              return false;
-            }
-            return true;
-          });
-        });
-        if (!matches) return false;
       }
       return true;
     }).toList();
