@@ -85,6 +85,48 @@ const String _repointDiveTagsToSurvivorSql = '''
   WHERE EXISTS (SELECT 1 FROM tags t WHERE t.id = dive_tags.tag_id)
 ''';
 
+/// Repoints `site_tags` at the surviving tag, like the dive junction above
+/// (v212, issue #1765). `OR IGNORE` because the `site_tags` unique index can
+/// already exist when this runs: a site holding both the loser and the
+/// survivor keeps its survivor row, and the loser row is swept below.
+const String _repointSiteTagsToSurvivorSql = '''
+  UPDATE OR IGNORE site_tags SET tag_id = (
+    SELECT MIN(survivor.id) FROM tags survivor, tags mine
+    WHERE mine.id = site_tags.tag_id
+      AND COALESCE(survivor.diver_id, '') = COALESCE(mine.diver_id, '')
+      AND lower(trim(survivor.name)) = lower(trim(mine.name))
+  )
+  WHERE EXISTS (SELECT 1 FROM tags t WHERE t.id = site_tags.tag_id)
+''';
+
+/// Gives the surviving tag of each group the union of the group's scopes, so
+/// collapsing a dive tag and a site tag of the same name keeps both uses
+/// (v212, issue #1765).
+const String _mergeScopesIntoSurvivorSql = '''
+  UPDATE tags SET
+    applies_to_dives = (
+      SELECT MAX(o.applies_to_dives) FROM tags o
+      WHERE COALESCE(o.diver_id, '') = COALESCE(tags.diver_id, '')
+        AND lower(trim(o.name)) = lower(trim(tags.name))
+    ),
+    applies_to_sites = (
+      SELECT MAX(o.applies_to_sites) FROM tags o
+      WHERE COALESCE(o.diver_id, '') = COALESCE(tags.diver_id, '')
+        AND lower(trim(o.name)) = lower(trim(tags.name))
+    )
+''';
+
+/// Site links left pointing at a deleted losing tag: the rows the `OR IGNORE`
+/// repoint skipped, when foreign keys are off and nothing cascaded them.
+const String _deleteOrphanSiteTagsSql =
+    'DELETE FROM site_tags WHERE tag_id NOT IN (SELECT id FROM tags)';
+
+const String _collapseDuplicateSiteTagsSql = '''
+  DELETE FROM site_tags WHERE rowid NOT IN (
+    SELECT MIN(rowid) FROM site_tags GROUP BY site_id, tag_id
+  )
+''';
+
 const String _deleteLosingTagsSql = '''
   DELETE FROM tags WHERE id NOT IN (
     SELECT MIN(id) FROM tags GROUP BY COALESCE(diver_id, ''), lower(trim(name))
@@ -111,17 +153,38 @@ Future<bool> _tableExists(DatabaseConnectionUser db, String name) async {
   return rows.isNotEmpty;
 }
 
+Future<bool> _columnExists(
+  DatabaseConnectionUser db,
+  String table,
+  String column,
+) async {
+  final cols = await db.customSelect("PRAGMA table_info('$table')").get();
+  return cols.any((c) => c.read<String>('name') == column);
+}
+
 /// Collapses duplicate tags and duplicate junction rows, in the only order
-/// that leaves no ties: normalize the names the grouping keys on, repoint the
-/// junctions at the surviving tag, drop the losing tags, then collapse the
-/// junction duplicates the repoint just created.
+/// that leaves no ties: normalize the names the grouping keys on, give each
+/// survivor the union of its group's scopes, repoint both junctions
+/// (`dive_tags` and, since v212, `site_tags`) at the surviving tag, drop the
+/// losing tags, then collapse the junction duplicates the repoint created.
 ///
-/// Idempotent: every statement is a no-op on already-clean data.
+/// Idempotent: every statement is a no-op on already-clean data. The scope
+/// and site steps self-guard on their schema existing, so pre-v212 fixture
+/// databases pass through.
 Future<void> collapseDuplicateTags(DatabaseConnectionUser db) async {
+  final hasSiteTags = await _tableExists(db, 'site_tags');
   await db.customStatement(_normalizeTagNamesSql);
+  if (await _columnExists(db, 'tags', 'applies_to_sites')) {
+    await db.customStatement(_mergeScopesIntoSurvivorSql);
+  }
   await db.customStatement(_repointDiveTagsToSurvivorSql);
+  if (hasSiteTags) await db.customStatement(_repointSiteTagsToSurvivorSql);
   await db.customStatement(_deleteLosingTagsSql);
   await db.customStatement(_collapseDuplicateDiveTagsSql);
+  if (hasSiteTags) {
+    await db.customStatement(_deleteOrphanSiteTagsSql);
+    await db.customStatement(_collapseDuplicateSiteTagsSql);
+  }
 }
 
 /// Asserts the two uniqueness indexes exist, deduping first so creating them
