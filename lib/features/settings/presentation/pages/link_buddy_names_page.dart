@@ -17,8 +17,7 @@ class LinkBuddyNamesPage extends ConsumerStatefulWidget {
   const LinkBuddyNamesPage({super.key});
 
   @override
-  ConsumerState<LinkBuddyNamesPage> createState() =>
-      _LinkBuddyNamesPageState();
+  ConsumerState<LinkBuddyNamesPage> createState() => _LinkBuddyNamesPageState();
 }
 
 class _LinkBuddyNamesPageState extends ConsumerState<LinkBuddyNamesPage> {

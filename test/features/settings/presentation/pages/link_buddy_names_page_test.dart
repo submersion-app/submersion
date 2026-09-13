@@ -132,10 +132,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(
-      find.text(_l10n.buddies_linkText_page_linkDives(2)),
-      findsOneWidget,
-    );
+    expect(find.text(_l10n.buddies_linkText_page_linkDives(2)), findsOneWidget);
   });
 
   testWidgets('unchecking a dive updates the summary and the button', (
@@ -147,15 +144,10 @@ void main() {
     await tester.pump();
 
     expect(find.text(_summary(1, 1, 1)), findsOneWidget);
-    expect(
-      find.text(_l10n.buddies_linkText_page_linkDives(1)),
-      findsOneWidget,
-    );
+    expect(find.text(_l10n.buddies_linkText_page_linkDives(1)), findsOneWidget);
   });
 
-  testWidgets('Link applies the checked dives and offers Undo', (
-    tester,
-  ) async {
+  testWidgets('Link applies the checked dives and offers Undo', (tester) async {
     final service = FakeLegacyBuddyConversionService();
     await _pump(tester, service, _data());
 

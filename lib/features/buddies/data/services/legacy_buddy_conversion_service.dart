@@ -25,11 +25,10 @@ class LegacyBuddyConversionService {
 
   final BuddyRepository _repository;
 
-  Future<BuddyNameMatcher> matcherFor(String diverId) async =>
-      BuddyNameMatcher(
-        await _repository.legacyConversionCandidates(diverId),
-        diverId: diverId,
-      );
+  Future<BuddyNameMatcher> matcherFor(String diverId) async => BuddyNameMatcher(
+    await _repository.legacyConversionCandidates(diverId),
+    diverId: diverId,
+  );
 
   /// The plan for [dive], with the matcher the review sheet re-matches
   /// edited names against.

@@ -118,13 +118,7 @@ void main() {
         "INSERT INTO dive_sites (id, name, created_at, updated_at) "
         "VALUES ('s1', 'Blue Hole', 1, 1)",
       );
-      await insertDive(
-        'old',
-        buddy: 'Ann',
-        at: 1000,
-        number: 1,
-        siteId: 's1',
-      );
+      await insertDive('old', buddy: 'Ann', at: 1000, number: 1, siteId: 's1');
       await insertDive('new', diveMaster: 'Bob', at: 2000);
       await insertDive('blank', buddy: '   ', at: 3000);
       await insertBuddy('cy', 'Cy');
@@ -179,10 +173,10 @@ void main() {
       expect(buddies.every((b) => b.notes == 'converted'), isTrue);
       final links = await db.select(db.diveBuddies).get();
       final nameById = {for (final b in buddies) b.id: b.name};
-      expect({for (final l in links) nameById[l.buddyId]: l.role}, {
-        'Ann': DiveRole.buddyId,
-        'Bob': DiveRole.diveMasterId,
-      });
+      expect(
+        {for (final l in links) nameById[l.buddyId]: l.role},
+        {'Ann': DiveRole.buddyId, 'Bob': DiveRole.diveMasterId},
+      );
       expect(receipt.diveIds, ['d1']);
       expect(receipt.linkIds, unorderedEquals(links.map((l) => l.id)));
       expect(receipt.createdBuddyIds, unorderedEquals(nameById.keys));
