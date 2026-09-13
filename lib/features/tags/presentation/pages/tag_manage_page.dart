@@ -287,73 +287,81 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(context.l10n.tags_manage_createTitle),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.tags_manage_nameLabel,
-                    border: const OutlineInputBorder(),
+        builder: (dialogContext, setDialogState) => PopScope(
+          // The barrier, Back and Escape all ask before popping. A save in
+          // flight says no, so a failure still has its dialog to report into.
+          canPop: !saving,
+          child: AlertDialog(
+            title: Text(context.l10n.tags_manage_createTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.tags_manage_nameLabel,
+                      border: const OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(context.l10n.tags_manage_colorLabel),
-                const SizedBox(height: 8),
-                TagColorPicker(
-                  selectedColor: selectedColor,
-                  onColorSelected: (color) =>
-                      setDialogState(() => selectedColor = color),
-                ),
-                const SizedBox(height: 8),
-                ..._scopeEditor(
-                  forDives: forDives,
-                  forSites: forSites,
-                  onDives: (v) => setDialogState(() => forDives = v),
-                  onSites: (v) => setDialogState(() => forSites = v),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Text(context.l10n.tags_manage_colorLabel),
+                  const SizedBox(height: 8),
+                  TagColorPicker(
+                    selectedColor: selectedColor,
+                    onColorSelected: (color) =>
+                        setDialogState(() => selectedColor = color),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._scopeEditor(
+                    forDives: forDives,
+                    forSites: forSites,
+                    onDives: (v) => setDialogState(() => forDives = v),
+                    onSites: (v) => setDialogState(() => forSites = v),
+                  ),
+                ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: saving ? null : () => Navigator.pop(dialogContext),
+                child: Text(context.l10n.common_action_cancel),
+              ),
+              TextButton(
+                onPressed: saving
+                    ? null
+                    : () {
+                        // A second tap in the same frame still reaches this
+                        // callback: the disabled button is only built next frame.
+                        if (saving) return;
+                        final name = controller.text.trim();
+                        if (name.isEmpty || (!forDives && !forSites)) return;
+                        final newTag =
+                            Tag.create(
+                              id: _uuid.v4(),
+                              name: name,
+                              colorHex: selectedColor,
+                            ).copyWith(
+                              appliesToDives: forDives,
+                              appliesToSites: forSites,
+                            );
+                        _saveFromDialog(
+                          dialogContext,
+                          setSaving: (v) => setDialogState(() => saving = v),
+                          save: () async {
+                            await ref
+                                .read(tagListNotifierProvider.notifier)
+                                .addTag(newTag);
+                            return true;
+                          },
+                        );
+                      },
+                child: Text(context.l10n.common_action_save),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: saving ? null : () => Navigator.pop(dialogContext),
-              child: Text(context.l10n.common_action_cancel),
-            ),
-            TextButton(
-              onPressed: saving
-                  ? null
-                  : () {
-                      final name = controller.text.trim();
-                      if (name.isEmpty || (!forDives && !forSites)) return;
-                      final newTag =
-                          Tag.create(
-                            id: _uuid.v4(),
-                            name: name,
-                            colorHex: selectedColor,
-                          ).copyWith(
-                            appliesToDives: forDives,
-                            appliesToSites: forSites,
-                          );
-                      _saveFromDialog(
-                        dialogContext,
-                        setSaving: (v) => setDialogState(() => saving = v),
-                        save: () async {
-                          await ref
-                              .read(tagListNotifierProvider.notifier)
-                              .addTag(newTag);
-                          return true;
-                        },
-                      );
-                    },
-              child: Text(context.l10n.common_action_save),
-            ),
-          ],
         ),
       ),
     );
@@ -369,80 +377,92 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(context.l10n.tags_manage_editTitle),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.tags_manage_nameLabel,
-                    border: const OutlineInputBorder(),
+        builder: (dialogContext, setDialogState) => PopScope(
+          // See _showCreateDialog: no dismissal while a save is in flight.
+          canPop: !saving,
+          child: AlertDialog(
+            title: Text(context.l10n.tags_manage_editTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.tags_manage_nameLabel,
+                      border: const OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(context.l10n.tags_manage_colorLabel),
-                const SizedBox(height: 8),
-                TagColorPicker(
-                  selectedColor: selectedColor,
-                  onColorSelected: (color) =>
-                      setDialogState(() => selectedColor = color),
-                ),
-                const SizedBox(height: 8),
-                ..._scopeEditor(
-                  forDives: forDives,
-                  forSites: forSites,
-                  onDives: (v) => setDialogState(() => forDives = v),
-                  onSites: (v) => setDialogState(() => forSites = v),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Text(context.l10n.tags_manage_colorLabel),
+                  const SizedBox(height: 8),
+                  TagColorPicker(
+                    selectedColor: selectedColor,
+                    onColorSelected: (color) =>
+                        setDialogState(() => selectedColor = color),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._scopeEditor(
+                    forDives: forDives,
+                    forSites: forSites,
+                    onDives: (v) => setDialogState(() => forDives = v),
+                    onSites: (v) => setDialogState(() => forSites = v),
+                  ),
+                ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: saving ? null : () => Navigator.pop(dialogContext),
+                child: Text(context.l10n.common_action_cancel),
+              ),
+              TextButton(
+                onPressed: saving
+                    ? null
+                    : () {
+                        // See _showCreateDialog: guards a same-frame second tap.
+                        if (saving) return;
+                        // Taken now, so the write matches what the narrowing
+                        // confirmation described even if the controls change
+                        // while the usage read is in flight.
+                        final name = controller.text.trim();
+                        final color = selectedColor;
+                        final dives = forDives;
+                        final sites = forSites;
+                        if (name.isEmpty || (!dives && !sites)) return;
+                        _saveFromDialog(
+                          dialogContext,
+                          setSaving: (v) => setDialogState(() => saving = v),
+                          save: () async {
+                            final confirmed = await _confirmNarrowing(
+                              tag,
+                              forDives: dives,
+                              forSites: sites,
+                            );
+                            if (!confirmed) return false;
+                            await ref
+                                .read(tagListNotifierProvider.notifier)
+                                .updateTag(
+                                  tag.copyWith(
+                                    name: name,
+                                    colorHex: color,
+                                    updatedAt: DateTime.now(),
+                                    appliesToDives: dives,
+                                    appliesToSites: sites,
+                                  ),
+                                );
+                            // Site cards and the site filter read tags too.
+                            ref.invalidate(sitesWithCountsProvider);
+                            return true;
+                          },
+                        );
+                      },
+                child: Text(context.l10n.common_action_save),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: saving ? null : () => Navigator.pop(dialogContext),
-              child: Text(context.l10n.common_action_cancel),
-            ),
-            TextButton(
-              onPressed: saving
-                  ? null
-                  : () {
-                      final name = controller.text.trim();
-                      if (name.isEmpty || (!forDives && !forSites)) return;
-                      _saveFromDialog(
-                        dialogContext,
-                        setSaving: (v) => setDialogState(() => saving = v),
-                        save: () async {
-                          final confirmed = await _confirmNarrowing(
-                            tag,
-                            forDives: forDives,
-                            forSites: forSites,
-                          );
-                          if (!confirmed) return false;
-                          await ref
-                              .read(tagListNotifierProvider.notifier)
-                              .updateTag(
-                                tag.copyWith(
-                                  name: name,
-                                  colorHex: selectedColor,
-                                  updatedAt: DateTime.now(),
-                                  appliesToDives: forDives,
-                                  appliesToSites: forSites,
-                                ),
-                              );
-                          // Site cards and the site filter read tags too.
-                          ref.invalidate(sitesWithCountsProvider);
-                          return true;
-                        },
-                      );
-                    },
-              child: Text(context.l10n.common_action_save),
-            ),
-          ],
         ),
       ),
     );

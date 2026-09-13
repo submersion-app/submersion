@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -126,6 +127,7 @@ Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
   MockSettingsNotifier? settingsNotifier,
+  TagRepository? repository,
 }) {
   return ProviderScope(
     overrides: [
@@ -133,7 +135,9 @@ Widget _buildTestWidget({
       tagListNotifierProvider.overrideWith(
         (ref) => notifier ?? _MockTagListNotifier(_tagsFromStats(stats)),
       ),
-      tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
+      tagRepositoryProvider.overrideWithValue(
+        repository ?? _MockTagRepository(),
+      ),
       settingsProvider.overrideWith(
         (ref) => settingsNotifier ?? MockSettingsNotifier(),
       ),
@@ -854,7 +858,112 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
       expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
     });
+
+    testWidgets('two taps in one frame save once', (tester) async {
+      final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      // No pump between: the button still holds the callback built before
+      // saving flipped, so only a check inside the callback stops the second.
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      notifier.gate.complete();
+      await tester.pumpAndSettle();
+      expect(notifier.added.map((t) => t.name), ['Wreck']);
+    });
+
+    testWidgets('a save in flight cannot be dismissed, so a failure keeps '
+        'the edits', (tester) async {
+      final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      // The barrier, Escape and Back all ask the route before popping it.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      await navigator.maybePop();
+      // Long enough for any dismissal to finish its exit animation.
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('Edit Tag'), findsOneWidget);
+
+      notifier.gate.completeError(StateError('update failed'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(errorText), findsOneWidget);
+      expect(
+        find.widgetWithText(TextField, 'Night Dive Renamed'),
+        findsOneWidget,
+      );
+
+      // Once the save has settled the dialog dismisses as usual.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Tag'), findsNothing);
+    });
+
+    testWidgets('an edit writes the values the diver saved, not later ones', (
+      tester,
+    ) async {
+      // Turning dives off asks for usage first; hold that read open to act
+      // in the gap between tapping Save and the write.
+      final repository = _GatedUsageTagRepository();
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(
+          stats: _testStats,
+          notifier: notifier,
+          repository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      // Mid-save edits the confirmation never saw.
+      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      await tester.pump();
+
+      repository.usage.complete((dives: 0, sites: 0));
+      await tester.pumpAndSettle();
+
+      final saved = notifier.updated.single;
+      expect(saved.colorHex, '#EF4444');
+      expect(saved.appliesToDives, isFalse);
+      expect(saved.appliesToSites, isTrue);
+    });
   });
+}
+
+/// A repository whose usage read waits on [usage], so a test can act while
+/// the narrowing check is in flight.
+class _GatedUsageTagRepository extends _MockTagRepository {
+  final Completer<({int dives, int sites})> usage = Completer();
+
+  @override
+  Future<({int dives, int sites})> getTagUsage(String tagId) => usage.future;
 }
 
 /// A notifier whose saves fail, as a database or sync failure would.
