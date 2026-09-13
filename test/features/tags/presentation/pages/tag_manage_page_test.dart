@@ -56,6 +56,7 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   /// backed by real work rather than only by the bar disappearing.
   final List<String> deleted = [];
   final List<List<String>> bulkDeleted = [];
+  final List<Tag> updated = [];
 
   @override
   Future<void> refresh() async {}
@@ -67,7 +68,7 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   }
 
   @override
-  Future<void> updateTag(Tag tag) async {}
+  Future<void> updateTag(Tag tag) async => updated.add(tag);
   @override
   Future<void> deleteTag(String id) async => deleted.add(id);
   @override
@@ -646,6 +647,116 @@ void main() {
 
       expect(find.byType(TagMergeSheet), findsNothing);
       expect(find.text('2 selected'), findsOneWidget);
+    });
+  });
+
+  group('deleting from the edit dialog (#1889)', () {
+    // Delete was reachable only through selection mode, which divers did not
+    // find. The editor now offers it too, behind the same confirmation.
+
+    final confirmation = find.widgetWithText(AlertDialog, 'Delete Tag?');
+
+    Finder confirmationButton(String label) => find.descendant(
+      of: confirmation,
+      matching: find.widgetWithText(TextButton, label),
+    );
+
+    Future<void> openEditor(WidgetTester tester, String tagId) async {
+      await tester.tap(find.byKey(ValueKey('tag_edit_$tagId')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'the edit dialog offers Delete and the create dialog does not',
+      (tester) async {
+        await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+        await tester.pumpAndSettle();
+
+        await openEditor(tester, 'tag1');
+        expect(find.byKey(const ValueKey('tag_edit_delete')), findsOneWidget);
+        await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+        await tester.pumpAndSettle();
+
+        // There is nothing to delete before the tag exists.
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('tag_edit_delete')), findsNothing);
+      },
+    );
+
+    testWidgets('confirming deletes the tag and closes both dialogs', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEditor(tester, 'tag1');
+      await tester.tap(find.byKey(const ValueKey('tag_edit_delete')));
+      await tester.pumpAndSettle();
+
+      // The same confirmation as selection mode: the tag and its dive count.
+      expect(confirmation, findsOneWidget);
+      expect(
+        find.descendant(
+          of: confirmation,
+          matching: find.textContaining('Night Dive'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: confirmation,
+          matching: find.textContaining('12 dives'),
+        ),
+        findsOneWidget,
+      );
+      expect(notifier.deleted, isEmpty, reason: 'nothing is deleted unasked');
+
+      await tester.tap(confirmationButton('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, ['tag1']);
+      expect(notifier.updated, isEmpty, reason: 'Delete must not save first');
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('cancelling returns to the editor with unsaved edits intact', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEditor(tester, 'tag2');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Photography'),
+        'Macro Photography',
+      );
+      await tester.tap(find.byKey(const ValueKey('tag_edit_delete')));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: confirmation,
+          matching: find.textContaining('5 dives'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(confirmationButton('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, isEmpty);
+      expect(confirmation, findsNothing);
+      expect(find.text('Edit Tag'), findsOneWidget);
+      expect(
+        find.widgetWithText(TextField, 'Macro Photography'),
+        findsOneWidget,
+      );
     });
   });
 }

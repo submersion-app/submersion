@@ -243,7 +243,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
               key: ValueKey('tag_edit_${tag.id}'),
               icon: const Icon(Icons.edit_outlined),
               tooltip: context.l10n.tags_manage_editTitle,
-              onPressed: () => _showEditDialog(tag),
+              onPressed: () => _showEditDialog(stat),
             ),
         ],
       ),
@@ -254,7 +254,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       // Without a handler a long press falls through to onTap, which is how
       // it used to open the editor. Keep that, but not while selecting, where
       // the fall-through toggles the row like a tap.
-      onLongPress: _isSelectionMode ? null : () => _showEditDialog(tag),
+      onLongPress: _isSelectionMode ? null : () => _showEditDialog(stat),
     );
   }
 
@@ -315,7 +315,8 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     );
   }
 
-  void _showEditDialog(Tag tag) {
+  void _showEditDialog(TagStatistic stat) {
+    final tag = stat.tag;
     final controller = TextEditingController(text: tag.name);
     String selectedColor = tag.colorHex ?? TagColors.predefined.first;
 
@@ -346,28 +347,52 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
               ),
             ],
           ),
+          // Delete sits apart on the leading edge, away from Save (#1889).
+          // Before this it was reachable only through selection mode.
+          actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(context.l10n.common_action_cancel),
-            ),
-            TextButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  ref
-                      .read(tagListNotifierProvider.notifier)
-                      .updateTag(
-                        tag.copyWith(
-                          name: name,
-                          colorHex: selectedColor,
-                          updatedAt: DateTime.now(),
-                        ),
-                      );
-                  Navigator.pop(dialogContext);
-                }
+              key: const ValueKey('tag_edit_delete'),
+              onPressed: () async {
+                // The confirmation stacks over the editor, so cancelling it
+                // returns here with any unsaved edits intact.
+                if (!await _confirmDeleteTag(dialogContext, stat)) return;
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
+                await ref
+                    .read(tagListNotifierProvider.notifier)
+                    .deleteTag(tag.id);
               },
-              child: Text(context.l10n.common_action_save),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(context.l10n.common_action_delete),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(context.l10n.common_action_cancel),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final name = controller.text.trim();
+                    if (name.isNotEmpty) {
+                      ref
+                          .read(tagListNotifierProvider.notifier)
+                          .updateTag(
+                            tag.copyWith(
+                              name: name,
+                              colorHex: selectedColor,
+                              updatedAt: DateTime.now(),
+                            ),
+                          );
+                      Navigator.pop(dialogContext);
+                    }
+                  },
+                  child: Text(context.l10n.common_action_save),
+                ),
+              ],
             ),
           ],
         ),
@@ -412,30 +437,10 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     if (_selectedIds.length == 1) {
       final tagId = _selectedIds.first;
       final stat = stats.firstWhere((s) => s.tag.id == tagId);
-      final count = stat.diveCount;
 
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(ctx.l10n.tags_manage_deleteTitle),
-          content: Text(
-            ctx.l10n.tags_manage_deleteMessage(stat.tag.name, count),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(ctx.l10n.common_action_cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(ctx.l10n.common_action_delete),
-            ),
-          ],
-        ),
-      );
-
-      if (confirmed != true) return BulkActionOutcome.cancelled;
+      if (!await _confirmDeleteTag(context, stat)) {
+        return BulkActionOutcome.cancelled;
+      }
       await ref.read(tagListNotifierProvider.notifier).deleteTag(tagId);
       return BulkActionOutcome.completed;
     } else {
@@ -471,6 +476,37 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           .deleteTags(_selectedIds.toList());
       return BulkActionOutcome.completed;
     }
+  }
+
+  /// Asks before deleting one tag, naming it and the dives it will leave.
+  ///
+  /// Shared by the selection bar and the edit dialog so the two delete paths
+  /// cannot drift apart.
+  Future<bool> _confirmDeleteTag(
+    BuildContext context,
+    TagStatistic stat,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.tags_manage_deleteTitle),
+        content: Text(
+          ctx.l10n.tags_manage_deleteMessage(stat.tag.name, stat.diveCount),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ctx.l10n.common_action_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(ctx.l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 
   Future<BulkActionOutcome> _showMergeSheet(BuildContext context) async {
