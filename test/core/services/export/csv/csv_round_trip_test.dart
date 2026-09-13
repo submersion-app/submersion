@@ -202,6 +202,7 @@ void main() {
             expect(back.site?.name, original.site!.name);
             expect(back.site?.region, original.site!.region);
             expect(back.site?.country, original.site!.country);
+            expect(back.site?.city, original.site!.city);
           }
         }
       });

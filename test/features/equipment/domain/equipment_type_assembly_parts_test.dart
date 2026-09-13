@@ -76,7 +76,10 @@ void main() {
       containsAll(['connection', 'cold_water_rated']),
     );
     expect(keysFor(EquipmentType.secondStage), contains('cold_water_rated'));
-    expect(keysFor(EquipmentType.hose), contains('hose_length_m'));
+    expect(
+      keysFor(EquipmentType.hose),
+      containsAll(['hose_type', 'hose_length_m']),
+    );
     expect(keysFor(EquipmentType.backplate), contains('plate_material'));
     expect(keysFor(EquipmentType.wing), contains('lift_capacity_kg'));
     expect(keysFor(EquipmentType.harness), contains('size'));

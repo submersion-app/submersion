@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -300,6 +301,35 @@ class UddfEntityImporter {
       }
     }
     return null;
+  }
+
+  /// [value] trimmed, or null when it is not a string or is blank.
+  static String? _nonBlankString(Object? value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// A dive's custom fields from the `{key, value}` maps parsers emit under
+  /// 'customFields' (UDDF applicationdata, CSV `custom:<key>` columns), in
+  /// payload order. Entries without a key are dropped; the repository
+  /// assigns ids on create.
+  static List<DiveCustomField> _customFields(Object? raw) {
+    if (raw is! List) return const [];
+    final fields = <DiveCustomField>[];
+    for (final entry in raw.whereType<Map>()) {
+      final key = _nonBlankString(entry['key']);
+      if (key == null) continue;
+      fields.add(
+        DiveCustomField(
+          id: '',
+          key: key,
+          value: entry['value']?.toString() ?? '',
+          sortOrder: fields.length,
+        ),
+      );
+    }
+    return fields;
   }
 
   /// Import selected entities from [data] using [repositories].
@@ -1297,6 +1327,8 @@ class UddfEntityImporter {
         minDepth: siteData['minDepth'] as double?,
         maxDepth: siteData['maxDepth'] as double?,
         difficulty: difficulty,
+        city: siteData['city'] as String?,
+        island: siteData['island'] as String?,
         country: country,
         region: region,
         rating: siteData['rating'] as double?,
@@ -1373,6 +1405,8 @@ class UddfEntityImporter {
         minDepth: siteData['minDepth'] as double?,
         maxDepth: siteData['maxDepth'] as double?,
         difficulty: difficulty,
+        city: siteData['city'] as String?,
+        island: siteData['island'] as String?,
         country: country,
         region: region,
         rating: siteData['rating'] as double?,
@@ -2233,8 +2267,8 @@ class UddfEntityImporter {
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
         waterType: _parseEnum(diveData['waterType'], WaterType.values),
         altitude: asDoubleOrNull(diveData['altitude']),
-        // Weather and custom fields (issue #1813): the Submersion dives CSV
-        // carries them; createDive already persists all of them.
+        // Weather as the source recorded it. weatherSource stays null, as
+        // for weather typed in by hand: it marks an Open-Meteo fetch.
         windSpeed: asDoubleOrNull(diveData['windSpeed']),
         windDirection: _parseEnum(
           diveData['windDirection'],
@@ -2246,8 +2280,8 @@ class UddfEntityImporter {
           Precipitation.values,
         ),
         humidity: asDoubleOrNull(diveData['humidity']),
-        weatherDescription: diveData['weatherDescription'] as String?,
-        customFields: diveCustomFieldsFromImport(diveData['customFields']),
+        weatherDescription: _nonBlankString(diveData['weatherDescription']),
+        customFields: _customFields(diveData['customFields']),
         // Entry/exit GPS, so file-imported dives become eligible for the
         // existing site matcher.
         entryLocation: gps.entry,

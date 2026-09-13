@@ -196,6 +196,8 @@ void main() {
           CsvPresetRepository().watchPresetsChanges,
       'DiveRepository.watchAnalysisInputChanges':
           DiveRepository().watchAnalysisInputChanges,
+      'DiveRepository.watchEquipmentAttrFilterChanges':
+          DiveRepository().watchEquipmentAttrFilterChanges,
     };
 
     for (final entry in ticks.entries) {
@@ -258,6 +260,33 @@ void main() {
         isTrue,
       );
     });
+
+    test(
+      'watchStatisticsChanges fires on an equipment_attributes write',
+      () async {
+        // The equipment-attribute filter (#1805) and the suit-thickness chart
+        // read attribute rows, and saveAttributes or a sync pull writes only
+        // that table.
+        await seedParents();
+        expect(
+          await fires(
+            StatisticsRepository().watchStatisticsChanges(),
+            () => db
+                .into(db.equipmentAttributes)
+                .insert(
+                  EquipmentAttributesCompanion.insert(
+                    id: 'attr_e1_connection',
+                    equipmentId: 'e1',
+                    attrKey: 'connection',
+                    createdAt: now,
+                    updatedAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('watchStatisticsChanges fires on a dive_sites write', () async {
       expect(

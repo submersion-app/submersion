@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
@@ -140,5 +141,56 @@ void main() {
     final dive = payload.entitiesOf(ImportEntityType.dives).single;
     final tank = (dive['tanks'] as List<Map<String, dynamic>>).single;
     expect(tank['workingPressure'], 232.0);
+  });
+
+  test(
+    'reads the site place columns, helium and ordered custom fields',
+    () async {
+      // The #1814 columns carry what Location and the per-key custom columns
+      // cannot: an island, a trimix tank, an empty field and the diver's order.
+      final dive = goldenDives().first.copyWith(
+        site: goldenSite.copyWith(island: 'Ambergris Caye'),
+        tanks: const [
+          DiveTank(id: 't1', volume: 12, gasMix: GasMix(o2: 18, he: 45)),
+        ],
+        customFields: const [
+          DiveCustomField(id: 'a', key: 'Zeta', value: 'first', sortOrder: 0),
+          DiveCustomField(id: 'b', key: 'Alpha', value: '', sortOrder: 1),
+        ],
+      );
+      for (final units in [
+        CsvExportUnits.metric,
+        CsvExportUnits.fromSettings(imperial),
+      ]) {
+        final payload = await const SubmersionDivesCsvParser().parse(
+          _bytes(CsvDivesWriter(units).write([dive])),
+        );
+        final site = payload.entitiesOf(ImportEntityType.sites).single;
+        expect(site['city'], 'San Pedro');
+        expect(site['island'], 'Ambergris Caye');
+        expect(site['region'], 'Lighthouse Reef');
+        expect(site['country'], 'Belize');
+        final parsed = payload.entitiesOf(ImportEntityType.dives).single;
+        final tank = (parsed['tanks'] as List<Map<String, dynamic>>).single;
+        expect((tank['gasMix'] as GasMix).he, 45);
+        expect(parsed['customFields'], [
+          {'key': 'Zeta', 'value': 'first'},
+          {'key': 'Alpha', 'value': ''},
+        ]);
+      }
+    },
+  );
+
+  test('a file without the place columns still parses Location', () async {
+    final payload = await const SubmersionDivesCsvParser().parse(
+      _bytes(
+        'Dive Number,Date,Time,Site,Location\n'
+        '1,2025-03-15,09:05,Reef,"Town · Bay, Egypt"\n',
+      ),
+    );
+    final site = payload.entitiesOf(ImportEntityType.sites).single;
+    expect(site['region'], 'Bay');
+    expect(site['country'], 'Egypt');
+    expect(site.containsKey('city'), isFalse);
   });
 }

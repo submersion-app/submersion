@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:submersion/core/constants/enum_display_lookup.dart';
@@ -5,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_unit.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -45,6 +47,7 @@ class SubmersionDivesCsvParser implements ImportParser {
     'Runtime',
     'Rating',
     'O2 %',
+    'He %',
     'Humidity',
   ];
 
@@ -176,24 +179,19 @@ class SubmersionDivesCsvParser implements ImportParser {
       final tank = _tank(table, row);
       if (tank != null) dive['tanks'] = <Map<String, dynamic>>[tank];
 
-      final custom = table.customCells(row);
-      if (custom.isNotEmpty) {
-        dive['customFields'] = <Map<String, dynamic>>[
-          for (final c in custom) {'key': c.key, 'value': c.value},
-        ];
-      }
+      final custom = _customFields(table, row);
+      if (custom.isNotEmpty) dive['customFields'] = custom;
 
       final siteName = table.text(row, 'Site');
       if (siteName != null) {
-        final site = sitesByName.putIfAbsent(siteName, () {
-          final location = parseSiteLocationText(table.text(row, 'Location'));
-          return <String, dynamic>{
+        final site = sitesByName.putIfAbsent(
+          siteName,
+          () => <String, dynamic>{
             'uddfId': 'csv-site-${sitesByName.length}',
             'name': siteName,
-            'region': location.region,
-            'country': location.country,
-          }..removeWhere((_, value) => value == null);
-        });
+            ..._sitePlace(table, row),
+          }..removeWhere((_, value) => value == null),
+        );
         dive['site'] = <String, dynamic>{'uddfId': site['uddfId']};
       }
 
@@ -212,6 +210,52 @@ class SubmersionDivesCsvParser implements ImportParser {
     );
   }
 
+  /// A new site's place fields. Files since #1814 carry them in their own
+  /// columns; an older file only has the Location display text, which is
+  /// parsed best-effort.
+  static Map<String, dynamic> _sitePlace(
+    SubmersionCsvTable table,
+    List<String> row,
+  ) {
+    if (table.hasColumn(DiveCsvColumns.siteCountry)) {
+      return {
+        'city': table.text(row, DiveCsvColumns.siteCity),
+        'island': table.text(row, DiveCsvColumns.siteIsland),
+        'region': table.text(row, DiveCsvColumns.siteRegion),
+        'country': table.text(row, DiveCsvColumns.siteCountry),
+      };
+    }
+    final location = parseSiteLocationText(table.text(row, 'Location'));
+    return {'region': location.region, 'country': location.country};
+  }
+
+  /// The dive's custom fields. The JSON Custom Fields column keeps empty
+  /// values and the diver's order, so it wins when it reads; otherwise the
+  /// per-key `custom:<key>` columns (all an older file has) are used.
+  static List<Map<String, dynamic>> _customFields(
+    SubmersionCsvTable table,
+    List<String> row,
+  ) {
+    final json = table.text(row, DiveCsvColumns.customFields);
+    if (json != null) {
+      try {
+        final decoded = jsonDecode(json);
+        if (decoded is List) {
+          return [
+            for (final entry in decoded)
+              if (entry is Map && entry['key'] is String)
+                {'key': entry['key'], 'value': '${entry['value'] ?? ''}'},
+          ];
+        }
+      } on FormatException {
+        // A hand-edited cell that is no longer JSON: fall back below.
+      }
+    }
+    return [
+      for (final c in table.customCells(row)) {'key': c.key, 'value': c.value},
+    ];
+  }
+
   /// The first tank, or null when every tank cell is blank.
   static Map<String, dynamic>? _tank(
     SubmersionCsvTable table,
@@ -221,6 +265,7 @@ class SubmersionDivesCsvParser implements ImportParser {
     final start = table.quantity(row, CsvColumns.startPressure);
     final end = table.quantity(row, CsvColumns.endPressure);
     final o2 = table.number(row, 'O2 %');
+    final he = table.number(row, DiveCsvColumns.hePercent);
     final size = table.number(row, CsvColumns.tankVolume.base);
     final double? volume;
     if (size == null) {
@@ -237,7 +282,8 @@ class SubmersionDivesCsvParser implements ImportParser {
         workingPressure == null &&
         start == null &&
         end == null &&
-        o2 == null) {
+        o2 == null &&
+        he == null) {
       return null;
     }
     return <String, dynamic>{
@@ -245,7 +291,7 @@ class SubmersionDivesCsvParser implements ImportParser {
       'workingPressure': workingPressure,
       'startPressure': start,
       'endPressure': end,
-      'gasMix': GasMix(o2: o2 ?? 21),
+      'gasMix': GasMix(o2: o2 ?? 21, he: he ?? 0),
       'order': 0,
     }..removeWhere((_, value) => value == null);
   }

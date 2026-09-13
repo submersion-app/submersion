@@ -60,6 +60,9 @@ class SubmersionCsvTable {
     return i == null ? null : CsvHeader.parse(_headers[i]);
   }
 
+  /// Whether the file has a column named [base] (suffix ignored).
+  bool hasColumn(String base) => _indexByKey.containsKey(base.toLowerCase());
+
   /// The trimmed cell under [base], or null when blank or absent. The
   /// export's formula guard (a quote before `=`, `+`, `-` or `@`) is
   /// removed; a number never carries one, so numeric cells are unchanged.

@@ -1,4 +1,3 @@
-import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
 /// Equipment attribute rows from an import map's `attributes` list. Input
@@ -50,29 +49,6 @@ List<EquipmentAttribute> equipmentAttributesFromImport(
             ),
     );
     taken.add(key);
-  }
-  return result;
-}
-
-/// Dive custom fields from an import map's `customFields` list of
-/// `{key, value}` maps, in order. Ids are left empty for the repository to
-/// assign.
-List<DiveCustomField> diveCustomFieldsFromImport(Object? raw) {
-  if (raw is! List) return const [];
-  final result = <DiveCustomField>[];
-  for (final entry in raw) {
-    if (entry is! Map) continue;
-    final key = entry['key'];
-    final value = entry['value'];
-    if (key is! String || key.trim().isEmpty) continue;
-    result.add(
-      DiveCustomField(
-        id: '',
-        key: key,
-        value: value is String ? value : '',
-        sortOrder: result.length,
-      ),
-    );
   }
   return result;
 }

@@ -30,6 +30,10 @@ class CsvExportService {
   /// carriage return, pipe) with a single quote, which forces spreadsheet
   /// applications to treat the value as plain text.
   ///
+  /// A value that already starts with a quote gets one more, so an import
+  /// can undo the guard unambiguously: one leading quote is dropped when a
+  /// dangerous character or another quote follows it (#1814).
+  ///
   /// References:
   /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
   String sanitizeCsvField(String? value) => csv_text.sanitizeCsvField(value);

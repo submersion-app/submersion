@@ -38,20 +38,6 @@ void main() {
     expect(attrs.single.valueNum, isNull);
   });
 
-  test('custom fields keep order and skip malformed entries', () {
-    final fields = diveCustomFieldsFromImport([
-      {'key': 'Boat', 'value': 'Sea Dog'},
-      {'key': 'Formula', 'value': '=1+1'},
-      {'value': 'orphan'},
-      7,
-    ]);
-    expect(fields.map((f) => (f.key, f.value, f.sortOrder)), [
-      ('Boat', 'Sea Dog', 0),
-      ('Formula', '=1+1', 1),
-    ]);
-    expect(diveCustomFieldsFromImport(null), isEmpty);
-  });
-
   test('a custom "size" sits beside the curated one', () {
     final attrs = equipmentAttributesFromImport(
       [
