@@ -12,6 +12,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -223,6 +224,10 @@ class DiverSettingsRepository {
                 DiveDetailSectionConfig.sectionsToJson(s.diveDetailSections),
               ),
               diveDetailLayout: Value(s.diveDetailLayout.name),
+              siteDetailSections: Value(
+                SiteDetailSectionConfig.sectionsToJson(s.siteDetailSections),
+              ),
+              siteDetailLayout: Value(s.siteDetailLayout.name),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -412,6 +417,10 @@ class DiverSettingsRepository {
             DiveDetailSectionConfig.sectionsToJson(settings.diveDetailSections),
           ),
           diveDetailLayout: Value(settings.diveDetailLayout.name),
+          siteDetailSections: Value(
+            SiteDetailSectionConfig.sectionsToJson(settings.siteDetailSections),
+          ),
+          siteDetailLayout: Value(settings.siteDetailLayout.name),
           updatedAt: Value(now),
         ),
       );
@@ -625,6 +634,10 @@ class DiverSettingsRepository {
         row.diveDetailSections,
       ),
       diveDetailLayout: DiveDetailLayout.fromName(row.diveDetailLayout),
+      siteDetailSections: SiteDetailSectionConfig.sectionsFromJson(
+        row.siteDetailSections,
+      ),
+      siteDetailLayout: DiveDetailLayout.fromName(row.siteDetailLayout),
     );
   }
 
