@@ -15,6 +15,17 @@ class FilePayload {
   });
 }
 
+/// A reference record that survived folding, known by the source id of
+/// every record folded into it (issue #1807).
+class _Survivor {
+  _Survivor(this.item, String? sourceId) {
+    if (sourceId != null) sourceIds.add(sourceId);
+  }
+
+  final Map<String, dynamic> item;
+  final Set<String> sourceIds = {};
+}
+
 /// Merges N per-file [ImportPayload]s into one batch payload.
 ///
 /// - Every `uddfId` (and dive-side reference to one) is prefixed with the
@@ -25,6 +36,11 @@ class FilePayload {
 ///   the first occurrence survives, enriched with later files' non-null
 ///   fields, and dive-side references to folded entities are rewritten to
 ///   the survivor's id.
+/// - Records within one file are already distinct by id, so they never fold
+///   into each other; only repeats of one id do (issue #1807). Across files,
+///   a name held by one record on each side folds; when either side holds
+///   several, records pair only by a shared source id and the rest stay
+///   apart rather than merging two namesakes on a guess.
 /// - Dives are NEVER folded; cross-file dive duplicates are left for the
 ///   duplicate checker so the user decides.
 class PayloadMerger {
@@ -95,8 +111,9 @@ class PayloadMerger {
     final warnings = <ImportWarning>[];
     // prefixed folded id -> prefixed survivor id
     final aliases = <String, String>{};
-    // entity type -> fold key -> surviving map (already in `entities`)
-    final survivors = <ImportEntityType, Map<String, Map<String, dynamic>>>{};
+    // entity type -> fold key -> surviving records (already in `entities`),
+    // in first-seen order
+    final survivors = <ImportEntityType, Map<String, List<_Survivor>>>{};
     // Custom dive role definitions by id (issue #1737). Ids are device-minted
     // UUIDs referenced verbatim by dive links, so they are never namespaced,
     // and the same id in two files is the same role.
@@ -120,6 +137,7 @@ class PayloadMerger {
         final items = input.payload.entitiesOf(type);
         if (items.isEmpty) continue;
 
+        final references = <Map<String, dynamic>>[];
         for (final original in items) {
           final item = _namespaced(original, input.fileId, type);
           item['_sourceFile'] = input.fileName;
@@ -141,37 +159,18 @@ class PayloadMerger {
             continue;
           }
 
-          final key = _foldKey(type, item);
-          if (key == null) {
-            (entities[type] ??= []).add(item);
-            continue;
-          }
+          references.add(item);
+        }
 
-          final byKey = survivors[type] ??= {};
-          final survivor = byKey[key];
-          if (survivor == null) {
-            byKey[key] = item;
-            (entities[type] ??= []).add(item);
-          } else {
-            // Enrich the survivor with fields it is missing.
-            for (final entry in item.entries) {
-              if (entry.key == 'uddfId' ||
-                  entry.key == '_sourceFile' ||
-                  entry.key == '_sourceFileId') {
-                continue;
-              }
-              final existing = survivor[entry.key];
-              if (existing == null ||
-                  (existing is String && existing.isEmpty)) {
-                if (entry.value != null) survivor[entry.key] = entry.value;
-              }
-            }
-            final foldedId = item['uddfId'] as String?;
-            final survivorId = survivor['uddfId'] as String?;
-            if (foldedId != null && survivorId != null) {
-              aliases[foldedId] = survivorId;
-            }
-          }
+        if (references.isNotEmpty) {
+          _foldFileReferences(
+            type: type,
+            fileId: input.fileId,
+            items: references,
+            survivors: survivors[type] ??= {},
+            out: entities[type] ??= [],
+            aliases: aliases,
+          );
         }
       }
     }
@@ -265,6 +264,124 @@ class PayloadMerger {
     }
 
     return item;
+  }
+
+  /// Folds one file's reference records of one [type] into the batch.
+  ///
+  /// A record the file repeats under one id is one record, so the repeats
+  /// fold into its first occurrence, named or not. Records with different ids stay
+  /// distinct (issue #1807), and each earlier-file [survivors] entry takes
+  /// at most one of them: by name when the name is held by exactly one
+  /// record on each side, otherwise only by a shared source id. A record
+  /// with no match is added to [out] and, if named, becomes a survivor for
+  /// later files.
+  void _foldFileReferences({
+    required ImportEntityType type,
+    required String fileId,
+    required List<Map<String, dynamic>> items,
+    required Map<String, List<_Survivor>> survivors,
+    required List<Map<String, dynamic>> out,
+    required Map<String, String> aliases,
+  }) {
+    final distinct = <Map<String, dynamic>>[];
+    final firstById = <String, Map<String, dynamic>>{};
+    for (final item in items) {
+      final id = _recordId(type, item);
+      if (id != null) {
+        final first = firstById[id];
+        if (first != null) {
+          _enrich(first, item);
+          continue;
+        }
+        firstById[id] = item;
+      }
+      distinct.add(item);
+    }
+    // Keyed only once repeats are merged, so a name that only a repeat
+    // carries still counts.
+    final records = [
+      for (final item in distinct) (item: item, key: _foldKey(type, item)),
+    ];
+
+    final byKey = <String, List<Map<String, dynamic>>>{};
+    for (final (:item, :key) in records) {
+      if (key != null) (byKey[key] ??= []).add(item);
+    }
+
+    final matches = Map<Map<String, dynamic>, _Survivor>.identity();
+    for (final MapEntry(:key, value: group) in byKey.entries) {
+      final candidates = [...?survivors[key]];
+      if (group.length == 1 && candidates.length == 1) {
+        matches[group.single] = candidates.single;
+        continue;
+      }
+      for (final item in group) {
+        final sourceId = _sourceId(type, item, fileId);
+        if (sourceId == null) continue;
+        final index = candidates.indexWhere(
+          (s) => s.sourceIds.contains(sourceId),
+        );
+        if (index >= 0) matches[item] = candidates.removeAt(index);
+      }
+    }
+
+    for (final (:item, :key) in records) {
+      final sourceId = _sourceId(type, item, fileId);
+      final survivor = matches[item];
+      if (survivor == null) {
+        out.add(item);
+        if (key != null) (survivors[key] ??= []).add(_Survivor(item, sourceId));
+        continue;
+      }
+      _enrich(survivor.item, item);
+      if (sourceId != null) survivor.sourceIds.add(sourceId);
+      final foldedId = item['uddfId'];
+      final survivorId = survivor.item['uddfId'];
+      if (foldedId is String && survivorId is String) {
+        aliases[foldedId] = survivorId;
+      }
+    }
+  }
+
+  /// Fills [survivor]'s missing or empty fields from [item], leaving its
+  /// identity and file attribution alone.
+  static void _enrich(
+    Map<String, dynamic> survivor,
+    Map<String, dynamic> item,
+  ) {
+    for (final entry in item.entries) {
+      if (entry.key == 'uddfId' ||
+          entry.key == '_sourceFile' ||
+          entry.key == '_sourceFileId') {
+        continue;
+      }
+      final existing = survivor[entry.key];
+      if (existing == null || (existing is String && existing.isEmpty)) {
+        if (entry.value != null) survivor[entry.key] = entry.value;
+      }
+    }
+  }
+
+  /// [item]'s id within the batch. A dive type is identified by the slug in
+  /// `id`, which is shared across files and is what the importer creates it
+  /// under; `uddfId` stands in only when the slug is missing.
+  static String? _recordId(ImportEntityType type, Map<String, dynamic> item) {
+    final slug = type == ImportEntityType.diveTypes ? item['id'] : null;
+    final id = slug is String && slug.isNotEmpty ? slug : item['uddfId'];
+    return id is String && id.isNotEmpty ? id : null;
+  }
+
+  /// [item]'s id as its source file wrote it, without the batch prefix.
+  /// Dive types are never prefixed, so theirs comes back unchanged.
+  static String? _sourceId(
+    ImportEntityType type,
+    Map<String, dynamic> item,
+    String fileId,
+  ) {
+    final id = _recordId(type, item);
+    if (id == null) return null;
+    final prefix = '$fileId:';
+    return id.startsWith(prefix) ? id.substring(prefix.length) : id;
   }
 
   /// Cross-file fold key for reference entities; null means "never fold".
