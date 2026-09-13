@@ -60,7 +60,10 @@ import 'package:submersion/features/universal_import/data/models/picked_import_f
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart'
     show performConsolidations;
+import 'package:submersion/features/import_wizard/presentation/widgets/diver_mapping_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/photo_folder_step.dart';
+import 'package:submersion/features/universal_import/data/models/diver_target.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
@@ -149,6 +152,35 @@ final universalAdapterPhotosReadyProvider = Provider<bool>((ref) {
       !_hasBundledPhotos(state.photoPathsByBaseName) ||
       state.bundledPhotoFolderPath != null;
   return referencedReady && bundledReady;
+});
+
+/// True once a payload exists that needed no column mapping (every format
+/// but CSV), so the Map Fields step played no part in this import and the
+/// step indicator leaves it out (issue #1893).
+final universalAdapterNoFieldMappingProvider = Provider<bool>((ref) {
+  final state = ref.watch(universalImportNotifierProvider);
+  return state.payload != null && !state.needsFieldMapping;
+});
+
+/// True when the parsed payload has at most one diver, so the Divers step
+/// has nothing to ask and skips itself (issue #1893).
+final universalAdapterSingleDiverProvider = Provider<bool>((ref) {
+  final parsed = ref.watch(
+    universalImportNotifierProvider.select((s) => s.parsedPayload),
+  );
+  return !(parsed?.needsDiverMapping ?? false);
+});
+
+/// True once every row of the Divers step has a choice and at least one of
+/// them imports somewhere.
+final universalAdapterDiverMappingReadyProvider = Provider<bool>((ref) {
+  final state = ref.watch(universalImportNotifierProvider);
+  final parsed = state.parsedPayload;
+  if (parsed == null || !parsed.needsDiverMapping) return true;
+  final rows = orderedDiverRows(parsed.sourceDivers);
+  final mapping = state.diverMapping;
+  return rows.every((row) => mapping.containsKey(row.key)) &&
+      rows.any((row) => mapping[row.key] is! SkipDiverTarget);
 });
 
 /// Import source adapter for universal file imports (CSV, Subsurface XML,
@@ -255,9 +287,30 @@ class UniversalAdapter implements ImportSourceAdapter {
       canAdvance: universalAdapterMappingReadyProvider,
       canAutoAdvance: _universalAdapterMappingAutoAdvanceProvider,
       autoAdvance: true,
+      hiddenWhen: universalAdapterNoFieldMappingProvider,
       onBeforeAdvance: () async {
         final notifier = _ref.read(universalImportNotifierProvider.notifier);
         await notifier.confirmFieldMapping();
+        await _seedDiverMapping();
+      },
+    ),
+    WizardStepDef(
+      label: 'Divers',
+      icon: Icons.people_outline,
+      builder: (context) => const DiverMappingStep(),
+      canAdvance: universalAdapterDiverMappingReadyProvider,
+      // Only a logbook with two or more divers has anything to ask.
+      canAutoAdvance: universalAdapterSingleDiverProvider,
+      autoAdvance: true,
+      hiddenWhen: universalAdapterSingleDiverProvider,
+      onBeforeAdvance: () async {
+        final activeDiverId = await _ref.read(
+          validatedCurrentDiverIdProvider.future,
+        );
+        if (activeDiverId == null) return;
+        _ref
+            .read(universalImportNotifierProvider.notifier)
+            .applyDiverMapping(activeDiverId: activeDiverId);
       },
     ),
     WizardStepDef(
@@ -270,8 +323,25 @@ class UniversalAdapter implements ImportSourceAdapter {
       // user has not made.
       canAutoAdvance: universalAdapterNoPhotosProvider,
       autoAdvance: true,
+      hiddenWhen: universalAdapterNoPhotosProvider,
     ),
   ];
+
+  /// Seeds the Divers step's defaults (issue #1893). Runs as Map Fields is
+  /// left, which the wizard does even when it auto-skips that step, after
+  /// choosing the next page and before rendering it.
+  Future<void> _seedDiverMapping() async {
+    final parsed = _ref.read(universalImportNotifierProvider).parsedPayload;
+    if (parsed == null || !parsed.needsDiverMapping) return;
+    final activeDiverId = await _ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    if (activeDiverId == null) return;
+    final profiles = await _ref.read(allDiversProvider.future);
+    _ref
+        .read(universalImportNotifierProvider.notifier)
+        .initDiverMapping(profiles: profiles, activeDiverId: activeDiverId);
+  }
 
   @override
   Future<ImportBundle> buildBundle() async {

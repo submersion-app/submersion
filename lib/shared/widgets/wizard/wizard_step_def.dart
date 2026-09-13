@@ -49,6 +49,12 @@ class WizardStepDef {
   /// step. The step widget is responsible for its own navigation controls.
   final bool hideBottomBar;
 
+  /// When non-null and true, this step does not apply to the current run
+  /// and is left out of the step indicator (issue #1893). It stays in the
+  /// page list: whether the wizard stops on it is still decided by
+  /// [autoAdvance] and [canAutoAdvance].
+  final ProviderListenable<bool>? hiddenWhen;
+
   const WizardStepDef({
     required this.label,
     this.icon,
@@ -58,5 +64,6 @@ class WizardStepDef {
     this.canAutoAdvance,
     this.onBeforeAdvance,
     this.hideBottomBar = false,
+    this.hiddenWhen,
   });
 }
