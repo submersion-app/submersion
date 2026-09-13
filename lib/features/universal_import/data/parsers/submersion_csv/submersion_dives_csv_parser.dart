@@ -70,6 +70,7 @@ class SubmersionDivesCsvParser implements ImportParser {
       for (final header in table.unreadableUnitColumns(_unitColumns))
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.diagnostic,
           message:
               'Column "$header" names a unit that cannot be read; '
               'its values were left out',

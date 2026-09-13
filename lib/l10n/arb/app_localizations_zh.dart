@@ -21365,7 +21365,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_filesTitle => '文件';
 
   @override
-  String get universalImport_summary_noticesTitle => '文件中没有此数据';
+  String get universalImport_summary_noticesTitle => '导入说明';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle => '未记录气瓶压力';
@@ -21382,6 +21382,105 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '影响 $count 次潜水',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle => '部分潜水无法读取';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      '这些潜水已跳过，因为无法读取文件中的相关数据。';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已跳过 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle => '来自多位潜水员的潜水';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return '此 MacDive 资料库包含由 $names 记录的潜水。所有潜水都已导入当前潜水员，并且每次潜水都已标记其记录时使用的名称。';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle => '部分剖面无法读取';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      '这些潜水已在没有深度剖面的情况下导入，因为文件中的剖面数据缺失或无法读取。';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      '未解码的 MacDive 剖面';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive 以 Submersion 无法读取的格式存储了这些剖面。要导入它们，请从 MacDive 导出为 XML（File > Export > MacDive XML），然后改为导入该文件。';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      '此设备无法解码剖面';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      '此设备无法解码文件中的潜水电脑数据，因此这些潜水在没有深度剖面的情况下导入。';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle => '部分列未导入';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return '这些列匹配的字段已由另一列填充，因此已被忽略：$names。如需改用其中一列，请重新导入文件，并在“Map Fields”步骤中选择它。';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle => '部分值留空';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个值无法转换，已留空。如果某个字段看起来不正确，请检查列映射后重新导入。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle => '部分照片已跳过';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片没有文件名，无法关联。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      '文件中没有证书和维护记录';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive 的 XML 导出不包含证书和装备维护记录。要导入它们，请导入您的 MacDive.sqlite 数据库。';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      '未导入 MacDive 日志簿';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'MacDive 日志簿（$names）是已保存的搜索，而不是固定的潜水列表，因此没有可导入的内容。您可以将它们重新创建为潜水筛选条件。';
   }
 
   @override

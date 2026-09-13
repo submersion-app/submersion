@@ -22566,7 +22566,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Archivos';
 
   @override
-  String get universalImport_summary_noticesTitle => 'No está en el archivo';
+  String get universalImport_summary_noticesTitle => 'Notas de la importación';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22585,6 +22585,117 @@ class AppLocalizationsEs extends AppLocalizations {
       one: 'Afecta a 1 inmersión',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'No se pudieron leer algunas inmersiones';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'Estas inmersiones se omitieron porque sus datos en el archivo no se pudieron leer.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones omitidas',
+      one: '1 inmersión omitida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Inmersiones de más de un buceador';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'Esta biblioteca de MacDive tiene inmersiones registradas por $names. Todas se importaron en el buceador actual y cada inmersión está etiquetada con el nombre con el que se registró.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'No se pudieron leer algunos perfiles';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'Estas inmersiones se importaron sin perfil de profundidad porque los datos del perfil en el archivo faltan o no se pudieron leer.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'Perfiles de MacDive no decodificados';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive guardó estos perfiles en un formato que Submersion no puede leer. Para importarlos, exporta desde MacDive como XML (File > Export > MacDive XML) e importa ese archivo en su lugar.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'Perfiles no decodificados en este dispositivo';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'Este dispositivo no pudo decodificar los datos del ordenador de buceo del archivo, así que estas inmersiones se importaron sin perfil de profundidad.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Algunas columnas no se importaron';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Estas columnas coincidían con un campo que ya rellena otra columna, así que se omitieron: $names. Para usar una de ellas en su lugar, vuelve a importar el archivo y elígela en el paso «Map Fields».';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Algunos valores quedaron en blanco';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count valores no se pudieron convertir y quedaron en blanco. Si un campo parece incorrecto, revisa la asignación de columnas y vuelve a importar.',
+      one:
+          '1 valor no se pudo convertir y quedó en blanco. Si un campo parece incorrecto, revisa la asignación de columnas y vuelve a importar.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Algunas fotos omitidas';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fotos no tenían nombre de archivo y no se pudieron vincular.',
+      one: '1 foto no tenía nombre de archivo y no se pudo vincular.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'Certificaciones y registros de servicio que no están en el archivo';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive no incluye las certificaciones ni los registros de servicio del equipo en su exportación XML. Para traerlos, importa tu base de datos MacDive.sqlite.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'Libros de registro de MacDive no importados';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'Los libros de registro de MacDive ($names) son búsquedas guardadas, no listas fijas de inmersiones, así que no hay nada que importar. Puedes recrearlos como filtros de inmersiones.';
   }
 
   @override

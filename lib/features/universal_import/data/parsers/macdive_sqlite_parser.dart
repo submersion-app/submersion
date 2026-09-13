@@ -47,7 +47,7 @@ class MacDiveSqliteParser implements ImportParser {
           entities: {},
           warnings: [
             ImportWarning(
-              severity: ImportWarningSeverity.info,
+              severity: ImportWarningSeverity.error,
               message: 'MacDive database contains no dives.',
             ),
           ],

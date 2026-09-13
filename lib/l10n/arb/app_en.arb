@@ -13605,7 +13605,7 @@
   "universalImport_triage_noneImportable": "None of the selected files can be imported.",
   "universalImport_review_inBatchDuplicate": "Duplicate of another dive in this import batch.",
   "universalImport_summary_filesTitle": "Files",
-  "universalImport_summary_noticesTitle": "Not in the file",
+  "universalImport_summary_noticesTitle": "Import notes",
   "universalImport_summary_noticeNoTankPressureTitle": "Tank pressure not recorded",
   "universalImport_summary_noticeNoTankPressureBody": "Air consumption and SAC cannot be calculated. You can add start and end pressure by editing the dive.",
   "universalImport_summary_noticeAffectedDives": "{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}",
@@ -13613,6 +13613,69 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticeDivesSkippedTitle": "Some dives could not be read",
+  "universalImport_summary_noticeDivesSkippedBody": "These dives were skipped because their data in the file could not be read.",
+  "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 dive skipped} other{{count} dives skipped}}",
+  "@universalImport_summary_noticeDivesSkippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticeMultipleDiversTitle": "Dives from more than one diver",
+  "universalImport_summary_noticeMultipleDiversBody": "This MacDive library has dives logged by {names}. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.",
+  "@universalImport_summary_noticeMultipleDiversBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_summary_noticeProfileUnreadableTitle": "Some profiles could not be read",
+  "universalImport_summary_noticeProfileUnreadableBody": "These dives were imported without a depth profile because the profile data in the file is missing or could not be read.",
+  "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "MacDive profiles not decoded",
+  "universalImport_summary_noticeMacdiveProfileUndecodableBody": "MacDive stored these profiles in a form Submersion cannot read. To import them, export from MacDive as XML (File > Export > MacDive XML) and import that file instead.",
+  "universalImport_summary_noticeProfileUndecodableOnPlatformTitle": "Profiles not decoded on this device",
+  "universalImport_summary_noticeProfileUndecodableOnPlatformBody": "This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.",
+  "universalImport_summary_noticeColumnsNotImportedTitle": "Some columns were not imported",
+  "universalImport_summary_noticeColumnsNotImportedBody": "These columns matched a field that another column already fills, so they were left out: {names}. To use one of them instead, import the file again and choose it on the Map Fields step.",
+  "@universalImport_summary_noticeColumnsNotImportedBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_summary_noticeValuesNotConvertedTitle": "Some values left blank",
+  "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.} other{{count} values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.}}",
+  "@universalImport_summary_noticeValuesNotConvertedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticePhotosSkippedTitle": "Some photos skipped",
+  "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 photo had no file name and could not be linked.} other{{count} photos had no file name and could not be linked.}}",
+  "@universalImport_summary_noticePhotosSkippedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certifications and service records not in the file",
+  "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.",
+  "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive logbooks not imported",
+  "universalImport_summary_noticeMacdiveLogbooksBody": "MacDive logbooks ({names}) are saved searches, not fixed lists of dives, so there is nothing to import. You can recreate them as dive filters.",
+  "@universalImport_summary_noticeMacdiveLogbooksBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
       }
     }
   },

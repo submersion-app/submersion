@@ -360,6 +360,11 @@ void main() {
           .where((w) => w.message.contains('certifications'))
           .toList();
       expect(notices, hasLength(1));
+      expect(
+        notices.single.code,
+        ImportWarningCode.macdiveXmlOmitsCertsAndService,
+        reason: 'the summary shows coded warnings only',
+      );
 
       final message = notices.single.message;
       expect(message, contains('service records'));

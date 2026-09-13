@@ -22484,7 +22484,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Fájlok';
 
   @override
-  String get universalImport_summary_noticesTitle => 'Nincs a fájlban';
+  String get universalImport_summary_noticesTitle => 'Importálási megjegyzések';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22503,6 +22503,117 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 merülést érint',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'Néhány merülést nem sikerült beolvasni';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'Ezeket a merüléseket kihagytuk, mert az adataikat nem sikerült beolvasni a fájlból.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés kihagyva',
+      one: '1 merülés kihagyva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Több búvár merülései';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'Ez a MacDive-könyvtár a következő búvárok merüléseit tartalmazza: $names. Mindet az aktuális búvárhoz importáltuk, és minden merülést megcímkéztünk azzal a névvel, amelyen rögzítették.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'Néhány profilt nem sikerült beolvasni';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'Ezek a merülések mélységprofil nélkül lettek importálva, mert a profiladatok hiányoznak a fájlból, vagy nem sikerült beolvasni őket.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'Nem dekódolt MacDive-profilok';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'A MacDive olyan formában tárolta ezeket a profilokat, amelyet a Submersion nem tud beolvasni. Az importálásukhoz exportálj a MacDive-ból XML-be (File > Export > MacDive XML), és inkább azt a fájlt importáld.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'A profilok nem dekódolhatók ezen az eszközön';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'Ez az eszköz nem tudta dekódolni a fájlban lévő búvárkomputer-adatokat, ezért ezek a merülések mélységprofil nélkül lettek importálva.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Néhány oszlop nem lett importálva';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Ezek az oszlopok olyan mezőhöz illeszkedtek, amelyet már egy másik oszlop kitölt, ezért kimaradtak: $names. Ha inkább valamelyiket szeretnéd használni, importáld újra a fájlt, és válaszd ki a „Map Fields” lépésben.';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Néhány érték üresen maradt';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count értéket nem sikerült átalakítani, ezért üresen maradtak. Ha egy mező hibásnak tűnik, ellenőrizd az oszlopok hozzárendelését, és importáld újra.',
+      one:
+          '1 értéket nem sikerült átalakítani, ezért üresen maradt. Ha egy mező hibásnak tűnik, ellenőrizd az oszlopok hozzárendelését, és importáld újra.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Néhány fénykép kimaradt';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fényképnek nem volt fájlneve, ezért nem lehetett csatolni őket.',
+      one: '1 fényképnek nem volt fájlneve, ezért nem lehetett csatolni.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'A tanúsítványok és a szervizrekordok nincsenek a fájlban';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'A MacDive az XML-exportból kihagyja a tanúsítványokat és a felszerelés szervizrekordjait. Az átvételükhöz importáld a MacDive.sqlite adatbázisodat.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'A MacDive-naplók nem lettek importálva';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'A MacDive-naplók ($names) mentett keresések, nem pedig merülések rögzített listái, így nincs mit importálni. Merülésszűrőként újra létrehozhatod őket.';
   }
 
   @override

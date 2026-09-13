@@ -21976,7 +21976,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'קבצים';
 
   @override
-  String get universalImport_summary_noticesTitle => 'לא נמצא בקובץ';
+  String get universalImport_summary_noticesTitle => 'הערות ייבוא';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -21995,6 +21995,116 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'משפיע על צלילה אחת',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'לא ניתן היה לקרוא חלק מהצלילות';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות דולגו',
+      one: 'צלילה אחת דולגה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'צלילות של יותר מצולל אחד';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'ספריית MacDive זו כוללת צלילות שנרשמו על ידי $names. כולן יובאו לצולל הנוכחי, וכל צלילה תויגה בשם שתחתיו נרשמה.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'לא ניתן היה לקרוא חלק מהפרופילים';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'הצלילות האלה יובאו ללא פרופיל עומק כי נתוני הפרופיל בקובץ חסרים או שלא ניתן היה לקרוא אותם.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'פרופילי MacDive לא פוענחו';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive שמר את הפרופילים האלה בפורמט ש-Submersion לא יכול לקרוא. כדי לייבא אותם, יש לייצא מ-MacDive כ-XML (File > Export > MacDive XML) ולייבא את הקובץ הזה במקום.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'פרופילים לא פוענחו במכשיר זה';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'המכשיר הזה לא הצליח לפענח את נתוני מחשב הצלילה שבקובץ, ולכן הצלילות האלה יובאו ללא פרופיל עומק.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'חלק מהעמודות לא יובאו';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'העמודות האלה התאימו לשדה שעמודה אחרת כבר ממלאת, ולכן הושמטו: $names. כדי להשתמש באחת מהן במקום, יש לייבא את הקובץ שוב ולבחור בה בשלב \"Map Fields\".';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'חלק מהערכים נשארו ריקים';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ערכים לא הומרו ונשארו ריקים. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+      one:
+          'ערך אחד לא הומר ונשאר ריק. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'חלק מהתמונות דולגו';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count תמונות לא היה שם קובץ ולא ניתן היה לקשר אותן.',
+      one: 'לתמונה אחת לא היה שם קובץ ולא ניתן היה לקשר אותה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'הסמכות ורשומות טיפול לא נמצאות בקובץ';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive משמיט הסמכות ורשומות טיפול בציוד מייצוא ה-XML שלו. כדי להביא אותן, יש לייבא את מסד הנתונים MacDive.sqlite.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'יומני MacDive לא יובאו';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'יומני MacDive ($names) הם חיפושים שמורים ולא רשימות קבועות של צלילות, ולכן אין מה לייבא. אפשר ליצור אותם מחדש כמסנני צלילות.';
   }
 
   @override

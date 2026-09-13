@@ -28,7 +28,7 @@ void main() {
       );
 
       expect(notice?.kind, ImportNoticeKind.diveNumberConflict);
-      expect(notice?.affectedDives, 2);
+      expect(notice?.count, 2);
       expect(repo.calls, [
         ['a', 'b'],
       ]);

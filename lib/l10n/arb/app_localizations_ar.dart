@@ -22148,7 +22148,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'الملفات';
 
   @override
-  String get universalImport_summary_noticesTitle => 'غير موجود في الملف';
+  String get universalImport_summary_noticesTitle => 'ملاحظات الاستيراد';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22167,6 +22167,116 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'يؤثر على غطسة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'تعذّرت قراءة بعض الغطسات';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تخطي $count غطسات',
+      one: 'تم تخطي غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'غطسات لأكثر من غوّاص';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'تحتوي مكتبة MacDive هذه على غطسات سجّلها $names. تم استيرادها كلها إلى الغوّاص الحالي، ووُسمت كل غطسة بالاسم الذي سُجّلت به.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'تعذّرت قراءة بعض ملفات العمق';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'تم استيراد هذه الغطسات بدون ملف العمق لأن بيانات ملف العمق في الملف مفقودة أو تعذّرت قراءتها.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'لم يُفك ترميز ملفات العمق من MacDive';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'خزّن MacDive ملفات العمق هذه بصيغة لا يستطيع Submersion قراءتها. لاستيرادها، صدّر من MacDive بصيغة XML (File > Export > MacDive XML) ثم استورد ذلك الملف بدلاً من ذلك.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'لم يُفك ترميز ملفات العمق على هذا الجهاز';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'تعذّر على هذا الجهاز فك ترميز بيانات حاسوب الغوص في الملف، لذا تم استيراد هذه الغطسات بدون ملفات العمق.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'لم يتم استيراد بعض الأعمدة';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'طابقت هذه الأعمدة حقلًا يملؤه عمود آخر بالفعل، لذا تم استبعادها: $names. لاستخدام أحدها بدلاً من ذلك، استورد الملف مجددًا واختره في خطوة \"Map Fields\".';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'تُركت بعض القيم فارغة';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تعذّر تحويل $count قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
+      one:
+          'تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'تم تخطي بعض الصور';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يكن لـ $count صور اسم ملف فتعذّر ربطها.',
+      one: 'لم يكن لصورة واحدة اسم ملف فتعذّر ربطها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'الشهادات وسجلات الصيانة غير موجودة في الملف';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'يستبعد MacDive الشهادات وسجلات صيانة المعدات من تصدير XML. لاستيرادها، استورد قاعدة بيانات MacDive.sqlite الخاصة بك.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'لم يتم استيراد دفاتر سجل MacDive';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'دفاتر سجل MacDive ($names) هي عمليات بحث محفوظة وليست قوائم ثابتة من الغطسات، لذا لا يوجد ما يُستورد. يمكنك إعادة إنشائها كعوامل تصفية للغطسات.';
   }
 
   @override

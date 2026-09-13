@@ -62,6 +62,11 @@ class ImportPayload extends Equatable {
   /// Whether the payload has any data to import.
   bool get isNotEmpty => !isEmpty;
 
+  /// The message to show when this payload imports nothing, from
+  /// [ImportFailureDetail.failureDetail]; null when nothing showable was
+  /// recorded.
+  String? get failureReason => warnings.failureDetail?.message;
+
   @override
   List<Object?> get props => [entities, warnings, metadata];
 }

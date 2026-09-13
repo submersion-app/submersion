@@ -43,7 +43,7 @@ class PlaceholderParser implements ImportParser {
     return ImportPayload(
       entities: const {},
       warnings: [
-        ImportWarning(severity: ImportWarningSeverity.info, message: message),
+        ImportWarning(severity: ImportWarningSeverity.error, message: message),
       ],
     );
   }

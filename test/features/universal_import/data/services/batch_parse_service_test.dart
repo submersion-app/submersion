@@ -101,6 +101,31 @@ void main() {
     expect(result.parsed, isEmpty);
   });
 
+  test('a failed file reports its error, not a diagnostic', () async {
+    // The DL7 reader records the stray ZDT as a diagnostic before the parser
+    // reports that no dives were found. The summary shows the stored reason,
+    // so it must be the error that sank the file.
+    final dl7 = PickedImportFile(
+      name: 'stray.zxu',
+      bytes: Uint8List.fromList(
+        utf8.encode(
+          'FSH|^~<>{}|OCI201^^|ZXU|20240402090000|\n'
+          'ZDT|1|7|60.0|20240401140300|75||\n',
+        ),
+      ),
+      detection: const DetectionResult(
+        format: ImportFormat.danDl7,
+        confidence: 1,
+      ),
+      status: ImportFileStatus.pending,
+    );
+
+    final result = await service.parseAll([dl7]);
+
+    expect(result.files.single.status, ImportFileStatus.failed);
+    expect(result.files.single.error, 'No dives found in DL7 file');
+  });
+
   test('excluded and unsupported files are skipped untouched', () async {
     final csv = PickedImportFile(
       name: 'log.csv',

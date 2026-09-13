@@ -22165,7 +22165,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Files';
 
   @override
-  String get universalImport_summary_noticesTitle => 'Not in the file';
+  String get universalImport_summary_noticesTitle => 'Import notes';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22184,6 +22184,116 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Affects 1 dive',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'Some dives could not be read';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'These dives were skipped because their data in the file could not be read.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives skipped',
+      one: '1 dive skipped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Dives from more than one diver';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'This MacDive library has dives logged by $names. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'Some profiles could not be read';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'These dives were imported without a depth profile because the profile data in the file is missing or could not be read.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'MacDive profiles not decoded';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive stored these profiles in a form Submersion cannot read. To import them, export from MacDive as XML (File > Export > MacDive XML) and import that file instead.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'Profiles not decoded on this device';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Some columns were not imported';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'These columns matched a field that another column already fills, so they were left out: $names. To use one of them instead, import the file again and choose it on the Map Fields step.';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Some values left blank';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.',
+      one:
+          '1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Some photos skipped';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos had no file name and could not be linked.',
+      one: '1 photo had no file name and could not be linked.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'Certifications and service records not in the file';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'MacDive logbooks not imported';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'MacDive logbooks ($names) are saved searches, not fixed lists of dives, so there is nothing to import. You can recreate them as dive filters.';
   }
 
   @override

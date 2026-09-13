@@ -150,6 +150,85 @@ void main() {
       expect(duration.inSeconds, 2700);
     });
 
+    // The import summary shows coded warnings only, grouped by code.
+    group('summary codes', () {
+      const noDate = ParsedCsv(
+        headers: ['Max Depth'],
+        rows: [
+          ['25.5'],
+        ],
+      );
+      const depthOnly = FieldMapping(
+        name: 'Test',
+        columns: [
+          ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+        ],
+      );
+
+      test('a dive-list row with no dateTime is an unreadable date', () {
+        // Listed by row in the summary's card for dives that did not import.
+        final result = transformer.transform(
+          noDate,
+          const ImportConfiguration(mappings: {'primary': depthOnly}),
+        );
+
+        expect(result.warnings.single.code, ImportWarningCode.unreadableDate);
+      });
+
+      test('a profile row with no dateTime is not a skipped dive', () {
+        // Profile rows are samples, not dives: reporting them as skipped dives
+        // would overstate the loss.
+        final result = transformer.transform(
+          noDate,
+          const ImportConfiguration(mappings: {'dive_profile': depthOnly}),
+          fileRole: 'dive_profile',
+        );
+
+        expect(result.warnings.single.code, ImportWarningCode.diagnostic);
+      });
+
+      test('a value a transform rejects is a value not converted', () {
+        final result = transformer.transform(
+          const ParsedCsv(
+            headers: ['Date', 'Duration'],
+            rows: [
+              ['2024-06-15', 'not-a-duration'],
+            ],
+          ),
+          const ImportConfiguration(
+            mappings: {
+              'primary': FieldMapping(
+                name: 'Test',
+                columns: [
+                  ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+                  ColumnMapping(
+                    sourceColumn: 'Duration',
+                    targetField: 'duration',
+                    transform: ValueTransform.hmsToSeconds,
+                  ),
+                ],
+              ),
+            },
+          ),
+        );
+
+        expect(
+          result.warnings.single.code,
+          ImportWarningCode.valuesNotConverted,
+        );
+      });
+
+      test('a role with no mapping is an error: it yields no rows', () {
+        final result = transformer.transform(
+          noDate,
+          const ImportConfiguration(mappings: {'primary': depthOnly}),
+          fileRole: 'nonexistent',
+        );
+
+        expect(result.warnings.single.severity, ImportWarningSeverity.error);
+      });
+    });
+
     test('skips rows with no valid dateTime and warns', () {
       const csv = ParsedCsv(
         headers: ['Max Depth', 'Notes'],
@@ -1310,7 +1389,8 @@ void main() {
         fileRole: 'dive_profile',
       );
 
-      expect(result.warnings.single.code, isNull);
+      // Recorded, but as a diagnostic: the summary never shows it.
+      expect(result.warnings.single.code, ImportWarningCode.diagnostic);
     });
   });
 }

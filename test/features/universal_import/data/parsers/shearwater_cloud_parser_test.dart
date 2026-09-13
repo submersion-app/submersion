@@ -27,13 +27,15 @@ void main() {
       expect(payload.warnings.first.severity, ImportWarningSeverity.error);
     });
 
-    test('parse returns info warning for empty database', () async {
+    test('parse fails an empty database with an error', () async {
+      // An empty database imports nothing, so the file fails and this message
+      // becomes the reason shown for it.
       final parser = ShearwaterCloudParser();
       final bytes = createShearwaterTestDb();
       final payload = await parser.parse(bytes);
       expect(payload.isEmpty, isTrue);
       expect(payload.warnings, hasLength(1));
-      expect(payload.warnings.first.severity, ImportWarningSeverity.info);
+      expect(payload.warnings.first.severity, ImportWarningSeverity.error);
       expect(payload.warnings.first.message, contains('no dives'));
     });
 
@@ -195,6 +197,40 @@ void main() {
       );
       expect(ffiWarnings, isEmpty);
     });
+
+    test(
+      'an unavailable decoder counts every dive that lost its profile',
+      () async {
+        // In tests the decoder channel is absent, so the first dive with log
+        // data fails at the platform level and the rest fall back to metadata.
+        // The summary must count all three, not just the dive that failed, and
+        // must not count a dive that never had a profile to lose.
+        final compressed = createCompressedLogData(
+          Uint8List.fromList(List.filled(100, 0)),
+        );
+        ShearwaterTestDive withLog(String id) => ShearwaterTestDive(
+          diveId: id,
+          diveDate: '2025-01-01',
+          fileName: 'Teric[AABB1234]#1 2025-01-01 10-00-00.swlogzp',
+          dataBytes1: compressed,
+        );
+        final bytes = createShearwaterTestDb(
+          dives: [
+            withLog('p-1'),
+            withLog('p-2'),
+            const ShearwaterTestDive(diveId: 'no-log', diveDate: '2025-01-02'),
+            withLog('p-3'),
+          ],
+        );
+
+        final payload = await ShearwaterCloudParser().parse(bytes);
+
+        expect(payload.entitiesOf(ImportEntityType.dives), hasLength(4));
+        final w = payload.warnings.single;
+        expect(w.code, ImportWarningCode.profileUndecodableOnPlatform);
+        expect(w.count, 3);
+      },
+    );
 
     group('real fixture', () {
       test('parses 28 dives from real database', () async {
