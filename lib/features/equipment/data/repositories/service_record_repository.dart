@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     as domain;
 
@@ -14,22 +15,58 @@ class ServiceRecordRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
+  /// Newest service first, then by kind (no kind first). The index on
+  /// (equipment_id, service_kind_id) yields that order on its own, but a
+  /// scan does not, and SQLite picks between them from its statistics.
+  static final List<OrderClauseGenerator<$ServiceRecordsTable>> _newestFirst = [
+    (t) => OrderingTerm.desc(t.serviceDate),
+    (t) => OrderingTerm.asc(t.serviceKindId),
+  ];
+
   /// Emits whenever the `service_records` table changes so the service-history
   /// providers can refresh after a sync or any other write that bypasses the
   /// notifiers.
   Stream<void> watchServiceRecordsChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.serviceRecords));
 
-  /// Get all service records for an equipment item
+  /// Get all service records for an equipment item, newest first.
+  ///
+  /// Records on the same day are ordered by service kind, no kind first:
+  /// without that tie-break their order was the query plan's, which
+  /// changes once ANALYZE has run (issue #1867).
   Future<List<domain.ServiceRecord>> getRecordsForEquipment(
     String equipmentId,
   ) async {
     final query = _db.select(_db.serviceRecords)
       ..where((t) => t.equipmentId.equals(equipmentId))
-      ..orderBy([(t) => OrderingTerm.desc(t.serviceDate)]);
+      ..orderBy(_newestFirst);
 
     final rows = await query.get();
     return rows.map(_mapRowToServiceRecord).toList();
+  }
+
+  /// [getRecordsForEquipment] for many items at once, keyed by equipment
+  /// id, in the same order within an item; an item without records is
+  /// absent. One statement per chunk of ids instead of one per item, for
+  /// the exports that walk every item's history (issue #1867).
+  Future<Map<String, List<domain.ServiceRecord>>> getRecordsForEquipmentIds(
+    List<String> equipmentIds,
+  ) async {
+    if (equipmentIds.isEmpty) return {};
+    final byItem = <String, List<domain.ServiceRecord>>{};
+    for (final chunk in seriesIdChunks(equipmentIds)) {
+      final rows =
+          await (_db.select(_db.serviceRecords)
+                ..where((t) => t.equipmentId.isIn(chunk))
+                ..orderBy(_newestFirst))
+              .get();
+      for (final row in rows) {
+        byItem
+            .putIfAbsent(row.equipmentId, () => [])
+            .add(_mapRowToServiceRecord(row));
+      }
+    }
+    return byItem;
   }
 
   /// Get a single service record by ID

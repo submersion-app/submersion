@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
@@ -623,7 +624,11 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     try {
       await ref
           .read(siteListNotifierProvider.notifier)
-          .addSite(site.toDiveSite());
+          .addSite(
+            site.toDiveSite(),
+            // Its bundled features as site types (issue #1765).
+            classification: SiteClassification(typeIds: site.siteTypeIds),
+          );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

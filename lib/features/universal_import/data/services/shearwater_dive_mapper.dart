@@ -103,6 +103,7 @@ class ShearwaterDiveMapper {
       warnings?.add(
         const ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.profileUnreadable,
           message:
               'Could not determine dive computer model for profile parsing',
           entityType: ImportEntityType.dives,
@@ -125,6 +126,7 @@ class ShearwaterDiveMapper {
       warnings?.add(
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.profileUnreadable,
           message: 'Profile parsing failed for dive ${rawDive.diveId}: $e',
           entityType: ImportEntityType.dives,
         ),
@@ -134,6 +136,7 @@ class ShearwaterDiveMapper {
       warnings?.add(
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.profileUnreadable,
           message: 'Profile parsing failed for dive ${rawDive.diveId}: $e',
           entityType: ImportEntityType.dives,
         ),
@@ -197,6 +200,11 @@ class ShearwaterDiveMapper {
           site['latitude'] = coords.$1;
           site['longitude'] = coords.$2;
         }
+
+        // A suggestion only (issue #1765): the importer applies it while the
+        // site has no types, so it never overrides the diver's own choice.
+        final siteType = ShearwaterValueMapper.mapSiteType(dive.environment);
+        if (siteType != null) site['suggestedSiteTypeRefs'] = [siteType];
 
         return site;
       });

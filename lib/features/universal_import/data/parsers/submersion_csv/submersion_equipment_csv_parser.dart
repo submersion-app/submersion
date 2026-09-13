@@ -50,6 +50,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
       ]))
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.diagnostic,
           message:
               'Column "$header" names a unit that cannot be read; '
               'its values were left out',
@@ -110,6 +111,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           warnings.add(
             ImportWarning(
               severity: ImportWarningSeverity.warning,
+              code: ImportWarningCode.diagnostic,
               message: 'Attribute "$pair" of "$name" could not be read',
               entityType: ImportEntityType.equipment,
               itemIndex: items.length,
@@ -195,6 +197,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           warnings.add(
             ImportWarning(
               severity: ImportWarningSeverity.warning,
+              code: ImportWarningCode.diagnostic,
               message: ids.isEmpty
                   ? 'Part "$name" of "$owner" is not in this file and was '
                         'not linked'

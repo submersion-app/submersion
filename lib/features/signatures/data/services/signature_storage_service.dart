@@ -9,6 +9,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 
 /// Service for capturing, storing, and retrieving instructor signatures
@@ -308,6 +309,44 @@ class SignatureStorageService {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all signatures for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// [getAllSignaturesForDive] for many dives at once, keyed by dive id,
+  /// newest first within a dive; a dive with no signature is absent. One
+  /// statement per chunk of ids instead of one per dive, for the logbook
+  /// and course PDFs (issue #1867).
+  Future<Map<String, List<Signature>>> getSignaturesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    try {
+      final byDive = <String, List<Signature>>{};
+      for (final chunk in seriesIdChunks(diveIds)) {
+        final rows =
+            await (_db.select(_db.media)
+                  ..where(
+                    (t) =>
+                        t.diveId.isIn(chunk) &
+                        (t.fileType.equals(_signatureFileType) |
+                            t.signatureType.equals('buddy')),
+                  )
+                  ..orderBy([(t) => OrderingTerm.desc(t.takenAt)]))
+                .get();
+        for (final row in rows) {
+          byDive
+              .putIfAbsent(row.diveId!, () => [])
+              .add(_mapRowToSignature(row));
+        }
+      }
+      return byDive;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get signatures for ${diveIds.length} dives',
         error: e,
         stackTrace: stackTrace,
       );

@@ -6535,6 +6535,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_group_location => 'מיקום';
 
   @override
+  String get diveSites_edit_group_typeTags => 'סוג ותגיות';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'ניהול סוגים';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'תגיות';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'סוגי אתר';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'הוספת גישה, חניה, עגינה או סכנות';
 
@@ -6918,6 +6930,120 @@ class AppLocalizationsHe extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return '$name שויך';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'הוסף סוג אתר';
+
+  @override
+  String get siteTypes_builtIn => 'מובנה';
+
+  @override
+  String get siteTypes_custom => 'מותאם';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return 'למחוק את \"$name\"?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '\"$name\" משמש $count אתרים. מחיקה תסיר אותו מאתרים אלה.',
+      one: '\"$name\" משמש אתר אחד. מחיקה תסיר אותו מאתר זה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'למחוק את סוג האתר?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'מחק סוג אתר';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'הוסף סוג אתר';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'ערוך סוג אתר';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'שם';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'נא להזין שם';
+
+  @override
+  String get siteTypes_editTooltip => 'ערוך סוג אתר';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+      zero: 'אין אתרים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'לא ניתן לשמור את סוג האתר: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'סוגי אתרים';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'שונית מלאכותית';
+
+  @override
+  String get siteType_builtin_blue_hole => 'חור כחול';
+
+  @override
+  String get siteType_builtin_cave => 'מערה';
+
+  @override
+  String get siteType_builtin_cavern => 'מערה פתוחה';
+
+  @override
+  String get siteType_builtin_cenote => 'סנוטה';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'יער אצות קלפ';
+
+  @override
+  String get siteType_builtin_lake => 'אגם';
+
+  @override
+  String get siteType_builtin_muck => 'קרקעית בוצית';
+
+  @override
+  String get siteType_builtin_pier => 'מזח / רציף';
+
+  @override
+  String get siteType_builtin_pool => 'בריכה';
+
+  @override
+  String get siteType_builtin_quarry => 'מחצבה';
+
+  @override
+  String get siteType_builtin_reef => 'שונית';
+
+  @override
+  String get siteType_builtin_river => 'נהר';
+
+  @override
+  String get siteType_builtin_spring => 'מעיין';
+
+  @override
+  String get siteType_builtin_wall => 'קיר';
+
+  @override
+  String get siteType_builtin_wreck => 'ספינה טבועה';
 
   @override
   String get siteMatchReview_sourcePhoto => 'מתמונה';
@@ -8401,6 +8527,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'הצג אתרים עם $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'הערות גישה';
 
   @override
@@ -9077,6 +9208,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_filter_section_options => 'אפשרויות';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'סוג אתר';
+
+  @override
+  String get diveSites_filter_section_tags => 'תגיות';
+
+  @override
   String get diveSites_filter_title => 'סנן אתרים';
 
   @override
@@ -9197,6 +9334,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'נקה';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -16987,6 +17129,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_signer => 'נחתם על ידי';
 
   @override
+  String get settings_conflict_ref_siteType => 'סוג אתר';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'צלילת מקור';
 
   @override
@@ -17539,6 +17684,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_manage_diveTypes_subtitle =>
       'ניהול סוגי צלילה מותאמים אישית';
+
+  @override
+  String get settings_manage_siteTypes => 'סוגי אתרים';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'סוגי אתרי צלילה מובנים ומותאמים';
 
   @override
   String get settings_manage_header_manageData => 'ניהול נתונים';
@@ -18659,6 +18811,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_conditions_visibility_title => 'התפלגות ראות';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'טעינת נתוני סוגי האתרים נכשלה';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'תרשים עמודות. צלילות לפי סוג אתר. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'צלילות לפי סוג אתר. צלילה באתר עם כמה סוגים נספרת לכל אחד מהם; אתרים ללא סוג אינם מוצגים.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'סוגי אתרים';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -19972,6 +20140,65 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'צבע';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'הסר';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'התגית הזו מופיעה ב-$count צלילות. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילות אלה.',
+      one:
+          'התגית הזו מופיעה בצלילה אחת. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילה זו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'התגית הזו מופיעה ב-$count אתרים. כיבוי \"שימוש לאתרים\" יסיר אותה מאתרים אלה.',
+      one:
+          'התגית הזו מופיעה באתר אחד. כיבוי \"שימוש לאתרים\" יסיר אותה מאתר זה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title => 'להסיר את התגית מפריטים קיימים?';
+
+  @override
+  String get tags_manage_scopeRequired => 'בחר צלילות, אתרים או את שניהם';
+
+  @override
+  String get tags_manage_scope_dives => 'צלילות';
+
+  @override
+  String get tags_manage_scope_sites => 'אתרים';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+      zero: '0 אתרים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'שימוש לצלילות';
+
+  @override
+  String get tags_manage_useForSites => 'שימוש לאתרים';
 
   @override
   String get tags_manage_nameRequired => 'שם תגית נדרש';
@@ -21680,7 +21907,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'קבצים';
 
   @override
-  String get universalImport_summary_noticesTitle => 'לא נמצא בקובץ';
+  String get universalImport_summary_noticesTitle => 'הערות ייבוא';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -21699,6 +21926,116 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'משפיע על צלילה אחת',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'לא ניתן היה לקרוא חלק מהצלילות';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות דולגו',
+      one: 'צלילה אחת דולגה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'צלילות של יותר מצולל אחד';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'ספריית MacDive זו כוללת צלילות שנרשמו על ידי $names. כולן יובאו לצולל הנוכחי, וכל צלילה תויגה בשם שתחתיו נרשמה.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'לא ניתן היה לקרוא חלק מהפרופילים';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'הצלילות האלה יובאו ללא פרופיל עומק כי נתוני הפרופיל בקובץ חסרים או שלא ניתן היה לקרוא אותם.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'פרופילי MacDive לא פוענחו';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive שמר את הפרופילים האלה בפורמט ש-Submersion לא יכול לקרוא. כדי לייבא אותם, יש לייצא מ-MacDive כ-XML (File > Export > MacDive XML) ולייבא את הקובץ הזה במקום.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'פרופילים לא פוענחו במכשיר זה';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'המכשיר הזה לא הצליח לפענח את נתוני מחשב הצלילה שבקובץ, ולכן הצלילות האלה יובאו ללא פרופיל עומק.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'חלק מהעמודות לא יובאו';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'העמודות האלה התאימו לשדה שעמודה אחרת כבר ממלאת, ולכן הושמטו: $names. כדי להשתמש באחת מהן במקום, יש לייבא את הקובץ שוב ולבחור בה בשלב \"Map Fields\".';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'חלק מהערכים נשארו ריקים';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ערכים לא הומרו ונשארו ריקים. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+      one:
+          'ערך אחד לא הומר ונשאר ריק. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'חלק מהתמונות דולגו';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count תמונות לא היה שם קובץ ולא ניתן היה לקשר אותן.',
+      one: 'לתמונה אחת לא היה שם קובץ ולא ניתן היה לקשר אותה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'הסמכות ורשומות טיפול לא נמצאות בקובץ';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive משמיט הסמכות ורשומות טיפול בציוד מייצוא ה-XML שלו. כדי להביא אותן, יש לייבא את מסד הנתונים MacDive.sqlite.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'יומני MacDive לא יובאו';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'יומני MacDive ($names) הם חיפושים שמורים ולא רשימות קבועות של צלילות, ולכן אין מה לייבא. אפשר ליצור אותם מחדש כמסנני צלילות.';
   }
 
   @override
@@ -29108,6 +29445,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'משך';
+
+  @override
+  String get enum_siteField_siteTypes => 'סוגי אתרים';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'סוגים';
+
+  @override
+  String get enum_siteField_tags => 'תגיות';
+
+  @override
+  String get enum_siteField_tags_short => 'תגיות';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'המרבי שלך';

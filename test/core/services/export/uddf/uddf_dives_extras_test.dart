@@ -12,10 +12,15 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 final _epoch = DateTime(2024, 1, 1);
 final _row = BuddyWithRole(
@@ -67,6 +72,32 @@ class _Components extends Fake implements EquipmentComponentRepository {
     return [_component];
   }
 }
+
+/// Site classification with nothing classified (issue #1765).
+class _Classification extends Fake implements SiteClassificationRepository {
+  final siteQueries = <List<String>>[];
+
+  @override
+  Future<List<String>> getSiteIdsForDives(List<String> diveIds) async {
+    siteQueries.add(diveIds);
+    return const [];
+  }
+
+  @override
+  Future<Map<String, List<String>>> getTypeIdsBySite(
+    List<String> siteIds,
+  ) async => const {};
+
+  @override
+  Future<Map<String, List<String>>> getTagIdsBySite(
+    List<String> siteIds,
+  ) async => const {};
+
+  @override
+  Future<Map<String, List<Tag>>> getTagsBySite() async => const {};
+}
+
+class _SiteTypes extends Fake implements SiteTypeRepository {}
 
 class _Roles extends Fake implements DiveRoleRepository {
   final calls = <String?>[];
@@ -176,6 +207,7 @@ void main() {
 
   test('the provider reads every repository for the active diver', () async {
     final roles = _Roles();
+    final classification = _Classification();
     final container = ProviderContainer(
       overrides: [
         buddyRepositoryProvider.overrideWithValue(_Buddies()),
@@ -183,6 +215,8 @@ void main() {
         diveRoleRepositoryProvider.overrideWithValue(roles),
         tankPressureRepositoryProvider.overrideWithValue(_TankPressures()),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
+        siteClassificationRepositoryProvider.overrideWithValue(classification),
+        siteTypeRepositoryProvider.overrideWithValue(_SiteTypes()),
       ],
     );
     addTearDown(container.dispose);
@@ -194,6 +228,9 @@ void main() {
     expect(roles.calls, ['diver-1']);
     expect(extras.diveRoles, [_role]);
     expect(extras.diveTankPressures, _pressures);
+    expect(classification.siteQueries, [
+      ['d1'],
+    ]);
   });
 
   test('empty holds nothing', () {

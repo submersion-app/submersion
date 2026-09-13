@@ -60,7 +60,7 @@ class CsvTransformer {
         rows: const [],
         warnings: [
           ImportWarning(
-            severity: ImportWarningSeverity.warning,
+            severity: ImportWarningSeverity.error,
             message: 'No field mapping found for file role "$fileRole"',
           ),
         ],
@@ -146,6 +146,7 @@ class CsvTransformer {
           warnings.add(
             ImportWarning(
               severity: ImportWarningSeverity.info,
+              code: ImportWarningCode.valuesNotConverted,
               message:
                   'Row $sourceRow: could not read "$rawValue" '
                   'for field ${col.targetField}',
@@ -231,14 +232,16 @@ class CsvTransformer {
       );
 
       if (dateTime == null) {
-        // Coded so the import summary can list the row. Profile samples are
-        // left uncoded: a skipped sample is not a dive missing from the log.
+        // Coded so the import summary can list the row. A profile sample is
+        // recorded as a diagnostic: it is not a dive missing from the log.
         final isDiveRow = fileRole != 'dive_profile';
         final sourceRow = csv.sourceRowNumber(i);
         warnings.add(
           ImportWarning(
             severity: ImportWarningSeverity.warning,
-            code: isDiveRow ? ImportWarningCode.unreadableDate : null,
+            code: isDiveRow
+                ? ImportWarningCode.unreadableDate
+                : ImportWarningCode.diagnostic,
             entityType: isDiveRow ? ImportEntityType.dives : null,
             message: 'Row $sourceRow: could not resolve dateTime, skipping',
             itemIndex: i,
@@ -340,6 +343,7 @@ class CsvTransformer {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.valuesNotConverted,
           message:
               'Row $sourceRow: failed to apply ${transform.name} '
               'to "$rawValue" for field $targetField',

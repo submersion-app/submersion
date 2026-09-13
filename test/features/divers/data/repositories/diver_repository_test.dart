@@ -224,6 +224,62 @@ void main() {
       expect(dives, isEmpty);
     });
 
+    test('deletes custom site types and keeps the built-ins', () async {
+      await insertDiver('d1');
+      await insertDiverSettings('d1');
+      await db.customStatement(
+        "INSERT INTO site_types (id, diver_id, name, is_built_in, "
+        "created_at, updated_at) VALUES ('mine', 'd1', 'Mine', 0, 0, 0)",
+      );
+
+      await repository.deleteDiver('d1');
+
+      final rows = await db
+          .customSelect('SELECT id, is_built_in FROM site_types')
+          .get();
+      expect(rows.any((r) => r.read<String>('id') == 'mine'), isFalse);
+      expect(rows, isNotEmpty);
+      expect(rows.every((r) => r.read<int>('is_built_in') == 1), isTrue);
+    });
+
+    test(
+      "drops and tombstones links to its custom site types on another diver's "
+      'site',
+      () async {
+        await insertDiver('d1');
+        await insertDiverSettings('d1');
+        await insertDiver('d2');
+        await db.customStatement(
+          "INSERT INTO site_types (id, diver_id, name, is_built_in, "
+          "created_at, updated_at) VALUES ('mine', 'd1', 'Mine', 0, 0, 0)",
+        );
+        // d2's site survives the delete; nothing cascades its link to d1's
+        // type, because site_site_types.site_type_id has no foreign key.
+        await db.customStatement(
+          "INSERT INTO dive_sites (id, diver_id, name, is_shared, created_at, "
+          "updated_at) VALUES ('s2', 'd2', 'Shared', 1, 0, 0)",
+        );
+        await db.customStatement(
+          "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "
+          "VALUES ('link', 's2', 'mine', 0), ('keep', 's2', 'lake', 0)",
+        );
+
+        await repository.deleteDiver('d1');
+
+        final links = await db.select(db.siteSiteTypes).get();
+        expect(links.map((l) => l.id), ['keep']);
+        final logged = await db
+            .customSelect('SELECT entity_type, record_id FROM deletion_log')
+            .get();
+        expect(
+          logged.map(
+            (r) => (r.read<String>('entity_type'), r.read<String>('record_id')),
+          ),
+          containsAll([('siteSiteTypes', 'link'), ('siteTypes', 'mine')]),
+        );
+      },
+    );
+
     test('deletes associated dive computers', () async {
       await insertDiver('d1');
       await insertDiverSettings('d1');

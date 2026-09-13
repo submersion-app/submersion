@@ -759,7 +759,12 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       ref
                           .watch(tagListNotifierProvider)
                           .when(
-                            data: (allTags) {
+                            data: (everyTag) {
+                              // Dive tags only (issue #1765).
+                              final allTags = [
+                                for (final tag in everyTag)
+                                  if (tag.appliesToDives) tag,
+                              ];
                               if (allTags.isEmpty) {
                                 return Text(
                                   context.l10n.diveLog_filter_noTagsYet,

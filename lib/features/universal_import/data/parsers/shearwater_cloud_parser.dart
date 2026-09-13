@@ -61,7 +61,7 @@ class ShearwaterCloudParser implements ImportParser {
         entities: {},
         warnings: [
           ImportWarning(
-            severity: ImportWarningSeverity.info,
+            severity: ImportWarningSeverity.error,
             message: 'Shearwater Cloud database contains no dives.',
           ),
         ],
@@ -74,6 +74,9 @@ class ShearwaterCloudParser implements ImportParser {
     final warnings = <ImportWarning>[];
     final diveEntities = <Map<String, dynamic>>[];
     var ffiAvailable = true;
+    // Dives whose log data went undecoded because FFI was unavailable. Dives
+    // with no log data had no profile to lose, so they are not counted.
+    var platformBlocked = 0;
 
     for (final rawDive in rawDives) {
       if (ffiAvailable) {
@@ -83,25 +86,30 @@ class ShearwaterCloudParser implements ImportParser {
             warnings: warnings,
           );
           diveEntities.add(diveMap);
+          continue;
         } on MissingPluginException {
           ffiAvailable = false;
-          diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
         } on PlatformException {
           ffiAvailable = false;
-          warnings.add(
-            const ImportWarning(
-              severity: ImportWarningSeverity.info,
-              message:
-                  'Profile parsing is not available on this platform. '
-                  'Dives will be imported with metadata only.',
-              entityType: ImportEntityType.dives,
-            ),
-          );
-          diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
         }
-      } else {
-        diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
       }
+      if (rawDive.decompressedLogData?.isNotEmpty ?? false) platformBlocked++;
+      diveEntities.add(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
+    }
+
+    // One warning for the whole file, counting every affected dive.
+    if (platformBlocked > 0) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.profileUndecodableOnPlatform,
+          count: platformBlocked,
+          message:
+              'Profile parsing is not available on this platform. '
+              '$platformBlocked dive(s) will be imported with metadata only.',
+          entityType: ImportEntityType.dives,
+        ),
+      );
     }
 
     // 4. Extract unique sites.
