@@ -1,11 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
@@ -46,20 +44,6 @@ Dive _makeDive({
     weights: const [],
     tags: const [],
     customFields: customFields,
-  );
-}
-
-/// Helper to build an equipment item carrying the given attributes.
-EquipmentItem _makeEquipment(
-  String id, {
-  EquipmentType type = EquipmentType.wetsuit,
-  List<EquipmentAttribute> attributes = const [],
-}) {
-  return EquipmentItem(
-    id: id,
-    name: 'Gear $id',
-    type: type,
-    attributes: attributes,
   );
 }
 
@@ -855,56 +839,16 @@ void main() {
       });
 
       group('equipment attribute conditions', () {
-        EquipmentAttribute curated(
-          String id,
-          String key, {
-          String? text,
-          double? num,
-        }) => EquipmentAttribute.curated(
-          equipmentId: id,
-          key: key,
-          valueText: text,
-          valueNum: num,
-        );
-
-        test('conditions AND together over the dive gear', () {
-          final filter = DiveFilterState(
+        // Evaluated in SQL only (a registry-matched cylinder never reaches the
+        // entity with its attributes); see equipment_attr_filter_providers_test.
+        test('apply leaves the conditions to SQL', () {
+          const filter = DiveFilterState(
             equipmentAttrConditions: [
-              const EquipmentAttrCondition(
-                key: 'hose_type',
-                choices: {'hp'},
-                types: {EquipmentType.hose},
-              ),
-              EquipmentAttrCondition.suitThickness(min: 5),
+              EquipmentAttrCondition(key: 'hose_type', choices: {'hp'}),
             ],
           );
-          final dives = [
-            _makeDive(
-              id: 'both',
-              equipment: [
-                _makeEquipment(
-                  'h',
-                  type: EquipmentType.hose,
-                  attributes: [curated('h', 'hose_type', text: 'hp')],
-                ),
-                _makeEquipment(
-                  'w',
-                  attributes: [curated('w', 'thickness_mm', num: 7)],
-                ),
-              ],
-            ),
-            _makeDive(
-              id: 'hoseOnly',
-              equipment: [
-                _makeEquipment(
-                  'h2',
-                  type: EquipmentType.hose,
-                  attributes: [curated('h2', 'hose_type', text: 'hp')],
-                ),
-              ],
-            ),
-          ];
-          expect(filter.apply(dives).map((d) => d.id), ['both']);
+          final dives = [_makeDive(id: 'a'), _makeDive(id: 'b')];
+          expect(filter.apply(dives).map((d) => d.id), ['a', 'b']);
         });
       });
     });

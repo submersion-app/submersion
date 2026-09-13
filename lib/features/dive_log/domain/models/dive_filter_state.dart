@@ -284,12 +284,15 @@ class DiveFilterState {
   /// Used as a fallback for non-paginated code paths (e.g., export, table/map
   /// views).
   ///
-  /// equipmentAttr* is applied in-memory here to mirror the SQL axis (see
-  /// buildFilteredDiveIdSubquery), so non-paginated views stay consistent with
-  /// the SQL-backed list. It relies on dive.equipment being hydrated with its
-  /// curated attributes (getAllDives does this).
+  /// Two axes are NOT applied here, because the entity cannot answer them.
   ///
-  /// [decoOnly] is the one axis this method does NOT apply. getAllDives skips
+  /// [equipmentAttrConditions]: a cylinder matched through the transmitter
+  /// registry reaches the entity without its item or attributes, so only SQL
+  /// can see it. Callers that honour the axis intersect this result with
+  /// `equipmentAttrFilteredDiveIdsProvider`, which uses the same
+  /// `equipmentAttrConditionSql` as the paginated list.
+  ///
+  /// [decoOnly]: getAllDives skips
   /// profile hydration for list views and deco-stop events never reach the
   /// entity, so there is nothing here to classify a dive from; evaluating it
   /// anyway would silently match no dive at all. Callers that honour the deco
@@ -429,13 +432,6 @@ class DiveFilterState {
           return true;
         });
         if (!hasMatch) return false;
-      }
-      // Equipment-attribute conditions over the dive's hydrated gear.
-      if (equipmentAttrConditions.isNotEmpty &&
-          !equipmentAttrConditions.every(
-            (condition) => dive.equipment.any(condition.matches),
-          )) {
-        return false;
       }
       return true;
     }).toList();

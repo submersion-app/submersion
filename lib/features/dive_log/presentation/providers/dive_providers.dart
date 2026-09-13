@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -72,34 +73,69 @@ final decoFilteredDiveIdsProvider = FutureProvider.family<Set<String>, bool>((
   );
 });
 
+/// The ids of every dive matching the equipment-attribute conditions.
+///
+/// Like [decoFilteredDiveIdsProvider], this exists because the in-memory
+/// path cannot evaluate the axis: a cylinder matched through the transmitter
+/// registry reaches the entity without its item or attributes. Keyed on
+/// [EquipmentAttrConditionsKey], which compares the list element by element,
+/// so a changed condition set lands on a fresh instance rather than briefly
+/// reusing the previous set's ids.
+final equipmentAttrFilteredDiveIdsProvider =
+    FutureProvider.family<Set<String>, EquipmentAttrConditionsKey>((
+      ref,
+      key,
+    ) async {
+      final diverId = ref.watch(currentDiverIdProvider);
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
+      return repository.getDiveIdsMatchingEquipmentAttrs(
+        key.conditions,
+        diverId: diverId,
+      );
+    });
+
 /// Filtered dives provider - applies current filter to dive list
 final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   final divesAsync = ref.watch(diveListNotifierProvider);
   final filter = ref.watch(diveFilterProvider);
 
-  final decoOnly = filter.decoOnly;
-  if (decoOnly == null) {
-    return divesAsync.whenData((dives) => filter.apply(dives));
-  }
+  // Axes the entity cannot answer resolve to SQL id sets; each one present
+  // narrows the in-memory result.
+  final idSets = <AsyncValue<Set<String>>>[
+    if (filter.decoOnly case final decoOnly?)
+      ref.watch(decoFilteredDiveIdsProvider(decoOnly)),
+    if (filter.equipmentAttrConditions.isNotEmpty)
+      ref.watch(
+        equipmentAttrFilteredDiveIdsProvider(
+          EquipmentAttrConditionsKey(filter.equipmentAttrConditions),
+        ),
+      ),
+  ];
 
-  final decoAsync = ref.watch(decoFilteredDiveIdsProvider(decoOnly));
-  // Built-in AsyncValue.value, not the repo's valueOrNull polyfill: it retains
-  // the previous ids across a reload, so a profile write does not blank the
-  // list. Null means first load (or a failure), never a stale answer.
-  final decoIds = decoAsync.value;
-  if (decoIds == null) {
-    if (decoAsync.hasError) {
-      return AsyncValue.error(
-        decoAsync.error!,
-        decoAsync.stackTrace ?? StackTrace.empty,
-      );
+  final resolved = <Set<String>>[];
+  for (final idsAsync in idSets) {
+    // Built-in AsyncValue.value, not the repo's valueOrNull polyfill: it
+    // retains the previous ids across a reload, so a write does not blank the
+    // list. Null means first load (or a failure), never a stale answer.
+    final ids = idsAsync.value;
+    if (ids == null) {
+      if (idsAsync.hasError) {
+        return AsyncValue.error(
+          idsAsync.error!,
+          idsAsync.stackTrace ?? StackTrace.empty,
+        );
+      }
+      return const AsyncValue.loading();
     }
-    return const AsyncValue.loading();
+    resolved.add(ids);
   }
 
   return divesAsync.whenData(
-    (dives) =>
-        filter.apply(dives).where((d) => decoIds.contains(d.id)).toList(),
+    (dives) => filter
+        .apply(dives)
+        .where((d) => resolved.every((ids) => ids.contains(d.id)))
+        .toList(),
   );
 });
 

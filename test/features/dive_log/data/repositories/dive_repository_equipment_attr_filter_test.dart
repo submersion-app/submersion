@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -161,5 +162,79 @@ void main() {
       ],
     );
     expect(await listIds(filter), {'steel'});
+  });
+
+  test('Statistics, the list and the id query select the same dives', () async {
+    await seedSuits();
+    await insertDive('steel');
+    await insertItem(
+      't1',
+      EquipmentType.tank,
+      key: 'tank_material',
+      text: 'steel',
+    );
+    await linkTank('steel', 't1');
+    for (final conditions in [
+      [EquipmentAttrCondition.suitThickness(min: 5.0)],
+      [
+        const EquipmentAttrCondition(
+          key: 'tank_material',
+          choices: {'steel'},
+          types: {EquipmentType.tank},
+        ),
+      ],
+    ]) {
+      final filter = DiveFilterState(equipmentAttrConditions: conditions);
+      final stats = buildFilteredDiveIdSubquery(filter);
+      final statsIds =
+          (await db
+                  .customSelect(
+                    stats.subquery,
+                    variables: stats.params
+                        .map((p) => Variable<Object>(p!))
+                        .toList(),
+                  )
+                  .get())
+              .map((r) => r.read<String>('id'))
+              .toSet();
+      final listed = await listIds(filter);
+      final resolved = await repo.getDiveIdsMatchingEquipmentAttrs(conditions);
+      expect(statsIds, isNotEmpty, reason: '$conditions');
+      expect(listed, statsIds, reason: '$conditions');
+      expect(resolved, statsIds, reason: '$conditions');
+    }
+  });
+
+  test('the filter tick fires on an attribute-only write', () async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion(
+            id: const Value('h'),
+            name: const Value('h'),
+            type: const Value('hose'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+    final events = <void>[];
+    final sub = repo.watchEquipmentAttrFilterChanges().listen(events.add);
+    addTearDown(sub.cancel);
+    await db
+        .into(db.equipmentAttributes)
+        .insert(
+          EquipmentAttributesCompanion(
+            id: const Value('attr_h_hose_type'),
+            equipmentId: const Value('h'),
+            attrKey: const Value('hose_type'),
+            valueText: const Value('hp'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+    expect(events, isNotEmpty);
   });
 }
