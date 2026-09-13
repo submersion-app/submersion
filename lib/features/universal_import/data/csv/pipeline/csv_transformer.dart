@@ -142,14 +142,16 @@ class CsvTransformer {
         if (typed != null) {
           mapped[col.targetField] = typed;
         } else {
+          final sourceRow = csv.sourceRowNumber(rowIdx);
           warnings.add(
             ImportWarning(
               severity: ImportWarningSeverity.info,
               message:
-                  'Row ${rowIdx + 1}: could not read "$rawValue" '
+                  'Row $sourceRow: could not read "$rawValue" '
                   'for field ${col.targetField}',
               field: col.targetField,
               itemIndex: rowIdx,
+              sourceRow: sourceRow,
             ),
           );
         }

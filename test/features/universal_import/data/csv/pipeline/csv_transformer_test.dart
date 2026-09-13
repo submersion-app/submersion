@@ -1229,6 +1229,37 @@ void main() {
       expect(result.warnings.single.message, startsWith('Row 2:'));
     });
 
+    test('an unreadable value names the same spreadsheet row', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Max Depth'],
+        rows: [
+          ['2024-06-15', 'deep'],
+        ],
+      );
+
+      final result = CsvTransformer().transform(
+        csv,
+        const ImportConfiguration(
+          mappings: {
+            'primary': FieldMapping(
+              name: 'Test',
+              columns: [
+                ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+                ColumnMapping(
+                  sourceColumn: 'Max Depth',
+                  targetField: 'maxDepth',
+                ),
+              ],
+            ),
+          },
+        ),
+      );
+
+      final warning = result.warnings.single;
+      expect(warning.message, startsWith('Row 2:'));
+      expect(warning.sourceRow, 2);
+    });
+
     test('an unreadable date with no time is skipped, not dated 1970', () {
       const csv = ParsedCsv(
         headers: ['Date'],
