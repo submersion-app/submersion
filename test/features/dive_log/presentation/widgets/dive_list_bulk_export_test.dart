@@ -26,12 +26,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -121,14 +123,21 @@ class _RecordingExportService implements ExportService {
     return _save('pdf');
   }
 
+  /// The dives the last CSV delivery was handed.
+  List<Dive>? csvDives;
+
   @override
-  Future<String> exportDivesToCsv(List<Dive> dives) => _share('csv');
+  Future<String> exportDivesToCsv(List<Dive> dives) {
+    csvDives = dives;
+    return _share('csv');
+  }
 
   @override
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
   }) {
+    csvDives = dives;
     csvSaveTitle = dialogTitle;
     return _save('csv');
   }
@@ -167,12 +176,19 @@ class _RecordingExportService implements ExportService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Returns no buddies; the junction load is exercised in repository tests.
+/// Serves [byDive] as the junction; the real load is exercised in repository
+/// tests.
 class _FakeBuddyRepository extends BuddyRepository {
+  _FakeBuddyRepository([this.byDive = const {}]);
+  final Map<String, List<BuddyWithRole>> byDive;
+
   @override
   Future<Map<String, List<BuddyWithRole>>> getBuddiesForDives(
     List<String> diveIds,
-  ) async => const {};
+  ) async => {
+    for (final id in diveIds)
+      if (byDive[id] != null) id: byDive[id]!,
+  };
 }
 
 class _FakeDiveRepository implements DiveRepository {
@@ -231,6 +247,7 @@ void main() {
     WidgetTester tester, {
     Diver? diver,
     DiverPhotoLoader? photoLoader,
+    Map<String, List<BuddyWithRole>> linkedBuddies = const {},
   }) async {
     final summaries = dives.map(DiveSummary.fromDive).toList();
     final base = await getBaseOverrides();
@@ -261,7 +278,9 @@ void main() {
           // and the diver. Those reach a database widget tests do not have,
           // and the reads never settle, so stub them the way
           // getBaseOverrides stubs preDiveSessionForDiveProvider.
-          buddyRepositoryProvider.overrideWithValue(_FakeBuddyRepository()),
+          buddyRepositoryProvider.overrideWithValue(
+            _FakeBuddyRepository(linkedBuddies),
+          ),
           allCertificationsProvider.overrideWith((ref) async => const []),
           currentDiverProvider.overrideWith((ref) async => diver),
           // The real loader reads the file system, and a dart:io await never
@@ -328,6 +347,28 @@ void main() {
 
     expect(exportService.calls, ['share:csv']);
     expect(find.text('Exported 2 dives successfully'), findsOneWidget);
+  });
+
+  group('bulk CSV export carries the linked buddies (#1861)', () {
+    // getDivesByIds does not hydrate the dive_buddies junction, and the
+    // batched load only ran for PDF, so the CSV's Buddy and Dive Master
+    // columns came out empty for picker-linked teams.
+    final team = [
+      linkedParticipant('Ana', DiveRole.buddyId),
+      linkedParticipant('Mia', DiveRole.diveMasterId),
+    ];
+
+    for (final destination in ['Share', 'Save to File']) {
+      testWidgets('via $destination', (tester) async {
+        await pumpAndOpenExportSheet(tester, linkedBuddies: {'d1': team});
+        await chooseFormatAndDestination(tester, 'CSV', destination);
+
+        final byId = {for (final d in exportService.csvDives!) d.id: d};
+        expect(byId.keys, unorderedEquals(['d1', 'd2']));
+        expect(byId['d1']!.buddies, team);
+        expect(byId['d2']!.buddies, isEmpty);
+      });
+    }
   });
 
   testWidgets('bulk PDF export honours the chosen destination', (tester) async {

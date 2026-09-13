@@ -5548,15 +5548,31 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 final saveTitle =
                     context.l10n.settings_export_saveDivesCsvDialogTitle;
                 Navigator.of(sheetContext).pop();
+                // getDiveById does not hydrate the buddy junction, which the
+                // Buddy and Dive Master columns read (#1861). Unlike the PDF
+                // route's best-effort enrichment, a failed lookup fails the
+                // export: those columns are data, and blanking them silently
+                // would ship a wrong file.
+                Future<List<Dive>> csvDives() async {
+                  final buddies = await ref.read(
+                    buddiesForDiveProvider(dive.id).future,
+                  );
+                  return [dive.copyWith(buddies: buddies)];
+                }
+
                 _handleSingleDiveExport(
                   context,
                   ref,
                   title: context.l10n.diveLog_export_csv,
-                  shareFn: (_) =>
-                      ref.read(exportServiceProvider).exportDivesToCsv([dive]),
-                  saveFn: (_) => ref
+                  shareFn: (_) async => ref
                       .read(exportServiceProvider)
-                      .saveDivesCsvToFile([dive], dialogTitle: saveTitle),
+                      .exportDivesToCsv(await csvDives()),
+                  saveFn: (_) async => ref
+                      .read(exportServiceProvider)
+                      .saveDivesCsvToFile(
+                        await csvDives(),
+                        dialogTitle: saveTitle,
+                      ),
                 );
               },
             ),

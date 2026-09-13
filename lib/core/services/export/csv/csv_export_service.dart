@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -232,8 +233,8 @@ class CsvExportService {
         dive.visibilityMeters?.toStringAsFixed(1) ?? '',
         dive.visibility?.displayName ?? '',
         dive.diveTypeNames.join('; '),
-        dive.buddy ?? '',
-        dive.diveMaster ?? '',
+        dive.resolvedBuddyNames ?? '',
+        dive.resolvedDiveMasterNames ?? '',
         dive.rating ?? '',
         tank?.startPressure?.toStringAsFixed(1) ?? '',
         tank?.endPressure?.toStringAsFixed(1) ?? '',
