@@ -40,6 +40,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_text_section.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
@@ -4606,10 +4607,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return buddiesAsync.when(
       data: (buddies) {
         // The dive_buddies junction is authoritative once it holds anyone.
-        // The legacy free-text dives.buddy column is only a fallback for a
-        // dive whose buddy was never linked, such as a CSV import that did
-        // not bring in buddy records, so it is not called solo (#1831).
-        final textBuddy = buddies.isEmpty ? dive.buddy?.trim() ?? '' : '';
+        // The legacy free-text dives.buddy and dives.dive_master columns are
+        // only a fallback for a dive whose people were never linked, such as
+        // a CSV import, so such a dive is not called solo, and the section
+        // offers to link the text to buddy records (#1831). A text holding
+        // only a placeholder like "None" does not count.
+        final showLegacyText =
+            buddies.isEmpty && LegacyBuddyTextSection.hasContent(dive);
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -4635,8 +4639,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 const Divider(),
                 if (dive.diverRoleId != null)
                   _buildMyRoleTile(context, ref, dive),
-                if (textBuddy.isNotEmpty)
-                  _buildTextBuddyTile(context, textBuddy)
+                if (showLegacyText)
+                  LegacyBuddyTextSection(dive: dive)
                 else if (buddies.isEmpty && dive.diverRoleId == null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -4677,23 +4681,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       subtitle: Text(bwr.role.localizedName(context.l10n)),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () => context.push('/buddies/${bwr.buddy.id}'),
-    );
-  }
-
-  /// A buddy stored only as free text on the dive (#1831). There is no buddy
-  /// record behind it, so the tile has no role and nothing to open.
-  Widget _buildTextBuddyTile(BuildContext context, String name) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: colorScheme.primaryContainer,
-        child: Icon(
-          Icons.person_outline,
-          color: colorScheme.onPrimaryContainer,
-        ),
-      ),
-      title: Text(name),
     );
   }
 
