@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -225,8 +226,19 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         child: CircleAvatar(radius: 16, backgroundColor: tag.color),
       ),
       title: Text(tag.name),
+      // Where the tag is offered (issue #1765).
+      subtitle: Text(
+        [
+          if (tag.appliesToDives) context.l10n.tags_manage_scope_dives,
+          if (tag.appliesToSites) context.l10n.tags_manage_scope_sites,
+        ].join(' · '),
+      ),
       trailing: Text(
-        context.l10n.tags_manage_diveCount(stat.diveCount),
+        [
+          context.l10n.tags_manage_diveCount(stat.diveCount),
+          if (stat.siteCount > 0)
+            context.l10n.tags_manage_siteCount(stat.siteCount),
+        ].join(', '),
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
@@ -241,33 +253,44 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   void _showCreateDialog() {
     final controller = TextEditingController();
     String selectedColor = TagColors.predefined.first;
+    bool forDives = true;
+    bool forSites = false;
 
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
           title: Text(context.l10n.tags_manage_createTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.tags_manage_nameLabel,
-                  border: const OutlineInputBorder(),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.tags_manage_nameLabel,
+                    border: const OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(context.l10n.tags_manage_colorLabel),
-              const SizedBox(height: 8),
-              TagColorPicker(
-                selectedColor: selectedColor,
-                onColorSelected: (color) =>
-                    setDialogState(() => selectedColor = color),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(context.l10n.tags_manage_colorLabel),
+                const SizedBox(height: 8),
+                TagColorPicker(
+                  selectedColor: selectedColor,
+                  onColorSelected: (color) =>
+                      setDialogState(() => selectedColor = color),
+                ),
+                const SizedBox(height: 8),
+                ..._scopeEditor(
+                  forDives: forDives,
+                  forSites: forSites,
+                  onDives: (v) => setDialogState(() => forDives = v),
+                  onSites: (v) => setDialogState(() => forSites = v),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -277,15 +300,14 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
             TextButton(
               onPressed: () {
                 final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  final newTag = Tag.create(
-                    id: _uuid.v4(),
-                    name: name,
-                    colorHex: selectedColor,
-                  );
-                  ref.read(tagListNotifierProvider.notifier).addTag(newTag);
-                  Navigator.pop(dialogContext);
-                }
+                if (name.isEmpty || (!forDives && !forSites)) return;
+                final newTag = Tag.create(
+                  id: _uuid.v4(),
+                  name: name,
+                  colorHex: selectedColor,
+                ).copyWith(appliesToDives: forDives, appliesToSites: forSites);
+                ref.read(tagListNotifierProvider.notifier).addTag(newTag);
+                Navigator.pop(dialogContext);
               },
               child: Text(context.l10n.common_action_save),
             ),
@@ -298,33 +320,44 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   void _showEditDialog(Tag tag) {
     final controller = TextEditingController(text: tag.name);
     String selectedColor = tag.colorHex ?? TagColors.predefined.first;
+    bool forDives = tag.appliesToDives;
+    bool forSites = tag.appliesToSites;
 
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
           title: Text(context.l10n.tags_manage_editTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.tags_manage_nameLabel,
-                  border: const OutlineInputBorder(),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.tags_manage_nameLabel,
+                    border: const OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(context.l10n.tags_manage_colorLabel),
-              const SizedBox(height: 8),
-              TagColorPicker(
-                selectedColor: selectedColor,
-                onColorSelected: (color) =>
-                    setDialogState(() => selectedColor = color),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(context.l10n.tags_manage_colorLabel),
+                const SizedBox(height: 8),
+                TagColorPicker(
+                  selectedColor: selectedColor,
+                  onColorSelected: (color) =>
+                      setDialogState(() => selectedColor = color),
+                ),
+                const SizedBox(height: 8),
+                ..._scopeEditor(
+                  forDives: forDives,
+                  forSites: forSites,
+                  onDives: (v) => setDialogState(() => forDives = v),
+                  onSites: (v) => setDialogState(() => forSites = v),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -332,20 +365,29 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
               child: Text(context.l10n.common_action_cancel),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  ref
-                      .read(tagListNotifierProvider.notifier)
-                      .updateTag(
-                        tag.copyWith(
-                          name: name,
-                          colorHex: selectedColor,
-                          updatedAt: DateTime.now(),
-                        ),
-                      );
-                  Navigator.pop(dialogContext);
-                }
+                if (name.isEmpty || (!forDives && !forSites)) return;
+                final confirmed = await _confirmNarrowing(
+                  tag,
+                  forDives: forDives,
+                  forSites: forSites,
+                );
+                if (!confirmed) return;
+                await ref
+                    .read(tagListNotifierProvider.notifier)
+                    .updateTag(
+                      tag.copyWith(
+                        name: name,
+                        colorHex: selectedColor,
+                        updatedAt: DateTime.now(),
+                        appliesToDives: forDives,
+                        appliesToSites: forSites,
+                      ),
+                    );
+                // Site cards and the site filter read tags too.
+                ref.invalidate(sitesWithCountsProvider);
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
               },
               child: Text(context.l10n.common_action_save),
             ),
@@ -353,6 +395,78 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         ),
       ),
     );
+  }
+
+  /// "Use for dives" and "Use for sites" (issue #1765), with an error line
+  /// while neither is ticked.
+  List<Widget> _scopeEditor({
+    required bool forDives,
+    required bool forSites,
+    required ValueChanged<bool> onDives,
+    required ValueChanged<bool> onSites,
+  }) {
+    final l10n = context.l10n;
+    return [
+      CheckboxListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(l10n.tags_manage_useForDives),
+        value: forDives,
+        onChanged: (v) => onDives(v ?? false),
+      ),
+      CheckboxListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(l10n.tags_manage_useForSites),
+        value: forSites,
+        onChanged: (v) => onSites(v ?? false),
+      ),
+      if (!forDives && !forSites)
+        Text(
+          l10n.tags_manage_scopeRequired,
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+    ];
+  }
+
+  /// Turning off a scope removes the tag from every dive or site carrying it
+  /// (the repository does that so a link always implies its scope). Asks
+  /// first when that would remove anything; true to go ahead.
+  Future<bool> _confirmNarrowing(
+    Tag tag, {
+    required bool forDives,
+    required bool forSites,
+  }) async {
+    final droppingDives = tag.appliesToDives && !forDives;
+    final droppingSites = tag.appliesToSites && !forSites;
+    if (!droppingDives && !droppingSites) return true;
+
+    final l10n = context.l10n;
+    final usage = await ref.read(tagRepositoryProvider).getTagUsage(tag.id);
+    final messages = [
+      if (droppingDives && usage.dives > 0)
+        l10n.tags_manage_narrowDialog_dives(usage.dives),
+      if (droppingSites && usage.sites > 0)
+        l10n.tags_manage_narrowDialog_sites(usage.sites),
+    ];
+    if (messages.isEmpty || !mounted) return true;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.tags_manage_narrowDialog_title),
+        content: Text(messages.join('\n\n')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(dialogContext.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(dialogContext.l10n.tags_manage_narrowDialog_confirm),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
   }
 
   // -- Selection mode --

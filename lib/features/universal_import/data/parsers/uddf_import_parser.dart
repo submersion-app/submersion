@@ -75,6 +75,8 @@ class UddfImportParser implements ImportParser {
           'summary': result.summary,
           if (result.customDiveRoles.isNotEmpty)
             ImportPayload.customDiveRolesKey: result.customDiveRoles,
+          if (result.customSiteTypes.isNotEmpty)
+            ImportPayload.customSiteTypesKey: result.customSiteTypes,
         },
       );
     } on FormatException catch (e) {

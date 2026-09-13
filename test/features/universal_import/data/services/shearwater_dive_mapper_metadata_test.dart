@@ -434,6 +434,28 @@ void main() {
         expect(sites[0]['uddfId'], 'Maclearie Park');
       });
 
+      test("suggests a site type from the first dive's environment", () {
+        const dives = [
+          ShearwaterRawDive(
+            diveId: 'a',
+            site: 'Dutch Springs',
+            environment: 'Quarry',
+          ),
+          ShearwaterRawDive(
+            diveId: 'b',
+            site: 'Reef',
+            environment: 'Ocean/Sea',
+          ),
+        ];
+
+        final sites = ShearwaterDiveMapper.mapSites(dives);
+
+        // A suggestion, applied only while the site has no types (#1765).
+        expect(sites[0]['suggestedSiteTypeRefs'], ['quarry']);
+        expect(sites[0].containsKey('siteTypeRefs'), isFalse);
+        expect(sites[1].containsKey('suggestedSiteTypeRefs'), isFalse);
+      });
+
       test('deduplicates sites by name', () {
         final dives = [
           const ShearwaterRawDive(

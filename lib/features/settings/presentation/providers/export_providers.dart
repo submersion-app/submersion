@@ -40,6 +40,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -594,6 +595,22 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      // Site types and site tags (issue #1765). tagsProvider is unscoped,
+      // so `tags` above already includes site-only tags.
+      final siteClassification = _ref.read(
+        siteClassificationRepositoryProvider,
+      );
+      final exportedSiteIds = [for (final s in sites) s.id];
+      final siteTypeIdsBySite = await siteClassification.getTypeIdsBySite(
+        exportedSiteIds,
+      );
+      final siteTagIdsBySite = await siteClassification.getTagIdsBySite(
+        exportedSiteIds,
+      );
+      final customSiteTypes = [
+        for (final type in await _ref.read(siteTypesProvider.future))
+          if (!type.isBuiltIn) type,
+      ];
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -689,6 +706,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
         tags: tags,
         diveTags: diveTags,
         customDiveTypes: customDiveTypes,
+        customSiteTypes: customSiteTypes,
+        siteTypeIdsBySite: siteTypeIdsBySite,
+        siteTagIdsBySite: siteTagIdsBySite,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
@@ -1234,6 +1254,22 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      // Site types and site tags (issue #1765). tagsProvider is unscoped,
+      // so `tags` above already includes site-only tags.
+      final siteClassification = _ref.read(
+        siteClassificationRepositoryProvider,
+      );
+      final exportedSiteIds = [for (final s in sites) s.id];
+      final siteTypeIdsBySite = await siteClassification.getTypeIdsBySite(
+        exportedSiteIds,
+      );
+      final siteTagIdsBySite = await siteClassification.getTagIdsBySite(
+        exportedSiteIds,
+      );
+      final customSiteTypes = [
+        for (final type in await _ref.read(siteTypesProvider.future))
+          if (!type.isBuiltIn) type,
+      ];
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -1326,6 +1362,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
         tags: tags,
         diveTags: diveTags,
         customDiveTypes: customDiveTypes,
+        customSiteTypes: customSiteTypes,
+        siteTypeIdsBySite: siteTypeIdsBySite,
+        siteTagIdsBySite: siteTagIdsBySite,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,

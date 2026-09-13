@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -441,6 +442,9 @@ class ExportService {
     List<Tag>? tags,
     Map<String, List<Tag>>? diveTags,
     List<DiveTypeEntity>? customDiveTypes,
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -469,6 +473,9 @@ class ExportService {
     tags: tags,
     diveTags: diveTags,
     customDiveTypes: customDiveTypes,
+    customSiteTypes: customSiteTypes,
+    siteTypeIdsBySite: siteTypeIdsBySite,
+    siteTagIdsBySite: siteTagIdsBySite,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
     diveProfileEvents: diveProfileEvents,
@@ -499,6 +506,9 @@ class ExportService {
     List<Tag>? tags,
     Map<String, List<Tag>>? diveTags,
     List<DiveTypeEntity>? customDiveTypes,
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -527,6 +537,9 @@ class ExportService {
     tags: tags,
     diveTags: diveTags,
     customDiveTypes: customDiveTypes,
+    customSiteTypes: customSiteTypes,
+    siteTypeIdsBySite: siteTypeIdsBySite,
+    siteTagIdsBySite: siteTagIdsBySite,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
     diveProfileEvents: diveProfileEvents,

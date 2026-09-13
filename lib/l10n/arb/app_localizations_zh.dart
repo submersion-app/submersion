@@ -6369,6 +6369,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_group_location => '位置';
 
   @override
+  String get diveSites_edit_group_typeTags => '类型和标签';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => '管理类型';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => '标签';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => '潜水点类型';
+
+  @override
   String get diveSites_edit_invite_accessSafety => '添加通行、停车、系泊或危险信息';
 
   @override
@@ -6736,6 +6748,120 @@ class AppLocalizationsZh extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return '已指定 $name';
   }
+
+  @override
+  String get siteTypes_addTooltip => '添加潜水点类型';
+
+  @override
+  String get siteTypes_builtIn => '内置';
+
+  @override
+  String get siteTypes_custom => '自定义';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return '删除“$name”？';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '“$name”被 $count 个潜水点使用。删除后将从这些潜水点移除。',
+      one: '“$name”被 1 个潜水点使用。删除后将从该潜水点移除。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => '删除潜水点类型？';
+
+  @override
+  String get siteTypes_deleteTooltip => '删除潜水点类型';
+
+  @override
+  String get siteTypes_dialog_addTitle => '添加潜水点类型';
+
+  @override
+  String get siteTypes_dialog_editTitle => '编辑潜水点类型';
+
+  @override
+  String get siteTypes_dialog_nameLabel => '名称';
+
+  @override
+  String get siteTypes_dialog_nameRequired => '请输入名称';
+
+  @override
+  String get siteTypes_editTooltip => '编辑潜水点类型';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水点',
+      one: '1 个潜水点',
+      zero: '无潜水点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return '无法保存潜水点类型：$error';
+  }
+
+  @override
+  String get siteTypes_title => '潜水点类型';
+
+  @override
+  String get siteType_builtin_artificial_reef => '人工鱼礁';
+
+  @override
+  String get siteType_builtin_blue_hole => '蓝洞';
+
+  @override
+  String get siteType_builtin_cave => '洞穴';
+
+  @override
+  String get siteType_builtin_cavern => '洞厅';
+
+  @override
+  String get siteType_builtin_cenote => '天坑';
+
+  @override
+  String get siteType_builtin_kelp_forest => '海藻林';
+
+  @override
+  String get siteType_builtin_lake => '湖泊';
+
+  @override
+  String get siteType_builtin_muck => '泥底';
+
+  @override
+  String get siteType_builtin_pier => '码头 / 栈桥';
+
+  @override
+  String get siteType_builtin_pool => '泳池';
+
+  @override
+  String get siteType_builtin_quarry => '采石场';
+
+  @override
+  String get siteType_builtin_reef => '珊瑚礁';
+
+  @override
+  String get siteType_builtin_river => '河流';
+
+  @override
+  String get siteType_builtin_spring => '泉';
+
+  @override
+  String get siteType_builtin_wall => '峭壁';
+
+  @override
+  String get siteType_builtin_wreck => '沉船';
 
   @override
   String get siteMatchReview_sourcePhoto => '来自照片';
@@ -8164,6 +8290,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return '显示带有 $name 的潜水点';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => '到达须知';
 
   @override
@@ -8820,6 +8951,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_filter_section_options => '选项';
 
   @override
+  String get diveSites_filter_section_siteTypes => '潜水点类型';
+
+  @override
+  String get diveSites_filter_section_tags => '标签';
+
+  @override
   String get diveSites_filter_title => '筛选潜水点';
 
   @override
@@ -8938,6 +9075,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => '清除';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -16509,6 +16651,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_signer => '签署人';
 
   @override
+  String get settings_conflict_ref_siteType => '潜水点类型';
+
+  @override
   String get settings_conflict_ref_sourceDive => '源潜水';
 
   @override
@@ -17043,6 +17188,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_manage_diveTypes_subtitle => '管理自定义潜水类型';
+
+  @override
+  String get settings_manage_siteTypes => '潜水点类型';
+
+  @override
+  String get settings_manage_siteTypes_subtitle => '内置和自定义潜水点类型';
 
   @override
   String get settings_manage_header_manageData => '管理数据';
@@ -18122,6 +18273,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_conditions_visibility_title => '能见度分布';
+
+  @override
+  String get statistics_conditions_siteType_error => '无法加载潜水点类型数据';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return '条形图。各潜水点类型的潜水次数。$description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      '各潜水点类型的潜水次数。在具有多个类型的潜水点的潜水计入每个类型；未设置类型的潜水点不显示。';
+
+  @override
+  String get statistics_conditions_siteType_title => '潜水点类型';
 
   @override
   String get statistics_conditions_waterType_error => '加载水型数据失败';
@@ -19371,6 +19537,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => '颜色';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => '移除';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此标签用于 $count 次潜水。关闭“用于潜水”将从这些潜水中移除它。',
+      one: '此标签用于 1 次潜水。关闭“用于潜水”将从该潜水中移除它。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此标签用于 $count 个潜水点。关闭“用于潜水点”将从这些潜水点移除它。',
+      one: '此标签用于 1 个潜水点。关闭“用于潜水点”将从该潜水点移除它。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title => '从现有项目中移除此标签？';
+
+  @override
+  String get tags_manage_scopeRequired => '请选择潜水、潜水点或两者';
+
+  @override
+  String get tags_manage_scope_dives => '潜水';
+
+  @override
+  String get tags_manage_scope_sites => '潜水点';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水点',
+      one: '1 个潜水点',
+      zero: '0 个潜水点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => '用于潜水';
+
+  @override
+  String get tags_manage_useForSites => '用于潜水点';
 
   @override
   String get tags_manage_nameRequired => '标签名称为必填项';
@@ -28128,6 +28349,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => '平均时长';
+
+  @override
+  String get enum_siteField_siteTypes => '潜水点类型';
+
+  @override
+  String get enum_siteField_siteTypes_short => '类型';
+
+  @override
+  String get enum_siteField_tags => '标签';
+
+  @override
+  String get enum_siteField_tags_short => '标签';
 
   @override
   String get enum_siteField_maxDepthReached_short => '你的最大';

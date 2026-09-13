@@ -7,10 +7,16 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// What a dives only UDDF export needs beyond the dives themselves.
 ///
@@ -30,10 +36,23 @@ class UddfDivesExtras {
   /// never written out as a definition.
   final List<DiveRole> diveRoles;
 
+  /// Site type slugs and tag ids per exported site (issue #1765).
+  final Map<String, List<String>> siteTypeIdsBySite;
+  final Map<String, List<String>> siteTagIdsBySite;
+
+  /// The definitions those references need: the custom site types and the
+  /// tags the exported sites carry. Built-in types go by slug alone.
+  final List<SiteTypeEntity> customSiteTypes;
+  final List<Tag> siteTags;
+
   const UddfDivesExtras({
     this.diveBuddies = const {},
     this.components = const [],
     this.diveRoles = const [],
+    this.siteTypeIdsBySite = const {},
+    this.siteTagIdsBySite = const {},
+    this.customSiteTypes = const [],
+    this.siteTags = const [],
   });
 
   const UddfDivesExtras.empty() : this();
@@ -60,6 +79,8 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
     await ref.read(validatedCurrentDiverIdProvider.future),
     diveIds,
     options,
+    classification: ref.read(siteClassificationRepositoryProvider),
+    siteTypes: ref.read(siteTypeRepositoryProvider),
   );
 });
 
@@ -70,21 +91,58 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
 /// [diverId]'s roles are read whatever the checkboxes: every dive writes
 /// its diver's own role, which is not a participant, so leaving
 /// participants out must not leave a custom one undefined.
+///
+/// Site types and tags (issue #1765) are not behind a checkbox either: they
+/// describe the exported sites, which always travel. They load only when
+/// [classification] is given.
 Future<UddfDivesExtras> resolveDivesExtras(
   BuddyRepository buddies,
   EquipmentComponentRepository components,
   DiveRoleRepository roles,
   String? diverId,
   List<String> diveIds,
-  UddfExportOptions options,
-) async => UddfDivesExtras(
+  UddfExportOptions options, {
+  SiteClassificationRepository? classification,
+  SiteTypeRepository? siteTypes,
+}) async {
   // The lean list-view load leaves certifications out, and every <buddy>
   // declaration carries one, so this path reads them too.
-  diveBuddies: options.includeParticipants
+  final diveBuddies = options.includeParticipants
       ? await buddies.getBuddiesForDivesWithCertifications(diveIds)
-      : const {},
-  components: options.includeGear
+      : const <String, List<BuddyWithRole>>{};
+  final gear = options.includeGear
       ? await components.getComponentsForDives(diveIds)
-      : const [],
-  diveRoles: await roles.getAllDiveRoles(diverId: diverId),
-);
+      : const <EquipmentComponent>[];
+  final diveRoles = await roles.getAllDiveRoles(diverId: diverId);
+  if (classification == null) {
+    return UddfDivesExtras(
+      diveBuddies: diveBuddies,
+      components: gear,
+      diveRoles: diveRoles,
+    );
+  }
+
+  final siteIds = await classification.getSiteIdsForDives(diveIds);
+  final typeIdsBySite = await classification.getTypeIdsBySite(siteIds);
+  final tagIdsBySite = await classification.getTagIdsBySite(siteIds);
+  final tagsBySite = await classification.getTagsBySite();
+  final siteTags = <String, Tag>{
+    for (final siteId in siteIds)
+      for (final tag in tagsBySite[siteId] ?? const <Tag>[]) tag.id: tag,
+  };
+  final customSiteTypes = <SiteTypeEntity>[];
+  for (final typeId in {for (final ids in typeIdsBySite.values) ...ids}) {
+    final type = await siteTypes?.getSiteTypeById(typeId);
+    if (type != null && !type.isBuiltIn) customSiteTypes.add(type);
+  }
+
+  return UddfDivesExtras(
+    diveBuddies: diveBuddies,
+    components: gear,
+    diveRoles: diveRoles,
+    siteTypeIdsBySite: typeIdsBySite,
+    siteTagIdsBySite: tagIdsBySite,
+    customSiteTypes: customSiteTypes,
+    siteTags: siteTags.values.toList(),
+  );
+}

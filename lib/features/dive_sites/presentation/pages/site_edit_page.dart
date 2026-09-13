@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, setEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -26,6 +27,9 @@ import 'package:submersion/features/dive_sites/presentation/widgets/edit_section
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/type_tags_section.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -108,6 +112,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   DiveSite? _originalSite;
   List<Species> _expectedSpecies = [];
   Set<String> _originalExpectedSpeciesIds = {};
+  // Site types and tags (issue #1765). A Set keeps insertion order, so types
+  // save in the order the diver picked them.
+  Set<String> _selectedTypeIds = {};
+  List<Tag> _selectedTags = [];
+  Set<String> _originalTypeIds = {};
+  Set<String> _originalTagIds = {};
   late final Future<_MergeLoadData>? _mergeLoadFuture;
   final Map<String, List<_MergeFieldCandidate<String>>> _mergeTextCandidates =
       {};
@@ -321,6 +331,20 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
     // Load expected species
     _loadExpectedSpecies(site.id);
+    _loadClassification(site.id);
+  }
+
+  /// Loads the site's types and tags into the Type & Tags section.
+  Future<void> _loadClassification(String siteId) async {
+    final types = await ref.read(siteTypesForSiteProvider(siteId).future);
+    final tags = await ref.read(tagsForSiteProvider(siteId).future);
+    if (!mounted) return;
+    setState(() {
+      _selectedTypeIds = {for (final t in types) t.id};
+      _originalTypeIds = {..._selectedTypeIds};
+      _selectedTags = tags;
+      _originalTagIds = {for (final t in tags) t.id};
+    });
   }
 
   void _initializeFromMerge(_MergeLoadData data, UnitFormatter units) {
@@ -961,10 +985,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     final allSites = ref.watch(sitesProvider).value ?? const <DiveSite>[];
     final body = Form(
       key: _formKey,
-      // Split after Location so Identity + Location lead the left column and
-      // Dive info / Access / Life fill the right on wide windows.
+      // Split after Location so Identity (+ Type & Tags) + Location lead the
+      // left column and Dive info / Access / Life fill the right on wide
+      // windows. A merge has no Type & Tags section: mergeSites unions them.
       child: ResponsiveFormColumns(
-        splitIndex: 2,
+        splitIndex: widget.isMerging ? 2 : 3,
         children: [
           IdentitySection(
             allSites: allSites,
@@ -980,6 +1005,21 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             mergeExtras: widget.isMerging ? _mergeExtras : null,
             errorCount: _identityErrorCount(),
           ),
+          if (!widget.isMerging)
+            TypeTagsSection(
+              allTypes: ref.watch(siteTypesProvider).value ?? const [],
+              selectedTypeIds: _selectedTypeIds,
+              onTypesChanged: (ids) => setState(() {
+                _selectedTypeIds = ids;
+                _hasChanges = true;
+              }),
+              selectedTags: _selectedTags,
+              onTagsChanged: (tags) => setState(() {
+                _selectedTags = tags;
+                _hasChanges = true;
+              }),
+              onManageTypes: () => context.push('/site-types'),
+            ),
           LocationSection(
             expanded: _siteSectionExpanded('location'),
             onToggle: widget.isMerging
@@ -1749,6 +1789,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       final notifier = ref.read(siteListNotifierProvider.notifier);
       String savedId;
 
+      // Types and tags (issue #1765) are written with the row, in one
+      // transaction, only when the diver changed them on this page.
+      final classificationChanged =
+          !widget.isEditing ||
+          !setEquals(_selectedTypeIds, _originalTypeIds) ||
+          !setEquals({for (final t in _selectedTags) t.id}, _originalTagIds);
+      final classification = classificationChanged
+          ? SiteClassification(
+              typeIds: _selectedTypeIds.toList(),
+              tagIds: [for (final t in _selectedTags) t.id],
+            )
+          : null;
+
       MergeSnapshot? mergeSnapshot;
 
       if (widget.isMerging) {
@@ -1760,12 +1813,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         mergeSnapshot = await notifier.mergeSites(site, widget.mergeSiteIds!);
         savedId = widget.mergeSiteIds!.first;
       } else if (widget.isEditing) {
-        await notifier.updateSite(site);
+        await notifier.updateSite(site, classification: classification);
         savedId = widget.siteId!;
       } else {
-        final newSite = await notifier.addSite(site);
+        final newSite = await notifier.addSite(
+          site,
+          classification: classification,
+        );
         savedId = newSite.id;
       }
+      ref.invalidate(siteTypesForSiteProvider(savedId));
+      ref.invalidate(tagsForSiteProvider(savedId));
 
       // Save expected species
       final currentIds = _expectedSpecies.map((s) => s.id).toSet();

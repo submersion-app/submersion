@@ -1,7 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-/// Tag entity for organizing dives
+/// Where a tag is offered (issue #1765). A tag applies to at least one.
+enum TagScope { dives, sites }
+
+/// Tag entity for organizing dives and dive sites
 class Tag extends Equatable {
   final String id;
   final String? diverId;
@@ -10,6 +13,12 @@ class Tag extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Whether the tag is offered on dives (issue #1765).
+  final bool appliesToDives;
+
+  /// Whether the tag is offered on dive sites (issue #1765).
+  final bool appliesToSites;
+
   const Tag({
     required this.id,
     this.diverId,
@@ -17,6 +26,8 @@ class Tag extends Equatable {
     this.colorHex,
     required this.createdAt,
     required this.updatedAt,
+    this.appliesToDives = true,
+    this.appliesToSites = false,
   });
 
   /// Get the color as a Flutter Color object
@@ -32,12 +43,19 @@ class Tag extends Equatable {
     }
   }
 
-  /// Create a new tag with a default color
+  /// Whether the tag is offered where [scope] is.
+  bool appliesTo(TagScope scope) => switch (scope) {
+    TagScope.dives => appliesToDives,
+    TagScope.sites => appliesToSites,
+  };
+
+  /// Create a new tag with a default color, offered in [scope] only.
   factory Tag.create({
     required String id,
     required String name,
     String? diverId,
     String? colorHex,
+    TagScope scope = TagScope.dives,
   }) {
     final now = DateTime.now();
     return Tag(
@@ -47,6 +65,8 @@ class Tag extends Equatable {
       colorHex: colorHex,
       createdAt: now,
       updatedAt: now,
+      appliesToDives: scope == TagScope.dives,
+      appliesToSites: scope == TagScope.sites,
     );
   }
 
@@ -57,6 +77,8 @@ class Tag extends Equatable {
     String? colorHex,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? appliesToDives,
+    bool? appliesToSites,
   }) {
     return Tag(
       id: id ?? this.id,
@@ -65,6 +87,8 @@ class Tag extends Equatable {
       colorHex: colorHex ?? this.colorHex,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      appliesToDives: appliesToDives ?? this.appliesToDives,
+      appliesToSites: appliesToSites ?? this.appliesToSites,
     );
   }
 
@@ -76,6 +100,8 @@ class Tag extends Equatable {
     colorHex,
     createdAt,
     updatedAt,
+    appliesToDives,
+    appliesToSites,
   ];
 }
 

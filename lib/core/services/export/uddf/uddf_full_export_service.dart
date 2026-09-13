@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -62,6 +63,11 @@ class UddfFullExportService {
     List<Tag>? tags,
     Map<String, List<Tag>>? diveTags,
     List<DiveTypeEntity>? customDiveTypes,
+    // Site types and site tags (issue #1765): the custom type definitions,
+    // and each exported site's type slugs and tag ids.
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -179,7 +185,12 @@ class UddfFullExportService {
             'divesite',
             nest: () {
               for (final site in allSites) {
-                UddfExportBuilders.buildSiteElement(builder, site);
+                UddfExportBuilders.buildSiteElement(
+                  builder,
+                  site,
+                  siteTypeIds: siteTypeIdsBySite[site.id] ?? const [],
+                  tagIds: siteTagIdsBySite[site.id] ?? const [],
+                );
               }
             },
           );
@@ -363,6 +374,7 @@ class UddfFullExportService {
           owner: owner,
           tags: tags,
           customDiveTypes: customDiveTypes,
+          customSiteTypes: customSiteTypes,
           customDiveRoles: customDiveRoles,
           diveComputers: diveComputers,
           equipmentSets: equipmentSets,
@@ -397,6 +409,11 @@ class UddfFullExportService {
   /// inspects the document itself.
   Future<String> generateAllDataXmlForTest({
     required List<Dive> dives,
+    List<DiveSite>? sites,
+    List<Tag>? tags,
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     Diver? owner,
     List<Buddy>? buddies,
     Map<String, List<BuddyWithRole>>? diveBuddies,
@@ -409,6 +426,11 @@ class UddfFullExportService {
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
+    sites: sites,
+    tags: tags,
+    customSiteTypes: customSiteTypes,
+    siteTypeIdsBySite: siteTypeIdsBySite,
+    siteTagIdsBySite: siteTagIdsBySite,
     owner: owner,
     buddies: buddies,
     diveBuddies: diveBuddies,
@@ -440,6 +462,11 @@ class UddfFullExportService {
     List<Tag>? tags,
     Map<String, List<Tag>>? diveTags,
     List<DiveTypeEntity>? customDiveTypes,
+    // Site types and site tags (issue #1765): the custom type definitions,
+    // and each exported site's type slugs and tag ids.
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -469,6 +496,9 @@ class UddfFullExportService {
       tags: tags,
       diveTags: diveTags,
       customDiveTypes: customDiveTypes,
+      customSiteTypes: customSiteTypes,
+      siteTypeIdsBySite: siteTypeIdsBySite,
+      siteTagIdsBySite: siteTagIdsBySite,
       customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       diveProfileEvents: diveProfileEvents,
@@ -505,6 +535,11 @@ class UddfFullExportService {
     List<Tag>? tags,
     Map<String, List<Tag>>? diveTags,
     List<DiveTypeEntity>? customDiveTypes,
+    // Site types and site tags (issue #1765): the custom type definitions,
+    // and each exported site's type slugs and tag ids.
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -534,6 +569,9 @@ class UddfFullExportService {
       tags: tags,
       diveTags: diveTags,
       customDiveTypes: customDiveTypes,
+      customSiteTypes: customSiteTypes,
+      siteTypeIdsBySite: siteTypeIdsBySite,
+      siteTagIdsBySite: siteTagIdsBySite,
       customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       diveProfileEvents: diveProfileEvents,

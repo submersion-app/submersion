@@ -11013,6 +11013,30 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get diveSites_edit_group_location;
 
+  /// Site form group: the site's types (reef, wreck, lake...) and its tags
+  ///
+  /// In en, this message translates to:
+  /// **'Type & Tags'**
+  String get diveSites_edit_group_typeTags;
+
+  /// No description provided for @diveSites_edit_typeTags_manageTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage types'**
+  String get diveSites_edit_typeTags_manageTypes;
+
+  /// No description provided for @diveSites_edit_typeTags_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get diveSites_edit_typeTags_tagsLabel;
+
+  /// No description provided for @diveSites_edit_typeTags_typesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get diveSites_edit_typeTags_typesLabel;
+
   /// Empty-state invitation for the Access & safety group
   ///
   /// In en, this message translates to:
@@ -11696,6 +11720,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assigned {name}'**
   String siteSuggestion_assignedSnack(Object name);
+
+  /// No description provided for @siteTypes_addTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Site Type'**
+  String get siteTypes_addTooltip;
+
+  /// No description provided for @siteTypes_builtIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get siteTypes_builtIn;
+
+  /// No description provided for @siteTypes_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get siteTypes_custom;
+
+  /// No description provided for @siteTypes_deleteDialog_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String siteTypes_deleteDialog_content(String name);
+
+  /// No description provided for @siteTypes_deleteDialog_inUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{\"{name}\" is used by 1 site. Deleting it removes it from that site.} other{\"{name}\" is used by {count} sites. Deleting it removes it from those sites.}}'**
+  String siteTypes_deleteDialog_inUse(int count, String name);
+
+  /// No description provided for @siteTypes_deleteDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Site Type?'**
+  String get siteTypes_deleteDialog_title;
+
+  /// No description provided for @siteTypes_deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete site type'**
+  String get siteTypes_deleteTooltip;
+
+  /// No description provided for @siteTypes_dialog_addTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Site Type'**
+  String get siteTypes_dialog_addTitle;
+
+  /// No description provided for @siteTypes_dialog_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Site Type'**
+  String get siteTypes_dialog_editTitle;
+
+  /// No description provided for @siteTypes_dialog_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get siteTypes_dialog_nameLabel;
+
+  /// No description provided for @siteTypes_dialog_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get siteTypes_dialog_nameRequired;
+
+  /// No description provided for @siteTypes_editTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit site type'**
+  String get siteTypes_editTooltip;
+
+  /// No description provided for @siteTypes_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No sites} =1{1 site} other{{count} sites}}'**
+  String siteTypes_siteCount(int count);
+
+  /// No description provided for @siteTypes_snackbar_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the site type: {error}'**
+  String siteTypes_snackbar_error(String error);
+
+  /// No description provided for @siteTypes_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get siteTypes_title;
+
+  /// No description provided for @siteType_builtin_artificial_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Artificial reef'**
+  String get siteType_builtin_artificial_reef;
+
+  /// No description provided for @siteType_builtin_blue_hole.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue hole'**
+  String get siteType_builtin_blue_hole;
+
+  /// No description provided for @siteType_builtin_cave.
+  ///
+  /// In en, this message translates to:
+  /// **'Cave'**
+  String get siteType_builtin_cave;
+
+  /// No description provided for @siteType_builtin_cavern.
+  ///
+  /// In en, this message translates to:
+  /// **'Cavern'**
+  String get siteType_builtin_cavern;
+
+  /// No description provided for @siteType_builtin_cenote.
+  ///
+  /// In en, this message translates to:
+  /// **'Cenote'**
+  String get siteType_builtin_cenote;
+
+  /// No description provided for @siteType_builtin_kelp_forest.
+  ///
+  /// In en, this message translates to:
+  /// **'Kelp forest'**
+  String get siteType_builtin_kelp_forest;
+
+  /// No description provided for @siteType_builtin_lake.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake'**
+  String get siteType_builtin_lake;
+
+  /// No description provided for @siteType_builtin_muck.
+  ///
+  /// In en, this message translates to:
+  /// **'Muck'**
+  String get siteType_builtin_muck;
+
+  /// No description provided for @siteType_builtin_pier.
+  ///
+  /// In en, this message translates to:
+  /// **'Pier / jetty'**
+  String get siteType_builtin_pier;
+
+  /// No description provided for @siteType_builtin_pool.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool'**
+  String get siteType_builtin_pool;
+
+  /// No description provided for @siteType_builtin_quarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarry'**
+  String get siteType_builtin_quarry;
+
+  /// No description provided for @siteType_builtin_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Reef'**
+  String get siteType_builtin_reef;
+
+  /// No description provided for @siteType_builtin_river.
+  ///
+  /// In en, this message translates to:
+  /// **'River'**
+  String get siteType_builtin_river;
+
+  /// No description provided for @siteType_builtin_spring.
+  ///
+  /// In en, this message translates to:
+  /// **'Spring'**
+  String get siteType_builtin_spring;
+
+  /// No description provided for @siteType_builtin_wall.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall'**
+  String get siteType_builtin_wall;
+
+  /// No description provided for @siteType_builtin_wreck.
+  ///
+  /// In en, this message translates to:
+  /// **'Wreck'**
+  String get siteType_builtin_wreck;
 
   /// No description provided for @siteMatchReview_sourcePhoto.
   ///
@@ -14224,6 +14434,12 @@ abstract class AppLocalizations {
   /// **'ppO₂ of {value} bar exceeds working limit'**
   String divePlanner_warning_ppO2High(Object value);
 
+  /// Tooltip on a site type or tag chip; tapping it opens the site list filtered to it
+  ///
+  /// In en, this message translates to:
+  /// **'Show sites with {name}'**
+  String diveSites_detail_showSitesWith(String name);
+
   /// No description provided for @diveSites_detail_access_accessNotes.
   ///
   /// In en, this message translates to:
@@ -15387,6 +15603,18 @@ abstract class AppLocalizations {
   /// **'Options'**
   String get diveSites_filter_section_options;
 
+  /// No description provided for @diveSites_filter_section_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site type'**
+  String get diveSites_filter_section_siteTypes;
+
+  /// No description provided for @diveSites_filter_section_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get diveSites_filter_section_tags;
+
   /// No description provided for @diveSites_filter_title.
   ///
   /// In en, this message translates to:
@@ -15596,6 +15824,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get diveSites_list_activeFilter_clear;
+
+  /// Chip on a site card standing in for the tags that did not fit
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String diveSites_list_moreTags(int count);
 
   /// No description provided for @diveSites_list_activeFilter_country.
   ///
@@ -28579,6 +28813,12 @@ abstract class AppLocalizations {
   /// **'Signed by'**
   String get settings_conflict_ref_signer;
 
+  /// No description provided for @settings_conflict_ref_siteType.
+  ///
+  /// In en, this message translates to:
+  /// **'Site type'**
+  String get settings_conflict_ref_siteType;
+
   /// No description provided for @settings_conflict_ref_sourceDive.
   ///
   /// In en, this message translates to:
@@ -29536,6 +29776,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage custom dive types'**
   String get settings_manage_diveTypes_subtitle;
+
+  /// No description provided for @settings_manage_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get settings_manage_siteTypes;
+
+  /// No description provided for @settings_manage_siteTypes_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in and custom dive site types'**
+  String get settings_manage_siteTypes_subtitle;
 
   /// No description provided for @settings_manage_header_manageData.
   ///
@@ -31505,6 +31757,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visibility Distribution'**
   String get statistics_conditions_visibility_title;
+
+  /// No description provided for @statistics_conditions_siteType_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load site type data'**
+  String get statistics_conditions_siteType_error;
+
+  /// No description provided for @statistics_conditions_siteType_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar chart. Dives per site type. {description}'**
+  String statistics_conditions_siteType_semanticLabel(String description);
+
+  /// No description provided for @statistics_conditions_siteType_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.'**
+  String get statistics_conditions_siteType_subtitle;
+
+  /// No description provided for @statistics_conditions_siteType_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get statistics_conditions_siteType_title;
 
   /// No description provided for @statistics_conditions_waterType_error.
   ///
@@ -33623,6 +33899,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get tags_manage_colorLabel;
+
+  /// No description provided for @tags_manage_narrowDialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get tags_manage_narrowDialog_confirm;
+
+  /// No description provided for @tags_manage_narrowDialog_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}'**
+  String tags_manage_narrowDialog_dives(int count);
+
+  /// No description provided for @tags_manage_narrowDialog_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.} other{This tag is on {count} sites. Turning off \"Use for sites\" removes it from those sites.}}'**
+  String tags_manage_narrowDialog_sites(int count);
+
+  /// No description provided for @tags_manage_narrowDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove tag from existing items?'**
+  String get tags_manage_narrowDialog_title;
+
+  /// No description provided for @tags_manage_scopeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dives, sites, or both'**
+  String get tags_manage_scopeRequired;
+
+  /// No description provided for @tags_manage_scope_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get tags_manage_scope_dives;
+
+  /// No description provided for @tags_manage_scope_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get tags_manage_scope_sites;
+
+  /// No description provided for @tags_manage_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 sites} =1{1 site} other{{count} sites}}'**
+  String tags_manage_siteCount(int count);
+
+  /// No description provided for @tags_manage_useForDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for dives'**
+  String get tags_manage_useForDives;
+
+  /// No description provided for @tags_manage_useForSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for sites'**
+  String get tags_manage_useForSites;
 
   /// No description provided for @tags_manage_nameRequired.
   ///
@@ -48572,6 +48908,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Avg time'**
   String get enum_siteField_averageDuration_short;
+
+  /// No description provided for @enum_siteField_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get enum_siteField_siteTypes;
+
+  /// No description provided for @enum_siteField_siteTypes_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Types'**
+  String get enum_siteField_siteTypes_short;
+
+  /// No description provided for @enum_siteField_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_siteField_tags;
+
+  /// No description provided for @enum_siteField_tags_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_siteField_tags_short;
 
   /// No description provided for @enum_siteField_maxDepthReached_short.
   ///

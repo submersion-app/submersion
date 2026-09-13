@@ -8,6 +8,7 @@ import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -60,8 +61,17 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   @override
   Future<Tag> addTag(Tag tag) async => tag;
   @override
-  Future<Tag> getOrCreateTag(String name, {String? colorHex}) async {
-    return Tag.create(id: 'new-tag', name: name, colorHex: colorHex);
+  Future<Tag> getOrCreateTag(
+    String name, {
+    String? colorHex,
+    TagScope scope = TagScope.dives,
+  }) async {
+    return Tag.create(
+      id: 'new-tag',
+      name: name,
+      colorHex: colorHex,
+      scope: scope,
+    );
   }
 
   @override
@@ -300,7 +310,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('1 selected'), findsNothing);
-      expect(find.byType(Checkbox), findsNothing);
+      // Selection checkboxes only: the tag edit dialog has scope checkboxes
+      // of its own (issue #1765).
+      expect(
+        find.descendant(
+          of: find.byType(SelectionLeading),
+          matching: find.byType(Checkbox),
+        ),
+        findsNothing,
+      );
       expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
     });
 

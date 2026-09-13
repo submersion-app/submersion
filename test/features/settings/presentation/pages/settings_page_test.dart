@@ -1756,6 +1756,10 @@ void main() {
             builder: (context, state) => const Text('Service Types Stub'),
           ),
           GoRoute(
+            path: '/site-types',
+            builder: (context, state) => const Text('Site Types Stub'),
+          ),
+          GoRoute(
             path: '/settings/trimix-mixer',
             builder: (context, state) => const Text('Trimix Mixer Stub'),
           ),
@@ -1807,10 +1811,28 @@ void main() {
         findsOneWidget,
       );
 
+      await tester.ensureVisible(find.text('Service types'));
       await tester.tap(find.text('Service types'));
       await tester.pumpAndSettle();
 
       expect(find.text('Service Types Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders the site types tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Site Types'), findsOneWidget);
+      expect(find.text('Built-in and custom dive site types'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Site Types'));
+      await tester.tap(find.text('Site Types'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Site Types Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

@@ -40,10 +40,10 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v213 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 213);
+  test('v213 is in the ladder', () {
+    // Relaxed once v214 (site types and tags) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(213));
     expect(AppDatabase.migrationVersions, contains(213));
   });
 

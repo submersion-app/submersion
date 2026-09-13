@@ -90,7 +90,9 @@ void main() {
     when(
       sites.getAllSites(diverId: anyNamed('diverId')),
     ).thenAnswer((_) async => const []);
-    when(sites.createSite(any)).thenAnswer(
+    when(
+      sites.createSite(any, classification: anyNamed('classification')),
+    ).thenAnswer(
       (inv) async =>
           (inv.positionalArguments.first as DiveSite).copyWith(id: 'created'),
     );
@@ -268,7 +270,9 @@ void main() {
     'confirm refreshes the sites list when a bundled site is created',
     () async {
       final container = makeContainer([_dive('d1', const GeoPoint(0, 0))]);
-      when(sites.createSite(any)).thenAnswer((inv) async {
+      when(
+        sites.createSite(any, classification: anyNamed('classification')),
+      ).thenAnswer((inv) async {
         final s = inv.positionalArguments.first as DiveSite;
         return s.copyWith(id: 'new-${s.name}');
       });

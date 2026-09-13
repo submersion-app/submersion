@@ -160,12 +160,19 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     return newTag;
   }
 
-  Future<Tag> getOrCreateTag(String name, {String? colorHex}) async {
+  /// The tag named [name], created or widened so it is offered in [scope]
+  /// (issue #1765).
+  Future<Tag> getOrCreateTag(
+    String name, {
+    String? colorHex,
+    TagScope scope = TagScope.dives,
+  }) async {
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     final tag = await _repository.getOrCreateTag(
       name,
       colorHex: colorHex,
       diverId: validatedId,
+      scope: scope,
     );
     await _loadTags();
     _ref.invalidate(tagStatisticsProvider);

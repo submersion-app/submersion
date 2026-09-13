@@ -6587,6 +6587,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_group_location => 'Location';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Type & Tags';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Manage types';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Tags';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Site types';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'Add access, parking, mooring or hazards';
 
@@ -6972,6 +6984,122 @@ class AppLocalizationsEn extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return 'Assigned $name';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'Add Site Type';
+
+  @override
+  String get siteTypes_builtIn => 'Built-in';
+
+  @override
+  String get siteTypes_custom => 'Custom';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" is used by $count sites. Deleting it removes it from those sites.',
+      one:
+          '\"$name\" is used by 1 site. Deleting it removes it from that site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'Delete Site Type?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'Delete site type';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'Add Site Type';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'Edit Site Type';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'Name';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'Please enter a name';
+
+  @override
+  String get siteTypes_editTooltip => 'Edit site type';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '1 site',
+      zero: 'No sites',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'Could not save the site type: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'Site Types';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'Artificial reef';
+
+  @override
+  String get siteType_builtin_blue_hole => 'Blue hole';
+
+  @override
+  String get siteType_builtin_cave => 'Cave';
+
+  @override
+  String get siteType_builtin_cavern => 'Cavern';
+
+  @override
+  String get siteType_builtin_cenote => 'Cenote';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'Kelp forest';
+
+  @override
+  String get siteType_builtin_lake => 'Lake';
+
+  @override
+  String get siteType_builtin_muck => 'Muck';
+
+  @override
+  String get siteType_builtin_pier => 'Pier / jetty';
+
+  @override
+  String get siteType_builtin_pool => 'Pool';
+
+  @override
+  String get siteType_builtin_quarry => 'Quarry';
+
+  @override
+  String get siteType_builtin_reef => 'Reef';
+
+  @override
+  String get siteType_builtin_river => 'River';
+
+  @override
+  String get siteType_builtin_spring => 'Spring';
+
+  @override
+  String get siteType_builtin_wall => 'Wall';
+
+  @override
+  String get siteType_builtin_wreck => 'Wreck';
 
   @override
   String get siteMatchReview_sourcePhoto => 'from photo';
@@ -8426,6 +8554,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Show sites with $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'Access Notes';
 
   @override
@@ -9108,6 +9241,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_filter_section_options => 'Options';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'Site type';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tags';
+
+  @override
   String get diveSites_filter_title => 'Filter Sites';
 
   @override
@@ -9229,6 +9368,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'Clear';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -17082,6 +17226,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Signed by';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Source dive';
 
   @override
@@ -17637,6 +17784,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_manage_diveTypes_subtitle => 'Manage custom dive types';
+
+  @override
+  String get settings_manage_siteTypes => 'Site Types';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'Built-in and custom dive site types';
 
   @override
   String get settings_manage_header_manageData => 'Manage Data';
@@ -18768,6 +18922,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statistics_conditions_visibility_title =>
       'Visibility Distribution';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'Failed to load site type data';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'Bar chart. Dives per site type. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'Site Types';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20093,6 +20263,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Color';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'Remove';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'This tag is on $count dives. Turning off \"Use for dives\" removes it from those dives.',
+      one:
+          'This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'This tag is on $count sites. Turning off \"Use for sites\" removes it from those sites.',
+      one:
+          'This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title =>
+      'Remove tag from existing items?';
+
+  @override
+  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+
+  @override
+  String get tags_manage_scope_dives => 'Dives';
+
+  @override
+  String get tags_manage_scope_sites => 'Sites';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '1 site',
+      zero: '0 sites',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'Use for dives';
+
+  @override
+  String get tags_manage_useForSites => 'Use for sites';
 
   @override
   String get tags_manage_nameRequired => 'Tag name is required';
@@ -29150,6 +29380,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'Avg time';
+
+  @override
+  String get enum_siteField_siteTypes => 'Site Types';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'Types';
+
+  @override
+  String get enum_siteField_tags => 'Tags';
+
+  @override
+  String get enum_siteField_tags_short => 'Tags';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Your max';

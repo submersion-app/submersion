@@ -6655,6 +6655,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_group_location => 'Locatie';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Type & tags';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Types beheren';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Tags';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Duikstektypes';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'Toegang, parkeren, afmeren of gevaren toevoegen';
 
@@ -7046,6 +7058,122 @@ class AppLocalizationsNl extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return '$name toegewezen';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'Duikstektype toevoegen';
+
+  @override
+  String get siteTypes_builtIn => 'Ingebouwd';
+
+  @override
+  String get siteTypes_custom => 'Aangepast';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return '\"$name\" verwijderen?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" wordt gebruikt door $count duikstekken. Verwijderen haalt het van die duikstekken af.',
+      one:
+          '\"$name\" wordt gebruikt door 1 duikstek. Verwijderen haalt het van die duikstek af.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'Duikstektype verwijderen?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'Duikstektype verwijderen';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'Duikstektype toevoegen';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'Duikstektype bewerken';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'Naam';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'Voer een naam in';
+
+  @override
+  String get siteTypes_editTooltip => 'Duikstektype bewerken';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikstekken',
+      one: '1 duikstek',
+      zero: 'Geen duikstekken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'Het duikstektype kon niet worden opgeslagen: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'Duikstektypes';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'Kunstrif';
+
+  @override
+  String get siteType_builtin_blue_hole => 'Blue hole';
+
+  @override
+  String get siteType_builtin_cave => 'Grot';
+
+  @override
+  String get siteType_builtin_cavern => 'Cavern';
+
+  @override
+  String get siteType_builtin_cenote => 'Cenote';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'Kelpwoud';
+
+  @override
+  String get siteType_builtin_lake => 'Meer';
+
+  @override
+  String get siteType_builtin_muck => 'Muck';
+
+  @override
+  String get siteType_builtin_pier => 'Pier / steiger';
+
+  @override
+  String get siteType_builtin_pool => 'Zwembad';
+
+  @override
+  String get siteType_builtin_quarry => 'Groeve';
+
+  @override
+  String get siteType_builtin_reef => 'Rif';
+
+  @override
+  String get siteType_builtin_river => 'Rivier';
+
+  @override
+  String get siteType_builtin_spring => 'Bron';
+
+  @override
+  String get siteType_builtin_wall => 'Wand';
+
+  @override
+  String get siteType_builtin_wreck => 'Wrak';
 
   @override
   String get siteMatchReview_sourcePhoto => 'uit foto';
@@ -8509,6 +8637,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Duikstekken met $name tonen';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'Toegangsnotities';
 
   @override
@@ -9194,6 +9327,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_filter_section_options => 'Opties';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'Duikstektype';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tags';
+
+  @override
   String get diveSites_filter_title => 'Stekken filteren';
 
   @override
@@ -9317,6 +9456,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'Wissen';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -17236,6 +17380,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Ondertekend door';
 
   @override
+  String get settings_conflict_ref_siteType => 'Duikstektype';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Bronduik';
 
   @override
@@ -17798,6 +17945,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_manage_diveTypes_subtitle =>
       'Aangepaste duiktypes beheren';
+
+  @override
+  String get settings_manage_siteTypes => 'Duikstektypes';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'Ingebouwde en eigen duikstektypes';
 
   @override
   String get settings_manage_header_manageData => 'Gegevens beheren';
@@ -18932,6 +19086,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_conditions_visibility_title => 'Zichtverdeling';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'Gegevens over duikstektypes konden niet worden geladen';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'Staafdiagram. Duiken per duikstektype. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'Duiken per duikstektype. Een duik op een stek met meerdere types telt voor elk; stekken zonder type worden niet getoond.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'Duikstektypes';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20275,6 +20445,66 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Kleur';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'Verwijderen';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Deze tag staat op $count duiken. Als je \"Gebruiken voor duiken\" uitzet, wordt hij van die duiken verwijderd.',
+      one:
+          'Deze tag staat op 1 duik. Als je \"Gebruiken voor duiken\" uitzet, wordt hij van die duik verwijderd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Deze tag staat op $count duikstekken. Als je \"Gebruiken voor duikstekken\" uitzet, wordt hij van die duikstekken verwijderd.',
+      one:
+          'Deze tag staat op 1 duikstek. Als je \"Gebruiken voor duikstekken\" uitzet, wordt hij van die duikstek verwijderd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title =>
+      'Tag van bestaande items verwijderen?';
+
+  @override
+  String get tags_manage_scopeRequired => 'Kies duiken, duikstekken of beide';
+
+  @override
+  String get tags_manage_scope_dives => 'Duiken';
+
+  @override
+  String get tags_manage_scope_sites => 'Duikstekken';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikstekken',
+      one: '1 duikstek',
+      zero: '0 duikstekken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'Gebruiken voor duiken';
+
+  @override
+  String get tags_manage_useForSites => 'Gebruiken voor duikstekken';
 
   @override
   String get tags_manage_nameRequired => 'Tagnaam is verplicht';
@@ -29411,6 +29641,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'Gem. duur';
+
+  @override
+  String get enum_siteField_siteTypes => 'Duikstektypes';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'Types';
+
+  @override
+  String get enum_siteField_tags => 'Tags';
+
+  @override
+  String get enum_siteField_tags_short => 'Tags';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Jouw max.';

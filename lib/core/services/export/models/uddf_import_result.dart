@@ -19,6 +19,9 @@ class UddfImportResult {
   final List<Map<String, dynamic>> tags;
   final List<Map<String, dynamic>> customDiveTypes;
   final List<Map<String, dynamic>> customDiveRoles;
+
+  /// Custom site type definitions (`id`, `name`, `sortOrder`), issue #1765.
+  final List<Map<String, dynamic>> customSiteTypes;
   final List<Map<String, dynamic>> diveComputers;
   final List<Map<String, dynamic>> equipmentSets;
   final List<Map<String, dynamic>> courses;
@@ -60,6 +63,7 @@ class UddfImportResult {
     this.tags = const [],
     this.customDiveTypes = const [],
     this.customDiveRoles = const [],
+    this.customSiteTypes = const [],
     this.diveComputers = const [],
     this.equipmentSets = const [],
     this.courses = const [],
@@ -84,6 +88,7 @@ class UddfImportResult {
       tags.isEmpty &&
       customDiveTypes.isEmpty &&
       customDiveRoles.isEmpty &&
+      customSiteTypes.isEmpty &&
       diveComputers.isEmpty &&
       equipmentSets.isEmpty &&
       courses.isEmpty;
@@ -178,6 +183,7 @@ class UddfImportResult {
       tags: tags,
       customDiveTypes: customDiveTypes,
       customDiveRoles: customDiveRoles,
+      customSiteTypes: customSiteTypes,
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
       courses: courses,

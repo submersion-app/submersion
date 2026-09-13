@@ -66,8 +66,16 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     // Already ordered `dive_count DESC, name`, which is exactly the
-    // "tags you use most" ordering this sheet wants.
-    final statsAsync = ref.watch(tagStatisticsProvider);
+    // "tags you use most" ordering this sheet wants. Dive tags only: a tag
+    // used just for sites ("to try") has no place on a dive (issue #1765).
+    final statsAsync = ref
+        .watch(tagStatisticsProvider)
+        .whenData(
+          (stats) => [
+            for (final stat in stats)
+              if (stat.tag.appliesToDives) stat,
+          ],
+        );
 
     return Column(
       children: [

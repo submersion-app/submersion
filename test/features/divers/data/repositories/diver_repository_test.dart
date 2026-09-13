@@ -224,6 +224,24 @@ void main() {
       expect(dives, isEmpty);
     });
 
+    test('deletes custom site types and keeps the built-ins', () async {
+      await insertDiver('d1');
+      await insertDiverSettings('d1');
+      await db.customStatement(
+        "INSERT INTO site_types (id, diver_id, name, is_built_in, "
+        "created_at, updated_at) VALUES ('mine', 'd1', 'Mine', 0, 0, 0)",
+      );
+
+      await repository.deleteDiver('d1');
+
+      final rows = await db
+          .customSelect('SELECT id, is_built_in FROM site_types')
+          .get();
+      expect(rows.any((r) => r.read<String>('id') == 'mine'), isFalse);
+      expect(rows, isNotEmpty);
+      expect(rows.every((r) => r.read<int>('is_built_in') == 1), isTrue);
+    });
+
     test('deletes associated dive computers', () async {
       await insertDiver('d1');
       await insertDiverSettings('d1');

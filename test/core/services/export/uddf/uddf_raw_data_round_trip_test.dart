@@ -28,6 +28,8 @@ import 'package:submersion/features/divers/domain/entities/diver.dart'
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
@@ -48,6 +50,8 @@ ImportRepositories buildRepositories() => ImportRepositories(
   tankPressureRepository: TankPressureRepository(),
   courseRepository: CourseRepository(),
   diveComputerRepository: DiveComputerRepository(),
+  siteTypeRepository: SiteTypeRepository(),
+  siteClassificationRepository: SiteClassificationRepository(),
 );
 
 Future<String> createTestDiver() async {

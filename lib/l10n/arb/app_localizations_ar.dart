@@ -6570,6 +6570,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_group_location => 'الموقع الجغرافي';
 
   @override
+  String get diveSites_edit_group_typeTags => 'النوع والوسوم';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'إدارة الأنواع';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'الوسوم';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'أنواع الموقع';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'إضافة الوصول أو المواقف أو المرساة أو المخاطر';
 
@@ -6956,6 +6968,121 @@ class AppLocalizationsAr extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return 'تم تعيين $name';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'إضافة نوع موقع';
+
+  @override
+  String get siteTypes_builtIn => 'مدمج';
+
+  @override
+  String get siteTypes_custom => 'مخصص';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'يستخدم $count مواقع \"$name\". سيؤدي حذفه إلى إزالته من تلك المواقع.',
+      one: 'يستخدم موقع واحد \"$name\". سيؤدي حذفه إلى إزالته من ذلك الموقع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'حذف نوع الموقع؟';
+
+  @override
+  String get siteTypes_deleteTooltip => 'حذف نوع الموقع';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'إضافة نوع موقع';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'تعديل نوع الموقع';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'الاسم';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'يرجى إدخال اسم';
+
+  @override
+  String get siteTypes_editTooltip => 'تعديل نوع الموقع';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مواقع',
+      one: 'موقع واحد',
+      zero: 'لا توجد مواقع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'تعذر حفظ نوع الموقع: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'أنواع المواقع';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'شعاب اصطناعية';
+
+  @override
+  String get siteType_builtin_blue_hole => 'ثقب أزرق';
+
+  @override
+  String get siteType_builtin_cave => 'كهف';
+
+  @override
+  String get siteType_builtin_cavern => 'كهف ضحل';
+
+  @override
+  String get siteType_builtin_cenote => 'سينوتي';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'غابة عشب البحر';
+
+  @override
+  String get siteType_builtin_lake => 'بحيرة';
+
+  @override
+  String get siteType_builtin_muck => 'قاع طيني';
+
+  @override
+  String get siteType_builtin_pier => 'رصيف / مرسى';
+
+  @override
+  String get siteType_builtin_pool => 'مسبح';
+
+  @override
+  String get siteType_builtin_quarry => 'محجر';
+
+  @override
+  String get siteType_builtin_reef => 'شعاب';
+
+  @override
+  String get siteType_builtin_river => 'نهر';
+
+  @override
+  String get siteType_builtin_spring => 'نبع';
+
+  @override
+  String get siteType_builtin_wall => 'جدار';
+
+  @override
+  String get siteType_builtin_wreck => 'حطام';
 
   @override
   String get siteMatchReview_sourcePhoto => 'من صورة';
@@ -8410,6 +8537,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'عرض المواقع التي تحمل $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'ملاحظات الوصول';
 
   @override
@@ -9090,6 +9222,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_filter_section_options => 'الخيارات';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'نوع الموقع';
+
+  @override
+  String get diveSites_filter_section_tags => 'الوسوم';
+
+  @override
   String get diveSites_filter_title => 'تصفية المواقع';
 
   @override
@@ -9211,6 +9349,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'مسح';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -17059,6 +17202,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_signer => 'وقّع بواسطة';
 
   @override
+  String get settings_conflict_ref_siteType => 'نوع الموقع';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'الغوصة المصدر';
 
   @override
@@ -17619,6 +17765,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_manage_diveTypes_subtitle => 'إدارة أنواع الغوص المخصصة';
+
+  @override
+  String get settings_manage_siteTypes => 'أنواع المواقع';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'أنواع مواقع الغوص المدمجة والمخصصة';
 
   @override
   String get settings_manage_header_manageData => 'إدارة البيانات';
@@ -18750,6 +18903,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statistics_conditions_visibility_title => 'توزيع الرؤية';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'تعذر تحميل بيانات أنواع المواقع';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'مخطط شريطي. الغوصات حسب نوع الموقع. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'الغوصات حسب نوع الموقع. تُحتسب الغوصة في موقع متعدد الأنواع لكل نوع؛ لا تظهر المواقع التي بلا نوع.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'أنواع المواقع';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20069,6 +20238,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'اللون';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'إزالة';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'هذا الوسم على $count غوصات. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصات.',
+      one:
+          'هذا الوسم على غوصة واحدة. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'هذا الوسم على $count مواقع. إيقاف \"استخدام للمواقع\" يزيله من تلك المواقع.',
+      one:
+          'هذا الوسم على موقع واحد. إيقاف \"استخدام للمواقع\" يزيله من ذلك الموقع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title =>
+      'إزالة الوسم من العناصر الحالية؟';
+
+  @override
+  String get tags_manage_scopeRequired => 'اختر الغوصات أو المواقع أو كليهما';
+
+  @override
+  String get tags_manage_scope_dives => 'الغوصات';
+
+  @override
+  String get tags_manage_scope_sites => 'المواقع';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مواقع',
+      one: 'موقع واحد',
+      zero: '0 مواقع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'استخدام للغوصات';
+
+  @override
+  String get tags_manage_useForSites => 'استخدام للمواقع';
 
   @override
   String get tags_manage_nameRequired => 'اسم الوسم مطلوب';
@@ -29132,6 +29361,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'المدة';
+
+  @override
+  String get enum_siteField_siteTypes => 'أنواع المواقع';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'الأنواع';
+
+  @override
+  String get enum_siteField_tags => 'الوسوم';
+
+  @override
+  String get enum_siteField_tags_short => 'الوسوم';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'أقصاك';

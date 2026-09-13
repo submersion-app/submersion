@@ -6708,6 +6708,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_edit_group_location => 'Posizione';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Tipo e tag';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Gestisci tipi';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Tag';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Tipi di sito';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'Aggiungi accesso, parcheggio, ormeggio o pericoli';
 
@@ -7103,6 +7115,122 @@ class AppLocalizationsIt extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return 'Assegnato $name';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'Aggiungi tipo di sito';
+
+  @override
+  String get siteTypes_builtIn => 'Predefiniti';
+
+  @override
+  String get siteTypes_custom => 'Personalizzati';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return 'Eliminare \"$name\"?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" è usato da $count siti. Eliminandolo verrà rimosso da quei siti.',
+      one:
+          '\"$name\" è usato da 1 sito. Eliminandolo verrà rimosso da quel sito.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'Eliminare il tipo di sito?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'Elimina tipo di sito';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'Aggiungi tipo di sito';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'Modifica tipo di sito';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'Nome';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'Inserisci un nome';
+
+  @override
+  String get siteTypes_editTooltip => 'Modifica tipo di sito';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siti',
+      one: '1 sito',
+      zero: 'Nessun sito',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'Impossibile salvare il tipo di sito: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'Tipi di sito';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'Reef artificiale';
+
+  @override
+  String get siteType_builtin_blue_hole => 'Blue hole';
+
+  @override
+  String get siteType_builtin_cave => 'Grotta';
+
+  @override
+  String get siteType_builtin_cavern => 'Caverna';
+
+  @override
+  String get siteType_builtin_cenote => 'Cenote';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'Foresta di kelp';
+
+  @override
+  String get siteType_builtin_lake => 'Lago';
+
+  @override
+  String get siteType_builtin_muck => 'Muck';
+
+  @override
+  String get siteType_builtin_pier => 'Molo / pontile';
+
+  @override
+  String get siteType_builtin_pool => 'Piscina';
+
+  @override
+  String get siteType_builtin_quarry => 'Cava';
+
+  @override
+  String get siteType_builtin_reef => 'Reef';
+
+  @override
+  String get siteType_builtin_river => 'Fiume';
+
+  @override
+  String get siteType_builtin_spring => 'Sorgente';
+
+  @override
+  String get siteType_builtin_wall => 'Parete';
+
+  @override
+  String get siteType_builtin_wreck => 'Relitto';
 
   @override
   String get siteMatchReview_sourcePhoto => 'da foto';
@@ -8577,6 +8705,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Mostra i siti con $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'Note di accesso';
 
   @override
@@ -9271,6 +9404,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_filter_section_options => 'Opzioni';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'Tipo di sito';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tag';
+
+  @override
   String get diveSites_filter_title => 'Filtra siti';
 
   @override
@@ -9394,6 +9533,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'Cancella';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -17373,6 +17517,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Firmato da';
 
   @override
+  String get settings_conflict_ref_siteType => 'Tipo di sito';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Immersione di origine';
 
   @override
@@ -17941,6 +18088,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_manage_diveTypes_subtitle =>
       'Gestisci tipi di immersione personalizzati';
+
+  @override
+  String get settings_manage_siteTypes => 'Tipi di sito';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'Tipi di sito predefiniti e personalizzati';
 
   @override
   String get settings_manage_header_manageData => 'Gestisci dati';
@@ -19088,6 +19242,22 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get statistics_conditions_visibility_title =>
       'Distribuzione visibilita';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'Impossibile caricare i dati dei tipi di sito';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'Grafico a barre. Immersioni per tipo di sito. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'Immersioni per tipo di sito. Un\'immersione in un sito con più tipi conta per ciascuno; i siti senza tipo non sono mostrati.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'Tipi di sito';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20451,6 +20621,66 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Colore';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'Rimuovi';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Questo tag è su $count immersioni. Disattivando \"Usa per le immersioni\" verrà rimosso da quelle immersioni.',
+      one:
+          'Questo tag è su 1 immersione. Disattivando \"Usa per le immersioni\" verrà rimosso da quell\'immersione.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Questo tag è su $count siti. Disattivando \"Usa per i siti\" verrà rimosso da quei siti.',
+      one:
+          'Questo tag è su 1 sito. Disattivando \"Usa per i siti\" verrà rimosso da quel sito.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title =>
+      'Rimuovere il tag dagli elementi esistenti?';
+
+  @override
+  String get tags_manage_scopeRequired => 'Scegli immersioni, siti o entrambi';
+
+  @override
+  String get tags_manage_scope_dives => 'Immersioni';
+
+  @override
+  String get tags_manage_scope_sites => 'Siti';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siti',
+      one: '1 sito',
+      zero: '0 siti',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'Usa per le immersioni';
+
+  @override
+  String get tags_manage_useForSites => 'Usa per i siti';
 
   @override
   String get tags_manage_nameRequired => 'Il nome del tag e obbligatorio';
@@ -29628,6 +29858,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'Durata';
+
+  @override
+  String get enum_siteField_siteTypes => 'Tipi di sito';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'Tipi';
+
+  @override
+  String get enum_siteField_tags => 'Tag';
+
+  @override
+  String get enum_siteField_tags_short => 'Tag';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Tuo max';

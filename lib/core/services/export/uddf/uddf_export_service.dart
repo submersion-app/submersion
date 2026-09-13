@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
@@ -225,6 +226,13 @@ class UddfExportService {
                         site.notes != site.description) {
                       builder.element('sitenotesadditional', nest: site.notes);
                     }
+                    // Shared with the full export's site builder (#1765).
+                    UddfSiteClassificationWriters.writeSiteRefs(
+                      builder,
+                      siteTypeIds:
+                          extras.siteTypeIdsBySite[site.id] ?? const [],
+                      tagIds: extras.siteTagIdsBySite[site.id] ?? const [],
+                    );
                   },
                 );
               }
@@ -693,6 +701,9 @@ class UddfExportService {
           customDiveRoles: customRoles,
           dataSources: sources,
           dataSourceDumps: encodedById,
+          // The definitions the sites' type and tag references need.
+          tags: extras.siteTags,
+          customSiteTypes: extras.customSiteTypes,
         );
 
         // Last section, per the UDDF specification. A dump links only to a

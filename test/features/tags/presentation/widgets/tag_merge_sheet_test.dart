@@ -41,8 +41,12 @@ class MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   @override
   Future<Tag> addTag(Tag tag) async => tag;
   @override
-  Future<Tag> getOrCreateTag(String name, {String? colorHex}) async =>
-      Tag.create(id: 'new', name: name, colorHex: colorHex);
+  Future<Tag> getOrCreateTag(
+    String name, {
+    String? colorHex,
+    TagScope scope = TagScope.dives,
+  }) async =>
+      Tag.create(id: 'new', name: name, colorHex: colorHex, scope: scope);
   @override
   Future<void> updateTag(Tag tag) async {}
   @override

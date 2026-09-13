@@ -5,6 +5,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
@@ -30,8 +31,10 @@ class _ThrowingSiteRepository extends SiteRepository {
   Future<List<DiveSite>> getAllSites({String? diverId}) async => [];
 
   @override
-  Future<DiveSite> createSite(DiveSite site) async =>
-      throw Exception('write failed');
+  Future<DiveSite> createSite(
+    DiveSite site, {
+    SiteClassification? classification,
+  }) async => throw Exception('write failed');
 }
 
 void _usePhoneSurface(WidgetTester tester) {

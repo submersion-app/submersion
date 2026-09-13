@@ -118,6 +118,10 @@ class PayloadMerger {
     // UUIDs referenced verbatim by dive links, so they are never namespaced,
     // and the same id in two files is the same role.
     final customDiveRoles = <String, Map<String, dynamic>>{};
+    // Custom site type definitions (issue #1765). Their slug ids are shared
+    // across files by design, like dive type slugs, so the same id in two
+    // files is the same type and is not namespaced.
+    final customSiteTypes = <String, Map<String, dynamic>>{};
 
     for (final input in inputs) {
       warnings.addAll(input.payload.warnings);
@@ -125,6 +129,13 @@ class PayloadMerger {
       for (final role in roles is List ? roles : const []) {
         if (role is Map<String, dynamic> && role['id'] is String) {
           customDiveRoles.putIfAbsent(role['id'] as String, () => role);
+        }
+      }
+      final siteTypes =
+          input.payload.metadata[ImportPayload.customSiteTypesKey];
+      for (final type in siteTypes is List ? siteTypes : const []) {
+        if (type is Map<String, dynamic> && type['id'] is String) {
+          customSiteTypes.putIfAbsent(type['id'] as String, () => type);
         }
       }
 
@@ -185,6 +196,8 @@ class PayloadMerger {
         'sourceFiles': [for (final i in inputs) i.fileName],
         if (customDiveRoles.isNotEmpty)
           ImportPayload.customDiveRolesKey: customDiveRoles.values.toList(),
+        if (customSiteTypes.isNotEmpty)
+          ImportPayload.customSiteTypesKey: customSiteTypes.values.toList(),
       },
     );
   }
@@ -242,6 +255,18 @@ class PayloadMerger {
         _buddyRoleRefFields,
         (ref) => '$fileId:$ref',
       );
+    }
+
+    // A site's tag references point at namespaced tag ids, like a dive's
+    // (issue #1765). Its siteTypeRefs are slugs and stay as they are.
+    if (type == ImportEntityType.sites) {
+      final refs = item['tagRefs'];
+      if (refs is List) {
+        item['tagRefs'] = [
+          for (final ref in refs)
+            if (ref is String && ref.isNotEmpty) '$fileId:$ref' else ref,
+        ];
+      }
     }
 
     if (type == ImportEntityType.equipment) {
@@ -460,6 +485,17 @@ class PayloadMerger {
       final refs = set['equipmentRefs'];
       if (refs is List) {
         set['equipmentRefs'] = [
+          for (final ref in refs)
+            if (ref is String) resolve(ref) else ref,
+        ];
+      }
+    }
+
+    // A site's tag references follow a folded tag like a dive's (#1765).
+    for (final site in entities[ImportEntityType.sites] ?? const []) {
+      final refs = site['tagRefs'];
+      if (refs is List) {
+        site['tagRefs'] = [
           for (final ref in refs)
             if (ref is String) resolve(ref) else ref,
         ];

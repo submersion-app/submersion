@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_classification_chips.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
@@ -192,6 +193,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Site types and tags (issue #1765); collapses to nothing when the
+          // site has neither. Tapping one filters the site list.
+          SiteClassificationChips(siteId: site.id),
+          const SizedBox(height: 12),
+
           // Map Section (if coordinates exist)
           if (site.hasCoordinates) ...[
             _buildMapSection(context, ref, site),

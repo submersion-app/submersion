@@ -6708,6 +6708,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_edit_group_location => 'Localização';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Tipo e etiquetas';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Gerir tipos';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Etiquetas';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Tipos de ponto';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'Adicionar acesso, estacionamento, poita ou perigos';
 
@@ -7101,6 +7113,121 @@ class AppLocalizationsPt extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return '$name atribuído';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'Adicionar tipo de ponto';
+
+  @override
+  String get siteTypes_builtIn => 'Integrado';
+
+  @override
+  String get siteTypes_custom => 'Personalizado';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return 'Eliminar \"$name\"?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '\"$name\" é usado por $count pontos. Eliminá-lo remove-o desses pontos.',
+      one: '\"$name\" é usado por 1 ponto. Eliminá-lo remove-o desse ponto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'Eliminar tipo de ponto?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'Eliminar tipo de ponto';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'Adicionar tipo de ponto';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'Editar tipo de ponto';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'Nome';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'Introduza um nome';
+
+  @override
+  String get siteTypes_editTooltip => 'Editar tipo de ponto';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pontos',
+      one: '1 ponto',
+      zero: 'Nenhum ponto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'Não foi possível guardar o tipo de ponto: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'Tipos de ponto';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'Recife artificial';
+
+  @override
+  String get siteType_builtin_blue_hole => 'Buraco azul';
+
+  @override
+  String get siteType_builtin_cave => 'Gruta';
+
+  @override
+  String get siteType_builtin_cavern => 'Caverna';
+
+  @override
+  String get siteType_builtin_cenote => 'Cenote';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'Floresta de kelp';
+
+  @override
+  String get siteType_builtin_lake => 'Lago';
+
+  @override
+  String get siteType_builtin_muck => 'Muck';
+
+  @override
+  String get siteType_builtin_pier => 'Cais / pontão';
+
+  @override
+  String get siteType_builtin_pool => 'Piscina';
+
+  @override
+  String get siteType_builtin_quarry => 'Pedreira';
+
+  @override
+  String get siteType_builtin_reef => 'Recife';
+
+  @override
+  String get siteType_builtin_river => 'Rio';
+
+  @override
+  String get siteType_builtin_spring => 'Nascente';
+
+  @override
+  String get siteType_builtin_wall => 'Parede';
+
+  @override
+  String get siteType_builtin_wreck => 'Naufrágio';
 
   @override
   String get siteMatchReview_sourcePhoto => 'da foto';
@@ -8575,6 +8702,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Mostrar pontos com $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'Notas de Acesso';
 
   @override
@@ -9270,6 +9402,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_filter_section_options => 'Opcoes';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'Tipo de ponto';
+
+  @override
+  String get diveSites_filter_section_tags => 'Etiquetas';
+
+  @override
   String get diveSites_filter_title => 'Filtrar Pontos';
 
   @override
@@ -9393,6 +9531,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'Limpar';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -17374,6 +17517,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Assinado por';
 
   @override
+  String get settings_conflict_ref_siteType => 'Tipo de ponto';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Mergulho de origem';
 
   @override
@@ -17943,6 +18089,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_manage_diveTypes_subtitle =>
       'Gerenciar tipos de mergulho personalizados';
+
+  @override
+  String get settings_manage_siteTypes => 'Tipos de ponto';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'Tipos de ponto de mergulho integrados e personalizados';
 
   @override
   String get settings_manage_header_manageData => 'Gerenciar Dados';
@@ -19098,6 +19251,22 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get statistics_conditions_visibility_title =>
       'Distribuicao de Visibilidade';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'Não foi possível carregar os dados dos tipos de ponto';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'Gráfico de barras. Mergulhos por tipo de ponto. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'Mergulhos por tipo de ponto. Um mergulho num ponto com vários tipos conta para cada um; os pontos sem tipo não são mostrados.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'Tipos de ponto';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20458,6 +20627,66 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Cor';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'Remover';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Esta etiqueta está em $count mergulhos. Desativar \"Usar em mergulhos\" remove-a desses mergulhos.',
+      one:
+          'Esta etiqueta está em 1 mergulho. Desativar \"Usar em mergulhos\" remove-a desse mergulho.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Esta etiqueta está em $count pontos. Desativar \"Usar em pontos\" remove-a desses pontos.',
+      one:
+          'Esta etiqueta está em 1 ponto. Desativar \"Usar em pontos\" remove-a desse ponto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title =>
+      'Remover a etiqueta dos itens existentes?';
+
+  @override
+  String get tags_manage_scopeRequired => 'Escolha mergulhos, pontos ou ambos';
+
+  @override
+  String get tags_manage_scope_dives => 'Mergulhos';
+
+  @override
+  String get tags_manage_scope_sites => 'Pontos';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pontos',
+      one: '1 ponto',
+      zero: '0 pontos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'Usar em mergulhos';
+
+  @override
+  String get tags_manage_useForSites => 'Usar em pontos';
 
   @override
   String get tags_manage_nameRequired => 'O nome da etiqueta e obrigatorio';
@@ -29625,6 +29854,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'Duração';
+
+  @override
+  String get enum_siteField_siteTypes => 'Tipos de ponto';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'Tipos';
+
+  @override
+  String get enum_siteField_tags => 'Etiquetas';
+
+  @override
+  String get enum_siteField_tags_short => 'Etiq.';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Seu máx.';

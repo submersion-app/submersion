@@ -6535,6 +6535,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_group_location => 'מיקום';
 
   @override
+  String get diveSites_edit_group_typeTags => 'סוג ותגיות';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'ניהול סוגים';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'תגיות';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'סוגי אתר';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'הוספת גישה, חניה, עגינה או סכנות';
 
@@ -6918,6 +6930,120 @@ class AppLocalizationsHe extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return '$name שויך';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'הוסף סוג אתר';
+
+  @override
+  String get siteTypes_builtIn => 'מובנה';
+
+  @override
+  String get siteTypes_custom => 'מותאם';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return 'למחוק את \"$name\"?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '\"$name\" משמש $count אתרים. מחיקה תסיר אותו מאתרים אלה.',
+      one: '\"$name\" משמש אתר אחד. מחיקה תסיר אותו מאתר זה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'למחוק את סוג האתר?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'מחק סוג אתר';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'הוסף סוג אתר';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'ערוך סוג אתר';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'שם';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'נא להזין שם';
+
+  @override
+  String get siteTypes_editTooltip => 'ערוך סוג אתר';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+      zero: 'אין אתרים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'לא ניתן לשמור את סוג האתר: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'סוגי אתרים';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'שונית מלאכותית';
+
+  @override
+  String get siteType_builtin_blue_hole => 'חור כחול';
+
+  @override
+  String get siteType_builtin_cave => 'מערה';
+
+  @override
+  String get siteType_builtin_cavern => 'מערה פתוחה';
+
+  @override
+  String get siteType_builtin_cenote => 'סנוטה';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'יער אצות קלפ';
+
+  @override
+  String get siteType_builtin_lake => 'אגם';
+
+  @override
+  String get siteType_builtin_muck => 'קרקעית בוצית';
+
+  @override
+  String get siteType_builtin_pier => 'מזח / רציף';
+
+  @override
+  String get siteType_builtin_pool => 'בריכה';
+
+  @override
+  String get siteType_builtin_quarry => 'מחצבה';
+
+  @override
+  String get siteType_builtin_reef => 'שונית';
+
+  @override
+  String get siteType_builtin_river => 'נהר';
+
+  @override
+  String get siteType_builtin_spring => 'מעיין';
+
+  @override
+  String get siteType_builtin_wall => 'קיר';
+
+  @override
+  String get siteType_builtin_wreck => 'ספינה טבועה';
 
   @override
   String get siteMatchReview_sourcePhoto => 'מתמונה';
@@ -8363,6 +8489,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'הצג אתרים עם $name';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'הערות גישה';
 
   @override
@@ -9039,6 +9170,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_filter_section_options => 'אפשרויות';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'סוג אתר';
+
+  @override
+  String get diveSites_filter_section_tags => 'תגיות';
+
+  @override
   String get diveSites_filter_title => 'סנן אתרים';
 
   @override
@@ -9159,6 +9296,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'נקה';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -16939,6 +17081,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_signer => 'נחתם על ידי';
 
   @override
+  String get settings_conflict_ref_siteType => 'סוג אתר';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'צלילת מקור';
 
   @override
@@ -17491,6 +17636,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_manage_diveTypes_subtitle =>
       'ניהול סוגי צלילה מותאמים אישית';
+
+  @override
+  String get settings_manage_siteTypes => 'סוגי אתרים';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'סוגי אתרי צלילה מובנים ומותאמים';
 
   @override
   String get settings_manage_header_manageData => 'ניהול נתונים';
@@ -18611,6 +18763,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_conditions_visibility_title => 'התפלגות ראות';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'טעינת נתוני סוגי האתרים נכשלה';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'תרשים עמודות. צלילות לפי סוג אתר. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'צלילות לפי סוג אתר. צלילה באתר עם כמה סוגים נספרת לכל אחד מהם; אתרים ללא סוג אינם מוצגים.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'סוגי אתרים';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -19919,6 +20087,65 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'צבע';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'הסר';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'התגית הזו מופיעה ב-$count צלילות. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילות אלה.',
+      one:
+          'התגית הזו מופיעה בצלילה אחת. כיבוי \"שימוש לצלילות\" יסיר אותה מצלילה זו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'התגית הזו מופיעה ב-$count אתרים. כיבוי \"שימוש לאתרים\" יסיר אותה מאתרים אלה.',
+      one:
+          'התגית הזו מופיעה באתר אחד. כיבוי \"שימוש לאתרים\" יסיר אותה מאתר זה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title => 'להסיר את התגית מפריטים קיימים?';
+
+  @override
+  String get tags_manage_scopeRequired => 'בחר צלילות, אתרים או את שניהם';
+
+  @override
+  String get tags_manage_scope_dives => 'צלילות';
+
+  @override
+  String get tags_manage_scope_sites => 'אתרים';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+      zero: '0 אתרים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'שימוש לצלילות';
+
+  @override
+  String get tags_manage_useForSites => 'שימוש לאתרים';
 
   @override
   String get tags_manage_nameRequired => 'שם תגית נדרש';
@@ -28912,6 +29139,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'משך';
+
+  @override
+  String get enum_siteField_siteTypes => 'סוגי אתרים';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'סוגים';
+
+  @override
+  String get enum_siteField_tags => 'תגיות';
+
+  @override
+  String get enum_siteField_tags_short => 'תגיות';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'המרבי שלך';

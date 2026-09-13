@@ -6706,6 +6706,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_group_location => 'Position';
 
   @override
+  String get diveSites_edit_group_typeTags => 'Typ & Tags';
+
+  @override
+  String get diveSites_edit_typeTags_manageTypes => 'Typen verwalten';
+
+  @override
+  String get diveSites_edit_typeTags_tagsLabel => 'Tags';
+
+  @override
+  String get diveSites_edit_typeTags_typesLabel => 'Tauchplatztypen';
+
+  @override
   String get diveSites_edit_invite_accessSafety =>
       'Zugang, Parken, Mooring oder Gefahren hinzufügen';
 
@@ -7100,6 +7112,122 @@ class AppLocalizationsDe extends AppLocalizations {
   String siteSuggestion_assignedSnack(Object name) {
     return '$name zugewiesen';
   }
+
+  @override
+  String get siteTypes_addTooltip => 'Tauchplatztyp hinzufügen';
+
+  @override
+  String get siteTypes_builtIn => 'Integriert';
+
+  @override
+  String get siteTypes_custom => 'Benutzerdefiniert';
+
+  @override
+  String siteTypes_deleteDialog_content(String name) {
+    return '„$name“ löschen?';
+  }
+
+  @override
+  String siteTypes_deleteDialog_inUse(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '„$name“ wird von $count Tauchplätzen verwendet. Beim Löschen wird er von diesen Tauchplätzen entfernt.',
+      one:
+          '„$name“ wird von 1 Tauchplatz verwendet. Beim Löschen wird er von diesem Tauchplatz entfernt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteTypes_deleteDialog_title => 'Tauchplatztyp löschen?';
+
+  @override
+  String get siteTypes_deleteTooltip => 'Tauchplatztyp löschen';
+
+  @override
+  String get siteTypes_dialog_addTitle => 'Tauchplatztyp hinzufügen';
+
+  @override
+  String get siteTypes_dialog_editTitle => 'Tauchplatztyp bearbeiten';
+
+  @override
+  String get siteTypes_dialog_nameLabel => 'Name';
+
+  @override
+  String get siteTypes_dialog_nameRequired => 'Bitte einen Namen eingeben';
+
+  @override
+  String get siteTypes_editTooltip => 'Tauchplatztyp bearbeiten';
+
+  @override
+  String siteTypes_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze',
+      one: '1 Tauchplatz',
+      zero: 'Keine Tauchplätze',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteTypes_snackbar_error(String error) {
+    return 'Der Tauchplatztyp konnte nicht gespeichert werden: $error';
+  }
+
+  @override
+  String get siteTypes_title => 'Tauchplatztypen';
+
+  @override
+  String get siteType_builtin_artificial_reef => 'Künstliches Riff';
+
+  @override
+  String get siteType_builtin_blue_hole => 'Blue Hole';
+
+  @override
+  String get siteType_builtin_cave => 'Höhle';
+
+  @override
+  String get siteType_builtin_cavern => 'Cavern';
+
+  @override
+  String get siteType_builtin_cenote => 'Cenote';
+
+  @override
+  String get siteType_builtin_kelp_forest => 'Kelpwald';
+
+  @override
+  String get siteType_builtin_lake => 'See';
+
+  @override
+  String get siteType_builtin_muck => 'Muck';
+
+  @override
+  String get siteType_builtin_pier => 'Pier / Steg';
+
+  @override
+  String get siteType_builtin_pool => 'Schwimmbad';
+
+  @override
+  String get siteType_builtin_quarry => 'Steinbruch';
+
+  @override
+  String get siteType_builtin_reef => 'Riff';
+
+  @override
+  String get siteType_builtin_river => 'Fluss';
+
+  @override
+  String get siteType_builtin_spring => 'Quelle';
+
+  @override
+  String get siteType_builtin_wall => 'Steilwand';
+
+  @override
+  String get siteType_builtin_wreck => 'Wrack';
 
   @override
   String get siteMatchReview_sourcePhoto => 'aus Foto';
@@ -8569,6 +8697,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveSites_detail_showSitesWith(String name) {
+    return 'Tauchplätze mit $name anzeigen';
+  }
+
+  @override
   String get diveSites_detail_access_accessNotes => 'Zugangshinweise';
 
   @override
@@ -9259,6 +9392,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_filter_section_options => 'Optionen';
 
   @override
+  String get diveSites_filter_section_siteTypes => 'Tauchplatztyp';
+
+  @override
+  String get diveSites_filter_section_tags => 'Tags';
+
+  @override
   String get diveSites_filter_title => 'Tauchplätze filtern';
 
   @override
@@ -9383,6 +9522,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_list_activeFilter_clear => 'Löschen';
+
+  @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
 
   @override
   String diveSites_list_activeFilter_country(Object country) {
@@ -17346,6 +17490,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Unterschrieben von';
 
   @override
+  String get settings_conflict_ref_siteType => 'Tauchplatztyp';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Quell-Tauchgang';
 
   @override
@@ -17915,6 +18062,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_manage_diveTypes_subtitle =>
       'Benutzerdefinierte Taucharten verwalten';
+
+  @override
+  String get settings_manage_siteTypes => 'Tauchplatztypen';
+
+  @override
+  String get settings_manage_siteTypes_subtitle =>
+      'Integrierte und eigene Tauchplatztypen';
 
   @override
   String get settings_manage_header_manageData => 'Daten verwalten';
@@ -19056,6 +19210,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_conditions_visibility_title => 'Sichtverteilung';
+
+  @override
+  String get statistics_conditions_siteType_error =>
+      'Tauchplatztyp-Daten konnten nicht geladen werden';
+
+  @override
+  String statistics_conditions_siteType_semanticLabel(String description) {
+    return 'Balkendiagramm. Tauchgänge pro Tauchplatztyp. $description';
+  }
+
+  @override
+  String get statistics_conditions_siteType_subtitle =>
+      'Tauchgänge pro Tauchplatztyp. Ein Tauchgang an einem Platz mit mehreren Typen zählt für jeden; Plätze ohne Typ werden nicht angezeigt.';
+
+  @override
+  String get statistics_conditions_siteType_title => 'Tauchplatztypen';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20401,6 +20571,67 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Farbe';
+
+  @override
+  String get tags_manage_narrowDialog_confirm => 'Entfernen';
+
+  @override
+  String tags_manage_narrowDialog_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Dieser Tag ist an $count Tauchgängen. Wenn „Für Tauchgänge verwenden“ ausgeschaltet wird, wird er von diesen Tauchgängen entfernt.',
+      one:
+          'Dieser Tag ist an 1 Tauchgang. Wenn „Für Tauchgänge verwenden“ ausgeschaltet wird, wird er von diesem Tauchgang entfernt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Dieser Tag ist an $count Tauchplätzen. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesen Tauchplätzen entfernt.',
+      one:
+          'Dieser Tag ist an 1 Tauchplatz. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesem Tauchplatz entfernt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_narrowDialog_title =>
+      'Tag von vorhandenen Einträgen entfernen?';
+
+  @override
+  String get tags_manage_scopeRequired =>
+      'Tauchgänge, Tauchplätze oder beides wählen';
+
+  @override
+  String get tags_manage_scope_dives => 'Tauchgänge';
+
+  @override
+  String get tags_manage_scope_sites => 'Tauchplätze';
+
+  @override
+  String tags_manage_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze',
+      one: '1 Tauchplatz',
+      zero: '0 Tauchplätze',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_manage_useForDives => 'Für Tauchgänge verwenden';
+
+  @override
+  String get tags_manage_useForSites => 'Für Tauchplätze verwenden';
 
   @override
   String get tags_manage_nameRequired => 'Tag-Name ist erforderlich';
@@ -29572,6 +29803,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'Ø Dauer';
+
+  @override
+  String get enum_siteField_siteTypes => 'Tauchplatztypen';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'Typen';
+
+  @override
+  String get enum_siteField_tags => 'Tags';
+
+  @override
+  String get enum_siteField_tags_short => 'Tags';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Dein Max.';

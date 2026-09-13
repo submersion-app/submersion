@@ -39,6 +39,9 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -102,6 +105,14 @@ class ImportRepositories {
   /// on every path.
   final EquipmentComponentRepository? equipmentComponentRepository;
 
+  /// Optional so existing bundles keep compiling; when null, custom site
+  /// types in the source are not restored (issue #1765).
+  final SiteTypeRepository? siteTypeRepository;
+
+  /// Optional for the same reason; when null, imported sites are not linked
+  /// to their types and tags (issue #1765).
+  final SiteClassificationRepository? siteClassificationRepository;
+
   const ImportRepositories({
     required this.tripRepository,
     required this.equipmentRepository,
@@ -120,6 +131,8 @@ class ImportRepositories {
     required this.courseRepository,
     this.diveComputerRepository,
     this.equipmentComponentRepository,
+    this.siteTypeRepository,
+    this.siteClassificationRepository,
   });
 }
 
@@ -446,6 +459,14 @@ class UddfEntityImporter {
       );
     }
 
+    // Custom site types resolve before the sites that reference them
+    // (issue #1765); like dive roles they have no selection step.
+    final siteTypeIdMapping = await _importSiteTypes(
+      data.customSiteTypes,
+      repositories.siteTypeRepository,
+      diverId,
+    );
+
     final sitesCount = await _importSites(
       data.sites,
       selections.sites,
@@ -454,6 +475,13 @@ class UddfEntityImporter {
       diverId,
       siteIdMapping,
       onProgress,
+      linkClassification: (siteData, siteId) => _linkSiteClassification(
+        siteData,
+        siteId,
+        siteTypeIdMapping,
+        tagIdMapping,
+        repositories,
+      ),
     );
 
     final equipmentSetsCount = await _importEquipmentSets(
@@ -983,9 +1011,25 @@ class UddfEntityImporter {
       // a second uuid for it -- the same guard _importDiveTypes applies to
       // colliding slugs. `tags` is uniquely indexed on (diver scope,
       // case-folded name) since v149, so a blind mint would collide (#1032).
+      // Scope (issue #1765). A file that predates it says nothing: the tag
+      // stays a dive tag, and a site that references it widens it later.
+      final appliesToDives = tagData['appliesToDives'] as bool? ?? true;
+      final appliesToSites = tagData['appliesToSites'] as bool? ?? false;
+
       final existing = await repository.getTagByName(name, diverId: diverId);
       if (existing != null) {
         if (uddfId != null) idMapping[uddfId] = existing.id;
+        // Keep every use the file gives the tag.
+        if (appliesToSites && !existing.appliesToSites) {
+          await repository.getOrCreateTag(
+            name,
+            diverId: diverId,
+            scope: TagScope.sites,
+          );
+        }
+        if (appliesToDives && !existing.appliesToDives) {
+          await repository.getOrCreateTag(name, diverId: diverId);
+        }
         continue;
       }
 
@@ -994,9 +1038,16 @@ class UddfEntityImporter {
         id: newId,
         diverId: diverId,
         name: name,
-        colorHex: tagData['color'] as String?,
+        // The parser stores the color under `colorHex`; reading `color`
+        // alone dropped every imported tag's color. `color` stays as a
+        // fallback for maps other adapters build.
+        colorHex: tagData['colorHex'] as String? ?? tagData['color'] as String?,
         createdAt: now,
         updatedAt: now,
+        // A tag must apply somewhere; a file claiming neither is read as a
+        // dive tag.
+        appliesToDives: appliesToDives || !appliesToSites,
+        appliesToSites: appliesToSites,
       );
 
       await repository.createTag(tag);
@@ -1006,6 +1057,112 @@ class UddfEntityImporter {
     }
 
     return count;
+  }
+
+  // -- Site types and site tags (issue #1765) --
+
+  /// Whether [siteData] carries any type or tag reference to link. Most
+  /// sources carry none, and they should not pay for classification reads.
+  static bool _hasClassificationRefs(Map<String, dynamic> siteData) =>
+      siteData['siteTypeRefs'] is List ||
+      siteData['suggestedSiteTypeRefs'] is List ||
+      siteData['tagRefs'] is List;
+
+  /// Resolves the file's custom site types to local ids: an existing custom
+  /// type of the same name is reused, otherwise one is created. Returns file
+  /// id -> local id. Empty when there is no repository to restore into.
+  Future<Map<String, String>> _importSiteTypes(
+    List<Map<String, dynamic>> items,
+    SiteTypeRepository? repository,
+    String diverId,
+  ) async {
+    final mapping = <String, String>{};
+    if (repository == null) return mapping;
+    for (final data in items) {
+      final fileId = data['id'] as String?;
+      final name = (data['name'] as String?)?.trim();
+      if (fileId == null || name == null || name.isEmpty) continue;
+      final existing = await repository.getCustomSiteTypeByName(
+        name,
+        diverId: diverId,
+      );
+      if (existing != null) {
+        mapping[fileId] = existing.id;
+        continue;
+      }
+      final created = await repository.createSiteType(
+        SiteTypeEntity.create(
+          id: SiteTypeEntity.generateSlug(name),
+          name: name,
+          diverId: diverId,
+          sortOrder: data['sortOrder'] as int? ?? 0,
+        ),
+      );
+      mapping[fileId] = created.id;
+    }
+    return mapping;
+  }
+
+  /// Links an imported site to its types and tags. Always a union: an
+  /// import never removes a type or tag the site already has.
+  ///
+  /// `siteTypeRefs` (UDDF) always apply. `suggestedSiteTypeRefs` (importers
+  /// that infer a type, such as Shearwater's Environment) apply only while
+  /// the site has no types, so they never override the diver's own choice.
+  /// A tag a site references is widened to sites.
+  Future<void> _linkSiteClassification(
+    Map<String, dynamic> siteData,
+    String siteId,
+    Map<String, String> siteTypeIdMapping,
+    Map<String, String> tagIdMapping,
+    ImportRepositories repos,
+  ) async {
+    final classification = repos.siteClassificationRepository;
+    if (classification == null) return;
+    final types = repos.siteTypeRepository;
+
+    Future<List<String>> resolveTypes(Object? refs) async {
+      final out = <String>[];
+      for (final ref
+          in refs is List ? refs.whereType<String>() : const <String>[]) {
+        final local = siteTypeIdMapping[ref];
+        if (local != null) {
+          out.add(local);
+        } else if ((await types?.getSiteTypeById(ref))?.isBuiltIn ?? false) {
+          out.add(ref);
+        }
+      }
+      return out;
+    }
+
+    await classification.addTypes(
+      siteId,
+      await resolveTypes(siteData['siteTypeRefs']),
+    );
+
+    final suggested = await resolveTypes(siteData['suggestedSiteTypeRefs']);
+    if (suggested.isNotEmpty &&
+        (await classification.getTypesForSite(siteId)).isEmpty) {
+      await classification.addTypes(siteId, suggested);
+    }
+
+    final tagRefs = siteData['tagRefs'];
+    final tagIds = <String>[
+      for (final ref
+          in tagRefs is List ? tagRefs.whereType<String>() : const <String>[])
+        ?tagIdMapping[ref],
+    ];
+    for (final tagId in tagIds) {
+      final tag = await repos.tagRepository.getTagById(tagId);
+      if (tag != null && !tag.appliesToSites) {
+        await repos.tagRepository.getOrCreateTag(
+          tag.name,
+          diverId: tag.diverId,
+          scope: TagScope.sites,
+        );
+      }
+    }
+    await classification.addTags(siteId, tagIds);
   }
 
   // -- Dive Type import --
@@ -1177,8 +1334,11 @@ class UddfEntityImporter {
     SiteRepository repository,
     String diverId,
     Map<String, DiveSite> idMapping,
-    ImportProgressCallback? onProgress,
-  ) async {
+    ImportProgressCallback? onProgress, {
+    // Links a written site to its types and tags (issue #1765).
+    Future<void> Function(Map<String, dynamic> siteData, String siteId)?
+    linkClassification,
+  }) async {
     // For deselected sites (duplicates the user chose not to re-import),
     // resolve their UDDF IDs to existing database sites so that dives
     // referencing them still get linked correctly.
@@ -1312,6 +1472,9 @@ class UddfEntityImporter {
       );
 
       if (uddfId != null) idMapping[uddfId] = overwrittenSite;
+      if (_hasClassificationRefs(siteData)) {
+        await linkClassification?.call(siteData, overwrittenSite.id);
+      }
       count++;
       onProgress?.call(ImportPhase.sites, count, totalWork);
     }
@@ -1391,6 +1554,9 @@ class UddfEntityImporter {
       }
 
       if (uddfId != null) idMapping[uddfId] = createdSite;
+      if (_hasClassificationRefs(siteData)) {
+        await linkClassification?.call(siteData, createdSite.id);
+      }
       count++;
       onProgress?.call(ImportPhase.sites, count, totalWork);
     }
