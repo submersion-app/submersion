@@ -8,7 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The Buddies card's legacy text (#1831): plain tiles for a dive's
 /// `buddy` and `dive_master` text and the action that links them to buddy
 /// records. Shown only while the dive has no linked buddies.
-class LegacyBuddyTextSection extends StatelessWidget {
+class LegacyBuddyTextSection extends StatefulWidget {
   const LegacyBuddyTextSection({super.key, required this.dive});
 
   final Dive dive;
@@ -20,7 +20,26 @@ class LegacyBuddyTextSection extends StatelessWidget {
       LegacyNameParser.parse(dive.diveMaster).isNotEmpty;
 
   @override
+  State<LegacyBuddyTextSection> createState() => _LegacyBuddyTextSectionState();
+}
+
+class _LegacyBuddyTextSectionState extends State<LegacyBuddyTextSection> {
+  /// True while a review is being planned or shown, so a second tap cannot
+  /// open a second sheet.
+  bool _busy = false;
+
+  Future<void> _link() async {
+    setState(() => _busy = true);
+    try {
+      await linkLegacyBuddiesForDive(context, widget.dive);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final dive = widget.dive;
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final showBuddy = LegacyNameParser.parse(dive.buddy).isNotEmpty;
@@ -51,7 +70,7 @@ class LegacyBuddyTextSection extends StatelessWidget {
             subtitle: l10n.diveRole_builtin_diveMaster,
           ),
         TextButton.icon(
-          onPressed: () => linkLegacyBuddiesForDive(context, dive),
+          onPressed: _busy ? null : _link,
           icon: const Icon(Icons.link),
           label: Text(l10n.buddies_linkText_action),
         ),

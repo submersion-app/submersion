@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
@@ -271,6 +273,27 @@ void main() {
       expect(service.undone, [FakeLegacyBuddyConversionService.defaultReceipt]);
       // Let the snackbars' timers finish before the tree is torn down.
       await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('a second tap while a review is loading is ignored', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      final service = FakeLegacyBuddyConversionService()..planForGate = gate;
+      await _pump(tester, prefs, textBuddy: 'Bob Brown', service: service);
+
+      await tester.tap(find.text(_l10n.buddies_linkText_action));
+      await tester.pump();
+      await tester.tap(
+        find.text(_l10n.buddies_linkText_action),
+        warnIfMissed: false,
+      );
+      await tester.pump();
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(service.planForCalls, 1);
+      expect(find.text(_l10n.buddies_linkText_sheetTitle), findsOneWidget);
     });
   });
 }
