@@ -104,7 +104,10 @@ Members:
 
 Classification of an existing `.pre-restore`:
 
-- `none`: no `.pre-restore`.
+- `none`: no `.pre-restore` and no `.pre-restore-wal` or `-shm`. An orphaned
+  sidecar is classified like a main file, so it is never left to pair with the
+  next swap's aside copy. `quarantine` tolerates a missing main file for the
+  same reason.
 - `precious`: the marker exists; or, with no marker (a leftover from a build
   without the journal), the live file is missing, `readSchemaVersion` throws
   (including `DatabaseLockedException`), returns null or 0, or returns a
@@ -145,7 +148,8 @@ no-op.
 2. **Staging copy.** Unchanged.
 3. **Leftover handling, before `close()`.** New. With the database still open:
    a `stale` leftover is deleted strictly (with sidecars); a `precious` one is
-   quarantined and a warning logged, then any old marker is committed. A
+   quarantined and a warning logged (an old marker needs no separate commit:
+   `begin()` in step 4 overwrites it). A
    failure of either aborts the restore: the staging copy is cleaned up
    best-effort, the error propagates, and the live database was never closed.
    This replaces the unconditional `_deleteIfExists(asidePath)` inside the
