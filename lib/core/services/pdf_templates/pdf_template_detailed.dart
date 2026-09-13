@@ -19,6 +19,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 
@@ -45,6 +46,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     Uint8List? diverPhoto,
     bool includeVerificationAreas = false,
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
@@ -123,6 +125,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             signatures: diveSignatures?[dive.id],
             includeVerificationAreas: includeVerificationAreas,
             gearArrangement: gearArrangement,
+            diveTypesById: diveTypesById,
           ),
         ),
       );
@@ -156,6 +159,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     List<Signature>? signatures,
     required bool includeVerificationAreas,
     required EquipmentArrangement gearArrangement,
+    required Map<String, DiveTypeEntity> diveTypesById,
   }) {
     final chart = profile == null
         ? null
@@ -178,7 +182,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         'Equipment',
         _equipmentFields(dive, units: units, arrangement: gearArrangement),
       ),
-      ..._section('Technical', _technicalFields(dive)),
+      ..._section(
+        'Technical',
+        _technicalFields(dive, diveTypesById: diveTypesById),
+      ),
       ..._marineLifeSection(dive),
       ..._notesSection(dive),
       ..._customFieldsSection(dive),
@@ -405,13 +412,17 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
+  /// Once the `dive_buddies` junction holds anyone it is authoritative, and the
+  /// legacy [Dive.buddy] / [Dive.diveMaster] text is stale (#1864). This is the
+  /// same rule as the dive list's Buddy and Dive Master columns.
   List<_Field> _teamFields(Dive dive) {
     return [
       for (final buddy in dive.buddies)
         _Field(buddy.role.name, buddy.buddy.name),
       if (dive.buddies.isEmpty && dive.buddy != null)
         _Field('Buddy', dive.buddy!),
-      if (dive.diveMaster != null) _Field('Dive Master', dive.diveMaster!),
+      if (dive.buddies.isEmpty && dive.diveMaster != null)
+        _Field('Dive Master', dive.diveMaster!),
       if (dive.diveCenter != null) _Field('Dive Center', dive.diveCenter!.name),
       if (dive.trip != null) _Field('Trip', dive.trip!.name),
     ];
@@ -487,7 +498,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
-  List<_Field> _technicalFields(Dive dive) {
+  List<_Field> _technicalFields(
+    Dive dive, {
+    required Map<String, DiveTypeEntity> diveTypesById,
+  }) {
+    final diveTypeNames = dive.diveTypeNamesFrom(diveTypesById);
     return [
       if (dive.diveComputerModel != null)
         _Field('Computer', dive.diveComputerModel!),
@@ -504,8 +519,8 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         // pressure of oxygen, quoted in bar (or ata) whatever the diver's
         // cylinder-pressure preference. The CCR settings panel does the same.
         _Field('Setpoint', '${dive.setpointHigh} bar'),
-      if (dive.diveTypeNames.isNotEmpty)
-        _Field('Dive Type', dive.diveTypeNames.join(', ')),
+      if (diveTypeNames.isNotEmpty)
+        _Field('Dive Type', diveTypeNames.join(', ')),
     ];
   }
 

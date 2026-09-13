@@ -45,6 +45,7 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/resolved_photo_attachment.dart';
@@ -549,7 +550,11 @@ class UniversalAdapter implements ImportSourceAdapter {
         if (!links) continue;
         if (entry.key < 0 || entry.key >= items.length) continue;
         final item = items[entry.key];
-        final ref = (item['uddfId'] as String?) ?? (item['name'] as String?);
+        // A dive references its types by id (the slug), not by uddfId or
+        // name, and a UDDF type record carries no uddfId at all (#1834).
+        final ref = type == wizard.ImportEntityType.diveTypes
+            ? (item['id'] as String?) ?? (item['uddfId'] as String?)
+            : (item['uddfId'] as String?) ?? (item['name'] as String?);
         if (ref != null) map[ref] = entry.value.existingId;
       }
       return map;
@@ -609,6 +614,10 @@ class UniversalAdapter implements ImportSourceAdapter {
       preResolvedTagIds: preResolvedIdsFor(
         wizard.ImportEntityType.tags,
         uddfData.tags,
+      ),
+      preResolvedDiveTypeIds: preResolvedIdsFor(
+        wizard.ImportEntityType.diveTypes,
+        uddfData.customDiveTypes,
       ),
       onProgress: onProgress,
       cancelToken: cancelToken,
@@ -795,7 +804,15 @@ class UniversalAdapter implements ImportSourceAdapter {
     // merged into the batch above when there is one, so no extra pass.
     scheduleAllConditionFindingsRefresh();
 
-    final notices = groupImportNotices(payload.warnings, netDives);
+    final numberConflict = await diveNumberConflictNotice(
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      diveRepository: repos.diveRepository,
+      importedDiveIds: netImportedDiveIds,
+    );
+    final notices = [
+      ...groupImportNotices(payload.warnings, netDives),
+      ?numberConflict,
+    ];
 
     return UnifiedImportResult(
       notices: notices,

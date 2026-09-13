@@ -22303,9 +22303,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Importar como novo';
 
   @override
-  String get universalImport_label_importComplete => 'Importação Concluída';
-
-  @override
   String get universalImport_label_importing => 'Importando';
 
   @override
@@ -25164,6 +25161,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Usar os números de mergulho do arquivo importado em vez de atribuí-los automaticamente';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Esta origem não fornece números de mergulho, por isso os mergulhos são numerados automaticamente';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -36748,6 +36749,40 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Salvar Logs de Depuração';
 
   @override
+  String get settings_diagnostics_header => 'Diagnóstico';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Ver log';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Avisos e erros são registrados automaticamente';
+
+  @override
+  String get settings_diagnostics_copy => 'Copiar diagnóstico';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Versão do app, dispositivo e linhas recentes do log para um relatório de erro';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnóstico copiado para a área de transferência';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Abrir pasta de logs';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Não foi possível abrir a pasta de logs. Ela está em: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Não foi possível copiar o diagnóstico: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Salvar como Preset';
 
   @override
@@ -38491,6 +38526,29 @@ class AppLocalizationsPt extends AppLocalizations {
       'Falha ao carregar a evolução da temperatura';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Mergulhos por temperatura da água';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Como seus mergulhos se distribuem entre faixas de temperatura da água';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Nenhum dado de temperatura da água disponível';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Não foi possível carregar as faixas de temperatura da água';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Gráfico de barras. Mergulhos por temperatura da água. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Últimos 5 anos';
 
   @override
@@ -39257,6 +39315,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Atribuir transmissores';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Números de mergulho já em uso';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Estes mergulhos mantiveram o número da sua origem, mas outros mergulhos do seu registo já usam os mesmos números. Abra Numeração de Mergulhos no menu da lista de mergulhos para os renumerar.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

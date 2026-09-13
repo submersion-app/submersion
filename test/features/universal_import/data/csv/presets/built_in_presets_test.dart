@@ -82,6 +82,44 @@ void main() {
       }
     });
 
+    // A mapped site or buddy column only becomes a linked record when the
+    // correlator extracts that entity type; otherwise every dive imports
+    // with no site, and buddies stay free text (#1830). This table is kept
+    // separate from the parser's own rule so a preset cannot silently drift.
+    const entityTypeForTargetField = {
+      'siteName': ImportEntityType.sites,
+      'site': ImportEntityType.sites,
+      'buddy': ImportEntityType.buddies,
+    };
+
+    test('every preset imports the entity types its mapped columns need', () {
+      for (final preset in builtInCsvPresets) {
+        for (final mapping in preset.mappings.values) {
+          for (final column in mapping.columns) {
+            final required = entityTypeForTargetField[column.targetField];
+            if (required == null) continue;
+            expect(
+              preset.supportedEntities,
+              contains(required),
+              reason:
+                  '${preset.name} maps "${column.sourceColumn}" to '
+                  '${column.targetField} but does not import '
+                  '${required.name}',
+            );
+          }
+        }
+      }
+    });
+
+    test('MySSI imports dives, sites and buddies (#1830)', () {
+      final myssi = builtInCsvPresets.firstWhere((p) => p.id == 'myssi');
+      expect(myssi.supportedEntities, {
+        ImportEntityType.dives,
+        ImportEntityType.sites,
+        ImportEntityType.buddies,
+      });
+    });
+
     test('all presets are builtIn source', () {
       for (final preset in builtInCsvPresets) {
         expect(

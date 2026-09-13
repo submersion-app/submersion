@@ -21905,9 +21905,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_importAsNew => 'استيراد كجديد';
 
   @override
-  String get universalImport_label_importComplete => 'اكتمل الاستيراد';
-
-  @override
   String get universalImport_label_importing => 'جارٍ الاستيراد';
 
   @override
@@ -24722,6 +24719,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'لا يوفّر هذا المصدر أرقام الغطسات، لذا تُرقَّم الغطسات تلقائياً';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -36349,6 +36350,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'حفظ سجلات التصحيح';
 
   @override
+  String get settings_diagnostics_header => 'التشخيص';
+
+  @override
+  String get settings_diagnostics_viewLog => 'عرض السجل';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'يتم تسجيل التحذيرات والأخطاء تلقائيًا';
+
+  @override
+  String get settings_diagnostics_copy => 'نسخ بيانات التشخيص';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'إصدار التطبيق والجهاز وأحدث أسطر السجل لإرفاقها ببلاغ عن خطأ';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'تم نسخ بيانات التشخيص إلى الحافظة';
+
+  @override
+  String get settings_diagnostics_openFolder => 'فتح مجلد السجلات';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'تعذر فتح مجلد السجلات. موقعه: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'تعذر نسخ بيانات التشخيص: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'حفظ كإعداد مسبق';
 
   @override
@@ -38094,6 +38129,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تحميل اتجاه درجة الحرارة';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'الغطسات حسب درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'توزيع غطساتك على نطاقات درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'لا توجد بيانات عن درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'تعذر تحميل نطاقات درجة حرارة الماء';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'مخطط أعمدة. الغطسات حسب درجة حرارة الماء. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'آخر 5 سنوات';
 
   @override
@@ -38848,6 +38906,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'تعيين أجهزة الإرسال';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'أرقام الغطسات مستخدمة بالفعل';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'احتفظت هذه الغطسات بالرقم الوارد من مصدرها، لكن غطسات أخرى في سجلك تستخدم الأرقام نفسها بالفعل. افتح «ترقيم الغوصات» من قائمة صفحة الغطسات لإعادة ترقيمها.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'جهاز إرسال غير معيّن';

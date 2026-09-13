@@ -21918,9 +21918,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Import as New';
 
   @override
-  String get universalImport_label_importComplete => 'Import Complete';
-
-  @override
   String get universalImport_label_importing => 'Importing';
 
   @override
@@ -24732,6 +24729,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Use dive numbers from the imported file instead of auto-assigning';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'This source does not provide dive numbers, so dives are numbered automatically';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -36192,6 +36193,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Save Debug Logs';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostics';
+
+  @override
+  String get settings_diagnostics_viewLog => 'View log';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Warnings and errors are recorded automatically';
+
+  @override
+  String get settings_diagnostics_copy => 'Copy diagnostics';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App version, device and recent log lines for a bug report';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostics copied to clipboard';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Open log folder';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Could not open the log folder. It is at: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Could not copy diagnostics: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Save as Preset';
 
   @override
@@ -37892,6 +37927,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to load temperature trend';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Dives by Water Temperature';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'How your dives split across water temperature bands';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'No water temperature data available';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Failed to load water temperature bands';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Bar chart. Dives by water temperature. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Last 5 years';
 
   @override
@@ -38645,6 +38703,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assign transmitters';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Dive numbers already in use';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

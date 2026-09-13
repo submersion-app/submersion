@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_header_cell.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -32,10 +33,21 @@ class DiveTableView extends ConsumerStatefulWidget {
   final bool isSelectionMode;
   final String? highlightedId;
 
+  /// Resolves a dive-type slug to its on-screen label for the Dive Type
+  /// column and its sort.
+  ///
+  /// Required rather than optional, like `DiveListItem.diveTypeLabelResolver`:
+  /// without one, [DiveField.extractFromDive] falls back to the slug
+  /// capitalization, so a custom type shows its id instead of the diver's
+  /// name and a built-in type stays English. Build it once, above the table,
+  /// via [watchDiveTypeLabelResolver].
+  final DiveTypeLabelResolver diveTypeLabelResolver;
+
   const DiveTableView({
     super.key,
     required this.dives,
     required this.onDiveTap,
+    required this.diveTypeLabelResolver,
     this.onDiveTapDown,
     this.onDiveDoubleTap,
     this.selectedIds = const {},
@@ -136,8 +148,16 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
 
     final sorted = List<Dive>.from(widget.dives);
     sorted.sort((a, b) {
-      final va = field.extractFromDive(a, gasModel: units.settings.gasModel);
-      final vb = field.extractFromDive(b, gasModel: units.settings.gasModel);
+      final va = field.extractFromDive(
+        a,
+        gasModel: units.settings.gasModel,
+        diveTypeLabel: widget.diveTypeLabelResolver,
+      );
+      final vb = field.extractFromDive(
+        b,
+        gasModel: units.settings.gasModel,
+        diveTypeLabel: widget.diveTypeLabelResolver,
+      );
 
       // Nulls always sort to the end
       if (va == null && vb == null) return 0;
@@ -240,6 +260,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     final value = column.field.extractFromDive(
       dive,
       gasModel: units.settings.gasModel,
+      diveTypeLabel: widget.diveTypeLabelResolver,
     );
     final text = column.field.formatValue(value, units);
     final rightAligned = _isRightAligned(column.field);

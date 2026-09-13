@@ -22246,9 +22246,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Als neu importieren';
 
   @override
-  String get universalImport_label_importComplete => 'Import abgeschlossen';
-
-  @override
   String get universalImport_label_importing => 'Importieren';
 
   @override
@@ -25107,6 +25104,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Tauchgangsnummern aus der importierten Datei verwenden, statt automatisch zuzuweisen';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Diese Quelle liefert keine Tauchgangsnummern, daher werden die Tauchgänge automatisch nummeriert';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -36646,6 +36647,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Debug-Protokolle speichern';
 
   @override
+  String get settings_diagnostics_header => 'Diagnose';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Protokoll anzeigen';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Warnungen und Fehler werden automatisch aufgezeichnet';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnosedaten kopieren';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App-Version, Gerät und aktuelle Protokollzeilen für einen Fehlerbericht';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnosedaten in die Zwischenablage kopiert';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Protokollordner öffnen';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Der Protokollordner konnte nicht geöffnet werden. Er befindet sich unter: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Diagnosedaten konnten nicht kopiert werden: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Als Vorlage speichern';
 
   @override
@@ -38397,6 +38432,29 @@ class AppLocalizationsDe extends AppLocalizations {
       'Temperaturverlauf konnte nicht geladen werden';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Tauchgänge nach Wassertemperatur';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Verteilung deiner Tauchgänge auf Wassertemperaturbereiche';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Keine Wassertemperaturdaten verfügbar';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Wassertemperaturbereiche konnten nicht geladen werden';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Balkendiagramm. Tauchgänge nach Wassertemperatur. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Letzte 5 Jahre';
 
   @override
@@ -39166,6 +39224,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Sender zuweisen';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Tauchgangsnummern bereits vergeben';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Diese Tauchgänge haben die Nummer aus ihrer Quelle behalten, doch andere Tauchgänge in deinem Logbuch verwenden bereits dieselben Nummern. Öffne „Tauchgangnummerierung“ im Menü der Tauchgangsliste, um sie neu zu nummerieren.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

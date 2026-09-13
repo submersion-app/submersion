@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -19,6 +21,11 @@ void main() {
   });
 
   tearDown(() async {
+    // enable() and disable() attach the static logger to this test's file;
+    // detach it before the directory goes so no later test writes into it.
+    await LoggerService.flushPendingWrites();
+    LoggerService.setFileService(null);
+    LoggerService.setMinimumFileLevel(LogLevel.debug);
     if (tempDir.existsSync()) {
       await tempDir.delete(recursive: true);
     }
@@ -57,6 +64,36 @@ void main() {
       await notifier.disable();
       expect(notifier.state, isFalse);
       expect(prefs.getBool('debug_mode_enabled'), isFalse);
+    });
+
+    group('file logging (#1826)', () {
+      Future<List<String>> logEveryLevel() async {
+        const logger = LoggerService('DebugModeTest');
+        logger.debug('debug line');
+        logger.info('info line');
+        logger.warning('warning line');
+        logger.error('error line');
+        await LoggerService.flushPendingWrites();
+        final entries = await logFileService.readEntries();
+        return entries.map((e) => e.message).toList();
+      }
+
+      test('enable() persists every level', () async {
+        await DebugModeNotifier(prefs, logFileService).enable();
+        expect(await logEveryLevel(), [
+          'debug line',
+          'info line',
+          'warning line',
+          'error line',
+        ]);
+      });
+
+      test('disable() keeps warnings and errors in the file', () async {
+        final notifier = DebugModeNotifier(prefs, logFileService);
+        await notifier.enable();
+        await notifier.disable();
+        expect(await logEveryLevel(), ['warning line', 'error line']);
+      });
     });
   });
 

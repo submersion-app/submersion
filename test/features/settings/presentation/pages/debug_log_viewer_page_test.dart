@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
@@ -276,10 +277,35 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DebugLogViewerPage)),
       );
-      container.read(debugModeNotifierProvider.notifier).disable();
+      // disable() keeps the static logger attached to this test's file at
+      // warning level (#1826); detach it so later tests do not write into a
+      // deleted directory.
+      addTearDown(() {
+        LoggerService.setFileService(null);
+        LoggerService.setMinimumFileLevel(LogLevel.debug);
+      });
+      await container.read(debugModeNotifierProvider.notifier).disable();
 
       // SharedPreferences value should have been updated to false.
       expect(prefs.getBool('debug_mode_enabled'), isFalse);
+    });
+
+    testWidgets('omits "Disable Debug Mode" when debug mode is off (#1826)', (
+      tester,
+    ) async {
+      // The viewer is now reachable from Settings > About > Diagnostics with
+      // debug mode off, where offering to disable it would make no sense.
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Disable Debug Mode'), findsNothing);
+      expect(find.text('Clear Logs'), findsOneWidget);
     });
 
     testWidgets('shows error message when loading fails', (tester) async {

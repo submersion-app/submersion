@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -58,8 +59,14 @@ class CsvExportService {
   // ==================== Share via System Sheet ====================
 
   /// Export dives to CSV format and share via system sheet.
-  Future<String> exportDivesToCsv(List<Dive> dives) async {
-    final csvData = generateDivesCsvContent(dives);
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) async {
+    final csvData = generateDivesCsvContent(
+      dives,
+      diveTypesById: diveTypesById,
+    );
     return saveAndShareFile(csvData, 'dives_export.csv', 'text/csv');
   }
 
@@ -172,7 +179,14 @@ class CsvExportService {
   // ==================== Content Generation ====================
 
   /// Generate CSV content for dives (without sharing).
-  String generateDivesCsvContent(List<Dive> dives) {
+  ///
+  /// [diveTypesById] holds the loaded `dive_types` rows, so each type is
+  /// written under the name the diver gave it (#1834); an id with no row
+  /// falls back to a name rebuilt from the id.
+  String generateDivesCsvContent(
+    List<Dive> dives, {
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) {
     // Collect all distinct custom field keys across exported dives
     final allCustomFieldKeys = <String>{};
     for (final dive in dives) {
@@ -209,7 +223,12 @@ class CsvExportService {
         dive.airTemp?.toStringAsFixed(0) ?? '',
         dive.visibilityMeters?.toStringAsFixed(1) ?? '',
         dive.visibility?.displayName ?? '',
-        dive.diveTypeNames.join(DiveCsvColumns.diveTypeSeparator),
+        // Free text the diver typed, so guarded like any other.
+        sanitizeCsvField(
+          dive
+              .diveTypeNamesFrom(diveTypesById)
+              .join(DiveCsvColumns.diveTypeSeparator),
+        ),
         dive.resolvedBuddyNames ?? '',
         dive.resolvedDiveMasterNames ?? '',
         dive.rating ?? '',
@@ -233,6 +252,9 @@ class CsvExportService {
         dive.site?.island ?? '',
         tank?.gasMix.he.toStringAsFixed(0) ?? '',
         _customFieldsJson(dive.customFields),
+        sanitizeCsvField(
+          dive.diveTypeIds.join(DiveCsvColumns.diveTypeSeparator),
+        ),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)
@@ -378,8 +400,12 @@ class CsvExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
-    final csvContent = generateDivesCsvContent(dives);
+    final csvContent = generateDivesCsvContent(
+      dives,
+      diveTypesById: diveTypesById,
+    );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 

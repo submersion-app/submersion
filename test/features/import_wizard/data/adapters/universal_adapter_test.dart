@@ -61,6 +61,8 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
     as wizard
     show ImportEntityType;
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
+import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -2373,6 +2375,105 @@ void main() {
     });
   });
 
+  group('performImport() - retained dive number clashes (issue #1832)', () {
+    const payload = ImportPayload(
+      entities: {
+        ui.ImportEntityType.dives: [
+          {'diveNumber': 7, 'maxDepth': 20.0},
+        ],
+      },
+    );
+
+    Future<void> runImport(
+      WidgetTester tester, {
+      required bool retain,
+      required MockDiveRepository diveRepo,
+      required void Function(UnifiedImportResult result) check,
+    }) async {
+      final mockTankPresetRepo = MockTankPresetRepository();
+      when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          mockDiveRepo: diveRepo,
+          mockTankPresetRepo: mockTankPresetRepo,
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.performImport(
+            bundle,
+            {
+              wizard.ImportEntityType.dives: {0},
+            },
+            {},
+            retainSourceDiveNumbers: retain,
+          );
+          check(result);
+        },
+      );
+    }
+
+    testWidgets('reports a retained number another dive already uses', (
+      tester,
+    ) async {
+      final diveRepo = MockDiveRepository();
+      when(
+        diveRepo.countDivesSharingDiveNumber(any),
+      ).thenAnswer((_) async => 1);
+
+      await runImport(
+        tester,
+        retain: true,
+        diveRepo: diveRepo,
+        check: (result) {
+          final notice = result.notices.singleWhere(
+            (n) => n.kind == ImportNoticeKind.diveNumberConflict,
+          );
+          expect(notice.affectedDives, 1);
+        },
+      );
+    });
+
+    testWidgets('does not look for clashes when auto-numbering', (
+      tester,
+    ) async {
+      final diveRepo = MockDiveRepository();
+
+      await runImport(
+        tester,
+        retain: false,
+        diveRepo: diveRepo,
+        check: (result) {
+          expect(
+            result.notices.where(
+              (n) => n.kind == ImportNoticeKind.diveNumberConflict,
+            ),
+            isEmpty,
+          );
+        },
+      );
+      verifyNever(diveRepo.countDivesSharingDiveNumber(any));
+    });
+
+    testWidgets('the review item carries the number the file recorded', (
+      tester,
+    ) async {
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final item =
+              bundle.groups[wizard.ImportEntityType.dives]!.items.single;
+          expect(item.diveData?.diveNumber, 7);
+        },
+      );
+    });
+  });
+
   // -------------------------------------------------------------------------
   // _payloadToUddfResult -- verified through performImport
   // -------------------------------------------------------------------------
@@ -3988,6 +4089,91 @@ void main() {
 
             verifyNever(mockBuddyRepo.createBuddy(any));
             verify(mockBuddyRepo.addBuddyToDive(any, 'buddy-1', any)).called(1);
+          },
+        );
+      },
+    );
+
+    testWidgets(
+      'a skipped dive type matched by name links the dive to the existing '
+      'type (#1834)',
+      (tester) async {
+        // The incoming slug differs from the existing type's id, which
+        // carries a collision suffix, so only the name matches.
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.diveTypes: [
+              {
+                'id': 'search_recovery',
+                'uddfId': 'search_recovery',
+                'name': 'Search & Recovery',
+              },
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'diveTypeIds': ['search_recovery'],
+              },
+            ],
+          },
+        );
+
+        final existingType = DiveTypeEntity(
+          id: 'search_recovery_1a2b3c4d',
+          diverId: 'diver-1',
+          name: 'Search & Recovery',
+          createdAt: _now,
+          updatedAt: _now,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final mockDiveTypeRepo = MockDiveTypeRepository();
+        when(
+          mockDiveTypeRepo.getDiveTypeById(any),
+        ).thenAnswer((_) async => null);
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingDiveTypes: [existingType],
+            mockDiveRepo: mockDiveRepo,
+            mockDiveTypeRepo: mockDiveTypeRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final checked = await adapter.checkDuplicates(
+              await adapter.buildBundle(),
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.diveTypes: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.diveTypes: {0: DuplicateAction.skip},
+              },
+            );
+
+            verifyNever(mockDiveTypeRepo.createDiveType(any));
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.diveTypeIds, ['search_recovery_1a2b3c4d']);
           },
         );
       },
