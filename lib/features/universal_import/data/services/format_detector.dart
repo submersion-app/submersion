@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
 
+import 'package:submersion/core/services/export/csv/codec/submersion_csv_signatures.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 
@@ -293,6 +294,23 @@ class FormatDetector {
         .toList();
 
     if (headers.isEmpty || headers.length < 2) return null;
+
+    // Submersion's own exports carry their full column set, so they are
+    // recognised exactly and routed to their dedicated parsers (#1813).
+    final rawHeaders = rows.first.map((e) => e.toString().trim()).toList();
+    final kind = SubmersionCsvSignatures.match(rawHeaders);
+    if (kind != null) {
+      return DetectionResult(
+        format: switch (kind) {
+          SubmersionCsvKind.dives => ImportFormat.submersionDivesCsv,
+          SubmersionCsvKind.sites => ImportFormat.submersionSitesCsv,
+          SubmersionCsvKind.equipment => ImportFormat.submersionEquipmentCsv,
+        },
+        sourceApp: SourceApp.submersion,
+        confidence: 1.0,
+        csvHeaders: rawHeaders,
+      );
+    }
 
     // Score against known app signatures
     final appScores = <SourceApp, double>{};
