@@ -115,6 +115,7 @@ Widget _buildTable({
     ],
     child: DiveTableView(
       dives: dives,
+      diveTypeLabelResolver: Dive.diveTypeDisplayName,
       onDiveTap: onDiveTap ?? (_) {},
       onDiveDoubleTap: onDiveDoubleTap,
       selectedIds: selectedIds ?? const {},
@@ -325,6 +326,7 @@ void main() {
           ],
           child: DiveTableView(
             dives: dives,
+            diveTypeLabelResolver: Dive.diveTypeDisplayName,
             onDiveTap: (_) {},
             highlightedId: 'hl-1',
           ),
@@ -480,6 +482,7 @@ void main() {
           ],
           child: DiveTableView(
             dives: dives,
+            diveTypeLabelResolver: Dive.diveTypeDisplayName,
             onDiveTap: (_) {},
             highlightedId: 'h1',
           ),
@@ -638,6 +641,7 @@ void main() {
           ],
           child: DiveTableView(
             dives: dives,
+            diveTypeLabelResolver: Dive.diveTypeDisplayName,
             onDiveTap: (_) {},
             highlightedId: 'du1',
           ),
@@ -656,6 +660,7 @@ void main() {
           ],
           child: DiveTableView(
             dives: dives,
+            diveTypeLabelResolver: Dive.diveTypeDisplayName,
             onDiveTap: (_) {},
             highlightedId: 'du2',
           ),
