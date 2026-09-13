@@ -544,6 +544,54 @@ void main() {
       expect((dive['site'] as Map<String, dynamic>)['uddfId'], 'f0:s0');
     });
 
+    test('a repeated id is one record even when only a repeat is named', () {
+      final a = payloadWith(
+        sites: [
+          {'uddfId': 's0', 'name': 'Blue Hole'},
+        ],
+      );
+      final b = payloadWith(
+        sites: [
+          {'uddfId': 's1'},
+          {'uddfId': 's1', 'name': 'Blue Hole'},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 2, 1, 9),
+            'site': {'uddfId': 's1'},
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: b),
+      ]);
+
+      // The name arrives on the repeat, and still folds the one record.
+      expect(idsOf(merged, ImportEntityType.sites), ['f0:s0']);
+      final dive = merged.entitiesOf(ImportEntityType.dives).single;
+      expect((dive['site'] as Map<String, dynamic>)['uddfId'], 'f0:s0');
+    });
+
+    test('a dive type is identified by its slug over any uddfId', () {
+      const a = ImportPayload(
+        entities: {
+          ImportEntityType.diveTypes: [
+            {'id': 'wreck', 'uddfId': 'w1', 'name': 'Wreck'},
+            {'id': 'wreck', 'uddfId': 'w2', 'name': 'Wreck'},
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        const FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.fit', payload: unrelated),
+      ]);
+
+      expect(merged.entitiesOf(ImportEntityType.diveTypes), hasLength(1));
+    });
+
     test('folds dive types sharing a slug, which is their id', () {
       const a = ImportPayload(
         entities: {

@@ -268,8 +268,8 @@ class PayloadMerger {
 
   /// Folds one file's reference records of one [type] into the batch.
   ///
-  /// A named record the file repeats under one id is one record, so the
-  /// repeats fold into its first occurrence. Records with different ids stay
+  /// A record the file repeats under one id is one record, so the repeats
+  /// fold into its first occurrence, named or not. Records with different ids stay
   /// distinct (issue #1807), and each earlier-file [survivors] entry takes
   /// at most one of them: by name when the name is held by exactly one
   /// record on each side, otherwise only by a shared source id. A record
@@ -283,12 +283,11 @@ class PayloadMerger {
     required List<Map<String, dynamic>> out,
     required Map<String, String> aliases,
   }) {
-    final records = <({Map<String, dynamic> item, String? key})>[];
+    final distinct = <Map<String, dynamic>>[];
     final firstById = <String, Map<String, dynamic>>{};
     for (final item in items) {
-      final key = _foldKey(type, item);
       final id = _recordId(type, item);
-      if (key != null && id != null) {
+      if (id != null) {
         final first = firstById[id];
         if (first != null) {
           _enrich(first, item);
@@ -296,8 +295,13 @@ class PayloadMerger {
         }
         firstById[id] = item;
       }
-      records.add((item: item, key: key));
+      distinct.add(item);
     }
+    // Keyed only once repeats are merged, so a name that only a repeat
+    // carries still counts.
+    final records = [
+      for (final item in distinct) (item: item, key: _foldKey(type, item)),
+    ];
 
     final byKey = <String, List<Map<String, dynamic>>>{};
     for (final (:item, :key) in records) {
@@ -358,12 +362,12 @@ class PayloadMerger {
     }
   }
 
-  /// [item]'s id within the batch. Dive types without a `uddfId` are
-  /// identified by the slug in `id`, which is shared across files.
+  /// [item]'s id within the batch. A dive type is identified by the slug in
+  /// `id`, which is shared across files and is what the importer creates it
+  /// under; `uddfId` stands in only when the slug is missing.
   static String? _recordId(ImportEntityType type, Map<String, dynamic> item) {
-    final id =
-        item['uddfId'] ??
-        (type == ImportEntityType.diveTypes ? item['id'] : null);
+    final slug = type == ImportEntityType.diveTypes ? item['id'] : null;
+    final id = slug is String && slug.isNotEmpty ? slug : item['uddfId'];
     return id is String && id.isNotEmpty ? id : null;
   }
 
