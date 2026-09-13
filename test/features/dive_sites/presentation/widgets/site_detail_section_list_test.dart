@@ -11,8 +11,8 @@ import 'package:submersion/shared/widgets/section_fold.dart';
 Widget _card(SiteDetailSectionId id) =>
     Card(child: SizedBox(height: 40, child: Text('CARD_${id.name}')));
 
-Map<SiteDetailSectionId, Widget?> _allCards() => {
-  for (final id in SiteDetailSectionId.values) id: _card(id),
+Map<SiteDetailSectionId, WidgetBuilder?> _allCards() => {
+  for (final id in SiteDetailSectionId.values) id: (_) => _card(id),
 };
 
 List<SiteDetailSectionConfig> _config({
@@ -32,7 +32,7 @@ Future<void> _pump(
   WidgetTester tester, {
   required double width,
   required List<SiteDetailSectionConfig> sections,
-  Map<SiteDetailSectionId, Widget?>? cards,
+  Map<SiteDetailSectionId, WidgetBuilder?>? cards,
   DiveDetailLayout layout = DiveDetailLayout.detailed,
   void Function(SiteDetailSectionId id, bool expanded)? onFoldChanged,
 }) async {
@@ -42,6 +42,7 @@ Future<void> _pump(
 
   await tester.pumpWidget(
     MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -227,6 +228,25 @@ void main() {
 
       expect(find.text('CARD_notes'), findsOneWidget);
       expect(find.text('CARD_map'), findsNothing);
+    });
+
+    testWidgets('a folded card is never built', (tester) async {
+      var builds = 0;
+      await _pump(
+        tester,
+        width: 600,
+        sections: _config(),
+        cards: {
+          ..._allCards(),
+          SiteDetailSectionId.notes: (_) {
+            builds++;
+            return _card(SiteDetailSectionId.notes);
+          },
+        },
+        layout: DiveDetailLayout.list,
+      );
+
+      expect(builds, 0);
     });
 
     testWidgets('tapping a header reports the new fold state', (tester) async {

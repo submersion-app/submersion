@@ -232,38 +232,47 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     );
   }
 
-  /// The cards the diver has switched on, built, keyed by id; null where a
-  /// card has nothing to show for this site. [SiteDetailSectionList] decides
-  /// their order and layout.
+  /// A builder for each card the diver has switched on, keyed by id; null
+  /// where a card has nothing to show for this site. [SiteDetailSectionList]
+  /// decides their order and layout, and calls a builder only when its card
+  /// is laid out: a folded card in the list layout is never built.
   ///
-  /// Built here rather than inside the list because several cards watch
-  /// providers, and `ref.watch` only works during this state's own build.
-  /// Hidden cards are never built, so a diver who hides a card also skips
-  /// the lookups behind it.
-  Map<SiteDetailSectionId, Widget?> _sectionCards(
+  /// Whether a card has anything to show is decided here, from the site
+  /// itself, so an empty card takes no slot. The cards that watch providers
+  /// build inside their own [Consumer], so their lookups start only once the
+  /// card is mounted, and a hidden or folded card starts none.
+  Map<SiteDetailSectionId, WidgetBuilder?> _sectionCards(
     BuildContext context,
     DiveSite site,
     List<SiteDetailSectionConfig> sections,
   ) {
+    WidgetBuilder watching(Widget Function(BuildContext, WidgetRef) build) =>
+        (_) => Consumer(builder: (context, ref, _) => build(context, ref));
+
     final hasHazards = site.hazards != null && site.hazards!.isNotEmpty;
-    final builders = <SiteDetailSectionId, Widget? Function()>{
-      SiteDetailSectionId.map: () =>
-          site.hasCoordinates ? _buildMapSection(context, ref, site) : null,
+    final cards = <SiteDetailSectionId, WidgetBuilder? Function()>{
+      SiteDetailSectionId.map: () => site.hasCoordinates
+          ? watching((context, ref) => _buildMapSection(context, ref, site))
+          : null,
       // The count and the aggregates derived from the dives at this site.
-      SiteDetailSectionId.diveStatistics: () =>
-          _buildDiveStatisticsSection(context, ref, site),
+      SiteDetailSectionId.diveStatistics: () => watching(
+        (context, ref) => _buildDiveStatisticsSection(context, ref, site),
+      ),
       SiteDetailSectionId.description: () =>
-          _buildDescriptionSection(context, site),
+          (context) => _buildDescriptionSection(context, site),
       SiteDetailSectionId.location: () =>
-          _buildLocationSection(context, ref, site),
-      SiteDetailSectionId.depth: () => _buildDepthSection(context, ref, site),
+          watching((context, ref) => _buildLocationSection(context, ref, site)),
+      SiteDetailSectionId.depth: () =>
+          watching((context, ref) => _buildDepthSection(context, ref, site)),
       SiteDetailSectionId.altitude: () => site.altitude != null
-          ? _buildAltitudeSection(context, ref, site)
+          ? watching(
+              (context, ref) => _buildAltitudeSection(context, ref, site),
+            )
           : null,
       // Diver-placed annotations. Placement happens on the map, so the add
       // action opens the fullscreen scape armed to place.
       SiteDetailSectionId.features: () => site.hasCoordinates
-          ? SiteFeaturesSection(
+          ? (_) => SiteFeaturesSection(
               siteId: site.id,
               onAddFeature: () =>
                   _showFullscreenMap(context, ref, site, startPlacing: true),
@@ -273,51 +282,58 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       // leak in.
       SiteDetailSectionId.tide: () =>
           site.hasCoordinates && site.waterType != WaterType.fresh
-          ? TideSection(location: site.location!)
+          ? (_) => TideSection(location: site.location!)
           : null,
       SiteDetailSectionId.reefHealth: () => site.hasCoordinates
-          ? ReefSection(location: site.location!, waterType: site.waterType)
+          ? (_) =>
+                ReefSection(location: site.location!, waterType: site.waterType)
           : null,
-      SiteDetailSectionId.marineLife: () => SiteMarineLifeSection(
-        siteId: site.id,
-        location: site.location,
-        waterType: site.waterType,
-      ),
+      SiteDetailSectionId.marineLife: () =>
+          (_) => SiteMarineLifeSection(
+            siteId: site.id,
+            location: site.location,
+            waterType: site.waterType,
+          ),
       // Attachments and dive photos.
-      SiteDetailSectionId.media: () => SiteMediaSection(
-        siteId: site.id,
-        onAddPhotosPressed: () => SiteMediaImportHelper.importPhotosForSite(
-          context: context,
-          ref: ref,
-          siteId: site.id,
-        ),
-        onAddDocumentPressed: () => DocumentOpenHelper.pickAndAttach(
-          context: context,
-          ref: ref,
-          siteId: site.id,
-        ),
-        onOpenDocument: (item) => DocumentOpenHelper.open(context, ref, item),
-      ),
+      SiteDetailSectionId.media: () =>
+          (_) => SiteMediaSection(
+            siteId: site.id,
+            onAddPhotosPressed: () => SiteMediaImportHelper.importPhotosForSite(
+              context: context,
+              ref: ref,
+              siteId: site.id,
+            ),
+            onAddDocumentPressed: () => DocumentOpenHelper.pickAndAttach(
+              context: context,
+              ref: ref,
+              siteId: site.id,
+            ),
+            onOpenDocument: (item) =>
+                DocumentOpenHelper.open(context, ref, item),
+          ),
       // Tags (issue #1765), after media as on a dive. Shown only when the
       // site has some, decided here so an empty card leaves no gap and, in
       // the list layout, no empty header.
       SiteDetailSectionId.tags: () =>
           (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
           ? null
-          : SiteTagsCard(siteId: site.id),
+          : (_) => SiteTagsCard(siteId: site.id),
       SiteDetailSectionId.difficulty: () => site.difficulty != null
-          ? _buildDifficultySection(context, site)
+          ? (context) => _buildDifficultySection(context, site)
           : null,
-      SiteDetailSectionId.rating: () => _buildRatingSection(context, site),
+      SiteDetailSectionId.rating: () =>
+          (context) => _buildRatingSection(context, site),
       SiteDetailSectionId.hazards: () =>
-          hasHazards ? _buildHazardsSection(context, site) : null,
-      SiteDetailSectionId.access: () =>
-          _hasAccessInfo(site) ? _buildAccessSection(context, site) : null,
-      SiteDetailSectionId.notes: () => _buildNotesSection(context, site),
+          hasHazards ? (context) => _buildHazardsSection(context, site) : null,
+      SiteDetailSectionId.access: () => _hasAccessInfo(site)
+          ? (context) => _buildAccessSection(context, site)
+          : null,
+      SiteDetailSectionId.notes: () =>
+          (context) => _buildNotesSection(context, site),
     };
     return {
       for (final section in sections)
-        if (section.visible) section.id: builders[section.id]!(),
+        if (section.visible) section.id: cards[section.id]!(),
     };
   }
 

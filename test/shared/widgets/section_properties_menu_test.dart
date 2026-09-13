@@ -22,6 +22,7 @@ Widget _harness(
   double? iconSize,
 }) {
   return MaterialApp(
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(

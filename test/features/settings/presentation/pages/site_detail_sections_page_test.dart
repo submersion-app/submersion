@@ -32,6 +32,7 @@ Future<void> _pump(WidgetTester tester, _FakeSettingsNotifier notifier) async {
     ProviderScope(
       overrides: [settingsProvider.overrideWith((ref) => notifier)],
       child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: SiteDetailSectionsPage(),

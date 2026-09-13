@@ -44,6 +44,7 @@ void main() {
     bool embedded = true,
     Size surface = const Size(600, 1400),
     List<Tag> tags = const [],
+    VoidCallback? onStatsLoad,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = surface;
@@ -76,7 +77,10 @@ void main() {
           ...overrides,
           siteProvider(site.id).overrideWith((_) async => site),
           siteDiveCountProvider(site.id).overrideWith((_) async => 4),
-          siteDiveStatisticsProvider(site.id).overrideWith((_) async => stats),
+          siteDiveStatisticsProvider(site.id).overrideWith((_) async {
+            onStatsLoad?.call();
+            return stats;
+          }),
           tagsForSiteProvider(site.id).overrideWith((_) async => tags),
         ].cast<Override>(),
         child: MaterialApp.router(
@@ -159,6 +163,24 @@ void main() {
     expect(find.byType(SectionFold), findsNWidgets(9));
     // Inside the folded depth card, so not built.
     expect(find.text('Deepest Dive'), findsNothing);
+  });
+
+  testWidgets('folded cards start none of their lookups', (tester) async {
+    var statsLoads = 0;
+    await pumpPage(
+      tester,
+      settings: const AppSettings(siteDetailLayout: DiveDetailLayout.list),
+      onStatsLoad: () => statsLoads++,
+    );
+
+    // Dives at this Site and Depth Range both read the dive statistics, but
+    // folded they are never built, so nothing asks for them.
+    expect(statsLoads, 0);
+
+    await tester.tap(find.text('Depth Range'));
+    await tester.pumpAndSettle();
+
+    expect(statsLoads, greaterThan(0));
   });
 
   testWidgets('unfolding a card shows it and remembers it', (tester) async {

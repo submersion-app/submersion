@@ -50,6 +50,7 @@ Widget _harness(_FakeSettingsNotifier notifier) {
     overrides: [settingsProvider.overrideWith((ref) => notifier)],
     child: MaterialApp.router(
       routerConfig: router,
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     ),

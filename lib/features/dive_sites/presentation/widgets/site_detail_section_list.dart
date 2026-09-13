@@ -14,15 +14,15 @@ const double kSiteDetailCardGap = 12;
 /// The Site Details body: the diver's cards, in the diver's order, laid out
 /// the diver's way.
 ///
-/// [cards] holds every card the site can show right now, already built. A
+/// [cards] holds a builder for every card the site can show right now. A
 /// card that is missing or null has nothing to show for this site and is
 /// skipped as if hidden, and never forms half of a pair (a pair with an
 /// empty half would lay out a blank column beside a half-width card).
 ///
-/// Building the cards up front is cheap: a card widget is only a
-/// description. In the list layout a folded card's subtree is never
-/// mounted, so the map, tide chart and water-conditions lookup behind a
-/// closed header cost nothing.
+/// A builder runs only when its card is laid out. In the list layout a
+/// folded card's builder never runs, so neither the card nor any lookup
+/// behind it (dive statistics, map tiles, tide model, water conditions)
+/// costs anything until the diver unfolds it.
 ///
 /// In the detailed layout, a pair from [kSiteDetailSectionPairs] renders
 /// side by side whenever both halves are shown, wherever they sit in the
@@ -42,8 +42,8 @@ class SiteDetailSectionList extends StatelessWidget {
 
   final DiveDetailLayout layout;
 
-  /// The built cards, keyed by id; missing or null means nothing to show.
-  final Map<SiteDetailSectionId, Widget?> cards;
+  /// Card builders, keyed by id; missing or null means nothing to show.
+  final Map<SiteDetailSectionId, WidgetBuilder?> cards;
 
   /// Called when a folded header is tapped in the list layout, with the
   /// requested new state.
@@ -78,7 +78,7 @@ class SiteDetailSectionList extends StatelessWidget {
             icon: id.icon,
             isExpanded: unfolded.contains(id),
             onToggle: (expanded) => onFoldChanged(id, expanded),
-            contentBuilder: (_) => cards[id]!,
+            contentBuilder: cards[id]!,
           ),
         );
         continue;
@@ -92,8 +92,8 @@ class SiteDetailSectionList extends StatelessWidget {
       if (pair != null && shownIds.contains(pair.partnerOf(id))) {
         children.add(
           ResponsiveSectionPair(
-            first: cards[pair.left]!,
-            second: cards[pair.right]!,
+            first: cards[pair.left]!(context),
+            second: cards[pair.right]!(context),
             minRowWidth: pair.minRowWidth,
             stackGap: kSiteDetailCardGap,
           ),
@@ -102,7 +102,7 @@ class SiteDetailSectionList extends StatelessWidget {
         continue;
       }
 
-      children.add(cards[id]!);
+      children.add(cards[id]!(context));
     }
 
     return Column(
