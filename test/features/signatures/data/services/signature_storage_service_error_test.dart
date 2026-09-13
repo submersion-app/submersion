@@ -69,6 +69,10 @@ void main() {
         service.getAllSignaturesForDive('x'),
         throwsA(anything),
       );
+      await expectLater(
+        service.getSignaturesForDives(['x']),
+        throwsA(anything),
+      );
       await expectLater(service.hasBuddySigned('x', 'b'), throwsA(anything));
     });
   });

@@ -4095,6 +4095,86 @@ void main() {
     );
 
     testWidgets(
+      'a skipped duplicate gear item links the dive to the existing item '
+      '(#756)',
+      (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.equipment: [
+              {'name': 'Hog Wing', 'type': 'bcd', 'uddfId': '|Hog Wing|'},
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'equipmentRefs': ['|Hog Wing|'],
+              },
+            ],
+          },
+        );
+
+        const existingItem = EquipmentItem(
+          id: 'eq-1',
+          name: 'Hog Wing',
+          type: EquipmentType.bcd,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final mockEquipmentRepo = MockEquipmentRepository();
+        when(
+          mockEquipmentRepo.getEquipmentById('eq-1'),
+        ).thenAnswer((_) async => existingItem);
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingEquipment: [existingItem],
+            mockDiveRepo: mockDiveRepo,
+            mockEquipmentRepo: mockEquipmentRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final bundle = await adapter.buildBundle();
+            final checked = await adapter.checkDuplicates(bundle);
+            expect(
+              checked.groups[wizard.ImportEntityType.equipment]!.entityMatches,
+              contains(0),
+              reason: 'the gear must be flagged for the link to apply',
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.equipment: {0: DuplicateAction.skip},
+              },
+            );
+
+            verifyNever(mockEquipmentRepo.createEquipment(any));
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.gear.map((g) => g.item.id), ['eq-1']);
+          },
+        );
+      },
+    );
+
+    testWidgets(
       'a skipped dive type matched by name links the dive to the existing '
       'type (#1834)',
       (tester) async {

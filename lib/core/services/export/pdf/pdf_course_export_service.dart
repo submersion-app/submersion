@@ -28,16 +28,10 @@ class PdfCourseExportService {
     required PdfDateFormatter dates,
   }) async {
     final pdf = pw.Document();
-    final signatureService = SignatureStorageService();
 
-    // Load signatures for all training dives
-    final diveSignatures = <String, List<Signature>>{};
-    for (final dive in trainingDives) {
-      final sigs = await signatureService.getAllSignaturesForDive(dive.id);
-      if (sigs.isNotEmpty) {
-        diveSignatures[dive.id] = sigs;
-      }
-    }
+    // Load signatures for all training dives in one read
+    final diveSignatures = await SignatureStorageService()
+        .getSignaturesForDives([for (final dive in trainingDives) dive.id]);
 
     // Calculate summary statistics
     final totalRuntime = pdfTotalRuntime(trainingDives);
