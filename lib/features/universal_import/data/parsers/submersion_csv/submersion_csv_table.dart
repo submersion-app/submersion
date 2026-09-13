@@ -58,11 +58,13 @@ class SubmersionCsvTable {
     return i == null ? null : CsvHeader.parse(_headers[i]);
   }
 
-  /// The trimmed cell under [base], or null when blank or absent.
+  /// The trimmed cell under [base], or null when blank or absent. The
+  /// export's formula guard (a quote before `=`, `+`, `-` or `@`) is
+  /// removed; a number never carries one, so numeric cells are unchanged.
   String? text(List<String> row, String base) {
     final i = _indexByKey[base.toLowerCase()];
     if (i == null || i >= row.length) return null;
-    final value = row[i].trim();
+    final value = unsanitizeCsvField(row[i].trim());
     return value.isEmpty ? null : value;
   }
 

@@ -59,4 +59,12 @@ void main() {
   test('blank lines are skipped', () {
     expect(_table('Name\nA\n\n,\nB\n').rows.length, 2);
   });
+
+  test('text cells drop the export\'s formula guard, numbers stay intact', () {
+    final t = _table("Name,Notes,Water Temp (°C)\n'=cmd,'-deep,-2\n");
+    final row = t.rows.single;
+    expect(t.text(row, 'Name'), '=cmd');
+    expect(t.text(row, 'Notes'), '-deep');
+    expect(t.quantity(row, CsvColumns.waterTemp), -2);
+  });
 }

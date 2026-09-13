@@ -62,4 +62,25 @@ void main() {
     expect(rowOf(csv, 1)['Max Depth (m)'], '30.5');
     expect(rowOf(csv, 1)['Date'], '2025-03-15');
   });
+
+  test('free text beginning with a formula character is neutralised', () {
+    // Spreadsheets evaluate a cell starting with = + - @ as a formula
+    // (CSV injection), so every free-text cell gets the guard quote that
+    // custom fields always had. Numbers are never touched.
+    final dive = goldenDives().first.copyWith(
+      name: '=HYPERLINK("x")',
+      notes: '-bring torch',
+      buddy: '@ana',
+      diveComputerSerial: '+001',
+      weatherDescription: '=1+1',
+      waterTemp: -1.6,
+    );
+    final r = rowOf(CsvDivesWriter(CsvExportUnits.metric).write([dive]), 1);
+    expect(r['Name'], '\'=HYPERLINK("x")');
+    expect(r['Notes'], "'-bring torch");
+    expect(r['Buddy'], "'@ana");
+    expect(r['Serial Number'], "'+001");
+    expect(r['Weather Description'], "'=1+1");
+    expect(r['Water Temp (°C)'], '-2');
+  });
 }

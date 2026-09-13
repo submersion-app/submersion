@@ -204,4 +204,49 @@ void main() {
       });
     });
   }
+
+  test('text that looks like a formula survives the round trip', () async {
+    // The export neutralises = + - @ with a leading quote (CSV injection);
+    // the importer must hand the diver back exactly what they typed.
+    final site = goldenSite.copyWith(name: '=Reef', notes: '-deep wall');
+    var diverId = await importCsv(
+      CsvSitesWriter(CsvExportUnits.metric).write([site]),
+      ImportFormat.submersionSitesCsv,
+    );
+    final storedSite = (await SiteRepository().getAllSites(
+      diverId: diverId,
+    )).single;
+    expect(storedSite.name, '=Reef');
+    expect(storedSite.notes, '-deep wall');
+
+    await tearDownTestDatabase();
+    await setUpTestDatabase();
+    final item = goldenEquipment()[1].copyWith(
+      name: '@Suit',
+      serialNumber: '+42',
+    );
+    diverId = await importCsv(
+      CsvEquipmentWriter(CsvExportUnits.metric).write([item]),
+      ImportFormat.submersionEquipmentCsv,
+    );
+    final storedItem = (await EquipmentRepository().getAllEquipment(
+      diverId: diverId,
+    )).single;
+    expect(storedItem.name, '@Suit');
+    expect(storedItem.serialNumber, '+42');
+
+    await tearDownTestDatabase();
+    await setUpTestDatabase();
+    final dive = goldenDives().first.copyWith(
+      name: '=HYPERLINK("x")',
+      buddy: '-Ana',
+    );
+    await importCsv(
+      CsvDivesWriter(CsvExportUnits.metric).write([dive]),
+      ImportFormat.submersionDivesCsv,
+    );
+    final stored = (await DiveRepository().getAllDives()).single;
+    expect(stored.name, '=HYPERLINK("x")');
+    expect(stored.buddy, '-Ana');
+  });
 }

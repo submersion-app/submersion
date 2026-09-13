@@ -9,7 +9,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Writes the dives CSV. Every unit-bearing cell and every date and time
 /// goes through [units], so Metric mode reproduces the historical file and
-/// My units follows the diver with the unit named in each header.
+/// My units follows the diver with the unit named in each header. Every
+/// free-text cell goes through [sanitizeCsvField] so a spreadsheet never
+/// evaluates it as a formula; the importer reverses it.
 class CsvDivesWriter {
   CsvDivesWriter(this.units);
 
@@ -71,11 +73,11 @@ class CsvDivesWriter {
       final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
       rows.add([
         dive.diveNumber ?? '',
-        dive.effectiveName?.replaceAll('\n', ' ') ?? '',
+        sanitizeCsvField(dive.effectiveName?.replaceAll('\n', ' ')),
         units.date(dive.dateTime),
         units.time(dive.dateTime),
-        dive.site?.name ?? '',
-        dive.site?.locationString ?? '',
+        sanitizeCsvField(dive.site?.name),
+        sanitizeCsvField(dive.site?.locationString),
         units.value(CsvColumns.maxDepth, dive.maxDepth),
         units.value(CsvColumns.avgDepth, dive.avgDepth),
         dive.bottomTime?.inMinutes ?? '',
@@ -84,9 +86,9 @@ class CsvDivesWriter {
         units.value(CsvColumns.airTemp, dive.airTemp),
         units.value(CsvColumns.visibility, dive.visibilityMeters),
         dive.visibility?.displayName ?? '',
-        dive.diveTypeNames.join('; '),
-        dive.buddy ?? '',
-        dive.diveMaster ?? '',
+        sanitizeCsvField(dive.diveTypeNames.join('; ')),
+        sanitizeCsvField(dive.buddy),
+        sanitizeCsvField(dive.diveMaster),
         dive.rating ?? '',
         units.value(CsvColumns.startPressure, tank?.startPressure),
         units.value(CsvColumns.endPressure, tank?.endPressure),
@@ -94,16 +96,16 @@ class CsvDivesWriter {
         if (!units.isMetric)
           units.value(CsvColumns.workingPressure, tank?.workingPressure),
         tank?.gasMix.o2.toStringAsFixed(0) ?? '',
-        dive.diveComputerModel ?? '',
-        dive.diveComputerSerial ?? '',
-        dive.diveComputerFirmware ?? '',
-        dive.notes.replaceAll('\n', ' '),
+        sanitizeCsvField(dive.diveComputerModel),
+        sanitizeCsvField(dive.diveComputerSerial),
+        sanitizeCsvField(dive.diveComputerFirmware),
+        sanitizeCsvField(dive.notes.replaceAll('\n', ' ')),
         units.value(CsvColumns.windSpeed, dive.windSpeed),
         dive.windDirection?.displayName ?? '',
         dive.cloudCover?.displayName ?? '',
         dive.precipitation?.displayName ?? '',
         dive.humidity?.toStringAsFixed(0) ?? '',
-        dive.weatherDescription ?? '',
+        sanitizeCsvField(dive.weatherDescription),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)

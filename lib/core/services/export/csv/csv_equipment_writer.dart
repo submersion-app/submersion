@@ -3,12 +3,15 @@ import 'package:csv/csv.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_attribute_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// Writes the equipment CSV. [write]'s `componentNames` maps an assembly's
 /// id to its parts' names in template order (issue #1487); items absent
-/// from it get an empty cell.
+/// from it get an empty cell. Free-text cells go through [sanitizeCsvField]
+/// so a spreadsheet never evaluates them as formulas; the importer reverses
+/// it.
 class CsvEquipmentWriter {
   CsvEquipmentWriter(this.units);
 
@@ -55,29 +58,31 @@ class CsvEquipmentWriter {
 
     for (final item in equipment) {
       rows.add([
-        item.name,
+        sanitizeCsvField(item.name),
         item.type.displayName,
-        item.brand ?? '',
-        item.model ?? '',
-        item.serialNumber ?? '',
-        item.size ?? '',
-        item.thickness ?? '',
+        sanitizeCsvField(item.brand),
+        sanitizeCsvField(item.model),
+        sanitizeCsvField(item.serialNumber),
+        sanitizeCsvField(item.size),
+        sanitizeCsvField(item.thickness),
         _date(item.purchaseDate),
         _date(item.lastServiceDate),
         _date(item.nextServiceDue),
         units.value(CsvColumns.buoyancy, item.buoyancyKg),
         units.value(CsvColumns.dryWeight, item.weightKg),
-        item.attributes
-            .where(
-              (a) =>
-                  a.hasValue &&
-                  (a.isCustom || !_dedicatedAttrKeys.contains(a.key)),
-            )
-            .map((a) => formatAttributePair(a, units))
-            .join('; '),
-        componentNames[item.id]?.join('; ') ?? '',
+        sanitizeCsvField(
+          item.attributes
+              .where(
+                (a) =>
+                    a.hasValue &&
+                    (a.isCustom || !_dedicatedAttrKeys.contains(a.key)),
+              )
+              .map((a) => formatAttributePair(a, units))
+              .join('; '),
+        ),
+        sanitizeCsvField(componentNames[item.id]?.join('; ')),
         item.isActive ? 'Yes' : 'No',
-        item.notes.replaceAll('\n', ' '),
+        sanitizeCsvField(item.notes.replaceAll('\n', ' ')),
       ]);
     }
 

@@ -2,9 +2,12 @@ import 'package:csv/csv.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
-/// Writes the sites CSV; only Max Depth carries a unit.
+/// Writes the sites CSV; only Max Depth carries a unit. Free-text cells go
+/// through [sanitizeCsvField] so a spreadsheet never evaluates them as
+/// formulas; the importer reverses it.
 class CsvSitesWriter {
   CsvSitesWriter(this.units);
 
@@ -30,9 +33,9 @@ class CsvSitesWriter {
 
     for (final site in sites) {
       rows.add([
-        site.name,
-        site.country ?? '',
-        site.region ?? '',
+        sanitizeCsvField(site.name),
+        sanitizeCsvField(site.country),
+        sanitizeCsvField(site.region),
         site.location?.latitude.toStringAsFixed(6) ?? '',
         site.location?.longitude.toStringAsFixed(6) ?? '',
         units.value(CsvColumns.maxDepth, site.maxDepth),
@@ -42,8 +45,8 @@ class CsvSitesWriter {
         '',
         site.entryMethod?.displayName ?? '',
         site.rating?.toStringAsFixed(1) ?? '',
-        site.description.replaceAll('\n', ' '),
-        site.notes.replaceAll('\n', ' '),
+        sanitizeCsvField(site.description.replaceAll('\n', ' ')),
+        sanitizeCsvField(site.notes.replaceAll('\n', ' ')),
       ]);
     }
 

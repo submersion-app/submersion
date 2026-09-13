@@ -40,7 +40,10 @@ not:
 
 - The CSV export offers "My units" (default) and "Metric" at every entry
   point that writes a dives, sites or equipment CSV.
-- Metric output is byte-for-byte identical to today's for all three exports.
+- Metric output is byte-for-byte identical to today's for all three exports,
+  with one deliberate exception added in review: a free-text cell that
+  begins with `=`, `+`, `-` or `@` now gets the leading quote custom fields
+  always had (CSV injection hardening), and the importer removes it.
 - My units converts every unit-bearing column, names the unit in its header,
   and writes dates and times in the diver's formats with the format named in
   the header.

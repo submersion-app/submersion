@@ -38,4 +38,19 @@ void main() {
     expect(csv, isNot(contains('volume_l=')));
     expect(csv, isNot(contains('speed_mps=')));
   });
+
+  test('site and equipment free text is neutralised against formulas', () {
+    final site = goldenSite.copyWith(name: '=cmd', notes: '-deep');
+    final siteRow = rowOf(CsvSitesWriter(units).write([site]), 1);
+    expect(siteRow['Name'], "'=cmd");
+    expect(siteRow['Notes'], "'-deep");
+
+    final item = goldenEquipment()[1].copyWith(
+      name: '@suit',
+      serialNumber: '-42',
+    );
+    final itemRow = rowOf(CsvEquipmentWriter(units).write([item]), 1);
+    expect(itemRow['Name'], "'@suit");
+    expect(itemRow['Serial Number'], "'-42");
+  });
 }
