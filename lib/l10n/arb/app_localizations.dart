@@ -34324,6 +34324,36 @@ abstract class AppLocalizations {
   /// **'Sites'**
   String get transfer_csvExport_typeSites;
 
+  /// No description provided for @transfer_csvExport_unitsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Units'**
+  String get transfer_csvExport_unitsHeader;
+
+  /// No description provided for @transfer_csvExport_unitsMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get transfer_csvExport_unitsMetric;
+
+  /// No description provided for @transfer_csvExport_unitsMetricDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric values and ISO dates, the same format as earlier exports'**
+  String get transfer_csvExport_unitsMetricDescription;
+
+  /// No description provided for @transfer_csvExport_unitsMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My units'**
+  String get transfer_csvExport_unitsMine;
+
+  /// No description provided for @transfer_csvExport_unitsMineDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Values in your unit, date and time settings, named in each column header'**
+  String get transfer_csvExport_unitsMineDescription;
+
   /// No description provided for @transfer_detail_backTooltip.
   ///
   /// In en, this message translates to:

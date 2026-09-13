@@ -20521,6 +20521,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'المواقع';
 
   @override
+  String get transfer_csvExport_unitsHeader => 'الوحدات';
+
+  @override
+  String get transfer_csvExport_unitsMetric => 'متري';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      'قيم مترية وتواريخ ISO، بنفس تنسيق عمليات التصدير السابقة';
+
+  @override
+  String get transfer_csvExport_unitsMine => 'وحداتي';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      'القيم بإعدادات الوحدات والتاريخ والوقت الخاصة بك، مع ذكرها في عنوان كل عمود';
+
+  @override
   String get transfer_detail_backTooltip => 'العودة إلى النقل';
 
   @override

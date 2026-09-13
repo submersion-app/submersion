@@ -20920,6 +20920,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Puntos';
 
   @override
+  String get transfer_csvExport_unitsHeader => 'Unidades';
+
+  @override
+  String get transfer_csvExport_unitsMetric => 'Métrico';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      'Valores métricos y fechas ISO, el mismo formato que las exportaciones anteriores';
+
+  @override
+  String get transfer_csvExport_unitsMine => 'Mis unidades';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      'Valores con tu configuración de unidades, fecha y hora, indicada en el encabezado de cada columna';
+
+  @override
   String get transfer_detail_backTooltip => 'Volver a transferir';
 
   @override

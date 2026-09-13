@@ -20844,6 +20844,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Merülohelyek';
 
   @override
+  String get transfer_csvExport_unitsHeader => 'Mértékegységek';
+
+  @override
+  String get transfer_csvExport_unitsMetric => 'Metrikus';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      'Metrikus értékek és ISO dátumok, a korábbi exportokkal azonos formátumban';
+
+  @override
+  String get transfer_csvExport_unitsMine => 'Saját mértékegységek';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      'Értékek a saját mértékegység-, dátum- és időbeállítások szerint, minden oszlopfejlécben feltüntetve';
+
+  @override
   String get transfer_detail_backTooltip => 'Vissza az atvitelhez';
 
   @override

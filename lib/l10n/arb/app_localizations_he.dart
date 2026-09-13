@@ -20364,6 +20364,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'אתרים';
 
   @override
+  String get transfer_csvExport_unitsHeader => 'יחידות';
+
+  @override
+  String get transfer_csvExport_unitsMetric => 'מטרי';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      'ערכים מטריים ותאריכי ISO, באותו פורמט כמו ייצואים קודמים';
+
+  @override
+  String get transfer_csvExport_unitsMine => 'היחידות שלי';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      'ערכים לפי הגדרות היחידות, התאריך והשעה שלך, עם ציון בכותרת כל עמודה';
+
+  @override
   String get transfer_detail_backTooltip => 'חזרה להעברה';
 
   @override

@@ -20855,6 +20855,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Tauchplätze';
 
   @override
+  String get transfer_csvExport_unitsHeader => 'Einheiten';
+
+  @override
+  String get transfer_csvExport_unitsMetric => 'Metrisch';
+
+  @override
+  String get transfer_csvExport_unitsMetricDescription =>
+      'Metrische Werte und ISO-Datumsangaben im selben Format wie frühere Exporte';
+
+  @override
+  String get transfer_csvExport_unitsMine => 'Meine Einheiten';
+
+  @override
+  String get transfer_csvExport_unitsMineDescription =>
+      'Werte in den eigenen Einheiten-, Datums- und Zeiteinstellungen, in jeder Spaltenüberschrift angegeben';
+
+  @override
   String get transfer_detail_backTooltip => 'Zurück zur Übertragung';
 
   @override

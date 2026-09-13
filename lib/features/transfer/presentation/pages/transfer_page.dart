@@ -14,6 +14,7 @@ import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.d
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
@@ -468,36 +469,43 @@ class _ExportSectionContent extends ConsumerWidget {
     );
   }
 
-  /// Handle CSV export with type selection dialog, then share/save options.
+  /// Handle CSV export with type and units dialog, then share/save options.
   Future<void> _handleCsvExport(BuildContext context, WidgetRef ref) async {
-    final type = await CsvExportDialog.show(context);
-    if (type == null || !context.mounted) return;
+    final request = await CsvExportDialog.show(
+      context,
+      initialUnitMode: ref.read(csvUnitModeProvider),
+    );
+    if (request == null || !context.mounted) return;
+    if (request.type.hasUnits) {
+      unawaited(ref.read(csvUnitModeProvider.notifier).set(request.unitMode));
+    }
+    final mode = request.unitMode;
 
     final notifier = ref.read(exportNotifierProvider.notifier);
-    switch (type) {
+    switch (request.type) {
       case CsvExportType.dives:
         await _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionDivesTitle,
-          shareAction: (_) => notifier.exportDivesToCsv(),
-          saveAction: (_) => notifier.saveDivesCsvToFile(),
+          shareAction: (_) => notifier.exportDivesToCsv(unitMode: mode),
+          saveAction: (_) => notifier.saveDivesCsvToFile(unitMode: mode),
         );
       case CsvExportType.sites:
         await _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionSitesTitle,
-          shareAction: (_) => notifier.exportSitesToCsv(),
-          saveAction: (_) => notifier.saveSitesCsvToFile(),
+          shareAction: (_) => notifier.exportSitesToCsv(unitMode: mode),
+          saveAction: (_) => notifier.saveSitesCsvToFile(unitMode: mode),
         );
       case CsvExportType.equipment:
         await _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionEquipmentTitle,
-          shareAction: (_) => notifier.exportEquipmentToCsv(),
-          saveAction: (_) => notifier.saveEquipmentCsvToFile(),
+          shareAction: (_) => notifier.exportEquipmentToCsv(unitMode: mode),
+          saveAction: (_) => notifier.saveEquipmentCsvToFile(unitMode: mode),
         );
       case CsvExportType.observations:
         await _showExportOptions(
