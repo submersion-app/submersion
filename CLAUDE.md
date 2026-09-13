@@ -32,6 +32,27 @@ git at them.
 
 **Bypass (if needed):** `git push --no-verify`
 
+## Pull Requests
+
+Every PR must relate to an issue, and its description must say which one. The
+"PR Issue Link" check (`scripts/check_pr_issue_link.py`) blocks the merge until
+it does.
+
+- **Resolves the issue:** `Closes #123` (or `Fixes` / `Resolves`). GitHub
+  closes the issue on merge only when the keyword sits directly before the
+  number in the PR description. A number in the title, or a passing mention in
+  prose, closes nothing, which is how resolved issues were left open (#1800).
+- **Relates without resolving it** (one phase of a larger issue, a follow-up):
+  `Refs #123`, `Part of #123` or `Related to #123`. The issue stays open.
+- **Several issues:** one keyword per issue, `Closes #1, closes #2`.
+  `Closes #1, #2` closes only #1.
+- **Branch names an issue** (`github-issue-1800-...`, `feature-request-1803-...`):
+  the description must link that issue, with `Refs` if the PR does not resolve it.
+- **No issue yet:** open one first. Only bot-authored PRs are exempt.
+
+Links inside HTML comments, code spans or fenced code blocks are ignored, by
+GitHub and by the check. Editing the description re-runs the check.
+
 ## Gotchas
 
 - The `dives` table uses `diveDateTime` (not `dateTime`) as the column name to

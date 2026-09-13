@@ -81,10 +81,20 @@ files you touched) before committing.
 
 1. Push your branch and open a pull request against `main`.
 2. Fill out the [pull request template](.github/PULL_REQUEST_TEMPLATE.md),
-   describing what changed and why, and link any related issues.
-3. Keep PRs focused and reasonably small — one logical change per PR is easier
+   describing what changed and why.
+3. **Link the issue the PR relates to.** Every PR must relate to an issue, and
+   the "PR Issue Link" check blocks the merge until the description links one:
+   - `Closes #123` (or `Fixes` / `Resolves`) when the PR fully resolves the
+     issue. GitHub closes the issue on merge only when the keyword sits
+     directly before the number in the description; a number in the title does
+     nothing. Give each issue its own keyword: `Closes #1, closes #2`.
+   - `Refs #123`, `Part of #123` or `Related to #123` when the PR relates to an
+     issue without resolving it, so the issue stays open.
+
+   If no issue exists yet, open one first.
+4. Keep PRs focused and reasonably small: one logical change per PR is easier
    to review and merge.
-4. Ensure CI passes. Maintainers may request changes; discussion is part of the
+5. Ensure CI passes. Maintainers may request changes; discussion is part of the
    process.
 
 For detailed conventions, see:
