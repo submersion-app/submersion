@@ -26308,6 +26308,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Lunghezza della frusta';
 
   @override
+  String get attrLabel_hose_type => 'Tipo di frusta';
+
+  @override
   String get attrLabel_plate_material => 'Materiale della piastra';
 
   @override
@@ -26641,6 +26644,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'Staffa (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'MP (media pressione)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (alta pressione)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Frusta inflator (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

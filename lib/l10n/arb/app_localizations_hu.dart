@@ -26204,6 +26204,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Tömlő hossza';
 
   @override
+  String get attrLabel_hose_type => 'Tömlő típusa';
+
+  @override
   String get attrLabel_plate_material => 'Lemez anyaga';
 
   @override
@@ -26535,6 +26538,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'Kengyel (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'Középnyomású (LP)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'Nagynyomású (HP)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflátor (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Mellény';

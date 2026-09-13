@@ -25861,6 +25861,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Hose length';
 
   @override
+  String get attrLabel_hose_type => 'Hose type';
+
+  @override
   String get attrLabel_plate_material => 'Plate material';
 
   @override
@@ -26192,6 +26195,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'Yoke (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'LP (low pressure)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (high pressure)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'LPI (inflator)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

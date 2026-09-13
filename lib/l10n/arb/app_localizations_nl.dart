@@ -26104,6 +26104,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Slanglengte';
 
   @override
+  String get attrLabel_hose_type => 'Slangtype';
+
+  @override
   String get attrLabel_plate_material => 'Plaatmateriaal';
 
   @override
@@ -26436,6 +26439,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'Beugel (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'MD (middendruk)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HD (hoge druk)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflatorslang (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

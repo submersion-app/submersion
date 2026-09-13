@@ -26307,6 +26307,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Comprimento da mangueira';
 
   @override
+  String get attrLabel_hose_type => 'Tipo de mangueira';
+
+  @override
   String get attrLabel_plate_material => 'Material da placa';
 
   @override
@@ -26641,6 +26644,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'Garra (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'LP (baixa pressão)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (alta pressão)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflador (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Colete';

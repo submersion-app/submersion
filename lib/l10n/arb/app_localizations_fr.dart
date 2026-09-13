@@ -26405,6 +26405,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Longueur du flexible';
 
   @override
+  String get attrLabel_hose_type => 'Type de flexible';
+
+  @override
   String get attrLabel_plate_material => 'Matériau de la plaque';
 
   @override
@@ -26737,6 +26740,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'Étrier (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'MP (moyenne pression)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (haute pression)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Direct system (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Gilet';

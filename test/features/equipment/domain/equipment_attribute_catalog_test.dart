@@ -144,6 +144,39 @@ void main() {
     expect(isValidThicknessDesignation('abc'), isFalse);
   });
 
+  group('hose attributes (#1805)', () {
+    test('hose_type is a spec choice of lp, hp and lpi, before the length', () {
+      final def = EquipmentAttributeCatalog.defFor(EquipmentAttrKeys.hoseType);
+      expect(def, isNotNull);
+      expect(def!.kind, AttributeKind.choice);
+      expect(def.group, AttributeGroup.spec);
+      // The picker renders choiceKeys in this order.
+      expect(def.choiceKeys, ['lp', 'hp', 'lpi']);
+
+      final keys = EquipmentAttributeCatalog.attributesFor(
+        EquipmentType.hose,
+      ).map((d) => d.key).toList();
+      expect(
+        keys.indexOf('hose_type'),
+        lessThan(keys.indexOf('hose_length_m')),
+      );
+    });
+
+    test('hose type label and options read in English', () {
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      expect(attributeLabel(l10n, 'hose_type'), 'Hose type');
+      expect(
+        attributeChoiceLabel(l10n, 'hose_type', 'lp'),
+        'LP (low pressure)',
+      );
+      expect(
+        attributeChoiceLabel(l10n, 'hose_type', 'hp'),
+        'HP (high pressure)',
+      );
+      expect(attributeChoiceLabel(l10n, 'hose_type', 'lpi'), 'LPI (inflator)');
+    });
+  });
+
   group('gloves attributes', () {
     test('glove_type lists every wet, dry, liner and utility style, in the '
         'order the picker shows them', () {

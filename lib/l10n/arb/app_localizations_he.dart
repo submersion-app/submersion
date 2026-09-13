@@ -25648,6 +25648,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_hose_length_m => 'אורך הצינור';
 
   @override
+  String get attrLabel_hose_type => 'סוג צינור';
+
+  @override
   String get attrLabel_plate_material => 'חומר הפלטה';
 
   @override
@@ -25979,6 +25982,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'יוק (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'LP (לחץ נמוך)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (לחץ גבוה)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'מנפח (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';

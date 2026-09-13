@@ -25844,6 +25844,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_hose_length_m => 'طول الخرطوم';
 
   @override
+  String get attrLabel_hose_type => 'نوع الخرطوم';
+
+  @override
   String get attrLabel_plate_material => 'مادة اللوحة';
 
   @override
@@ -26175,6 +26178,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'يوك (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'LP (ضغط منخفض)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (ضغط عالٍ)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'منفاخ (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';

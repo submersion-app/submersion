@@ -26253,6 +26253,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Schlauchlänge';
 
   @override
+  String get attrLabel_hose_type => 'Schlauchtyp';
+
+  @override
   String get attrLabel_plate_material => 'Plattenmaterial';
 
   @override
@@ -26586,6 +26589,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => 'Bügel (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'MD (Mitteldruck)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HD (Hochdruck)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflator (LPI)';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

@@ -43109,6 +43109,12 @@ abstract class AppLocalizations {
   /// **'Hose length'**
   String get attrLabel_hose_length_m;
 
+  /// No description provided for @attrLabel_hose_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Hose type'**
+  String get attrLabel_hose_type;
+
   /// No description provided for @attrLabel_plate_material.
   ///
   /// In en, this message translates to:
@@ -43774,6 +43780,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Yoke (INT)'**
   String get attrChoice_connection_yoke;
+
+  /// No description provided for @attrChoice_hose_type_lp.
+  ///
+  /// In en, this message translates to:
+  /// **'LP (low pressure)'**
+  String get attrChoice_hose_type_lp;
+
+  /// No description provided for @attrChoice_hose_type_hp.
+  ///
+  /// In en, this message translates to:
+  /// **'HP (high pressure)'**
+  String get attrChoice_hose_type_hp;
+
+  /// No description provided for @attrChoice_hose_type_lpi.
+  ///
+  /// In en, this message translates to:
+  /// **'LPI (inflator)'**
+  String get attrChoice_hose_type_lpi;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///

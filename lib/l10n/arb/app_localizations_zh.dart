@@ -24928,6 +24928,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_hose_length_m => '软管长度';
 
   @override
+  String get attrLabel_hose_type => '软管类型';
+
+  @override
   String get attrLabel_plate_material => '背板材质';
 
   @override
@@ -25259,6 +25262,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_connection_yoke => '卡箍式 (INT)';
+
+  @override
+  String get attrChoice_hose_type_lp => 'LP（低压）';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP（高压）';
+
+  @override
+  String get attrChoice_hose_type_lpi => '充气管（LPI）';
 
   @override
   String get attrChoice_bcd_style_jacket => '夹克式';
