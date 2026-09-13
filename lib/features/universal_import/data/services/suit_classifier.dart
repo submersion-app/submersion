@@ -81,12 +81,14 @@ const String _panel = r'\d+(?:\.\d+)?';
 /// A slash designation ("5/4", "5mm/4mm", "7/5/3mm") or a single panel with
 /// `mm`. The guards keep a token from starting or ending inside a longer
 /// number or word: a hyphen or slash beside it means it is only part of a
-/// designation ("5-4mm"), and a comma or period counts only with a digit on
-/// its far side, so "7mm, 3mm" is two tokens while "6,5mm" is none.
+/// designation ("5-4mm"), and a comma or period only joins digits, as a
+/// decimal. "6,5mm" is therefore none and "5/4,5" is not cut to "5/4", while
+/// "7mm, 3mm" and "7mm,3mm" are two tokens: nothing numeric continues past
+/// "mm".
 final RegExp _thicknessToken = RegExp(
   '(?<![\\w/\\-]|\\d[.,])'
   '(?:$_panel(?:\\s*mm)?(?:\\s*/\\s*$_panel(?:\\s*mm)?)+|$_panel\\s*mm)'
-  '(?![\\w/\\-]|[.,]\\d)',
+  '(?![\\w/\\-])(?!(?<=\\d)[.,]\\d)',
 );
 final RegExp _panelNumber = RegExp(_panel);
 

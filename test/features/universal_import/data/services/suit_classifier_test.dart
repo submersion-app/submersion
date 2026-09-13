@@ -154,6 +154,12 @@ void main() {
     test('a comma between two thicknesses still makes them two', () {
       expectSuit('Wetsuit 7mm, 3mm shorty', EquipmentType.wetsuit);
       expectSuit('Wetsuit 7mm, 5mm', EquipmentType.wetsuit);
+      expectSuit('Wetsuit 7mm,3mm', EquipmentType.wetsuit);
+      expectUnclear('7mm,3mm');
+    });
+
+    test('a decimal comma after a slash designation is not cut short', () {
+      expectSuit('Wetsuit 5/4,5', EquipmentType.wetsuit);
     });
 
     test('punctuation after a single thickness keeps it', () {
