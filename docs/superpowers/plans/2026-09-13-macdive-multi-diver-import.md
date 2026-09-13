@@ -3377,6 +3377,21 @@ git commit -m "feat(import-wizard): add a Divers step for multi-diver logbooks (
 
 ---
 
+### Task 11b: Hide steps that do not apply from the step indicator (added during execution)
+
+Found while running Task 11: `WizardStepIndicator` is a fixed `Row`, and the eighth label overflowed by 3.8 px at 800 px (`unified_import_wizard_test.dart`, "consumes preloaded state from UniversalAdapter"). The wizard listed every acquisition step, including ones that auto-skip. Decision (user): hide steps that do not apply to the current import.
+
+**Files:**
+- Modify: `lib/shared/widgets/wizard/wizard_step_def.dart` (optional `ProviderListenable<bool>? hiddenWhen`)
+- Create: `lib/features/import_wizard/presentation/pages/step_indicator_view.dart` (`stepIndicatorView({acquisitionLabels, hidden, trailingLabels, currentPage}) -> ({List<String> labels, int current})`; the current page always shows)
+- Modify: `lib/features/import_wizard/presentation/pages/unified_import_wizard.dart` (`_buildStepIndicator` watches each step's `hiddenWhen`)
+- Modify: `lib/features/import_wizard/data/adapters/universal_adapter.dart` (`hiddenWhen` on Map Fields via new `universalAdapterNoFieldMappingProvider` (payload exists and not CSV), Divers via `universalAdapterSingleDiverProvider`, Photos via `universalAdapterNoPhotosProvider`)
+- Test: `test/features/import_wizard/presentation/pages/step_indicator_view_test.dart`, `unified_import_wizard_test.dart` (a hidden fake step never reaches the indicator), `universal_adapter_diver_step_test.dart` (Map Fields provider)
+
+Only the indicator changes; the page list, navigation and auto-advance are untouched. Other adapters set no `hiddenWhen` and render as before. Committed together with Task 11.
+
+---
+
 ### Task 12: Review shows each row's profile and numbers dives per profile
 
 **Files:**
