@@ -1,0 +1,144 @@
+/// The comparison key for a person's name: trimmed, inner whitespace
+/// collapsed, and lowercased with Dart's Unicode-aware [String.toLowerCase].
+/// Matching happens in Dart on this key because SQLite's `LOWER` folds only
+/// ASCII, so `ÉRIC` would never match `éric` in SQL.
+String legacyNameKey(String name) =>
+    name.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
+
+/// Splits the legacy free-text `dives.buddy` and `dives.dive_master` values
+/// into individual names so they can become buddy records (#1831).
+///
+/// Separators are `, ; / & +`, newlines, the full-width comma and the
+/// ideographic comma, plus the standalone words in [_conjunctions]. Nothing
+/// inside `(...)` or `[...]` is split, so `Joe (Customer)` stays one name.
+/// Placeholders such as `None` are dropped, so a text holding only a
+/// placeholder parses to no names at all, which is how the Buddies card
+/// tells a real text buddy from a solo dive.
+abstract final class LegacyNameParser {
+  static const Set<String> _separators = {
+    ',',
+    ';',
+    '/',
+    '&',
+    '+',
+    '\n',
+    '，',
+    '、',
+  };
+
+  /// Conjunctions for the app's Latin-script locales. One splits a part only
+  /// when that part has more than one word, so a lone initial survives.
+  static const Set<String> _conjunctions = {
+    'and',
+    'und',
+    'et',
+    'y',
+    'e',
+    'en',
+    'és',
+  };
+
+  static const Set<String> _placeholders = {
+    'none',
+    'solo',
+    'n/a',
+    'na',
+    '-',
+    '--',
+    'nobody',
+    'no buddy',
+    'keine',
+    'aucun',
+    'ninguno',
+    'nessuno',
+    'nenhum',
+    'geen',
+  };
+
+  /// `n/a` as a whole token. Replaced by a separator before splitting,
+  /// because `/` is itself a separator and would otherwise leave the names
+  /// `N` and `A`.
+  static final RegExp _notApplicable = RegExp(
+    r'(?<!\p{L})n/a(?!\p{L})',
+    caseSensitive: false,
+    unicode: true,
+  );
+  static final RegExp _letter = RegExp(r'\p{L}', unicode: true);
+  static final RegExp _whitespace = RegExp(r'\s+');
+
+  /// The distinct names in [text], in first-seen order.
+  static List<String> parse(String? text) {
+    if (text == null || text.trim().isEmpty) return const [];
+    final normalized = text
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .replaceAll(_notApplicable, ',');
+    final names = <String>[];
+    final seen = <String>{};
+    for (final part in _splitOnSeparators(normalized)) {
+      for (final piece in _splitOnConjunctions(part)) {
+        final name = piece.trim().replaceAll(_whitespace, ' ');
+        final key = legacyNameKey(name);
+        if (key.isEmpty ||
+            _placeholders.contains(key) ||
+            !_letter.hasMatch(name)) {
+          continue;
+        }
+        if (seen.add(key)) names.add(name);
+      }
+    }
+    return List.unmodifiable(names);
+  }
+
+  static List<String> _splitOnSeparators(String text) {
+    final parts = <String>[];
+    final current = StringBuffer();
+    var depth = 0;
+    for (final rune in text.runes) {
+      final char = String.fromCharCode(rune);
+      if (depth == 0 && _separators.contains(char)) {
+        parts.add(current.toString());
+        current.clear();
+        continue;
+      }
+      current.write(char);
+      depth = _depthAfter(depth, char);
+    }
+    parts.add(current.toString());
+    return parts;
+  }
+
+  static List<String> _splitOnConjunctions(String part) {
+    final words = part.trim().split(_whitespace);
+    if (words.length < 2) return [part];
+    final pieces = <String>[];
+    var current = <String>[];
+    var depth = 0;
+    for (final word in words) {
+      if (depth == 0 && _conjunctions.contains(word.toLowerCase())) {
+        pieces.add(current.join(' '));
+        current = <String>[];
+      } else {
+        current = [...current, word];
+      }
+      depth = _depthAfter(depth, word);
+    }
+    pieces.add(current.join(' '));
+    return pieces;
+  }
+
+  /// Bracket depth after reading [text], starting from [depth]. A stray
+  /// closing bracket never takes it below zero.
+  static int _depthAfter(int depth, String text) {
+    var result = depth;
+    for (final rune in text.runes) {
+      final char = String.fromCharCode(rune);
+      if (char == '(' || char == '[') {
+        result++;
+      } else if ((char == ')' || char == ']') && result > 0) {
+        result--;
+      }
+    }
+    return result;
+  }
+}
