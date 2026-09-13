@@ -192,22 +192,28 @@ same code with no change in behaviour.
 
 `UniversalAdapter.checkDuplicates` loops over slices:
 
-- Existing profile: existing data is loaded through repository methods
-  that take an explicit `diverId` (`getAllTrips`, `getAllSites`,
+- The active profile (and the untargeted single-diver payload) keeps
+  today's provider-based load unchanged. Those providers call the same
+  repository methods with the active id, and about 40 existing
+  `checkDuplicates` tests override them.
+- Any other existing profile: existing data is loaded through repository
+  methods that take an explicit `diverId` (`getAllTrips`, `getAllSites`,
   `getAllEquipment`, `getAllBuddies`, `getAllDiveCenters`,
   `getAllCertifications`, `getAllTags`, `getAllDiveTypes`, `getAllDives`,
-  `getSourceUuidByDiveId`), replacing the active-diver providers. The loader
-  rejects a null id, because a null id makes those filters return every
-  diver's rows. Shared sites and trips still match for every profile.
+  `getSourceUuidByDiveId`). Only a non-null id reaches them, because a null
+  id makes those filters return every diver's rows. Shared sites and trips
+  still match for every profile.
 - `new:` target: existing data is empty; the checker still runs for
   intra-batch duplicates.
 - Each slice's result is mapped back to full-list indices and merged into
   the groups.
 
-`EntityItem` gains an optional `targetLabel`, rendered as a chip beside the
-dive-number badge in `_NonDuplicateRow`, `_EntityDuplicateCard` and
-`DuplicateActionCard`. It is set only when there are two or more targets:
-the profile name, or "New: <name>". Selections remain full-list index sets.
+`EntityItem` gains an optional `target` (`ImportTarget`: key, name, isNew),
+rendered as a small labelled line under the subtitle in `_NonDuplicateRow`,
+`_EntityDuplicateCard` and `DuplicateActionCard` (all three share that
+title and subtitle column). It is set only when there are two or more
+targets and reads the profile name, or "New: <name>". Selections remain
+full-list index sets.
 
 Projected dive numbers in Review (`review_step.dart:43`, today
 `nextDiveNumberProvider`) become a per-target lookup:
@@ -231,9 +237,11 @@ profile, so no profile's dives reference another profile's tag rows.
      selected creates no profile.
    - Map selections, `duplicateActions` and `entityMatches` to slice
      indices; build `preResolvedIdsFor` from the slice.
-   - Run `importer.import(diverId: slice.diverId)`, then consolidation and
-     photo attachment with slice indices; map results back to full-list
-     indices and record `importedDiveIds` per profile.
+   - Run `importer.import(diverId: slice.diverId)` and map its result back
+     to full-list indices, recording the dive ids per profile.
+   - After the loop, consolidation, photo attachment, file outcomes and
+     counts run once, unchanged, on the merged full-list result: every one
+     of them already works in full-list indices.
 3. Merge into one `UnifiedImportResult`: counts summed, plus a new
    `diverOutcomes` list with one entry per profile (id, name, whether new,
    counts). Background refreshes and the dive-number clash notice work by
@@ -247,11 +255,25 @@ Stored source files need no change: `ImportedFileRepository.store` is
 content-addressed (`id = sha256(bytes)`) and not diver-scoped, so every
 slice resolves to the same `imported_files` row.
 
+`UnifiedImportResult.importedDiveIds` holds only the active profile's
+dives in a multi-profile import, because every reader of it ("View Dives",
+the data-quality count, site matching) works in the active profile. Every
+profile's dives are in `diverOutcomes`.
+
 Summary step: with two or more outcomes, a "By profile" section lists each
-profile, its counts, and a "New profile" label where applicable. The active
-profile does not change. "View Dives" opens the active profile's imported
-dives; other profiles' rows read "Switch to <name> to see these dives".
-`allDiversProvider` is invalidated when a profile was created.
+profile, its dive count, and a "New profile" label where applicable. The
+active profile does not change. "View Dives" opens the active profile's
+imported dives; other profiles' rows read "Switch to <name> to see these
+dives". `allDiversProvider` already self-invalidates on the divers table,
+so a created profile appears without extra invalidation. When a later
+slice fails, the result has both outcomes and an error message; the
+Summary then shows the success view with the error above the "By profile"
+section instead of the error-only view, so the completed profiles stay
+visible.
+
+The Divers step's defaults are seeded in the Map Fields step's
+`onBeforeAdvance`, which the wizard runs even when Map Fields auto-skips,
+after the next page is chosen and before it renders.
 
 ## Risks
 
