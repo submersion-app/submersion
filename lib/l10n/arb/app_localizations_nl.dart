@@ -38993,6 +38993,38 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alles wat je na de upgrade hebt gelogd, bestaat alleen in het nieuwere bestand. Dat bestand wordt bewaard als vastgezette back-up, dus je krijgt het terug door de nieuwere versie opnieuw te installeren.';
 
   @override
+  String get startup_interruptedRestore_title =>
+      'Een terugzetactie is niet voltooid';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion was op $date een back-up aan het terugzetten toen het stopte. Je duiklogboek van vóór die terugzetactie staat nog op dit apparaat, en deze versie kan het openen.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion was een back-up aan het terugzetten toen het stopte. Je duiklogboek van vóór die terugzetactie staat nog op dit apparaat, en deze versie kan het openen.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Mijn vorige duiklogboek herstellen';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'Het bestand dat nu op zijn plaats staat, wordt ernaast bewaard en niet verwijderd.';
+
+  @override
+  String get startup_interruptedRestore_keepAction => 'Houden wat er nu staat';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'Je vorige duiklogboek wordt als bestand in de databasemap bewaard.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'Het herstel is niet voltooid. Er is niets verwijderd; beide bestanden staan nog op dit apparaat.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Nieuwere database, bewaard bij het teruggaan - $size';
   }

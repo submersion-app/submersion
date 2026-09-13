@@ -38475,6 +38475,37 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל מה שתיעדת אחרי העדכון קיים רק בקובץ החדש יותר. הקובץ הזה נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותו.';
 
   @override
+  String get startup_interruptedRestore_title => 'שחזור לא הושלם';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion הייתה באמצע שחזור גיבוי ב-$date כשהתהליך נעצר. יומן הצלילה שלך מלפני השחזור עדיין נמצא במכשיר הזה, והגרסה הזו יכולה לפתוח אותו.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion הייתה באמצע שחזור גיבוי כשהתהליך נעצר. יומן הצלילה שלך מלפני השחזור עדיין נמצא במכשיר הזה, והגרסה הזו יכולה לפתוח אותו.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'שחזור יומן הצלילה הקודם שלי';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'הקובץ שנמצא עכשיו במקומו נשמר לצידו ואינו נמחק.';
+
+  @override
+  String get startup_interruptedRestore_keepAction => 'להשאיר את מה שיש עכשיו';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'יומן הצלילה הקודם שלך נשמר כקובץ בתיקיית מסד הנתונים.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'השחזור לא הושלם. שום דבר לא נמחק; שני הקבצים עדיין נמצאים במכשיר הזה.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'מסד נתונים חדש יותר, נשמר בעת החזרה - $size';
   }

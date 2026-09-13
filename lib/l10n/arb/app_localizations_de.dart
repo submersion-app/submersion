@@ -39185,6 +39185,39 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alles, was du nach dem Upgrade eingetragen hast, liegt nur in der neueren Datei. Diese Datei wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.';
 
   @override
+  String get startup_interruptedRestore_title =>
+      'Eine Wiederherstellung wurde nicht abgeschlossen';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion hat am $date eine Sicherung wiederhergestellt, als der Vorgang abbrach. Dein Tauchlogbuch von vor dieser Wiederherstellung ist noch auf diesem Gerät, und diese Version kann es öffnen.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion hat eine Sicherung wiederhergestellt, als der Vorgang abbrach. Dein Tauchlogbuch von vor dieser Wiederherstellung ist noch auf diesem Gerät, und diese Version kann es öffnen.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Mein vorheriges Tauchlogbuch wiederherstellen';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'Die Datei, die jetzt an seiner Stelle liegt, wird daneben aufbewahrt und nicht gelöscht.';
+
+  @override
+  String get startup_interruptedRestore_keepAction =>
+      'Den jetzigen Stand behalten';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'Dein vorheriges Tauchlogbuch wird als Datei im Datenbankordner aufbewahrt.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'Die Wiederherstellung wurde nicht abgeschlossen. Es wurde nichts gelöscht; beide Dateien sind noch auf diesem Gerät.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Neuere Datenbank, beim Zurückwechseln behalten - $size';
   }

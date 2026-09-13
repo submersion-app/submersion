@@ -23984,6 +23984,23 @@
   "startup_versionMismatch_restore_title": "Restore your pre-upgrade backup",
   "startup_versionMismatch_restore_body": "A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.",
   "startup_versionMismatch_restore_warning": "Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.",
+  "startup_interruptedRestore_title": "A restore did not finish",
+  "startup_interruptedRestore_bodyWithDate": "Submersion was restoring a backup on {date} when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
+  "@startup_interruptedRestore_bodyWithDate": {
+    "description": "Startup screen after a restore stopped with the previous database still aside. The date is when the restore began, preformatted.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sat, Sep 13 10:30 AM"
+      }
+    }
+  },
+  "startup_interruptedRestore_body": "Submersion was restoring a backup when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
+  "startup_interruptedRestore_recoverAction": "Recover my previous dive log",
+  "startup_interruptedRestore_recoverNote": "The file that is in its place now is kept beside it, not deleted.",
+  "startup_interruptedRestore_keepAction": "Keep what is there now",
+  "startup_interruptedRestore_keepNote": "Your previous dive log is kept as a file in the database folder.",
+  "startup_interruptedRestore_failed": "Recovery did not complete. Nothing was deleted; both files are still on this device.",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
     "placeholders": {

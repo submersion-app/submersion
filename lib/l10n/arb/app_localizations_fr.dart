@@ -39372,6 +39372,39 @@ class AppLocalizationsFr extends AppLocalizations {
       'Tout ce que vous avez enregistré après la mise à jour n\'existe que dans le fichier le plus récent. Ce fichier est conservé comme sauvegarde épinglée : réinstallez la version plus récente pour le retrouver.';
 
   @override
+  String get startup_interruptedRestore_title =>
+      'Une restauration ne s’est pas terminée';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion restaurait une sauvegarde le $date lorsque l’opération s’est arrêtée. Votre carnet de plongée d’avant cette restauration est toujours sur cet appareil, et cette version peut l’ouvrir.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion restaurait une sauvegarde lorsque l’opération s’est arrêtée. Votre carnet de plongée d’avant cette restauration est toujours sur cet appareil, et cette version peut l’ouvrir.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Récupérer mon carnet de plongée précédent';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'Le fichier qui se trouve maintenant à sa place est conservé à côté, pas supprimé.';
+
+  @override
+  String get startup_interruptedRestore_keepAction =>
+      'Conserver ce qui s’y trouve maintenant';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'Votre carnet de plongée précédent est conservé sous forme de fichier dans le dossier de la base de données.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'La récupération n’a pas abouti. Rien n’a été supprimé. Les deux fichiers sont toujours sur cet appareil.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base plus récente, conservée lors du retour en arrière - $size';
   }

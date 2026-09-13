@@ -38662,6 +38662,37 @@ class AppLocalizationsEn extends AppLocalizations {
       'Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.';
 
   @override
+  String get startup_interruptedRestore_title => 'A restore did not finish';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion was restoring a backup on $date when it stopped. Your dive log from before that restore is still on this device, and this version can open it.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion was restoring a backup when it stopped. Your dive log from before that restore is still on this device, and this version can open it.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Recover my previous dive log';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'The file that is in its place now is kept beside it, not deleted.';
+
+  @override
+  String get startup_interruptedRestore_keepAction => 'Keep what is there now';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'Your previous dive log is kept as a file in the database folder.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'Recovery did not complete. Nothing was deleted; both files are still on this device.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Newer database, kept when going back - $size';
   }

@@ -39307,6 +39307,38 @@ class AppLocalizationsEs extends AppLocalizations {
       'Todo lo que registraste después de la actualización solo existe en el archivo más reciente. Ese archivo se conserva como copia fijada, así que volver a instalar la versión más reciente lo recupera.';
 
   @override
+  String get startup_interruptedRestore_title => 'Una restauración no terminó';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion estaba restaurando una copia de seguridad el $date cuando se detuvo. Tu cuaderno de buceo de antes de esa restauración sigue en este dispositivo y esta versión puede abrirlo.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion estaba restaurando una copia de seguridad cuando se detuvo. Tu cuaderno de buceo de antes de esa restauración sigue en este dispositivo y esta versión puede abrirlo.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Recuperar mi cuaderno de buceo anterior';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'El archivo que ocupa ahora su lugar se conserva a su lado; no se elimina.';
+
+  @override
+  String get startup_interruptedRestore_keepAction =>
+      'Conservar lo que hay ahora';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'Tu cuaderno de buceo anterior se conserva como archivo en la carpeta de la base de datos.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'La recuperación no se completó. No se eliminó nada; ambos archivos siguen en este dispositivo.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base de datos más reciente, conservada al volver atrás - $size';
   }

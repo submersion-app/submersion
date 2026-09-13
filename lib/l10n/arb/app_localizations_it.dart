@@ -39258,6 +39258,39 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tutto ciò che hai registrato dopo l\'aggiornamento esiste solo nel file più recente. Quel file viene conservato come backup bloccato: reinstallando la versione più recente lo recuperi.';
 
   @override
+  String get startup_interruptedRestore_title =>
+      'Un ripristino non è stato completato';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion stava ripristinando un backup il $date quando si è interrotto. Il tuo diario di immersione di prima di quel ripristino è ancora su questo dispositivo e questa versione può aprirlo.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion stava ripristinando un backup quando si è interrotto. Il tuo diario di immersione di prima di quel ripristino è ancora su questo dispositivo e questa versione può aprirlo.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Recupera il mio diario di immersione precedente';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'Il file che ora si trova al suo posto viene conservato accanto, non eliminato.';
+
+  @override
+  String get startup_interruptedRestore_keepAction =>
+      'Mantieni quello che c\'è ora';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'Il tuo diario di immersione precedente viene conservato come file nella cartella del database.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'Il recupero non è stato completato. Non è stato eliminato nulla; entrambi i file sono ancora su questo dispositivo.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Database più recente, conservato tornando indietro - $size';
   }

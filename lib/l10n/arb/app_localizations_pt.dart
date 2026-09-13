@@ -39274,6 +39274,37 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tudo o que registaste depois da atualização existe apenas no ficheiro mais recente. Esse ficheiro fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-o.';
 
   @override
+  String get startup_interruptedRestore_title => 'Um restauro não terminou';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'O Submersion estava a restaurar uma cópia de segurança em $date quando parou. O seu diário de mergulho de antes desse restauro continua neste dispositivo e esta versão consegue abri-lo.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'O Submersion estava a restaurar uma cópia de segurança quando parou. O seu diário de mergulho de antes desse restauro continua neste dispositivo e esta versão consegue abri-lo.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Recuperar o meu diário de mergulho anterior';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'O ficheiro que está agora no seu lugar é guardado ao lado, não eliminado.';
+
+  @override
+  String get startup_interruptedRestore_keepAction => 'Manter o que está agora';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'O seu diário de mergulho anterior fica guardado como ficheiro na pasta da base de dados.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'A recuperação não foi concluída. Nada foi eliminado; ambos os ficheiros continuam neste dispositivo.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base de dados mais recente, guardada ao recuar - $size';
   }

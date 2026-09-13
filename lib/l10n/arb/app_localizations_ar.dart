@@ -38866,6 +38866,38 @@ class AppLocalizationsAr extends AppLocalizations {
       'كل ما سجّلته بعد الترقية موجود في الملف الأحدث فقط. يُحتفظ بذلك الملف كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيده.';
 
   @override
+  String get startup_interruptedRestore_title => 'لم تكتمل عملية استعادة';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'كان Submersion يستعيد نسخة احتياطية في $date عندما توقف. لا يزال سجل الغوص الخاص بك من قبل تلك الاستعادة على هذا الجهاز، ويمكن لهذا الإصدار فتحه.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'كان Submersion يستعيد نسخة احتياطية عندما توقف. لا يزال سجل الغوص الخاص بك من قبل تلك الاستعادة على هذا الجهاز، ويمكن لهذا الإصدار فتحه.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'استرداد سجل الغوص السابق';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'يُحتفظ بالملف الموجود مكانه الآن بجانبه، ولا يُحذف.';
+
+  @override
+  String get startup_interruptedRestore_keepAction =>
+      'الإبقاء على الموجود حاليًا';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'يُحتفظ بسجل الغوص السابق كملف في مجلد قاعدة البيانات.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'لم تكتمل عملية الاسترداد. لم يُحذف أي شيء؛ لا يزال الملفان على هذا الجهاز.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'قاعدة بيانات أحدث، محفوظة عند الرجوع - $size';
   }

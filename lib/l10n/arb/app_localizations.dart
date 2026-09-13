@@ -63941,6 +63941,54 @@ abstract class AppLocalizations {
   /// **'Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.'**
   String get startup_versionMismatch_restore_warning;
 
+  /// No description provided for @startup_interruptedRestore_title.
+  ///
+  /// In en, this message translates to:
+  /// **'A restore did not finish'**
+  String get startup_interruptedRestore_title;
+
+  /// Startup screen after a restore stopped with the previous database still aside. The date is when the restore began, preformatted.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion was restoring a backup on {date} when it stopped. Your dive log from before that restore is still on this device, and this version can open it.'**
+  String startup_interruptedRestore_bodyWithDate(String date);
+
+  /// No description provided for @startup_interruptedRestore_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion was restoring a backup when it stopped. Your dive log from before that restore is still on this device, and this version can open it.'**
+  String get startup_interruptedRestore_body;
+
+  /// No description provided for @startup_interruptedRestore_recoverAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover my previous dive log'**
+  String get startup_interruptedRestore_recoverAction;
+
+  /// No description provided for @startup_interruptedRestore_recoverNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The file that is in its place now is kept beside it, not deleted.'**
+  String get startup_interruptedRestore_recoverNote;
+
+  /// No description provided for @startup_interruptedRestore_keepAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep what is there now'**
+  String get startup_interruptedRestore_keepAction;
+
+  /// No description provided for @startup_interruptedRestore_keepNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your previous dive log is kept as a file in the database folder.'**
+  String get startup_interruptedRestore_keepNote;
+
+  /// No description provided for @startup_interruptedRestore_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery did not complete. Nothing was deleted; both files are still on this device.'**
+  String get startup_interruptedRestore_failed;
+
   /// No description provided for @backup_history_preDowngradeSubtitle.
   ///
   /// In en, this message translates to:

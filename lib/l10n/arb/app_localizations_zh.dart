@@ -36963,6 +36963,34 @@ class AppLocalizationsZh extends AppLocalizations {
       '升级之后记录的内容只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。';
 
   @override
+  String get startup_interruptedRestore_title => '有一次恢复未完成';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'Submersion 在 $date 恢复备份时中断了。恢复之前的潜水日志仍在此设备上，且此版本可以打开它。';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'Submersion 在恢复备份时中断了。恢复之前的潜水日志仍在此设备上，且此版本可以打开它。';
+
+  @override
+  String get startup_interruptedRestore_recoverAction => '恢复我之前的潜水日志';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      '当前位于其位置的文件会保留在旁边，不会被删除。';
+
+  @override
+  String get startup_interruptedRestore_keepAction => '保留当前内容';
+
+  @override
+  String get startup_interruptedRestore_keepNote => '您之前的潜水日志将作为文件保留在数据库文件夹中。';
+
+  @override
+  String get startup_interruptedRestore_failed => '恢复未完成。没有删除任何内容；两个文件仍在此设备上。';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return '较新的数据库，回退时保留 - $size';
   }

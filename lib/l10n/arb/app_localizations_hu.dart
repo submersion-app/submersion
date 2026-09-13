@@ -39105,6 +39105,39 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden, amit a frissítés után rögzítettél, csak az újabb fájlban létezik. Azt a fájlt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod.';
 
   @override
+  String get startup_interruptedRestore_title =>
+      'Egy visszaállítás nem fejeződött be';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'A Submersion éppen egy biztonsági másolatot állított vissza ($date), amikor leállt. A visszaállítás előtti merülési naplód még ezen az eszközön van, és ez a verzió meg tudja nyitni.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'A Submersion éppen egy biztonsági másolatot állított vissza, amikor leállt. A visszaállítás előtti merülési naplód még ezen az eszközön van, és ez a verzió meg tudja nyitni.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'Előző merülési naplóm visszaállítása';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'A most a helyén lévő fájl mellette megmarad, nem törlődik.';
+
+  @override
+  String get startup_interruptedRestore_keepAction =>
+      'A mostani állapot megtartása';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'Az előző merülési naplód fájlként megmarad az adatbázis mappájában.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'A helyreállítás nem fejeződött be. Semmi sem törlődött; mindkét fájl még ezen az eszközön van.';
+
+  @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Újabb adatbázis, visszalépéskor megőrizve - $size';
   }
