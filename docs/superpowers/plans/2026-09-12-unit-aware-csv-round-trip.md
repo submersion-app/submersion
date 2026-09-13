@@ -2191,7 +2191,7 @@ class CsvEquipmentWriter {
   // Curated keys already covered by dedicated columns; excluded from the
   // combined Attributes column to avoid duplication. Custom fields are never
   // excluded even if their key collides with one of these, because the
-  // dedicated columns read curated attributes only -- so a custom "size"
+  // dedicated columns read curated attributes only, so a custom "size"
   // would otherwise be dropped from the export entirely.
   static const _dedicatedAttrKeys = {
     EquipmentAttrKeys.size,
@@ -2260,7 +2260,7 @@ class CsvEquipmentWriter {
 }
 ```
 
-The existing comment above `_dedicatedAttrKeys` contains `--`; it is pre-existing text carried over verbatim, which the no-new-dashes rule allows. Do not add new ones.
+The comment above `_dedicatedAttrKeys` is the old service's comment with its double hyphen rewritten as ", so"; keep it that way.
 
 - [ ] **Step 5: Delegate from `CsvExportService` and `ExportService`**
 
