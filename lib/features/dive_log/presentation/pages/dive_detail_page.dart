@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
@@ -122,6 +124,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weather/presentation/widgets/weather_description_builder.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
@@ -5548,15 +5551,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 final saveTitle =
                     context.l10n.settings_export_saveDivesCsvDialogTitle;
                 Navigator.of(sheetContext).pop();
+                CsvExportUnits csvUnitsFor(ExportChoice choice) =>
+                    CsvExportUnits.forMode(
+                      choice.csvUnitMode,
+                      ref.read(settingsProvider),
+                    );
                 _handleSingleDiveExport(
                   context,
                   ref,
                   title: context.l10n.diveLog_export_csv,
-                  shareFn: (_) =>
-                      ref.read(exportServiceProvider).exportDivesToCsv([dive]),
-                  saveFn: (_) => ref
+                  offerCsvUnits: true,
+                  shareFn: (choice) => ref
                       .read(exportServiceProvider)
-                      .saveDivesCsvToFile([dive], dialogTitle: saveTitle),
+                      .exportDivesToCsv([dive], units: csvUnitsFor(choice)),
+                  saveFn: (choice) => ref
+                      .read(exportServiceProvider)
+                      .saveDivesCsvToFile(
+                        [dive],
+                        dialogTitle: saveTitle,
+                        units: csvUnitsFor(choice),
+                      ),
                 );
               },
             ),
@@ -5573,31 +5587,31 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   title: context.l10n.diveLog_export_uddf,
                   offerRawData: true,
                   offerDiveContent: true,
-                  shareFn: (options) async => ref
+                  shareFn: (choice) async => ref
                       .read(exportServiceProvider)
                       .exportDivesToUddf(
                         [dive],
                         sites: sites,
-                        options: options,
+                        options: choice.options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
                           dive.id,
-                        ], options),
+                        ], choice.options),
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
-                        ], options),
+                        ], choice.options),
                       ),
-                  saveFn: (options) async => ref
+                  saveFn: (choice) async => ref
                       .read(exportServiceProvider)
                       .saveDivesToUddfFile(
                         [dive],
                         sites: sites,
-                        options: options,
+                        options: choice.options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
                           dive.id,
-                        ], options),
+                        ], choice.options),
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
-                        ], options),
+                        ], choice.options),
                       ),
                 );
               },
@@ -5648,20 +5662,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     WidgetRef ref, {
     required String title,
-    required Future<String> Function(UddfExportOptions options) shareFn,
-    required Future<String?> Function(UddfExportOptions options) saveFn,
+    required Future<String> Function(ExportChoice choice) shareFn,
+    required Future<String?> Function(ExportChoice choice) saveFn,
     bool offerRawData = false,
     bool offerDiveContent = false,
+    bool offerCsvUnits = false,
   }) async {
     final choice = await showExportDestinationSheetWithOptions(
       context,
       title: title,
       showRawDataToggle: offerRawData,
       showDiveContentToggles: offerDiveContent,
+      showCsvUnitsToggle: offerCsvUnits,
+      initialCsvUnitMode: ref.read(csvUnitModeProvider),
     );
     if (choice == null || !context.mounted) return;
+    if (offerCsvUnits) {
+      unawaited(ref.read(csvUnitModeProvider.notifier).set(choice.csvUnitMode));
+    }
     final destination = choice.destination;
-    final options = choice.options;
 
     final showProgress = destination == ExportDestination.share;
     if (showProgress) {
@@ -5682,8 +5701,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     try {
       final path = switch (destination) {
-        ExportDestination.share => await shareFn(options),
-        ExportDestination.saveToFile => await saveFn(options),
+        ExportDestination.share => await shareFn(choice),
+        ExportDestination.saveToFile => await saveFn(choice),
       };
       if (!context.mounted) return;
       if (showProgress) Navigator.of(context, rootNavigator: true).pop();

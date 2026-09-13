@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 
@@ -63,6 +64,39 @@ Future<ValueGetter<Object?>> _pumpOptionsHost(
                 title: 'Dive Log UDDF',
                 showRawDataToggle: showRawDataToggle,
                 showDiveContentToggles: showDiveContentToggles,
+              );
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+  return () => result;
+}
+
+/// Pumps a host for the sheet with the CSV unit choice (#1813).
+Future<ValueGetter<Object?>> _pumpCsvHost(
+  WidgetTester tester, {
+  bool showCsvUnitsToggle = true,
+}) async {
+  Object? result = #pending;
+  await tester.pumpWidget(
+    MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              result = await showExportDestinationSheetWithOptions(
+                context,
+                title: 'Dive Log CSV',
+                showCsvUnitsToggle: showCsvUnitsToggle,
+                initialCsvUnitMode: CsvUnitMode.myUnits,
               );
             },
             child: const Text('open'),
@@ -233,5 +267,23 @@ void main() {
       tester.getSize(find.byType(SingleChildScrollView)).height,
       lessThan(screenHeight / 2),
     );
+  });
+
+  testWidgets('the CSV unit choice is returned with the destination', (
+    tester,
+  ) async {
+    final result = await _pumpCsvHost(tester);
+    await tester.tap(find.text('Metric'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.share));
+    await tester.pumpAndSettle();
+    final choice = result()! as ExportChoice;
+    expect(choice.destination, ExportDestination.share);
+    expect(choice.csvUnitMode, CsvUnitMode.metric);
+  });
+
+  testWidgets('no unit choice unless asked for', (tester) async {
+    await _pumpCsvHost(tester, showCsvUnitsToggle: false);
+    expect(find.text('My units'), findsNothing);
   });
 }
