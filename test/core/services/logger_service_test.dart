@@ -303,6 +303,107 @@ void main() {
     });
   });
 
+  group('LoggerService file logging level (#1826)', () {
+    late Directory tempDir;
+    late LogFileService fileService;
+
+    setUp(() async {
+      tempDir = Directory.systemTemp.createTempSync('logger_level_test_');
+      fileService = LogFileService(logDirectory: tempDir.path);
+      await fileService.initialize();
+    });
+
+    tearDown(() async {
+      await flushLogs();
+      LoggerService.setFileService(null);
+      LoggerService.setMinimumFileLevel(LogLevel.debug);
+      tempDir.deleteSync(recursive: true);
+    });
+
+    test('configureFileLogging(verbose: false) persists only warnings '
+        'and errors', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+
+      const logger = LoggerService('TestLogger');
+      logger.debug('debug line');
+      logger.info('info line');
+      logger.warning('warning line');
+      logger.error('error line');
+      await flushLogs();
+
+      final entries = await fileService.readEntries();
+      expect(entries.map((e) => e.message), ['warning line', 'error line']);
+    });
+
+    test('configureFileLogging(verbose: true) persists every level', () async {
+      LoggerService.configureFileLogging(fileService, verbose: true);
+
+      const logger = LoggerService('TestLogger');
+      logger.debug('debug line');
+      logger.info('info line');
+      logger.warning('warning line');
+      logger.error('error line');
+      await flushLogs();
+
+      final entries = await fileService.readEntries();
+      expect(entries.map((e) => e.level), [
+        LogLevel.debug,
+        LogLevel.info,
+        LogLevel.warning,
+        LogLevel.error,
+      ]);
+    });
+
+    test('filtered levels still reach live listeners', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      final seen = <LogEntry>[];
+      final sub = LoggerService.logStream.listen(seen.add);
+      addTearDown(sub.cancel);
+
+      const LoggerService('TestLogger').debug('only on the stream');
+      await flushLogs();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(seen.map((e) => e.message), contains('only on the stream'));
+      expect(await fileService.readEntries(), isEmpty);
+    });
+
+    test('info(alwaysPersist: true) is written below the floor', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+
+      const logger = LoggerService('TestLogger');
+      logger.info('session marker', alwaysPersist: true);
+      logger.info('ordinary info');
+      await flushLogs();
+
+      final entries = await fileService.readEntries();
+      expect(entries.map((e) => e.message), ['session marker']);
+    });
+
+    test('secrets in a message or its error are redacted before the '
+        'line is written', () async {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+
+      const LoggerService('TestLogger').error(
+        'Token refresh failed for https://x.test/cb?access_token=leak1',
+        error: 'Authorization: Bearer leak2',
+      );
+      await flushLogs();
+
+      final raw = File(fileService.logFilePath).readAsStringSync();
+      expect(raw, contains('Token refresh failed'));
+      expect(raw, isNot(contains('leak1')));
+      expect(raw, isNot(contains('leak2')));
+    });
+
+    test('minimumFileLevel reports the configured floor', () {
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      expect(LoggerService.minimumFileLevel, LogLevel.warning);
+      LoggerService.configureFileLogging(fileService, verbose: true);
+      expect(LoggerService.minimumFileLevel, LogLevel.debug);
+    });
+  });
+
   group('RepositoryException', () {
     test('toString includes message and operation', () {
       final ex = RepositoryException(

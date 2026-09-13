@@ -36824,6 +36824,41 @@ class AppLocalizationsFr extends AppLocalizations {
       'Enregistrer les journaux de débogage';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostic';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Afficher le journal';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Les avertissements et les erreurs sont enregistrés automatiquement';
+
+  @override
+  String get settings_diagnostics_copy => 'Copier le diagnostic';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Version de l\'app, appareil et lignes récentes du journal pour un rapport de bug';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostic copié dans le presse-papiers';
+
+  @override
+  String get settings_diagnostics_openFolder =>
+      'Ouvrir le dossier des journaux';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Impossible d\'ouvrir le dossier des journaux. Il se trouve ici : $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Impossible de copier le diagnostic : $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Enregistrer comme preset';
 
   @override

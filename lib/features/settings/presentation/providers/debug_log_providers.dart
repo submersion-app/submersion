@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/log_redactor.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -138,17 +140,20 @@ Future<String> _exportHeader(LogEnvironment? environment) async {
   return resolved.toExportHeader();
 }
 
-/// The log file's bytes behind the export header.
+/// The log file's content behind the export header, as UTF-8 bytes.
 ///
-/// Concatenated as BYTES rather than decoded to a string first: the log
-/// carries whatever a device name or a native log message put in it, and
-/// `readAsString` throws on a malformed UTF-8 sequence. Losing the whole
-/// export to one bad byte is a worse outcome than passing it through.
-Future<Uint8List> _exportBytes(File file, String header) async {
-  return Uint8List.fromList([
-    ...utf8.encode(header),
-    ...await file.readAsBytes(),
-  ]);
+/// Decoded leniently rather than with `readAsString`: the log carries
+/// whatever a device name or a native log message put in it, and a strict
+/// decode throws on a malformed UTF-8 sequence. Losing the whole export to
+/// one bad byte is a worse outcome than a replacement character.
+///
+/// Redacted on the way out (#1826) because a file written by an older build
+/// predates the logger's own redaction, and an export is what gets attached
+/// to a public bug report.
+@visibleForTesting
+Future<Uint8List> buildLogExportBytes(File file, String header) async {
+  final content = utf8.decode(await file.readAsBytes(), allowMalformed: true);
+  return utf8.encode('$header${redactSecrets(content)}');
 }
 
 /// Share the full log file via system share sheet.
@@ -177,7 +182,7 @@ Future<void> shareLogFile(
   // directory to a single file across repeated shares.
   final tempDir = await getTemporaryDirectory();
   final export = File('${tempDir.path}/$_exportFileName');
-  await export.writeAsBytes(await _exportBytes(file, header));
+  await export.writeAsBytes(await buildLogExportBytes(file, header));
 
   await SharePlus.instance.share(
     ShareParams(
@@ -200,7 +205,9 @@ Future<void> copyFilteredLogs(
   LogEnvironment? environment,
 }) async {
   final header = await _exportHeader(environment);
-  final text = entries.map((e) => e.toLogLine()).join('\n');
+  // Redacted for the same reason as buildLogExportBytes: entries read back
+  // from a file an older build wrote predate the logger's redaction.
+  final text = redactSecrets(entries.map((e) => e.toLogLine()).join('\n'));
   await Clipboard.setData(ClipboardData(text: '$header$text'));
 }
 
@@ -218,7 +225,7 @@ Future<String?> saveLogFile(
     dialogTitle: l10n.settings_debugLog_saveDialogTitle,
     fileName: _exportFileName,
     type: FileType.custom,
-    bytes: await _exportBytes(file, header),
+    bytes: await buildLogExportBytes(file, header),
     mimeType: 'text/plain',
   );
 

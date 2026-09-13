@@ -48,6 +48,7 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
@@ -3338,6 +3339,13 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_diagnostics_header,
+          ),
+          const SizedBox(height: 8),
+          const DiagnosticsCard(),
           // Auto-update section (only for non-store builds)
           if (UpdateChannelConfig.isAutoUpdateEnabled) ...[
             const SizedBox(height: 24),

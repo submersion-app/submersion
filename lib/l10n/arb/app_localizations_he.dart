@@ -35999,6 +35999,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'שמירת יומני ניפוי באגים';
 
   @override
+  String get settings_diagnostics_header => 'אבחון';
+
+  @override
+  String get settings_diagnostics_viewLog => 'הצגת היומן';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'אזהרות ושגיאות נרשמות באופן אוטומטי';
+
+  @override
+  String get settings_diagnostics_copy => 'העתקת נתוני אבחון';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'גרסת האפליקציה, המכשיר ושורות יומן אחרונות לדיווח על באג';
+
+  @override
+  String get settings_diagnostics_copiedSnack => 'נתוני האבחון הועתקו ללוח';
+
+  @override
+  String get settings_diagnostics_openFolder => 'פתיחת תיקיית היומנים';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'לא ניתן לפתוח את תיקיית היומנים. היא נמצאת ב: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'לא ניתן להעתיק את נתוני האבחון: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'שמירה כתבנית';
 
   @override

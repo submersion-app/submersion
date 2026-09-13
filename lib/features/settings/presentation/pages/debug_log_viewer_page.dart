@@ -30,6 +30,7 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
   @override
   Widget build(BuildContext context) {
     final filteredEntriesAsync = ref.watch(filteredLogEntriesProvider);
+    final debugEnabled = ref.watch(debugModeNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -77,10 +78,13 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'disable',
-                child: Text(context.l10n.settings_debugLog_disableDebugMode),
-              ),
+              // The viewer is also reachable from Settings > About >
+              // Diagnostics with debug mode off (#1826).
+              if (debugEnabled)
+                PopupMenuItem(
+                  value: 'disable',
+                  child: Text(context.l10n.settings_debugLog_disableDebugMode),
+                ),
               PopupMenuItem(
                 value: 'clear',
                 child: Text(context.l10n.settings_debugLog_clearLogs),

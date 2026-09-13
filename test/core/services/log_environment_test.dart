@@ -100,6 +100,22 @@ void main() {
 
       expect(entries.single.message, contains(Platform.operatingSystem));
     });
+
+    test('is written even when only warnings and errors are persisted '
+        '(#1826)', () async {
+      // Outside debug mode the file keeps warnings and errors only; without
+      // the session marker those lines could not be attributed to a build.
+      LoggerService.configureFileLogging(service, verbose: false);
+      addTearDown(() => LoggerService.setMinimumFileLevel(LogLevel.debug));
+
+      await logSessionEnvironment();
+      await LoggerService.flushPendingWrites();
+
+      final entries = await service.readEntries();
+
+      expect(entries, hasLength(1));
+      expect(entries.single.message, startsWith('Session start: Submersion'));
+    });
   });
 
   group('capture', () {

@@ -36341,6 +36341,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'حفظ سجلات التصحيح';
 
   @override
+  String get settings_diagnostics_header => 'التشخيص';
+
+  @override
+  String get settings_diagnostics_viewLog => 'عرض السجل';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'يتم تسجيل التحذيرات والأخطاء تلقائيًا';
+
+  @override
+  String get settings_diagnostics_copy => 'نسخ بيانات التشخيص';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'إصدار التطبيق والجهاز وأحدث أسطر السجل لإرفاقها ببلاغ عن خطأ';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'تم نسخ بيانات التشخيص إلى الحافظة';
+
+  @override
+  String get settings_diagnostics_openFolder => 'فتح مجلد السجلات';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'تعذر فتح مجلد السجلات. موقعه: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'تعذر نسخ بيانات التشخيص: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'حفظ كإعداد مسبق';
 
   @override

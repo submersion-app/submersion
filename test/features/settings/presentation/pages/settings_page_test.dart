@@ -1038,6 +1038,19 @@ void main() {
       ];
     }
 
+    testWidgets('shows a Diagnostics card without debug mode (#1826)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Copy diagnostics'), 100);
+      expect(find.text('Diagnostics'), findsOneWidget);
+      expect(find.text('View log'), findsOneWidget);
+      expect(find.text('Copy diagnostics'), findsOneWidget);
+    });
+
     testWidgets('shows the channel selector on stable', (tester) async {
       await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
       await tester.pumpAndSettle();

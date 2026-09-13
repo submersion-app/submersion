@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/log_redactor.dart';
 
 /// Simple logging service for the application.
 /// Uses Dart's developer.log for structured logging and writes to a
@@ -23,11 +24,39 @@ class LoggerService {
   /// Stream of log entries emitted in real time.
   static Stream<LogEntry> get logStream => _logStreamController.stream;
 
+  /// Lowest severity written to the log file. Live listeners on [logStream]
+  /// see every level regardless.
+  static LogLevel _minimumFileLevel = LogLevel.debug;
+
   /// Set or clear the file logging backend.
-  /// Pass `null` to disable file logging (e.g. when debug mode is off).
+  /// Pass `null` to disable file logging entirely.
   static void setFileService(LogFileService? fileService) {
     _fileService = fileService;
     _pendingWrite = Future<void>.value();
+  }
+
+  /// Lowest severity currently written to the log file.
+  static LogLevel get minimumFileLevel => _minimumFileLevel;
+
+  /// Set the lowest severity written to the log file.
+  static void setMinimumFileLevel(LogLevel level) {
+    _minimumFileLevel = level;
+  }
+
+  /// Attach [fileService] and choose how much of the log it keeps.
+  ///
+  /// Warnings and errors are always persisted, so a bug report can carry the
+  /// failure that prompted it even when nobody had turned on debug mode
+  /// beforehand (#1826). [verbose] (debug mode) adds the debug and info
+  /// levels, which are too chatty to keep by default.
+  static void configureFileLogging(
+    LogFileService fileService, {
+    required bool verbose,
+  }) {
+    if (!identical(_fileService, fileService)) {
+      setFileService(fileService);
+    }
+    _minimumFileLevel = verbose ? LogLevel.debug : LogLevel.warning;
   }
 
   const LoggerService(this._name);
@@ -50,11 +79,17 @@ class LoggerService {
   }
 
   /// Log an info message
+  ///
+  /// [alwaysPersist] writes the line to the file even below
+  /// [minimumFileLevel]. Reserved for rare, non-sensitive markers such as the
+  /// once-per-launch session line, which attributes the warnings after it to
+  /// the build that wrote them.
   void info(
     String message, {
     LogCategory category = LogCategory.app,
     Object? error,
     StackTrace? stackTrace,
+    bool alwaysPersist = false,
   }) {
     _log(
       message,
@@ -63,6 +98,7 @@ class LoggerService {
       developerLevel: 800,
       error: error,
       stackTrace: stackTrace,
+      alwaysPersist: alwaysPersist,
     );
   }
 
@@ -107,6 +143,7 @@ class LoggerService {
     required int developerLevel,
     Object? error,
     StackTrace? stackTrace,
+    bool alwaysPersist = false,
   }) {
     // Console logging via dart:developer
     developer.log(
@@ -117,18 +154,26 @@ class LoggerService {
       stackTrace: stackTrace,
     );
 
-    // File logging
+    // Capture the current file service so that later changes to
+    // _fileService do not affect already-emitted log entries.
+    final service = _fileService;
+    final persist =
+        service != null &&
+        (alwaysPersist || level.index >= _minimumFileLevel.index);
+
+    // File logging. Redacted here rather than at each call site: the file is
+    // what users attach to public bug reports, and an exception's toString()
+    // can carry a request URL or response body nobody chose to log. Lines
+    // that are not persisted skip the work; the live stream stays in memory.
+    final text = error != null ? '$message | error: $error' : message;
     final entry = LogEntry(
       timestamp: DateTime.now(),
       category: category,
       level: level,
-      message: error != null ? '$message | error: $error' : message,
+      message: persist ? redactSecrets(text) : text,
     );
-    final logLine = entry.toLogLine();
-    // Capture the current file service so that later changes to
-    // _fileService do not affect already-emitted log entries.
-    final service = _fileService;
-    if (service != null) {
+    if (persist) {
+      final logLine = entry.toLogLine();
       _pendingWrite = _pendingWrite
           .then((_) => service.writeLine(logLine))
           .catchError((Object e, StackTrace st) {

@@ -60115,6 +60115,60 @@ abstract class AppLocalizations {
   /// **'Save Debug Logs'**
   String get settings_debugLog_saveDialogTitle;
 
+  /// Header of the Diagnostics card in Settings > About.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get settings_diagnostics_header;
+
+  /// Diagnostics row that opens the log viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'View log'**
+  String get settings_diagnostics_viewLog;
+
+  /// Subtitle explaining that warnings and errors are logged even without debug mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Warnings and errors are recorded automatically'**
+  String get settings_diagnostics_viewLogSubtitle;
+
+  /// Diagnostics row that copies a bug-report summary to the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostics'**
+  String get settings_diagnostics_copy;
+
+  /// Subtitle describing what Copy diagnostics puts on the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'App version, device and recent log lines for a bug report'**
+  String get settings_diagnostics_copySubtitle;
+
+  /// Snack bar confirming the diagnostics summary was copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics copied to clipboard'**
+  String get settings_diagnostics_copiedSnack;
+
+  /// Desktop-only Diagnostics row that opens the log folder in the file manager.
+  ///
+  /// In en, this message translates to:
+  /// **'Open log folder'**
+  String get settings_diagnostics_openFolder;
+
+  /// Snack bar shown when the file manager refuses to open the log folder; shows the folder path instead.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the log folder. It is at: {path}'**
+  String settings_diagnostics_openFolderFailed(String path);
+
+  /// Snack bar shown when Copy diagnostics fails, with the error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not copy diagnostics: {error}'**
+  String settings_diagnostics_copyFailed(Object error);
+
   /// No description provided for @universalImport_preset_saveTitle.
   ///
   /// In en, this message translates to:
