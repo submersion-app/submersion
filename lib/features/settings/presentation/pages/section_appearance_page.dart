@@ -21,6 +21,7 @@ class _SectionConfig {
   final bool hasSiteCards;
   final bool hasDiveProfile;
   final bool hasDiveDetails;
+  final bool hasSiteDetails;
   final bool hasDiveTableExtras;
 
   const _SectionConfig({
@@ -31,6 +32,7 @@ class _SectionConfig {
     this.hasSiteCards = false,
     this.hasDiveProfile = false,
     this.hasDiveDetails = false,
+    this.hasSiteDetails = false,
     this.hasDiveTableExtras = false,
   });
 }
@@ -58,6 +60,7 @@ const _sectionConfigs = <String, _SectionConfig>{
     ],
     hasCardsSection: true,
     hasSiteCards: true,
+    hasSiteDetails: true,
   ),
   'buddies': _SectionConfig(
     key: 'buddies',
@@ -246,6 +249,16 @@ class SectionAppearancePage extends ConsumerWidget {
             context.l10n.settings_appearance_header_diveDetails,
           ),
           ..._buildDiveDetailsSettings(context, ref),
+        ],
+
+        // -- Site Details section (sites only) --
+        if (config.hasSiteDetails) ...[
+          const Divider(),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_siteDetails,
+          ),
+          ..._buildSiteDetailsSettings(context),
         ],
 
         const SizedBox(height: 32),
@@ -603,6 +616,28 @@ class SectionAppearancePage extends ConsumerWidget {
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/settings/dive-detail-sections'),
+      ),
+    ];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Site Details section
+  // ---------------------------------------------------------------------------
+
+  List<Widget> _buildSiteDetailsSettings(BuildContext context) {
+    return [
+      ListTile(
+        leading: const Icon(Icons.reorder),
+        title: Text(
+          context.l10n.settings_appearance_diveDetails_sectionOrderVisibility,
+        ),
+        subtitle: Text(
+          context
+              .l10n
+              .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.push('/settings/site-detail-sections'),
       ),
     ];
   }

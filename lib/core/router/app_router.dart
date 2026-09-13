@@ -104,6 +104,7 @@ import 'package:submersion/features/settings/presentation/pages/home_appearance_
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
+import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
 import 'package:submersion/features/safety/presentation/pages/chambers_directory_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
@@ -1130,6 +1131,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'dive-detail-sections',
                 name: 'diveDetailSections',
                 builder: (context, state) => const DiveDetailSectionsPage(),
+              ),
+              GoRoute(
+                path: 'site-detail-sections',
+                name: 'siteDetailSections',
+                builder: (context, state) => const SiteDetailSectionsPage(),
               ),
               GoRoute(
                 path: 'safety',
