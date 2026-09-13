@@ -326,9 +326,15 @@ void main() {
       }
     });
 
+    test('drops the quote the export adds before a leading quote', () {
+      expect(converter.unescapeCsvInjectionGuard("''quoted"), "'quoted");
+      expect(converter.unescapeCsvInjectionGuard("''=1+1"), "'=1+1");
+      expect(converter.unescapeCsvInjectionGuard("''"), "'");
+    });
+
     test('leaves any other value unchanged', () {
-      expect(converter.unescapeCsvInjectionGuard("'quoted'"), "'quoted'");
       expect(converter.unescapeCsvInjectionGuard("'"), "'");
+      expect(converter.unescapeCsvInjectionGuard("'quoted"), "'quoted");
       expect(converter.unescapeCsvInjectionGuard('=raw'), '=raw');
     });
   });

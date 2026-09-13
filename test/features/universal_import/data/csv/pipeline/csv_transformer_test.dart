@@ -932,6 +932,26 @@ void main() {
       expect(result.rows[1].containsKey('customFields'), isFalse);
     });
 
+    test('keeps whitespace around a custom field value', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'custom:note'],
+        rows: [
+          ['2024-06-15', '  two\nlines  '],
+          ['2024-06-16', '   '],
+        ],
+      );
+
+      final result = transformer.transform(
+        csv,
+        const ImportConfiguration(mappings: {'primary': dateOnly}),
+      );
+
+      expect(result.rows[0]['customFields'], [
+        {'key': 'note', 'value': '  two\nlines  '},
+      ]);
+      expect(result.rows[1].containsKey('customFields'), isFalse);
+    });
+
     test('leaves a custom column the mapping claims to that mapping', () {
       const csv = ParsedCsv(
         headers: ['Date', 'custom:buddy'],

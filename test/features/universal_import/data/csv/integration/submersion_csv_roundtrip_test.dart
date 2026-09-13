@@ -40,6 +40,7 @@ void main() {
       id: 'site-1',
       name: 'Blue Hole',
       city: 'Victoria',
+      island: 'Comino',
       region: 'Gozo',
       country: 'Malta',
     ),
@@ -49,7 +50,7 @@ void main() {
         volume: 12,
         startPressure: 200,
         endPressure: 50,
-        gasMix: GasMix(o2: 32),
+        gasMix: GasMix(o2: 18, he: 45),
       ),
     ],
     diveComputerModel: 'Perdix 2',
@@ -62,9 +63,11 @@ void main() {
     humidity: 70,
     weatherDescription: 'Sunny',
     customFields: const [
-      DiveCustomField(id: 'cf-1', key: 'camera', value: 'GoPro'),
+      DiveCustomField(id: 'cf-1', key: 'camera', value: '  GoPro 12  '),
       // Starts with '=', so the export guards it against CSV injection.
       DiveCustomField(id: 'cf-2', key: 'formula', value: '=1+1', sortOrder: 1),
+      // Already looks like a guarded value, so the guard must not eat it.
+      DiveCustomField(id: 'cf-3', key: 'quoted', value: "'=1+1", sortOrder: 2),
     ],
   );
 
@@ -159,21 +162,22 @@ void main() {
     expect(d['humidity'], 70.0);
     expect(d['weatherDescription'], 'Sunny');
     expect(d['customFields'], [
-      {'key': 'camera', 'value': 'GoPro'},
+      {'key': 'camera', 'value': '  GoPro 12  '},
       {'key': 'formula', 'value': '=1+1'},
+      {'key': 'quoted', 'value': "'=1+1"},
     ]);
 
     final tank = (d['tanks'] as List).single as Map<String, dynamic>;
     expect(tank['volume'], 12.0);
     expect(tank['startPressure'], 200.0);
     expect(tank['endPressure'], 50.0);
-    expect(tank['o2Percent'], 32.0);
     // The importer reads the tank's gas from this key alone.
-    expect(tank['gasMix'], const GasMix(o2: 32));
+    expect(tank['gasMix'], const GasMix(o2: 18, he: 45));
 
     final site = payload.entitiesOf(ImportEntityType.sites).single;
     expect(site['name'], 'Blue Hole');
     expect(site['city'], 'Victoria');
+    expect(site['island'], 'Comino');
     expect(site['region'], 'Gozo');
     expect(site['country'], 'Malta');
     expect(d['siteId'], site['id']);
@@ -191,6 +195,8 @@ void main() {
       DiveCsvColumns.siteCity,
       DiveCsvColumns.siteRegion,
       DiveCsvColumns.siteCountry,
+      DiveCsvColumns.siteIsland,
+      DiveCsvColumns.hePercent,
     };
     final rows = const CsvToListConverter(
       shouldParseNumbers: false,

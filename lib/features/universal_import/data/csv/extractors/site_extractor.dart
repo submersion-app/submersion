@@ -5,7 +5,8 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 /// Extracts dive site records from transformed CSV rows.
 ///
 /// Sites are deduplicated by name (case-insensitive). The first occurrence
-/// of a name wins for GPS coordinates and for city, region and country.
+/// of a name wins for GPS coordinates and for city, island, region and
+/// country.
 class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
@@ -58,12 +59,13 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  /// The site's city, region and country from a row's `siteCity`,
-  /// `siteRegion` and `siteCountry` fields, keyed as the importer reads a
-  /// site. Blank values are left out.
+  /// The site's city, island, region and country from a row's `siteCity`,
+  /// `siteIsland`, `siteRegion` and `siteCountry` fields, keyed as the
+  /// importer reads a site. Blank values are left out.
   Map<String, String> _placeFields(Map<String, dynamic> row) {
     const rowKeys = {
       'siteCity': 'city',
+      'siteIsland': 'island',
       'siteRegion': 'region',
       'siteCountry': 'country',
     };

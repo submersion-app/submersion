@@ -17,6 +17,25 @@ void main() {
     service = CsvExportService();
   });
 
+  group('sanitizeCsvField', () {
+    test('quotes a value that starts with a formula character', () {
+      expect(service.sanitizeCsvField('=1+1'), "'=1+1");
+      expect(service.sanitizeCsvField('-5'), "'-5");
+    });
+
+    test('quotes a value that already starts with a quote, so the import '
+        'can tell the guard from the text (#1814)', () {
+      expect(service.sanitizeCsvField("'=1+1"), "''=1+1");
+      expect(service.sanitizeCsvField("'hello"), "''hello");
+    });
+
+    test('leaves plain text and empty values alone', () {
+      expect(service.sanitizeCsvField('GoPro'), 'GoPro');
+      expect(service.sanitizeCsvField(''), '');
+      expect(service.sanitizeCsvField(null), '');
+    });
+  });
+
   group('generateDivesCsvContent', () {
     test('includes bottomTime in CSV output', () {
       final dives = [

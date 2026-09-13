@@ -80,7 +80,7 @@ class TankExtractor {
         startPressure: _toDouble(start),
         endPressure: _toDouble(end),
         o2Percent: _toDouble(o2),
-        hePercent: null,
+        hePercent: _toDouble(row['hePercent']),
       ),
     ];
   }

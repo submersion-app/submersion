@@ -298,6 +298,16 @@ void main() {
         expect(tanks.single['gasMix'], const GasMix(o2: 32));
       });
 
+      test('flat tank keeps its helium', () {
+        final tanks = extractor.extract({
+          'o2Percent': '18',
+          'hePercent': '45',
+        }, diveId);
+
+        expect(tanks.single['hePercent'], 45.0);
+        expect(tanks.single['gasMix'], const GasMix(o2: 18, he: 45));
+      });
+
       test('a tank without a mix is air', () {
         final tanks = extractor.extract({'startPressure': 200.0}, diveId);
 

@@ -27,6 +27,10 @@ class CsvExportService {
   /// carriage return, pipe) with a single quote, which forces spreadsheet
   /// applications to treat the value as plain text.
   ///
+  /// A value that already starts with a quote gets one more, so an import
+  /// can undo the guard unambiguously: one leading quote is dropped when a
+  /// dangerous character or another quote follows it (#1814).
+  ///
   /// References:
   /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
   String sanitizeCsvField(String? value) {
@@ -41,7 +45,8 @@ class CsvExportService {
         firstChar == '@' ||
         firstChar == '\t' ||
         firstChar == '\r' ||
-        firstChar == '|') {
+        firstChar == '|' ||
+        firstChar == "'") {
       return "'$value";
     }
 
@@ -223,6 +228,8 @@ class CsvExportService {
         dive.site?.city ?? '',
         dive.site?.region ?? '',
         dive.site?.country ?? '',
+        dive.site?.island ?? '',
+        tank?.gasMix.he.toStringAsFixed(0) ?? '',
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)

@@ -10,9 +10,10 @@ abstract final class DiveCsvColumns {
   static const time = 'Time';
   static const site = 'Site';
 
-  /// The site's one-line display location (`locality · region, country`).
-  /// Display text only; [siteCity], [siteRegion] and [siteCountry] carry the
-  /// same data in a form an import can read back.
+  /// The site's one-line display location (`locality · region, country`,
+  /// where the locality is the city, else the island). Display text only;
+  /// [siteCity], [siteIsland], [siteRegion] and [siteCountry] carry the same
+  /// data in a form an import can read back.
   static const location = 'Location';
   static const maxDepth = 'Max Depth (m)';
   static const avgDepth = 'Avg Depth (m)';
@@ -49,6 +50,11 @@ abstract final class DiveCsvColumns {
   static const siteCity = 'Site City';
   static const siteRegion = 'Site Region';
   static const siteCountry = 'Site Country';
+  static const siteIsland = 'Site Island';
+
+  /// Helium of the first tank. [o2Percent] alone would read a trimix tank
+  /// back as nitrox.
+  static const hePercent = 'He %';
 
   /// Separator between a dive's types in the [diveType] cell.
   static const diveTypeSeparator = '; ';
@@ -93,5 +99,7 @@ abstract final class DiveCsvColumns {
     siteCity,
     siteRegion,
     siteCountry,
+    siteIsland,
+    hePercent,
   ];
 }

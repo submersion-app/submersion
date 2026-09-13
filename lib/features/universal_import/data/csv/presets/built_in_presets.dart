@@ -566,8 +566,8 @@ const _shearwater = CsvPreset(
 ///
 /// Headers come from [DiveCsvColumns], the constants the export writes, so
 /// the two cannot drift apart (#1814). [DiveCsvColumns.location] is display
-/// text and stays unmapped; the site city, region and country columns carry
-/// the same data. `custom:<key>` columns need no mapping: the transformer
+/// text and stays unmapped; the site city, island, region and country
+/// columns carry the same data. `custom:<key>` columns need no mapping: the transformer
 /// reads every such column into the dive's custom fields.
 const _submersionNative = CsvPreset(
   id: 'submersion_native',
@@ -659,6 +659,10 @@ const _submersionNative = CsvPreset(
           targetField: 'o2Percent',
         ),
         ColumnMapping(
+          sourceColumn: DiveCsvColumns.hePercent,
+          targetField: 'hePercent',
+        ),
+        ColumnMapping(
           sourceColumn: DiveCsvColumns.diveComputer,
           targetField: 'diveComputerModel',
         ),
@@ -706,6 +710,10 @@ const _submersionNative = CsvPreset(
         ColumnMapping(
           sourceColumn: DiveCsvColumns.siteCountry,
           targetField: 'siteCountry',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.siteIsland,
+          targetField: 'siteIsland',
         ),
       ],
     ),

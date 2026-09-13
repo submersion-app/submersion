@@ -222,6 +222,7 @@ void main() {
         {
           'siteName': 'Blue Hole',
           'siteCity': 'Victoria',
+          'siteIsland': 'Comino',
           'siteRegion': 'Gozo',
           'siteCountry': 'Malta',
         },
@@ -231,6 +232,7 @@ void main() {
       final site = extractor.extractFromRows(rows).single;
 
       expect(site['city'], 'Victoria');
+      expect(site['island'], 'Comino');
       expect(site['region'], 'Gozo');
       expect(site['country'], 'Malta');
     });

@@ -1054,6 +1054,7 @@ void main() {
               'name': 'Blue Hole',
               'uddfId': 'site-1',
               'city': 'Victoria',
+              'island': 'Comino',
               'region': 'Gozo',
               'country': 'Malta',
             },
@@ -1068,6 +1069,7 @@ void main() {
           verify(mockSiteRepo.createSite(captureAny)).captured.single
               as DiveSite;
       expect(site.city, 'Victoria');
+      expect(site.island, 'Comino');
       expect(site.region, 'Gozo');
       expect(site.country, 'Malta');
     });
@@ -1265,7 +1267,12 @@ void main() {
       await importer.import(
         data: const UddfImportResult(
           sites: [
-            {'name': 'Blue Hole', 'uddfId': 'site-1', 'city': 'Victoria'},
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'city': 'Victoria',
+              'island': 'Comino',
+            },
           ],
         ),
         selections: const UddfImportSelections(
@@ -1281,6 +1288,7 @@ void main() {
               ).captured.single
               as DiveSite;
       expect(site.city, 'Victoria');
+      expect(site.island, 'Comino');
     });
 
     test('preserves existing fields the import payload omits', () async {

@@ -245,16 +245,18 @@ class ValueConverter {
 
   // ---------------------------------------------------------------------------
   /// Undo the CSV-injection guard Submersion's export applies to free text:
-  /// a leading `'` in front of `=`, `+`, `-`, `@` or `|` is dropped.
+  /// a leading `'` in front of `=`, `+`, `-`, `@`, `|` or another `'` is
+  /// dropped.
   ///
-  /// Mirrors `CsvExportService.sanitizeCsvField`. Any other value, including
-  /// one that merely starts with `'`, is returned unchanged.
+  /// Mirrors `CsvExportService.sanitizeCsvField`, which also quotes a value
+  /// that starts with `'`, so the text `'=1` exports as `''=1` and comes
+  /// back intact. Any other value is returned unchanged.
   String unescapeCsvInjectionGuard(String value) {
     if (value.length < 2 || value[0] != "'") return value;
-    return _injectionLeadChars.contains(value[1]) ? value.substring(1) : value;
+    return _guardedLeadChars.contains(value[1]) ? value.substring(1) : value;
   }
 
-  static const _injectionLeadChars = {'=', '+', '-', '@', '|', '\t', '\r'};
+  static const _guardedLeadChars = {'=', '+', '-', '@', '|', '\t', '\r', "'"};
 
   // ---------------------------------------------------------------------------
   /// Parse [raw] as a [double], stripping commas and trailing non-numeric

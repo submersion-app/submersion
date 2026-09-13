@@ -245,10 +245,11 @@ class CsvTransformer {
     return columns;
   }
 
-  /// The non-empty custom field cells of [row], as `{key, value}` maps.
+  /// The non-blank custom field cells of [row], as `{key, value}` maps.
   ///
   /// The export writes an empty cell for a dive without that key (the
-  /// columns are the union over every exported dive), so empties are skipped.
+  /// columns are the union over every exported dive), so blanks are skipped.
+  /// A value keeps its surrounding whitespace: it is the diver's free text.
   List<Map<String, String>> _readCustomFields(
     List<String> row,
     List<(int, String)> columns,
@@ -258,9 +259,7 @@ class CsvTransformer {
         if (colIdx < row.length && row[colIdx].trim().isNotEmpty)
           {
             'key': key,
-            'value': _valueConverter.unescapeCsvInjectionGuard(
-              row[colIdx].trim(),
-            ),
+            'value': _valueConverter.unescapeCsvInjectionGuard(row[colIdx]),
           },
     ];
   }
