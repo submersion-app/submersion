@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/features/buddies/data/services/legacy_buddy_conversion_service.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
@@ -24,6 +26,11 @@ class FakeLegacyBuddyConversionService implements LegacyBuddyConversionService {
   final ConversionReceipt receipt;
   final List<List<ConversionPlan>> applied = [];
   final List<ConversionReceipt> undone = [];
+  int planForCalls = 0;
+  int planCandidatesCalls = 0;
+
+  /// When set, [planFor] waits for it, holding a review "in flight".
+  Completer<void>? planForGate;
 
   @override
   Future<BuddyNameMatcher> matcherFor(String diverId) async => matcher;
@@ -32,11 +39,21 @@ class FakeLegacyBuddyConversionService implements LegacyBuddyConversionService {
   Future<(ConversionPlan, BuddyNameMatcher)> planFor(
     Dive dive,
     String diverId,
-  ) async => (plan, matcher);
+  ) async {
+    planForCalls++;
+    await planForGate?.future;
+    return (plan, matcher);
+  }
 
   @override
-  Future<LinkBuddyNamesData> planCandidates(String diverId) async =>
-      LinkBuddyNamesData(diverId: diverId, matcher: matcher, dives: const []);
+  Future<LinkBuddyNamesData> planCandidates(String diverId) async {
+    planCandidatesCalls++;
+    return LinkBuddyNamesData(
+      diverId: diverId,
+      matcher: matcher,
+      dives: const [],
+    );
+  }
 
   @override
   Future<ConversionReceipt> apply(

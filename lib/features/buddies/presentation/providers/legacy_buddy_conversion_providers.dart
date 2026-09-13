@@ -9,16 +9,17 @@ final legacyBuddyConversionServiceProvider =
       (ref) => LegacyBuddyConversionService(ref.watch(buddyRepositoryProvider)),
     );
 
-/// The bulk page's dives; null when there is no diver.
-final linkBuddyNamesDataProvider = FutureProvider<LinkBuddyNamesData?>((
-  ref,
-) async {
-  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-  if (diverId == null) return null;
-  return ref
-      .watch(legacyBuddyConversionServiceProvider)
-      .planCandidates(diverId);
-});
+/// The bulk page's dives; null when there is no diver. Auto-disposed, so
+/// every visit re-plans from the database: a kept result would show a stale
+/// empty state after the diver imports dives with buddy text.
+final linkBuddyNamesDataProvider =
+    FutureProvider.autoDispose<LinkBuddyNamesData?>((ref) async {
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return null;
+      return ref
+          .watch(legacyBuddyConversionServiceProvider)
+          .planCandidates(diverId);
+    });
 
 /// Refreshes everything a conversion or its undo can change (#1831).
 ///
