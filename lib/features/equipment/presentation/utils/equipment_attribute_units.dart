@@ -61,9 +61,10 @@ String attributeUnitSymbol(AttributeDimension d, UnitFormatter units) =>
     };
 
 /// The display value of a metric-stored number formatted for a text field or
-/// label, with no unit symbol: integers render without decimals, otherwise one
-/// decimal place. Keeps edit fields readable after a unit conversion (e.g.
-/// kg->lbs) instead of leaking full floating-point precision.
+/// label, with no unit symbol: integers render without decimals, otherwise
+/// [_editingFractionDigits] decimal places for the dimension. Keeps edit
+/// fields readable after a unit conversion (e.g. kg->lbs) instead of leaking
+/// full floating-point precision.
 ///
 /// Rendered in the diver's locale, matching how the field is read back with
 /// [parseUserDecimal]. Seeding "7.5" where ',' is the decimal separator and '.'
@@ -74,12 +75,22 @@ String formatAttributeNumberForEditing(
   double metricValue,
 ) {
   final display = attributeDisplayFromMetric(dimension, units, metricValue);
-  // Rounds to the one decimal place actually rendered BEFORE deciding whether
+  // Rounds to the fraction digits actually rendered BEFORE deciding whether
   // the value is whole, then drops a trailing zero. A per-time round trip
   // (100 min -> 1.666..h -> 100.000...1) is binary noise, not a fraction the
   // diver typed, and must still read as "100" rather than "100.0".
-  return formatRoundedForInput(display, 1);
+  return formatRoundedForInput(display, _editingFractionDigits(dimension));
 }
+
+/// Decimal places [formatAttributeNumberForEditing] rounds to before
+/// rendering. One digit is plenty for most dimensions, but a mass like a
+/// 0.35 kg (350 g) trim weight needs two: at one digit it seeded and
+/// displayed as "0.3", silently dropping the tens-of-grams digit rather than
+/// just trailing noise.
+int _editingFractionDigits(AttributeDimension dimension) => switch (dimension) {
+  AttributeDimension.massKg => 2,
+  _ => 1,
+};
 
 /// Display string for a stored attribute value on the detail page. The
 /// equipment CSV does not use it: Metric mode writes each attribute's raw

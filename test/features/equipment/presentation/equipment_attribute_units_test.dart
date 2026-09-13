@@ -253,15 +253,37 @@ void main() {
         EquipmentAttrKeys.buoyancyKg,
       );
       // 2.5 kg -> pounds is a long decimal; the editable value must stay
-      // readable (at most one decimal place, no leaked precision).
+      // readable (mass allows up to two decimal places, no leaked precision).
       final text = formatAttributeNumberForEditing(
         def!.dimension,
         imperial,
         2.5,
       );
-      expect(text, matches(r'^\d+(\.\d)?$'));
+      expect(text, matches(r'^\d+(\.\d{1,2})?$'));
       // A whole-number display drops the decimal entirely.
       expect(formatAttributeNumberForEditing(def.dimension, units, 3.0), '3');
+    });
+
+    test('formatAttributeNumberForEditing keeps a mass value to the gram '
+        '(issue: dry weight rounded to one decimal loses precision)', () {
+      final def = EquipmentAttributeCatalog.defFor(
+        EquipmentAttrKeys.dryWeightKg,
+      );
+      // At one decimal place, 0.35 kg (350 g) rounds down to "0.3", losing
+      // the tens-of-grams digit rather than just formatting noise.
+      expect(
+        formatAttributeNumberForEditing(def!.dimension, units, 0.35),
+        '0.35',
+      );
+      // A dimension without this carve-out still keeps its one decimal.
+      expect(
+        formatAttributeNumberForEditing(
+          AttributeDimension.volumeL,
+          units,
+          11.15,
+        ),
+        '11.2',
+      );
     });
 
     test('a display value whole to one decimal drops the decimal', () {
