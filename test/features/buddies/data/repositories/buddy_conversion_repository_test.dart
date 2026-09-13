@@ -353,4 +353,83 @@ void main() {
       expect(await db.select(db.syncRecords).get(), isEmpty);
     });
   });
+
+  group('undo', () {
+    test('removes the links and the buddies the conversion created', () async {
+      await insertDive('d1', buddy: 'Ann');
+      final receipt = await run([
+        plan('d1', [newLink('Ann')]),
+      ]);
+
+      await repo.undo(receipt);
+
+      expect(await db.select(db.diveBuddies).get(), isEmpty);
+      expect(await db.select(db.buddies).get(), isEmpty);
+      expect(await tombstones('diveBuddies'), receipt.linkIds.toSet());
+      expect(await tombstones('buddies'), receipt.createdBuddyIds.toSet());
+    });
+
+    test('keeps a created buddy that another dive linked since', () async {
+      await insertDive('d1', buddy: 'Ann');
+      await insertDive('d2');
+      final receipt = await run([
+        plan('d1', [newLink('Ann')]),
+      ]);
+      await link('d2', receipt.createdBuddyIds.single);
+
+      await repo.undo(receipt);
+
+      expect(await db.select(db.buddies).get(), hasLength(1));
+      expect((await db.select(db.diveBuddies).getSingle()).diveId, 'd2');
+    });
+
+    test('keeps an existing buddy it only linked', () async {
+      await insertDive('d1', buddy: 'Bob');
+      await insertBuddy('bob', 'Bob');
+      final receipt = await run([
+        plan('d1', [existing('bob', 'Bob')]),
+      ]);
+
+      await repo.undo(receipt);
+
+      expect((await db.select(db.buddies).getSingle()).id, 'bob');
+      expect(await db.select(db.diveBuddies).get(), isEmpty);
+    });
+
+    test('returns a claimed buddy to unowned', () async {
+      await insertDive('d1', buddy: 'Leo');
+      await insertBuddy('leo', 'Leo Cox', diverId: null);
+      final receipt = await run([
+        plan('d1', [existing('leo', 'Leo Cox')]),
+      ]);
+      await db.delete(db.syncRecords).go();
+
+      await repo.undo(receipt);
+
+      final leo = await (db.select(
+        db.buddies,
+      )..where((t) => t.id.equals('leo'))).getSingle();
+      expect(leo.diverId, isNull);
+      expect(await pending('buddies'), {'leo'});
+    });
+
+    test(
+      'announces the change once and an empty receipt does nothing',
+      () async {
+        await insertDive('d1', buddy: 'Ann');
+        final receipt = await run([
+          plan('d1', [newLink('Ann')]),
+        ]);
+        var notifications = 0;
+        final sub = SyncEventBus.changes.listen((_) => notifications++);
+        addTearDown(sub.cancel);
+
+        await repo.undo(receipt);
+        await repo.undo(const ConversionReceipt(diverId: 'me'));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(notifications, 1);
+      },
+    );
+  });
 }

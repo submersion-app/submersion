@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
 import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 
 /// Reads and writes that turn legacy buddy text into buddy records (#1831).
 ///
@@ -21,6 +22,7 @@ import 'package:submersion/features/buddies/domain/services/legacy_name_parser.d
 class BuddyConversionRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _sync = SyncRepository();
+  final CertificationRepository _certRepo = CertificationRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(BuddyConversionRepository);
 
@@ -149,6 +151,90 @@ class BuddyConversionRepository {
       );
       rethrow;
     }
+  }
+
+  /// Reverses [receipt]: its links, the buddies it created that nothing else
+  /// has linked since, and its ownership claims. One transaction, one notify.
+  Future<void> undo(ConversionReceipt receipt) async {
+    if (receipt.isEmpty) return;
+    try {
+      await _db.transaction(() async {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (receipt.linkIds.isNotEmpty) {
+          final present = await (_db.select(
+            _db.diveBuddies,
+          )..where((t) => t.id.isIn(receipt.linkIds))).get();
+          await (_db.delete(
+            _db.diveBuddies,
+          )..where((t) => t.id.isIn(receipt.linkIds))).go();
+          for (final row in present) {
+            await _sync.logDeletion(
+              entityType: 'diveBuddies',
+              recordId: row.id,
+            );
+          }
+        }
+        for (final id in receipt.createdBuddyIds) {
+          await _deleteIfUnlinked(id);
+        }
+        if (receipt.claimedBuddyIds.isNotEmpty) {
+          final claimed =
+              await (_db.select(_db.buddies)..where(
+                    (t) =>
+                        t.id.isIn(receipt.claimedBuddyIds) &
+                        t.diverId.equals(receipt.diverId),
+                  ))
+                  .get();
+          for (final row in claimed) {
+            await (_db.update(
+              _db.buddies,
+            )..where((t) => t.id.equals(row.id))).write(
+              BuddiesCompanion(
+                diverId: const Value(null),
+                updatedAt: Value(now),
+              ),
+            );
+            await _sync.markRecordPending(
+              entityType: 'buddies',
+              recordId: row.id,
+              localUpdatedAt: now,
+            );
+          }
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to undo a legacy buddy conversion',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Deletes buddy [id] if it still exists and no dive links it, tombstoning
+  /// its certifications first: the FK cascade deletes them but writes no
+  /// deletion_log, so without a tombstone they would come back on sync.
+  Future<void> _deleteIfUnlinked(String id) async {
+    final stillLinked =
+        await (_db.select(_db.diveBuddies)
+              ..where((t) => t.buddyId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (stillLinked != null) return;
+    final buddy = await (_db.select(
+      _db.buddies,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (buddy == null) return;
+    for (final cert in await _certRepo.getCertificationsByBuddy(id)) {
+      await (_db.delete(
+        _db.certifications,
+      )..where((t) => t.id.equals(cert.id))).go();
+      await _sync.logDeletion(entityType: 'certifications', recordId: cert.id);
+    }
+    await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
+    await _sync.logDeletion(entityType: 'buddies', recordId: id);
   }
 
   Future<bool> _isUnlinkedDive(String diveId) async {
