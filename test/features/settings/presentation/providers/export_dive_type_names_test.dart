@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -87,6 +88,7 @@ class _RecordingExportService implements ExportService {
   Future<String> exportDivesToCsv(
     List<Dive> dives, {
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     this.diveTypesById = diveTypesById;
     return '/tmp/dives.csv';
@@ -97,6 +99,7 @@ class _RecordingExportService implements ExportService {
     List<Dive> dives, {
     required String dialogTitle,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     this.diveTypesById = diveTypesById;
     return '/tmp/dives.csv';

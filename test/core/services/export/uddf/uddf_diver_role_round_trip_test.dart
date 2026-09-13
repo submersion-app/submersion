@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_compon
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'uddf_raw_data_round_trip_test.dart'
@@ -320,6 +321,7 @@ void main() {
           BuddyRepository(),
           EquipmentComponentRepository(),
           DiveRoleRepository(),
+          TankPressureRepository(),
           diverId,
           ['d1'],
           const UddfExportOptions(),

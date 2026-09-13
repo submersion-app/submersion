@@ -82,8 +82,11 @@ String formatAttributeNumberForEditing(
 }
 
 /// Display string for a stored attribute value on the detail page. The
-/// equipment CSV does not use it: that export writes each attribute's raw
-/// canonical metric value, as its `_m` / `_kg` key names promise.
+/// equipment CSV does not use it: Metric mode writes each attribute's raw
+/// canonical value, as its `_m` / `_kg` key names promise, and My units
+/// converts through [attributeDisplayFromMetric] and [attributeUnitSymbol]
+/// with a locale-free decimal (`csv_attribute_codec.dart`), because a CSV
+/// value must read back the same on any device.
 String formatAttributeValue(
   EquipmentAttribute attr,
   EquipmentAttributeDef? def,

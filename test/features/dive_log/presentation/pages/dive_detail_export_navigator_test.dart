@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -23,6 +24,7 @@ class _StubExportService implements ExportService {
   @override
   Future<String> exportDivesToCsv(
     List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
     Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     calls.add('share:csv');
@@ -33,6 +35,7 @@ class _StubExportService implements ExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
     Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     calls.add('save:csv');

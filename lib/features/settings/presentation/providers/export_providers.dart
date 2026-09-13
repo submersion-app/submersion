@@ -13,7 +13,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -192,7 +194,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
   /// a locale change is picked up by the next operation.
   AppLocalizations get _l10n => l10nForLocaleTag(_ref.read(localeProvider));
 
-  Future<void> exportDivesToCsv() async {
+  /// Units for a CSV export: the diver's settings for My units, or the
+  /// historical metric format.
+  CsvExportUnits _csvUnits(CsvUnitMode mode) =>
+      CsvExportUnits.forMode(mode, _ref.read(settingsProvider));
+
+  Future<void> exportDivesToCsv({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_divesCsv,
@@ -208,6 +217,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       }
       final path = await _exportService.exportDivesToCsv(
         dives,
+        units: _csvUnits(unitMode),
         diveTypesById: await _diveTypesById(),
       );
       state = state.copyWith(
@@ -223,7 +233,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
-  Future<void> exportSitesToCsv() async {
+  Future<void> exportSitesToCsv({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_sitesCsv,
@@ -237,7 +249,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         return;
       }
-      final path = await _exportService.exportSitesToCsv(sites);
+      final path = await _exportService.exportSitesToCsv(
+        sites,
+        units: _csvUnits(unitMode),
+      );
       state = state.copyWith(
         status: ExportStatus.success,
         message: _l10n.settings_export_success_sites,
@@ -251,7 +266,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
-  Future<void> exportEquipmentToCsv() async {
+  Future<void> exportEquipmentToCsv({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_equipmentCsv,
@@ -268,6 +285,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.exportEquipmentToCsv(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        units: _csvUnits(unitMode),
       );
       state = state.copyWith(
         status: ExportStatus.success,
@@ -290,6 +308,18 @@ class ExportNotifier extends StateNotifier<ExportState> {
     return _ref
         .read(equipmentObservationRepositoryProvider)
         .getAll(diverId: diverId);
+  }
+
+  /// [_validatedDiverDives] with each dive's recorded profile, for the full
+  /// UDDF backup. The dive list leaves profiles out, and the backup writes its
+  /// samples and tank pressures from them (issue #1874); the workbook draws no
+  /// profile, so it keeps the lean list.
+  Future<List<Dive>> _validatedDiverDivesWithProfiles() async {
+    final dives = await _validatedDiverDives();
+    state = state.copyWith(
+      message: _l10n.settings_export_progress_loadingProfiles,
+    );
+    return attachMergedProfiles(_ref.read(diveRepositoryProvider), dives);
   }
 
   /// The active diver's dives for the full UDDF export and the workbook,
@@ -580,7 +610,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_uddf,
     );
     try {
-      final dives = await _validatedDiverDives();
+      final dives = await _validatedDiverDivesWithProfiles();
 
       // Collect all data for comprehensive export
       state = state.copyWith(
@@ -1078,7 +1108,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
   // ==================== CSV SAVE TO FILE ====================
 
   /// Save dives CSV to a user-selected location.
-  Future<void> saveDivesCsvToFile() async {
+  Future<void> saveDivesCsvToFile({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_preparingDivesCsv,
@@ -1099,6 +1131,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveDivesCsvToFile(
         dives,
         dialogTitle: _l10n.settings_export_saveDivesCsvDialogTitle,
+        units: _csvUnits(unitMode),
         diveTypesById: await _diveTypesById(),
       );
 
@@ -1124,7 +1157,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   /// Save sites CSV to a user-selected location.
-  Future<void> saveSitesCsvToFile() async {
+  Future<void> saveSitesCsvToFile({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_preparingSitesCsv,
@@ -1145,6 +1180,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveSitesCsvToFile(
         sites,
         dialogTitle: _l10n.settings_export_saveSitesCsvDialogTitle,
+        units: _csvUnits(unitMode),
       );
 
       if (path == null) {
@@ -1169,7 +1205,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   /// Save equipment CSV to a user-selected location.
-  Future<void> saveEquipmentCsvToFile() async {
+  Future<void> saveEquipmentCsvToFile({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_preparingEquipmentCsv,
@@ -1191,6 +1229,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipment,
         componentNames: await _componentNamesFor(equipment),
         dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
+        units: _csvUnits(unitMode),
       );
 
       if (path == null) {
@@ -1225,7 +1264,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingUddf,
     );
     try {
-      final dives = await _validatedDiverDives();
+      final dives = await _validatedDiverDivesWithProfiles();
 
       // Collect all data for comprehensive export
       state = state.copyWith(
