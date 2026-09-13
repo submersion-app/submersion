@@ -336,6 +336,38 @@ void main() {
       );
     });
 
+    test('a failing role listing skips the roles, not the import', () async {
+      // Without the diver's own roles to match against, a restore could
+      // add duplicates, so the roles are left out and the rest goes on.
+      when(
+        mockDiveRoleRepo.getAllDiveRoles(diverId: anyNamed('diverId')),
+      ).thenThrow(Exception('boom'));
+
+      const data = UddfImportResult(
+        customDiveRoles: [
+          {'id': 'uuid-1', 'name': 'Hekkensluiter'},
+        ],
+      );
+
+      await expectLater(
+        importer.import(
+          data: data,
+          selections: const UddfImportSelections(),
+          repositories: repos,
+          diverId: diverId,
+        ),
+        completes,
+      );
+      verifyNever(
+        mockDiveRoleRepo.importDiveRole(
+          id: anyNamed('id'),
+          name: anyNamed('name'),
+          diverId: anyNamed('diverId'),
+          sortOrder: anyNamed('sortOrder'),
+        ),
+      );
+    });
+
     test('a failing role import is swallowed, not fatal', () async {
       when(
         mockDiveRoleRepo.importDiveRole(
