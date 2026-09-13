@@ -10865,6 +10865,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentType_harness => 'Arnês';
 
   @override
+  String get enum_equipmentType_tankBand => 'Cinta de cilindro';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Bolso de lastro';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Bolso de equipamento';
+
+  @override
   String get enum_equipmentType_hose => 'Mangueira';
 
   @override
@@ -26724,6 +26733,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_tool_type => 'Tipo de ferramenta';
 
   @override
+  String get attrLabel_band_style => 'Estilo';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capacidade';
+
+  @override
+  String get attrLabel_pocket_mount => 'Fixação';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínio';
 
   @override
@@ -26863,6 +26881,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Inflador (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Cinta com fivela de came';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'Abraçadeira de aço inox';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Arnês';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Cinto abdominal';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Coxa';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Colete';

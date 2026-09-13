@@ -10361,6 +10361,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_harness => '背带';
 
   @override
+  String get enum_equipmentType_tankBand => '气瓶绑带';
+
+  @override
+  String get enum_equipmentType_weightPocket => '配重袋';
+
+  @override
+  String get enum_equipmentType_gearPocket => '装备袋';
+
+  @override
   String get enum_equipmentType_hose => '软管';
 
   @override
@@ -25331,6 +25340,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_tool_type => '工具类型';
 
   @override
+  String get attrLabel_band_style => '款式';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => '容量';
+
+  @override
+  String get attrLabel_pocket_mount => '佩戴方式';
+
+  @override
   String get attrChoice_plate_material_aluminum => '铝';
 
   @override
@@ -25467,6 +25485,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => '充气管（LPI）';
+
+  @override
+  String get attrChoice_band_style_cam_strap => '凸轮扣绑带';
+
+  @override
+  String get attrChoice_band_style_stainless_band => '不锈钢瓶箍';
+
+  @override
+  String get attrChoice_pocket_mount_harness => '背带';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => '腰带';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => '大腿';
 
   @override
   String get attrChoice_bcd_style_jacket => '夹克式';

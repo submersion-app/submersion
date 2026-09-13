@@ -10865,6 +10865,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentType_harness => 'Arnés';
 
   @override
+  String get enum_equipmentType_tankBand => 'Cincha de tanque';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Bolsillo de lastre';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Bolsillo de equipo';
+
+  @override
   String get enum_equipmentType_hose => 'Latiguillo';
 
   @override
@@ -26746,6 +26755,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_tool_type => 'Tipo de herramienta';
 
   @override
+  String get attrLabel_band_style => 'Estilo';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capacidad';
+
+  @override
+  String get attrLabel_pocket_mount => 'Montaje';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminio';
 
   @override
@@ -26885,6 +26903,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Inflador (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Cincha con hebilla de leva';
+
+  @override
+  String get attrChoice_band_style_stainless_band =>
+      'Abrazadera de acero inoxidable';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Arnés';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Correa ventral';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Muslo';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Chaleco';

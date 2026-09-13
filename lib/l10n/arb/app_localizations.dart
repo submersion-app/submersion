@@ -18136,6 +18136,24 @@ abstract class AppLocalizations {
   /// **'Harness'**
   String get enum_equipmentType_harness;
 
+  /// No description provided for @enum_equipmentType_tankBand.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Band'**
+  String get enum_equipmentType_tankBand;
+
+  /// No description provided for @enum_equipmentType_weightPocket.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Pocket'**
+  String get enum_equipmentType_weightPocket;
+
+  /// No description provided for @enum_equipmentType_gearPocket.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear Pocket'**
+  String get enum_equipmentType_gearPocket;
+
   /// No description provided for @enum_equipmentType_hose.
   ///
   /// In en, this message translates to:
@@ -43796,6 +43814,24 @@ abstract class AppLocalizations {
   /// **'Tool type'**
   String get attrLabel_tool_type;
 
+  /// No description provided for @attrLabel_band_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_band_style;
+
+  /// No description provided for @attrLabel_pocket_capacity_kg.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get attrLabel_pocket_capacity_kg;
+
+  /// No description provided for @attrLabel_pocket_mount.
+  ///
+  /// In en, this message translates to:
+  /// **'Mount'**
+  String get attrLabel_pocket_mount;
+
   /// No description provided for @attrChoice_plate_material_aluminum.
   ///
   /// In en, this message translates to:
@@ -44071,6 +44107,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'LPI (inflator)'**
   String get attrChoice_hose_type_lpi;
+
+  /// No description provided for @attrChoice_band_style_cam_strap.
+  ///
+  /// In en, this message translates to:
+  /// **'Cam strap'**
+  String get attrChoice_band_style_cam_strap;
+
+  /// No description provided for @attrChoice_band_style_stainless_band.
+  ///
+  /// In en, this message translates to:
+  /// **'Stainless band'**
+  String get attrChoice_band_style_stainless_band;
+
+  /// No description provided for @attrChoice_pocket_mount_harness.
+  ///
+  /// In en, this message translates to:
+  /// **'Harness'**
+  String get attrChoice_pocket_mount_harness;
+
+  /// No description provided for @attrChoice_pocket_mount_waist_belt.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist belt'**
+  String get attrChoice_pocket_mount_waist_belt;
+
+  /// No description provided for @attrChoice_pocket_mount_thigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Thigh'**
+  String get attrChoice_pocket_mount_thigh;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///

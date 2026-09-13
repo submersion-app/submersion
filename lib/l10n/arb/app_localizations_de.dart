@@ -10863,6 +10863,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harness';
 
   @override
+  String get enum_equipmentType_tankBand => 'Flaschenband';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Bleitasche';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Ausrüstungstasche';
+
+  @override
   String get enum_equipmentType_hose => 'Schlauch';
 
   @override
@@ -26671,6 +26680,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_tool_type => 'Werkzeugart';
 
   @override
+  String get attrLabel_band_style => 'Bauart';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Fassungsvermögen';
+
+  @override
+  String get attrLabel_pocket_mount => 'Befestigung';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -26809,6 +26827,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Inflator (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Camband';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'Edelstahlschelle';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Harness';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Bauchgurt';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Oberschenkel';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

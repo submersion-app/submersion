@@ -10782,6 +10782,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harnas';
 
   @override
+  String get enum_equipmentType_tankBand => 'Flesband';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Loodtas';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Uitrustingstas';
+
+  @override
   String get enum_equipmentType_hose => 'Slang';
 
   @override
@@ -26522,6 +26531,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_tool_type => 'Soort gereedschap';
 
   @override
+  String get attrLabel_band_style => 'Stijl';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capaciteit';
+
+  @override
+  String get attrLabel_pocket_mount => 'Bevestiging';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -26659,6 +26677,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Inflatorslang (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Camband';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'RVS-band';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Harnas';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Heupband';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Dij';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

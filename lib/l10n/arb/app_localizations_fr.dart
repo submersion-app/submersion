@@ -10910,6 +10910,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harnais';
 
   @override
+  String get enum_equipmentType_tankBand => 'Sangle de bloc';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Poche à lest';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Poche à matériel';
+
+  @override
   String get enum_equipmentType_hose => 'Flexible';
 
   @override
@@ -26822,6 +26831,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_tool_type => 'Type d\'outil';
 
   @override
+  String get attrLabel_band_style => 'Style';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capacité';
+
+  @override
+  String get attrLabel_pocket_mount => 'Fixation';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -26959,6 +26977,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Direct system (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Sangle à came';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'Collier inox';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Harnais';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Sangle ventrale';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Cuisse';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Gilet';
