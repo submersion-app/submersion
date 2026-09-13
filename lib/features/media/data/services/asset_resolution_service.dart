@@ -131,6 +131,11 @@ class AssetResolutionService {
   /// Self-limiting: a genuinely dead item ends up cached as `unresolved`, and
   /// the backoff branch in [resolveAssetId] then short-circuits later renders
   /// before any caller can reach this method again.
+  ///
+  /// Where there is no photo library to search (Windows and Linux),
+  /// [_resolveFromGallery] returns the stored id without searching, so
+  /// nothing is cached and no backoff applies; the answer is the one
+  /// [resolveAssetId] gives there.
   Future<ResolutionResult> reresolve(MediaItem item) async {
     if (item.platformAssetId == null) {
       return const ResolutionResult(status: ResolutionStatus.unavailable);
