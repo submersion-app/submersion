@@ -119,7 +119,7 @@ class MacDiveValueMapper {
     // Rig accessories (#1877), which divers had been filing under BCD. Only
     // compound names land here, above the suit, BCD, tank and weight words
     // they contain: a "drysuit thigh pocket" is a pocket and a "tank band" is
-    // not a tank. A bare "pocket" is weaker and waits below the weights.
+    // not a tank. A bare "pocket" is weaker and waits at the very bottom.
     if (s.contains('cam band') ||
         s.contains('cam strap') ||
         s.contains('tank band') ||
@@ -195,9 +195,6 @@ class MacDiveValueMapper {
     if (s.contains('weight') || s.contains('ballast')) {
       return EquipmentType.weights;
     }
-    // After the weights, so soft "pocket weights" stay lead, and after the
-    // BCD and suit words, so "BCD w/ pockets" stays a BCD.
-    if (s.contains('pocket')) return EquipmentType.gearPocket;
     if (s.contains('fin')) return EquipmentType.fins;
     if (s.contains('mask') || s.contains('goggle')) return EquipmentType.mask;
     if (s.contains('snorkel')) return EquipmentType.snorkel;
@@ -251,6 +248,10 @@ class MacDiveValueMapper {
         s.contains('save-a-dive')) {
       return EquipmentType.tool;
     }
+    // Last of all: "pocket" is also a size word on real products, so every
+    // specific item word wins over it. "Pocket knife" stays a knife, "soft
+    // pocket weights" stay lead and "BCD w/ pockets" stays a BCD.
+    if (s.contains('pocket')) return EquipmentType.gearPocket;
     return EquipmentType.other;
   }
 }

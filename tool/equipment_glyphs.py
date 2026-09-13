@@ -311,9 +311,9 @@ add(
     ),
 )
 
-# The two pockets differ in what tells them apart at 20px: the weight pocket
-# its pull handle and the lead block inside it, the gear pocket its pointed
-# flap and snap.
+# At 20px the two pockets are told apart by their details. The weight
+# pocket's cues are its pull handle and the lead block inside it; the gear
+# pocket's are its pointed flap and snap.
 add(
     "weight_pocket",
     "Weight Pocket",

@@ -248,6 +248,22 @@ void main() {
         MacDiveValueMapper.equipmentType('Tank - AL80'),
         EquipmentType.tank,
       );
+      // "Pocket" is a size word on real products, so every specific item
+      // word must win over it, not just the ones checked above the weights.
+      const pocketSized = {
+        'Pocket knife': EquipmentType.knife,
+        'Pocket reel': EquipmentType.reel,
+        'Pocket light': EquipmentType.light,
+        'Pocket SMB': EquipmentType.smb,
+        'Pocket tool': EquipmentType.tool,
+      };
+      pocketSized.forEach((input, expected) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          expected,
+          reason: input,
+        );
+      });
     });
 
     test('an accessory word outranks "lycra" (#1518)', () {
