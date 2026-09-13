@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
 ImportPayload payloadWith({
@@ -881,6 +882,58 @@ void main() {
       ]);
 
       expect(merged.entitiesOf(ImportEntityType.media), hasLength(2));
+    });
+  });
+
+  group('source divers (#1893)', () {
+    test('sums one diver across files and leaves the dive key alone', () {
+      final merged = const PayloadMerger().merge([
+        const FilePayload(
+          fileId: 'f0',
+          fileName: 'one.sqlite',
+          payload: ImportPayload(
+            entities: {
+              ImportEntityType.dives: [
+                {'sourceUuid': 'd1', SourceDiver.mapKey: 'macdive:a'},
+              ],
+            },
+            sourceDivers: [
+              SourceDiver(
+                key: 'macdive:a',
+                name: 'Ann Lee',
+                diveCount: 2,
+                email: 'ann@example.com',
+              ),
+            ],
+          ),
+        ),
+        const FilePayload(
+          fileId: 'f1',
+          fileName: 'two.sqlite',
+          payload: ImportPayload(
+            entities: {},
+            sourceDivers: [
+              SourceDiver(
+                key: 'macdive:a',
+                name: 'Ann Lee',
+                diveCount: 3,
+                certificationCount: 1,
+              ),
+            ],
+          ),
+        ),
+      ]);
+
+      final ann = merged.sourceDivers.single;
+      expect(ann.diveCount, 5);
+      expect(ann.certificationCount, 1);
+      expect(ann.email, 'ann@example.com');
+      // The same person in two files is one diver, so the key is never
+      // namespaced the way uddfIds are.
+      expect(
+        merged.entitiesOf(ImportEntityType.dives).single[SourceDiver.mapKey],
+        'macdive:a',
+      );
     });
   });
 }

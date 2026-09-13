@@ -1,6 +1,8 @@
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
+import 'package:submersion/features/universal_import/data/services/payload_ref_keys.dart';
 
 /// One parsed file's payload plus its batch identity.
 class FilePayload {
@@ -47,30 +49,20 @@ class PayloadMerger {
   const PayloadMerger();
 
   /// Dive map fields holding a single entity reference.
-  static const _scalarRefFields = [
-    'siteId',
-    'tripRef',
-    'diveCenterRef',
-    'courseRef',
-  ];
+  static final _scalarRefFields = diveScalarRefTypes.keys.toList();
 
   /// Dive map fields holding a list of entity references.
-  static const _listRefFields = [
-    'equipmentRefs',
-    'buddyRefs',
-    'diveGuideRefs',
-    'tagRefs',
-  ];
+  static final _listRefFields = diveListRefTypes.keys.toList();
 
   /// Reference fields inside a dive's `gearLinks` entries and an item's
   /// `components` entries (issue #1487): nested lists of maps, so they
   /// need their own pass.
-  static const _gearLinkRefFields = ['itemRef', 'viaRef', 'setRef'];
-  static const _componentRefFields = ['componentRef'];
+  static final _gearLinkRefFields = gearLinkRefTypes.keys.toList();
+  static final _componentRefFields = componentRefTypes.keys.toList();
 
   /// Reference field inside a dive's `buddyRoleRefs` entries (issue #1737):
   /// the person holding each exact role.
-  static const _buddyRoleRefFields = ['buddyRef'];
+  static final _buddyRoleRefFields = buddyRoleRefTypes.keys.toList();
 
   /// Rewrites the string reference [fields] of every map in [item]'s
   /// [key] list through [rewrite], copying rather than mutating the
@@ -118,9 +110,22 @@ class PayloadMerger {
     // UUIDs referenced verbatim by dive links, so they are never namespaced,
     // and the same id in two files is the same role.
     final customDiveRoles = <String, Map<String, dynamic>>{};
+    // The people each file attributes records to (issue #1893). Keyed by the
+    // diver's own id, so the same person in two files stays one diver.
+    final sourceDivers = <String, SourceDiver>{};
 
     for (final input in inputs) {
       warnings.addAll(input.payload.warnings);
+      for (final diver in input.payload.sourceDivers) {
+        final seen = sourceDivers[diver.key];
+        sourceDivers[diver.key] = seen == null
+            ? diver
+            : seen.copyWith(
+                diveCount: seen.diveCount + diver.diveCount,
+                certificationCount:
+                    seen.certificationCount + diver.certificationCount,
+              );
+      }
       final roles = input.payload.metadata[ImportPayload.customDiveRolesKey];
       for (final role in roles is List ? roles : const []) {
         if (role is Map<String, dynamic> && role['id'] is String) {
@@ -180,6 +185,7 @@ class PayloadMerger {
     return ImportPayload(
       entities: entities,
       warnings: warnings,
+      sourceDivers: sourceDivers.values.toList(),
       metadata: {
         'batchFileCount': inputs.length,
         'sourceFiles': [for (final i in inputs) i.fileName],
