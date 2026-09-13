@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -26,6 +27,37 @@ final diveTypesProvider = FutureProvider<List<DiveTypeEntity>>((ref) async {
   ref.invalidateSelfWhen(repository.watchDiveTypesChanges());
   return repository.getAllDiveTypes(diverId: validatedDiverId);
 });
+
+/// [diveTypesProvider] keyed by id, for surfaces that only hold a dive's type
+/// ids, such as the exports, which name each type as the diver did (#1834).
+///
+/// A future rather than a snapshot of the loaded value: an export started
+/// before the types finish loading must wait for them, not write every name
+/// rebuilt from its id. Read it through [diveTypesByIdOrEmpty].
+final diveTypesByIdProvider = FutureProvider<Map<String, DiveTypeEntity>>((
+  ref,
+) async {
+  final types = await ref.watch(diveTypesProvider.future);
+  return {for (final type in types) type.id: type};
+});
+
+/// Awaits [lookup] (a read of [diveTypesByIdProvider]), or yields an empty
+/// map when it fails, so an export falls back to names rebuilt from ids
+/// rather than failing: the dives CSV still carries each type's id.
+Future<Map<String, DiveTypeEntity>> diveTypesByIdOrEmpty(
+  Future<Map<String, DiveTypeEntity>> lookup,
+) async {
+  try {
+    return await lookup;
+  } catch (e, stackTrace) {
+    LoggerService.forClass(DiveTypeEntity).warning(
+      'Exporting dive types under names rebuilt from their ids',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return const {};
+  }
+}
 
 /// Built-in dive types only
 final builtInDiveTypesProvider = FutureProvider<List<DiveTypeEntity>>((

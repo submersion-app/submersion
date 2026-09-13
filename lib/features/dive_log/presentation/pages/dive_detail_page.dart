@@ -3202,6 +3202,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       } catch (_) {
         // Export the dive as loaded.
       }
+      // Awaited, not read from the page's snapshot: an export started while
+      // the types load would otherwise print every name rebuilt from its id.
+      final diveTypesById = await diveTypesByIdOrEmpty(
+        ref.read(diveTypesByIdProvider.future),
+      );
 
       final result = await exportService.generateDivePdfBytes(
         [exportDive],
@@ -3215,6 +3220,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         certifications: certifications,
         diver: diver,
         diverPhoto: diverPhoto,
+        diveTypesById: diveTypesById,
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues
@@ -5552,11 +5558,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   context,
                   ref,
                   title: context.l10n.diveLog_export_csv,
-                  shareFn: (_) =>
-                      ref.read(exportServiceProvider).exportDivesToCsv([dive]),
-                  saveFn: (_) => ref
+                  shareFn: (_) async =>
+                      ref.read(exportServiceProvider).exportDivesToCsv(
+                        [dive],
+                        diveTypesById: await diveTypesByIdOrEmpty(
+                          ref.read(diveTypesByIdProvider.future),
+                        ),
+                      ),
+                  saveFn: (_) async => ref
                       .read(exportServiceProvider)
-                      .saveDivesCsvToFile([dive], dialogTitle: saveTitle),
+                      .saveDivesCsvToFile(
+                        [dive],
+                        dialogTitle: saveTitle,
+                        diveTypesById: await diveTypesByIdOrEmpty(
+                          ref.read(diveTypesByIdProvider.future),
+                        ),
+                      ),
                 );
               },
             ),

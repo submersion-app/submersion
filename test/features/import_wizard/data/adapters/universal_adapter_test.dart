@@ -3994,6 +3994,91 @@ void main() {
     );
 
     testWidgets(
+      'a skipped dive type matched by name links the dive to the existing '
+      'type (#1834)',
+      (tester) async {
+        // The incoming slug differs from the existing type's id, which
+        // carries a collision suffix, so only the name matches.
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.diveTypes: [
+              {
+                'id': 'search_recovery',
+                'uddfId': 'search_recovery',
+                'name': 'Search & Recovery',
+              },
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'diveTypeIds': ['search_recovery'],
+              },
+            ],
+          },
+        );
+
+        final existingType = DiveTypeEntity(
+          id: 'search_recovery_1a2b3c4d',
+          diverId: 'diver-1',
+          name: 'Search & Recovery',
+          createdAt: _now,
+          updatedAt: _now,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final mockDiveTypeRepo = MockDiveTypeRepository();
+        when(
+          mockDiveTypeRepo.getDiveTypeById(any),
+        ).thenAnswer((_) async => null);
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingDiveTypes: [existingType],
+            mockDiveRepo: mockDiveRepo,
+            mockDiveTypeRepo: mockDiveTypeRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final checked = await adapter.checkDuplicates(
+              await adapter.buildBundle(),
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.diveTypes: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.diveTypes: {0: DuplicateAction.skip},
+              },
+            );
+
+            verifyNever(mockDiveTypeRepo.createDiveType(any));
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.diveTypeIds, ['search_recovery_1a2b3c4d']);
+          },
+        );
+      },
+    );
+
+    testWidgets(
       'items with no duplicate action are included from base selection',
       (tester) async {
         final payload = ImportPayload(

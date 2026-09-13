@@ -70,7 +70,7 @@ class CsvImportParser implements ImportParser {
     final resolvedMapping = customMappingOverride ?? customMapping;
 
     // Stage 3: Build ImportConfiguration.
-    final config = _buildConfiguration(
+    final (config, mappingWarnings) = _buildConfiguration(
       parsedCsv: parsedCsv,
       detection: detection,
       resolvedMapping: resolvedMapping,
@@ -90,10 +90,16 @@ class CsvImportParser implements ImportParser {
     }
 
     // Stages 4-5: Transform + Correlate.
-    return _pipeline.execute(
+    final payload = _pipeline.execute(
       primaryCsv: parsedCsv,
       profileCsv: profileCsv,
       config: config,
+    );
+    if (mappingWarnings.isEmpty) return payload;
+    return ImportPayload(
+      entities: payload.entities,
+      warnings: [...mappingWarnings, ...payload.warnings],
+      metadata: payload.metadata,
     );
   }
 
@@ -101,13 +107,14 @@ class CsvImportParser implements ImportParser {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  /// Build an [ImportConfiguration] from the resolved mapping source.
+  /// Build an [ImportConfiguration] from the resolved mapping source, with
+  /// any warnings the mapping itself raised.
   ///
   /// Priority order:
   /// 1. Explicit custom mapping (user-provided).
   /// 2. Detected preset from pipeline Detect stage.
   /// 3. Auto-mapped from CSV headers using keyword matching.
-  ImportConfiguration _buildConfiguration({
+  (ImportConfiguration, List<ImportWarning>) _buildConfiguration({
     required ParsedCsv parsedCsv,
     required DetectionResult detection,
     required FieldMapping? resolvedMapping,
@@ -119,7 +126,7 @@ class CsvImportParser implements ImportParser {
     // Preserve entity types from the detected preset so buddies, tags, etc.
     // are still extracted even when the user customizes column mappings.
     if (resolvedMapping != null) {
-      return ImportConfiguration(
+      final config = ImportConfiguration(
         mappings: {'primary': resolvedMapping},
         entityTypesToImport:
             detection.matchedPreset?.supportedEntities ??
@@ -128,12 +135,13 @@ class CsvImportParser implements ImportParser {
         specificUtcOffset: specificUtcOffset,
         sourceApp: options?.sourceApp,
       );
+      return (config, const []);
     }
 
     // Case 2: Pipeline detected a known preset.
     if (detection.isDetected && detection.matchedPreset != null) {
       final preset = detection.matchedPreset!;
-      return ImportConfiguration(
+      final config = ImportConfiguration(
         mappings: preset.mappings,
         entityTypesToImport: preset.supportedEntities,
         sourceApp: preset.sourceApp ?? options?.sourceApp,
@@ -141,40 +149,64 @@ class CsvImportParser implements ImportParser {
         timeInterpretation: timeInterpretation,
         specificUtcOffset: specificUtcOffset,
       );
+      return (config, const []);
     }
 
     // Case 3: No preset detected. Auto-map from headers using keywords.
-    final autoMapping = _autoMapFromHeaders(parsedCsv.headers);
-    return ImportConfiguration(
+    final (autoMapping, warnings) = _autoMapFromHeaders(parsedCsv.headers);
+    final config = ImportConfiguration(
       mappings: {'primary': autoMapping},
       timeInterpretation: timeInterpretation,
       specificUtcOffset: specificUtcOffset,
       sourceApp: options?.sourceApp,
     );
+    return (config, warnings);
   }
 
   /// Build a [FieldMapping] from CSV headers using keyword matching.
   ///
   /// Scans each header for known patterns and maps it to the corresponding
-  /// Submersion target field.
-  FieldMapping _autoMapFromHeaders(List<String> headers) {
+  /// Submersion target field. The first column to claim a field keeps it: a
+  /// later column matching the same field would overwrite it row by row
+  /// (#1814), so it is left unmapped and reported in the returned warnings.
+  (FieldMapping, List<ImportWarning>) _autoMapFromHeaders(
+    List<String> headers,
+  ) {
     final columns = <ColumnMapping>[];
+    final warnings = <ImportWarning>[];
+    final columnByTarget = <String, String>{};
     for (final header in headers) {
-      final lower = header.toLowerCase().trim();
-      final target = _guessTargetField(lower);
-      if (target != null) {
-        columns.add(ColumnMapping(sourceColumn: header, targetField: target));
+      final target = _guessTargetField(header.toLowerCase().trim());
+      if (target == null) continue;
+
+      final claimedBy = columnByTarget[target];
+      if (claimedBy != null) {
+        warnings.add(
+          ImportWarning(
+            severity: ImportWarningSeverity.warning,
+            message:
+                'Column "$header" was not imported: column "$claimedBy" '
+                'already fills $target',
+            field: target,
+          ),
+        );
+        continue;
       }
+      columnByTarget[target] = header;
+      columns.add(ColumnMapping(sourceColumn: header, targetField: target));
     }
-    return FieldMapping(
+    final mapping = FieldMapping(
       name: 'Auto-detected',
       sourceApp: SourceApp.generic,
       columns: columns,
     );
+    return (mapping, warnings);
   }
 
   /// Match a lowercase header to a target field using keyword patterns.
   String? _guessTargetField(String header) {
+    // Dive name. Exact headers only: a bare "name" could be a site or buddy.
+    if (header == 'dive name' || header == 'title') return 'name';
     // Dive number.
     if (header.contains('dive') &&
         (header.contains('number') || header.contains('no'))) {
@@ -189,6 +221,8 @@ class CsvImportParser implements ImportParser {
     // Depth fields.
     if (header.contains('max') && header.contains('depth')) return 'maxDepth';
     if (header.contains('avg') && header.contains('depth')) return 'avgDepth';
+    // Runtime (total dive time), kept apart from the bottom time.
+    if (_isRuntime(header)) return 'runtime';
     // Duration.
     if (_isDuration(header)) return 'duration';
     // Temperature.
@@ -204,12 +238,13 @@ class CsvImportParser implements ImportParser {
       return 'diveMaster';
     }
     if (header == 'divemaster') return 'diveMaster';
+    // Visibility, ahead of rating so "Visibility Rating" cannot claim the
+    // rating field from a later "Rating" column.
+    if (header.contains('visibility')) return 'visibility';
     // Rating.
     if (header.contains('rating')) return 'rating';
     // Notes.
     if (header.contains('note')) return 'notes';
-    // Visibility.
-    if (header.contains('visibility')) return 'visibility';
     // Pressure.
     if (header.contains('start') && header.contains('pressure')) {
       return 'startPressure';
@@ -223,10 +258,11 @@ class CsvImportParser implements ImportParser {
     }
     // Gas.
     if (header.contains('o2') || header.contains('oxygen')) return 'o2Percent';
-    // Computer info.
-    if (header.contains('computer')) return 'computer';
-    if (header.contains('serial')) return 'serialNumber';
-    if (header.contains('firmware')) return 'firmware';
+    // Computer info. Serial and firmware first: "Computer Serial" is not a
+    // model, and a model registers a dive computer on import.
+    if (header.contains('serial')) return 'diveComputerSerial';
+    if (header.contains('firmware')) return 'diveComputerFirmware';
+    if (header.contains('computer')) return 'diveComputerModel';
     // Gear.
     if (header.contains('suit')) return 'suit';
     if (header.contains('weight')) return 'weight';
@@ -235,7 +271,11 @@ class CsvImportParser implements ImportParser {
     // GPS.
     if (header.contains('gps')) return 'gps';
     // Weather.
-    if (header.contains('wind') && header.contains('speed')) return 'windSpeed';
+    if (header.contains('wind') && header.contains('speed')) {
+      // Stored in m/s, and no header unit converts to it, so a speed in any
+      // other unit would be saved wrong. Leave it for the diver to map.
+      return _namesNonMetricSpeedUnit(header) ? null : 'windSpeed';
+    }
     if (header.contains('wind') && header.contains('dir')) {
       return 'windDirection';
     }
@@ -260,8 +300,12 @@ class CsvImportParser implements ImportParser {
           !h.contains('surface') &&
           !h.contains('run'));
 
+  bool _isRuntime(String h) => h.contains('runtime') || h.contains('run time');
+
+  static final _nonMetricSpeedUnit = RegExp(r'km|kph|kt|knot|mph');
+
+  bool _namesNonMetricSpeedUnit(String h) => _nonMetricSpeedUnit.hasMatch(h);
+
   bool _isDuration(String h) =>
-      (h.contains('bottom') && h.contains('time')) ||
-      h.contains('duration') ||
-      h.contains('runtime');
+      (h.contains('bottom') && h.contains('time')) || h.contains('duration');
 }

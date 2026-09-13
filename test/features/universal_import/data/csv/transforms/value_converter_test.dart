@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/unit_detector.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/value_converter.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
@@ -282,6 +283,116 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  group('parseDiveTypes', () {
+    group('from names alone', () {
+      test('keys each name by its slug, in order', () {
+        expect(converter.parseDiveTypes(names: 'Night; Search & Recovery'), [
+          ('night', 'Night'),
+          ('search_recovery', 'Search & Recovery'),
+        ]);
+      });
+
+      test('drops blanks and repeated slugs, keeping the first name', () {
+        expect(converter.parseDiveTypes(names: 'Night;; night ; '), [
+          ('night', 'Night'),
+        ]);
+        expect(converter.parseDiveTypes(names: ' ; '), isEmpty);
+      });
+    });
+
+    group('with ids (#1834)', () {
+      test('takes the ids verbatim and pairs names by position', () {
+        // A slug of either name would give neither id.
+        expect(
+          converter.parseDiveTypes(
+            names: 'Search & Recovery; Deep wreck',
+            ids: 'search_recovery_1a2b3c4d; deep_wreck',
+          ),
+          [
+            ('search_recovery_1a2b3c4d', 'Search & Recovery'),
+            ('deep_wreck', 'Deep wreck'),
+          ],
+        );
+      });
+
+      test('gives a lone id the whole names cell', () {
+        expect(converter.parseDiveTypes(names: 'Rec; Tech', ids: 'rec_tech'), [
+          ('rec_tech', 'Rec; Tech'),
+        ]);
+      });
+
+      test('pairs no names when a ";" in one leaves the counts unequal', () {
+        expect(
+          converter.parseDiveTypes(names: 'Rec; Tech; Night', ids: 'rt; night'),
+          [('rt', null), ('night', null)],
+        );
+      });
+
+      test('pairs no names when a ";" in one leaves an empty segment', () {
+        // 'Rec;' then 'Night' joins to 'Rec;; Night': two non-empty parts
+        // for two ids, but not the two names.
+        expect(
+          converter.parseDiveTypes(names: 'Rec;; Night', ids: 'rec; night'),
+          [('rec', null), ('night', null)],
+        );
+      });
+
+      test('leaves names unknown without a names cell', () {
+        expect(converter.parseDiveTypes(ids: 'night'), [('night', null)]);
+      });
+
+      test('drops blank and repeated ids', () {
+        expect(
+          converter.parseDiveTypes(names: 'Night; Night', ids: 'night; night'),
+          [('night', 'Night')],
+        );
+        expect(converter.parseDiveTypes(ids: ' ; '), isEmpty);
+      });
+    });
+  });
+
+  group('parseEnumName', () {
+    String? direction(String raw) => converter.parseEnumName(
+      raw,
+      CurrentDirection.values,
+      (v) => v.displayName,
+    );
+
+    test('matches the display name, ignoring case', () {
+      expect(direction('North-East'), 'northEast');
+      expect(direction('north-east'), 'northEast');
+    });
+
+    test('matches the enum name', () {
+      expect(direction('northEast'), 'northEast');
+    });
+
+    test('returns null for unknown or blank input', () {
+      expect(direction('NNW'), isNull);
+      expect(direction('  '), isNull);
+    });
+  });
+
+  group('unescapeCsvInjectionGuard', () {
+    test('drops the quote the export adds before a formula character', () {
+      for (final value in ['=1+1', '+5', '-5', '@a', '|b']) {
+        expect(converter.unescapeCsvInjectionGuard("'$value"), value);
+      }
+    });
+
+    test('drops the quote the export adds before a leading quote', () {
+      expect(converter.unescapeCsvInjectionGuard("''quoted"), "'quoted");
+      expect(converter.unescapeCsvInjectionGuard("''=1+1"), "'=1+1");
+      expect(converter.unescapeCsvInjectionGuard("''"), "'");
+    });
+
+    test('leaves any other value unchanged', () {
+      expect(converter.unescapeCsvInjectionGuard("'"), "'");
+      expect(converter.unescapeCsvInjectionGuard("'quoted"), "'quoted");
+      expect(converter.unescapeCsvInjectionGuard('=raw'), '=raw');
+    });
+  });
+
   group('parseDiveType', () {
     test('maps training keywords', () {
       expect(converter.parseDiveType('training'), 'training');

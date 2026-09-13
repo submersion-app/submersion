@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
 
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/unit_detector.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 
@@ -202,6 +203,101 @@ class ValueConverter {
 
     return 'recreational';
   }
+
+  // ---------------------------------------------------------------------------
+  /// Parse a dive's types from Submersion's CSV: the [names] cell ("Night;
+  /// Search & Recovery") and, in exports since #1834, the [ids] cell listing
+  /// their ids in the same order. Returns each type's id with its name, or a
+  /// null name when the cells do not give one, in order and without repeats.
+  ///
+  /// With [ids], those are the types, verbatim: a name cannot be turned back
+  /// into its id, since slugging drops characters like `&` and a colliding
+  /// custom type's id carries a suffix. Names pair with ids by position. A
+  /// name containing ';' splits into more parts than there are ids (or an
+  /// empty part), so then a lone id takes the whole cell and several ids
+  /// pair with no name.
+  ///
+  /// Without [ids] (an older export, or a hand-made file), each name's slug
+  /// ([DiveTypeEntity.generateSlug]) is its id. That inverts the
+  /// `Dive.diveTypeDisplayName` form older exports wrote.
+  List<(String, String?)> parseDiveTypes({String? names, String? ids}) {
+    final nameParts = names == null ? const <String>[] : _listCell(names);
+    final types = <(String, String?)>[];
+    void add(String id, String? name) {
+      if (id.isNotEmpty && !types.any((t) => t.$1 == id)) types.add((id, name));
+    }
+
+    if (ids == null) {
+      for (final name in nameParts) {
+        add(DiveTypeEntity.generateSlug(name), name);
+      }
+      return types;
+    }
+
+    final idParts = _listCell(ids);
+    // Every segment, empty ones included: 'Rec;' then 'Night' joins to
+    // 'Rec;; Night', whose non-empty parts would pair as 'Rec' and 'Night'.
+    final segments = names?.split(';').map((s) => s.trim()).toList();
+    final List<String?> pairedNames;
+    if (idParts.length > 1 &&
+        segments != null &&
+        segments.length == idParts.length &&
+        segments.every((s) => s.isNotEmpty)) {
+      pairedNames = segments;
+    } else if (idParts.length == 1 && nameParts.isNotEmpty) {
+      pairedNames = [names!.trim()];
+    } else {
+      pairedNames = List<String?>.filled(idParts.length, null);
+    }
+    for (var i = 0; i < idParts.length; i++) {
+      add(idParts[i], pairedNames[i]);
+    }
+    return types;
+  }
+
+  /// The trimmed, non-blank entries of a ';'-separated list cell.
+  static List<String> _listCell(String raw) => [
+    for (final part in raw.split(';'))
+      if (part.trim().isNotEmpty) part.trim(),
+  ];
+
+  // ---------------------------------------------------------------------------
+  /// Match [raw] against [values] by enum name or by [displayName], ignoring
+  /// case, and return the matching enum's name.
+  ///
+  /// The importer stores enums by name, while Submersion's CSV export writes
+  /// display names ("North-East", "Partly Cloudy"). Returns null when nothing
+  /// matches.
+  String? parseEnumName<T extends Enum>(
+    String raw,
+    List<T> values,
+    String Function(T value) displayName,
+  ) {
+    final s = raw.trim().toLowerCase();
+    if (s.isEmpty) return null;
+    for (final value in values) {
+      if (value.name.toLowerCase() == s ||
+          displayName(value).toLowerCase() == s) {
+        return value.name;
+      }
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  /// Undo the CSV-injection guard Submersion's export applies to free text:
+  /// a leading `'` in front of `=`, `+`, `-`, `@`, `|` or another `'` is
+  /// dropped.
+  ///
+  /// Mirrors `CsvExportService.sanitizeCsvField`, which also quotes a value
+  /// that starts with `'`, so the text `'=1` exports as `''=1` and comes
+  /// back intact. Any other value is returned unchanged.
+  String unescapeCsvInjectionGuard(String value) {
+    if (value.length < 2 || value[0] != "'") return value;
+    return _guardedLeadChars.contains(value[1]) ? value.substring(1) : value;
+  }
+
+  static const _guardedLeadChars = {'=', '+', '-', '@', '|', '\t', '\r', "'"};
 
   // ---------------------------------------------------------------------------
   /// Parse [raw] as a [double], stripping commas and trailing non-numeric

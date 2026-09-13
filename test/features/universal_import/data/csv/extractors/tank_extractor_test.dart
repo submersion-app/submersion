@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/tank_extractor.dart';
 
 void main() {
@@ -275,6 +276,42 @@ void main() {
         expect(tanks, hasLength(1));
         expect(tanks[0]['volume'], 12.0);
         expect(tanks[0]['startPressure'], 200);
+      });
+    });
+
+    group('gas mix (#1814)', () {
+      // The importer builds each tank's gas from 'gasMix' alone, so without
+      // it every CSV tank landed as air.
+      test('numbered tank carries its mix as a GasMix', () {
+        final tanks = extractor.extract({
+          'tankVolume_1': 12.0,
+          'o2Percent_1': 32.0,
+          'hePercent_1': 10.0,
+        }, diveId);
+
+        expect(tanks.single['gasMix'], const GasMix(o2: 32, he: 10));
+      });
+
+      test('flat tank carries its mix as a GasMix', () {
+        final tanks = extractor.extract({'o2Percent': '32'}, diveId);
+
+        expect(tanks.single['gasMix'], const GasMix(o2: 32));
+      });
+
+      test('flat tank keeps its helium', () {
+        final tanks = extractor.extract({
+          'o2Percent': '18',
+          'hePercent': '45',
+        }, diveId);
+
+        expect(tanks.single['hePercent'], 45.0);
+        expect(tanks.single['gasMix'], const GasMix(o2: 18, he: 45));
+      });
+
+      test('a tank without a mix is air', () {
+        final tanks = extractor.extract({'startPressure': 200.0}, diveId);
+
+        expect(tanks.single['gasMix'], const GasMix());
       });
     });
   });

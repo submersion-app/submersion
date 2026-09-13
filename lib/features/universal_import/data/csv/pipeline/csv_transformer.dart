@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/models/transformed_rows.dart';
@@ -68,11 +70,19 @@ class CsvTransformer {
       }
     }
 
+    // Step 3b: Custom field columns name their key in the header
+    // ('custom:<key>'), so no static mapping can list them. Read every one
+    // the mapping does not claim for another field.
+    final customFieldColumns = _customFieldColumns(csv.headers, mapping);
+
     // Step 4: First pass - map columns to target fields for each row.
     final mappedRows = <Map<String, dynamic>>[];
     for (var rowIdx = 0; rowIdx < csv.rows.length; rowIdx++) {
       final row = csv.rows[rowIdx];
       final mapped = <String, dynamic>{};
+
+      final customFields = _readCustomFields(row, customFieldColumns);
+      if (customFields.isNotEmpty) mapped['customFields'] = customFields;
 
       for (final col in mapping.columns) {
         final colIdx = columnIndex[col.sourceColumn.toLowerCase().trim()];
@@ -117,9 +127,21 @@ class CsvTransformer {
         );
         if (typed != null) {
           mapped[col.targetField] = typed;
+        } else {
+          warnings.add(
+            ImportWarning(
+              severity: ImportWarningSeverity.info,
+              message:
+                  'Row ${rowIdx + 1}: could not read "$rawValue" '
+                  'for field ${col.targetField}',
+              field: col.targetField,
+              itemIndex: rowIdx,
+            ),
+          );
         }
       }
 
+      _resolveDiveTypes(mapped);
       mappedRows.add(mapped);
     }
 
@@ -203,6 +225,63 @@ class CsvTransformer {
   // Private helpers
   // ---------------------------------------------------------------------------
 
+  /// Column index and field key of each `custom:<key>` header that
+  /// [mapping] does not map to a field of its own.
+  List<(int, String)> _customFieldColumns(
+    List<String> headers,
+    FieldMapping mapping,
+  ) {
+    final mappedSources = {
+      for (final col in mapping.columns) col.sourceColumn.toLowerCase().trim(),
+    };
+    const prefix = DiveCsvColumns.customFieldPrefix;
+    final columns = <(int, String)>[];
+    for (var i = 0; i < headers.length; i++) {
+      final header = headers[i].trim();
+      if (!header.toLowerCase().startsWith(prefix)) continue;
+      if (mappedSources.contains(header.toLowerCase())) continue;
+      final key = header.substring(prefix.length).trim();
+      if (key.isNotEmpty) columns.add((i, key));
+    }
+    return columns;
+  }
+
+  /// The non-blank custom field cells of [row], as `{key, value}` maps.
+  ///
+  /// The export writes an empty cell for a dive without that key (the
+  /// columns are the union over every exported dive), so blanks are skipped.
+  /// A value keeps its surrounding whitespace: it is the diver's free text.
+  List<Map<String, String>> _readCustomFields(
+    List<String> row,
+    List<(int, String)> columns,
+  ) {
+    return [
+      for (final (colIdx, key) in columns)
+        if (colIdx < row.length && row[colIdx].trim().isNotEmpty)
+          {
+            'key': key,
+            'value': _valueConverter.unescapeCsvInjectionGuard(row[colIdx]),
+          },
+    ];
+  }
+
+  /// Replaces the raw 'diveTypeNames' and 'diveTypeIds' cells of [mapped]
+  /// with the dive's type ids (a list) and the name of each id the cells
+  /// name (an id-to-name map), or removes both when neither gives a type.
+  void _resolveDiveTypes(Map<String, dynamic> mapped) {
+    final names = mapped.remove('diveTypeNames');
+    final ids = mapped.remove('diveTypeIds');
+    if (names is! String && ids is! String) return;
+
+    final types = _valueConverter.parseDiveTypes(
+      names: names is String ? names : null,
+      ids: ids is String ? ids : null,
+    );
+    if (types.isEmpty) return;
+    mapped['diveTypeIds'] = [for (final (id, _) in types) id];
+    mapped['diveTypeNames'] = {for (final (id, name) in types) id: ?name};
+  }
+
   /// Apply a [ValueTransform] to [rawValue] and return the typed result.
   dynamic _applyTransform(
     ValueTransform transform,
@@ -245,8 +324,37 @@ class CsvTransformer {
     }
 
     // Duration fields: try to infer format.
-    if (lower == 'duration') {
+    if (lower == 'duration' || lower == 'runtime') {
       return _inferDuration(rawValue);
+    }
+
+    // A dive's types come in two cells, their names ("Night; Wreck") and
+    // their ids, which pair up once the whole row is read (_resolveDiveTypes).
+    if (lower == 'divetypenames' || lower == 'divetypeids') {
+      return _valueConverter.unescapeCsvInjectionGuard(rawValue);
+    }
+
+    // Weather enums: stored by name, exported by display name.
+    if (lower == 'winddirection') {
+      return _valueConverter.parseEnumName(
+        rawValue,
+        CurrentDirection.values,
+        (v) => v.displayName,
+      );
+    }
+    if (lower == 'cloudcover') {
+      return _valueConverter.parseEnumName(
+        rawValue,
+        CloudCover.values,
+        (v) => v.displayName,
+      );
+    }
+    if (lower == 'precipitation') {
+      return _valueConverter.parseEnumName(
+        rawValue,
+        Precipitation.values,
+        (v) => v.displayName,
+      );
     }
 
     // Numeric (double) fields that may need unit conversion.
@@ -337,6 +445,9 @@ class CsvTransformer {
         base == 'weight' ||
         base == 'sac' ||
         base == 'tankvolume' ||
+        base == 'visibilitymeters' ||
+        base == 'windspeed' ||
+        base == 'humidity' ||
         base == 'sampledepth' ||
         base == 'sampletemperature' ||
         base == 'samplepressure';

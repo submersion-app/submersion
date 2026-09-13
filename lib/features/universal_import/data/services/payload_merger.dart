@@ -335,8 +335,13 @@ class PayloadMerger {
       }
       _enrich(survivor.item, item);
       if (sourceId != null) survivor.sourceIds.add(sourceId);
-      final foldedId = item['uddfId'];
-      final survivorId = survivor.item['uddfId'];
+      // A dive names its types by id (the slug), not by uddfId (#1834).
+      final foldedId = type == ImportEntityType.diveTypes
+          ? _recordId(type, item)
+          : item['uddfId'];
+      final survivorId = type == ImportEntityType.diveTypes
+          ? _recordId(type, survivor.item)
+          : survivor.item['uddfId'];
       if (foldedId is String && survivorId is String) {
         aliases[foldedId] = survivorId;
       }
@@ -450,6 +455,17 @@ class PayloadMerger {
       }
       _rewriteNested(dive, 'gearLinks', _gearLinkRefFields, resolve);
       _rewriteNested(dive, 'buddyRoleRefs', _buddyRoleRefFields, resolve);
+      // Type ids are never namespaced (a slug is shared across files), so
+      // only a type folded into a namesake with another id rewrites here.
+      final typeIds = dive['diveTypeIds'];
+      if (typeIds is List) {
+        dive['diveTypeIds'] = [
+          ...{
+            for (final id in typeIds)
+              if (id is String) resolve(id) else id,
+          },
+        ];
+      }
     }
 
     for (final item in entities[ImportEntityType.equipment] ?? const []) {

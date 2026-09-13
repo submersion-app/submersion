@@ -549,7 +549,11 @@ class UniversalAdapter implements ImportSourceAdapter {
         if (!links) continue;
         if (entry.key < 0 || entry.key >= items.length) continue;
         final item = items[entry.key];
-        final ref = (item['uddfId'] as String?) ?? (item['name'] as String?);
+        // A dive references its types by id (the slug), not by uddfId or
+        // name, and a UDDF type record carries no uddfId at all (#1834).
+        final ref = type == wizard.ImportEntityType.diveTypes
+            ? (item['id'] as String?) ?? (item['uddfId'] as String?)
+            : (item['uddfId'] as String?) ?? (item['name'] as String?);
         if (ref != null) map[ref] = entry.value.existingId;
       }
       return map;
@@ -609,6 +613,10 @@ class UniversalAdapter implements ImportSourceAdapter {
       preResolvedTagIds: preResolvedIdsFor(
         wizard.ImportEntityType.tags,
         uddfData.tags,
+      ),
+      preResolvedDiveTypeIds: preResolvedIdsFor(
+        wizard.ImportEntityType.diveTypes,
+        uddfData.customDiveTypes,
       ),
       onProgress: onProgress,
       cancelToken: cancelToken,

@@ -5,10 +5,12 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -26,6 +28,10 @@ class CsvExportService {
   /// carriage return, pipe) with a single quote, which forces spreadsheet
   /// applications to treat the value as plain text.
   ///
+  /// A value that already starts with a quote gets one more, so an import
+  /// can undo the guard unambiguously: one leading quote is dropped when a
+  /// dangerous character or another quote follows it (#1814).
+  ///
   /// References:
   /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
   String sanitizeCsvField(String? value) {
@@ -40,7 +46,8 @@ class CsvExportService {
         firstChar == '@' ||
         firstChar == '\t' ||
         firstChar == '\r' ||
-        firstChar == '|') {
+        firstChar == '|' ||
+        firstChar == "'") {
       return "'$value";
     }
 
@@ -50,8 +57,14 @@ class CsvExportService {
   // ==================== Share via System Sheet ====================
 
   /// Export dives to CSV format and share via system sheet.
-  Future<String> exportDivesToCsv(List<Dive> dives) async {
-    final csvData = generateDivesCsvContent(dives);
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) async {
+    final csvData = generateDivesCsvContent(
+      dives,
+      diveTypesById: diveTypesById,
+    );
     return saveAndShareFile(csvData, 'dives_export.csv', 'text/csv');
   }
 
@@ -164,7 +177,14 @@ class CsvExportService {
   // ==================== Content Generation ====================
 
   /// Generate CSV content for dives (without sharing).
-  String generateDivesCsvContent(List<Dive> dives) {
+  ///
+  /// [diveTypesById] holds the loaded `dive_types` rows, so each type is
+  /// written under the name the diver gave it (#1834); an id with no row
+  /// falls back to a name rebuilt from the id.
+  String generateDivesCsvContent(
+    List<Dive> dives, {
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) {
     // Collect all distinct custom field keys across exported dives
     final allCustomFieldKeys = <String>{};
     for (final dive in dives) {
@@ -174,42 +194,12 @@ class CsvExportService {
     }
     final sortedCustomKeys = allCustomFieldKeys.toList()..sort();
 
+    // The built-in Submersion import preset reads these same constants.
     final headers = [
-      'Dive Number',
-      'Name',
-      'Date',
-      'Time',
-      'Site',
-      'Location',
-      'Max Depth (m)',
-      'Avg Depth (m)',
-      'Bottom Time (min)',
-      'Runtime (min)',
-      'Water Temp (°C)',
-      'Air Temp (°C)',
-      // Split at v144: the measured distance is machine-readable, the rating
-      // column carries a pre-v144 dive's bucket label.
-      'Visibility (m)',
-      'Visibility Rating',
-      'Dive Type',
-      'Buddy',
-      'Dive Master',
-      'Rating',
-      'Start Pressure (bar)',
-      'End Pressure (bar)',
-      'Tank Volume (L)',
-      'O2 %',
-      'Dive Computer',
-      'Serial Number',
-      'Firmware Version',
-      'Notes',
-      'Wind Speed (m/s)',
-      'Wind Direction',
-      'Cloud Cover',
-      'Precipitation',
-      'Humidity (%)',
-      'Weather Description',
-      ...sortedCustomKeys.map((key) => sanitizeCsvField('custom:$key')),
+      ...DiveCsvColumns.fixed,
+      ...sortedCustomKeys.map(
+        (key) => sanitizeCsvField('${DiveCsvColumns.customFieldPrefix}$key'),
+      ),
     ];
 
     final rows = <List<dynamic>>[headers];
@@ -231,7 +221,12 @@ class CsvExportService {
         dive.airTemp?.toStringAsFixed(0) ?? '',
         dive.visibilityMeters?.toStringAsFixed(1) ?? '',
         dive.visibility?.displayName ?? '',
-        dive.diveTypeNames.join('; '),
+        // Free text the diver typed, so guarded like any other.
+        sanitizeCsvField(
+          dive
+              .diveTypeNamesFrom(diveTypesById)
+              .join(DiveCsvColumns.diveTypeSeparator),
+        ),
         dive.buddy ?? '',
         dive.diveMaster ?? '',
         dive.rating ?? '',
@@ -249,6 +244,14 @@ class CsvExportService {
         dive.precipitation?.displayName ?? '',
         dive.humidity?.toStringAsFixed(0) ?? '',
         dive.weatherDescription ?? '',
+        dive.site?.city ?? '',
+        dive.site?.region ?? '',
+        dive.site?.country ?? '',
+        dive.site?.island ?? '',
+        tank?.gasMix.he.toStringAsFixed(0) ?? '',
+        sanitizeCsvField(
+          dive.diveTypeIds.join(DiveCsvColumns.diveTypeSeparator),
+        ),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)
@@ -383,8 +386,12 @@ class CsvExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
-    final csvContent = generateDivesCsvContent(dives);
+    final csvContent = generateDivesCsvContent(
+      dives,
+      diveTypesById: diveTypesById,
+    );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 

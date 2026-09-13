@@ -13,6 +13,8 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -194,6 +196,7 @@ void main() {
   ProviderContainer makeContainer({
     List<Dive>? divesOverride,
     AppSettings? settings,
+    List<DiveTypeEntity>? diveTypes,
   }) {
     final container = ProviderContainer(
       overrides: [
@@ -205,6 +208,8 @@ void main() {
         settingsProvider.overrideWith(
           (ref) => _FixedSettings(settings ?? const AppSettings()),
         ),
+        if (diveTypes != null)
+          diveTypesProvider.overrideWith((ref) async => diveTypes),
       ],
     );
     addTearDown(container.dispose);
@@ -218,6 +223,32 @@ void main() {
       pdfVisibleText(await File(path).readAsBytes());
 
   group('exportDivesToPdf (share)', () {
+    test('prints a custom dive type under its own name (#1834)', () async {
+      final custom = DiveTypeEntity(
+        id: 'search_recovery_1a2b3c4d',
+        diverId: 'diver-1',
+        name: 'Search & Recovery',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      final container = makeContainer(
+        divesOverride: [
+          dives.first.copyWith(diveTypeIds: [custom.id]),
+        ],
+        diveTypes: [custom],
+      );
+
+      await notifierOf(container).exportDivesToPdf(
+        const PdfExportOptions(template: PdfTemplate.detailed),
+      );
+
+      final state = container.read(exportNotifierProvider);
+      expect(state.status, ExportStatus.success);
+      final text = await textAt(state.filePath!);
+      expect(text, contains('Search & Recovery'));
+      expect(text, isNot(contains('Search recovery 1a2b3c4d')));
+    });
+
     test(
       'honors the selected template and personalizes with the diver',
       () async {
