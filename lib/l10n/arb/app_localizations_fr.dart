@@ -22622,9 +22622,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Importer comme nouveau';
 
   @override
-  String get universalImport_label_importComplete => 'Import terminé';
-
-  @override
   String get universalImport_label_importing => 'Import';
 
   @override
@@ -25488,6 +25485,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Utiliser les numéros de plongée du fichier importé au lieu de les attribuer automatiquement';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Cette source ne fournit pas de numéros de plongée, les plongées sont donc numérotées automatiquement';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -39597,6 +39598,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Associer les émetteurs';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Numéros de plongée déjà utilisés';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Ces plongées ont conservé le numéro de leur source, mais d\'autres plongées de votre carnet utilisent déjà ces numéros. Ouvrez Numérotation des plongées dans le menu de la liste des plongées pour les renuméroter.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'Émetteur non associé';

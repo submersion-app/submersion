@@ -22532,9 +22532,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Importar como novo';
 
   @override
-  String get universalImport_label_importComplete => 'Importação Concluída';
-
-  @override
   String get universalImport_label_importing => 'Importando';
 
   @override
@@ -25393,6 +25390,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Usar os números de mergulho do arquivo importado em vez de atribuí-los automaticamente';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Esta origem não fornece números de mergulho, por isso os mergulhos são numerados automaticamente';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -39498,6 +39499,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Atribuir transmissores';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Números de mergulho já em uso';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Estes mergulhos mantiveram o número da sua origem, mas outros mergulhos do seu registo já usam os mesmos números. Abra Numeração de Mergulhos no menu da lista de mergulhos para os renumerar.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

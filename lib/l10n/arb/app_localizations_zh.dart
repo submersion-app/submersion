@@ -21352,9 +21352,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_importAsNew => '作为新导入';
 
   @override
-  String get universalImport_label_importComplete => '导入完成';
-
-  @override
   String get universalImport_label_importing => '正在导入';
 
   @override
@@ -24077,6 +24074,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       '使用导入文件中的潜水编号而不是自动分配';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      '此来源不提供潜水编号，因此潜水将自动编号';
 
   @override
   String get universalImport_label_autoTagThisImport => '自动为此次导入打标签';
@@ -37189,6 +37190,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => '分配发射器';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      '潜水编号已被使用';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      '这些潜水保留了来源中的编号，但您的日志中已有其他潜水使用相同的编号。请在潜水列表菜单中打开“潜水编号”重新编号。';
 
   @override
   String get dataQuality_detector_unknown_transmitter => '未分配的发射器';

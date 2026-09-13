@@ -22466,9 +22466,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Importalas ujkent';
 
   @override
-  String get universalImport_label_importComplete => 'Importálás kész';
-
-  @override
   String get universalImport_label_importing => 'Importálás';
 
   @override
@@ -25312,6 +25309,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Az importált fájl merülésszámainak használata az automatikus kiosztás helyett';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Ez a forrás nem ad meg merülésszámokat, ezért a merülések automatikusan kapnak számot';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -39332,6 +39333,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Jeladók hozzárendelése';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'A merülésszámok már foglaltak';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Ezek a merülések megtartották a forrásuk szerinti számot, de a naplódban más merülések már ugyanezeket a számokat használják. Az újraszámozáshoz nyisd meg a Merülésszámozás menüpontot a merüléslista menüjében.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

@@ -22528,9 +22528,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Importa come nuovo';
 
   @override
-  String get universalImport_label_importComplete => 'Importazione Completata';
-
-  @override
   String get universalImport_label_importing => 'Importazione';
 
   @override
@@ -25390,6 +25387,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Usa i numeri di immersione dal file importato invece di assegnarli automaticamente';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Questa sorgente non fornisce i numeri di immersione, quindi le immersioni vengono numerate automaticamente';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -39483,6 +39484,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assegna trasmettitori';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Numeri di immersione già in uso';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Queste immersioni hanno mantenuto il numero della loro sorgente, ma altre immersioni del tuo registro usano già gli stessi numeri. Apri Numerazione immersioni dal menu dell\'elenco immersioni per rinumerarle.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

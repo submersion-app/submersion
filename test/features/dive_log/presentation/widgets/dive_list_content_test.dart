@@ -116,6 +116,7 @@ Widget _buildTableModeLayout({
         Expanded(
           child: DiveTableView(
             dives: dives,
+            diveTypeLabelResolver: Dive.diveTypeDisplayName,
             onDiveTap: onDiveTap ?? (_) {},
             onDiveDoubleTap: onDiveDoubleTap,
             selectedIds: selectedIds,
