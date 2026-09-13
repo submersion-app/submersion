@@ -78,7 +78,19 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   /// Localizations for the errors this notifier records. It has no
   /// `BuildContext`, and the wizard shows these strings as they are.
-  AppLocalizations get _l10n => l10nForLocaleTag(_ref.read(localeProvider));
+  ///
+  /// Falls back to English when the language setting cannot be read. It
+  /// lives in settings, and a settings failure is one of the errors these
+  /// strings report: throwing again from inside that catch would skip the
+  /// failure and leave the step loading.
+  AppLocalizations get _l10n {
+    try {
+      return l10nForLocaleTag(_ref.read(localeProvider));
+    } catch (e) {
+      _log.warning('Language setting unavailable, reporting in English: $e');
+      return l10nForLocaleTag('en');
+    }
+  }
 
   /// Injectable so a widget test can answer the writability question
   /// without real filesystem work: `testWidgets` runs in a fake-async

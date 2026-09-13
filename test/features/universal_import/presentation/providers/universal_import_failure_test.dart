@@ -243,6 +243,38 @@ void main() {
       );
     });
 
+    test(
+      'still reports a failure when the language setting is what failed',
+      () async {
+        // The language setting lives in settings too. When settings is the
+        // failure being reported, looking up the language for the message must
+        // not throw a second time: that escapes as a ProviderException, skips
+        // _fail, and leaves the step loading. English beats no message at all.
+        final notifier = await _notifier(
+          overrides: [
+            settingsProvider.overrideWith((ref) => throw StateError('boom')),
+          ],
+        );
+        _seed(notifier, _bytes(_oneDiveUddf));
+
+        await expectLater(
+          notifier.confirmSource(),
+          throwsA(
+            isA<ImportStepFailure>().having(
+              (e) => e.message,
+              'message',
+              allOf(
+                startsWith(_en.universalImport_error_parseFailed('')),
+                contains('Bad state: boom'),
+              ),
+            ),
+          ),
+        );
+        expect(notifier.state.isLoading, isFalse);
+        expect(notifier.state.error, isNotNull);
+      },
+    );
+
     test('reports the failure when the picked file carries no bytes', () async {
       final notifier = await _notifier();
       notifier.state = notifier.state.copyWith(
