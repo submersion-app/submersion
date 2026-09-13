@@ -1,7 +1,7 @@
 /// Air-break policy for long oxygen stops: after [o2Seconds] on a pure-O2
 /// stop gas, breathe the break gas for [breakSeconds], then repeat.
 class AirBreakPolicy {
-  const AirBreakPolicy({this.o2Seconds = 20 * 60, this.breakSeconds = 5 * 60});
+  const AirBreakPolicy({this.o2Seconds = 12 * 60, this.breakSeconds = 6 * 60});
 
   final int o2Seconds;
   final int breakSeconds;
@@ -53,6 +53,7 @@ class SchedulePolicy {
     this.gasSwitchStopSeconds = 0,
     this.snapStopsToWholeMinutes = false,
     this.airBreaks,
+    this.minStopSecondsByDepth = const {},
   }) : intermediateAscentRate = intermediateAscentRate ?? ascentRate,
        shallowAscentRate = shallowAscentRate ?? ascentRate,
        finalAscentRate = finalAscentRate ?? ascentRate;
@@ -120,6 +121,21 @@ class SchedulePolicy {
 
   /// Optional O2 air-break policy; null = no air breaks.
   final AirBreakPolicy? airBreaks;
+
+  /// Diver-authored minimum hold time, in seconds, keyed by whole-metre stop
+  /// depth. A stop whose computed duration is shorter than the configured
+  /// minimum is held for the minimum instead, and the extra time is actually
+  /// simulated against the tissues, so later, shallower stops can shorten in
+  /// response. A depth with no entry (or a minimum shorter than the computed
+  /// duration) is unaffected; a depth that the schedule never stops at is
+  /// never turned into a new stop.
+  ///
+  /// Only honored by the Buhlmann engine ([BuhlmannAlgorithm]). VPM-B
+  /// ([VpmBAlgorithm]) does not yet honor this field: applying a minimum
+  /// there would need `_runTime` and the tissue-loading walk to stay in sync
+  /// with the injected extra time, which VPM-B's stop-time computation does
+  /// not currently support.
+  final Map<int, int> minStopSecondsByDepth;
 
   /// The rate in meters per minute for a leg of [phase] starting at
   /// [fromDepth].

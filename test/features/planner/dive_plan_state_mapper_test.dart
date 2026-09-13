@@ -86,11 +86,30 @@ void main() {
     expect(merged.setpointHigh, isNull);
     expect(merged.turnPressureRule, isNull);
     expect(merged.sourceDiveId, isNull);
-    // ...while aggregate-only fields survive the cycle.
-    expect(merged.airBreaks, isNotNull);
-    // descentRate is now STATE-owned (Phase 4), so the state's default wins
-    // over the existing plan's value.
+    // descentRate and airBreaks are now STATE-owned (Phase 4 / Phase 7), so
+    // the state's default (18.0 / no breaks) wins over the existing plan's
+    // value.
     expect(merged.descentRate, 18.0);
+    expect(merged.airBreaks, isNull);
+  });
+
+  test('air breaks round-trip through the state', () {
+    final withBreaks = state().copyWith(
+      airBreaks: const AirBreakPolicy(o2Seconds: 720, breakSeconds: 360),
+    );
+    final plan = divePlanFromState(withBreaks);
+    expect(plan.airBreaks, isNotNull);
+    expect(plan.airBreaks!.o2Seconds, 720);
+    expect(plan.airBreaks!.breakSeconds, 360);
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.airBreaks, isNotNull);
+    expect(restored.airBreaks!.o2Seconds, 720);
+    expect(restored.airBreaks!.breakSeconds, 360);
+
+    final cleared = restored.copyWith(clearAirBreaks: true);
+    final unset = divePlanFromState(cleared, existing: plan);
+    expect(unset.airBreaks, isNull);
   });
 
   test('water type round-trips through the state', () {

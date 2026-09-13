@@ -410,7 +410,10 @@ class MacDiveXmlParser implements ImportParser {
     final map = <String, dynamic>{'uddfId': uddfId};
     if (g.name != null) map['name'] = g.name;
     if (g.manufacturer != null) map['brand'] = g.manufacturer;
-    if (g.type != null) map['type'] = g.type;
+    // MacDive's type is free text ("BCD - Wing"); the importer only matches
+    // enum names, so classify it here as the SQLite mapper does.
+    final type = MacDiveValueMapper.equipmentType(g.type);
+    if (type != null) map['type'] = type.name;
     if (g.serial != null) map['serialNumber'] = g.serial;
     return map;
   }
