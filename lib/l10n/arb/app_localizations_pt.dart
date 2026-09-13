@@ -22312,6 +22312,85 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nada foi importado: não foi possível ler as datas de $count linhas.',
+      one: 'Nada foi importado: não foi possível ler a data de 1 linha.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Verifique se as colunas de data e hora estão mapeadas nesta etapa e se contêm datas.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'Nenhum dado importável foi encontrado neste arquivo.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'Nenhum dado importável foi encontrado neste arquivo: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'Nenhum dado importável foi encontrado nos arquivos selecionados.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'Não foi possível ler o arquivo selecionado. Selecione-o novamente.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'Não foi possível ler o arquivo: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'Nenhum arquivo importável foi encontrado no arquivo compactado.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'Nenhum arquivo importável foi encontrado na pasta selecionada.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'Não foi possível carregar o arquivo: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'Não foi possível abrir o arquivo: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'Não foi possível verificar a pasta: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'Nenhum dispositivo Garmin conectado foi encontrado. Conecte-o por cabo ou use \"Escolher pasta\" para selecionar a pasta GARMIN/Activity do dispositivo.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'Não foi possível ler o dispositivo Garmin: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'Nenhum mergulho foi encontrado no dispositivo Garmin conectado.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'Não foi possível abrir o arquivo adicional: $details';
+  }
+
+  @override
   String get universalImport_label_columnMapping => 'Mapeamento de Colunas';
 
   @override

@@ -7,6 +7,7 @@
 
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' show Locale;
 
 import 'package:fit_tool/fit_tool.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,10 +17,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 
 const _diveFixture = 'test/dives/005_oc-trimix-two-deco-gases.fit';
+
+final _en = lookupAppLocalizations(const Locale('en'));
+final _de = lookupAppLocalizations(const Locale('de'));
 
 /// A structurally valid FIT file for a non-dive activity (a run).
 ///
@@ -85,17 +90,25 @@ void main() {
     await tmp.delete(recursive: true);
   });
 
-  /// Build a notifier whose detector points at [volumeRoots]. The container is
+  /// Build a notifier whose detector points at [roots]. The container is
   /// disposed via [addTearDown] so a throw here cannot leave the enclosing
   /// tearDown disposing an uninitialized field.
-  Future<UniversalImportNotifier> notifierFor(List<String> volumeRoots) async {
+  ///
+  /// [volumeRoots] replaces the volume listing outright, for a detector that
+  /// fails; [locale] is the language setting.
+  Future<UniversalImportNotifier> notifierFor(
+    List<String> roots, {
+    List<Directory> Function()? volumeRoots,
+    String? locale,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final detector = GarminDeviceDetector(
-      volumeRoots: () => [for (final r in volumeRoots) Directory(r)],
+      volumeRoots: volumeRoots ?? () => [for (final r in roots) Directory(r)],
     );
     final container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        if (locale != null) localeProvider.overrideWithValue(locale),
         universalImportNotifierProvider.overrideWith(
           (ref) => UniversalImportNotifier(ref, garminDeviceDetector: detector),
         ),
@@ -181,7 +194,7 @@ void main() {
 
       expect(notifier.state.files, isEmpty);
       expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.error, contains('No dives found'));
+      expect(notifier.state.error, _en.universalImport_error_garminNoDives);
     },
   );
 
@@ -209,7 +222,7 @@ void main() {
 
     expect(notifier.state.files, isEmpty);
     expect(notifier.state.isLoading, isFalse);
-    expect(notifier.state.error, contains('No connected Garmin device'));
+    expect(notifier.state.error, _en.universalImport_error_garminNotFound);
   });
 
   test('reports an error when the device holds only corrupt FITs', () async {
@@ -219,6 +232,31 @@ void main() {
     await notifier.importFromGarminDevice();
 
     expect(notifier.state.files, isEmpty);
-    expect(notifier.state.error, contains('No dives found'));
+    expect(notifier.state.error, _en.universalImport_error_garminNoDives);
+  });
+
+  test('reports a device that cannot be read, with its cause', () async {
+    final notifier = await notifierFor(
+      const [],
+      volumeRoots: () => throw StateError('volumes unavailable'),
+    );
+
+    await notifier.importFromGarminDevice();
+
+    expect(
+      notifier.state.error,
+      _en.universalImport_error_garminReadFailed(
+        'Bad state: volumes unavailable',
+      ),
+    );
+    expect(notifier.state.isLoading, isFalse);
+  });
+
+  test('reports errors in the diver\'s language', () async {
+    final notifier = await notifierFor(const [], locale: 'de');
+
+    await notifier.importFromGarminDevice();
+
+    expect(notifier.state.error, _de.universalImport_error_garminNotFound);
   });
 }

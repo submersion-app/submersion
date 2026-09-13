@@ -22244,6 +22244,84 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Semmi sem lett importálva: $count sorban nem olvasható a dátum.',
+      one: 'Semmi sem lett importálva: 1 sorban nem olvasható a dátum.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Ellenőrizd, hogy ebben a lépésben meg vannak-e feleltetve a dátum- és időoszlopok, és hogy dátumokat tartalmaznak-e.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'Ebben a fájlban nem található importálható adat.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'Ebben a fájlban nem található importálható adat: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'A kiválasztott fájlokban nem található importálható adat.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'A kiválasztott fájl nem olvasható. Válaszd ki újra.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'A fájl nem olvasható: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'Az archívumban nem található importálható fájl.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'A kiválasztott mappában nem található importálható fájl.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'A fájl nem tölthető be: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'A fájl nem nyitható meg: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'A mappa nem vizsgálható át: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'Nem található csatlakoztatott Garmin eszköz. Csatlakoztasd kábellel, vagy a „Mappa kiválasztása” gombbal válaszd ki az eszköz GARMIN/Activity mappáját.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'A Garmin eszköz nem olvasható: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'A csatlakoztatott Garmin eszközön nem található merülés.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'A kiegészítő fájl nem nyitható meg: $details';
+  }
+
+  @override
   String get universalImport_label_columnMapping => 'Oszlop leképezés';
 
   @override
