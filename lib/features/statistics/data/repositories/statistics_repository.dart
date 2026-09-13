@@ -1586,7 +1586,12 @@ class StatisticsRepository {
     }
   }
 
-  /// Get solo vs buddy dive percentage
+  /// Get solo vs buddy dive percentage.
+  ///
+  /// Each dive counts exactly once: a dive is a buddy dive when it has at
+  /// least one linked buddy or a non-empty free-text buddy. The linked
+  /// buddies are tested with EXISTS rather than a join, because a join yields
+  /// one row per linked buddy and would count a group dive several times.
   Future<({int solo, int buddy})> getSoloVsBuddyCount({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1598,11 +1603,15 @@ class StatisticsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          SUM(CASE WHEN db.buddy_id IS NULL AND (d.buddy IS NULL OR d.buddy = '') THEN 1 ELSE 0 END) AS solo,
-          SUM(CASE WHEN db.buddy_id IS NOT NULL OR (d.buddy IS NOT NULL AND d.buddy != '') THEN 1 ELSE 0 END) AS buddy
-        FROM dives d
-        LEFT JOIN dive_buddies db ON db.dive_id = d.id
-        WHERE 1=1 $diverFilter ${df.clause}
+          SUM(CASE WHEN has_buddy THEN 0 ELSE 1 END) AS solo,
+          SUM(CASE WHEN has_buddy THEN 1 ELSE 0 END) AS buddy
+        FROM (
+          SELECT
+            EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
+              OR (d.buddy IS NOT NULL AND d.buddy != '') AS has_buddy
+          FROM dives d
+          WHERE 1=1 $diverFilter ${df.clause}
+        )
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (solo: 0, buddy: 0);
