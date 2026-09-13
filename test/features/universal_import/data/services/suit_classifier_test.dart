@@ -125,6 +125,15 @@ void main() {
       expectUnclear('3mm gloves');
       expectUnclear('7mm boots');
       expectUnclear('2mm vest');
+      expectUnclear('5mm hoodie');
+      expectUnclear('3mm booties');
+      expectUnclear('2mm mittens');
+      expectUnclear('3mm socks');
+    });
+
+    test('a word that only starts like an accessory does not count', () {
+      expectSuit('7mm hooded wetsuit', EquipmentType.wetsuit, '7mm');
+      expectSuit('Hooded 7mm', EquipmentType.wetsuit, '7mm');
     });
 
     test('an out-of-range number is not a thickness', () {

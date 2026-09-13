@@ -65,8 +65,12 @@ SuitClassification? classifySuit(String? text) {
 final RegExp _notASuit = RegExp(
   r'under\s?suit|under\s?garment|base[\s-]?layer|rash[\s-]?guard|skin\s?suit',
 );
+
+/// Whole words only, forms spelled out: "hooded" describes a suit ("7mm
+/// hooded wetsuit"), while "hoodie" and "booties" are accessories.
 final RegExp _accessory = RegExp(
-  r'\b(?:hood|glove|boot|mitt|sock|vest|jacket)',
+  r'\b(?:hoods?|hoodies?|gloves?|boots?|booties?|mitts?|mittens?|socks?'
+  r'|vests?|jackets?)\b',
 );
 final RegExp _semiDry = RegExp(r'\bsemi[\s-]?dry');
 final RegExp _dryWord = RegExp(r'\bdry(?:[\s-]?suits?)?\b');
