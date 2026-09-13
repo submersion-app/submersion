@@ -163,10 +163,10 @@ void main() {
     },
   );
 
-  test('a custom role owned by another diver falls back to none', () async {
+  test('a custom role owned by another diver is copied (#1806)', () async {
     // Another diver's backup restored into this profile: the role id is
-    // already taken by its owner, so the restore cannot give this diver a
-    // copy, and this diver's role list would show the raw id.
+    // already taken by its owner, so this diver gets its own copy under a
+    // new id and the dive points at the copy.
     final now = DateTime.now();
     await DiverRepository().createDiver(
       Diver(id: 'diver-other', name: 'Other', createdAt: now, updatedAt: now),
@@ -175,6 +175,7 @@ void main() {
       name: 'Photographer',
       diverId: 'diver-other',
     );
+    final diverId = await createTestDiver();
 
     await importResult(
       UddfImportResult(
@@ -190,10 +191,72 @@ void main() {
           },
         ],
       ),
+      diverId: diverId,
     );
 
-    expect(await diverRoles(), [null]);
+    final copy = (await DiveRoleRepository().getAllDiveRoles(
+      diverId: diverId,
+    )).singleWhere((r) => !r.isBuiltIn);
+    expect(copy.id, isNot(foreign.id));
+    expect(copy.name, 'Photographer');
+    expect(await diverRoles(), [copy.id]);
   });
+
+  test('a custom role claiming a built-in id is not restored', () async {
+    // The built-in row holds that id, so without a guard the restore would
+    // mint this diver a "copy" of it and list a stray role.
+    final diverId = await createTestDiver();
+
+    await importResult(
+      UddfImportResult(
+        dives: [
+          {
+            'dateTime': DateTime(2026, 3, 1, 9),
+            'diverRoleId': DiveRole.buddyId,
+          },
+        ],
+        customDiveRoles: const [
+          {'id': DiveRole.buddyId, 'name': 'Impostor', 'isBuiltIn': false},
+        ],
+      ),
+      diverId: diverId,
+    );
+
+    expect(
+      (await DiveRoleRepository().getAllDiveRoles(
+        diverId: diverId,
+      )).where((r) => !r.isBuiltIn),
+      isEmpty,
+    );
+    expect(await diverRoles(), [DiveRole.buddyId]);
+  });
+
+  test(
+    'another diver\'s custom role without its definition falls back to none',
+    () async {
+      // A dives-only file declares no <diveroles>, so nothing says what
+      // this diver's copy should be called, and this diver's role list
+      // would show the raw id.
+      final now = DateTime.now();
+      await DiverRepository().createDiver(
+        Diver(id: 'diver-other', name: 'Other', createdAt: now, updatedAt: now),
+      );
+      final foreign = await DiveRoleRepository().createDiveRole(
+        name: 'Photographer',
+        diverId: 'diver-other',
+      );
+
+      await importResult(
+        UddfImportResult(
+          dives: [
+            {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': foreign.id},
+          ],
+        ),
+      );
+
+      expect(await diverRoles(), [null]);
+    },
+  );
 
   test('the dives-only export writes the diver role too', () async {
     final xml = await UddfExportService().generateDivesUddfContent([

@@ -453,6 +453,74 @@ void main() {
       });
     });
 
+    group('findOrCreateByName scoped to a diver (#1806)', () {
+      Future<void> insertDivers() async {
+        await DatabaseService.instance.database.customStatement(
+          "INSERT INTO divers (id, name, created_at, updated_at) VALUES "
+          "('diver-a', 'A', 1000, 1000), ('diver-b', 'B', 1000, 1000)",
+        );
+      }
+
+      Future<Buddy> personOf(String? diverId, String name) async {
+        final now = DateTime.now();
+        return repository.createBuddy(
+          Buddy(
+            id: '',
+            diverId: diverId,
+            name: name,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
+
+      test('another diver\'s namesake is neither reused nor moved', () async {
+        await insertDivers();
+        final theirs = await personOf('diver-a', 'Pat Kim');
+
+        final found = await repository.findOrCreateByName(
+          'pat kim',
+          diverId: 'diver-b',
+        );
+
+        expect(found.id, isNot(theirs.id));
+        expect(found.diverId, 'diver-b');
+        expect(
+          (await repository.getBuddyById(theirs.id))?.diverId,
+          'diver-a',
+          reason: 'the other diver keeps their person',
+        );
+      });
+
+      test(
+        'the diver\'s own person is reused, ahead of an unowned one',
+        () async {
+          await insertDivers();
+          await personOf(null, 'Pat Kim');
+          final own = await personOf('diver-b', 'Pat Kim');
+
+          final found = await repository.findOrCreateByName(
+            'Pat Kim',
+            diverId: 'diver-b',
+          );
+
+          expect((found.id, found.diverId), (own.id, 'diver-b'));
+        },
+      );
+
+      test('an unowned person is found with no diver', () async {
+        await insertDivers();
+        final unowned = await personOf(null, 'Pat Kim');
+
+        final found = await repository.findOrCreateByName(
+          'Pat Kim',
+          diverId: 'diver-b',
+        );
+
+        expect((found.id, found.diverId), (unowned.id, null));
+      });
+    });
+
     group('dive role resolution', () {
       Future<void> insertDive(String id) async {
         final db = DatabaseService.instance.database;
@@ -509,6 +577,46 @@ void main() {
         expect(result.single.role.id, 'mysterySlug');
         expect(result.single.role.name, 'mysterySlug');
       });
+
+      test(
+        'another diver\'s custom role is not resolved on a dive (#1806)',
+        () async {
+          // Custom roles are diver-scoped: a dive must not borrow another
+          // profile's role, whose owner could rename it under this dive.
+          final ownerId = await insertDiver();
+          final db = DatabaseService.instance.database;
+          await db.customStatement(
+            "INSERT INTO divers (id, name, created_at, updated_at) "
+            "VALUES ('diver-2', 'Second Diver', 1000, 1000)",
+          );
+          await db.customStatement(
+            "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+            "updated_at) VALUES ('d-own', '$ownerId', 1000, 1000, 1000), "
+            "('d-other', 'diver-2', 1000, 1000, 1000)",
+          );
+          final buddy = await repository.createBuddy(createTestBuddy(id: 'b1'));
+          final custom = await DiveRoleRepository().createDiveRole(
+            name: 'Hekkensluiter',
+            diverId: ownerId,
+          );
+          await repository.addBuddyToDive('d-own', buddy.id, custom.id);
+          await repository.addBuddyToDive('d-other', buddy.id, custom.id);
+
+          final own = (await repository.getBuddiesForDive('d-own')).single.role;
+          expect(own.name, 'Hekkensluiter');
+          final other = (await repository.getBuddiesForDive(
+            'd-other',
+          )).single.role;
+          expect((other.id, other.name), (custom.id, custom.id));
+
+          final batch = await repository.getBuddiesForDives([
+            'd-own',
+            'd-other',
+          ]);
+          expect(batch['d-own']!.single.role.name, 'Hekkensluiter');
+          expect(batch['d-other']!.single.role.name, custom.id);
+        },
+      );
 
       test(
         'setBuddiesForDive persists the role id, not the display name',
