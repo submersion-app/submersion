@@ -15699,6 +15699,12 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get diveSites_list_activeFilter_clear;
 
+  /// Chip on a site card standing in for the tags that did not fit
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String diveSites_list_moreTags(int count);
+
   /// No description provided for @diveSites_list_activeFilter_country.
   ///
   /// In en, this message translates to:
@@ -48620,6 +48626,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Avg time'**
   String get enum_siteField_averageDuration_short;
+
+  /// No description provided for @enum_siteField_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get enum_siteField_siteTypes;
+
+  /// No description provided for @enum_siteField_siteTypes_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Types'**
+  String get enum_siteField_siteTypes_short;
+
+  /// No description provided for @enum_siteField_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_siteField_tags;
+
+  /// No description provided for @enum_siteField_tags_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_siteField_tags_short;
 
   /// No description provided for @enum_siteField_maxDepthReached_short.
   ///

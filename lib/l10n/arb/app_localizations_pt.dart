@@ -9443,6 +9443,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_list_activeFilter_clear => 'Limpar';
 
   @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
+
+  @override
   String diveSites_list_activeFilter_country(Object country) {
     return 'Pais: $country';
   }
@@ -29642,6 +29647,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'Duração';
+
+  @override
+  String get enum_siteField_siteTypes => 'Site Types';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'Types';
+
+  @override
+  String get enum_siteField_tags => 'Tags';
+
+  @override
+  String get enum_siteField_tags_short => 'Tags';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Seu máx.';

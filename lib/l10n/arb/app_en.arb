@@ -5391,6 +5391,15 @@
   "diveSites_import_snackbar_imported": "Imported \"{name}\"",
   "diveSites_import_snackbar_viewAction": "View",
   "diveSites_list_activeFilter_clear": "Clear",
+  "diveSites_list_moreTags": "+{count}",
+  "@diveSites_list_moreTags": {
+    "description": "Chip on a site card standing in for the tags that did not fit",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_list_activeFilter_country": "Country: {country}",
   "diveSites_list_activeFilter_depthRangeBoth": "{min}-{max}",
   "diveSites_list_activeFilter_depthRangeMax": "Up to {max}",
@@ -18949,6 +18958,10 @@
   "enum_siteField_longestDive_short": "Longest",
   "enum_siteField_averageDuration": "Avg Duration",
   "enum_siteField_averageDuration_short": "Avg time",
+  "enum_siteField_siteTypes": "Site Types",
+  "enum_siteField_siteTypes_short": "Types",
+  "enum_siteField_tags": "Tags",
+  "enum_siteField_tags_short": "Tags",
   "enum_siteField_maxDepthReached_short": "Your max",
   "enum_buddyField_buddyName": "Name",
   "enum_buddyField_email": "Email",

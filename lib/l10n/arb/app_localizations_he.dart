@@ -9210,6 +9210,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_list_activeFilter_clear => 'נקה';
 
   @override
+  String diveSites_list_moreTags(int count) {
+    return '+$count';
+  }
+
+  @override
   String diveSites_list_activeFilter_country(Object country) {
     return 'מדינה: $country';
   }
@@ -28930,6 +28935,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_siteField_averageDuration_short => 'משך';
+
+  @override
+  String get enum_siteField_siteTypes => 'Site Types';
+
+  @override
+  String get enum_siteField_siteTypes_short => 'Types';
+
+  @override
+  String get enum_siteField_tags => 'Tags';
+
+  @override
+  String get enum_siteField_tags_short => 'Tags';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'המרבי שלך';
