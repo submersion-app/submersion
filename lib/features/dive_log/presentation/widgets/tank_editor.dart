@@ -543,8 +543,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   Widget _buildRegulatorPicker() {
     final regs =
-        (ref.watch(activeEquipmentProvider).valueOrNull ??
-                const <EquipmentItem>[])
+        // `value`, not `valueOrNull`: it keeps the previous list while the
+        // provider reloads, so the tank's regulator does not flicker to None.
+        (ref.watch(activeEquipmentProvider).value ?? const <EquipmentItem>[])
             .where((e) => e.type == EquipmentType.regulator)
             // Spare regulators are not offered (#1803), except the one this
             // tank already uses, so an existing dive never reads "None".

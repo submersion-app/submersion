@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -18,6 +19,7 @@ Future<void> _pump(
   required List<EquipmentItem> equipment,
   Set<String> selectedIds = const {},
   bool hideSpare = false,
+  EquipmentPickerFilter filter = EquipmentPickerFilter.none,
   void Function(EquipmentItem)? onSelected,
 }) async {
   // Tall enough to render every row without scrolling. The picker groups
@@ -31,6 +33,7 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         activeEquipmentProvider.overrideWith((ref) async => equipment),
+        equipmentPickerFilterProvider.overrideWith((ref) => filter),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -141,6 +144,36 @@ void main() {
       );
       expect(find.text('No equipment yet'), findsNothing);
       expect(find.text('All equipment already selected'), findsNothing);
+    });
+
+    testWidgets('says the category is spare when the diver filters to one '
+        'that only holds spare gear', (tester) async {
+      // Active gear of another category keeps the picker non-empty overall,
+      // so "No equipment in this category" would be a lie: the category does
+      // hold gear, it is just marked Spare.
+      await _pump(
+        tester,
+        equipment: equipment,
+        hideSpare: true,
+        filter: const EquipmentPickerFilter(type: EquipmentType.other),
+      );
+
+      expect(find.text('Remaining gear is marked Spare'), findsOneWidget);
+      expect(find.text('No equipment in this category'), findsNothing);
+    });
+
+    testWidgets('still blames the category when it holds no gear at all', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        equipment: equipment,
+        hideSpare: true,
+        filter: const EquipmentPickerFilter(type: EquipmentType.fins),
+      );
+
+      expect(find.text('No equipment in this category'), findsOneWidget);
+      expect(find.text('Remaining gear is marked Spare'), findsNothing);
     });
 
     testWidgets('the status filter never offers a Spare chip when hidden', (

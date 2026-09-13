@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,6 +44,11 @@ const _spareReg = EquipmentItem(
   status: EquipmentStatus.spare,
 );
 
+/// Bumped to make the overridden active-equipment list reload, the way a
+/// dependency change (such as the current diver) reloads the real one. The
+/// reload never finishes, so the editor is caught mid-reload.
+final _reload = StateProvider<int>((ref) => 0);
+
 Future<void> _pump(
   WidgetTester tester, {
   required List<EquipmentItem> equipment,
@@ -66,7 +73,10 @@ Future<void> _pump(
           (ref) => _PresetListNotifier(builtInPresets),
         ),
         tankPresetsProvider.overrideWith((ref) => Future.value(builtInPresets)),
-        activeEquipmentProvider.overrideWith((ref) async => equipment),
+        activeEquipmentProvider.overrideWith((ref) async {
+          if (ref.watch(_reload) > 0) await Completer<void>().future;
+          return equipment;
+        }),
       ].cast(),
       child: MaterialApp(
         locale: const Locale('en'),
@@ -136,6 +146,24 @@ void main() {
         equipment: const [_apeks, _spareReg],
         tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-spare'),
       );
+
+      expect(find.text('Spare Octo'), findsOneWidget);
+      expect(find.text('None'), findsNothing);
+    });
+
+    testWidgets('stay shown while the equipment list reloads', (tester) async {
+      // A reload keeps the previous list available. Dropping it for the
+      // loading state would read "None" for the tank's own regulator.
+      await _pump(
+        tester,
+        equipment: const [_apeks, _spareReg],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-spare'),
+      );
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(TankEditor)),
+      ).read(_reload.notifier).state++;
+      await tester.pump();
 
       expect(find.text('Spare Octo'), findsOneWidget);
       expect(find.text('None'), findsNothing);

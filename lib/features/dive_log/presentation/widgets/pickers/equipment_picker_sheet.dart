@@ -118,27 +118,30 @@ class EquipmentPickerSheet extends ConsumerWidget {
               final offerable = _callerAllowed(unselected).toList();
               final available = filter.apply(offerable);
 
-              // True when the only thing left to offer is spare gear, so the
-              // empty state points at the status rather than claiming the
-              // diver owns nothing or has already added everything.
-              final onlySpareLeft =
-                  hideSpare &&
-                  offerable.isEmpty &&
-                  unselected.any(
-                    (e) =>
-                        e.status == EquipmentStatus.spare &&
-                        (typeFilter == null || e.type == typeFilter),
-                  );
-
               // Which axis to blame when nothing is left. Applying the type
               // axis alone says whether the category really holds nothing:
               // if it does hold something, the status axis is what emptied
               // the list and blaming the category would be a lie. This also
               // covers the caller's own typeFilter, since offerable is
               // already narrowed by it.
-              final typeMatches = EquipmentPickerFilter(
-                type: filter.type,
-              ).apply(offerable);
+              final typeFilterOnly = EquipmentPickerFilter(type: filter.type);
+              final typeMatches = typeFilterOnly.apply(offerable);
+
+              // True when the only gear left in the chosen category (or in
+              // the whole picker, with no category chosen) is spare, so the
+              // empty state points at the status rather than claiming the
+              // diver owns nothing, has added everything, or has no gear of
+              // that type.
+              final onlySpareLeft =
+                  hideSpare &&
+                  typeMatches.isEmpty &&
+                  typeFilterOnly
+                      .apply(unselected)
+                      .any(
+                        (e) =>
+                            e.status == EquipmentStatus.spare &&
+                            (typeFilter == null || e.type == typeFilter),
+                      );
 
               if (available.isEmpty) {
                 return _EmptyState(
