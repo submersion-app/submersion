@@ -12,6 +12,10 @@ void main() {
   late AppDatabase db;
   late BuddyConversionRepository repo;
 
+  /// The legacy text each seeded dive held when it was planned, keyed by dive
+  /// id, so [plan] carries it the way the service does.
+  final plannedText = <String, (String?, String?)>{};
+
   Future<void> insertDiver(String id) => db
       .into(db.divers)
       .insert(
@@ -26,21 +30,24 @@ void main() {
     int? number,
     int at = 1000,
     String? siteId,
-  }) => db
-      .into(db.dives)
-      .insert(
-        DivesCompanion.insert(
-          id: id,
-          diverId: Value(diverId),
-          diveDateTime: at,
-          createdAt: 1,
-          updatedAt: 1,
-          buddy: Value(buddy),
-          diveMaster: Value(diveMaster),
-          diveNumber: Value(number),
-          siteId: Value(siteId),
-        ),
-      );
+  }) {
+    plannedText[id] = (buddy, diveMaster);
+    return db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diverId: Value(diverId),
+            diveDateTime: at,
+            createdAt: 1,
+            updatedAt: 1,
+            buddy: Value(buddy),
+            diveMaster: Value(diveMaster),
+            diveNumber: Value(number),
+            siteId: Value(siteId),
+          ),
+        );
+  }
 
   Future<void> insertBuddy(
     String id,
@@ -81,6 +88,7 @@ void main() {
   };
 
   setUp(() async {
+    plannedText.clear();
     db = await setUpTestDatabase();
     repo = BuddyConversionRepository();
     await insertDiver('me');
@@ -141,8 +149,12 @@ void main() {
     });
   });
 
-  ConversionPlan plan(String diveId, List<PlannedLink> links) =>
-      ConversionPlan(diveId: diveId, links: links);
+  ConversionPlan plan(String diveId, List<PlannedLink> links) => ConversionPlan(
+    diveId: diveId,
+    buddyText: plannedText[diveId]?.$1,
+    diveMasterText: plannedText[diveId]?.$2,
+    links: links,
+  );
 
   PlannedLink newLink(String name, [String roleId = DiveRole.buddyId]) =>
       PlannedLink(target: NewBuddyTarget(name), roleId: roleId);
@@ -247,6 +259,27 @@ void main() {
       expect((await db.select(db.buddies).getSingle()).name, 'Ann');
     });
 
+    test(
+      'does not link a planned buddy another diver has claimed since',
+      () async {
+        await insertDive('d1', buddy: 'Ann');
+        await insertBuddy('theirs', 'Ann', diverId: 'other');
+
+        final receipt = await run([
+          plan('d1', [existing('theirs', 'Ann')]),
+        ]);
+
+        final link = await db.select(db.diveBuddies).getSingle();
+        expect(link.buddyId, isNot('theirs'));
+        expect(receipt.createdBuddyIds, [link.buddyId]);
+        final theirs = await (db.select(
+          db.buddies,
+        )..where((t) => t.id.equals('theirs'))).getSingle();
+        expect(theirs.diverId, 'other');
+        expect(receipt.claimedBuddyIds, isEmpty);
+      },
+    );
+
     test('writes one link when two rows resolve to one buddy', () async {
       await insertDive('d1', buddy: 'Ann');
       await insertBuddy('ann', 'Ann');
@@ -271,6 +304,43 @@ void main() {
       expect(await db.select(db.diveBuddies).get(), hasLength(1));
       expect(await db.select(db.buddies).get(), hasLength(1));
     });
+
+    test('skips a dive whose buddy text changed since planning', () async {
+      await insertDive('d1', buddy: 'Ann');
+      final stale = plan('d1', [newLink('Ann')]);
+      await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+        const DivesCompanion(buddy: Value('Bob')),
+      );
+
+      final receipt = await run([stale]);
+
+      expect(receipt.isEmpty, isTrue);
+      expect(await db.select(db.buddies).get(), isEmpty);
+      expect(await db.select(db.diveBuddies).get(), isEmpty);
+    });
+
+    test(
+      'skips a dive whose dive-master text changed since planning',
+      () async {
+        await insertDive('d1', buddy: 'Ann', diveMaster: 'Bob');
+        await insertDive('d2', buddy: 'Cy');
+        final stale = plan('d1', [
+          newLink('Ann'),
+          newLink('Bob', DiveRole.diveMasterId),
+        ]);
+        await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+          const DivesCompanion(diveMaster: Value(null)),
+        );
+
+        final receipt = await run([
+          stale,
+          plan('d2', [newLink('Cy')]),
+        ]);
+
+        expect(receipt.diveIds, ['d2']);
+        expect((await db.select(db.buddies).getSingle()).name, 'Cy');
+      },
+    );
 
     test('skips a dive deleted since planning', () async {
       final receipt = await run([
@@ -405,6 +475,43 @@ void main() {
       )..where((t) => t.id.equals('leo'))).getSingle();
       expect(leo.diverId, isNull);
       expect(await pending('buddies'), {'leo'});
+    });
+
+    test('keeps a claim that a later dive of the diver still needs', () async {
+      await insertDive('d1', buddy: 'Leo');
+      await insertDive('d2');
+      await insertBuddy('leo', 'Leo Cox', diverId: null);
+      final receipt = await run([
+        plan('d1', [existing('leo', 'Leo Cox')]),
+      ]);
+      await link('d2', 'leo');
+      await db.delete(db.syncRecords).go();
+
+      await repo.undo(receipt);
+
+      final leo = await (db.select(
+        db.buddies,
+      )..where((t) => t.id.equals('leo'))).getSingle();
+      expect(leo.diverId, 'me');
+      expect((await db.select(db.diveBuddies).getSingle()).diveId, 'd2');
+      expect(await pending('buddies'), isEmpty);
+    });
+
+    test('returns a claim when only another diver dive links it', () async {
+      await insertDive('d1', buddy: 'Leo');
+      await insertDive('t1', diverId: 'other');
+      await insertBuddy('leo', 'Leo Cox', diverId: null);
+      await link('t1', 'leo');
+      final receipt = await run([
+        plan('d1', [existing('leo', 'Leo Cox')]),
+      ]);
+
+      await repo.undo(receipt);
+
+      final leo = await (db.select(
+        db.buddies,
+      )..where((t) => t.id.equals('leo'))).getSingle();
+      expect(leo.diverId, isNull);
     });
 
     test(

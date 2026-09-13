@@ -94,8 +94,10 @@ class BuddyConversionRepository {
   }
 
   /// Writes [plans] in one transaction and returns what it wrote. Dives that
-  /// are gone or gained links since planning are skipped, so a stale preview
-  /// cannot double-link. Announces the change once, after the commit.
+  /// are gone, gained links, or had their buddy or dive-master text changed
+  /// since planning are skipped, so a stale preview can neither double-link
+  /// nor link names the diver never reviewed. Announces the change once,
+  /// after the commit.
   Future<ConversionReceipt> apply(
     List<ConversionPlan> plans, {
     required String diverId,
@@ -113,7 +115,7 @@ class BuddyConversionRepository {
           now: DateTime.now().millisecondsSinceEpoch,
         );
         for (final plan in plans) {
-          if (plan.isEmpty || !await _isUnlinkedDive(plan.diveId)) continue;
+          if (plan.isEmpty || !await _isStillAsPlanned(plan)) continue;
           final linked = <String>{};
           for (final link in plan.links) {
             final buddyId = await _resolve(link.target, run);
@@ -154,7 +156,8 @@ class BuddyConversionRepository {
   }
 
   /// Reverses [receipt]: its links, the buddies it created that nothing else
-  /// has linked since, and its ownership claims. One transaction, one notify.
+  /// has linked since, and its ownership claims on buddies none of the
+  /// diver's dives link any more. One transaction, one notify.
   Future<void> undo(ConversionReceipt receipt) async {
     if (receipt.isEmpty) return;
     try {
@@ -186,6 +189,10 @@ class BuddyConversionRepository {
                   ))
                   .get();
           for (final row in claimed) {
+            // A dive of this diver linked it since (or before): returning it
+            // to unowned would drop it from the diver's buddy list while
+            // that dive still shows it, so the claim stays.
+            if (await _linkedOnDiverDive(row.id, receipt.diverId)) continue;
             await (_db.update(
               _db.buddies,
             )..where((t) => t.id.equals(row.id))).write(
@@ -237,15 +244,43 @@ class BuddyConversionRepository {
     await _sync.logDeletion(entityType: 'buddies', recordId: id);
   }
 
-  Future<bool> _isUnlinkedDive(String diveId) async {
+  /// Whether [plan]'s dive still exists, has no links, and holds the buddy
+  /// and dive-master text it was planned from. A sync or another window can
+  /// change the text while a review is open; the names then need a new
+  /// review, and the links would hide the new text on the Buddies card.
+  Future<bool> _isStillAsPlanned(ConversionPlan plan) async {
     final row = await _db
         .customSelect(
-          'SELECT (SELECT COUNT(*) FROM dives WHERE id = ?) AS present, '
-          '(SELECT COUNT(*) FROM dive_buddies WHERE dive_id = ?) AS links',
-          variables: [Variable.withString(diveId), Variable.withString(diveId)],
+          'SELECT d.buddy, d.dive_master, '
+          '(SELECT COUNT(*) FROM dive_buddies WHERE dive_id = d.id) AS links '
+          'FROM dives d WHERE d.id = ?',
+          variables: [Variable.withString(plan.diveId)],
         )
-        .getSingle();
-    return row.read<int>('present') == 1 && row.read<int>('links') == 0;
+        .getSingleOrNull();
+    return row != null &&
+        row.read<int>('links') == 0 &&
+        _sameText(row.readNullable<String>('buddy'), plan.buddyText) &&
+        _sameText(row.readNullable<String>('dive_master'), plan.diveMasterText);
+  }
+
+  /// Null and blank are the same empty text, and surrounding whitespace
+  /// changes no name.
+  static bool _sameText(String? current, String? planned) =>
+      (current ?? '').trim() == (planned ?? '').trim();
+
+  /// Whether any dive owned by [diverId] links buddy [buddyId].
+  Future<bool> _linkedOnDiverDive(String buddyId, String diverId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT 1 FROM dive_buddies db JOIN dives d ON d.id = db.dive_id '
+          'WHERE db.buddy_id = ? AND d.diver_id = ? LIMIT 1',
+          variables: [
+            Variable.withString(buddyId),
+            Variable.withString(diverId),
+          ],
+        )
+        .getSingleOrNull();
+    return row != null;
   }
 
   /// The buddy [target] writes to, creating or claiming it as needed.
@@ -254,11 +289,15 @@ class BuddyConversionRepository {
       final row = await (_db.select(
         _db.buddies,
       )..where((t) => t.id.equals(buddyId))).getSingleOrNull();
-      if (row != null) {
+      // Only a buddy the diver may link: another diver can claim an unowned
+      // one while the review is open, and linking it then would tie this
+      // dive to their record.
+      if (row != null && (row.diverId == null || row.diverId == run.diverId)) {
         await _claimIfUnowned(row.id, row.diverId, run);
         return row.id;
       }
-      // Deleted since planning (a sync, another window): use the name.
+      // Deleted or claimed by another diver since planning (a sync, another
+      // window): resolve by name among the diver's own and unowned buddies.
     }
     final key = legacyNameKey(target.name);
     final created = run.createdByKey[key];
