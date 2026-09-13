@@ -105,6 +105,19 @@ void main() {
       expect(identical(result, sections), isTrue);
     });
 
+    test('with no rendered neighbour saved, the moved one goes on top', () {
+      // c is rendered but not in the saved list, so a has nothing to anchor
+      // on and falls back to the top.
+      final result = moveRenderedSection(
+        [const _Cfg(_Id.b), const _Cfg(_Id.a)],
+        _idOf,
+        const [_Id.a, _Id.c],
+        0,
+        1,
+      );
+      expect(_ids(result), [_Id.a, _Id.b]);
+    });
+
     test('the moved config is carried over, not recreated', () {
       final sections = [const _Cfg(_Id.a, visible: false), const _Cfg(_Id.b)];
       final result = moveRenderedSection(

@@ -56,6 +56,31 @@ void main() {
     },
   );
 
+  test('a v217 database upgrades to v218 with both columns', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA user_version = 217');
+        rawDb.execute('''
+          CREATE TABLE diver_settings (
+            id TEXT NOT NULL PRIMARY KEY,
+            created_at INTEGER,
+            updated_at INTEGER
+          )
+        ''');
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    final cols = await db
+        .customSelect("PRAGMA table_info('diver_settings')")
+        .get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    expect(names, containsAll(_columns));
+    final version = await db.customSelect('PRAGMA user_version').getSingle();
+    expect(version.read<int>('user_version'), 218);
+  });
+
   test('the assert is a no-op when the table is absent', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
