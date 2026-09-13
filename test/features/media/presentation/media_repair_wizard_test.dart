@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/pages/media_repair_wizard_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 MediaItem broken(String id) => MediaItem(
@@ -51,10 +53,22 @@ class _SeededWizardNotifier extends RepairWizardNotifier {
   }
 }
 
+class _StubPicker extends Fake implements PhotoPickerService {
+  _StubPicker({required this.supportsGalleryBrowsing});
+
+  @override
+  final bool supportsGalleryBrowsing;
+}
+
 void main() {
-  Widget host(_SeededWizardNotifier notifier) {
+  Widget host(_SeededWizardNotifier notifier, {bool galleryBrowsing = true}) {
     return ProviderScope(
-      overrides: [repairWizardProvider.overrideWith((ref) => notifier)],
+      overrides: [
+        repairWizardProvider.overrideWith((ref) => notifier),
+        photoPickerServiceProvider.overrideWithValue(
+          _StubPicker(supportsGalleryBrowsing: galleryBrowsing),
+        ),
+      ],
       child: const MaterialApp(
         locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -76,6 +90,24 @@ void main() {
     expect(find.text('Search photo library'), findsOneWidget);
     expect(find.text('Use cloud media store'), findsOneWidget);
     expect(find.text('Scan'), findsOneWidget);
+  });
+
+  testWidgets('hides the photo library toggle where there is no library', (
+    tester,
+  ) async {
+    // On Windows and Linux the photo library source's per-row date query is
+    // an interactive file dialog, so enabling it would open one dialog per
+    // broken row.
+    await tester.pumpWidget(
+      host(
+        _SeededWizardNotifier(const RepairWizardIdle()),
+        galleryBrowsing: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Search photo library'), findsNothing);
+    expect(find.text('Use cloud media store'), findsOneWidget);
   });
 
   testWidgets('review groups by confidence, pre-checks per ladder, and '
