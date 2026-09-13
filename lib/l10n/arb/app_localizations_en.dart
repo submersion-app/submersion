@@ -5881,6 +5881,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'All equipment already selected';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'Remaining gear is marked Spare';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Error loading equipment: $error';
   }
@@ -5891,6 +5895,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Remove items to add different ones';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Set an item\'s status to Active to add it to a dive';
 
   @override
   String get diveLog_equipmentPicker_title => 'Add Equipment';
@@ -10605,6 +10613,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Sold';
 
   @override
+  String get enum_equipmentStatus_spare => 'Spare';
+
+  @override
   String get enum_equipmentType_backplate => 'Backplate';
 
   @override
@@ -12021,6 +12032,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => 'Clear';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
 
   @override
   String get equipment_filter_title => 'Filter Equipment';
@@ -25861,6 +25877,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Hose length';
 
   @override
+  String get attrLabel_hose_type => 'Hose type';
+
+  @override
   String get attrLabel_plate_material => 'Plate material';
 
   @override
@@ -26194,6 +26213,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Yoke (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (low pressure)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (high pressure)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'LPI (inflator)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Jacket';
 
   @override
@@ -26459,6 +26487,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Gear attributes';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Gear category';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Any category';
 
   @override
   String get diveLog_filter_thicknessMin => 'Min';

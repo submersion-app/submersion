@@ -3,9 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     as domain;
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
@@ -193,6 +197,53 @@ void main() {
       expect(rows.single.createdAt, now.millisecondsSinceEpoch);
     },
   );
+
+  test('a cycles clock on unpowered gear schedules its reminder', () async {
+    // A BCD counts no battery cycles by default; a cycles clock (inherited
+    // here from its kind) opts it in, or this reminder could never fire.
+    // Two cycles, not one: a count's due-soon band rounds up to a whole
+    // cycle, so a one-cycle clock is due at zero and would pass regardless.
+    final bcd = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'BCD',
+        type: EquipmentType.bcd,
+        purchaseDate: DateTime(2025, 1, 1),
+      ),
+    );
+    final t = DateTime(2025);
+    final kind = await ServiceKindRepository().createKind(
+      ServiceKind(
+        id: 'charge',
+        name: 'Charge',
+        exposureIntervals: const {ExposureUnit.cycles: 2},
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    final schedule = await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: bcd.id,
+        serviceKindId: kind.id,
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    await linkDive('d1', bcd.id);
+    await linkDive('d2', bcd.id);
+
+    await NotificationScheduler().scheduleAll(settings: const AppSettings());
+    final rows = await db.select(db.scheduledNotifications).get();
+    expect(
+      rows.where(
+        (r) =>
+            r.reminderDaysBefore == kUsageReminderDaysBefore &&
+            r.scheduleId == schedule.id,
+      ),
+      hasLength(1),
+    );
+  });
 
   test('an ok usage clock schedules nothing', () async {
     final reg = await EquipmentRepository().createEquipment(

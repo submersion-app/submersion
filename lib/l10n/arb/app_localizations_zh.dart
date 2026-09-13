@@ -5683,6 +5683,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => '所有装备已选择';
 
   @override
+  String get diveLog_equipmentPicker_allSpare => '剩余装备均标记为备用';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return '加载装备出错：$error';
   }
@@ -5692,6 +5695,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint => '将物品状态设为活跃即可添加到潜水';
 
   @override
   String get diveLog_equipmentPicker_title => '添加装备';
@@ -10278,6 +10284,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentStatus_sold => '已售出';
 
   @override
+  String get enum_equipmentStatus_spare => '备用';
+
+  @override
   String get enum_equipmentType_backplate => '背板';
 
   @override
@@ -11653,6 +11662,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => '清除';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field：$values';
+  }
 
   @override
   String get equipment_filter_title => '筛选装备';
@@ -24928,6 +24942,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_hose_length_m => '软管长度';
 
   @override
+  String get attrLabel_hose_type => '软管类型';
+
+  @override
   String get attrLabel_plate_material => '背板材质';
 
   @override
@@ -25261,6 +25278,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_connection_yoke => '卡箍式 (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP（低压）';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP（高压）';
+
+  @override
+  String get attrChoice_hose_type_lpi => '充气管（LPI）';
+
+  @override
   String get attrChoice_bcd_style_jacket => '夹克式';
 
   @override
@@ -25522,6 +25548,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => '装备属性';
+
+  @override
+  String get diveLog_filter_gearCategory => '装备类别';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => '任意类别';
 
   @override
   String get diveLog_filter_thicknessMin => '最小';

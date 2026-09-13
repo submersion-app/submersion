@@ -22,6 +22,26 @@ DiveRole mapDiveRoleRow(DiveRoleRow row) {
   );
 }
 
+/// The role [roleId] names on a dive owned by [diveDiverId], looked up in
+/// [rolesById]. Custom roles are diver-scoped (#1806), so another diver's
+/// role is not borrowed (its owner could rename it under this dive). That
+/// role and an id no row holds stay visible as synthetic roles instead of
+/// silently coercing to Buddy.
+DiveRole resolveDiveRole(
+  Map<String, DiveRole> rolesById,
+  String roleId, {
+  String? diveDiverId,
+}) {
+  final role = rolesById[roleId];
+  final foreign =
+      role != null &&
+      !role.isBuiltIn &&
+      role.diverId != null &&
+      diveDiverId != null &&
+      role.diverId != diveDiverId;
+  return role == null || foreign ? DiveRole.synthetic(roleId) : role;
+}
+
 class DiveRoleRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
@@ -232,16 +252,26 @@ class DiveRoleRepository {
   }
 
   /// True when any dive_buddies row or dives.diver_role references [id].
+  ///
+  /// A reference from another diver's dive does not count (#1806): custom
+  /// roles are diver-scoped, so that dive cannot show the role anyway, and
+  /// it must not stop the owner deleting it. A dive with no diver still
+  /// counts, as the safe side of a deletion guard.
   Future<bool> isDiveRoleInUse(String id) async {
     try {
+      final owner = (await getDiveRoleById(id))?.diverId;
+      const otherDiversDives =
+          'SELECT id FROM dives WHERE diver_id IS NOT NULL AND diver_id != ?2';
       final result = await _db
           .customSelect(
             'SELECT '
             // stats-scope-exempt: deletion guard, same reasoning as
             // isDiveTypeInUse. Counts references, not statistics.
-            '(SELECT COUNT(*) FROM dive_buddies WHERE role = ?1) + '
-            '(SELECT COUNT(*) FROM dives WHERE diver_role = ?1) AS uses',
-            variables: [Variable.withString(id)],
+            '(SELECT COUNT(*) FROM dive_buddies WHERE role = ?1 '
+            'AND (?2 IS NULL OR dive_id NOT IN ($otherDiversDives))) + '
+            '(SELECT COUNT(*) FROM dives WHERE diver_role = ?1 '
+            'AND (?2 IS NULL OR diver_id IS NULL OR diver_id = ?2)) AS uses',
+            variables: [Variable.withString(id), Variable<String>(owner)],
           )
           .getSingle();
       return (result.data['uses'] as int) > 0;

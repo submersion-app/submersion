@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The 3-step repair wizard (design spec section 6): scope and sources,
@@ -66,6 +67,12 @@ class _MediaRepairWizardPageState extends ConsumerState<MediaRepairWizardPage> {
   }
 
   Widget _scopePane(BuildContext context) {
+    // Windows and Linux have no photo library: there the photo library
+    // source's per-row date query is an interactive file dialog, so offering
+    // it would open one dialog per broken row.
+    final hasPhotoLibrary = ref
+        .watch(photoPickerServiceProvider)
+        .supportsGalleryBrowsing;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -83,11 +90,12 @@ class _MediaRepairWizardPageState extends ConsumerState<MediaRepairWizardPage> {
           label: Text(context.l10n.media_repair_addFolder),
           onPressed: _addFolder,
         ),
-        SwitchListTile(
-          title: Text(context.l10n.media_repair_usePhotoLibrary),
-          value: _usePhotoLibrary,
-          onChanged: (v) => setState(() => _usePhotoLibrary = v),
-        ),
+        if (hasPhotoLibrary)
+          SwitchListTile(
+            title: Text(context.l10n.media_repair_usePhotoLibrary),
+            value: _usePhotoLibrary,
+            onChanged: (v) => setState(() => _usePhotoLibrary = v),
+          ),
         SwitchListTile(
           title: Text(context.l10n.media_repair_useStore),
           value: _useStore,
@@ -100,7 +108,7 @@ class _MediaRepairWizardPageState extends ConsumerState<MediaRepairWizardPage> {
               .harvest(
                 RepairWizardConfig(
                   folderRoots: List.of(_folderRoots),
-                  usePhotoLibrary: _usePhotoLibrary,
+                  usePhotoLibrary: hasPhotoLibrary && _usePhotoLibrary,
                   useStore: _useStore,
                 ),
               ),

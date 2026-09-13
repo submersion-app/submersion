@@ -6005,6 +6005,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Tout l\'équipement est déjà sélectionné';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'L\'équipement restant est marqué De rechange';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Erreur lors du chargement de l\'équipement : $error';
   }
@@ -6015,6 +6019,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Retire des éléments pour en ajouter d\'autres';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Passe le statut d\'un élément à Actif pour l\'ajouter à une plongée';
 
   @override
   String get diveLog_equipmentPicker_title => 'Ajouter de l\'équipement';
@@ -10825,6 +10833,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Vendu';
 
   @override
+  String get enum_equipmentStatus_spare => 'De rechange';
+
+  @override
   String get enum_equipmentType_backplate => 'Plaque dorsale';
 
   @override
@@ -12256,6 +12267,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => 'Effacer';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field : $values';
+  }
 
   @override
   String get equipment_filter_title => 'Filtrer l\'équipement';
@@ -26405,6 +26421,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Longueur du flexible';
 
   @override
+  String get attrLabel_hose_type => 'Type de flexible';
+
+  @override
   String get attrLabel_plate_material => 'Matériau de la plaque';
 
   @override
@@ -26739,6 +26758,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Étrier (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'MP (moyenne pression)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (haute pression)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Direct system (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Gilet';
 
   @override
@@ -27006,6 +27034,16 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_filter_sectionSuitThickness =>
       'Épaisseur de combinaison (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes =>
+      'Caractéristiques de l\'équipement';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Catégorie d\'équipement';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Toutes catégories';
 
   @override
   String get diveLog_filter_thicknessMin => 'Min';
