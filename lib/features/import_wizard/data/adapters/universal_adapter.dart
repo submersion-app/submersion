@@ -46,6 +46,9 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
+import 'package:submersion/features/import_wizard/data/adapters/existing_import_records.dart';
+import 'package:submersion/features/universal_import/data/services/diver_slice_duplicates.dart';
+import 'package:submersion/features/universal_import/data/services/payload_slicer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/resolved_photo_attachment.dart';
@@ -518,53 +521,53 @@ class UniversalAdapter implements ImportSourceAdapter {
     };
   }
 
+  /// The records a slice's items are checked against: the active profile
+  /// through its providers as always, another profile through the
+  /// repositories, a profile the import creates against nothing (#1893).
+  Future<ExistingImportRecords> _existingRecordsFor(
+    String? targetKey,
+    String? activeDiverId,
+  ) {
+    if (targetKey == null) return loadActiveDiverRecords(_ref, activeDiverId);
+    final diverId = DiverTarget.diverIdOf(targetKey);
+    if (diverId == null) return loadNewProfileRecords(_ref);
+    if (diverId == activeDiverId) {
+      return loadActiveDiverRecords(_ref, activeDiverId);
+    }
+    return loadProfileRecords(_ref, diverId);
+  }
+
   @override
   Future<ImportBundle> checkDuplicates(ImportBundle bundle) async {
     final notifierState = _ref.read(universalImportNotifierProvider);
     final payload = notifierState.payload;
     if (payload == null) return bundle;
 
-    const checker = ImportDuplicateChecker();
-
-    // Scope duplicate detection to the current diver's data only.
+    // Scope duplicate detection to each target profile's own data (#1893).
+    // An unexpanded payload is one slice checked against the active diver,
+    // exactly as before.
     final currentDiver = await _ref.read(currentDiverProvider.future);
-    final diverId = currentDiver?.id;
-
-    // Use refresh() to force re-fetch from the database. read() may return
-    // stale cached data if a provider was invalidated but not yet re-fetched.
-    final existingTrips = await _ref.refresh(allTripsProvider.future);
-    final existingSites = await _ref.refresh(sitesProvider.future);
-    final existingEquipment = await _ref.refresh(allEquipmentProvider.future);
-    final existingBuddies = await _ref.refresh(allBuddiesProvider.future);
-    final existingDiveCenters = await _ref.refresh(
-      allDiveCentersProvider.future,
+    final activeDiverId = currentDiver?.id;
+    final checkIntraBatch =
+        (payload.metadata['batchFileCount'] as int? ?? 1) > 1;
+    final units = UnitFormatter(_ref.read(settingsProvider));
+    final slices = PayloadSlicer.slice(
+      payload,
+      firstTargetKey: activeDiverId == null
+          ? null
+          : ExistingDiverTarget(activeDiverId).targetKey,
     );
-    final existingCertifications = await _ref.refresh(
-      allCertificationsProvider.future,
-    );
-    final existingTags = await _ref.refresh(tagsProvider.future);
-    final existingDiveTypes = await _ref.refresh(diveTypesProvider.future);
-    final diveRepo = _ref.read(diveRepositoryProvider);
-    final existingDives = await diveRepo.getAllDives(diverId: diverId);
-    final existingSourceUuidByDiveId = await diveRepo.getSourceUuidByDiveId(
-      diverId: diverId,
-    );
-
-    final dupResult = checker.check(
-      payload: payload,
-      existingDives: existingDives,
-      existingSites: existingSites,
-      existingTrips: existingTrips,
-      existingEquipment: existingEquipment,
-      existingBuddies: existingBuddies,
-      existingDiveCenters: existingDiveCenters,
-      existingCertifications: existingCertifications,
-      existingTags: existingTags,
-      existingDiveTypes: existingDiveTypes,
-      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
-      checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
-      units: UnitFormatter(_ref.read(settingsProvider)),
-    );
+    final dupResult = mergeDuplicateResults([
+      for (final slice in slices)
+        duplicatesToGlobal(
+          slice,
+          (await _existingRecordsFor(slice.targetKey, activeDiverId)).check(
+            slice.payload,
+            checkIntraBatch: checkIntraBatch,
+            units: units,
+          ),
+        ),
+    ]);
 
     final updatedGroups = Map<wizard.ImportEntityType, EntityGroup>.from(
       bundle.groups,
