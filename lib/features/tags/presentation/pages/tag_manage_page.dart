@@ -6,7 +6,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
-import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -235,9 +234,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          // Editing moved off the row tap when the row started opening the
-          // tag's dives (#1833). Hidden while selecting, where a row tap
-          // toggles the row and a second target inside it would be a trap.
+          // The one way to edit a tag. Hidden while selecting, where a row
+          // tap toggles the row and a second target inside it would be a
+          // trap.
           if (!_isSelectionMode)
             IconButton(
               key: ValueKey('tag_edit_${tag.id}'),
@@ -248,13 +247,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         ],
       ),
       selected: isSelected,
-      onTap: _isSelectionMode
-          ? () => _toggleSelection(tag.id)
-          : () => openDivesWithTag(context, ref, tag.id),
-      // Without a handler a long press falls through to onTap, which is how
-      // it used to open the editor. Keep that, but not while selecting, where
-      // the fall-through toggles the row like a tap.
-      onLongPress: _isSelectionMode ? null : () => _showEditDialog(tag),
+      // Outside selection the row is inert: this is a settings page, and a
+      // tap here must not leave it. The edit button is the row's only action.
+      onTap: _isSelectionMode ? () => _toggleSelection(tag.id) : null,
     );
   }
 

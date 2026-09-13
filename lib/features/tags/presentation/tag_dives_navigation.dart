@@ -6,9 +6,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 
 /// Opens the dive list showing only the dives tagged [tagId] (#1833).
 ///
-/// The one place a tap on a tag becomes "show me those dives", shared by the
-/// Manage Tags rows and the tag chips on a dive, so every tag surface behaves
-/// the same.
+/// The one place a tap on a tag becomes "show me those dives", used by the
+/// tag chips on a dive. Manage Tags rows do not navigate: it is a settings
+/// page.
 ///
 /// The filter is replaced rather than merged, like the site, buddy and dive
 /// computer "view dives" links: a leftover date, depth or site filter would
