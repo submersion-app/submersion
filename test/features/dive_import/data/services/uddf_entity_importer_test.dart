@@ -2096,6 +2096,49 @@ void main() {
       verify(mockTagRepo.addTagToDive(any, 'existing-tag-1')).called(1);
     });
 
+    test('preResolvedEquipmentIds links a skipped duplicate gear item to the '
+        'existing record without creating a twin (#756)', () async {
+      const existing = EquipmentItem(
+        id: 'existing-eq-1',
+        name: 'Hog Wing',
+        type: EquipmentType.bcd,
+      );
+      when(
+        mockEquipmentRepo.getEquipmentById('existing-eq-1'),
+      ).thenAnswer((_) async => existing);
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        equipment: [
+          {'name': 'Hog Wing', 'type': 'bcd', 'uddfId': '|Hog Wing|'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'equipmentRefs': ['|Hog Wing|'],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        // The equipment index is NOT selected: the reviewer chose Skip (or
+        // Link to existing) for the flagged duplicate.
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'|Hog Wing|': 'existing-eq-1'},
+      );
+
+      verifyNever(mockEquipmentRepo.createEquipment(any));
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.gear.map((g) => g.item.id), ['existing-eq-1']);
+    });
+
     test('creates inline buddies for unmatched names', () async {
       final inlineBuddy = Buddy(
         id: 'inline-1',
@@ -4279,6 +4322,24 @@ void main() {
         selections: const UddfImportSelections(equipment: {0}),
         repositories: repos,
         diverId: diverId,
+      );
+
+      verifyNever(mockServiceRecordRepo.createRecord(any));
+    });
+
+    // A skipped duplicate is linked to the existing row so dives keep their
+    // gear, but its history is not re-imported: there is no service-record
+    // dedup, so every re-import of the file would copy it again.
+    test('skips a record whose equipment was linked to an existing '
+        'item', () async {
+      await importer.import(
+        data: dataWith([
+          {'equipmentRef': 'gear-1', 'serviceDate': DateTime(2025, 5, 12)},
+        ]),
+        selections: const UddfImportSelections(),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'gear-1': 'existing-eq-1'},
       );
 
       verifyNever(mockServiceRecordRepo.createRecord(any));

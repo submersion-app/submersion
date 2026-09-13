@@ -341,11 +341,11 @@ class UddfEntityImporter {
   /// [ImportCancellationToken.isCancelled] between each dive and returns the
   /// partial result already persisted when cancellation is observed.
   ///
-  /// [preResolvedBuddyIds] and [preResolvedTagIds] map source refs
-  /// (uddfId/name) to EXISTING database ids for flagged duplicates the
-  /// reviewer chose not to import as new rows. Seeding the id mappings with
-  /// them makes dive linking resolve to the existing record instead of
-  /// silently dropping the association (#756).
+  /// [preResolvedBuddyIds], [preResolvedTagIds] and [preResolvedEquipmentIds]
+  /// map source refs (uddfId/name) to EXISTING database ids for flagged
+  /// duplicates the reviewer chose not to import as new rows. Seeding the id
+  /// mappings with them makes dive linking resolve to the existing record
+  /// instead of silently dropping the association (#756).
   ///
   /// [preResolvedDiveTypeIds] does the same for dive types, keyed by the id
   /// the file's dives reference. The review matches a type by name before
@@ -359,6 +359,7 @@ class UddfEntityImporter {
     bool retainSourceDiveNumbers = false,
     Map<String, String> preResolvedBuddyIds = const {},
     Map<String, String> preResolvedTagIds = const {},
+    Map<String, String> preResolvedEquipmentIds = const {},
     Map<String, String> preResolvedDiveTypeIds = const {},
     ImportFormat? sourceFormat,
     Uint8List? sourceFileBytes,
@@ -371,7 +372,7 @@ class UddfEntityImporter {
 
     // ID mappings for cross-references
     final tripIdMapping = <String, String>{};
-    final equipmentIdMapping = <String, String>{};
+    final equipmentIdMapping = <String, String>{...preResolvedEquipmentIds};
     final buddyIdMapping = <String, String>{...preResolvedBuddyIds};
     final diveCenterIdMapping = <String, String>{};
     final tagIdMapping = <String, String>{...preResolvedTagIds};
@@ -412,11 +413,17 @@ class UddfEntityImporter {
 
     // Service history belongs to the equipment it describes, so it rides
     // along with whatever equipment was selected rather than being its own
-    // choice in the wizard.
+    // choice in the wizard. A pre-resolved duplicate still mapped to its
+    // seed was linked, not imported: records have no dedup, so re-attaching
+    // its history would copy it onto the existing row on every re-import.
     await _importServiceRecords(
       data.serviceRecords,
       repositories.serviceRecordRepository,
-      equipmentIdMapping,
+      {
+        for (final entry in equipmentIdMapping.entries)
+          if (preResolvedEquipmentIds[entry.key] != entry.value)
+            entry.key: entry.value,
+      },
       now,
     );
 

@@ -283,25 +283,141 @@ void main() {
       expect(result.duplicates[ImportEntityType.equipment], {0});
     });
 
-    test('matches a re-imported CSV suit to the suit already stored', () {
-      final reimported = GearExtractor().extractFromRows([
-        {'suit': '7mm Wetsuit'},
-      ]);
-
+    // `other` means the type was unknown when the row was stored (older
+    // importers left MacDive XML and CSV gear unclassified), so it cannot
+    // tell two same-named items apart and must not force a twin.
+    test('a stored `other` item matches a classified import by name', () {
       final result = checkWith(
-        payload: ImportPayload(
-          entities: {ImportEntityType.equipment: reimported},
+        payload: const ImportPayload(
+          entities: {
+            ImportEntityType.equipment: [
+              {'name': 'Hog Wing', 'type': 'bcd'},
+            ],
+          },
         ),
         equipment: [
           const EquipmentItem(
-            id: '1',
-            name: '7mm Wetsuit',
-            type: EquipmentType.wetsuit,
+            id: 'legacy',
+            name: 'Hog Wing',
+            type: EquipmentType.other,
           ),
         ],
       );
 
       expect(result.duplicates[ImportEntityType.equipment], {0});
+      expect(
+        result.entityMatches[ImportEntityType.equipment]![0]!.existingId,
+        'legacy',
+      );
+    });
+
+    test('an unclassified import matches a stored item by name', () {
+      final result = checkWith(
+        payload: const ImportPayload(
+          entities: {
+            ImportEntityType.equipment: [
+              {'name': 'Hog Wing', 'type': 'other'},
+              {'name': 'Hog Wing'},
+            ],
+          },
+        ),
+        equipment: [
+          const EquipmentItem(
+            id: 'reclassified',
+            name: 'Hog Wing',
+            type: EquipmentType.bcd,
+          ),
+        ],
+      );
+
+      expect(result.duplicates[ImportEntityType.equipment], {0, 1});
+    });
+
+    test('an import type the importer cannot parse counts as `other`', () {
+      // The importer stores a type that names no EquipmentType as `other`
+      // (CSV emitted 'exposure_suit' before #1883), so the checker must read
+      // it the same way.
+      final result = checkWith(
+        payload: const ImportPayload(
+          entities: {
+            ImportEntityType.equipment: [
+              {'name': 'Trilam', 'type': 'exposure_suit'},
+            ],
+          },
+        ),
+        equipment: [
+          const EquipmentItem(
+            id: '1',
+            name: 'Trilam',
+            type: EquipmentType.drysuit,
+          ),
+        ],
+      );
+
+      expect(result.duplicates[ImportEntityType.equipment], {0});
+    });
+
+    // A suit typed from its name meets the stored suit on the exact key, so a
+    // same-named `other` row left by an older CSV import does not claim it.
+    test(
+      'a re-imported CSV suit matches its stored suit, not an `other` twin',
+      () {
+        final reimported = GearExtractor().extractFromRows([
+          {'suit': '7mm Wetsuit'},
+        ]);
+
+        final result = checkWith(
+          payload: ImportPayload(
+            entities: {ImportEntityType.equipment: reimported},
+          ),
+          equipment: [
+            const EquipmentItem(
+              id: 'legacy',
+              name: '7mm Wetsuit',
+              type: EquipmentType.other,
+            ),
+            const EquipmentItem(
+              id: 'suit',
+              name: '7mm Wetsuit',
+              type: EquipmentType.wetsuit,
+            ),
+          ],
+        );
+
+        expect(
+          result.entityMatches[ImportEntityType.equipment]![0]!.existingId,
+          'suit',
+        );
+      },
+    );
+
+    test('an exact name + type match wins over an `other` match', () {
+      final result = checkWith(
+        payload: const ImportPayload(
+          entities: {
+            ImportEntityType.equipment: [
+              {'name': 'Primary', 'type': 'light'},
+            ],
+          },
+        ),
+        equipment: [
+          const EquipmentItem(
+            id: 'unknown',
+            name: 'Primary',
+            type: EquipmentType.other,
+          ),
+          const EquipmentItem(
+            id: 'exact',
+            name: 'Primary',
+            type: EquipmentType.light,
+          ),
+        ],
+      );
+
+      expect(
+        result.entityMatches[ImportEntityType.equipment]![0]!.existingId,
+        'exact',
+      );
     });
 
     // The key is name|type, so a raw MacDive XML type ("BCD - Wing") never
