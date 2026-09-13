@@ -26,6 +26,8 @@ void main() {
       ('n/a', []),
       ('N/A', []),
       ('John / N/A', ['John']),
+      ('Joe (N/A)', ['Joe (N/A)']),
+      ('Joe (n/a), N/A, Bob', ['Joe (n/a)', 'Bob']),
       ('Dan/Ann', ['Dan', 'Ann']),
       ('keine', []),
       ('No  Buddy', []),

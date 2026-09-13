@@ -51,9 +51,10 @@ abstract final class LegacyNameParser {
     'geen',
   };
 
-  /// `n/a` as a whole token. Replaced by a separator before splitting,
+  /// `n/a` as a whole token. Outside brackets it splits like a separator,
   /// because `/` is itself a separator and would otherwise leave the names
-  /// `N` and `A`.
+  /// `N` and `A`. Inside brackets it is kept, like everything else there, so
+  /// `Joe (N/A)` stays one name.
   static final RegExp _notApplicable = RegExp(
     r'(?<!\p{L})n/a(?!\p{L})',
     caseSensitive: false,
@@ -65,10 +66,7 @@ abstract final class LegacyNameParser {
   /// The distinct names in [text], in first-seen order.
   static List<String> parse(String? text) {
     if (text == null || text.trim().isEmpty) return const [];
-    final normalized = text
-        .replaceAll('\r\n', '\n')
-        .replaceAll('\r', '\n')
-        .replaceAll(_notApplicable, ',');
+    final normalized = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final names = <String>[];
     final seen = <String>{};
     for (final part in _splitOnSeparators(normalized)) {
@@ -86,21 +84,32 @@ abstract final class LegacyNameParser {
     return List.unmodifiable(names);
   }
 
+  /// Splits [text] on [_separators] and on `n/a`, both only at bracket
+  /// depth zero. Walks UTF-16 code units so the `n/a` match offsets line up;
+  /// every separator and bracket is a single code unit.
   static List<String> _splitOnSeparators(String text) {
+    final notApplicableEnds = {
+      for (final match in _notApplicable.allMatches(text))
+        match.start: match.end,
+    };
     final parts = <String>[];
-    final current = StringBuffer();
+    var start = 0;
     var depth = 0;
-    for (final rune in text.runes) {
-      final char = String.fromCharCode(rune);
-      if (depth == 0 && _separators.contains(char)) {
-        parts.add(current.toString());
-        current.clear();
+    var i = 0;
+    while (i < text.length) {
+      final char = text[i];
+      final notApplicableEnd = notApplicableEnds[i];
+      if (depth == 0 &&
+          (notApplicableEnd != null || _separators.contains(char))) {
+        parts.add(text.substring(start, i));
+        i = notApplicableEnd ?? i + 1;
+        start = i;
         continue;
       }
-      current.write(char);
       depth = _depthAfter(depth, char);
+      i++;
     }
-    parts.add(current.toString());
+    parts.add(text.substring(start));
     return parts;
   }
 
