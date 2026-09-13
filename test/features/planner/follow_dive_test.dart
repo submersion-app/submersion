@@ -87,6 +87,7 @@ void main() {
 
     final button = find.textContaining('17.6');
     expect(button, findsOneWidget);
+    expect(find.byIcon(Icons.history), findsOneWidget);
 
     await tester.tap(button);
     await tester.pumpAndSettle();
@@ -98,8 +99,10 @@ void main() {
       container.read(divePlanNotifierProvider).sacRate,
       closeTo(17.6, 0.01),
     );
-    // Button hides once the plan matches the logged average.
-    expect(find.textContaining('17.6 '), findsNothing);
+    // Button hides once the plan matches the logged average. The readout
+    // beside the slider now shows the plan's 17.6 L/min itself, so look for
+    // the button's icon rather than the number.
+    expect(find.byIcon(Icons.history), findsNothing);
   });
 
   testWidgets('FollowDiveSheet lists dives and follows the tapped one', (

@@ -128,6 +128,7 @@ import 'package:submersion/features/signatures/presentation/providers/signature_
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
+import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/reef/presentation/widgets/water_conditions_card.dart';
@@ -4245,12 +4246,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               runSpacing: 8,
               children: dive.tags
                   .map(
-                    (tag) => Chip(
+                    (tag) => ActionChip(
                       label: Text(tag.name),
+                      tooltip: context.l10n.tags_action_showDives(tag.name),
                       backgroundColor: tag.color.withValues(alpha: 0.2),
                       side: BorderSide(color: tag.color),
                       labelStyle: TextStyle(color: tag.color),
                       visualDensity: VisualDensity.compact,
+                      onPressed: () => openDivesWithTag(context, ref, tag.id),
                     ),
                   )
                   .toList(),

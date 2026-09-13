@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -22,6 +24,10 @@ class PlanGasSection extends ConsumerWidget {
     final planState = ref.watch(divePlanNotifierProvider);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    // The plan keeps its RMV in L/min; the axis carries the slider range in
+    // the diver's volume unit and converts both ways (#1823).
+    final rmvAxis = UnitAxis.normalRmv(units);
+    final rmvText = units.formatRmv(planState.sacRate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,26 +42,36 @@ class PlanGasSection extends ConsumerWidget {
             Expanded(
               child: Semantics(
                 label: context.l10n.divePlanner_semantics_sacRate(
-                  planState.sacRate.toStringAsFixed(0),
+                  formatFixedForDisplay(
+                    units.convertRmv(planState.sacRate),
+                    units.rmvDecimals,
+                  ),
                   units.volumeSymbol,
                 ),
                 child: Slider(
-                  value: planState.sacRate,
-                  min: 8,
-                  max: 30,
-                  divisions: 22,
-                  label:
-                      '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
+                  // Only the thumb is clamped: a plan RMV inside 8-30 L/min
+                  // can still fall outside the snapped imperial range (8 L/min
+                  // is 0.28 cuft/min, below its 0.30 floor), and Slider
+                  // asserts outside its bounds. The readout keeps the value.
+                  value: rmvAxis
+                      .toDisplay(planState.sacRate)
+                      .clamp(rmvAxis.min, rmvAxis.max)
+                      .toDouble(),
+                  min: rmvAxis.min,
+                  max: rmvAxis.max,
+                  divisions: rmvAxis.divisions,
+                  label: rmvText,
                   onChanged: (value) => ref
                       .read(divePlanNotifierProvider.notifier)
-                      .updateSacRate(value),
+                      .updateSacRate(rmvAxis.toCanonical(value)),
                 ),
               ),
             ),
             SizedBox(
-              width: 70,
+              // Wide enough for "0.53 cuft/min" on one line.
+              width: 96,
               child: Text(
-                '${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol}/min',
+                rmvText,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
@@ -97,16 +113,17 @@ class _LoggedRmvButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final display =
-        '${units.convertVolume(loggedRmv).toStringAsFixed(1)} '
-        '${units.volumeSymbol}/min';
     return Align(
       alignment: Alignment.centerLeft,
       child: TextButton.icon(
         icon: const Icon(Icons.history, size: 18),
-        label: Text(context.l10n.plannerCanvas_sac_useLogged(display)),
+        label: Text(
+          context.l10n.plannerCanvas_sac_useLogged(units.formatRmv(loggedRmv)),
+        ),
         onPressed: () => ref
             .read(divePlanNotifierProvider.notifier)
+            // The planner's L/min range, not the snapped imperial one, so
+            // the plan gets the same RMV whichever unit the diver reads.
             .updateSacRate(loggedRmv.clamp(8.0, 30.0)),
       ),
     );

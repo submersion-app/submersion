@@ -104,11 +104,12 @@ ImportBundle _buildBundle({
 
 EntityItem _item(String title) => EntityItem(title: title, subtitle: '');
 
-EntityItem _diveItem(String title, DateTime startTime) => EntityItem(
-  title: title,
-  subtitle: '',
-  diveData: IncomingDiveData(startTime: startTime),
-);
+EntityItem _diveItem(String title, DateTime startTime, {int? diveNumber}) =>
+    EntityItem(
+      title: title,
+      subtitle: '',
+      diveData: IncomingDiveData(startTime: startTime, diveNumber: diveNumber),
+    );
 
 Widget _buildReviewStep({
   required ImportBundle bundle,
@@ -749,6 +750,84 @@ void main() {
       },
     );
 
+    group('retaining source dive numbers (issue #1832)', () {
+      testWidgets('shows the number each dive carries from its source', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(800, 600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final bundle = _buildBundle(
+          diveItems: [
+            _diveItem('Dive A', DateTime(2026, 1, 1), diveNumber: 412),
+            _diveItem('Dive B', DateTime(2026, 1, 2), diveNumber: 413),
+          ],
+        );
+        final notifier = ImportWizardNotifier(_FakeAdapter())
+          ..setBundle(bundle)
+          ..setRetainSourceDiveNumbers(true);
+
+        await tester.pumpWidget(
+          _buildReviewStepWithProviders(notifier: notifier, nextDiveNumber: 10),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('#412'), findsOneWidget);
+        expect(find.text('#413'), findsOneWidget);
+        expect(find.text('#10'), findsNothing);
+        expect(find.text('#11'), findsNothing);
+      });
+
+      testWidgets('projects no number for a dive its source left unnumbered', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(800, 600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final bundle = _buildBundle(
+          diveItems: [
+            _diveItem('Dive A', DateTime(2026, 1, 1), diveNumber: 412),
+            _diveItem('Dive B', DateTime(2026, 1, 2)),
+          ],
+        );
+        final notifier = ImportWizardNotifier(_FakeAdapter())
+          ..setBundle(bundle)
+          ..setRetainSourceDiveNumbers(true);
+
+        await tester.pumpWidget(
+          _buildReviewStepWithProviders(notifier: notifier, nextDiveNumber: 10),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('#412'), findsOneWidget);
+        expect(find.text('#10'), findsNothing);
+        expect(find.text('#11'), findsNothing);
+      });
+
+      testWidgets('keeps auto-numbering when the option is off', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(800, 600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final bundle = _buildBundle(
+          diveItems: [
+            _diveItem('Dive A', DateTime(2026, 1, 1), diveNumber: 412),
+          ],
+        );
+        final notifier = ImportWizardNotifier(_FakeAdapter())
+          ..setBundle(bundle);
+
+        await tester.pumpWidget(
+          _buildReviewStepWithProviders(notifier: notifier, nextDiveNumber: 10),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('#10'), findsOneWidget);
+        expect(find.text('#412'), findsNothing);
+      });
+    });
+
     testWidgets('no dive number badges when nextDiveNumber is unavailable', (
       tester,
     ) async {
@@ -939,13 +1018,47 @@ void main() {
       expect(find.byType(SwitchListTile), findsNWidgets(2));
     });
 
+    testWidgets('retain switch is disabled and says why when no dive in the '
+        'source carries a number (issue #1832)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final bundle = _buildBundle(
+        diveItems: [_diveItem('Dive 1', DateTime(2026, 1, 1))],
+      );
+      final notifier = ImportWizardNotifier(_FakeAdapter())..setBundle(bundle);
+
+      await tester.pumpWidget(
+        _buildReviewStepWithProviders(notifier: notifier, nextDiveNumber: 1),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Options'));
+      await tester.pumpAndSettle();
+
+      final retainTile = tester.widget<SwitchListTile>(
+        find.widgetWithText(SwitchListTile, 'Retain source dive numbers'),
+      );
+      expect(retainTile.onChanged, isNull);
+      expect(retainTile.value, isFalse);
+      expect(
+        find.text(
+          'This source does not provide dive numbers, so dives are '
+          'numbered automatically',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('toggling retain-dive-numbers switch updates notifier state', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final bundle = _buildBundle(diveItems: [_item('Dive 1')]);
+      final bundle = _buildBundle(
+        diveItems: [_diveItem('Dive 1', DateTime(2026, 1, 1), diveNumber: 7)],
+      );
 
       final adapter = _FakeAdapter();
       final notifier = ImportWizardNotifier(adapter)..setBundle(bundle);

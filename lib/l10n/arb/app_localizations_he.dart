@@ -19783,6 +19783,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_action_deleteTag => 'מחק תגית';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'הצג צלילות עם התגית \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'האם אתה בטוח שברצונך למחוק את \"$tagName\"? פעולה זו תסיר אותה מכל הצלילות.';
   }
@@ -21730,9 +21735,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'ייבוא כחדש';
-
-  @override
-  String get universalImport_label_importComplete => 'ייבוא הושלם';
 
   @override
   String get universalImport_label_importing => 'מייבא';
@@ -24527,6 +24529,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'השתמש במספרי הצלילה מהקובץ המיובא במקום להקצות אוטומטית';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'מקור זה אינו מספק מספרי צלילה, ולכן הצלילות ממוספרות אוטומטית';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -38450,6 +38456,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => 'שיוך משדרים';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'מספרי צלילה כבר בשימוש';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'הצלילות האלה שמרו על המספר מהמקור שלהן, אבל צלילות אחרות ביומן שלך כבר משתמשות באותם מספרים. פתחו את „מספור צלילות” מתפריט רשימת הצלילות כדי למספר אותן מחדש.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'משדר לא משויך';

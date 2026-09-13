@@ -1658,6 +1658,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Build the DiveTableView widget from the full-Dive provider.
   Widget _buildTableView(BuildContext context, DiveFilterState filter) {
     final divesAsync = ref.watch(allDivesForTableProvider);
+    // Built once above the table, as for the list tiles, so the Dive Type
+    // column shows the diver's names and localized built-ins.
+    final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
 
     return divesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -1672,6 +1675,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             Expanded(
               child: DiveTableView(
                 dives: dives,
+                diveTypeLabelResolver: diveTypeLabelResolver,
                 onDiveTapDown: (id) {
                   // Rows carry a double-tap, so onDiveTap only resolves after
                   // the double-tap timer -- long after this fires. A modified
