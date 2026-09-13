@@ -69,6 +69,7 @@ final _extras = UddfDivesExtras(
       BuddyWithRole(buddy: _stranger, role: _builtIn(DiveRole.buddyId)),
     ],
   },
+  diveRoles: [_builtIn(DiveRole.buddyId), _photographer],
 );
 
 Future<XmlDocument> _export({
@@ -170,6 +171,39 @@ void main() {
       ]);
     },
   );
+
+  test('links a synthetic role but never defines it', () async {
+    // A link to an id with no row, or to another diver's role, resolves as
+    // DiveRole.synthetic, whose name is only the raw id: declaring it would
+    // give the importing diver a role named after a UUID.
+    final doc = XmlDocument.parse(
+      await UddfExportService().generateDivesUddfContent(
+        [_d1],
+        extras: UddfDivesExtras(
+          diveBuddies: {
+            'd1': [
+              BuddyWithRole(
+                buddy: _photo,
+                role: DiveRole.synthetic('role-foreign'),
+              ),
+            ],
+          },
+          diveRoles: [_builtIn(DiveRole.buddyId), _photographer],
+        ),
+      ),
+    );
+
+    expect(
+      doc
+          .findAllElements('buddyroles')
+          .single
+          .findAllElements('buddy')
+          .single
+          .getAttribute('role'),
+      'role-foreign',
+    );
+    expect(doc.findAllElements('diveroles'), isEmpty);
+  });
 
   test(
     'leaving participants out writes none of it, legacy text included',

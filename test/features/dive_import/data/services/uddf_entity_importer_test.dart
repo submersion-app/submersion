@@ -279,6 +279,13 @@ void main() {
   });
 
   group('Import dive roles', () {
+    setUp(() {
+      when(
+        mockDiveRoleRepo.getAllDiveRoles(diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => []);
+      when(mockDiveRoleRepo.getDiveRoleById(any)).thenAnswer((_) async => null);
+    });
+
     test('restores custom roles preserving ids, skipping built-ins and '
         'invalid rows', () async {
       when(
@@ -322,6 +329,38 @@ void main() {
       verifyNever(
         mockDiveRoleRepo.importDiveRole(
           id: 'buddy',
+          name: anyNamed('name'),
+          diverId: anyNamed('diverId'),
+          sortOrder: anyNamed('sortOrder'),
+        ),
+      );
+    });
+
+    test('a failing role listing skips the roles, not the import', () async {
+      // Without the diver's own roles to match against, a restore could
+      // add duplicates, so the roles are left out and the rest goes on.
+      when(
+        mockDiveRoleRepo.getAllDiveRoles(diverId: anyNamed('diverId')),
+      ).thenThrow(Exception('boom'));
+
+      const data = UddfImportResult(
+        customDiveRoles: [
+          {'id': 'uuid-1', 'name': 'Hekkensluiter'},
+        ],
+      );
+
+      await expectLater(
+        importer.import(
+          data: data,
+          selections: const UddfImportSelections(),
+          repositories: repos,
+          diverId: diverId,
+        ),
+        completes,
+      );
+      verifyNever(
+        mockDiveRoleRepo.importDiveRole(
+          id: anyNamed('id'),
           name: anyNamed('name'),
           diverId: anyNamed('diverId'),
           sortOrder: anyNamed('sortOrder'),
@@ -1731,7 +1770,10 @@ void main() {
         updatedAt: now,
       );
       when(
-        mockBuddyRepo.findOrCreateByName('Charlie'),
+        mockBuddyRepo.findOrCreateByName(
+          'Charlie',
+          diverId: anyNamed('diverId'),
+        ),
       ).thenAnswer((_) async => inlineBuddy);
       when(
         mockBuddyRepo.addBuddyToDive(any, any, any),
@@ -1759,7 +1801,9 @@ void main() {
 
       // Inline buddy counted in buddies total
       expect(result.buddies, 1);
-      verify(mockBuddyRepo.findOrCreateByName('Charlie')).called(1);
+      verify(
+        mockBuddyRepo.findOrCreateByName('Charlie', diverId: diverId),
+      ).called(1);
     });
 
     test('links tags to dive', () async {

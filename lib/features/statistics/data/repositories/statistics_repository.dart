@@ -174,6 +174,10 @@ class StatisticsRepository {
           TableUpdateQuery.onTable(_db.tankPressureSeries),
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),
+          // The equipment-attribute filter axis (#1805) and the suit
+          // thickness chart read attribute rows; saveAttributes and a sync
+          // pull write only this table.
+          TableUpdateQuery.onTable(_db.equipmentAttributes),
           TableUpdateQuery.onTable(_db.diveWeights),
           TableUpdateQuery.onTable(_db.diveDiveTypes),
           TableUpdateQuery.onTable(_db.diveBuddies),

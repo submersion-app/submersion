@@ -157,5 +157,45 @@ void main() {
       );
       expect(await repository.isDiveRoleInUse(created.id), isTrue);
     });
+
+    test('isDiveRoleInUse ignores references from another diver\'s dives '
+        '(#1806)', () async {
+      final diverId = await _insertDiver();
+      final created = await repository.createDiveRole(
+        name: 'Hekkensluiter',
+        diverId: diverId,
+      );
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('diver-2', 'Second Diver', 1000, 1000)",
+      );
+      await db.customStatement(
+        "INSERT INTO buddies (id, name, created_at, updated_at) "
+        "VALUES ('b1', 'Bud', 1000, 1000)",
+      );
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at, diver_role) VALUES "
+        "('d1', 'diver-2', 1000, 1000, 1000, '${created.id}'), "
+        "('d2', 'diver-2', 1000, 1000, 1000, NULL)",
+      );
+      await db.customStatement(
+        "INSERT INTO dive_buddies (id, dive_id, buddy_id, role, created_at) "
+        "VALUES ('db1', 'd2', 'b1', '${created.id}', 1000)",
+      );
+      expect(
+        await repository.isDiveRoleInUse(created.id),
+        isFalse,
+        reason: 'only the owner\'s dives can hold the role',
+      );
+
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at, diver_role) VALUES "
+        "('d3', '$diverId', 1000, 1000, 1000, '${created.id}')",
+      );
+      expect(await repository.isDiveRoleInUse(created.id), isTrue);
+    });
   });
 }

@@ -5865,6 +5865,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم اختيار جميع المعدات بالفعل';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'المعدات المتبقية مصنفة كاحتياطية';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'خطأ في تحميل المعدات: $error';
   }
@@ -5875,6 +5879,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'أزل عناصر لإضافة عناصر مختلفة';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
 
   @override
   String get diveLog_equipmentPicker_title => 'إضافة معدات';
@@ -10585,6 +10593,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'تم بيعه';
 
   @override
+  String get enum_equipmentStatus_spare => 'احتياطي';
+
+  @override
   String get enum_equipmentType_backplate => 'لوحة ظهر';
 
   @override
@@ -12002,6 +12013,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => 'مسح';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
 
   @override
   String get equipment_filter_title => 'تصفية المعدات';
@@ -25844,6 +25860,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_hose_length_m => 'طول الخرطوم';
 
   @override
+  String get attrLabel_hose_type => 'نوع الخرطوم';
+
+  @override
   String get attrLabel_plate_material => 'مادة اللوحة';
 
   @override
@@ -26177,6 +26196,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrChoice_connection_yoke => 'يوك (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (ضغط منخفض)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (ضغط عالٍ)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'منفاخ (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';
 
   @override
@@ -26442,6 +26470,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'خصائص المعدات';
+
+  @override
+  String get diveLog_filter_gearCategory => 'فئة المعدات';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'أي فئة';
 
   @override
   String get diveLog_filter_thicknessMin => 'الأدنى';

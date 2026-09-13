@@ -211,7 +211,16 @@ class BuddyRepository {
 
   /// Find an existing buddy by exact name (case-insensitive) or create a new one
   /// Used during import to convert legacy plaintext buddy names to proper entities
-  Future<domain.Buddy> findOrCreateByName(String name, {String? notes}) async {
+  ///
+  /// With [diverId], only that diver's people and unowned ones match, the
+  /// diver's own first, and a new person is created for that diver. People
+  /// are diver-scoped, so an import into one profile must not link another
+  /// profile's namesake (#1806).
+  Future<domain.Buddy> findOrCreateByName(
+    String name, {
+    String? notes,
+    String? diverId,
+  }) async {
     try {
       final trimmedName = name.trim();
       if (trimmedName.isEmpty) {
@@ -219,14 +228,20 @@ class BuddyRepository {
       }
 
       // Search for exact match (case-insensitive)
+      final scope = diverId == null
+          ? ''
+          : 'AND (diver_id = ? OR diver_id IS NULL) ORDER BY diver_id IS NULL';
       final results = await _db
           .customSelect(
             '''
         SELECT * FROM buddies
-        WHERE LOWER(name) = LOWER(?)
+        WHERE LOWER(name) = LOWER(?) $scope
         LIMIT 1
       ''',
-            variables: [Variable.withString(trimmedName)],
+            variables: [
+              Variable.withString(trimmedName),
+              if (diverId != null) Variable.withString(diverId),
+            ],
           )
           .get();
 
@@ -235,6 +250,7 @@ class BuddyRepository {
         _log.info('Found existing buddy: $trimmedName');
         final found = domain.Buddy(
           id: row.data['id'] as String,
+          diverId: row.data['diver_id'] as String?,
           name: row.data['name'] as String,
           email: row.data['email'] as String?,
           phone: row.data['phone'] as String?,
@@ -262,6 +278,7 @@ class BuddyRepository {
       _log.info('Creating new buddy from import: $trimmedName');
       final newBuddy = domain.Buddy(
         id: _uuid.v4(),
+        diverId: diverId,
         name: trimmedName,
         notes: notes ?? 'Imported from dive log',
         createdAt: DateTime.now(),
@@ -356,13 +373,15 @@ class BuddyRepository {
   }
 
   /// Get buddies for a specific dive
+  // stats-scope-exempt: reads the dive's diver only to scope role lookup
   Future<List<domain.BuddyWithRole>> getBuddiesForDive(String diveId) async {
     final results = await _db
         .customSelect(
           '''
-      SELECT b.*, db.role
+      SELECT b.*, db.role, d.diver_id AS dive_diver_id
       FROM buddies b
       INNER JOIN dive_buddies db ON b.id = db.buddy_id
+      LEFT JOIN dives d ON d.id = db.dive_id
       WHERE db.dive_id = ?
       ORDER BY b.name ASC
     ''',
@@ -370,8 +389,8 @@ class BuddyRepository {
         )
         .get();
 
-    // Resolve role ids against dive_roles; unknown slugs stay visible as
-    // synthetic roles instead of silently coercing to Buddy.
+    // Resolve role ids against dive_roles, scoped to the dive's diver (see
+    // resolveDiveRole).
     final roleRows = await _db.select(_db.diveRoles).get();
     final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
 
@@ -399,7 +418,11 @@ class BuddyRepository {
         ),
       );
       final roleId = (row.data['role'] as String?) ?? DiveRole.buddyId;
-      final role = rolesById[roleId] ?? DiveRole.synthetic(roleId);
+      final role = resolveDiveRole(
+        rolesById,
+        roleId,
+        diveDiverId: row.data['dive_diver_id'] as String?,
+      );
       return domain.BuddyWithRole(buddy: buddy, role: role);
     }).toList();
     final filled = await _withPrimaryCerts(list.map((w) => w.buddy).toList());
@@ -430,13 +453,19 @@ class BuddyRepository {
                   _db.diveBuddies,
                   _db.diveBuddies.buddyId.equalsExp(_db.buddies.id),
                 ),
+                leftOuterJoin(
+                  _db.dives,
+                  _db.dives.id.equalsExp(_db.diveBuddies.diveId),
+                  useColumns: false,
+                ),
               ])
+              ..addColumns([_db.dives.diverId])
               ..where(_db.diveBuddies.diveId.isIn(diveIds))
               ..orderBy([OrderingTerm.asc(_db.buddies.name)]))
             .get();
 
-    // Resolve role ids against dive_roles once; unknown slugs stay visible as
-    // synthetic roles instead of silently coercing to Buddy.
+    // Resolve role ids against dive_roles once, scoped to each dive's diver
+    // (see resolveDiveRole).
     final roleRows = await _db.select(_db.diveRoles).get();
     final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
 
@@ -457,7 +486,11 @@ class BuddyRepository {
         createdAt: DateTime.fromMillisecondsSinceEpoch(b.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(b.updatedAt),
       );
-      final role = rolesById[link.role] ?? DiveRole.synthetic(link.role);
+      final role = resolveDiveRole(
+        rolesById,
+        link.role,
+        diveDiverId: jr.read(_db.dives.diverId),
+      );
       byDive
           .putIfAbsent(link.diveId, () => [])
           .add(domain.BuddyWithRole(buddy: buddy, role: role));

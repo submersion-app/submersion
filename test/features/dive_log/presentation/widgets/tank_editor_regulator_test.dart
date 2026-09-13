@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,65 +31,142 @@ class _PresetListNotifier
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-void main() {
-  testWidgets('choosing a regulator reports it on the tank', (tester) async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    final builtInPresets = TankPresets.all
-        .map((p) => TankPresetEntity.fromBuiltIn(p))
-        .toList();
-    const regs = [
-      EquipmentItem(
-        id: 'reg-a',
-        name: 'Apeks XTX',
-        type: EquipmentType.regulator,
-      ),
-      EquipmentItem(id: 'mask', name: 'Mask', type: EquipmentType.mask),
-    ];
-    DiveTank? changed;
+const _apeks = EquipmentItem(
+  id: 'reg-a',
+  name: 'Apeks XTX',
+  type: EquipmentType.regulator,
+);
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          currentDiverIdProvider.overrideWith(
-            (ref) => MockCurrentDiverIdNotifier(),
-          ),
-          tankPresetListNotifierProvider.overrideWith(
-            (ref) => _PresetListNotifier(builtInPresets),
-          ),
-          tankPresetsProvider.overrideWith(
-            (ref) => Future.value(builtInPresets),
-          ),
-          activeEquipmentProvider.overrideWith((ref) async => regs),
-        ].cast(),
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: TankEditor(
-                tank: const DiveTank(id: 'tank-1'),
-                tankNumber: 1,
-                onChanged: (t) => changed = t,
-                onRemove: () {},
-              ),
+const _spareReg = EquipmentItem(
+  id: 'reg-spare',
+  name: 'Spare Octo',
+  type: EquipmentType.regulator,
+  status: EquipmentStatus.spare,
+);
+
+/// Bumped to make the overridden active-equipment list reload, the way a
+/// dependency change (such as the current diver) reloads the real one. The
+/// reload never finishes, so the editor is caught mid-reload.
+final _reload = StateProvider<int>((ref) => 0);
+
+Future<void> _pump(
+  WidgetTester tester, {
+  required List<EquipmentItem> equipment,
+  DiveTank tank = const DiveTank(id: 'tank-1'),
+  void Function(DiveTank)? onChanged,
+}) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+  final builtInPresets = TankPresets.all
+      .map((p) => TankPresetEntity.fromBuiltIn(p))
+      .toList();
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        tankPresetListNotifierProvider.overrideWith(
+          (ref) => _PresetListNotifier(builtInPresets),
+        ),
+        tankPresetsProvider.overrideWith((ref) => Future.value(builtInPresets)),
+        activeEquipmentProvider.overrideWith((ref) async {
+          if (ref.watch(_reload) > 0) await Completer<void>().future;
+          return equipment;
+        }),
+      ].cast(),
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: TankEditor(
+              tank: tank,
+              tankNumber: 1,
+              onChanged: onChanged ?? (_) {},
+              onRemove: () {},
             ),
           ),
         ),
       ),
-    );
-    await tester.pumpAndSettle();
+    ),
+  );
+  await tester.pumpAndSettle();
+}
 
-    await tester.ensureVisible(find.byKey(const Key('tank-regulator-picker')));
-    await tester.tap(find.byKey(const Key('tank-regulator-picker')));
-    await tester.pumpAndSettle();
+Future<void> _openRegulatorPicker(WidgetTester tester) async {
+  await tester.ensureVisible(find.byKey(const Key('tank-regulator-picker')));
+  await tester.tap(find.byKey(const Key('tank-regulator-picker')));
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  testWidgets('choosing a regulator reports it on the tank', (tester) async {
+    DiveTank? changed;
+    await _pump(
+      tester,
+      equipment: const [
+        _apeks,
+        EquipmentItem(id: 'mask', name: 'Mask', type: EquipmentType.mask),
+      ],
+      onChanged: (t) => changed = t,
+    );
+
+    await _openRegulatorPicker(tester);
     expect(find.text('Mask').hitTestable(), findsNothing);
     await tester.tap(find.text('Apeks XTX').hitTestable());
     await tester.pumpAndSettle();
 
     expect(changed?.regulatorEquipmentId, 'reg-a');
+  });
+
+  group('spare regulators (#1803)', () {
+    testWidgets('are not offered for a tank that does not use one', (
+      tester,
+    ) async {
+      await _pump(tester, equipment: const [_apeks, _spareReg]);
+
+      await _openRegulatorPicker(tester);
+
+      expect(find.text('Apeks XTX').hitTestable(), findsOneWidget);
+      expect(find.text('Spare Octo').hitTestable(), findsNothing);
+    });
+
+    testWidgets('stay shown on a tank already breathing from one', (
+      tester,
+    ) async {
+      // Marking a regulator Spare must not make an existing dive's tank read
+      // "None" for a regulator it really used.
+      await _pump(
+        tester,
+        equipment: const [_apeks, _spareReg],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-spare'),
+      );
+
+      expect(find.text('Spare Octo'), findsOneWidget);
+      expect(find.text('None'), findsNothing);
+    });
+
+    testWidgets('stay shown while the equipment list reloads', (tester) async {
+      // A reload keeps the previous list available. Dropping it for the
+      // loading state would read "None" for the tank's own regulator.
+      await _pump(
+        tester,
+        equipment: const [_apeks, _spareReg],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-spare'),
+      );
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(TankEditor)),
+      ).read(_reload.notifier).state++;
+      await tester.pump();
+
+      expect(find.text('Spare Octo'), findsOneWidget);
+      expect(find.text('None'), findsNothing);
+    });
   });
 }

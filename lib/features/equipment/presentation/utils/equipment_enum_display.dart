@@ -56,6 +56,7 @@ extension EquipmentTypeDisplay on EquipmentType {
 extension EquipmentStatusDisplay on EquipmentStatus {
   String localizedName(AppLocalizations l10n) => switch (this) {
     EquipmentStatus.active => l10n.enum_equipmentStatus_active,
+    EquipmentStatus.spare => l10n.enum_equipmentStatus_spare,
     EquipmentStatus.needsService => l10n.enum_equipmentStatus_needsService,
     EquipmentStatus.inService => l10n.enum_equipmentStatus_inService,
     EquipmentStatus.retired => l10n.enum_equipmentStatus_retired,
