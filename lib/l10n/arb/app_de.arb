@@ -6761,7 +6761,6 @@
   "universalImport_label_diveNumber": "Tauchgang #{number}",
   "universalImport_label_duplicate": "Duplikat",
   "universalImport_label_duplicatesFound": "{count} Duplikate gefunden und automatisch abgewählt.",
-  "universalImport_label_importComplete": "Import abgeschlossen",
   "universalImport_label_importing": "Importieren",
   "universalImport_label_importingEllipsis": "Wird importiert...",
   "universalImport_label_importingProgress": "Importieren {current} von {total}",

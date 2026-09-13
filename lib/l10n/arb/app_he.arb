@@ -6761,7 +6761,6 @@
   "universalImport_label_diveNumber": "צלילה מס' {number}",
   "universalImport_label_duplicate": "כפילות",
   "universalImport_label_duplicatesFound": "{count} כפילויות נמצאו ובוטלה בחירתן אוטומטית.",
-  "universalImport_label_importComplete": "ייבוא הושלם",
   "universalImport_label_importing": "מייבא",
   "universalImport_label_importingEllipsis": "מייבא...",
   "universalImport_label_importingProgress": "מייבא {current} מתוך {total}",

@@ -22105,9 +22105,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Als nieuw importeren';
 
   @override
-  String get universalImport_label_importComplete => 'Import voltooid';
-
-  @override
   String get universalImport_label_importing => 'Importeren';
 
   @override

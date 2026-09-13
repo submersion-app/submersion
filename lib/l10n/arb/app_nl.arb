@@ -6761,7 +6761,6 @@
   "universalImport_label_diveNumber": "Duik #{number}",
   "universalImport_label_duplicate": "Duplicaat",
   "universalImport_label_duplicatesFound": "{count} duplicaten gevonden en automatisch gedeselecteerd.",
-  "universalImport_label_importComplete": "Import voltooid",
   "universalImport_label_importing": "Importeren",
   "universalImport_label_importingEllipsis": "Importeren...",
   "universalImport_label_importingProgress": "Importeren {current} van {total}",

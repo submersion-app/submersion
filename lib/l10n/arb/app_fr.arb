@@ -6677,7 +6677,6 @@
   "universalImport_label_diveNumber": "Plongée n°{number}",
   "universalImport_label_duplicate": "Doublon",
   "universalImport_label_duplicatesFound": "{count} doublons trouvés et désélectionnés automatiquement.",
-  "universalImport_label_importComplete": "Import terminé",
   "universalImport_label_importing": "Import",
   "universalImport_label_importingEllipsis": "Import...",
   "universalImport_label_importingProgress": "Import de {current} sur {total}",

@@ -21895,9 +21895,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_importAsNew => 'استيراد كجديد';
 
   @override
-  String get universalImport_label_importComplete => 'اكتمل الاستيراد';
-
-  @override
   String get universalImport_label_importing => 'جارٍ الاستيراد';
 
   @override

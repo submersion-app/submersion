@@ -6677,7 +6677,6 @@
   "universalImport_label_diveNumber": "Merülés #{number}",
   "universalImport_label_duplicate": "Duplikátum",
   "universalImport_label_duplicatesFound": "{count} duplikátum találva és automatikusan kijelölés törölve.",
-  "universalImport_label_importComplete": "Importálás kész",
   "universalImport_label_importing": "Importálás",
   "universalImport_label_importingEllipsis": "Importálás...",
   "universalImport_label_importingProgress": "{current} importálása a(z) {total}-ból",

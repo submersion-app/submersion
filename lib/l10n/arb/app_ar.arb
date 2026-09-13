@@ -6761,7 +6761,6 @@
   "universalImport_label_diveNumber": "غطسة #{number}",
   "universalImport_label_duplicate": "مكرر",
   "universalImport_label_duplicatesFound": "تم العثور على {count} مكررات وتم إلغاء تحديدها تلقائياً.",
-  "universalImport_label_importComplete": "اكتمل الاستيراد",
   "universalImport_label_importing": "جارٍ الاستيراد",
   "universalImport_label_importingEllipsis": "جارٍ الاستيراد...",
   "universalImport_label_importingProgress": "جارٍ استيراد {current} من {total}",

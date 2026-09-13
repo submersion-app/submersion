@@ -13435,7 +13435,6 @@
   "universalImport_label_duplicate": "Duplicate",
   "universalImport_label_duplicatesFound": "{count} duplicates found and auto-deselected.",
   "universalImport_label_importAsNew": "Import as New",
-  "universalImport_label_importComplete": "Import Complete",
   "universalImport_label_importing": "Importing",
   "universalImport_label_importingEllipsis": "Importing...",
   "universalImport_label_importingProgress": "Importing {current} of {total}",
@@ -13689,9 +13688,6 @@
   },
   "@universalImport_label_importAsNew": {
     "description": "Short action label meaning the incoming duplicate should be imported as a brand-new entry (used on snackbars and bulk buttons)"
-  },
-  "@universalImport_label_importComplete": {
-    "description": "Headline text shown on the import summary step"
   },
   "@universalImport_label_importing": {
     "description": "Simple importing label when total count is unknown"

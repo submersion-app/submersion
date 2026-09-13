@@ -36594,12 +36594,6 @@ abstract class AppLocalizations {
   /// **'Import as New'**
   String get universalImport_label_importAsNew;
 
-  /// Headline text shown on the import summary step
-  ///
-  /// In en, this message translates to:
-  /// **'Import Complete'**
-  String get universalImport_label_importComplete;
-
   /// Simple importing label when total count is unknown
   ///
   /// In en, this message translates to:

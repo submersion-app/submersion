@@ -21121,9 +21121,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_importAsNew => '作为新导入';
 
   @override
-  String get universalImport_label_importComplete => '导入完成';
-
-  @override
   String get universalImport_label_importing => '正在导入';
 
   @override

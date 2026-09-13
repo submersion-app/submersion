@@ -6947,7 +6947,6 @@
   "universalImport_label_diveNumber": "潜水 #{number}",
   "universalImport_label_duplicate": "重复",
   "universalImport_label_duplicatesFound": "发现 {count} 条重复记录并已自动取消选择。",
-  "universalImport_label_importComplete": "导入完成",
   "universalImport_label_importing": "正在导入",
   "universalImport_label_importingEllipsis": "正在导入...",
   "universalImport_label_importingProgress": "正在导入 {current}/{total}",

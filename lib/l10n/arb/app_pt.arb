@@ -6761,7 +6761,6 @@
   "universalImport_label_diveNumber": "Mergulho nº{number}",
   "universalImport_label_duplicate": "Duplicado",
   "universalImport_label_duplicatesFound": "{count} duplicados encontrados e desmarcados automaticamente.",
-  "universalImport_label_importComplete": "Importação Concluída",
   "universalImport_label_importing": "Importando",
   "universalImport_label_importingEllipsis": "Importando...",
   "universalImport_label_importingProgress": "Importando {current} de {total}",

@@ -22225,9 +22225,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Importalas ujkent';
 
   @override
-  String get universalImport_label_importComplete => 'Importálás kész';
-
-  @override
   String get universalImport_label_importing => 'Importálás';
 
   @override

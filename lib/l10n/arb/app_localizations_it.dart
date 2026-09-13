@@ -22288,9 +22288,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_label_importAsNew => 'Importa come nuovo';
 
   @override
-  String get universalImport_label_importComplete => 'Importazione Completata';
-
-  @override
   String get universalImport_label_importing => 'Importazione';
 
   @override
