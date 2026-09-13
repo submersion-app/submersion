@@ -5997,6 +5997,7 @@
   "tags_picker_noMatches": "Nessun tag corrisponde alla ricerca.",
   "tags_picker_addCount": "{count, plural, =0{Aggiungi tag} =1{Aggiungi 1 tag} other{Aggiungi {count} tag}}",
   "tags_action_deleteTag": "Elimina tag",
+  "tags_action_showDives": "Mostra immersioni con tag \"{tagName}\"",
   "tags_dialog_deleteMessage": "Sei sicuro di voler eliminare \"{tagName}\"? Questo lo rimuoverà da tutte le immersioni.",
   "tags_dialog_deleteTitle": "Eliminare Tag?",
   "tags_empty": "Nessun tag ancora. Crea tag quando modifichi le immersioni.",

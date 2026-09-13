@@ -6085,6 +6085,7 @@
   "tags_picker_noMatches": "Geen tags komen overeen met je zoekopdracht.",
   "tags_picker_addCount": "{count, plural, =0{Tags toevoegen} =1{1 tag toevoegen} other{{count} tags toevoegen}}",
   "tags_action_deleteTag": "Tag verwijderen",
+  "tags_action_showDives": "Duiken met tag \"{tagName}\" tonen",
   "tags_dialog_deleteMessage": "Weet je zeker dat je \"{tagName}\" wilt verwijderen? Dit verwijdert het van alle duiken.",
   "tags_dialog_deleteTitle": "Tag verwijderen?",
   "tags_empty": "Nog geen tags. Maak tags aan bij het bewerken van duiken.",

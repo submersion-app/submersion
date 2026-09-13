@@ -6276,6 +6276,7 @@
   "tags_picker_noMatches": "没有标签与您的搜索匹配。",
   "tags_picker_addCount": "{count, plural, =0{添加标签} other{添加 {count} 个标签}}",
   "tags_action_deleteTag": "删除标签",
+  "tags_action_showDives": "显示带有「{tagName}」标签的潜水",
   "tags_dialog_deleteMessage": "确定要删除「{tagName}」吗？这将从所有潜水中移除该标签。",
   "tags_dialog_deleteTitle": "删除标签？",
   "tags_empty": "暂无标签。在编辑潜水时创建标签。",

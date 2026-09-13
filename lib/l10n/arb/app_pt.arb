@@ -6085,6 +6085,7 @@
   "tags_picker_noMatches": "Nenhuma etiqueta corresponde à sua pesquisa.",
   "tags_picker_addCount": "{count, plural, =0{Adicionar etiquetas} =1{Adicionar 1 etiqueta} other{Adicionar {count} etiquetas}}",
   "tags_action_deleteTag": "Excluir tag",
+  "tags_action_showDives": "Mostrar mergulhos com a tag \"{tagName}\"",
   "tags_dialog_deleteMessage": "Tem certeza de que deseja excluir \"{tagName}\"? Isso irá removê-la de todos os mergulhos.",
   "tags_dialog_deleteTitle": "Excluir Tag?",
   "tags_empty": "Nenhuma tag ainda. Crie tags ao editar mergulhos.",

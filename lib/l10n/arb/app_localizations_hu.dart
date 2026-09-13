@@ -20253,6 +20253,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_action_deleteTag => 'Címke törlése';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '\"$tagName\" címkéjű merülések megjelenítése';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Biztosan törölni szeretnéd: \"$tagName\"? Ez eltávolítja az összes merülésről.';
   }

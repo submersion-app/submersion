@@ -6001,6 +6001,7 @@
   "tags_picker_noMatches": "Nincs a keresésnek megfelelő címke.",
   "tags_picker_addCount": "{count, plural, =0{Címkék hozzáadása} =1{1 címke hozzáadása} other{{count} címke hozzáadása}}",
   "tags_action_deleteTag": "Címke törlése",
+  "tags_action_showDives": "\"{tagName}\" címkéjű merülések megjelenítése",
   "tags_dialog_deleteMessage": "Biztosan törölni szeretnéd: \"{tagName}\"? Ez eltávolítja az összes merülésről.",
   "tags_dialog_deleteTitle": "Címke törlése?",
   "tags_empty": "Még nincsenek címkék. Hozz létre címkéket a merülések szerkesztésekor.",
