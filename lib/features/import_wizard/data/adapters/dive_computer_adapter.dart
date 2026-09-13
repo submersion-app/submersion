@@ -435,6 +435,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       final result = await _importService.detectDuplicate(
         dive,
         diverId: _diverId,
+        computerId: computer?.id,
         sourceKeysCache: sourceKeysCache,
       );
 
