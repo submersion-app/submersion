@@ -4,9 +4,13 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -88,6 +92,101 @@ void main() {
     expect(totals.diveCount, 3);
     expect(totals.firstDive, DateTime.utc(2026, 1, 10));
     expect(totals.lastDive, DateTime.utc(2026, 3, 10));
+  });
+
+  Future<EquipmentItem> itemWithTwoDives(EquipmentType type) async {
+    final item = await EquipmentRepository().createEquipment(
+      EquipmentItem(id: '', name: type.name, type: type),
+    );
+    await insertDive('a', dateMs: t1);
+    await insertDive('b', dateMs: t2);
+    await link('a', item.id);
+    await link('b', item.id);
+    return item;
+  }
+
+  test('a BCD accrues no battery cycles', () async {
+    final bcd = await itemWithTwoDives(EquipmentType.bcd);
+    final totals = await container.read(
+      equipmentExposureTotalsProvider(bcd.id).future,
+    );
+    expect(totals.byUnit[ExposureUnit.dives], 2);
+    expect(totals.byUnit.containsKey(ExposureUnit.cycles), isFalse);
+  });
+
+  test('a light accrues one battery cycle per dive', () async {
+    final light = await itemWithTwoDives(EquipmentType.light);
+    final totals = await container.read(
+      equipmentExposureTotalsProvider(light.id).future,
+    );
+    expect(totals.byUnit[ExposureUnit.cycles], 2);
+  });
+
+  test('a cycles clock opts unpowered gear in', () async {
+    final bcd = await itemWithTwoDives(EquipmentType.bcd);
+    await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: bcd.id,
+        serviceKindId: 'o2-cell-replacement',
+        exposureIntervals: const {ExposureUnit.cycles: 50},
+        createdAt: DateTime(2025),
+        updatedAt: DateTime(2025),
+      ),
+    );
+    final totals = await container.read(
+      equipmentExposureTotalsProvider(bcd.id).future,
+    );
+    expect(totals.byUnit[ExposureUnit.cycles], 2);
+  });
+
+  test('a kind or schedule edit reaches an open card', () async {
+    final bcd = await itemWithTwoDives(EquipmentType.bcd);
+    final t = DateTime(2025);
+    final kinds = ServiceKindRepository();
+    final kind = await kinds.createKind(
+      ServiceKind(id: 'charge', name: 'Charge', createdAt: t, updatedAt: t),
+    );
+    final schedules = ServiceScheduleRepository();
+    final schedule = await schedules.createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: bcd.id,
+        serviceKindId: kind.id,
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    final sub = container.listen(
+      equipmentExposureTotalsProvider(bcd.id),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+    Future<double?> cycles() async => (await container.read(
+      equipmentExposureTotalsProvider(bcd.id).future,
+    )).byUnit[ExposureUnit.cycles];
+    // Writes go through drift, so the change streams tick as the app's own
+    // writes do; give the invalidation a moment to land.
+    Future<double?> settle(double? want) async {
+      var now = await cycles();
+      for (var i = 0; i < 50 && now != want; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        now = await cycles();
+      }
+      return now;
+    }
+
+    expect(await cycles(), isNull);
+
+    // The kind gains a cycles default, which the schedule inherits.
+    await kinds.updateKind(
+      kind.copyWith(exposureIntervals: const {ExposureUnit.cycles: 50}),
+    );
+    expect(await settle(2), 2);
+
+    // Disabling the clock withdraws the opt-in.
+    await schedules.updateSchedule(schedule.copyWith(enabled: false));
+    expect(await settle(null), isNull);
   });
 
   test('an unknown item yields the empty totals', () async {
