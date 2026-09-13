@@ -26928,11 +26928,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nenhum mergulho com espessura de roupa registrada';
+      'Nenhum mergulho vinculado a roupa de neoprene ou roupa seca';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Não foi possível carregar os dados de espessura';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Desconhecida';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Espessura da roupa (mm)';

@@ -25541,10 +25541,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      '没有记录潜水服厚度的潜水';
+      '没有关联湿衣或干衣的潜水';
 
   @override
   String get statistics_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => '未知';
 
   @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';

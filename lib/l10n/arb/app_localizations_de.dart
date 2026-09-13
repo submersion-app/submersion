@@ -26874,11 +26874,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Keine Tauchgänge mit erfasster Anzugdicke';
+      'Keine Tauchgänge mit verknüpftem Neopren- oder Trockentauchanzug';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Anzugdicken-Daten konnten nicht geladen werden';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Unbekannt';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';
