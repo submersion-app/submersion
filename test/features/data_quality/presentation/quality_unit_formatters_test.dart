@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -6,6 +7,19 @@ import 'package:submersion/features/data_quality/presentation/widgets/quality_un
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
+  // formatRmv localises the decimal separator from the process-global
+  // Intl.defaultLocale, so pin English for the dot-separated expectations.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   group('qualityUnitFormattersFor sac (#1823)', () {
     test('metric renders an RMV in L/min at 1 decimal', () {
       final fmt = qualityUnitFormattersFor(const UnitFormatter(AppSettings()));

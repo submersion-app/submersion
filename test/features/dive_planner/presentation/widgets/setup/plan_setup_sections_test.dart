@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -55,6 +56,20 @@ String? _rmvSemanticsLabel(WidgetTester tester) => tester
     .firstWhere((label) => label?.startsWith('RMV') ?? false);
 
 void main() {
+  // MaterialApp's locale does not reach the number formatting: formatRmv
+  // localises its decimal separator from the process-global
+  // Intl.defaultLocale. Pin English so "0.53 cuft/min" stays dot-separated.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   group('planWaterOptionFor', () {
     test('maps salt, fresh, custom salinity, leftover brackish, and null', () {
       expect(
