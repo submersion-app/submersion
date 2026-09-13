@@ -46,10 +46,16 @@ class _SeededWizardNotifier extends RepairWizardNotifier {
   }
 
   int applyCalls = 0;
+  RepairWizardConfig? harvestedWith;
 
   @override
   Future<void> applyChecked() async {
     applyCalls++;
+  }
+
+  @override
+  Future<void> harvest(RepairWizardConfig config) async {
+    harvestedWith = config;
   }
 }
 
@@ -108,6 +114,35 @@ void main() {
 
     expect(find.text('Search photo library'), findsNothing);
     expect(find.text('Use cloud media store'), findsOneWidget);
+  });
+
+  testWidgets('scanning with the photo library toggled on searches it', (
+    tester,
+  ) async {
+    final notifier = _SeededWizardNotifier(const RepairWizardIdle());
+    await tester.pumpWidget(host(notifier));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Search photo library'));
+    await tester.pump();
+    await tester.tap(find.text('Scan'));
+    await tester.pump();
+
+    expect(notifier.harvestedWith?.usePhotoLibrary, isTrue);
+  });
+
+  testWidgets('scanning without a photo library never searches one', (
+    tester,
+  ) async {
+    final notifier = _SeededWizardNotifier(const RepairWizardIdle());
+    await tester.pumpWidget(host(notifier, galleryBrowsing: false));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Scan'));
+    await tester.pump();
+
+    expect(notifier.harvestedWith, isNotNull);
+    expect(notifier.harvestedWith!.usePhotoLibrary, isFalse);
   });
 
   testWidgets('review groups by confidence, pre-checks per ladder, and '
