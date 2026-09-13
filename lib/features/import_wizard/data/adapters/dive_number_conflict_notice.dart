@@ -34,6 +34,6 @@ Future<ImportNotice?> diveNumberConflictNotice({
   if (clashes == 0) return null;
   return ImportNotice(
     kind: ImportNoticeKind.diveNumberConflict,
-    affectedDives: clashes,
+    count: clashes,
   );
 }

@@ -21,6 +21,7 @@ ImportWarning _unreadable(int? row) => ImportWarning(
 
 ImportWarning _transformFailed(int row) => ImportWarning(
   severity: ImportWarningSeverity.info,
+  code: ImportWarningCode.valuesNotConverted,
   message: 'Row $row: failed to apply parseDepth to "x" for field maxDepth',
   sourceRow: row,
 );
@@ -149,6 +150,7 @@ void main() {
       final message = emptyPayloadMessage(en, const [
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.divesSkipped,
           message: 'No field mapping found for file role "dives"',
         ),
       ]);
@@ -158,6 +160,40 @@ void main() {
         'No importable data was found in this file: '
         'No field mapping found for file role "dives"',
       );
+    });
+
+    test('never shows a diagnostic as the detail', () {
+      // A parser may record a diagnostic ahead of anything worth showing.
+      final message = emptyPayloadMessage(en, const [
+        ImportWarning(
+          severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.diagnostic,
+          message: 'ZDT segment without a preceding ZDH; ignored',
+        ),
+        ImportWarning(
+          severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.divesSkipped,
+          message: 'Skipped dive 1: no readable start time',
+        ),
+      ]);
+
+      expect(
+        message,
+        'No importable data was found in this file: '
+        'Skipped dive 1: no readable start time',
+      );
+    });
+
+    test('is just the sentence when only diagnostics were recorded', () {
+      final message = emptyPayloadMessage(en, const [
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.diagnostic,
+          message: 'internal note',
+        ),
+      ]);
+
+      expect(message, 'No importable data was found in this file.');
     });
 
     test('is just the sentence when there is no warning at all', () {

@@ -22123,7 +22123,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Dateien';
 
   @override
-  String get universalImport_summary_noticesTitle => 'Nicht in der Datei';
+  String get universalImport_summary_noticesTitle => 'Hinweise zum Import';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22142,6 +22142,108 @@ class AppLocalizationsDe extends AppLocalizations {
       one: 'Betrifft 1 Tauchgang',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'Einige Tauchgänge konnten nicht gelesen werden';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'Diese Tauchgänge wurden übersprungen, weil ihre Daten in der Datei nicht gelesen werden konnten. Prüfen Sie bei einer CSV-Datei, ob die Spalten für Datum und Uhrzeit zugeordnet sind.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge übersprungen',
+      one: '1 Tauchgang übersprungen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Tauchgänge mehrerer Taucher';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'Diese MacDive-Bibliothek enthält Tauchgänge von $names. Alle wurden beim aktuellen Taucher importiert, und jeder Tauchgang ist mit dem Namen markiert, unter dem er aufgezeichnet wurde.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'Einige Profile konnten nicht gelesen werden';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'Diese Tauchgänge wurden ohne Tiefenprofil importiert, weil die Profildaten in der Datei fehlen oder nicht gelesen werden konnten.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'MacDive-Profile nicht dekodiert';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive hat diese Profile in einem Format gespeichert, das Submersion nicht lesen kann. Um sie zu importieren, exportieren Sie aus MacDive als XML (File > Export > MacDive XML) und importieren Sie stattdessen diese Datei.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'Profile auf diesem Gerät nicht dekodiert';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'Dieses Gerät konnte die Tauchcomputerdaten in der Datei nicht dekodieren, daher wurden diese Tauchgänge ohne Tiefenprofil importiert.';
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Einige Werte leer gelassen';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Werte konnten nicht umgewandelt werden und wurden leer gelassen. Wenn ein Feld falsch aussieht, prüfen Sie die Spaltenzuordnung und importieren Sie erneut.',
+      one:
+          '1 Wert konnte nicht umgewandelt werden und wurde leer gelassen. Wenn ein Feld falsch aussieht, prüfen Sie die Spaltenzuordnung und importieren Sie erneut.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Einige Fotos übersprungen';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Fotos hatten keinen Dateinamen und konnten nicht verknüpft werden.',
+      one: '1 Foto hatte keinen Dateinamen und konnte nicht verknüpft werden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'Zertifizierungen und Wartungseinträge nicht in der Datei';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive lässt Zertifizierungen und Wartungseinträge der Ausrüstung in seinem XML-Export weg. Um sie zu übernehmen, importieren Sie Ihre MacDive.sqlite-Datenbank.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'MacDive-Logbücher nicht importiert';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'MacDive-Logbücher ($names) sind gespeicherte Suchen und keine festen Listen von Tauchgängen, daher gibt es nichts zu importieren. Sie können sie als Tauchgangsfilter neu anlegen.';
   }
 
   @override

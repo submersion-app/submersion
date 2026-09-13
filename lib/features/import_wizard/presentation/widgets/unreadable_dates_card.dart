@@ -57,7 +57,7 @@ class UnreadableDatesCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     l10n.universalImport_summary_unreadableDatesCount(
-                      notice.affectedDives,
+                      notice.count,
                     ),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: foreground,

@@ -223,6 +223,7 @@ class CsvImportParser implements ImportParser {
         warnings.add(
           ImportWarning(
             severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.diagnostic,
             message:
                 'Column "$header" was not imported: column "$claimedBy" '
                 'already fills $target',

@@ -107,11 +107,11 @@ class _SuccessView extends StatelessWidget {
     final hasActivity =
         totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
     final l10n = context.l10n;
-    // "Not in the file" explains gaps in dives that imported. Rows whose date
-    // could not be read are dives that did not, so they get their own card.
+    // "Import notes" explain dives that imported. Rows whose date could not
+    // be read are dives that did not, so they get their own card.
     final fileNotices = [
       for (final notice in notices)
-        if (_fileNoticeWording(l10n, notice.kind) case final wording?)
+        if (_fileNoticeWording(l10n, notice) case final wording?)
           (notice: notice, wording: wording),
     ];
 
@@ -426,47 +426,99 @@ class _ErrorView extends StatelessWidget {
 // Per-file outcome row (bulk imports)
 // ---------------------------------------------------------------------------
 
-/// Title, body and optional follow-up action for a "Not in the file" notice.
+/// Title, body and optional follow-up action for an import notes card.
 typedef _FileNoticeWording = ({
   String title,
   String body,
   ({String label, String route})? action,
 });
 
-/// The wording for a notice about data the file did not contain, or null for
-/// a kind that is not one. Rows whose date could not be read are dives that
-/// did not import at all, so [UnreadableDatesCard] reports them instead.
+/// The wording for an import notes card, or null for a kind shown elsewhere.
+/// Rows whose date could not be read are dives that did not import at all, so
+/// [UnreadableDatesCard] reports them instead.
 _FileNoticeWording? _fileNoticeWording(
   AppLocalizations l10n,
-  ImportNoticeKind kind,
-) => switch (kind) {
-  ImportNoticeKind.noTankPressure => (
-    title: l10n.universalImport_summary_noticeNoTankPressureTitle,
-    body: l10n.universalImport_summary_noticeNoTankPressureBody,
-    action: null,
-  ),
-  ImportNoticeKind.unknownTransmitter => (
-    title: l10n.universalImport_summary_noticeUnknownTransmitterTitle,
-    body: l10n.universalImport_summary_noticeUnknownTransmitterBody,
-    action: (
-      label: l10n.universalImport_summary_noticeAssignTransmitters,
-      route: '/transmitters',
+  ImportNotice notice,
+) {
+  final names = notice.names.join(', ');
+  return switch (notice.kind) {
+    ImportNoticeKind.divesSkipped => (
+      title: l10n.universalImport_summary_noticeDivesSkippedTitle,
+      body: l10n.universalImport_summary_noticeDivesSkippedBody,
+      action: null,
     ),
-  ),
-  // No action button: Dive Numbering is a dialog on the dive list, not
-  // a route, so the body tells the diver where to find it.
-  ImportNoticeKind.diveNumberConflict => (
-    title: l10n.universalImport_summary_noticeDiveNumberConflictTitle,
-    body: l10n.universalImport_summary_noticeDiveNumberConflictBody,
-    action: null,
-  ),
-  ImportNoticeKind.unreadableDates => null,
-};
+    ImportNoticeKind.unreadableDates => null,
+    ImportNoticeKind.multipleDivers => (
+      title: l10n.universalImport_summary_noticeMultipleDiversTitle,
+      body: l10n.universalImport_summary_noticeMultipleDiversBody(names),
+      action: null,
+    ),
+    ImportNoticeKind.profileUnreadable => (
+      title: l10n.universalImport_summary_noticeProfileUnreadableTitle,
+      body: l10n.universalImport_summary_noticeProfileUnreadableBody,
+      action: null,
+    ),
+    ImportNoticeKind.macdiveProfileUndecodable => (
+      title: l10n.universalImport_summary_noticeMacdiveProfileUndecodableTitle,
+      body: l10n.universalImport_summary_noticeMacdiveProfileUndecodableBody,
+      action: null,
+    ),
+    ImportNoticeKind.profileUndecodableOnPlatform => (
+      title:
+          l10n.universalImport_summary_noticeProfileUndecodableOnPlatformTitle,
+      body: l10n.universalImport_summary_noticeProfileUndecodableOnPlatformBody,
+      action: null,
+    ),
+    ImportNoticeKind.noTankPressure => (
+      title: l10n.universalImport_summary_noticeNoTankPressureTitle,
+      body: l10n.universalImport_summary_noticeNoTankPressureBody,
+      action: null,
+    ),
+    ImportNoticeKind.unknownTransmitter => (
+      title: l10n.universalImport_summary_noticeUnknownTransmitterTitle,
+      body: l10n.universalImport_summary_noticeUnknownTransmitterBody,
+      action: (
+        label: l10n.universalImport_summary_noticeAssignTransmitters,
+        route: '/transmitters',
+      ),
+    ),
+    ImportNoticeKind.valuesNotConverted => (
+      title: l10n.universalImport_summary_noticeValuesNotConvertedTitle,
+      body: l10n.universalImport_summary_noticeValuesNotConvertedBody(
+        notice.count,
+      ),
+      action: null,
+    ),
+    ImportNoticeKind.photosSkipped => (
+      title: l10n.universalImport_summary_noticePhotosSkippedTitle,
+      body: l10n.universalImport_summary_noticePhotosSkippedBody(notice.count),
+      action: null,
+    ),
+    ImportNoticeKind.macdiveXmlOmitsCertsAndService => (
+      title: l10n.universalImport_summary_noticeMacdiveXmlCertsTitle,
+      body: l10n.universalImport_summary_noticeMacdiveXmlCertsBody,
+      action: null,
+    ),
+    ImportNoticeKind.macdiveLogbooksNotImported => (
+      title: l10n.universalImport_summary_noticeMacdiveLogbooksTitle,
+      body: l10n.universalImport_summary_noticeMacdiveLogbooksBody(names),
+      action: null,
+    ),
+    // No action button: Dive Numbering is a dialog on the dive list, not
+    // a route, so the body tells the diver where to find it.
+    ImportNoticeKind.diveNumberConflict => (
+      title: l10n.universalImport_summary_noticeDiveNumberConflictTitle,
+      body: l10n.universalImport_summary_noticeDiveNumberConflictBody,
+      action: null,
+    ),
+  };
+}
 
-/// Explains data the source files did not contain.
+/// Explains something the diver should know about an import that succeeded:
+/// data the source did not contain, or items that could not come across.
 ///
-/// Styled as information, not as a problem: the dives imported fine, and the
-/// gap is in the file rather than in the import. Uses the theme's surface
+/// Styled as information, not as a problem: the import itself worked, and the
+/// gap is in the source rather than in the import. Uses the theme's surface
 /// container rather than an error colour for exactly that reason.
 class _NoticeCard extends StatelessWidget {
   final ImportNotice notice;
@@ -479,6 +531,14 @@ class _NoticeCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final (:title, :body, :action) = wording;
+
+    // Skipped dives were never imported, so they get their own wording; kinds
+    // that count values or photos carry the count in their body instead.
+    final String? countLine = notice.kind == ImportNoticeKind.divesSkipped
+        ? l10n.universalImport_summary_noticeDivesSkippedCount(notice.count)
+        : notice.kind.countsImportedDives
+        ? l10n.universalImport_summary_noticeAffectedDives(notice.count)
+        : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -507,15 +567,15 @@ class _NoticeCard extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.universalImport_summary_noticeAffectedDives(
-                      notice.affectedDives,
+                  if (countLine != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      countLine,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  ],
                   if (action != null) ...[
                     const SizedBox(height: 8),
                     Align(
@@ -563,28 +623,53 @@ class _FileOutcomeRow extends StatelessWidget {
         l10n.universalImport_summary_fileUnsupported,
     };
 
+    // Why a file failed, verbatim from its parser. Only failures carry one.
+    final reason = outcome.status == ImportFileOutcomeStatus.parseFailed
+        ? outcome.error
+        : null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
-          const SizedBox(width: 10),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 200),
-            child: Text(
-              outcome.fileName,
-              style: theme.textTheme.bodySmall,
-              overflow: TextOverflow.ellipsis,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: 10),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 200),
+                child: Text(
+                  outcome.fileName,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          if (reason != null && reason.isNotEmpty)
+            Padding(
+              // Indented past the icon so the reason sits under the name.
+              padding: const EdgeInsetsDirectional.only(start: 28, top: 2),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: Text(
+                  reason,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );

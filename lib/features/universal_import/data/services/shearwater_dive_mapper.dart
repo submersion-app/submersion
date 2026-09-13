@@ -103,6 +103,7 @@ class ShearwaterDiveMapper {
       warnings?.add(
         const ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.profileUnreadable,
           message:
               'Could not determine dive computer model for profile parsing',
           entityType: ImportEntityType.dives,
@@ -125,6 +126,7 @@ class ShearwaterDiveMapper {
       warnings?.add(
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.profileUnreadable,
           message: 'Profile parsing failed for dive ${rawDive.diveId}: $e',
           entityType: ImportEntityType.dives,
         ),
@@ -134,6 +136,7 @@ class ShearwaterDiveMapper {
       warnings?.add(
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.profileUnreadable,
           message: 'Profile parsing failed for dive ${rawDive.diveId}: $e',
           entityType: ImportEntityType.dives,
         ),

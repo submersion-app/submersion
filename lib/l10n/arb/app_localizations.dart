@@ -36447,7 +36447,7 @@ abstract class AppLocalizations {
   /// No description provided for @universalImport_summary_noticesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Not in the file'**
+  /// **'Import notes'**
   String get universalImport_summary_noticesTitle;
 
   /// No description provided for @universalImport_summary_noticeNoTankPressureTitle.
@@ -36467,6 +36467,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}'**
   String universalImport_summary_noticeAffectedDives(int count);
+
+  /// No description provided for @universalImport_summary_noticeDivesSkippedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dives could not be read'**
+  String get universalImport_summary_noticeDivesSkippedTitle;
+
+  /// No description provided for @universalImport_summary_noticeDivesSkippedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives were skipped because their data in the file could not be read. For a CSV file, check that the date and time columns are mapped.'**
+  String get universalImport_summary_noticeDivesSkippedBody;
+
+  /// No description provided for @universalImport_summary_noticeDivesSkippedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive skipped} other{{count} dives skipped}}'**
+  String universalImport_summary_noticeDivesSkippedCount(int count);
+
+  /// No description provided for @universalImport_summary_noticeMultipleDiversTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives from more than one diver'**
+  String get universalImport_summary_noticeMultipleDiversTitle;
+
+  /// No description provided for @universalImport_summary_noticeMultipleDiversBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This MacDive library has dives logged by {names}. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.'**
+  String universalImport_summary_noticeMultipleDiversBody(String names);
+
+  /// No description provided for @universalImport_summary_noticeProfileUnreadableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some profiles could not be read'**
+  String get universalImport_summary_noticeProfileUnreadableTitle;
+
+  /// No description provided for @universalImport_summary_noticeProfileUnreadableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives were imported without a depth profile because the profile data in the file is missing or could not be read.'**
+  String get universalImport_summary_noticeProfileUnreadableBody;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveProfileUndecodableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive profiles not decoded'**
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveProfileUndecodableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive stored these profiles in a form Submersion cannot read. To import them, export from MacDive as XML (File > Export > MacDive XML) and import that file instead.'**
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody;
+
+  /// No description provided for @universalImport_summary_noticeProfileUndecodableOnPlatformTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles not decoded on this device'**
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle;
+
+  /// No description provided for @universalImport_summary_noticeProfileUndecodableOnPlatformBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.'**
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody;
+
+  /// No description provided for @universalImport_summary_noticeValuesNotConvertedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some values left blank'**
+  String get universalImport_summary_noticeValuesNotConvertedTitle;
+
+  /// No description provided for @universalImport_summary_noticeValuesNotConvertedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.} other{{count} values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.}}'**
+  String universalImport_summary_noticeValuesNotConvertedBody(int count);
+
+  /// No description provided for @universalImport_summary_noticePhotosSkippedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos skipped'**
+  String get universalImport_summary_noticePhotosSkippedTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotosSkippedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo had no file name and could not be linked.} other{{count} photos had no file name and could not be linked.}}'**
+  String universalImport_summary_noticePhotosSkippedBody(int count);
+
+  /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications and service records not in the file'**
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.'**
+  String get universalImport_summary_noticeMacdiveXmlCertsBody;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveLogbooksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive logbooks not imported'**
+  String get universalImport_summary_noticeMacdiveLogbooksTitle;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveLogbooksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive logbooks ({names}) are saved searches, not fixed lists of dives, so there is nothing to import. You can recreate them as dive filters.'**
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names);
 
   /// Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app.
   ///

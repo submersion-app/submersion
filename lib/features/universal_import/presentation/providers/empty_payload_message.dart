@@ -13,7 +13,8 @@ const _maxListedRows = 5;
 ///
 /// Anything else leads with a localized sentence and keeps the parser's own
 /// warning as detail, since that text is what tells a user their file is
-/// truncated or malformed. An error is preferred over an earlier note.
+/// truncated or malformed. An error is preferred over an earlier note, and a
+/// diagnostic is never shown.
 String emptyPayloadMessage(
   AppLocalizations l10n,
   List<ImportWarning> warnings,
@@ -32,11 +33,7 @@ String emptyPayloadMessage(
     ].join('\n');
   }
 
-  final detail =
-      warnings
-          .where((w) => w.severity == ImportWarningSeverity.error)
-          .firstOrNull ??
-      warnings.firstOrNull;
+  final detail = warnings.failureDetail;
   return detail == null
       ? l10n.universalImport_error_noDataInFile
       : l10n.universalImport_error_noDataInFileWithDetails(detail.message);
