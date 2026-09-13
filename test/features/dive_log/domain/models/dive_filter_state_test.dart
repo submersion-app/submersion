@@ -81,6 +81,32 @@ void main() {
       });
     });
 
+    group('readsBuddyLinks (#1915)', () {
+      test('is false without a buddy filter', () {
+        expect(const DiveFilterState().readsBuddyLinks, isFalse);
+        expect(
+          const DiveFilterState(
+            buddyNameFilter: '',
+            noBuddyOnly: false,
+            favoritesOnly: true,
+          ).readsBuddyLinks,
+          isFalse,
+        );
+      });
+
+      test('is true for each filter that reads dive_buddies', () {
+        expect(const DiveFilterState(buddyId: 'b1').readsBuddyLinks, isTrue);
+        expect(
+          const DiveFilterState(buddyNameFilter: 'Ann').readsBuddyLinks,
+          isTrue,
+        );
+        expect(
+          const DiveFilterState(noBuddyOnly: true).readsBuddyLinks,
+          isTrue,
+        );
+      });
+    });
+
     group('hasActiveFilters', () {
       test('returns false for default empty state', () {
         const filter = DiveFilterState();

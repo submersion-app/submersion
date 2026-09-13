@@ -228,6 +228,23 @@ class DiveRepository {
       )
       .debounce(changeTickDebounce);
 
+  /// Change tick for the buddy filters ([DiveFilterState.readsBuddyLinks]):
+  /// the `dive_buddies` junction and `buddies`, whose name the buddy-name
+  /// filter matches. A sync pull of a buddy link writes only `dive_buddies`
+  /// (the parent dive is never restamped, #1769), and a merge or rename
+  /// writes no `dives` row either, so no other list tick sees them (#1915).
+  ///
+  /// `dives` is left out on purpose: every consumer already follows a dives
+  /// tick, and adding it here would reload a filtered list twice per edit.
+  Stream<void> watchBuddyFilterChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.diveBuddies),
+          TableUpdateQuery.onTable(_db.buddies),
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
   /// Aggregate change-tick for the dive DETAIL page: fires when ANY table that
   /// feeds a dive's detail view is written -- including a sync applying remote
   /// changes directly to the DB (which bypasses the notifier paths that

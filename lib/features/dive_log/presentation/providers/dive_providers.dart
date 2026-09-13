@@ -174,6 +174,10 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   if (filter.equipmentAttrConditions.isNotEmpty) {
     ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
   }
+  // A buddy filter makes it read dive_buddies and buddies (#1915).
+  if (filter.readsBuddyLinks) {
+    ref.invalidateSelfWhen(repository.watchBuddyFilterChanges());
+  }
   return repository.getOrderedDiveIds(
     diverId: diverId,
     filter: filter,
@@ -483,6 +487,30 @@ final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
   );
 });
 
+/// A change tick subscribed only while a filter reads its tables, so writes
+/// to those tables never reload a list that is not filtered by them.
+class _FilterTickFollower {
+  _FilterTickFollower(this._tick, this._onTick);
+
+  final Stream<void> Function() _tick;
+  final void Function() _onTick;
+  StreamSubscription<void>? _subscription;
+
+  /// Subscribes when [wanted] and not yet subscribed; cancels when not.
+  void follow(bool wanted) {
+    if (wanted && _subscription == null) {
+      _subscription = _tick().listen((_) => _onTick());
+    } else if (!wanted) {
+      cancel();
+    }
+  }
+
+  void cancel() {
+    _subscription?.cancel();
+    _subscription = null;
+  }
+}
+
 /// Dive list notifier for mutations
 class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   final DiveRepository _repository;
@@ -510,6 +538,22 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
       (_) => _silentReload(),
     );
     _ref.onDispose(divesChangeSub.cancel);
+
+    // filteredDivesProvider (the maps) applies the buddy filters to each
+    // dive's hydrated buddies, which a link-only write (a sync pull, a
+    // merge, a rename) changes without a dives tick. Followed only while a
+    // buddy filter is set, so buddy writes never reload an unfiltered list
+    // (#1915).
+    final buddyFilterTick = _FilterTickFollower(
+      _repository.watchBuddyFilterChanges,
+      _silentReload,
+    );
+    _ref.listen<DiveFilterState>(
+      diveFilterProvider,
+      (_, next) => buddyFilterTick.follow(next.readsBuddyLinks),
+    );
+    buddyFilterTick.follow(_ref.read(diveFilterProvider).readsBuddyLinks);
+    _ref.onDispose(buddyFilterTick.cancel);
   }
 
   Future<void> _loadDives() async {
@@ -738,12 +782,15 @@ class PaginatedDiveListNotifier
     });
     _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       if (previous != next) {
-        _followAttrFilterTick(next);
+        _followFilterTicks(next);
         loadFirstPage();
       }
     });
-    _followAttrFilterTick(_ref.read(diveFilterProvider));
-    _ref.onDispose(() => _attrFilterSub?.cancel());
+    _followFilterTicks(_ref.read(diveFilterProvider));
+    _ref.onDispose(() {
+      _attrFilterTick.cancel();
+      _buddyFilterTick.cancel();
+    });
     _ref.listen<SortState<DiveSortField>>(diveSortProvider, (previous, next) {
       if (previous != next) {
         loadFirstPage();
@@ -776,26 +823,30 @@ class PaginatedDiveListNotifier
     _ref.onDispose(listChangeSub.cancel);
   }
 
-  /// Subscription to [DiveRepository.watchEquipmentAttrFilterChanges], held
-  /// only while the filter has an equipment-attribute condition.
-  StreamSubscription<void>? _attrFilterSub;
+  /// [DiveRepository.watchEquipmentAttrFilterChanges], followed only while
+  /// the filter has an equipment-attribute condition.
+  late final _attrFilterTick = _FilterTickFollower(
+    _repository.watchEquipmentAttrFilterChanges,
+    _silentReloadLoadedPages,
+  );
 
-  /// Follows the equipment-attribute tick while [filter] has a condition
-  /// (#1805). The page and count then read the gear tables, which the list
-  /// tick does not watch, so a gear link or an attribute-only write (a sync
-  /// pull, saveAttributes) would otherwise leave them stale. Without a
-  /// condition nothing subscribes, so gear edits never reload an unfiltered
-  /// list.
-  void _followAttrFilterTick(DiveFilterState filter) {
-    final wanted = filter.equipmentAttrConditions.isNotEmpty;
-    if (wanted && _attrFilterSub == null) {
-      _attrFilterSub = _repository.watchEquipmentAttrFilterChanges().listen(
-        (_) => _silentReloadLoadedPages(),
-      );
-    } else if (!wanted && _attrFilterSub != null) {
-      _attrFilterSub!.cancel();
-      _attrFilterSub = null;
-    }
+  /// [DiveRepository.watchBuddyFilterChanges], followed only while a buddy
+  /// filter is set.
+  late final _buddyFilterTick = _FilterTickFollower(
+    _repository.watchBuddyFilterChanges,
+    _silentReloadLoadedPages,
+  );
+
+  /// Follows the ticks of the tables only some filters read. The page and
+  /// count read the gear tables under an equipment-attribute condition
+  /// (#1805) and `dive_buddies`/`buddies` under a buddy filter (#1915), none
+  /// of which the list tick watches, so a gear link, an attribute-only write
+  /// (a sync pull, saveAttributes) or a buddy link, merge or rename would
+  /// otherwise leave them stale. Without such a filter nothing subscribes, so
+  /// those writes never reload an unfiltered list.
+  void _followFilterTicks(DiveFilterState filter) {
+    _attrFilterTick.follow(filter.equipmentAttrConditions.isNotEmpty);
+    _buddyFilterTick.follow(filter.readsBuddyLinks);
   }
 
   bool get _isDateSort {

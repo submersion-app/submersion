@@ -141,6 +141,15 @@ class DiveFilterState {
     ).add(const Duration(days: 1)).millisecondsSinceEpoch;
   }
 
+  /// Whether a filter reads the `dive_buddies` junction (the name filter also
+  /// joins `buddies.name`). Those tables change without a `dives` write (a
+  /// sync pull of a buddy link, a buddy merge or rename), so a list filtered
+  /// this way must follow [DiveRepository.watchBuddyFilterChanges] (#1915).
+  bool get readsBuddyLinks =>
+      buddyId != null ||
+      noBuddyOnly == true ||
+      (buddyNameFilter != null && buddyNameFilter!.isNotEmpty);
+
   bool get hasActiveFilters =>
       startDate != null ||
       endDate != null ||

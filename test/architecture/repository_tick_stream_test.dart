@@ -198,6 +198,8 @@ void main() {
           DiveRepository().watchAnalysisInputChanges,
       'DiveRepository.watchEquipmentAttrFilterChanges':
           DiveRepository().watchEquipmentAttrFilterChanges,
+      'DiveRepository.watchBuddyFilterChanges':
+          DiveRepository().watchBuddyFilterChanges,
     };
 
     for (final entry in ticks.entries) {
@@ -493,6 +495,68 @@ void main() {
                 DivesCompanion.insert(
                   id: 'd1',
                   diveDateTime: now,
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    // The buddy filters read dive_buddies (and buddies.name for the name
+    // filter), which the list tick does not watch. A sync pull of a buddy
+    // link writes only dive_buddies, never the parent dive (#1769, #1915).
+    test('watchBuddyFilterChanges fires on a dive_buddies write', () async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'd1',
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await db
+          .into(db.buddies)
+          .insert(
+            BuddiesCompanion.insert(
+              id: 'b1',
+              name: 'Ann',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      expect(
+        await fires(
+          DiveRepository().watchBuddyFilterChanges(),
+          () => db
+              .into(db.diveBuddies)
+              .insert(
+                DiveBuddiesCompanion.insert(
+                  id: 'l1',
+                  diveId: 'd1',
+                  buddyId: 'b1',
+                  createdAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('watchBuddyFilterChanges fires on a buddies write', () async {
+      // A rename writes only buddies, which the name filter joins on.
+      expect(
+        await fires(
+          DiveRepository().watchBuddyFilterChanges(),
+          () => db
+              .into(db.buddies)
+              .insert(
+                BuddiesCompanion.insert(
+                  id: 'b1',
+                  name: 'Ann',
                   createdAt: now,
                   updatedAt: now,
                 ),
