@@ -259,6 +259,73 @@ void main() {
       expect(dive['entryMethod'], 'boat');
     });
 
+    // MacDive's gear type is free text. Passing it through raw left
+    // UddfEntityImporter matching "BCD - Wing" against enum names and storing
+    // every such item as `other`; the SQLite path already classifies it.
+    test('classifies free-text gear types onto EquipmentType names', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <gear>
+      <item><type>BCD - Wing</type><name>Hog Wing</name></item>
+      <item><type>Drysuit</type><name>Trilam</name></item>
+      <item><type>Reg - Longhose</type><name>Apex XTX50</name></item>
+      <item><type>Lucky Charm</type><name>Rubber Duck</name></item>
+      <item><name>No Type</name></item>
+    </gear>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+      Map<String, dynamic> byName(String name) =>
+          equipment.firstWhere((g) => g['name'] == name);
+
+      expect(byName('Hog Wing')['type'], 'bcd');
+      expect(byName('Trilam')['type'], 'drysuit');
+      expect(byName('Apex XTX50')['type'], 'regulator');
+      expect(
+        byName('Rubber Duck')['type'],
+        'other',
+        reason: 'unrecognised text classifies as other, not raw passthrough',
+      );
+      expect(
+        byName('No Type').containsKey('type'),
+        isFalse,
+        reason: 'a missing type leaves the importer default in place',
+      );
+    });
+
+    test('blank gear types leave the type key unset', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <gear>
+      <item><type></type><name>Empty Type</name></item>
+      <item><type>   </type><name>Whitespace Type</name></item>
+    </gear>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+
+      for (final name in ['Empty Type', 'Whitespace Type']) {
+        final item = equipment.firstWhere((g) => g['name'] == name);
+        expect(
+          item.containsKey('type'),
+          isFalse,
+          reason: '"$name" carries no type, so it must not become other',
+        );
+      }
+    });
+
     test('unknown entryType strings pass through as null', () async {
       const xml = '''<?xml version="1.0"?>
 <dives><units>Metric</units><schema>2.2.0</schema>

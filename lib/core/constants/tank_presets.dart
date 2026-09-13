@@ -227,4 +227,24 @@ class TankPresets {
     }
     return null;
   }
+
+  /// The inverse of reading [TankPreset.ratedCapacityCuft] off
+  /// [matchBySpecs]: the first preset rated at [ratedCuft] (within 0.05, the
+  /// rounding of a one-decimal CSV value) whose working pressure is within
+  /// 2 bar of [workingPressureBar]. Used to turn an imperial CSV's rated
+  /// capacity back into the cylinder's physical volume.
+  static TankPreset? matchByCapacity(
+    double ratedCuft,
+    double workingPressureBar,
+  ) {
+    for (final preset in all) {
+      final rated = preset.ratedCapacityCuft;
+      if (rated != null &&
+          (rated - ratedCuft).abs() < 0.05 &&
+          (preset.workingPressureBar - workingPressureBar).abs() < 2.0) {
+        return preset;
+      }
+    }
+    return null;
+  }
 }

@@ -4,7 +4,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_source_dive_compare_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 
 /// The always-visible results column of Mission Control: headline stat tiles
 /// over the full results content.
@@ -49,7 +51,7 @@ class PlanResultsPane extends ConsumerWidget {
       PlanStatTile(label: 'CNS', value: '${outcome.cnsEnd.round()}%'),
       PlanStatTile(
         label: context.l10n.divePlanner_label_warnings,
-        value: '${outcome.issues.length}',
+        value: '${groupPlanIssues(outcome.issues).length}',
         emphasisColor: outcome.issues.isEmpty ? null : scheme.error,
       ),
     ];
@@ -68,6 +70,7 @@ class PlanResultsPane extends ConsumerWidget {
             children: tiles,
           ),
         ),
+        const PlanSourceDiveCompareStrip(),
         if (shrinkWrap)
           PlanResultsSheet(controller: controller, shrinkWrap: true)
         else

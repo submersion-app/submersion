@@ -2961,6 +2961,9 @@
   "divePlanner_field_volume": "容积 ({volumeSymbol})",
   "divePlanner_hint_tankName": "输入气瓶名称",
   "divePlanner_info_reserveDefault": "未输入 — 假设为 {value} {unit}",
+  "divePlanner_label_airBreaks": "Air breaks",
+  "divePlanner_label_airBreaksBreak": "Break (min)",
+  "divePlanner_label_airBreaksOnO2": "On O2 (min)",
   "divePlanner_label_altitude": "高海拔:",
   "divePlanner_label_belowMinReserve": "低于最小储备",
   "divePlanner_label_ceiling": "上升限制",
@@ -2978,11 +2981,20 @@
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "计划设置",
   "divePlanner_label_remaining": "剩余",
-  "divePlanner_label_reserve": "储备:",
+  "divePlanner_label_reserve": "储备",
   "divePlanner_label_resultsWithWarnings": "结果，{count} 个警告",
   "divePlanner_label_runtime": "运行时间",
   "divePlanner_label_sacRate": "RMV:",
   "divePlanner_label_salinity": "盐度",
+  "divePlanner_gasOptions_title": "Gas options",
+  "divePlanner_gasOptions_sacBottom": "Bottom RMV",
+  "divePlanner_gasOptions_sacDeco": "Deco RMV",
+  "divePlanner_gasOptions_sacFactor": "RMV factor",
+  "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
+  "divePlanner_gasOptions_ppO2Bottom": "Bottom ppO₂",
+  "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
+  "divePlanner_gasOptions_bestMixEnd": "Best mix END",
+  "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_status": "状态",
   "divePlanner_label_tanks": "气瓶",
   "divePlanner_savedTanks_title": "已保存气瓶",
@@ -6487,6 +6499,11 @@
   "transfer_csvExport_typeEquipment": "装备",
   "transfer_csvExport_typeObservations": "装备检查记录",
   "transfer_csvExport_typeSites": "潜水点",
+  "transfer_csvExport_unitsHeader": "单位",
+  "transfer_csvExport_unitsMetric": "公制",
+  "transfer_csvExport_unitsMetricDescription": "公制数值和 ISO 日期，与以前的导出格式相同",
+  "transfer_csvExport_unitsMine": "我的单位",
+  "transfer_csvExport_unitsMineDescription": "按你的单位、日期和时间设置输出，并在每列标题中注明",
   "transfer_detail_backTooltip": "返回传输",
   "transfer_export_aboutContent": "以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 文件可在电子表格应用中打开。",
   "transfer_export_aboutTitle": "关于导出",
@@ -11973,5 +11990,53 @@
   "equipment_arrange_reset": "恢复默认",
   "equipment_arrange_saveFailed": "无法保存排列方式",
   "settings_appearance_gearArrangement": "装备排列",
-  "settings_appearance_gearArrangementSubtitle": "潜水记录中装备的分组和排序方式"
+  "settings_appearance_gearArrangementSubtitle": "潜水记录中装备的分组和排序方式",
+  "diveLog_detail_tooltip_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "plannerCanvas_sourceCompare_title": "vs. original dive",
+  "plannerCanvas_issue_repeated": "{message} ({count} legs)",
+  "@plannerCanvas_issue_repeated": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_dialogTitle": "Minimum stop time at {depth}",
+  "plannerCanvas_stopMinimum_minutesLabel": "Minutes",
+  "plannerCanvas_stopMinimum_apply": "Apply",
+  "plannerCanvas_stopMinimum_clear": "Clear minimum",
+  "diveLog_whatIf_title": "Replan this dive",
+  "diveLog_whatIf_detailLabel": "Detail",
+  "diveLog_whatIf_engineNote": "The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.",
+  "diveLog_whatIf_seedTissues": "Seed tissues from previous dive",
+  "diveLog_whatIf_openInPlanner": "Open in planner",
+  "diveLog_whatIf_planName": "Replan: {title}",
+  "@diveLog_whatIf_planName": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_runtime": "Runtime",
+  "plannerCanvas_compare_maxDepth": "Max depth",
+  "plannerCanvas_compare_deco": "Deco time",
+  "plannerCanvas_compare_gas": "Gas ({tank})",
+  "@plannerCanvas_compare_gas": {
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_cns": "CNS",
+  "plannerCanvas_compare_planned": "Plan",
+  "plannerCanvas_compare_actual": "Actual",
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "plannerCanvas_gas_usedReading": "已用: {reading}",
+  "plannerCanvas_gas_endReading": "结束: {reading}"
 }

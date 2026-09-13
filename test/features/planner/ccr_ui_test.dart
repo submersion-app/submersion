@@ -81,6 +81,14 @@ void main() {
   testWidgets('CCR plan with bailout tank shows the bailout section', (
     tester,
   ) async {
+    // The sheet is a ListView and the bailout section is the last thing in
+    // it, so the 500x700 box below has to actually be 700 tall - on the
+    // default 800x600 surface the section lands in the cache region and the
+    // finders skip it as offstage.
+    tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       testApp(
         overrides: overrides(),

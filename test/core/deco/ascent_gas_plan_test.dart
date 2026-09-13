@@ -48,5 +48,61 @@ void main() {
       ]); // 6 m is outside (40,12)
       expect(plan.switchDepthsBetween(9, 6), isEmpty); // no MOD strictly inside
     });
+
+    group('breakGasForDepth', () {
+      // Air (fO2 0.21), EAN32 (fO2 0.32), EAN50 (fO2 0.50), hypoxic 10/70
+      // trimix back gas (fO2 0.10), and O2 (fO2 1.0); ppO2 ceiling 1.6.
+      const air = AvailableGas(
+        fN2: 0.79,
+        fHe: 0.0,
+        maxPpO2Mod: double.infinity,
+      );
+      const ean32 = AvailableGas(fN2: 0.68, fHe: 0.0, maxPpO2Mod: 40.0);
+      const ean50 = AvailableGas(fN2: 0.50, fHe: 0.0, maxPpO2Mod: 22.0);
+      const trimix1070 = AvailableGas(
+        fN2: 0.20,
+        fHe: 0.70,
+        maxPpO2Mod: double.infinity,
+      );
+      const o2 = AvailableGas(fN2: 0.0, fHe: 0.0, maxPpO2Mod: 6.0);
+
+      test(
+        'prefers air over a richer EAN50 - closest to 0.21, not highest O2',
+        () {
+          final plan = OptimalOcAscentGas(
+            gases: [air, ean50, o2],
+            maxPpO2: 1.6,
+          );
+          final breakGas = plan.breakGasForDepth(6);
+          expect(breakGas, isNotNull);
+          expect(breakGas!.fN2, 0.79);
+          expect(breakGas.fHe, 0.0);
+        },
+      );
+
+      test('prefers EAN32 over EAN50 when no air is carried', () {
+        final plan = OptimalOcAscentGas(gases: [ean32, ean50], maxPpO2: 1.6);
+        final breakGas = plan.breakGasForDepth(6);
+        expect(breakGas, isNotNull);
+        expect(breakGas!.fN2, 0.68);
+        expect(breakGas.fHe, 0.0);
+      });
+
+      test('rejects a hypoxic back gas and picks EAN50 instead', () {
+        final plan = OptimalOcAscentGas(
+          gases: [trimix1070, ean50, o2],
+          maxPpO2: 1.6,
+        );
+        final breakGas = plan.breakGasForDepth(6);
+        expect(breakGas, isNotNull);
+        expect(breakGas!.fN2, 0.50);
+        expect(breakGas.fHe, 0.0);
+      });
+
+      test('returns null when the only non-O2 gas is hypoxic', () {
+        final plan = OptimalOcAscentGas(gases: [trimix1070, o2], maxPpO2: 1.6);
+        expect(plan.breakGasForDepth(6), isNull);
+      });
+    });
   });
 }
