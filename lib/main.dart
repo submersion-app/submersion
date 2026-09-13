@@ -80,23 +80,22 @@ Future<void> _bootstrap() async {
   // fire-and-forget scans honor saved toggles before the settings page opens.
   QualityDetectorTogglesNotifier.hydrateFromPrefs(prefs);
 
-  // Initialize log file service (always created so it's ready when needed)
+  // Initialize the log file service and attach it unconditionally: warnings
+  // and errors always reach the file, so a bug report can carry the failure
+  // that prompted it (#1826). Debug mode only adds the verbose levels.
   final appSupportDir = await getApplicationSupportDirectory();
   final logFileService = LogFileService(
     logDirectory: '${appSupportDir.path}/logs',
   );
   await logFileService.initialize();
 
-  // Only enable file logging when debug mode is active
   final debugEnabled = prefs.getBool('debug_mode_enabled') ?? false;
-  if (debugEnabled) {
-    LoggerService.setFileService(logFileService);
-    // Stamp the build and device at the top of the session so a log file that
-    // spans several app versions attributes each run to the build that wrote
-    // it (issue #1246). Not awaited: startup must not block on a platform
-    // channel, and the write is serialized behind LoggerService's queue.
-    unawaited(logSessionEnvironment());
-  }
+  LoggerService.configureFileLogging(logFileService, verbose: debugEnabled);
+  // Stamp the build and device at the top of the session so a log file that
+  // spans several app versions attributes each run to the build that wrote
+  // it (issue #1246). Not awaited: startup must not block on a platform
+  // channel, and the write is serialized behind LoggerService's queue.
+  unawaited(logSessionEnvironment());
 
   // Now that file logging is wired, report what the app-data migration did.
   // Anything other than "no legacy data" is worth a line in a shared log:

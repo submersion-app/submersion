@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -765,6 +766,21 @@ void main() {
       expect(text, equals(_environment.toExportHeader()));
     });
 
+    test('redacts secrets left by builds that predate redaction', () async {
+      await copyFilteredLogs([
+        _entry(message: 'callback ?access_token=legacy-secret'),
+      ], environment: _environment);
+
+      final setDataCall = clipboardCalls.firstWhere(
+        (c) => c.method == 'Clipboard.setData',
+      );
+      final text =
+          (setDataCall.arguments as Map<dynamic, dynamic>)['text'] as String;
+
+      expect(text, isNot(contains('legacy-secret')));
+      expect(text, contains('callback ?access_token='));
+    });
+
     test('captures the environment itself when none is supplied', () async {
       await copyFilteredLogs([_entry(message: 'alpha')]);
 
@@ -811,6 +827,52 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
+  group('buildLogExportBytes (#1826)', () {
+    late Directory tempDir;
+    late File file;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('export_bytes_test_');
+      file = File('${tempDir.path}/submersion.log');
+    });
+
+    tearDown(() => tempDir.deleteSync(recursive: true));
+
+    test('prefixes the header to the log content', () async {
+      file.writeAsStringSync('[2026-09-12T09:00:00.000] [APP] [WARN] low\n');
+
+      final text = utf8.decode(await buildLogExportBytes(file, 'HEADER\n'));
+
+      expect(text, 'HEADER\n[2026-09-12T09:00:00.000] [APP] [WARN] low\n');
+    });
+
+    test('redacts secrets left by builds that predate redaction', () async {
+      file.writeAsStringSync(
+        '[2026-09-12T09:00:00.000] [APP] [DEBUG] '
+        'GET https://x.test/cb?access_token=legacy-secret\n',
+      );
+
+      final text = utf8.decode(await buildLogExportBytes(file, ''));
+
+      expect(text, isNot(contains('legacy-secret')));
+      expect(text, contains('GET https://x.test/cb'));
+    });
+
+    test('keeps the export when the log holds malformed UTF-8', () async {
+      file.writeAsBytesSync([
+        ...utf8.encode('before '),
+        0xC3,
+        0x28,
+        ...utf8.encode(' after\n'),
+      ]);
+
+      final text = utf8.decode(await buildLogExportBytes(file, 'H\n'));
+
+      expect(text, startsWith('H\nbefore '));
+      expect(text, contains(' after'));
+    });
+  });
+
   group('saveLogFile', () {
     test('returns null when log file does not exist', () async {
       final tempDir = Directory.systemTemp.createTempSync('save_log_test_');

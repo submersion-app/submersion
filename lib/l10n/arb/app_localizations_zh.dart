@@ -34588,6 +34588,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => '保存调试日志';
 
   @override
+  String get settings_diagnostics_header => '诊断';
+
+  @override
+  String get settings_diagnostics_viewLog => '查看日志';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle => '警告和错误会自动记录';
+
+  @override
+  String get settings_diagnostics_copy => '复制诊断信息';
+
+  @override
+  String get settings_diagnostics_copySubtitle => '应用版本、设备和最近的日志行，用于错误报告';
+
+  @override
+  String get settings_diagnostics_copiedSnack => '诊断信息已复制到剪贴板';
+
+  @override
+  String get settings_diagnostics_openFolder => '打开日志文件夹';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return '无法打开日志文件夹。其位置为：$path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return '无法复制诊断信息：$error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => '另存为预设';
 
   @override

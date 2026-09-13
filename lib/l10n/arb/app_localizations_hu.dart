@@ -36542,6 +36542,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Hibakeresési naplók mentése';
 
   @override
+  String get settings_diagnostics_header => 'Diagnosztika';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Napló megtekintése';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'A figyelmeztetések és a hibák rögzítése automatikus';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnosztika másolása';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Alkalmazásverzió, eszköz és a legutóbbi naplósorok hibajelentéshez';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'A diagnosztika a vágólapra másolva';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Naplómappa megnyitása';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'A naplómappa nem nyitható meg. Helye: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'A diagnosztika nem másolható: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Mentés előre beállításként';
 
   @override

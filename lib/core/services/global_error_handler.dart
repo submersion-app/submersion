@@ -5,7 +5,8 @@ import 'package:submersion/core/services/logger_service.dart';
 const _logger = LoggerService('UncaughtError');
 
 /// Installs process-wide handlers that route otherwise-silent Dart errors into
-/// [LoggerService] (and thus into `submersion.log` when debug mode is on),
+/// [LoggerService] (and thus into `submersion.log`, which keeps errors even
+/// with debug mode off),
 /// while preserving each framework's default behavior.
 ///
 /// Before this, the app installed no global handlers, so an uncaught Flutter

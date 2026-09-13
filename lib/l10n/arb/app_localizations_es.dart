@@ -36731,6 +36731,40 @@ class AppLocalizationsEs extends AppLocalizations {
       'Guardar registros de depuración';
 
   @override
+  String get settings_diagnostics_header => 'Diagnóstico';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Ver registro';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Las advertencias y los errores se registran automáticamente';
+
+  @override
+  String get settings_diagnostics_copy => 'Copiar diagnóstico';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Versión de la app, dispositivo y líneas recientes del registro para un informe de error';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnóstico copiado al portapapeles';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Abrir carpeta de registros';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'No se pudo abrir la carpeta de registros. Se encuentra en: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'No se pudo copiar el diagnóstico: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Guardar como preajuste';
 
   @override

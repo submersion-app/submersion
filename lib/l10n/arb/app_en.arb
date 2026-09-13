@@ -21783,6 +21783,15 @@
   "settings_debugLog_minSeverityLabel": "Min severity:",
   "settings_debugLog_shareSubject": "Submersion Debug Logs",
   "settings_debugLog_saveDialogTitle": "Save Debug Logs",
+  "settings_diagnostics_header": "Diagnostics",
+  "settings_diagnostics_viewLog": "View log",
+  "settings_diagnostics_viewLogSubtitle": "Warnings and errors are recorded automatically",
+  "settings_diagnostics_copy": "Copy diagnostics",
+  "settings_diagnostics_copySubtitle": "App version, device and recent log lines for a bug report",
+  "settings_diagnostics_copiedSnack": "Diagnostics copied to clipboard",
+  "settings_diagnostics_openFolder": "Open log folder",
+  "settings_diagnostics_openFolderFailed": "Could not open the log folder. It is at: {path}",
+  "settings_diagnostics_copyFailed": "Could not copy diagnostics: {error}",
   "universalImport_preset_saveTitle": "Save as Preset",
   "universalImport_preset_nameLabel": "Preset Name",
   "universalImport_preset_nameHint": "e.g., My Dive Log CSV",
@@ -22152,6 +22161,43 @@
   },
   "@settings_debugLog_saveDialogTitle": {
     "description": "Title of the system save dialog for the debug log file."
+  },
+  "@settings_diagnostics_header": {
+    "description": "Header of the Diagnostics card in Settings > About."
+  },
+  "@settings_diagnostics_viewLog": {
+    "description": "Diagnostics row that opens the log viewer."
+  },
+  "@settings_diagnostics_viewLogSubtitle": {
+    "description": "Subtitle explaining that warnings and errors are logged even without debug mode."
+  },
+  "@settings_diagnostics_copy": {
+    "description": "Diagnostics row that copies a bug-report summary to the clipboard."
+  },
+  "@settings_diagnostics_copySubtitle": {
+    "description": "Subtitle describing what Copy diagnostics puts on the clipboard."
+  },
+  "@settings_diagnostics_copiedSnack": {
+    "description": "Snack bar confirming the diagnostics summary was copied."
+  },
+  "@settings_diagnostics_openFolder": {
+    "description": "Desktop-only Diagnostics row that opens the log folder in the file manager."
+  },
+  "@settings_diagnostics_openFolderFailed": {
+    "description": "Snack bar shown when the file manager refuses to open the log folder; shows the folder path instead.",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@settings_diagnostics_copyFailed": {
+    "description": "Snack bar shown when Copy diagnostics fails, with the error.",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
   "@universalImport_preset_signatureHeaders": {
     "description": "Count of CSV headers stored as the preset match signature.",

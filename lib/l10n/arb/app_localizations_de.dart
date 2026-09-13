@@ -36612,6 +36612,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Debug-Protokolle speichern';
 
   @override
+  String get settings_diagnostics_header => 'Diagnose';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Protokoll anzeigen';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Warnungen und Fehler werden automatisch aufgezeichnet';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnosedaten kopieren';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App-Version, Gerät und aktuelle Protokollzeilen für einen Fehlerbericht';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnosedaten in die Zwischenablage kopiert';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Protokollordner öffnen';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Der Protokollordner konnte nicht geöffnet werden. Er befindet sich unter: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Diagnosedaten konnten nicht kopiert werden: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Als Vorlage speichern';
 
   @override
