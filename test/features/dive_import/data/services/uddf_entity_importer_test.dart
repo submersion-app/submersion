@@ -493,6 +493,76 @@ void main() {
     });
   });
 
+  group('Import dives (weather and custom fields, #1814)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.createDive(any),
+      ).thenAnswer((inv) async => inv.positionalArguments[0] as Dive);
+    });
+
+    Future<Dive> importDive(Map<String, dynamic> diveData) async {
+      await importer.import(
+        data: UddfImportResult(
+          dives: [
+            {'dateTime': DateTime.utc(2025, 10, 13, 11, 24), ...diveData},
+          ],
+        ),
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+      return verify(mockDiveRepo.createDive(captureAny)).captured.single
+          as Dive;
+    }
+
+    test('maps the weather fields onto the Dive', () async {
+      final dive = await importDive({
+        'windSpeed': 5.0,
+        'windDirection': 'northEast',
+        'cloudCover': 'partlyCloudy',
+        'precipitation': 'lightRain',
+        'humidity': 70.0,
+        'weatherDescription': 'Sunny',
+      });
+
+      expect(dive.windSpeed, 5.0);
+      expect(dive.windDirection, CurrentDirection.northEast);
+      expect(dive.cloudCover, CloudCover.partlyCloudy);
+      expect(dive.precipitation, Precipitation.lightRain);
+      expect(dive.humidity, 70.0);
+      expect(dive.weatherDescription, 'Sunny');
+      // Imported values are not an Open-Meteo fetch.
+      expect(dive.weatherSource, isNull);
+    });
+
+    test('leaves weather empty when the payload has none', () async {
+      final dive = await importDive({});
+
+      expect(dive.windSpeed, isNull);
+      expect(dive.windDirection, isNull);
+      expect(dive.cloudCover, isNull);
+      expect(dive.precipitation, isNull);
+      expect(dive.humidity, isNull);
+      expect(dive.weatherDescription, isNull);
+    });
+
+    test('maps custom fields in payload order', () async {
+      final dive = await importDive({
+        'customFields': [
+          {'key': 'camera', 'value': 'GoPro'},
+          {'key': 'formula', 'value': '=1+1'},
+          // A field without a key cannot be stored.
+          {'key': '  ', 'value': 'orphan'},
+        ],
+      });
+
+      expect(
+        dive.customFields.map((f) => (f.key, f.value, f.sortOrder)).toList(),
+        [('camera', 'GoPro', 0), ('formula', '=1+1', 1)],
+      );
+    });
+  });
+
   group('Import dives (auto numbering)', () {
     setUp(() {
       when(
@@ -971,6 +1041,38 @@ void main() {
       expect(site.location, isNotNull);
       expect(site.location!.latitude, 27.2);
     });
+
+    test('imports city, region and country', () async {
+      when(mockSiteRepo.createSite(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as DiveSite,
+      );
+
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'city': 'Victoria',
+              'island': 'Comino',
+              'region': 'Gozo',
+              'country': 'Malta',
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(sites: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(mockSiteRepo.createSite(captureAny)).captured.single
+              as DiveSite;
+      expect(site.city, 'Victoria');
+      expect(site.island, 'Comino');
+      expect(site.region, 'Gozo');
+      expect(site.country, 'Malta');
+    });
   });
 
   group('Site linking fallback for a GPS-matched duplicate', () {
@@ -1159,6 +1261,34 @@ void main() {
       expect(site.name, 'Blue Hole');
       expect(site.maxDepth, 100.0);
       expect(site.location!.latitude, 28.57);
+    });
+
+    test('overwrites the city when the payload supplies one', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'city': 'Victoria',
+              'island': 'Comino',
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.city, 'Victoria');
+      expect(site.island, 'Comino');
     });
 
     test('preserves existing fields the import payload omits', () async {

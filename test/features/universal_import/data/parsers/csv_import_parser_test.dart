@@ -739,7 +739,19 @@ void main() {
       expect(dives.first['weatherDescription'], 'Sunny and warm');
     });
 
-    test('maps wind direction header', () async {
+    test('maps wind direction header to the enum name', () async {
+      const csv =
+          'Date,Wind Direction\n'
+          '2024-01-15,North-East\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives, isNotEmpty);
+      expect(dives.first['windDirection'], 'northEast');
+    });
+
+    test('reports a wind direction it cannot read', () async {
       const csv =
           'Date,Wind Direction\n'
           '2024-01-15,NNW\n';
@@ -747,24 +759,25 @@ void main() {
       final result = await parser.parse(csvBytes(csv));
 
       final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives, isNotEmpty);
-      expect(dives.first['windDirection'], 'NNW');
+      expect(dives.first.containsKey('windDirection'), isFalse);
+      final warning = result.warnings.single;
+      expect(warning.severity, ImportWarningSeverity.info);
+      expect(warning.field, 'windDirection');
+      expect(warning.message, contains('"NNW"'));
     });
 
-    test('maps serial number and firmware headers via auto-mapping', () async {
-      // The auto-mapper maps "Serial Number" -> "serialNumber" and
-      // "Firmware" -> "firmware". These are not in DiveExtractor's known
-      // fields (it uses diveComputerSerial/diveComputerFirmware), so
-      // they are dropped from the final output. This test verifies the
-      // auto-mapping and parse succeed without error.
+    test('maps computer, serial and firmware headers to the dive computer '
+        'fields', () async {
       const csv =
-          'Date,Serial Number,Firmware\n'
-          '2024-01-15,SN12345,v2.1\n';
+          'Date,Dive Computer,Serial Number,Firmware\n'
+          '2024-01-15,Perdix 2,SN12345,v2.1\n';
 
       final result = await parser.parse(csvBytes(csv));
 
-      final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives, isNotEmpty);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['diveComputerModel'], 'Perdix 2');
+      expect(dive['diveComputerSerial'], 'SN12345');
+      expect(dive['diveComputerFirmware'], 'v2.1');
     });
 
     test('maps rating header', () async {
@@ -839,16 +852,149 @@ void main() {
       expect(dives.first['duration'], isNotNull);
     });
 
-    test('maps runtime header to duration', () async {
+    test('maps runtime header to runtime', () async {
       const csv =
           'Date,Runtime\n'
           '2024-01-15,50\n';
 
       final result = await parser.parse(csvBytes(csv));
 
-      final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives, isNotEmpty);
-      expect(dives.first['duration'], isNotNull);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['runtime'], const Duration(minutes: 50));
+      expect(dive.containsKey('duration'), isFalse);
+    });
+
+    test('keeps bottom time and runtime apart (#1814)', () async {
+      const csv =
+          'Date,Bottom Time (min),Runtime (min)\n'
+          '2024-01-15,45,50\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['duration'], const Duration(minutes: 45));
+      expect(dive['runtime'], const Duration(minutes: 50));
+      expect(result.warnings, isEmpty);
+    });
+
+    test('first column claiming a field keeps it and a warning names the '
+        'dropped one (#1814)', () async {
+      const csv =
+          'Date,Site,Location\n'
+          '2024-01-15,Blue Hole,Gozo\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['siteName'], 'Blue Hole');
+      final warning = result.warnings.single;
+      expect(warning.severity, ImportWarningSeverity.warning);
+      expect(warning.field, 'siteName');
+      expect(warning.message, contains('"Location"'));
+      expect(warning.message, contains('"Site"'));
+    });
+
+    test('maps "Dive Name" and "Title" headers to the dive name', () async {
+      for (final header in ['Dive Name', 'Title']) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,Wreck day\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['name'], 'Wreck day', reason: header);
+      }
+    });
+
+    test('maps a visibility in metres to visibilityMeters, beside the '
+        'rating bucket', () async {
+      const csv =
+          'Date,Visibility (m),Visibility Rating\n'
+          '2024-01-15,15.0,Good\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['visibilityMeters'], 15.0);
+      expect(dive['visibility'], 'good');
+      expect(result.warnings, isEmpty);
+    });
+
+    test('keeps a bare or non-metre visibility on the bucket field', () async {
+      for (final header in ['Visibility', 'Visibility (ft)']) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,Good\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['visibility'], 'good', reason: header);
+        expect(dive.containsKey('visibilityMeters'), isFalse, reason: header);
+      }
+    });
+
+    test('keeps Visibility Rating and Rating apart in export order', () async {
+      const csv =
+          'Date,Visibility Rating,Rating\n'
+          '2024-01-15,Good,4\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['visibility'], 'good');
+      expect(dive['rating'], 4);
+      expect(result.warnings, isEmpty);
+    });
+
+    test('maps computer serial and firmware headers ahead of the model '
+        'rule', () async {
+      const csv =
+          'Date,Computer Serial,Computer Firmware\n'
+          '2024-01-15,SN12345,v2.1\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['diveComputerSerial'], 'SN12345');
+      expect(dive['diveComputerFirmware'], 'v2.1');
+      expect(dive.containsKey('diveComputerModel'), isFalse);
+    });
+
+    test('leaves a wind speed in a unit other than m/s unmapped', () async {
+      for (final header in [
+        'Wind Speed (km/h)',
+        'Wind Speed (kph)',
+        'Wind Speed (kts)',
+        'Wind Speed (knots)',
+        'Wind Speed (mph)',
+      ]) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,20\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('windSpeed'), isFalse, reason: header);
+      }
+    });
+
+    test('maps a wind speed in m/s or with no unit', () async {
+      for (final header in ['Wind Speed (m/s)', 'Wind Speed']) {
+        final result = await parser.parse(
+          csvBytes('Date,$header\n2024-01-15,5\n'),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['windSpeed'], 5.0, reason: header);
+      }
+    });
+
+    test('leaves a bare "Name" header unmapped', () async {
+      const csv =
+          'Date,Name\n'
+          '2024-01-15,Alex\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive.containsKey('name'), isFalse);
     });
 
     test('maps dateTime combined header', () async {

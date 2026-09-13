@@ -1,5 +1,6 @@
 import 'package:submersion/features/universal_import/data/csv/extractors/buddy_extractor.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/dive_extractor.dart';
+import 'package:submersion/features/universal_import/data/csv/extractors/dive_type_extractor.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/gear_extractor.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/profile_extractor.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/site_extractor.dart';
@@ -99,6 +100,11 @@ class CsvCorrelator {
       gear.addAll(GearExtractor().extractFromRows(rows));
     }
 
+    // Step 6d: Extract the dive types the dives reference, if requested.
+    final diveTypes = entityTypes.contains(ImportEntityType.diveTypes)
+        ? const DiveTypeExtractor().extractFromRows(rows)
+        : const <Map<String, dynamic>>[];
+
     // Step 7: Attach tanks to each dive map.
     final divesWithTanks = linkedDives.map((dive) {
       final diveId = dive['id'] as String;
@@ -131,6 +137,7 @@ class CsvCorrelator {
       if (buddies.isNotEmpty) ImportEntityType.buddies: buddies,
       if (tags.isNotEmpty) ImportEntityType.tags: tags,
       if (gear.isNotEmpty) ImportEntityType.equipment: gear,
+      if (diveTypes.isNotEmpty) ImportEntityType.diveTypes: diveTypes,
     };
 
     final warnings = [

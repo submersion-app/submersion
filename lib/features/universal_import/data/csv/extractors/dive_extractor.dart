@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 /// Known standardized field names that map directly to dive records.
 const _diveFields = <String>[
   'diveNumber',
+  'name',
   'dateTime',
   'date',
   'time',
@@ -14,7 +15,9 @@ const _diveFields = <String>[
   'airTemp',
   'bottomTemp',
   'visibility',
+  'visibilityMeters',
   'diveType',
+  'diveTypeIds',
   'diveMode',
   'buddy',
   'diveMaster',
@@ -36,6 +39,7 @@ const _diveFields = <String>[
   'precipitation',
   'humidity',
   'weatherDescription',
+  'customFields',
 ];
 
 /// Extracts core dive fields from a single transformed CSV row.

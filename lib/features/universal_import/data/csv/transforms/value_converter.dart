@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
 
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/unit_detector.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 
@@ -202,6 +204,84 @@ class ValueConverter {
 
     return 'recreational';
   }
+
+  // ---------------------------------------------------------------------------
+  /// Parse a cell listing several dive types ("Night; Deep wreck") into
+  /// dive type ids, in order and without repeats.
+  ///
+  /// Each name becomes its slug ([DiveTypeEntity.generateSlug]), which inverts
+  /// the `Dive.diveTypeDisplayName` form Submersion's CSV export writes, so a
+  /// custom type keeps its id. Returns an empty list when no name survives.
+  List<String> parseDiveTypeIds(String raw) {
+    final ids = <String>[];
+    for (final part in raw.split(';')) {
+      final slug = DiveTypeEntity.generateSlug(part);
+      if (slug.isNotEmpty && !ids.contains(slug)) ids.add(slug);
+    }
+    return ids;
+  }
+
+  // ---------------------------------------------------------------------------
+  /// Match [raw] against [values] by enum name or by [displayName], ignoring
+  /// case, and return the matching enum's name.
+  ///
+  /// The importer stores enums by name, while Submersion's CSV export writes
+  /// display names ("North-East", "Partly Cloudy"). Returns null when nothing
+  /// matches.
+  String? parseEnumName<T extends Enum>(
+    String raw,
+    List<T> values,
+    String Function(T value) displayName,
+  ) {
+    final s = raw.trim().toLowerCase();
+    if (s.isEmpty) return null;
+    for (final value in values) {
+      if (value.name.toLowerCase() == s ||
+          displayName(value).toLowerCase() == s) {
+        return value.name;
+      }
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  /// Parse the JSON list of `{key, value}` objects in Submersion's
+  /// "Custom Fields" column, keeping order and empty values.
+  ///
+  /// Entries without a string key are skipped; a missing or non-string
+  /// value reads as empty. Returns null when [raw] is not a JSON list.
+  List<Map<String, String>>? parseCustomFieldsJson(String raw) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(raw);
+    } on FormatException {
+      return null;
+    }
+    if (decoded is! List) return null;
+    return [
+      for (final entry in decoded)
+        if (entry is Map && entry['key'] is String)
+          {
+            'key': entry['key'] as String,
+            'value': entry['value'] is String ? entry['value'] as String : '',
+          },
+    ];
+  }
+
+  // ---------------------------------------------------------------------------
+  /// Undo the CSV-injection guard Submersion's export applies to free text:
+  /// a leading `'` in front of `=`, `+`, `-`, `@`, `|` or another `'` is
+  /// dropped.
+  ///
+  /// Mirrors `CsvExportService.sanitizeCsvField`, which also quotes a value
+  /// that starts with `'`, so the text `'=1` exports as `''=1` and comes
+  /// back intact. Any other value is returned unchanged.
+  String unescapeCsvInjectionGuard(String value) {
+    if (value.length < 2 || value[0] != "'") return value;
+    return _guardedLeadChars.contains(value[1]) ? value.substring(1) : value;
+  }
+
+  static const _guardedLeadChars = {'=', '+', '-', '@', '|', '\t', '\r', "'"};
 
   // ---------------------------------------------------------------------------
   /// Parse [raw] as a [double], stripping commas and trailing non-numeric
