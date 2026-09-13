@@ -519,7 +519,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     Set<int> resolve(wizard.ImportEntityType type) =>
         _resolveSelections(type, selections, duplicateActions);
 
-    final uddfData = _payloadToUddfResult(payload);
+    final uddfData = payloadToUddfResult(payload);
 
     // #756: flagged duplicates whose action is skip (or explicit link via
     // consolidate) must LINK the dive to the matched existing record rather
@@ -1361,7 +1361,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     return counts;
   }
 
-  static UddfImportResult _payloadToUddfResult(ImportPayload payload) {
+  /// The entity importer's input for [payload]. Exposed so round-trip
+  /// tests import exactly what the wizard would.
+  @visibleForTesting
+  static UddfImportResult payloadToUddfResult(ImportPayload payload) {
     return UddfImportResult(
       dives: payload.entitiesOf(ui.ImportEntityType.dives),
       sites: payload.entitiesOf(ui.ImportEntityType.sites),
