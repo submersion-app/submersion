@@ -502,9 +502,11 @@ class ImportDuplicateChecker {
     List<EquipmentItem> existingEquipment,
   ) {
     final existingByKey = <String, EquipmentItem>{};
+    final existingByName = <String, List<EquipmentItem>>{};
     for (final item in existingEquipment) {
-      existingByKey['${item.name.toLowerCase()}|${item.type.name.toLowerCase()}'] =
-          item;
+      final name = item.name.toLowerCase();
+      existingByKey['$name|${item.type.name}'] = item;
+      (existingByName[name] ??= []).add(item);
     }
 
     final indices = <int>{};
@@ -514,18 +516,21 @@ class ImportDuplicateChecker {
       final name = importedEquipment[i]['name'] as String?;
       if (name == null) continue;
 
-      final typeValue = importedEquipment[i]['type'];
-      String typeStr;
-      if (typeValue is EquipmentType) {
-        typeStr = typeValue.name.toLowerCase();
-      } else if (typeValue is String) {
-        typeStr = typeValue.toLowerCase();
-      } else {
-        typeStr = 'other';
-      }
-
-      final key = '${name.toLowerCase()}|$typeStr';
-      final existing = existingByKey[key];
+      final nameLower = name.toLowerCase();
+      final type = _importedEquipmentType(importedEquipment[i]['type']);
+      // `other` records that the type was unknown (older importers left
+      // MacDive XML and CSV gear unclassified), so it cannot tell two
+      // same-named items apart: when either side is `other`, fall back to
+      // the name. An exact name + type match still wins.
+      final existing =
+          existingByKey['$nameLower|${type.name}'] ??
+          existingByName[nameLower]
+              ?.where(
+                (item) =>
+                    type == EquipmentType.other ||
+                    item.type == EquipmentType.other,
+              )
+              .firstOrNull;
       if (existing != null) {
         indices.add(i);
         matches[i] = _buildEquipmentMatch(importedEquipment[i], existing);
@@ -533,6 +538,20 @@ class ImportDuplicateChecker {
     }
 
     return _EntityCheckResult(indices: indices, matches: matches);
+  }
+
+  /// The type the importer will store for [value]: an [EquipmentType], or a
+  /// case-insensitive enum name, else [EquipmentType.other], matching
+  /// `UddfEntityImporter._parseEquipmentType`.
+  static EquipmentType _importedEquipmentType(Object? value) {
+    if (value is EquipmentType) return value;
+    if (value is String) {
+      final lower = value.toLowerCase();
+      for (final type in EquipmentType.values) {
+        if (type.name.toLowerCase() == lower) return type;
+      }
+    }
+    return EquipmentType.other;
   }
 
   EntityMatchResult _buildEquipmentMatch(

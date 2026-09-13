@@ -406,6 +406,13 @@ class UddfFullExportService {
     List<EquipmentComponent>? components,
     List<DiveSourceExport>? dataSources,
     List<EquipmentObservation>? observations,
+    List<ServiceRecord>? serviceRecords,
+    List<Tag>? tags,
+    Map<String, List<Tag>>? diveTags,
+    Map<String, List<DiveWeight>>? diveWeights,
+    Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
+    Map<String, List<ProfileEvent>>? diveProfileEvents,
+    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
@@ -418,6 +425,13 @@ class UddfFullExportService {
     components: components,
     dataSources: dataSources,
     observations: observations,
+    serviceRecords: serviceRecords,
+    tags: tags,
+    diveTags: diveTags,
+    diveWeights: diveWeights,
+    diveGasSwitches: diveGasSwitches,
+    diveProfileEvents: diveProfileEvents,
+    diveTankPressures: diveTankPressures,
     options: options,
   );
 
