@@ -20311,6 +20311,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_action_deleteTag => 'Elimina tag';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Mostra immersioni con tag \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Sei sicuro di voler eliminare \"$tagName\"? Questo lo rimuoverà da tutte le immersioni.';
   }
@@ -26928,11 +26933,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nessuna immersione con spessore della muta registrato';
+      'Nessuna immersione collegata a una muta umida o stagna';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Impossibile caricare i dati sullo spessore';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Sconosciuto';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Spessore della muta (mm)';

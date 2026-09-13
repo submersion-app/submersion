@@ -19934,6 +19934,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_action_deleteTag => 'حذف الوسم';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'عرض الغطسات الموسومة بـ \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'هل أنت متأكد من حذف \"$tagName\"؟ سيتم إزالته من جميع الغطسات.';
   }
@@ -26462,11 +26467,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'لا توجد غطسات مسجلة بسماكة بدلة';
+      'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'تعذر تحميل بيانات سماكة البدلة';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'غير معروف';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
