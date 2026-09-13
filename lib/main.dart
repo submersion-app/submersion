@@ -34,6 +34,9 @@ void main() {
 
 Future<void> _bootstrap() async {
   // coverage:ignore-end
+  // Hold log lines in memory until the log file is attached below, so a
+  // failure in the startup steps before it is not lost (#1826).
+  LoggerService.bufferUntilFileAttached();
   WidgetsFlutterBinding.ensureInitialized();
 
   // Route uncaught Flutter framework and platform errors into the debug log so

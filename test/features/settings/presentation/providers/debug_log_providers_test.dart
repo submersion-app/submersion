@@ -29,6 +29,18 @@ class _FakePathProvider extends PathProviderPlatform
   Future<String?> getTemporaryPath() async => temporaryPath;
 }
 
+/// Counts full-file reads, so a test can tell a re-read from a cached value.
+class _CountingLogFileService extends LogFileService {
+  _CountingLogFileService({required super.logDirectory});
+  int reads = 0;
+
+  @override
+  Future<List<LogEntry>> readEntries() {
+    reads++;
+    return super.readEntries();
+  }
+}
+
 /// Records what reached the share sheet.
 class _FakeSharePlatform extends SharePlatform {
   final List<ShareParams> calls = [];
@@ -535,6 +547,45 @@ void main() {
       final updated = await container.read(logEntriesProvider.future);
       expect(updated.length, 2);
       expect(updated.last.message, 'live entry');
+    });
+
+    test('does not re-read the file for lines that never reach it '
+        '(#1826)', () async {
+      // Outside debug mode debug and info lines are not persisted, and the
+      // viewer is now reachable in that mode; re-reading the whole file for
+      // each of them would be pure IO churn.
+      final tempDir = Directory.systemTemp.createTempSync(
+        'log_entries_reads_test_',
+      );
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final service = _CountingLogFileService(logDirectory: tempDir.path);
+      await service.initialize();
+      LoggerService.configureFileLogging(service, verbose: false);
+      addTearDown(() {
+        LoggerService.setFileService(null);
+        LoggerService.setMinimumFileLevel(LogLevel.debug);
+      });
+
+      final container = ProviderContainer(
+        overrides: [logFileServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      await container.read(logEntriesProvider.future);
+      expect(service.reads, 1);
+
+      const logger = LoggerService('test');
+      logger.debug('not persisted');
+      await LoggerService.flushPendingWrites();
+      await Future<void>.delayed(Duration.zero);
+      await container.read(logEntriesProvider.future);
+      expect(service.reads, 1);
+
+      logger.error('persisted');
+      await LoggerService.flushPendingWrites();
+      await Future<void>.delayed(Duration.zero);
+      final updated = await container.read(logEntriesProvider.future);
+      expect(service.reads, 2);
+      expect(updated.single.message, 'persisted');
     });
   });
 

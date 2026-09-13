@@ -22,15 +22,16 @@ final logFileServiceProvider = Provider<LogFileService>((ref) {
 });
 
 /// Provider that loads all log entries from the file.
-/// Automatically re-reads when [LoggerService.logStream] emits, so the
-/// debug log viewer updates in real time without a manual refresh.
+/// Automatically re-reads when [LoggerService.persistedLogStream] emits, so
+/// the debug log viewer updates in real time without a manual refresh.
 final logEntriesProvider = FutureProvider<List<LogEntry>>((ref) async {
   final service = ref.watch(logFileServiceProvider);
   final entries = await service.readEntries();
 
-  // After the initial read, listen for new log entries and trigger a
-  // re-read.  Riverpod coalesces rapid invalidations into a single rebuild.
-  final sub = LoggerService.logStream.listen((_) {
+  // After the initial read, re-read whenever a line has been written.
+  // Lines the file does not keep (debug and info outside debug mode) never
+  // trigger a read. Riverpod coalesces rapid invalidations into one rebuild.
+  final sub = LoggerService.persistedLogStream.listen((_) {
     ref.invalidateSelf();
   });
   ref.onDispose(sub.cancel);
