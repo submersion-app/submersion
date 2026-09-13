@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -156,6 +157,25 @@ void main() {
 
     expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
     expect(filterAt(tester).tagIds, ['tag-night']);
+  });
+
+  testWidgets('a chip in the master-detail pane keeps the dive highlighted', (
+    tester,
+  ) async {
+    await pumpDetail(tester, embedded: true, size: const Size(1200, 900));
+    // Opening a row in the list highlights it as well as selecting it.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+    container.read(highlightedDiveIdProvider.notifier).state = dive.id;
+
+    await tapChip(tester, 'Night Dive');
+
+    // Deliberate: the chip clears only the selection, exactly as the detail
+    // pane's own close button does, so the diver keeps their place. The dive
+    // carries the tag, so it is in the filtered list the chip opens.
+    expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
+    expect(container.read(highlightedDiveIdProvider), dive.id);
   });
 
   testWidgets('each chip says what tapping it does', (tester) async {
