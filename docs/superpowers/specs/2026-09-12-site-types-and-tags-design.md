@@ -179,7 +179,16 @@ Rules:
 - Junction apply paths insert with `DoNothing(target: const [])`, so a
   duplicate pair from a peer never throws.
 - Tag alias folding (`_withTagAlias`) also rewrites incoming `siteTags` rows,
+  and `_foldTagInto` repoints local `site_tags` rows as it does `dive_tags`,
   so a tag folded into a rival by name keeps its site links.
+- The duplicate-tag repair `collapseDuplicateTags` (`tag_uniqueness.dart`)
+  repoints `site_tags` onto the surviving tag before deleting the losers.
+  Without that, the repair (run by every `beforeOpen`) would cascade-delete
+  the losing tag's site links.
+- Deleting a diver deletes their custom site types, next to the existing
+  custom dive type delete in `diver_repository.dart`. Diver merge needs no
+  change: it discovers every table with a `diver_id` column.
+- Sync conflict references resolve `siteTypeId` to `siteTypes`.
 - The junctions are clockless children. A change marks the changed junction
   rows pending and tombstones removed rows. It never marks the parent site
   pending, so a stale whole-row site snapshot cannot overwrite a peer's newer
@@ -200,9 +209,7 @@ Mirrors `DiveTypeRepository`:
 - `createSiteType`, `updateSiteType`, `deleteSiteType`. Update and delete
   refuse built-ins. Delete tombstones the type and every junction row that
   references it.
-- `getTypesForSite(siteId)`, `setTypesForSite(siteId, typeIds)`.
-- `getSiteTypeUsageCounts()` for the Manage page.
-- A batch `getTypesBySite()` for the site list.
+- `getSiteTypeStatistics()` (site count per type) for the Manage page.
 
 ### `TagRepository` (extended)
 
@@ -216,9 +223,19 @@ Mirrors `DiveTypeRepository`:
 - Turning `applies_to_sites` off for a tag with site links deletes and
   tombstones those links. The UI confirms first. The same applies to
   `applies_to_dives` and dive links.
-- `getTagsForSite(siteId)`, `setTagsForSite(siteId, tagIds)`, and a batch
-  `getTagsBySite()` for the site list.
 - Tag statistics report dive and site counts separately.
+
+### `SiteClassificationRepository` (new)
+
+Owns both site junctions, so the two sets are read and written in one place:
+
+- `getTypeIdsForSite`, `getTagsForSite`
+- batch `getTypeIdsBySite()` and `getTagsBySite()` for the site list
+- `replaceTypes` / `replaceTags` (the edit page: exact set, tombstoning
+  removed rows)
+- `addTypes` / `addTags` (imports and bundled sites: union, never remove)
+
+`SiteTypeRepository` and `TagRepository` keep vocabulary concerns only.
 
 ### Site save and merge
 
@@ -298,6 +315,11 @@ horizontal bar chart of counts rather than a pie. Dives at untyped sites are
 excluded, and the chart caption says so. It is shown on the Conditions page
 next to Water Type.
 
+No horizontal bar chart exists (`CategoryBarChart` is vertical, and rotating
+an fl_chart `BarChart` rotates its labels too), so a new
+`HorizontalCategoryBarChart` widget renders one row per category: label,
+a bar proportional to the largest count, and the count.
+
 ## UDDF
 
 ### Export
@@ -326,6 +348,14 @@ next to Water Type.
   keeps today's meaning: dives only, plus sites if a site references it.
 - When an import matches an existing site, types and tags are unioned with
   what the site has. An import never removes a type or tag.
+- Custom site type definitions reach the importer through the payload
+  metadata key `ImportPayload.customSiteTypesKey`, the route custom dive
+  roles already use (`uddf_import_parser.dart`, `payload_merger.dart`,
+  `UniversalAdapter._payloadToUddfResult`). A new top-level list on
+  `UddfImportResult` alone would be dropped by the wizard.
+- Fixed in passing: the parser stores a tag's color under `colorHex` but
+  `_importTags` reads `color`, so every imported tag lost its color.
+  `_importTags` reads `colorHex`.
 
 ## Import mappings
 
@@ -333,8 +363,10 @@ Mappings only add types. They never replace types a diver has set.
 
 - Bundled site database (`assets/data/dive_sites.json`): the loader reads
   `features` and maps `wreck`, `wall`, `reef`, `lake`, `cave`, `speleology`
-  (to `cave`) and `cavern`. When a diver adds a site from it, those types are
-  pre-selected on the edit form and saved only if the diver saves.
+  (to `cave`) and `cavern`. No edit form sits between a bundled site and its
+  save (the Import page, the map's add action and import-time site matching
+  all save directly), so the mapped types are written with the site when it
+  is added. The diver can remove them on the edit page.
 - Shearwater: `Environment` Pool, Lake, Quarry and River become
   `siteTypeRefs` on the site map `shearwater_dive_mapper.dart` already
   builds. Ocean/Sea and Brackish map to nothing. Applied only when the import
