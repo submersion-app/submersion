@@ -302,6 +302,44 @@ void main() {
       expect(gear[0]['name'], equals('7mm Wetsuit'));
     });
 
+    test('links each dive to the suit on its own row (#1824)', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},
+        {'dateTime': DateTime(2024, 6, 16, 9, 0), 'suit': 'Drysuit'},
+        {'dateTime': DateTime(2024, 6, 17, 9, 0), 'suit': '  7mm Wetsuit '},
+        {'dateTime': DateTime(2024, 6, 18, 9, 0)},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(
+          entityTypes: {ImportEntityType.dives, ImportEntityType.equipment},
+        ),
+      );
+
+      final gear = result.entitiesOf(ImportEntityType.equipment);
+      final refByName = {for (final g in gear) g['name']: g['uddfId']};
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['equipmentRefs'], [refByName['7mm Wetsuit']]);
+      expect(dives[1]['equipmentRefs'], [refByName['Drysuit']]);
+      expect(dives[2]['equipmentRefs'], [refByName['7mm Wetsuit']]);
+      expect(dives[3].containsKey('equipmentRefs'), isFalse);
+    });
+
+    test('does not link suits when equipment is not imported', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive.containsKey('equipmentRefs'), isFalse);
+    });
+
     group('_attachBuddyRefs', () {
       test('converts buddy field to buddyRefs with IDs', () {
         final rows = makeRows([

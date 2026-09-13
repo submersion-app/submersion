@@ -540,8 +540,8 @@ class UniversalAdapter implements ImportSourceAdapter {
         // wizard gates advancement on pending decisions, so that state is
         // not reachable today, but dropping the association silently is the
         // exact defect this fix exists to prevent. A seed is harmless when
-        // the entity IS imported: _importBuddies/_importTags overwrite the
-        // mapping with the newly created id.
+        // the entity IS imported: _importBuddies/_importTags/_importEquipment
+        // overwrite the mapping with the newly created id.
         final links =
             action == null ||
             action == DuplicateAction.skip ||
@@ -609,6 +609,10 @@ class UniversalAdapter implements ImportSourceAdapter {
       preResolvedTagIds: preResolvedIdsFor(
         wizard.ImportEntityType.tags,
         uddfData.tags,
+      ),
+      preResolvedEquipmentIds: preResolvedIdsFor(
+        wizard.ImportEntityType.equipment,
+        uddfData.equipment,
       ),
       onProgress: onProgress,
       cancelToken: cancelToken,

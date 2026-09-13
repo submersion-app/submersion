@@ -3994,6 +3994,87 @@ void main() {
     );
 
     testWidgets(
+      'a skipped duplicate suit still links its dives to the existing item '
+      '(#1824)',
+      (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.equipment: [
+              {'name': '7mm wetsuit', 'type': 'wetsuit', 'uddfId': 's-1'},
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'equipmentRefs': ['s-1'],
+              },
+            ],
+          },
+        );
+
+        const existingSuit = EquipmentItem(
+          id: 'suit-1',
+          name: '7mm wetsuit',
+          type: EquipmentType.wetsuit,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final mockEquipmentRepo = MockEquipmentRepository();
+        when(
+          mockEquipmentRepo.getEquipmentById('suit-1'),
+        ).thenAnswer((_) async => existingSuit);
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingEquipment: [existingSuit],
+            mockDiveRepo: mockDiveRepo,
+            mockEquipmentRepo: mockEquipmentRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final bundle = await adapter.buildBundle();
+            final checked = await adapter.checkDuplicates(bundle);
+            expect(
+              checked.groups[ImportEntityType.equipment]!.entityMatches,
+              contains(0),
+              reason: 'the suit must be flagged as a duplicate to skip it',
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.equipment: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.equipment: {0: DuplicateAction.skip},
+              },
+            );
+
+            verifyNever(mockEquipmentRepo.createEquipment(any));
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.equipment.map((e) => e.id), ['suit-1']);
+          },
+        );
+      },
+    );
+
+    testWidgets(
       'items with no duplicate action are included from base selection',
       (tester) async {
         final payload = ImportPayload(

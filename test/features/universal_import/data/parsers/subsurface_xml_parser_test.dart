@@ -135,6 +135,89 @@ void main() {
       expect(dive['notes'], contains('SAC: 16.262 l/min'));
     });
 
+    group('suit as gear (#1824)', () {
+      test('a classified suit becomes gear linked to its dives', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' time='09:00:00' location='Reef'>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <suit>3mm Bare wetsuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+<dive number='2' date='2025-01-15' time='14:00:00' duration='30:00 min'>
+  <suit>Drysuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</trip>
+<dive number='3' date='2025-01-16' time='10:00:00' duration='30:00 min'>
+  <suit>3mm Bare wetsuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final gear = result.entitiesOf(ImportEntityType.equipment);
+        expect(gear, hasLength(2));
+        final wetsuit = gear.firstWhere((g) => g['name'] == '3mm Bare wetsuit');
+        expect(wetsuit['type'], 'wetsuit');
+        expect(wetsuit['thickness'], '3mm');
+        final drysuit = gear.firstWhere((g) => g['name'] == 'Drysuit');
+        expect(drysuit['type'], 'drysuit');
+        expect(drysuit.containsKey('thickness'), isFalse);
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives[0]['equipmentRefs'], [wetsuit['uddfId']]);
+        expect(dives[1]['equipmentRefs'], [drysuit['uddfId']]);
+        expect(dives[2]['equipmentRefs'], [wetsuit['uddfId']]);
+        // The notes line stays: a diver who deselects the suit in review
+        // still has the text on the dive.
+        expect(dives[0]['notes'], contains('Suit: 3mm Bare wetsuit'));
+      });
+
+      test('an unclear suit stays in the notes only', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <suit>Full suit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        expect(result.entitiesOf(ImportEntityType.equipment), isEmpty);
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('equipmentRefs'), isFalse);
+        expect(dive['notes'], contains('Suit: Full suit'));
+      });
+
+      test('a log without suits emits no equipment', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        expect(
+          result.entities.containsKey(ImportEntityType.equipment),
+          isFalse,
+        );
+      });
+    });
+
     test('parses air temperature from divetemperature element', () async {
       final result = await parser.parse(
         xmlBytes('''

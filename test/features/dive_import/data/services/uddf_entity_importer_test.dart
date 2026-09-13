@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     show ServiceRecord;
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -718,6 +719,113 @@ void main() {
       ).captured;
       expect((captured[0] as EquipmentItem).type, EquipmentType.regulator);
       expect((captured[1] as EquipmentItem).type, EquipmentType.fins);
+    });
+
+    group('imported suit thickness (#1824)', () {
+      Future<EquipmentItem> importOne(Map<String, dynamic> item) async {
+        when(mockEquipmentRepo.createEquipment(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as EquipmentItem,
+        );
+        await importer.import(
+          data: UddfImportResult(equipment: [item]),
+          selections: const UddfImportSelections(equipment: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+        return verify(
+              mockEquipmentRepo.createEquipment(captureAny),
+            ).captured.single
+            as EquipmentItem;
+      }
+
+      test('a wetsuit thickness becomes the curated thickness_mm', () async {
+        final item = await importOne({
+          'name': 'Bare 5/4',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': '5/4',
+        });
+
+        final attr = item.attributes.singleWhere(
+          (a) => a.key == EquipmentAttrKeys.thicknessMm,
+        );
+        expect(attr.isCustom, isFalse);
+        expect(attr.valueText, '5/4');
+        expect(attr.valueNum, 5.0);
+        expect(attr.equipmentId, item.id);
+      });
+
+      test('a type without a thickness in the catalog records none', () async {
+        final item = await importOne({
+          'name': '4mm neoprene drysuit',
+          'type': 'drysuit',
+          'uddfId': 'suit-1',
+          'thickness': '4mm',
+        });
+
+        expect(
+          item.attributes.where((a) => a.key == EquipmentAttrKeys.thicknessMm),
+          isEmpty,
+        );
+      });
+
+      test('a designation the catalog rejects records none', () async {
+        final item = await importOne({
+          'name': 'Thin wetsuit',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': 'thin',
+        });
+
+        expect(
+          item.attributes.where((a) => a.key == EquipmentAttrKeys.thicknessMm),
+          isEmpty,
+        );
+      });
+    });
+
+    test('preResolvedEquipmentIds links a skipped duplicate item to the '
+        'existing record without creating a twin (#1824)', () async {
+      const existing = EquipmentItem(
+        id: 'existing-suit-1',
+        name: '7mm wetsuit',
+        type: EquipmentType.wetsuit,
+      );
+      when(
+        mockEquipmentRepo.getEquipmentById('existing-suit-1'),
+      ).thenAnswer((_) async => existing);
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        equipment: [
+          {'name': '7mm wetsuit', 'type': 'wetsuit', 'uddfId': '7mm wetsuit'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'equipmentRefs': ['7mm wetsuit'],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        // The equipment index is NOT selected: the reviewer chose Skip for
+        // the flagged duplicate.
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'7mm wetsuit': 'existing-suit-1'},
+      );
+
+      verifyNever(mockEquipmentRepo.createEquipment(any));
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.equipment.map((e) => e.id), ['existing-suit-1']);
     });
   });
 
@@ -3948,6 +4056,45 @@ void main() {
       );
 
       verifyNever(mockServiceRecordRepo.createRecord(any));
+    });
+
+    test('a skipped duplicate item gets no copy of its service history '
+        '(#1824)', () async {
+      // The pre-resolve seed links dives to the existing row; the existing
+      // row already has its own history, so re-importing the file must not
+      // append a second copy of every record to it.
+      await importer.import(
+        data: dataWith([
+          {'equipmentRef': 'gear-1', 'serviceDate': DateTime(2025, 5, 12)},
+        ]),
+        selections: const UddfImportSelections(),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'gear-1': 'existing-gear-1'},
+      );
+
+      verifyNever(mockServiceRecordRepo.createRecord(any));
+    });
+
+    test('an item imported despite a seed still gets its service history '
+        '(#1824)', () async {
+      await importer.import(
+        data: dataWith([
+          {'equipmentRef': 'gear-1', 'serviceDate': DateTime(2025, 5, 12)},
+        ]),
+        selections: const UddfImportSelections(equipment: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'gear-1': 'existing-gear-1'},
+      );
+
+      final record =
+          verify(mockServiceRecordRepo.createRecord(captureAny)).captured.single
+              as ServiceRecord;
+      final equipment =
+          verify(mockEquipmentRepo.createEquipment(captureAny)).captured.single
+              as EquipmentItem;
+      expect(record.equipmentId, equipment.id);
     });
 
     test('skips a record with no service date', () async {

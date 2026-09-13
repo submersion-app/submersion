@@ -310,11 +310,12 @@ class UddfEntityImporter {
   /// [ImportCancellationToken.isCancelled] between each dive and returns the
   /// partial result already persisted when cancellation is observed.
   ///
-  /// [preResolvedBuddyIds] and [preResolvedTagIds] map source refs
-  /// (uddfId/name) to EXISTING database ids for flagged duplicates the
-  /// reviewer chose not to import as new rows. Seeding the id mappings with
-  /// them makes dive linking resolve to the existing record instead of
-  /// silently dropping the association (#756).
+  /// [preResolvedBuddyIds], [preResolvedTagIds] and [preResolvedEquipmentIds]
+  /// map source refs (uddfId/name) to EXISTING database ids for flagged
+  /// duplicates the reviewer chose not to import as new rows. Seeding the id
+  /// mappings with them makes dive linking resolve to the existing record
+  /// instead of silently dropping the association (#756; equipment in #1824,
+  /// where a re-imported suit otherwise left its dives with no suit).
   Future<UddfEntityImportResult> import({
     required UddfImportResult data,
     required UddfImportSelections selections,
@@ -323,6 +324,7 @@ class UddfEntityImporter {
     bool retainSourceDiveNumbers = false,
     Map<String, String> preResolvedBuddyIds = const {},
     Map<String, String> preResolvedTagIds = const {},
+    Map<String, String> preResolvedEquipmentIds = const {},
     ImportFormat? sourceFormat,
     Uint8List? sourceFileBytes,
     String? sourceFileName,
@@ -334,7 +336,7 @@ class UddfEntityImporter {
 
     // ID mappings for cross-references
     final tripIdMapping = <String, String>{};
-    final equipmentIdMapping = <String, String>{};
+    final equipmentIdMapping = <String, String>{...preResolvedEquipmentIds};
     final buddyIdMapping = <String, String>{...preResolvedBuddyIds};
     final diveCenterIdMapping = <String, String>{};
     final tagIdMapping = <String, String>{...preResolvedTagIds};
@@ -374,11 +376,17 @@ class UddfEntityImporter {
 
     // Service history belongs to the equipment it describes, so it rides
     // along with whatever equipment was selected rather than being its own
-    // choice in the wizard.
+    // choice in the wizard. Only items this import created count: a
+    // pre-resolved ref points at an existing row that already has its own
+    // history, and the file's copy would be appended to it on every
+    // re-import.
     await _importServiceRecords(
       data.serviceRecords,
       repositories.serviceRecordRepository,
-      equipmentIdMapping,
+      {
+        for (final MapEntry(:key, :value) in equipmentIdMapping.entries)
+          if (preResolvedEquipmentIds[key] != value) key: value,
+      },
       now,
     );
 
@@ -588,9 +596,10 @@ class UddfEntityImporter {
   /// Persists service records for equipment that was actually imported.
   ///
   /// Each record names its owner through `equipmentRef`, the same key
-  /// `_importEquipment` registered in [equipmentIdMapping]. Records whose
-  /// equipment was not imported (deselected, or a dangling reference) are
-  /// skipped - a service record with no item to attach to is unreachable.
+  /// `_importEquipment` registered in [equipmentIdMapping], which must hold
+  /// only the items this import created. Records whose equipment was not
+  /// imported (deselected, or a dangling reference) are skipped; a service
+  /// record with no item to attach to is unreachable.
   Future<int> _importServiceRecords(
     List<Map<String, dynamic>> items,
     ServiceRecordRepository? repository,
@@ -686,6 +695,7 @@ class UddfEntityImporter {
               key: EquipmentAttrKeys.size,
               valueText: (equipData['size'] as String).trim(),
             ),
+          ?_importedThickness(newId, equipType, equipData['thickness']),
         ],
       );
 
@@ -2895,6 +2905,32 @@ class UddfEntityImporter {
         await repository.addTagToDive(diveId, newTagId);
       }
     }
+  }
+
+  /// The curated `thickness_mm` row for an imported item that states a
+  /// thickness designation ("5/4", "7mm"; issue #1824), stored the way the
+  /// edit form stores it: the designation as text, its primary panel as the
+  /// number. Null unless the item's type has a thickness in the catalog and
+  /// the designation is one the edit form would accept.
+  EquipmentAttribute? _importedThickness(
+    String equipmentId,
+    EquipmentType type,
+    dynamic raw,
+  ) {
+    final designation = raw is String ? raw.trim() : '';
+    if (designation.isEmpty || !isValidThicknessDesignation(designation)) {
+      return null;
+    }
+    final hasThickness = EquipmentAttributeCatalog.attributesFor(
+      type,
+    ).any((def) => def.key == EquipmentAttrKeys.thicknessMm);
+    if (!hasThickness) return null;
+    return EquipmentAttribute.curated(
+      equipmentId: equipmentId,
+      key: EquipmentAttrKeys.thicknessMm,
+      valueText: designation,
+      valueNum: parsePrimaryThickness(designation),
+    );
   }
 
   // -- Enum parsing helpers --

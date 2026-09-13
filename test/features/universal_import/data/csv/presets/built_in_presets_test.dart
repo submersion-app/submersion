@@ -82,6 +82,25 @@ void main() {
       }
     });
 
+    test('every preset that maps a suit column imports equipment (#1824)', () {
+      final suitPresets = builtInCsvPresets.where(
+        (p) => p.mappings.values.any(
+          (m) => m.columns.any((c) => c.targetField == 'suit'),
+        ),
+      );
+      expect(
+        suitPresets.map((p) => p.id),
+        containsAll(['subsurface', 'submersion_native']),
+      );
+      for (final preset in suitPresets) {
+        expect(
+          preset.supportedEntities,
+          contains(ImportEntityType.equipment),
+          reason: '${preset.name} maps a suit column but drops the suit',
+        );
+      }
+    });
+
     test('all presets are builtIn source', () {
       for (final preset in builtInCsvPresets) {
         expect(

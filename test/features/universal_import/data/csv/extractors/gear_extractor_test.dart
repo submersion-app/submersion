@@ -9,7 +9,7 @@ void main() {
   });
 
   group('GearExtractor', () {
-    test('extracts suit as gear with type exposure_suit', () {
+    test('extracts a wetsuit with its thickness', () {
       final rows = <Map<String, dynamic>>[
         {'suit': '7mm Wetsuit'},
       ];
@@ -18,9 +18,41 @@ void main() {
 
       expect(gear, hasLength(1));
       expect(gear[0]['name'], '7mm Wetsuit');
-      expect(gear[0]['type'], 'exposure_suit');
+      expect(gear[0]['type'], 'wetsuit');
+      expect(gear[0]['thickness'], '7mm');
       expect(gear[0]['id'], isNotNull);
     });
+
+    test('extracts a drysuit without a thickness', () {
+      final gear = extractor.extractFromRows([
+        {'suit': '4mm neoprene drysuit'},
+      ]);
+
+      expect(gear.single['type'], 'drysuit');
+      expect(gear.single.containsKey('thickness'), isFalse);
+    });
+
+    test('a wetsuit with no stated thickness carries no thickness key', () {
+      final gear = extractor.extractFromRows([
+        {'suit': 'Wetsuit'},
+      ]);
+
+      expect(gear.single['type'], 'wetsuit');
+      expect(gear.single.containsKey('thickness'), isFalse);
+    });
+
+    test(
+      'an unclear suit is kept as type other, as the importer stored it',
+      () {
+        final gear = extractor.extractFromRows([
+          {'suit': 'Full suit'},
+        ]);
+
+        expect(gear.single['name'], 'Full suit');
+        expect(gear.single['type'], 'other');
+        expect(gear.single.containsKey('thickness'), isFalse);
+      },
+    );
 
     test('deduplicates by name across rows', () {
       final rows = <Map<String, dynamic>>[
@@ -92,8 +124,13 @@ void main() {
       expect(gear, hasLength(3));
       final names = gear.map((g) => g['name']).toList();
       expect(names, containsAll(['7mm Wetsuit', '3mm Shorty', 'Drysuit']));
+      final typeByName = {for (final g in gear) g['name']: g['type']};
+      expect(typeByName, {
+        '7mm Wetsuit': 'wetsuit',
+        '3mm Shorty': 'wetsuit',
+        'Drysuit': 'drysuit',
+      });
       for (final item in gear) {
-        expect(item['type'], 'exposure_suit');
         expect(item['id'], isNotNull);
       }
     });
