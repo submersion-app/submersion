@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
@@ -298,6 +299,103 @@ void main() {
         scrollable: find.byType(Scrollable).last,
       );
       expect(_statusChip(EquipmentStatus.sold), findsOneWidget);
+    });
+
+    /// Tap [finder] in the sheet, scrolling it into view first: the chips
+    /// under a picked category sit below the fold of the lazy list.
+    Future<void> tapInSheet(WidgetTester tester, Finder finder) async {
+      if (finder.evaluate().isEmpty) {
+        await tester.scrollUntilVisible(
+          finder,
+          120,
+          scrollable: find.byType(Scrollable).last,
+        );
+      }
+      await tester.ensureVisible(finder);
+      await tester.pumpAndSettle();
+      await tester.tap(finder);
+      await tester.pumpAndSettle();
+    }
+
+    const hoseHp = EquipmentAttrCondition(
+      key: 'hose_type',
+      choices: {'hp'},
+      types: {EquipmentType.hose},
+    );
+
+    testWidgets(
+      'a picked category offers its choice fields, applied on Apply',
+      (tester) async {
+        _useTallSurface(tester);
+        final container = await _container(
+          owned: [..._gear, _item('hose', EquipmentType.hose)],
+        );
+        await _openSheet(tester, container);
+
+        expect(find.text('Hose type'), findsNothing);
+        await tapInSheet(tester, _typeChip(EquipmentType.hose));
+        expect(find.text('Hose type'), findsOneWidget);
+
+        await tapInSheet(
+          tester,
+          find.byKey(const ValueKey('equipment_filter_attr_hose_type_hp')),
+        );
+        await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+        await tester.pumpAndSettle();
+
+        expect(container.read(equipmentFilterProvider).attrConditions, [
+          hoseHp,
+        ]);
+      },
+    );
+
+    testWidgets('switching category drops the chips of the old one', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final container = await _container(
+        owned: [..._gear, _item('hose', EquipmentType.hose)],
+        filter: const EquipmentFilterState(
+          type: EquipmentType.hose,
+          attrConditions: [hoseHp],
+        ),
+      );
+      await _openSheet(tester, container);
+
+      // The filter in force shows its chip selected before the switch.
+      final hpChip = find.byKey(
+        const ValueKey('equipment_filter_attr_hose_type_hp'),
+      );
+      await tester.scrollUntilVisible(
+        hpChip,
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(tester.widget<FilterChip>(hpChip).selected, isTrue);
+
+      await tapInSheet(tester, _typeChip(EquipmentType.bcd));
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+
+      final applied = container.read(equipmentFilterProvider);
+      expect(applied.type, EquipmentType.bcd);
+      expect(applied.attrConditions, isEmpty);
+    });
+
+    testWidgets('spare is offered as a status so spare gear is filterable '
+        '(#1803)', (tester) async {
+      _useTallSurface(tester);
+      final container = await _container();
+
+      await _openSheet(tester, container);
+
+      await tester.scrollUntilVisible(
+        _statusChip(EquipmentStatus.spare),
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(_statusChip(EquipmentStatus.spare), findsOneWidget);
+      expect(find.text('Spare'), findsOneWidget);
     });
   });
 }

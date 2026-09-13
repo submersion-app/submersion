@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attr_condition_text.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -245,7 +246,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
-          filter.applyType(equipment),
+          filter.apply(equipment),
           sort,
           serviceUrgency: serviceUrgency,
         ),
@@ -281,7 +282,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // re-sorting the whole inventory there made bulk selection cost a full
     // sort per tap.
     final visibleGroups = arrangeEquipment(
-      filter.applyType(equipmentAsync.value ?? const <EquipmentItem>[]),
+      filter.apply(equipmentAsync.value ?? const <EquipmentItem>[]),
       arrangement,
       typeLabel: (t) => t.localizedName(context.l10n),
       compareItems: compareItems,
@@ -830,6 +831,17 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
                     .copyWith(clearType: true),
                 icon: equipmentTypeIcon(filter.type!),
+              ),
+            for (final condition in filter.attrConditions)
+              _buildActiveFilterChip(
+                attrConditionLabel(context.l10n, condition),
+                () => ref.read(equipmentFilterProvider.notifier).state = filter
+                    .copyWith(
+                      attrConditions: [
+                        for (final c in filter.attrConditions)
+                          if (c != condition) c,
+                      ],
+                    ),
               ),
           ],
         ),

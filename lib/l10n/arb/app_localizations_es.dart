@@ -5984,6 +5984,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Todo el equipo ya está seleccionado';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'El equipo restante está marcado como De repuesto';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Error al cargar equipo: $error';
   }
@@ -5994,6 +5998,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Quita elementos para agregar otros diferentes';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Cambia el estado de un elemento a Activo para agregarlo a una inmersión';
 
   @override
   String get diveLog_equipmentPicker_title => 'Agregar equipo';
@@ -10780,6 +10788,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Vendido';
 
   @override
+  String get enum_equipmentStatus_spare => 'De repuesto';
+
+  @override
   String get enum_equipmentType_backplate => 'Placa dorsal';
 
   @override
@@ -12206,6 +12217,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => 'Borrar';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
 
   @override
   String get equipment_filter_title => 'Filtrar equipo';
@@ -26329,6 +26345,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Longitud del latiguillo';
 
   @override
+  String get attrLabel_hose_type => 'Tipo de latiguillo';
+
+  @override
   String get attrLabel_plate_material => 'Material de la placa';
 
   @override
@@ -26665,6 +26684,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Yugo (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (baja presión)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (alta presión)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflador (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Chaleco';
 
   @override
@@ -26929,6 +26957,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Grosor del traje (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Atributos del equipo';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Categoría de equipo';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Cualquier categoría';
 
   @override
   String get diveLog_filter_thicknessMin => 'Mín';

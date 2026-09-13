@@ -164,6 +164,44 @@ void main() {
       expect(result.localAssetId, equals('original-asset-id'));
       expect(result.status, equals(ResolutionStatus.resolved));
     });
+
+    test('reresolve never searches the gallery on desktop platforms', () async {
+      // Windows and Linux have no photo library, so the desktop picker's
+      // getAssetsInDateRange opens an interactive file dialog instead of
+      // running a query. A synced gallery photo's thumbnail fetch always comes
+      // back empty there (photo_manager has no backend), and the resolver's
+      // stale-mapping retry used to reach that dialog once per photo and time
+      // reading, reopening it on every cancel.
+      when(mockPicker.supportsGalleryBrowsing).thenReturn(false);
+      when(
+        mockPicker.checkPermission(),
+      ).thenAnswer((_) async => PhotoPermissionStatus.authorized);
+      when(
+        mockPicker.getThumbnail(any, size: anyNamed('size')),
+      ).thenAnswer((_) async => null);
+      // What a cancelled dialog returns.
+      when(
+        mockPicker.getAssetsInDateRange(any, any),
+      ).thenAnswer((_) async => []);
+      when(mockCache.clearEntry(any)).thenAnswer((_) async {});
+      when(mockCache.getCacheEntry(any)).thenAnswer((_) async => null);
+      when(
+        mockCache.cacheResolution(
+          mediaId: anyNamed('mediaId'),
+          localAssetId: anyNamed('localAssetId'),
+          method: anyNamed('method'),
+        ),
+      ).thenAnswer((_) async {});
+
+      final result = await service.reresolve(createTestItem());
+
+      verifyNever(mockPicker.getAssetsInDateRange(any, any));
+      // Same answer resolveAssetId gives on desktop: with no gallery to search
+      // again the answer cannot change, and it must not read as a positive
+      // "gone" finding that a caller could orphan the row on.
+      expect(result.localAssetId, equals('original-asset-id'));
+      expect(result.status, equals(ResolutionStatus.resolved));
+    });
   });
 
   // A gallery query against a library the app cannot access yet returns

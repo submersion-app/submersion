@@ -25,12 +25,17 @@ void main() {
   );
   const c = ExposureClassifier();
 
-  test('dives and cycles count one per sample; hours are duration', () {
+  test('dives count one per sample; hours are duration', () {
     final s = sample(seconds: 5400);
     expect(c.contribution(s, ExposureUnit.dives), 1);
-    expect(c.contribution(s, ExposureUnit.cycles), 1);
     expect(c.contribution(s, ExposureUnit.hours), closeTo(1.5, 1e-9));
     expect(c.contribution(s, ExposureUnit.days), 0);
+  });
+
+  test('cycles count one per sample only on gear that counts them', () {
+    expect(c.contribution(sample(), ExposureUnit.cycles), 0);
+    const powered = ExposureClassifier(countsCycles: true);
+    expect(powered.contribution(sample(), ExposureUnit.cycles), 1);
   });
 
   test('salt hours count salt and brackish, not fresh or unknown', () {
@@ -105,7 +110,10 @@ void main() {
   });
 
   test('a parent with a battery child accrues no cycles', () {
-    const parent = ExposureClassifier(hasBatteryChild: true);
+    const parent = ExposureClassifier(
+      countsCycles: true,
+      hasBatteryChild: true,
+    );
     expect(parent.contribution(sample(), ExposureUnit.cycles), 0);
     expect(parent.contribution(sample(), ExposureUnit.dives), 1);
   });
@@ -121,7 +129,7 @@ void main() {
     expect(totals[ExposureUnit.coldDives], 1);
     expect(totals[ExposureUnit.deepCycles], 1);
     expect(totals[ExposureUnit.o2Hours], closeTo(1.0, 1e-9));
-    expect(totals[ExposureUnit.cycles], 2);
+    expect(totals[ExposureUnit.cycles], 0);
     expect(totals[ExposureUnit.days], 0);
   });
 }
