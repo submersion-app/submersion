@@ -1,5 +1,5 @@
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 /// Builds a self-contained SQL subquery `SELECT id FROM dives WHERE ...` that
 /// selects the ids of all dives matching [filter], mirroring
@@ -89,41 +89,11 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
       ..addAll(filter.equipmentIds);
   }
 
-  // Equipment attribute: dives linked to an equipment item whose curated
-  // attribute matches. value_num bounds are canonical metric.
-  if (filter.equipmentAttrKey != null) {
-    // The "Suit thickness" axis (thickness_mm) must match only exposure suits,
-    // the suits getDivesBySuitThickness() counts: the same attr_key also
-    // exists on hoods/gloves/boots, which are not suits. The chart puts every
-    // drysuit in a bucket of its own (issue #1824), so a drysuit carrying a
-    // legacy thickness matches here yet charts as a drysuit.
-    final suitOnly = filter.equipmentAttrKey == EquipmentAttrKeys.thicknessMm;
-    final sub = StringBuffer(
-      'id IN (SELECT de.dive_id FROM dive_equipment de '
-      'JOIN equipment_attributes ea ON ea.equipment_id = de.equipment_id ',
-    );
-    if (suitOnly) {
-      sub.write(
-        "JOIN equipment eqf ON eqf.id = de.equipment_id "
-        "AND eqf.type IN ('wetsuit', 'drysuit') ",
-      );
-    }
-    sub.write('WHERE ea.attr_key = ? AND ea.is_custom = 0');
-    params.add(filter.equipmentAttrKey);
-    if (filter.equipmentAttrChoice != null) {
-      sub.write(' AND ea.value_text = ?');
-      params.add(filter.equipmentAttrChoice);
-    }
-    if (filter.equipmentAttrMin != null) {
-      sub.write(' AND ea.value_num >= ?');
-      params.add(filter.equipmentAttrMin);
-    }
-    if (filter.equipmentAttrMax != null) {
-      sub.write(' AND ea.value_num <= ?');
-      params.add(filter.equipmentAttrMax);
-    }
-    sub.write(')');
-    conditions.add(sub.toString());
+  // Equipment attributes: one EXISTS per condition, so they AND.
+  for (final condition in filter.equipmentAttrConditions) {
+    final c = equipmentAttrConditionSql(condition, diveIdRef: 'dives.id');
+    conditions.add(c.sql);
+    params.addAll(c.params);
   }
 
   // Depth: null depth excluded when a bound is set.
@@ -251,6 +221,67 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
     subquery: 'SELECT id FROM dives WHERE ${conditions.join(' AND ')}',
     params: params,
   );
+}
+
+/// SQL for one [EquipmentAttrCondition] (issue #1805): a correlated EXISTS
+/// over the dive's gear. The gear is every item linked through
+/// `dive_equipment` plus every cylinder the transmitter registry matched
+/// through `dive_tanks.equipment_id`, the same union the equipment-id axis
+/// uses. [diveIdRef] names the outer dive id column (`dives.id` in
+/// [buildFilteredDiveIdSubquery], `d.id` in DiveRepository).
+///
+/// Every value is bound; the returned params follow the placeholders in
+/// order: the sorted type names, the key, the sorted choices, then min and
+/// max.
+///
+/// This is the only implementation of the dive filter's attribute axis. It
+/// is shared by [buildFilteredDiveIdSubquery],
+/// `DiveRepository._buildFilterWhereClauses` and
+/// `DiveRepository.getDiveIdsMatchingEquipmentAttrs`, so Statistics, the
+/// paginated list and the entity-backed views cannot disagree.
+({String sql, List<Object> params}) equipmentAttrConditionSql(
+  EquipmentAttrCondition condition, {
+  required String diveIdRef,
+}) {
+  final params = <Object>[];
+  final sql = StringBuffer('EXISTS (SELECT 1 FROM equipment_attributes ea ');
+  if (condition.types.isNotEmpty) {
+    final types = condition.types.map((t) => t.name).toList()..sort();
+    sql.write(
+      'JOIN equipment eqf ON eqf.id = ea.equipment_id '
+      'AND eqf.type IN (${List.filled(types.length, '?').join(', ')}) ',
+    );
+    params.addAll(types);
+  }
+  sql.write('WHERE ea.attr_key = ? AND ea.is_custom = 0');
+  params.add(condition.key);
+  if (condition.choices.isNotEmpty) {
+    final choices = condition.choices.toList()..sort();
+    sql.write(
+      ' AND ea.value_text IN (${List.filled(choices.length, '?').join(', ')})',
+    );
+    params.addAll(choices);
+  }
+  final min = condition.min;
+  if (min != null) {
+    sql.write(' AND ea.value_num >= ?');
+    params.add(min);
+  }
+  final max = condition.max;
+  if (max != null) {
+    sql.write(' AND ea.value_num <= ?');
+    params.add(max);
+  }
+  // The gear union is a correlated IN in the WHERE clause rather than a
+  // derived table in FROM, where an outer column reference is not portable.
+  sql.write(
+    ' AND ea.equipment_id IN ('
+    'SELECT de.equipment_id FROM dive_equipment de '
+    'WHERE de.dive_id = $diveIdRef '
+    'UNION SELECT dt.equipment_id FROM dive_tanks dt '
+    'WHERE dt.dive_id = $diveIdRef AND dt.equipment_id IS NOT NULL))',
+  );
+  return (sql: sql.toString(), params: params);
 }
 
 /// Recorded deco-signal SQL condition (no bind params), shared by

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -40,6 +42,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   EquipmentStatus? _status;
   bool _serviceDueOnly = false;
   EquipmentType? _type;
+  List<EquipmentAttrCondition> _attrConditions = const [];
 
   @override
   void initState() {
@@ -48,6 +51,15 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     _status = filter.status;
     _serviceDueOnly = filter.serviceDueOnly;
     _type = filter.type;
+    _attrConditions = filter.attrConditions;
+  }
+
+  /// Conditions belong to a category, so picking another one drops them.
+  void _selectType(EquipmentType? type) {
+    setState(() {
+      if (type != _type) _attrConditions = const [];
+      _type = type;
+    });
   }
 
   @override
@@ -227,7 +239,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
               key: const ValueKey('equipment_filter_type_all'),
               label: Text(context.l10n.equipment_list_typeFilterAll),
               selected: _type == null,
-              onSelected: (_) => setState(() => _type = null),
+              onSelected: (_) => _selectType(null),
             ),
             for (final type in types)
               ChoiceChip(
@@ -235,11 +247,17 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 avatar: Icon(equipmentTypeIcon(type), size: 18),
                 label: Text(type.localizedName(context.l10n)),
                 selected: _type == type,
-                onSelected: (selected) =>
-                    setState(() => _type = selected ? type : null),
+                onSelected: (selected) => _selectType(selected ? type : null),
               ),
           ],
         ),
+        // The picked category's choice fields (#1805), e.g. Hose type.
+        if (_type case final selected?)
+          EquipmentChoiceAttributeFilter(
+            type: selected,
+            conditions: _attrConditions,
+            onChanged: (next) => setState(() => _attrConditions = next),
+          ),
       ],
     );
   }
@@ -250,6 +268,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       _status = null;
       _serviceDueOnly = false;
       _type = null;
+      _attrConditions = const [];
     });
   }
 
@@ -260,6 +279,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       status: _status,
       serviceDueOnly: _serviceDueOnly,
       type: _type,
+      attrConditions: _attrConditions,
     );
     Navigator.of(context).pop();
   }

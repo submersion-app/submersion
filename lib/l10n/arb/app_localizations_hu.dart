@@ -12193,6 +12193,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'Torles';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'Felszereles szurese';
 
   @override
@@ -26215,6 +26220,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Tömlő hossza';
 
   @override
+  String get attrLabel_hose_type => 'Tömlő típusa';
+
+  @override
   String get attrLabel_plate_material => 'Lemez anyaga';
 
   @override
@@ -26548,6 +26556,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Kengyel (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'Középnyomású (LP)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'Nagynyomású (HP)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflátor (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Mellény';
 
   @override
@@ -26818,6 +26835,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Felszerelés jellemzői';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Felszerelés kategóriája';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Bármely kategória';
 
   @override
   String get diveLog_filter_thicknessMin => 'Min';

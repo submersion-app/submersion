@@ -17,6 +17,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
@@ -78,6 +81,9 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   late String? _computerId;
   double? _suitThicknessMin;
   double? _suitThicknessMax;
+  // Gear-attribute section (#1805): one category and its choice conditions.
+  EquipmentType? _gearCategory;
+  List<EquipmentAttrCondition> _gearConditions = const [];
 
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
@@ -120,9 +126,16 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     _minDurationMinutes = filter.minBottomTimeMinutes;
     _maxDurationMinutes = filter.maxBottomTimeMinutes;
     _computerId = filter.computerId;
-    if (filter.equipmentAttrKey == 'thickness_mm') {
-      _suitThicknessMin = filter.equipmentAttrMin;
-      _suitThicknessMax = filter.equipmentAttrMax;
+    for (final condition in filter.equipmentAttrConditions) {
+      if (condition.isSuitThickness) {
+        _suitThicknessMin = condition.min;
+        _suitThicknessMax = condition.max;
+      } else {
+        _gearConditions = [..._gearConditions, condition];
+        if (condition.types.length == 1) {
+          _gearCategory ??= condition.types.first;
+        }
+      }
     }
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
@@ -728,6 +741,15 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       ),
                       const SizedBox(height: 24),
 
+                      DiveFilterGearAttributesSection(
+                        category: _gearCategory,
+                        conditions: _gearConditions,
+                        onChanged: (category, conditions) => setState(() {
+                          _gearCategory = category;
+                          _gearConditions = conditions;
+                        }),
+                      ),
+
                       // Tags Section
                       Text(
                         context.l10n.diveLog_filter_sectionTags,
@@ -1246,11 +1268,14 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
       minBottomTimeMinutes: _minDurationMinutes,
       maxBottomTimeMinutes: _maxDurationMinutes,
       computerId: _resolveComputerId(),
-      equipmentAttrKey: (_suitThicknessMin != null || _suitThicknessMax != null)
-          ? 'thickness_mm'
-          : null,
-      equipmentAttrMin: _suitThicknessMin,
-      equipmentAttrMax: _suitThicknessMax,
+      equipmentAttrConditions: [
+        if (_suitThicknessMin != null || _suitThicknessMax != null)
+          EquipmentAttrCondition.suitThickness(
+            min: _suitThicknessMin,
+            max: _suitThicknessMax,
+          ),
+        ..._gearConditions,
+      ],
     );
     Navigator.of(context).pop();
   }

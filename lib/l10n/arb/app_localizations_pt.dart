@@ -12221,6 +12221,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_list_activeFilter_clear => 'Limpar';
 
   @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
   String get equipment_filter_title => 'Filtrar Equipamento';
 
   @override
@@ -26318,6 +26323,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Comprimento da mangueira';
 
   @override
+  String get attrLabel_hose_type => 'Tipo de mangueira';
+
+  @override
   String get attrLabel_plate_material => 'Material da placa';
 
   @override
@@ -26654,6 +26662,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Garra (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (baixa pressão)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (alta pressão)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflador (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Colete';
 
   @override
@@ -26923,6 +26940,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Espessura da roupa (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Atributos do equipamento';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Categoria de equipamento';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Qualquer categoria';
 
   @override
   String get diveLog_filter_thicknessMin => 'Mín';

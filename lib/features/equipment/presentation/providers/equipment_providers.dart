@@ -48,6 +48,9 @@ final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // The list filters on hydrated attributes (#1805), and saveAttributes
+  // or a sync pull writes only equipment_attributes.
+  ref.invalidateSelfWhen(repository.watchAttributeChanges());
   return repository.getActiveEquipment(diverId: validatedDiverId);
 });
 
@@ -74,6 +77,9 @@ final equipmentByStatusProvider =
         validatedCurrentDiverIdProvider.future,
       );
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // The list filters on hydrated attributes (#1805), and saveAttributes
+      // or a sync pull writes only equipment_attributes.
+      ref.invalidateSelfWhen(repository.watchAttributeChanges());
       if (status == null) {
         return repository.getAllEquipment(diverId: validatedDiverId);
       }
@@ -93,6 +99,9 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   );
 
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // The list filters on hydrated attributes (#1805), and saveAttributes
+  // or a sync pull writes only equipment_attributes.
+  ref.invalidateSelfWhen(repository.watchAttributeChanges());
 
   return repository.getAllEquipment(diverId: validatedDiverId);
 });
