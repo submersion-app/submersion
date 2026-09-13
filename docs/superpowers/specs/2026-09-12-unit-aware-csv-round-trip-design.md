@@ -261,10 +261,12 @@ otherwise grow):
 - Dives: read `windSpeed`, `windDirection`, `cloudCover`, `precipitation`,
   `humidity`, `weatherDescription` and `customFields` from the dive map.
   `createDive` already persists all of them.
-- Enums used by the exports gain `fromDisplayName` lookups (`WaterType`,
-  `EntryMethod`, `EquipmentType`, `Visibility`, `CurrentDirection`,
-  `CloudCover`, `Precipitation`). Their display names are constant English
-  strings, so the lookups are exact.
+- One generic display-name lookup (`enumByDisplayName`, falling back to
+  `.name`) serves every enum the exports write by display name
+  (`WaterType`, `EntryMethod`, `EquipmentType`, `Visibility`,
+  `CurrentDirection`, `CloudCover`, `Precipitation`), instead of growing
+  `enums.dart`. Their display names are constant English strings, so the
+  lookup is exact.
 
 Duplicate handling is unchanged: sites match by name then 100 m, equipment
 by name and type, dives by time, depth and duration, and the review step
