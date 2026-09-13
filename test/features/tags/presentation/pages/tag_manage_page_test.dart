@@ -737,6 +737,8 @@ void main() {
         find.widgetWithText(TextField, 'Photography'),
         'Macro Photography',
       );
+      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey('tag_edit_delete')));
       await tester.pumpAndSettle();
       expect(
@@ -757,6 +759,47 @@ void main() {
         find.widgetWithText(TextField, 'Macro Photography'),
         findsOneWidget,
       );
+
+      // Saving now proves both pieces of editor state survived, the color as
+      // well as the name.
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(notifier.updated.single.name, 'Macro Photography');
+      expect(notifier.updated.single.colorHex, '#22C55E');
+    });
+
+    testWidgets('a failed delete is logged, not left as an uncaught error', (
+      tester,
+    ) async {
+      final notifier = _FailingDeleteTagListNotifier(
+        _tagsFromStats(_testStats),
+      );
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEditor(tester, 'tag1');
+      await tester.tap(find.byKey(const ValueKey('tag_edit_delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(confirmationButton('Delete'));
+      await tester.pumpAndSettle();
+
+      // onPressed cannot await, so the delete must carry its own listener,
+      // as the selection bar's dispatch does. Unlistened, the failure would
+      // surface here as an uncaught error.
+      expect(tester.takeException(), isNull);
+      expect(find.byType(AlertDialog), findsNothing);
     });
   });
+}
+
+/// A notifier whose single-tag delete fails, as a repository or sync failure
+/// would.
+class _FailingDeleteTagListNotifier extends _MockTagListNotifier {
+  _FailingDeleteTagListNotifier(super.tags);
+
+  @override
+  Future<void> deleteTag(String id) async =>
+      throw StateError('delete failed for $id');
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -353,16 +354,13 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           actions: [
             TextButton(
               key: const ValueKey('tag_edit_delete'),
-              onPressed: () async {
-                // The confirmation stacks over the editor, so cancelling it
-                // returns here with any unsaved edits intact.
-                if (!await _confirmDeleteTag(dialogContext, stat)) return;
-                if (!dialogContext.mounted) return;
-                Navigator.pop(dialogContext);
-                await ref
-                    .read(tagListNotifierProvider.notifier)
-                    .deleteTag(tag.id);
-              },
+              // onPressed cannot await, so the flow carries its own listener,
+              // as the selection bar's dispatch does.
+              onPressed: () => logFailure(
+                _deleteFromEditor(dialogContext, stat),
+                TagManagePage,
+                'delete a tag from its edit dialog',
+              ),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: Text(context.l10n.common_action_delete),
             ),
@@ -398,6 +396,20 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         ),
       ),
     );
+  }
+
+  /// Deletes [stat]'s tag from its edit dialog, once the diver confirms.
+  ///
+  /// The confirmation stacks over the editor, so cancelling it returns there
+  /// with any unsaved edits intact.
+  Future<void> _deleteFromEditor(
+    BuildContext dialogContext,
+    TagStatistic stat,
+  ) async {
+    if (!await _confirmDeleteTag(dialogContext, stat)) return;
+    if (!dialogContext.mounted) return;
+    Navigator.pop(dialogContext);
+    await ref.read(tagListNotifierProvider.notifier).deleteTag(stat.tag.id);
   }
 
   // -- Selection mode --
