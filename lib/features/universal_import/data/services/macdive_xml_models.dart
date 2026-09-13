@@ -113,7 +113,9 @@ class MacDiveXmlDive {
   /// Dive-computer serial number.
   final String? serial;
 
-  /// Owner/diver name (rarely populated in MacDive XML).
+  /// The diver who logged the dive. MacDive fills it on every dive it
+  /// attributes to a diver and leaves it empty otherwise, exactly matching
+  /// `ZDIVE.ZRELATIONSHIPDIVER` in MacDive.sqlite (#1893).
   final String? diver;
 
   final MacDiveXmlSite? site;
