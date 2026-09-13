@@ -474,6 +474,21 @@ class DivePlanRepository {
             ? jsonEncode(plan.plannedWeightPlacement)
             : null,
       ),
+      stopMinimumsJson: Value(
+        plan.stopMinimums.isNotEmpty
+            ? jsonEncode(
+                plan.stopMinimums.map(
+                  (depth, seconds) => MapEntry(depth.toString(), seconds),
+                ),
+              )
+            : null,
+      ),
+      sacFactor: Value(plan.sacFactor),
+      problemSolvingMinutes: Value(plan.problemSolvingMinutes),
+      ppO2Bottom: Value(plan.ppO2Bottom),
+      ppO2Deco: Value(plan.ppO2Deco),
+      bestMixEndMeters: Value(plan.bestMixEndMeters),
+      o2Narcotic: Value(plan.o2Narcotic),
       summaryMaxDepth: summary != null
           ? Value(summary.maxDepth)
           : const Value.absent(),
@@ -620,6 +635,12 @@ class DivePlanRepository {
           ? domain.TurnPressureRule.values.byName(row.turnPressureRule!)
           : null,
       turnPressureFraction: row.turnPressureFraction,
+      sacFactor: row.sacFactor,
+      problemSolvingMinutes: row.problemSolvingMinutes,
+      ppO2Bottom: row.ppO2Bottom,
+      ppO2Deco: row.ppO2Deco,
+      bestMixEndMeters: row.bestMixEndMeters,
+      o2Narcotic: row.o2Narcotic,
       equipmentIds: equipmentIds,
       gearProvenance: gearProvenance,
       plannedWeightKg: row.plannedWeightKg,
@@ -627,6 +648,11 @@ class DivePlanRepository {
           ? (jsonDecode(row.plannedWeightPlacement!) as Map<String, dynamic>)
                 .map((k, v) => MapEntry(k, (v as num).toDouble()))
           : null,
+      stopMinimums: row.stopMinimumsJson != null
+          ? (jsonDecode(row.stopMinimumsJson!) as Map<String, dynamic>).map(
+              (k, v) => MapEntry(int.parse(k), (v as num).toInt()),
+            )
+          : const {},
       tanks: tankRows
           .map(
             (t) => DiveTank(

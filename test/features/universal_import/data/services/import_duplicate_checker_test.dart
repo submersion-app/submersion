@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -12,6 +15,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/gear_extractor.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
@@ -293,6 +297,39 @@ void main() {
             id: '1',
             name: '7mm Wetsuit',
             type: EquipmentType.wetsuit,
+          ),
+        ],
+      );
+
+      expect(result.duplicates[ImportEntityType.equipment], {0});
+    });
+
+    // The key is name|type, so a raw MacDive XML type ("BCD - Wing") never
+    // matched the classified type the first import stored, and every
+    // re-import created a twin.
+    test('re-imported MacDive XML gear matches the stored item', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <gear>
+      <item><type>BCD - Wing</type><name>Hog Wing</name></item>
+    </gear>
+    <samples/>
+  </dive>
+</dives>''';
+      final payload = await const MacDiveXmlParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+
+      final result = checkWith(
+        payload: payload,
+        equipment: [
+          const EquipmentItem(
+            id: '1',
+            name: 'Hog Wing',
+            type: EquipmentType.bcd,
           ),
         ],
       );

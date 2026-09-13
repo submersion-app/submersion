@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
+import 'package:submersion/core/deco/schedule_policy.dart';
 
 void main() {
   group('BuhlmannAlgorithm', () {
@@ -544,6 +546,133 @@ void main() {
         expect(tts, greaterThan(0));
         // TTS should be at least enough for 45m ascent at 9m/min
         expect(tts, greaterThanOrEqualTo((45 / 9 * 60).round()));
+      });
+    });
+
+    group('minStopSecondsByDepth', () {
+      DecoStop? stopAt(List<DecoStop> stops, double depth) {
+        for (final stop in stops) {
+          if (stop.depthMeters.round() == depth.round()) return stop;
+        }
+        return null;
+      }
+
+      test('a minimum longer than the computed stop lengthens it without '
+          'growing TTS by more than the added time', () {
+        algorithm.calculateSegment(
+          depthMeters: 45,
+          durationSeconds: 30 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final baseline = algorithm.calculateDecoSchedule(
+          currentDepth: 45,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final baselineTts = algorithm.calculateTts(currentDepth: 45);
+
+        algorithm.reset();
+        algorithm.calculateSegment(
+          depthMeters: 45,
+          durationSeconds: 30 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final targetDepth = baseline.last.depthMeters;
+        final naturalSeconds = stopAt(baseline, targetDepth)!.durationSeconds;
+        const extra = 5 * 60;
+        final stops = algorithm.calculateDecoSchedule(
+          currentDepth: 45,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+          policy: SchedulePolicy(
+            minStopSecondsByDepth: {
+              targetDepth.round(): naturalSeconds + extra,
+            },
+          ),
+        );
+        final tts = algorithm.calculateTts(currentDepth: 45);
+
+        final grown = stopAt(stops, targetDepth)!;
+        expect(grown.durationSeconds, naturalSeconds + extra);
+        expect(tts - baselineTts, lessThanOrEqualTo(extra));
+      });
+
+      test('a minimum shorter than the computed stop changes nothing', () {
+        algorithm.calculateSegment(
+          depthMeters: 45,
+          durationSeconds: 30 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final baseline = algorithm.calculateDecoSchedule(
+          currentDepth: 45,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+
+        algorithm.reset();
+        algorithm.calculateSegment(
+          depthMeters: 45,
+          durationSeconds: 30 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final targetDepth = baseline.last.depthMeters;
+        final naturalSeconds = stopAt(baseline, targetDepth)!.durationSeconds;
+        final stops = algorithm.calculateDecoSchedule(
+          currentDepth: 45,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+          policy: SchedulePolicy(
+            minStopSecondsByDepth: {
+              targetDepth.round(): (naturalSeconds - 30).clamp(
+                0,
+                naturalSeconds,
+              ),
+            },
+          ),
+        );
+
+        expect(stopAt(stops, targetDepth)!.durationSeconds, naturalSeconds);
+      });
+
+      test('a minimum at a depth that is not a stop invents no new stop', () {
+        algorithm.calculateSegment(
+          depthMeters: 45,
+          durationSeconds: 30 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final baseline = algorithm.calculateDecoSchedule(
+          currentDepth: 45,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final baselineDepths = baseline
+            .map((s) => s.depthMeters.round())
+            .toSet();
+        final nonStopDepth = List.generate(
+          60,
+          (i) => i,
+        ).firstWhere((d) => !baselineDepths.contains(d) && d > 0);
+
+        algorithm.reset();
+        algorithm.calculateSegment(
+          depthMeters: 45,
+          durationSeconds: 30 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        final stops = algorithm.calculateDecoSchedule(
+          currentDepth: 45,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+          policy: SchedulePolicy(minStopSecondsByDepth: {nonStopDepth: 600}),
+        );
+
+        expect(stops.map((s) => s.depthMeters.round()).toSet(), baselineDepths);
       });
     });
 
