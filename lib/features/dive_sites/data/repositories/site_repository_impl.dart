@@ -11,6 +11,8 @@ import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
@@ -48,8 +50,30 @@ class SiteRepository {
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final SiteClassificationRepository _classification =
+      SiteClassificationRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(SiteRepository);
+
+  /// Writes [classification] for [siteId] inside the caller's transaction;
+  /// the caller notifies sync once afterwards. A null classification writes
+  /// nothing (issue #1765).
+  Future<void> _writeClassification(
+    String siteId,
+    SiteClassification? classification,
+  ) async {
+    if (classification == null) return;
+    await _classification.replaceTypes(
+      siteId,
+      classification.typeIds,
+      notify: false,
+    );
+    await _classification.replaceTags(
+      siteId,
+      classification.tagIds,
+      notify: false,
+    );
+  }
 
   /// Get all sites ordered by name
   Future<List<domain.DiveSite>> getAllSites({String? diverId}) async {
@@ -91,52 +115,59 @@ class SiteRepository {
     }
   }
 
-  /// Create a new site
-  Future<domain.DiveSite> createSite(domain.DiveSite site) async {
+  /// Create a new site. A [classification] (issue #1765) is written in the
+  /// same transaction, so a failure leaves neither the row nor its links.
+  Future<domain.DiveSite> createSite(
+    domain.DiveSite site, {
+    SiteClassification? classification,
+  }) async {
     try {
       _log.info('Creating site: ${site.name}');
       final id = site.id.isEmpty ? _uuid.v4() : site.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db
-          .into(_db.diveSites)
-          .insert(
-            DiveSitesCompanion(
-              id: Value(id),
-              diverId: Value(site.diverId),
-              name: Value(site.name),
-              description: Value(site.description),
-              latitude: Value(site.location?.latitude),
-              longitude: Value(site.location?.longitude),
-              minDepth: Value(site.minDepth),
-              maxDepth: Value(site.maxDepth),
-              difficulty: Value(site.difficulty?.name),
-              waterType: Value(site.waterType?.name),
-              country: Value(site.country),
-              region: Value(site.region),
-              city: Value(site.city),
-              island: Value(site.island),
-              bodyOfWater: Value(site.bodyOfWater),
-              rating: Value(site.rating),
-              notes: Value(site.notes),
-              hazards: Value(site.hazards),
-              accessNotes: Value(site.accessNotes),
-              mooringNumber: Value(site.mooringNumber),
-              parkingInfo: Value(site.parkingInfo),
-              altitude: Value(site.altitude),
-              entryMethod: Value(site.entryMethod?.name),
-              exitMethod: Value(site.exitMethod?.name),
-              isShared: Value(site.isShared),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-            ),
-          );
+      await _db.transaction(() async {
+        await _db
+            .into(_db.diveSites)
+            .insert(
+              DiveSitesCompanion(
+                id: Value(id),
+                diverId: Value(site.diverId),
+                name: Value(site.name),
+                description: Value(site.description),
+                latitude: Value(site.location?.latitude),
+                longitude: Value(site.location?.longitude),
+                minDepth: Value(site.minDepth),
+                maxDepth: Value(site.maxDepth),
+                difficulty: Value(site.difficulty?.name),
+                waterType: Value(site.waterType?.name),
+                country: Value(site.country),
+                region: Value(site.region),
+                city: Value(site.city),
+                island: Value(site.island),
+                bodyOfWater: Value(site.bodyOfWater),
+                rating: Value(site.rating),
+                notes: Value(site.notes),
+                hazards: Value(site.hazards),
+                accessNotes: Value(site.accessNotes),
+                mooringNumber: Value(site.mooringNumber),
+                parkingInfo: Value(site.parkingInfo),
+                altitude: Value(site.altitude),
+                entryMethod: Value(site.entryMethod?.name),
+                exitMethod: Value(site.exitMethod?.name),
+                isShared: Value(site.isShared),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
 
-      await _syncRepository.markRecordPending(
-        entityType: 'diveSites',
-        recordId: id,
-        localUpdatedAt: now,
-      );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveSites',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+        await _writeClassification(id, classification);
+      });
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created site with id: $id');
@@ -151,8 +182,15 @@ class SiteRepository {
     }
   }
 
-  /// Update an existing site
-  Future<void> updateSite(domain.DiveSite site) => _writeSiteUpdate(site);
+  /// Update an existing site. With a [classification] (issue #1765) the
+  /// site's types and tags become exactly those, in the same transaction.
+  /// Without one the junctions are never touched: several callers pass a
+  /// partially loaded site (#1187), and none of them may clear its types or
+  /// tags.
+  Future<void> updateSite(
+    domain.DiveSite site, {
+    SiteClassification? classification,
+  }) => _writeSiteUpdate(site, classification: classification);
 
   /// Update an existing site and, in the same statement, apply importer-only
   /// columns that do not flow through the [domain.DiveSite] entity.
@@ -173,6 +211,7 @@ class SiteRepository {
   Future<void> _writeSiteUpdate(
     domain.DiveSite site, {
     DiveSitesCompanion? metadataPatch,
+    SiteClassification? classification,
   }) async {
     try {
       _log.info('Updating site: ${site.id}');
@@ -217,14 +256,17 @@ class SiteRepository {
         }
       }
 
-      await (_db.update(
-        _db.diveSites,
-      )..where((t) => t.id.equals(site.id))).write(companion);
-      await _syncRepository.markRecordPending(
-        entityType: 'diveSites',
-        recordId: site.id,
-        localUpdatedAt: now,
-      );
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.diveSites,
+        )..where((t) => t.id.equals(site.id))).write(companion);
+        await _syncRepository.markRecordPending(
+          entityType: 'diveSites',
+          recordId: site.id,
+          localUpdatedAt: now,
+        );
+        await _writeClassification(site.id, classification);
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Updated site: ${site.id}');
     } catch (e, stackTrace) {
@@ -594,6 +636,10 @@ class SiteRepository {
           )
           .toList(growable: false);
 
+      // Every merged site's types and tags, for undo (issue #1765).
+      final typeIdsBySite = await _classification.getTypeIdsBySite(orderedIds);
+      final tagIdsBySite = await _classification.getTagIdsBySite(orderedIds);
+
       await _db.transaction(() async {
         await _updateSiteRow(survivorSite, now);
         await _syncRepository.markRecordPending(
@@ -610,6 +656,9 @@ class SiteRepository {
           survivorId: survivorId,
           now: now,
         );
+        // Before the duplicate rows go: deleting them would cascade the
+        // links away.
+        await _classification.relinkForMerge(duplicateIds, survivorId);
 
         for (final duplicateId in duplicateIds) {
           await (_db.delete(
@@ -656,6 +705,8 @@ class SiteRepository {
             if (siteTimestamps.containsKey(id)) id: siteTimestamps[id]!,
         },
         survivorTimestamps: siteTimestamps[survivorId],
+        siteTypeIdsBySite: typeIdsBySite,
+        siteTagIdsBySite: tagIdsBySite,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -729,6 +780,25 @@ class SiteRepository {
             entityType: 'diveSites',
             recordId: site.id,
             localUpdatedAt: now,
+          );
+        }
+
+        // 2b. Put back every merged site's types and tags (issue #1765).
+        // The sites exist again, so their junction rows can.
+        final restoredIds = {
+          snapshot.originalSurvivor.id,
+          for (final s in snapshot.deletedSites) s.id,
+        };
+        for (final siteId in restoredIds) {
+          await _classification.replaceTypes(
+            siteId,
+            snapshot.siteTypeIdsBySite[siteId] ?? const [],
+            notify: false,
+          );
+          await _classification.replaceTags(
+            siteId,
+            snapshot.siteTagIdsBySite[siteId] ?? const [],
+            notify: false,
           );
         }
 
@@ -960,6 +1030,10 @@ class SiteRepository {
         final sites = await getAllSites(diverId: diverId);
         final aggregates = await getDiveAggregatesBySite();
         final featureTypes = await getFeatureTypesBySite();
+        // Two grouped reads for every site at once (issue #1765), so the
+        // list's statement count does not grow with the number of sites.
+        final typesBySite = await _classification.getTypesBySite();
+        final tagsBySite = await _classification.getTagsBySite();
 
         return sites.map((site) {
           final a = aggregates[site.id];
@@ -973,6 +1047,8 @@ class SiteRepository {
             longestDiveSeconds: a?.longestDiveSeconds,
             averageDurationSeconds: a?.averageDurationSeconds,
             featureTypes: featureTypes[site.id] ?? const [],
+            siteTypes: typesBySite[site.id] ?? const [],
+            tags: tagsBySite[site.id] ?? const [],
           );
         }).toList()..sort((a, b) => b.diveCount.compareTo(a.diveCount));
       });
@@ -1199,6 +1275,11 @@ class MergeSnapshot {
   /// Original createdAt/updatedAt for the survivor site before merge.
   final ({int createdAt, int updatedAt})? survivorTimestamps;
 
+  /// Each merged site's type ids and tag ids before the merge (issue #1765),
+  /// so undo can put every site's classification back.
+  final Map<String, List<String>> siteTypeIdsBySite;
+  final Map<String, List<String>> siteTagIdsBySite;
+
   const MergeSnapshot({
     required this.originalSurvivor,
     required this.deletedSites,
@@ -1209,6 +1290,8 @@ class MergeSnapshot {
     required this.modifiedSpeciesEntries,
     this.deletedSiteTimestamps = const {},
     this.survivorTimestamps,
+    this.siteTypeIdsBySite = const {},
+    this.siteTagIdsBySite = const {},
   });
 }
 
