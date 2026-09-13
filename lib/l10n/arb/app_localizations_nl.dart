@@ -1481,6 +1481,180 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_label_notSpecified => 'Niet opgegeven';
 
   @override
+  String get buddies_linkText_action => 'Koppelen aan buddy-records';
+
+  @override
+  String get buddies_linkText_addName => 'Naam toevoegen';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'Bestaande buddy kiezen';
+
+  @override
+  String get buddies_linkText_editName => 'Naam bewerken';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Buddies konden niet worden gekoppeld: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count koppelen',
+      one: '1 koppelen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddies gekoppeld',
+      one: '1 buddy gekoppeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Naam';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Omgezet uit de buddytekst van een duik';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Geen buddies gevonden';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Elke buddynaam is aan een buddy-record gekoppeld';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Duiken konden niet worden geladen: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken koppelen',
+      one: '1 duik koppelen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Buddies gekoppeld bij $count duiken',
+      one: 'Buddies gekoppeld bij 1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Buddynamen van geïmporteerde duiken omzetten in buddy-records';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestaande buddies',
+      one: '1 bestaande buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nieuwe buddies',
+      one: '1 nieuwe buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Buddynamen koppelen';
+
+  @override
+  String get buddies_linkText_searchHint => 'Buddies zoeken';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Buddy-records koppelen';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Uit “$text”';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Divemaster “$text”';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Bestaande buddy';
+
+  @override
+  String get buddies_linkText_statusNew => 'Nieuwe buddy';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Bedoel je $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddies met de naam $name',
+      one: '1 buddy met de naam $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Buddykoppelingen verwijderd';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Gebruiken';
+
+  @override
   String get buddies_message_added => 'Buddy succesvol toegevoegd';
 
   @override

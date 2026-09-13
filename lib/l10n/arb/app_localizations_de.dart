@@ -1490,6 +1490,181 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_label_notSpecified => 'Nicht angegeben';
 
   @override
+  String get buddies_linkText_action => 'Mit Tauchpartner-Einträgen verknüpfen';
+
+  @override
+  String get buddies_linkText_addName => 'Namen hinzufügen';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting =>
+      'Vorhandenen Tauchpartner wählen';
+
+  @override
+  String get buddies_linkText_editName => 'Namen bearbeiten';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Tauchpartner konnten nicht verknüpft werden: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verknüpfen',
+      one: '1 verknüpfen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchpartner verknüpft',
+      one: '1 Tauchpartner verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Name';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Aus dem Tauchpartner-Text eines Tauchgangs übernommen';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Keine Tauchpartner gefunden';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Alle Tauchpartner-Namen sind mit Einträgen verknüpft';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Tauchgänge konnten nicht geladen werden: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge verknüpfen',
+      one: '1 Tauchgang verknüpfen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tauchpartner bei $count Tauchgängen verknüpft',
+      one: 'Tauchpartner bei 1 Tauchgang verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Tauchpartner-Namen importierter Tauchgänge in Einträge umwandeln';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vorhandene Tauchpartner',
+      one: '1 vorhandener Tauchpartner',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count neue Tauchpartner',
+      one: '1 neuer Tauchpartner',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Tauchpartner-Namen verknüpfen';
+
+  @override
+  String get buddies_linkText_searchHint => 'Tauchpartner suchen';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Tauchpartner-Einträge verknüpfen';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Aus „$text“';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Divemaster „$text“';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Vorhandener Tauchpartner';
+
+  @override
+  String get buddies_linkText_statusNew => 'Neuer Tauchpartner';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Meinst du $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchpartner namens $name',
+      one: '1 Tauchpartner namens $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Tauchpartner-Verknüpfungen entfernt';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Übernehmen';
+
+  @override
   String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';
 
   @override

@@ -1475,6 +1475,178 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_label_notSpecified => 'غير محدد';
 
   @override
+  String get buddies_linkText_action => 'ربط بسجلات الرفاق';
+
+  @override
+  String get buddies_linkText_addName => 'إضافة اسم';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'اختيار رفيق موجود';
+
+  @override
+  String get buddies_linkText_editName => 'تعديل الاسم';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'تعذر ربط الرفاق: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ربط $count',
+      one: 'ربط 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط $count رفيق',
+      one: 'تم ربط رفيق واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'الاسم';
+
+  @override
+  String get buddies_linkText_newBuddyNote => 'تم التحويل من نص الرفيق في غطسة';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'لم يتم العثور على رفاق';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty => 'كل أسماء الرفاق مرتبطة بسجل رفيق';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'تعذر تحميل الغطسات: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ربط $count غطسة',
+      one: 'ربط غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط الرفاق في $count غطسة',
+      one: 'تم ربط الرفاق في غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'تحويل أسماء الرفاق في الغطسات المستوردة إلى سجلات رفاق';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رفيق موجود',
+      one: 'رفيق موجود واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رفيق جديد',
+      one: 'رفيق جديد واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'ربط أسماء الرفاق';
+
+  @override
+  String get buddies_linkText_searchHint => 'البحث عن رفاق';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'ربط سجلات الرفاق';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'من «$text»';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'دايف ماستر «$text»';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'رفيق موجود';
+
+  @override
+  String get buddies_linkText_statusNew => 'رفيق جديد';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'هل تقصد $name؟';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رفيق باسم $name',
+      one: 'رفيق واحد باسم $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'تمت إزالة روابط الرفاق';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'استخدام';
+
+  @override
   String get buddies_message_added => 'تمت إضافة الرفيق بنجاح';
 
   @override

@@ -1402,6 +1402,169 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_label_notSpecified => '未指定';
 
   @override
+  String get buddies_linkText_action => '关联到潜伴记录';
+
+  @override
+  String get buddies_linkText_addName => '添加名字';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => '选择已有潜伴';
+
+  @override
+  String get buddies_linkText_editName => '编辑名字';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return '无法关联潜伴：$error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '关联 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已关联 $count 位潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => '名字';
+
+  @override
+  String get buddies_linkText_newBuddyNote => '由潜水记录中的潜伴文本转换而来';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => '未找到潜伴';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty => '所有潜伴名字都已关联到潜伴记录';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return '无法加载潜水记录：$error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '关联 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已为 $count 次潜水关联潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle => '将导入潜水中的潜伴名字转换为潜伴记录';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位已有潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位新潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => '关联潜伴名字';
+
+  @override
+  String get buddies_linkText_searchHint => '搜索潜伴';
+
+  @override
+  String get buddies_linkText_sheetTitle => '关联潜伴记录';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return '来自“$text”';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return '潜水长“$text”';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => '已有潜伴';
+
+  @override
+  String get buddies_linkText_statusNew => '新潜伴';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return '您是指 $name 吗？';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位名为 $name 的潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => '已移除潜伴关联';
+
+  @override
+  String get buddies_linkText_useSuggestion => '使用';
+
+  @override
   String get buddies_message_added => '潜伴添加成功';
 
   @override

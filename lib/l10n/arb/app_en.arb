@@ -909,6 +909,151 @@
   "buddies_label_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "buddies_label_level": "Level",
   "buddies_label_notSpecified": "Not specified",
+  "buddies_linkText_action": "Link to buddy records",
+  "buddies_linkText_addName": "Add a name",
+  "buddies_linkText_chipWithRole": "{name} · {role}",
+  "@buddies_linkText_chipWithRole": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_chooseExisting": "Choose existing buddy",
+  "buddies_linkText_editName": "Edit name",
+  "buddies_linkText_error": "Could not link buddies: {error}",
+  "@buddies_linkText_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_linkCount": "{count, plural, =1{Link 1} other{Link {count}}}",
+  "@buddies_linkText_linkCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_linkedSnackbar": "{count, plural, =1{Linked 1 buddy} other{Linked {count} buddies}}",
+  "@buddies_linkText_linkedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_nameLabel": "Name",
+  "buddies_linkText_newBuddyNote": "Converted from dive buddy text",
+  "@buddies_linkText_newBuddyNote": {
+    "description": "Notes stored on a buddy created from a dive's legacy buddy text"
+  },
+  "buddies_linkText_noBuddiesFound": "No buddies found",
+  "buddies_linkText_page_diveNumber": "#{number}",
+  "@buddies_linkText_page_diveNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_empty": "Every buddy name is linked to a buddy record",
+  "buddies_linkText_page_errorLoading": "Could not load dives: {error}",
+  "@buddies_linkText_page_errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_page_linkDives": "{count, plural, =1{Link 1 dive} other{Link {count} dives}}",
+  "@buddies_linkText_page_linkDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_linkedSnackbar": "{count, plural, =1{Linked buddies on 1 dive} other{Linked buddies on {count} dives}}",
+  "@buddies_linkText_page_linkedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_subtitle": "Turn buddy names on imported dives into buddy records",
+  "buddies_linkText_page_summaryDives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@buddies_linkText_page_summaryDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_summaryExisting": "{count, plural, =1{1 existing buddy} other{{count} existing buddies}}",
+  "@buddies_linkText_page_summaryExisting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_summaryNew": "{count, plural, =1{1 new buddy} other{{count} new buddies}}",
+  "@buddies_linkText_page_summaryNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_title": "Link buddy names",
+  "buddies_linkText_searchHint": "Search buddies",
+  "buddies_linkText_sheetTitle": "Link buddy records",
+  "buddies_linkText_sourceBuddy": "From \"{text}\"",
+  "@buddies_linkText_sourceBuddy": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_sourceDiveMaster": "Dive master \"{text}\"",
+  "@buddies_linkText_sourceDiveMaster": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_statusExisting": "Existing buddy",
+  "buddies_linkText_statusNew": "New buddy",
+  "buddies_linkText_suggestion": "Did you mean {name}?",
+  "@buddies_linkText_suggestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_tie": "{count, plural, =1{1 buddy named {name}} other{{count} buddies named {name}}}",
+  "@buddies_linkText_tie": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_undone": "Buddy links removed",
+  "buddies_linkText_useSuggestion": "Use",
   "buddies_message_added": "Buddy added successfully",
   "buddies_message_contactImportUnavailable": "Contact import is not available on this platform",
   "buddies_message_contactLoadFailed": "Failed to load contacts",

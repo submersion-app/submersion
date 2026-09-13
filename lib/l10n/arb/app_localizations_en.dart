@@ -1467,6 +1467,179 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_label_notSpecified => 'Not specified';
 
   @override
+  String get buddies_linkText_action => 'Link to buddy records';
+
+  @override
+  String get buddies_linkText_addName => 'Add a name';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'Choose existing buddy';
+
+  @override
+  String get buddies_linkText_editName => 'Edit name';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Could not link buddies: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Link $count',
+      one: 'Link 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linked $count buddies',
+      one: 'Linked 1 buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Name';
+
+  @override
+  String get buddies_linkText_newBuddyNote => 'Converted from dive buddy text';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'No buddies found';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Every buddy name is linked to a buddy record';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Could not load dives: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Link $count dives',
+      one: 'Link 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linked buddies on $count dives',
+      one: 'Linked buddies on 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Turn buddy names on imported dives into buddy records';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count existing buddies',
+      one: '1 existing buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new buddies',
+      one: '1 new buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Link buddy names';
+
+  @override
+  String get buddies_linkText_searchHint => 'Search buddies';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Link buddy records';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'From \"$text\"';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Dive master \"$text\"';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Existing buddy';
+
+  @override
+  String get buddies_linkText_statusNew => 'New buddy';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Did you mean $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddies named $name',
+      one: '1 buddy named $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Buddy links removed';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Use';
+
+  @override
   String get buddies_message_added => 'Buddy added successfully';
 
   @override

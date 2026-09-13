@@ -2461,6 +2461,192 @@ abstract class AppLocalizations {
   /// **'Not specified'**
   String get buddies_label_notSpecified;
 
+  /// No description provided for @buddies_linkText_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to buddy records'**
+  String get buddies_linkText_action;
+
+  /// No description provided for @buddies_linkText_addName.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a name'**
+  String get buddies_linkText_addName;
+
+  /// No description provided for @buddies_linkText_chipWithRole.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {role}'**
+  String buddies_linkText_chipWithRole(String name, String role);
+
+  /// No description provided for @buddies_linkText_chooseExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose existing buddy'**
+  String get buddies_linkText_chooseExisting;
+
+  /// No description provided for @buddies_linkText_editName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get buddies_linkText_editName;
+
+  /// No description provided for @buddies_linkText_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not link buddies: {error}'**
+  String buddies_linkText_error(String error);
+
+  /// No description provided for @buddies_linkText_linkCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Link 1} other{Link {count}}}'**
+  String buddies_linkText_linkCount(int count);
+
+  /// No description provided for @buddies_linkText_linkedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Linked 1 buddy} other{Linked {count} buddies}}'**
+  String buddies_linkText_linkedSnackbar(int count);
+
+  /// No description provided for @buddies_linkText_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get buddies_linkText_nameLabel;
+
+  /// Notes stored on a buddy created from a dive's legacy buddy text
+  ///
+  /// In en, this message translates to:
+  /// **'Converted from dive buddy text'**
+  String get buddies_linkText_newBuddyNote;
+
+  /// No description provided for @buddies_linkText_noBuddiesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No buddies found'**
+  String get buddies_linkText_noBuddiesFound;
+
+  /// No description provided for @buddies_linkText_page_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}'**
+  String buddies_linkText_page_diveNumber(int number);
+
+  /// No description provided for @buddies_linkText_page_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Every buddy name is linked to a buddy record'**
+  String get buddies_linkText_page_empty;
+
+  /// No description provided for @buddies_linkText_page_errorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load dives: {error}'**
+  String buddies_linkText_page_errorLoading(String error);
+
+  /// No description provided for @buddies_linkText_page_linkDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Link 1 dive} other{Link {count} dives}}'**
+  String buddies_linkText_page_linkDives(int count);
+
+  /// No description provided for @buddies_linkText_page_linkedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Linked buddies on 1 dive} other{Linked buddies on {count} dives}}'**
+  String buddies_linkText_page_linkedSnackbar(int count);
+
+  /// No description provided for @buddies_linkText_page_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn buddy names on imported dives into buddy records'**
+  String get buddies_linkText_page_subtitle;
+
+  /// No description provided for @buddies_linkText_page_summaryDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String buddies_linkText_page_summaryDives(int count);
+
+  /// No description provided for @buddies_linkText_page_summaryExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 existing buddy} other{{count} existing buddies}}'**
+  String buddies_linkText_page_summaryExisting(int count);
+
+  /// No description provided for @buddies_linkText_page_summaryNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new buddy} other{{count} new buddies}}'**
+  String buddies_linkText_page_summaryNew(int count);
+
+  /// No description provided for @buddies_linkText_page_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Link buddy names'**
+  String get buddies_linkText_page_title;
+
+  /// No description provided for @buddies_linkText_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search buddies'**
+  String get buddies_linkText_searchHint;
+
+  /// No description provided for @buddies_linkText_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link buddy records'**
+  String get buddies_linkText_sheetTitle;
+
+  /// No description provided for @buddies_linkText_sourceBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'From \"{text}\"'**
+  String buddies_linkText_sourceBuddy(String text);
+
+  /// No description provided for @buddies_linkText_sourceDiveMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive master \"{text}\"'**
+  String buddies_linkText_sourceDiveMaster(String text);
+
+  /// No description provided for @buddies_linkText_statusExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing buddy'**
+  String get buddies_linkText_statusExisting;
+
+  /// No description provided for @buddies_linkText_statusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New buddy'**
+  String get buddies_linkText_statusNew;
+
+  /// No description provided for @buddies_linkText_suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean {name}?'**
+  String buddies_linkText_suggestion(String name);
+
+  /// No description provided for @buddies_linkText_tie.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 buddy named {name}} other{{count} buddies named {name}}}'**
+  String buddies_linkText_tie(int count, String name);
+
+  /// No description provided for @buddies_linkText_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy links removed'**
+  String get buddies_linkText_undone;
+
+  /// No description provided for @buddies_linkText_useSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get buddies_linkText_useSuggestion;
+
   /// No description provided for @buddies_message_added.
   ///
   /// In en, this message translates to:

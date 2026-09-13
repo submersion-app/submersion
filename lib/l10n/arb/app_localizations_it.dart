@@ -1493,6 +1493,180 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_label_notSpecified => 'Non specificato';
 
   @override
+  String get buddies_linkText_action => 'Collega a schede compagno';
+
+  @override
+  String get buddies_linkText_addName => 'Aggiungi un nome';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'Scegli un compagno esistente';
+
+  @override
+  String get buddies_linkText_editName => 'Modifica nome';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Impossibile collegare i compagni: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collega $count',
+      one: 'Collega 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compagni collegati',
+      one: '1 compagno collegato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Nome';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Convertito dal testo compagno di un\'immersione';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Nessun compagno trovato';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Tutti i nomi dei compagni sono collegati a una scheda';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Impossibile caricare le immersioni: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collega $count immersioni',
+      one: 'Collega 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Compagni collegati su $count immersioni',
+      one: 'Compagni collegati su 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Trasforma i nomi dei compagni delle immersioni importate in schede';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compagni esistenti',
+      one: '1 compagno esistente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nuovi compagni',
+      one: '1 nuovo compagno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Collega i nomi dei compagni';
+
+  @override
+  String get buddies_linkText_searchHint => 'Cerca compagni';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Collega schede compagno';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Da «$text»';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Divemaster «$text»';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Compagno esistente';
+
+  @override
+  String get buddies_linkText_statusNew => 'Nuovo compagno';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Intendevi $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compagni di nome $name',
+      one: '1 compagno di nome $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Collegamenti ai compagni rimossi';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Usa';
+
+  @override
   String get buddies_message_added => 'Compagno aggiunto con successo';
 
   @override

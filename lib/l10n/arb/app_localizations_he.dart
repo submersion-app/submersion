@@ -1460,6 +1460,179 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_label_notSpecified => 'לא צוין';
 
   @override
+  String get buddies_linkText_action => 'קישור לרשומות חברי צוללים';
+
+  @override
+  String get buddies_linkText_addName => 'הוספת שם';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'בחירת חבר צוללים קיים';
+
+  @override
+  String get buddies_linkText_editName => 'עריכת שם';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'לא ניתן לקשר את חברי הצוללים: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קישור $count',
+      one: 'קישור 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים קושרו',
+      one: 'חבר צוללים אחד קושר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'שם';
+
+  @override
+  String get buddies_linkText_newBuddyNote => 'הומר מטקסט חבר הצוללים של צלילה';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'לא נמצאו חברי צוללים';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'כל שמות חברי הצוללים מקושרים לרשומה';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'לא ניתן לטעון את הצלילות: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קישור $count צלילות',
+      one: 'קישור צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'חברי צוללים קושרו ב-$count צלילות',
+      one: 'חברי צוללים קושרו בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'המרת שמות חברי צוללים מצלילות מיובאות לרשומות';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים קיימים',
+      one: 'חבר צוללים קיים אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים חדשים',
+      one: 'חבר צוללים חדש אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'קישור שמות חברי צוללים';
+
+  @override
+  String get buddies_linkText_searchHint => 'חיפוש חברי צוללים';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'קישור רשומות חברי צוללים';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'מתוך \"$text\"';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'דייבמאסטר \"$text\"';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'חבר צוללים קיים';
+
+  @override
+  String get buddies_linkText_statusNew => 'חבר צוללים חדש';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'האם התכוונת ל-$name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים בשם $name',
+      one: 'חבר צוללים אחד בשם $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'קישורי חברי הצוללים הוסרו';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'שימוש';
+
+  @override
   String get buddies_message_added => 'חבר צוללים נוסף בהצלחה';
 
   @override

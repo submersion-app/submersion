@@ -1487,6 +1487,182 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_label_notSpecified => 'Nincs megadva';
 
   @override
+  String get buddies_linkText_action => 'Összekapcsolás búvártárs-rekordokkal';
+
+  @override
+  String get buddies_linkText_addName => 'Név hozzáadása';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting =>
+      'Meglévő búvártárs kiválasztása';
+
+  @override
+  String get buddies_linkText_editName => 'Név szerkesztése';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Nem sikerült összekapcsolni a búvártársakat: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count összekapcsolása',
+      one: '1 összekapcsolása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count búvártárs összekapcsolva',
+      one: '1 búvártárs összekapcsolva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Név';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Egy merülés búvártárs-szövegéből átalakítva';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Nem található búvártárs';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Minden búvártársnév rekordhoz van kapcsolva';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Nem sikerült betölteni a merüléseket: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés összekapcsolása',
+      one: '1 merülés összekapcsolása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Búvártársak összekapcsolva $count merülésen',
+      one: 'Búvártársak összekapcsolva 1 merülésen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Importált merülések búvártársneveinek rekordokká alakítása';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meglévő búvártárs',
+      one: '1 meglévő búvártárs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count új búvártárs',
+      one: '1 új búvártárs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Búvártársnevek összekapcsolása';
+
+  @override
+  String get buddies_linkText_searchHint => 'Búvártársak keresése';
+
+  @override
+  String get buddies_linkText_sheetTitle =>
+      'Búvártárs-rekordok összekapcsolása';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Forrás: „$text”';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Divemaster: „$text”';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Meglévő búvártárs';
+
+  @override
+  String get buddies_linkText_statusNew => 'Új búvártárs';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Erre gondoltál: $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count $name nevű búvártárs',
+      one: '1 $name nevű búvártárs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Búvártárs-kapcsolatok eltávolítva';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Használat';
+
+  @override
   String get buddies_message_added => 'Búvártárs sikeresen hozzáadva';
 
   @override

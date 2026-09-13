@@ -1499,6 +1499,180 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_label_notSpecified => 'Non spécifié';
 
   @override
+  String get buddies_linkText_action => 'Lier à des fiches de binômes';
+
+  @override
+  String get buddies_linkText_addName => 'Ajouter un nom';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'Choisir un binôme existant';
+
+  @override
+  String get buddies_linkText_editName => 'Modifier le nom';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Impossible de lier les binômes : $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lier $count',
+      one: 'Lier 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count binômes liés',
+      one: '1 binôme lié',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Nom';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Converti depuis le texte binôme d\'une plongée';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Aucun binôme trouvé';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Tous les noms de binômes sont liés à une fiche';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Impossible de charger les plongées : $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lier $count plongées',
+      one: 'Lier 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Binômes liés sur $count plongées',
+      one: 'Binômes liés sur 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Transformer les noms de binômes des plongées importées en fiches';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count binômes existants',
+      one: '1 binôme existant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nouveaux binômes',
+      one: '1 nouveau binôme',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Lier les noms de binômes';
+
+  @override
+  String get buddies_linkText_searchHint => 'Rechercher des binômes';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Lier des fiches de binômes';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Depuis « $text »';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Directeur de plongée « $text »';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Binôme existant';
+
+  @override
+  String get buddies_linkText_statusNew => 'Nouveau binôme';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Vouliez-vous dire $name ?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count binômes nommés $name',
+      one: '1 binôme nommé $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Liens de binômes supprimés';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Utiliser';
+
+  @override
   String get buddies_message_added => 'Binôme ajouté avec succès';
 
   @override
