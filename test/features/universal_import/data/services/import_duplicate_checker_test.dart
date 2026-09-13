@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/universal_import/data/csv/extractors/gear_extractor.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -271,6 +272,27 @@ void main() {
             id: '1',
             name: 'Apex XTX50',
             type: EquipmentType.regulator,
+          ),
+        ],
+      );
+
+      expect(result.duplicates[ImportEntityType.equipment], {0});
+    });
+
+    test('matches a re-imported CSV suit to the suit already stored', () {
+      final reimported = GearExtractor().extractFromRows([
+        {'suit': '7mm Wetsuit'},
+      ]);
+
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {ImportEntityType.equipment: reimported},
+        ),
+        equipment: [
+          const EquipmentItem(
+            id: '1',
+            name: '7mm Wetsuit',
+            type: EquipmentType.wetsuit,
           ),
         ],
       );
