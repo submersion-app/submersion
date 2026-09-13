@@ -8,9 +8,12 @@ import 'package:submersion/core/database/database.dart'
         DiveEquipmentCompanion,
         EquipmentAttributesCompanion,
         EquipmentCompanion;
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -24,6 +27,60 @@ import '../../../../helpers/test_database.dart';
 /// the gear tables, which its list tick does not watch. An attribute-only
 /// write (saveAttributes, a sync pull) must still re-run the page and count
 /// (#1805 review).
+/// Counts page loads and forwards everything the paginator calls to the real
+/// repository. [DiveRepository]'s only public constructor is a factory, so
+/// this delegates rather than extends.
+class _CountingRepository implements DiveRepository {
+  _CountingRepository(this._inner);
+
+  final DiveRepository _inner;
+  int summaryCalls = 0;
+
+  @override
+  Future<List<DiveSummary>> getDiveSummaries({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    DiveSummaryCursor? cursor,
+    int? offset,
+    int limit = 50,
+    SortState<DiveSortField>? sort,
+    Set<String> disabledSafetyRules = const {},
+  }) {
+    summaryCalls++;
+    return _inner.getDiveSummaries(
+      diverId: diverId,
+      filter: filter,
+      cursor: cursor,
+      offset: offset,
+      limit: limit,
+      sort: sort,
+      disabledSafetyRules: disabledSafetyRules,
+    );
+  }
+
+  @override
+  Future<int> getDiveCount({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) => _inner.getDiveCount(diverId: diverId, filter: filter);
+
+  @override
+  Stream<void> watchDiveListChanges() => _inner.watchDiveListChanges();
+
+  @override
+  Stream<void> watchEquipmentAttrFilterChanges() =>
+      _inner.watchEquipmentAttrFilterChanges();
+
+  @override
+  Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
+    List<String> diveIds, {
+    int maxSamples = 120,
+  }) => _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
   late SharedPreferences prefs;
   late AppDatabase db;
@@ -142,5 +199,36 @@ void main() {
       'untypedDive',
     }, reason: 'the list tick does not watch equipment_attributes');
     expect(container.read(paginatedDiveListProvider).value!.totalCount, 2);
+  });
+  test('clearing the last condition stops following the gear tick', () async {
+    final counting = _CountingRepository(DiveRepository());
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        diveRepositoryProvider.overrideWithValue(counting),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+    addTearDown(sub.close);
+
+    container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+      equipmentAttrConditions: [EquipmentAttrCondition(key: 'hose_type')],
+    );
+    await waitFor(container, (ids) => ids.length == 1);
+    container.read(diveFilterProvider.notifier).state = const DiveFilterState();
+    await waitFor(container, (ids) => ids.length == 2);
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+    final before = counting.summaryCalls;
+
+    // An unfiltered list does not read the gear tables, so a gear write must
+    // not reload it.
+    await setHoseType('untypedHose', 'lp');
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 300),
+    );
+    expect(counting.summaryCalls, before);
   });
 }

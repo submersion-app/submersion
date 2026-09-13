@@ -198,4 +198,27 @@ void main() {
     );
     expect(await filteredIds(container), {'lpDive'});
   });
+
+  test('a failed id query surfaces as an error, not an empty list', () async {
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        equipmentAttrFilteredDiveIdsProvider.overrideWith(
+          (ref, key) async => throw StateError('query failed'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(filteredDivesProvider, (_, _) {});
+    addTearDown(sub.close);
+    container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+      equipmentAttrConditions: [hp],
+    );
+
+    for (var i = 0; i < 100; i++) {
+      if (container.read(filteredDivesProvider).hasError) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(container.read(filteredDivesProvider).error, isA<StateError>());
+  });
 }

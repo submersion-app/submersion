@@ -53,6 +53,47 @@ void main() {
     expect(conditions, isEmpty);
   });
 
+  testWidgets('toggling one field keeps the other fields\' conditions', (
+    tester,
+  ) async {
+    // Fins carry two choice fields: heel type and blade style.
+    final defs = EquipmentChoiceAttributeFilter.choiceDefsFor(
+      EquipmentType.fins,
+    );
+    expect(defs.length, greaterThanOrEqualTo(2));
+    final first = defs[0];
+    final second = defs[1];
+
+    var conditions = <EquipmentAttrCondition>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: StatefulBuilder(
+              builder: (context, setState) => EquipmentChoiceAttributeFilter(
+                type: EquipmentType.fins,
+                conditions: conditions,
+                onChanged: (next) => setState(() => conditions = next),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(chip(second.key, second.choiceKeys.first));
+    await tester.pumpAndSettle();
+    await tester.tap(chip(first.key, first.choiceKeys.first));
+    await tester.pumpAndSettle();
+
+    // Both survive, in catalog order rather than tap order.
+    expect(conditions.map((c) => c.key), [first.key, second.key]);
+    expect(conditions.last.choices, {second.choiceKeys.first});
+  });
+
   testWidgets('a type with no choice fields renders nothing', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
