@@ -231,4 +231,37 @@ void main() {
     );
     expect(counting.summaryCalls, before);
   });
+  test('an attribute-only write refreshes detail-page neighbor ids', () async {
+    // getOrderedDiveIds shares the list's WHERE builder, so previous/next
+    // navigation reads the gear tables while a condition is set.
+    final container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(orderedDiveIdsProvider, (_, _) {});
+    addTearDown(sub.close);
+    container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+      equipmentAttrConditions: [
+        EquipmentAttrCondition(key: 'hose_type', choices: {'hp'}),
+      ],
+    );
+
+    Future<List<String>?> orderedIds(bool Function(List<String>) done) async {
+      for (var i = 0; i < 200; i++) {
+        final ids = container.read(orderedDiveIdsProvider).value;
+        if (ids != null && done(ids)) return ids;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      return container.read(orderedDiveIdsProvider).value;
+    }
+
+    expect(await orderedIds((ids) => ids.length == 1), ['hpDive']);
+
+    await setHoseType('untypedHose', 'hp');
+
+    expect((await orderedIds((ids) => ids.length == 2))?.toSet(), {
+      'hpDive',
+      'untypedDive',
+    }, reason: 'the dives tick never fires for an attribute-only write');
+  });
 }

@@ -170,6 +170,10 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   final sort = ref.watch(diveSortProvider);
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // An attribute condition makes the query read the gear tables (#1805).
+  if (filter.equipmentAttrConditions.isNotEmpty) {
+    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
+  }
   return repository.getOrderedDiveIds(
     diverId: diverId,
     filter: filter,

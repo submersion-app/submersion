@@ -2173,6 +2173,11 @@ class DiveRepository {
                 _db.diveSafetyFindings,
                 _db.diveProfileSeries,
                 _db.diveProfileEvents,
+                // The equipment-attribute filter (#1805) reads these.
+                _db.diveEquipment,
+                _db.diveTanks,
+                _db.equipment,
+                _db.equipmentAttributes,
               },
             )
             .get();
@@ -2243,6 +2248,11 @@ class DiveRepository {
                 _db.diveSites,
                 _db.diveProfileSeries,
                 _db.diveProfileEvents,
+                // The equipment-attribute filter (#1805) reads these.
+                _db.diveEquipment,
+                _db.diveTanks,
+                _db.equipment,
+                _db.equipmentAttributes,
               },
             )
             .get();
@@ -2296,6 +2306,11 @@ class DiveRepository {
                 _db.dives,
                 _db.diveProfileSeries,
                 _db.diveProfileEvents,
+                // The equipment-attribute filter (#1805) reads these.
+                _db.diveEquipment,
+                _db.diveTanks,
+                _db.equipment,
+                _db.equipmentAttributes,
               },
             )
             .getSingle();
