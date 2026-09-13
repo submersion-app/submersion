@@ -5,8 +5,8 @@ import 'package:submersion/core/database/site_classification_uniqueness.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 
 void main() {
-  /// A pre-v214 database: `tags` without the scope flags, no site tables.
-  NativeDatabase setupDb({int userVersion = 213}) {
+  /// A pre-v217 database: `tags` without the scope flags, no site tables.
+  NativeDatabase setupDb({int userVersion = 215}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = $userVersion');
@@ -53,11 +53,11 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v214 is the current schema version and is in the ladder', () {
+  test('v217 is the current schema version and is in the ladder', () {
     // This is the newest rung, so it owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 214);
-    expect(AppDatabase.migrationVersions, contains(214));
+    expect(AppDatabase.currentSchemaVersion, 217);
+    expect(AppDatabase.migrationVersions, contains(217));
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
   });

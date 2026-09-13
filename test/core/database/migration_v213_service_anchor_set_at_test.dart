@@ -40,8 +40,9 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v213 is in the ladder', () {
-    // Relaxed once v214 (site types and tags) landed on top; the newest
+  test('v213 is at or below the current schema version and in the ladder', () {
+    // Relaxed as this rung's own convention asks, now that the planner's
+    // stop-minimums (214) and gas-options (215) rungs sit on top; the newest
     // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(213));
     expect(AppDatabase.migrationVersions, contains(213));

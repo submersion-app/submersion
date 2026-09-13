@@ -101,7 +101,23 @@ void main() {
       expect(usage.reserveViolation, isFalse);
       expect(usage.turnPressureBar, isNull);
       expect(usage.minGasBar, isNull);
-      expect(usage.props, hasLength(7));
+      expect(usage.totalLiters, isNull);
+      expect(usage.startPressure, isNull);
+      expect(usage.usedPressure, isNull);
+      expect(usage.props, hasLength(9));
+    });
+
+    test('usedPressure is start minus remaining, clamped to the fill', () {
+      const usage = PlanTankUsage(
+        tankId: 't1',
+        litersUsed: 1200,
+        totalLiters: 2400,
+        startPressure: 200,
+        remainingPressure: 80,
+        percentUsed: 60,
+      );
+      expect(usage.usedPressure, 120);
+      expect(usage.remainingLiters, 1200);
     });
   });
 
