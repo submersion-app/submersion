@@ -60,12 +60,22 @@ class UddfExportService {
       for (final rows in diveBuddies.values)
         for (final row in rows) row.buddy.id: row.buddy,
     }.values.toList(growable: false);
-    // A <buddyroles> row naming a custom role is dropped on import unless
-    // the file also defines that role.
+    // A <buddyroles> row or a dive's <diverrole> naming a custom role is
+    // dropped on import unless the file also defines that role. Only the
+    // diver's own roles are defined: a synthetic role (an id with no row, or
+    // another diver's role) has nothing but its raw id for a name. The
+    // diver's own role is not a participant, so, like <diverrole> itself, it
+    // is defined whether or not participants are included.
+    final ownRoles = {for (final role in extras.diveRoles) role.id: role};
     final customRoles = <String, DiveRole>{
-      for (final rows in diveBuddies.values)
-        for (final row in rows)
-          if (!DiveRole.builtInIds.contains(row.role.id)) row.role.id: row.role,
+      for (final id in [
+        for (final rows in diveBuddies.values)
+          for (final row in rows) row.role.id,
+        for (final dive in dives) ?dive.diverRoleId,
+      ])
+        if (ownRoles[id] case final role?
+            when !DiveRole.builtInIds.contains(id))
+          id: role,
     }.values.toList(growable: false);
 
     // Gear (issue #1718): each distinct item on the exported dives, the
