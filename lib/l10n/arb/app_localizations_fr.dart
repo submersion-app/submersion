@@ -6005,6 +6005,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Tout l\'équipement est déjà sélectionné';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'L\'équipement restant est marqué De rechange';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Erreur lors du chargement de l\'équipement : $error';
   }
@@ -6015,6 +6019,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Retire des éléments pour en ajouter d\'autres';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Passe le statut d\'un élément à Actif pour l\'ajouter à une plongée';
 
   @override
   String get diveLog_equipmentPicker_title => 'Ajouter de l\'équipement';
@@ -10823,6 +10831,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'Vendu';
+
+  @override
+  String get enum_equipmentStatus_spare => 'De rechange';
 
   @override
   String get enum_equipmentType_backplate => 'Plaque dorsale';

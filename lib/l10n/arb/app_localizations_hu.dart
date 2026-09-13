@@ -5965,6 +5965,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden felszereles mar ki van valasztva';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'A tobbi felszereles tartalekkent van jelolve';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Hiba a felszereles betoltesekor: $error';
   }
@@ -5975,6 +5979,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Tavolitson el elemeket masok hozzaadasahoz';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Allitsa a targy allapotat Aktivra, hogy merulesehez adja';
 
   @override
   String get diveLog_equipmentPicker_title => 'Felszereles hozzaadasa';
@@ -10753,6 +10761,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_sold => 'Eladva';
+
+  @override
+  String get enum_equipmentStatus_spare => 'Tartalek';
 
   @override
   String get enum_equipmentType_backplate => 'Hátlemez';
