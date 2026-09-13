@@ -192,4 +192,138 @@ void main() {
       expect(deleted, ['$db.restore-pending']);
     });
   });
+
+  group('findInterrupted', () {
+    // The state an unsettled restore leaves: the original aside (openable
+    // here), a rejected file live, and the marker.
+    void stranded({bool marker = true, bool live = true}) {
+      touch('$db.pre-restore');
+      versions['$db.pre-restore'] = current;
+      if (live) {
+        touch(db);
+        versions[db] = current + 1;
+      }
+      if (marker) {
+        touch(
+          '$db.restore-pending',
+          jsonEncode({'startedAt': '2026-09-13T10:30:05.000Z'}),
+        );
+      }
+    }
+
+    test('reports a stranded original with its start time', () {
+      stranded();
+      final found = journal().findInterrupted();
+      expect(found, isNotNull);
+      expect(found!.startedAt, DateTime.utc(2026, 9, 13, 10, 30, 5));
+      expect(found.liveExists, isTrue);
+    });
+
+    test('reports an empty live path', () {
+      stranded(live: false);
+      expect(journal().findInterrupted()!.liveExists, isFalse);
+    });
+
+    test('finds a leftover from a build without the journal, undated', () {
+      stranded(marker: false);
+      final found = journal().findInterrupted();
+      expect(found, isNotNull);
+      expect(found!.startedAt, isNull);
+    });
+
+    test('an unreadable marker still counts, undated', () {
+      stranded();
+      touch('$db.restore-pending', 'not json');
+      expect(journal().findInterrupted()!.startedAt, isNull);
+    });
+
+    test('nothing when the aside copy is stale', () {
+      touch(db);
+      versions[db] = current;
+      touch('$db.pre-restore');
+      versions['$db.pre-restore'] = current;
+      expect(journal().findInterrupted(), isNull);
+    });
+
+    test('nothing when this build cannot open the aside copy', () {
+      // An offer that fails the same way the database just did would repeat
+      // the dead end; the restore guard still protects the file.
+      stranded();
+      versions['$db.pre-restore'] = current + 1;
+      expect(journal().findInterrupted(), isNull);
+      expect(exists('$db.pre-restore'), isTrue);
+    });
+
+    test('clears a marker with nothing aside', () {
+      touch('$db.restore-pending');
+      expect(journal().findInterrupted(), isNull);
+      expect(exists('$db.restore-pending'), isFalse);
+    });
+  });
+
+  group('recover', () {
+    test('puts the original back and keeps the rejected file', () async {
+      touch('$db.pre-restore', 'original');
+      touch('$db.pre-restore-wal', 'original-wal');
+      touch(db, 'rejected');
+      touch('$db-wal', 'rejected-wal');
+      touch('$db.restore-pending');
+
+      await journal().recover();
+
+      expect(read(db), 'original');
+      expect(read('$db-wal'), 'original-wal');
+      expect(read('$db.restore-rejected.20260913T103005Z'), 'rejected');
+      expect(read('$db.restore-rejected.20260913T103005Z-wal'), 'rejected-wal');
+      expect(exists('$db.pre-restore'), isFalse);
+      expect(exists('$db.pre-restore-wal'), isFalse);
+      expect(exists('$db.restore-pending'), isFalse);
+    });
+
+    test('with an empty live path, only moves the original back', () async {
+      touch('$db.pre-restore', 'original');
+      touch('$db.restore-pending');
+
+      await journal().recover();
+
+      expect(read(db), 'original');
+      expect(
+        dir.listSync().map((e) => p.basename(e.path)),
+        isNot(contains(startsWith('submersion.db.restore-rejected'))),
+      );
+      expect(exists('$db.restore-pending'), isFalse);
+    });
+
+    test('finishes after a crash that already moved the rejected file '
+        'away', () async {
+      touch('$db.pre-restore', 'original');
+      touch(db, 'rejected');
+      touch('$db.restore-pending');
+      final j = journal();
+      // Step 1 ran, then the app died before the original moved back.
+      await j.quarantine(db, prefix: '$db.restore-rejected');
+
+      await j.recover();
+
+      expect(read(db), 'original');
+      expect(read('$db.restore-rejected.20260913T103005Z'), 'rejected');
+      expect(exists('$db.restore-pending'), isFalse);
+    });
+  });
+
+  group('keepCurrent', () {
+    test('keeps the original under a timestamped name and settles the '
+        'journal', () async {
+      touch('$db.pre-restore', 'original');
+      touch(db, 'current');
+      touch('$db.restore-pending');
+
+      await journal().keepCurrent();
+
+      expect(read(db), 'current');
+      expect(read('$db.pre-restore.20260913T103005Z'), 'original');
+      expect(exists('$db.pre-restore'), isFalse);
+      expect(exists('$db.restore-pending'), isFalse);
+    });
+  });
 }

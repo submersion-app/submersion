@@ -22,6 +22,20 @@ enum PreRestoreState {
   precious,
 }
 
+/// An interrupted restore found at startup: the previous database is still
+/// aside, may be the only copy, and this build can open it.
+class InterruptedRestore {
+  const InterruptedRestore({required this.startedAt, required this.liveExists});
+
+  /// When the unsettled restore began, or null when unknown (a leftover from a
+  /// build without the journal, or an unreadable marker).
+  final DateTime? startedAt;
+
+  /// Whether a file sits at the live path now. False means only recovery
+  /// makes sense: keeping "what is there" would be an empty library.
+  final bool liveExists;
+}
+
 /// The on-disk journal that tells a restore's leftover from a stranded
 /// original (issue #1901).
 ///
@@ -107,6 +121,75 @@ class RestoreJournal {
       if (sidecar.existsSync()) await sidecar.rename('$target$suffix');
     }
     return target;
+  }
+
+  /// Asks, before anything is opened, whether an earlier restore stopped with
+  /// the diver's previous database still aside.
+  ///
+  /// Null unless the aside copy is [PreRestoreState.precious] AND this build
+  /// can open it. A marker with nothing aside is an orphan and is cleared.
+  /// Synchronous on purpose, like the startup page's other pre-open probes:
+  /// the async form left widget tests pumping until their timeout.
+  InterruptedRestore? findInterrupted() {
+    if (!File(asidePath).existsSync()) {
+      _clearOrphanMarker();
+      return null;
+    }
+    if (classifyPreRestore() != PreRestoreState.precious) return null;
+    if (!_opensHere(asidePath)) return null;
+    return InterruptedRestore(
+      startedAt: _readStartedAt(),
+      liveExists: File(dbPath).existsSync(),
+    );
+  }
+
+  /// Puts the aside copy back as the live database. The database must be
+  /// closed.
+  ///
+  /// Whatever is live now is kept as `.restore-rejected.<timestamp>`, not
+  /// deleted: it may be the backup the diver meant to restore. Safe to retry:
+  /// after a crash between the two moves the live path is empty, so the first
+  /// step has nothing to do.
+  Future<void> recover() async {
+    if (_anyExists(dbPath)) {
+      await quarantine(dbPath, prefix: '$dbPath.restore-rejected');
+    }
+    await File(asidePath).rename(dbPath);
+    for (final suffix in _sidecarSuffixes) {
+      final sidecar = File('$asidePath$suffix');
+      if (sidecar.existsSync()) await sidecar.rename('$dbPath$suffix');
+    }
+    await commit();
+  }
+
+  /// Keeps what is live now and moves the aside copy out of the way under a
+  /// timestamped name, then settles the journal.
+  Future<void> keepCurrent() async {
+    await quarantine(asidePath);
+    await commit();
+  }
+
+  DateTime? _readStartedAt() {
+    try {
+      final decoded = jsonDecode(File(markerPath).readAsStringSync());
+      if (decoded is! Map) return null;
+      final raw = decoded['startedAt'];
+      return raw is String ? DateTime.tryParse(raw) : null;
+    } catch (_) {
+      // No marker (a legacy leftover) or unreadable content: the offer still
+      // stands, it just cannot name a date.
+      return null;
+    }
+  }
+
+  void _clearOrphanMarker() {
+    try {
+      final marker = File(markerPath);
+      if (marker.existsSync()) marker.deleteSync();
+    } catch (_) {
+      // Best-effort: an orphan marker is harmless, because every reader
+      // requires a `.pre-restore` beside it before it means anything.
+    }
   }
 
   /// True only for a file this build can open: present, readable, and at a
