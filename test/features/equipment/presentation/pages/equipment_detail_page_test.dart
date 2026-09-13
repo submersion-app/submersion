@@ -334,6 +334,7 @@ void main() {
       WidgetTester tester,
       EquipmentItem equipment, {
       List<ServiceClockStatus>? clocks,
+      bool embedded = false,
     }) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(600, 1600);
@@ -395,12 +396,69 @@ void main() {
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: EquipmentDetailPage(equipmentId: equipment.id),
+            home: embedded
+                ? Scaffold(
+                    body: EquipmentDetailPage(
+                      equipmentId: equipment.id,
+                      embedded: true,
+                    ),
+                  )
+                : EquipmentDetailPage(equipmentId: equipment.id),
           ),
         ),
       );
       await tester.pumpAndSettle();
     }
+
+    ServiceClockStatus overdueClock(EquipmentItem equipment) {
+      final t0 = DateTime(2025, 1, 1);
+      return ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's1',
+          equipmentId: equipment.id,
+          serviceKindId: 'annual',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: ServiceKind(
+          id: 'annual',
+          name: 'Annual service',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        anchor: t0,
+        dueDate: DateTime(2026, 1, 1),
+        severity: ServiceClockSeverity.overdue,
+        now: DateTime(2026, 6, 1),
+      );
+    }
+
+    testWidgets('an overdue clock lights the embedded header avatar too', (
+      tester,
+    ) async {
+      const equipment = EquipmentItem(
+        id: 'equip-overdue-embedded',
+        name: 'Old reg',
+        type: EquipmentType.regulator,
+      );
+
+      await pumpWithEquipment(
+        tester,
+        equipment,
+        clocks: [overdueClock(equipment)],
+        embedded: true,
+      );
+
+      final alert = StatusColors.light.alert;
+      final avatar = tester
+          .widgetList<CircleAvatar>(find.byType(CircleAvatar))
+          .firstWhere((a) => a.radius == 20);
+      expect(avatar.backgroundColor, alert.container);
+      final glyph = tester.widget<Icon>(
+        find.descendant(of: find.byWidget(avatar), matching: find.byType(Icon)),
+      );
+      expect(glyph.color, alert.onContainer);
+    });
 
     testWidgets('an overdue clock lights the header in the alert palette', (
       tester,

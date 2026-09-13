@@ -201,6 +201,20 @@ void main() {
       expect(StatusColors.light.lerp(null, 0.5), same(StatusColors.light));
     });
 
+    test('swatches compare by value and hash alike', () {
+      final light = StatusColors.light.alert;
+      final copy = StatusSwatch(
+        container: light.container,
+        onContainer: light.onContainer,
+        outline: light.outline,
+        accent: light.accent,
+      );
+      expect(copy, light);
+      expect(copy.hashCode, light.hashCode);
+      expect({copy, light}, hasLength(1));
+      expect(StatusColors.dark.alert, isNot(light));
+    });
+
     test('copyWith replaces only the named tone', () {
       final replaced = StatusColors.light.copyWith(ok: StatusColors.dark.ok);
       expect(replaced.ok, StatusColors.dark.ok);
