@@ -23370,9 +23370,21 @@
   "statistics_conditions_tempTrend_empty": "No temperature data available",
   "statistics_conditions_tempTrend_error": "Failed to load temperature trend",
   "statistics_conditions_waterTempBands_title": "Dives by Water Temperature",
+  "@statistics_conditions_waterTempBands_title": {
+    "description": "Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)"
+  },
   "statistics_conditions_waterTempBands_subtitle": "How your dives split across water temperature bands",
+  "@statistics_conditions_waterTempBands_subtitle": {
+    "description": "Subtitle under the dives-by-water-temperature card title, explaining that the chart shows how many dives fall in each temperature range"
+  },
   "statistics_conditions_waterTempBands_empty": "No water temperature data available",
+  "@statistics_conditions_waterTempBands_empty": {
+    "description": "Empty state of the dives-by-water-temperature card, shown when no dive in the current filter has a water temperature recorded"
+  },
   "statistics_conditions_waterTempBands_error": "Failed to load water temperature bands",
+  "@statistics_conditions_waterTempBands_error": {
+    "description": "Error state of the dives-by-water-temperature card, shown when the band counts could not be loaded"
+  },
   "statistics_conditions_waterTempBands_semanticLabel": "Bar chart. Dives by water temperature. {description}",
   "@statistics_conditions_waterTempBands_semanticLabel": {
     "description": "Screen-reader summary of the dives-by-water-temperature-band bar chart",
