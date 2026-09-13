@@ -878,49 +878,6 @@ void main() {
         );
       });
     });
-
-    test('preResolvedEquipmentIds links a skipped duplicate item to the '
-        'existing record without creating a twin (#1824)', () async {
-      const existing = EquipmentItem(
-        id: 'existing-suit-1',
-        name: '7mm wetsuit',
-        type: EquipmentType.wetsuit,
-      );
-      when(
-        mockEquipmentRepo.getEquipmentById('existing-suit-1'),
-      ).thenAnswer((_) async => existing);
-      when(mockDiveRepo.createDive(any)).thenAnswer(
-        (invocation) async => invocation.positionalArguments[0] as Dive,
-      );
-
-      final data = UddfImportResult(
-        equipment: [
-          {'name': '7mm wetsuit', 'type': 'wetsuit', 'uddfId': '7mm wetsuit'},
-        ],
-        dives: [
-          {
-            'dateTime': now,
-            'maxDepth': 25.0,
-            'equipmentRefs': ['7mm wetsuit'],
-          },
-        ],
-      );
-
-      await importer.import(
-        data: data,
-        // The equipment index is NOT selected: the reviewer chose Skip for
-        // the flagged duplicate.
-        selections: const UddfImportSelections(dives: {0}),
-        repositories: repos,
-        diverId: diverId,
-        preResolvedEquipmentIds: const {'7mm wetsuit': 'existing-suit-1'},
-      );
-
-      verifyNever(mockEquipmentRepo.createEquipment(any));
-      final dive =
-          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
-      expect(dive.equipment.map((e) => e.id), ['existing-suit-1']);
-    });
   });
 
   group('Import buddies', () {
@@ -2226,6 +2183,49 @@ void main() {
 
       verifyNever(mockTagRepo.createTag(any));
       verify(mockTagRepo.addTagToDive(any, 'existing-tag-1')).called(1);
+    });
+
+    test('preResolvedEquipmentIds links a skipped duplicate gear item to the '
+        'existing record without creating a twin (#756)', () async {
+      const existing = EquipmentItem(
+        id: 'existing-eq-1',
+        name: 'Hog Wing',
+        type: EquipmentType.bcd,
+      );
+      when(
+        mockEquipmentRepo.getEquipmentById('existing-eq-1'),
+      ).thenAnswer((_) async => existing);
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        equipment: [
+          {'name': 'Hog Wing', 'type': 'bcd', 'uddfId': '|Hog Wing|'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'equipmentRefs': ['|Hog Wing|'],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        // The equipment index is NOT selected: the reviewer chose Skip (or
+        // Link to existing) for the flagged duplicate.
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'|Hog Wing|': 'existing-eq-1'},
+      );
+
+      verifyNever(mockEquipmentRepo.createEquipment(any));
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.gear.map((g) => g.item.id), ['existing-eq-1']);
     });
 
     test('creates inline buddies for unmatched names', () async {
@@ -4416,11 +4416,11 @@ void main() {
       verifyNever(mockServiceRecordRepo.createRecord(any));
     });
 
-    test('a skipped duplicate item gets no copy of its service history '
-        '(#1824)', () async {
-      // The pre-resolve seed links dives to the existing row; the existing
-      // row already has its own history, so re-importing the file must not
-      // append a second copy of every record to it.
+    // A skipped duplicate is linked to the existing row so dives keep their
+    // gear, but its history is not re-imported: there is no service-record
+    // dedup, so every re-import of the file would copy it again.
+    test('skips a record whose equipment was linked to an existing '
+        'item', () async {
       await importer.import(
         data: dataWith([
           {'equipmentRef': 'gear-1', 'serviceDate': DateTime(2025, 5, 12)},
@@ -4428,7 +4428,7 @@ void main() {
         selections: const UddfImportSelections(),
         repositories: repos,
         diverId: diverId,
-        preResolvedEquipmentIds: const {'gear-1': 'existing-gear-1'},
+        preResolvedEquipmentIds: const {'gear-1': 'existing-eq-1'},
       );
 
       verifyNever(mockServiceRecordRepo.createRecord(any));

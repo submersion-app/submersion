@@ -345,8 +345,7 @@ class UddfEntityImporter {
   /// map source refs (uddfId/name) to EXISTING database ids for flagged
   /// duplicates the reviewer chose not to import as new rows. Seeding the id
   /// mappings with them makes dive linking resolve to the existing record
-  /// instead of silently dropping the association (#756; equipment in #1824,
-  /// where a re-imported suit otherwise left its dives with no suit).
+  /// instead of silently dropping the association (#756).
   ///
   /// [preResolvedDiveTypeIds] does the same for dive types, keyed by the id
   /// the file's dives reference. The review matches a type by name before
@@ -414,16 +413,16 @@ class UddfEntityImporter {
 
     // Service history belongs to the equipment it describes, so it rides
     // along with whatever equipment was selected rather than being its own
-    // choice in the wizard. Only items this import created count: a
-    // pre-resolved ref points at an existing row that already has its own
-    // history, and the file's copy would be appended to it on every
-    // re-import.
+    // choice in the wizard. A pre-resolved duplicate still mapped to its
+    // seed was linked, not imported: records have no dedup, so re-attaching
+    // its history would copy it onto the existing row on every re-import.
     await _importServiceRecords(
       data.serviceRecords,
       repositories.serviceRecordRepository,
       {
-        for (final MapEntry(:key, :value) in equipmentIdMapping.entries)
-          if (preResolvedEquipmentIds[key] != value) key: value,
+        for (final entry in equipmentIdMapping.entries)
+          if (preResolvedEquipmentIds[entry.key] != entry.value)
+            entry.key: entry.value,
       },
       now,
     );

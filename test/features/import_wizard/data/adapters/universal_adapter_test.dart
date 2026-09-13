@@ -4095,29 +4095,29 @@ void main() {
     );
 
     testWidgets(
-      'a skipped duplicate suit still links its dives to the existing item '
-      '(#1824)',
+      'a skipped duplicate gear item links the dive to the existing item '
+      '(#756)',
       (tester) async {
         final payload = ImportPayload(
           entities: {
             ui.ImportEntityType.equipment: [
-              {'name': '7mm wetsuit', 'type': 'wetsuit', 'uddfId': 's-1'},
+              {'name': 'Hog Wing', 'type': 'bcd', 'uddfId': '|Hog Wing|'},
             ],
             ui.ImportEntityType.dives: [
               {
                 'dateTime': DateTime(2026, 3, 15, 10, 0),
                 'maxDepth': 20.0,
                 'runtime': const Duration(minutes: 30),
-                'equipmentRefs': ['s-1'],
+                'equipmentRefs': ['|Hog Wing|'],
               },
             ],
           },
         );
 
-        const existingSuit = EquipmentItem(
-          id: 'suit-1',
-          name: '7mm wetsuit',
-          type: EquipmentType.wetsuit,
+        const existingItem = EquipmentItem(
+          id: 'eq-1',
+          name: 'Hog Wing',
+          type: EquipmentType.bcd,
         );
 
         final mockDiveRepo = MockDiveRepository();
@@ -4128,8 +4128,8 @@ void main() {
 
         final mockEquipmentRepo = MockEquipmentRepository();
         when(
-          mockEquipmentRepo.getEquipmentById('suit-1'),
-        ).thenAnswer((_) async => existingSuit);
+          mockEquipmentRepo.getEquipmentById('eq-1'),
+        ).thenAnswer((_) async => existingItem);
 
         final mockTankPresetRepo = MockTankPresetRepository();
         when(
@@ -4141,7 +4141,7 @@ void main() {
           overrides: _fullOverrides(
             payload: payload,
             diver: _testDiver(),
-            existingEquipment: [existingSuit],
+            existingEquipment: [existingItem],
             mockDiveRepo: mockDiveRepo,
             mockEquipmentRepo: mockEquipmentRepo,
             mockTankPresetRepo: mockTankPresetRepo,
@@ -4150,14 +4150,13 @@ void main() {
             final bundle = await adapter.buildBundle();
             final checked = await adapter.checkDuplicates(bundle);
             expect(
-              checked.groups[ImportEntityType.equipment]!.entityMatches,
+              checked.groups[wizard.ImportEntityType.equipment]!.entityMatches,
               contains(0),
-              reason: 'the suit must be flagged as a duplicate to skip it',
+              reason: 'the gear must be flagged for the link to apply',
             );
             await adapter.performImport(
               checked,
               {
-                wizard.ImportEntityType.equipment: {0},
                 wizard.ImportEntityType.dives: {0},
               },
               {
@@ -4169,7 +4168,7 @@ void main() {
             final dive =
                 verify(mockDiveRepo.createDive(captureAny)).captured.single
                     as Dive;
-            expect(dive.equipment.map((e) => e.id), ['suit-1']);
+            expect(dive.gear.map((g) => g.item.id), ['eq-1']);
           },
         );
       },

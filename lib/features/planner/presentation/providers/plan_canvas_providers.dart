@@ -1,7 +1,6 @@
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -12,8 +11,8 @@ import 'package:submersion/features/planner/domain/services/bailout_solver.dart'
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
-import 'package:submersion/features/planner/domain/services/tissue_seed.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
@@ -34,21 +33,10 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
 /// run through the PlanEngine on every change (live recalc, no button).
 final planOutcomeProvider = Provider<PlanOutcome>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
-  final engine = PlanEngine(config: ref.watch(planEngineConfigProvider));
-  final startState = seededTissueState(
-    compartments: state.initialTissueState,
-    surfaceInterval: state.surfaceInterval,
-    gfLow: state.gfLow / 100.0,
-    gfHigh: state.gfHigh / 100.0,
-    // Match the engine: altitude <= 0 is unset (legacy 1.0 bar), so the seed
-    // is off-gassed at the same surface pressure the plan is computed at.
-    environment: DiveEnvironment.forConditions(
-      altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
-      waterType: state.waterType ?? WaterType.salt,
-      salinityPpt: state.salinityPpt,
-    ),
+  return computeOutcomeForState(
+    state,
+    config: ref.watch(planEngineConfigProvider),
   );
-  return engine.compute(divePlanFromState(state), startState: startState);
 });
 
 /// The diver's logged average back-gas SAC in L/min ("from your log");
@@ -340,4 +328,55 @@ final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
 final activePlanOutcomeProvider = Provider<PlanOutcome>((ref) {
   return ref.watch(selectedContingencyProvider)?.outcome ??
       ref.watch(planOutcomeProvider);
+});
+
+/// The logged dive a "What if..." plan was converted from, plus its profile:
+/// what the "vs. original dive" compare strip and chart overlay need. Null
+/// when the plan has no `sourceDiveId` (an ordinary plan, not opened from a
+/// dive) or the dive could not be loaded.
+final sourceDiveForPlanProvider = FutureProvider<Dive?>((ref) async {
+  final sourceDiveId = ref.watch(
+    divePlanNotifierProvider.select((s) => s.sourceDiveId),
+  );
+  if (sourceDiveId == null) return null;
+  return ref.watch(diveProvider(sourceDiveId).future);
+});
+
+/// Profile samples for [sourceDiveForPlanProvider]'s dive, for the chart
+/// overlay. Empty when there is no source dive.
+final sourceDiveProfileForPlanProvider = FutureProvider<List<DiveProfilePoint>>(
+  (ref) async {
+    final dive = await ref.watch(sourceDiveForPlanProvider.future);
+    if (dive == null) return const [];
+    return ref.watch(diveProfileProvider(dive.id).future);
+  },
+);
+
+/// Whether the source dive's actual profile is drawn over the plan chart.
+/// Only meaningful while the plan has a `sourceDiveId`.
+final showSourceDiveOverlayProvider = StateProvider<bool>((ref) => true);
+
+/// The source dive's logged profile as a chart series, for the dashed
+/// "actual" overlay on the plan chart. Null when there is no source dive,
+/// the profile has not loaded yet, or the diver hid the overlay.
+final sourceDiveOverlaySeriesProvider = Provider<PlanCanvasSeries?>((ref) {
+  if (!ref.watch(showSourceDiveOverlayProvider)) return null;
+  final points = ref.watch(sourceDiveProfileForPlanProvider).valueOrNull;
+  if (points == null || points.length < 2) return null;
+  final sorted = [...points]
+    ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  var maxDepth = 0.0;
+  for (final p in sorted) {
+    if (p.depth > maxDepth) maxDepth = p.depth;
+  }
+  return PlanCanvasSeries(
+    profile: [
+      for (final p in sorted) CanvasPoint(p.timestamp.toDouble(), p.depth),
+    ],
+    ceiling: const [],
+    gasSwitches: const [],
+    stopLabels: const [],
+    maxTimeSeconds: sorted.last.timestamp.toDouble(),
+    maxDepth: maxDepth,
+  );
 });

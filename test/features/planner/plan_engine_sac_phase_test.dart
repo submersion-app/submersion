@@ -72,6 +72,7 @@ domain.DivePlan _plan({required double sacBottom, required double sacDeco}) =>
       gfHigh: 70,
       sacBottom: sacBottom,
       sacDeco: sacDeco,
+      problemSolvingMinutes: 0,
       segments: _segments(),
       tanks: const [_airTank],
       createdAt: DateTime(2026, 9, 2),

@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_deco_section.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_environment_section.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -47,10 +48,27 @@ Widget _harness(
   child: SingleChildScrollView(child: child),
 );
 
-/// The Semantics label wrapping the RMV slider.
+/// The Gas options row labelled [label] ("Bottom RMV", "Deco RMV").
+Finder _gasOptionRow(String label) =>
+    find.widgetWithText(PlanGasOptionNumberField, label);
+
+/// The text field inside the Gas options row labelled [label].
+Finder _gasOptionField(String label) =>
+    find.descendant(of: _gasOptionRow(label), matching: find.byType(TextField));
+
+String _gasOptionText(WidgetTester tester, String label) =>
+    tester.widget<TextField>(_gasOptionField(label)).controller!.text;
+
+String? _gasOptionHint(WidgetTester tester, String label) =>
+    tester.widget<TextField>(_gasOptionField(label)).decoration!.hintText;
+
+/// The Semantics label wrapping the Bottom RMV field.
 String? _rmvSemanticsLabel(WidgetTester tester) => tester
     .widgetList<Semantics>(
-      find.ancestor(of: find.byType(Slider), matching: find.byType(Semantics)),
+      find.ancestor(
+        of: _gasOptionField('Bottom RMV'),
+        matching: find.byType(Semantics),
+      ),
     )
     .map((s) => s.properties.label)
     .firstWhere((label) => label?.startsWith('RMV') ?? false);
@@ -169,14 +187,22 @@ void main() {
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
   });
 
-  testWidgets('gas section shows SAC slider and reserve field with unit', (
+  testWidgets('gas section shows RMV field and reserve field with unit', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanGasSection()));
     await tester.pumpAndSettle();
-    expect(find.byType(Slider), findsOneWidget);
+    expect(find.text('Bottom RMV'), findsOneWidget);
+    expect(find.byType(Slider), findsNothing);
     expect(find.text('50'), findsOneWidget);
     expect(find.textContaining('bar'), findsWidgets);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasSection)),
+    );
+    await tester.enterText(find.byType(TextField).first, '20');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).sacRate, 20);
   });
 
   testWidgets('reserve validation: zero shows error, valid updates state', (
@@ -184,7 +210,12 @@ void main() {
   ) async {
     await tester.pumpWidget(_harness(const PlanGasSection()));
     await tester.pumpAndSettle();
-    final field = find.byType(TextField).last;
+    // The reserve field sits above the gas options block, so find it by its
+    // semantics label rather than by position.
+    final field = find.descendant(
+      of: find.bySemanticsLabel(RegExp('Reserve pressure')),
+      matching: find.byType(TextField),
+    );
     await tester.enterText(field, '0');
     await tester.pumpAndSettle();
     expect(find.text('Must be greater than 0'), findsOneWidget);
@@ -196,33 +227,36 @@ void main() {
     expect(container.read(divePlanNotifierProvider).reservePressure, 60);
   });
 
-  group('RMV slider units (#1823)', () {
-    testWidgets('metric runs 8-30 L/min in 1 L/min steps', (tester) async {
+  group('Bottom RMV field units (#1823)', () {
+    testWidgets('metric shows the plan RMV in L/min', (tester) async {
       await tester.pumpWidget(_harness(const PlanGasSection()));
       await tester.pumpAndSettle();
 
-      final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.min, 8);
-      expect(slider.max, 30);
-      expect(slider.divisions, 22);
-      expect(slider.value, 15);
-      expect(slider.label, '15.0 L/min');
-      expect(find.text('15.0 L/min'), findsOneWidget);
+      expect(_gasOptionText(tester, 'Bottom RMV'), '15');
+      expect(
+        find.descendant(
+          of: _gasOptionRow('Bottom RMV'),
+          matching: find.text('L/min'),
+        ),
+        findsOneWidget,
+      );
       expect(_rmvSemanticsLabel(tester), 'RMV: 15.0 L per minute');
     });
 
-    testWidgets('metric drag stores the dragged L/min value', (tester) async {
+    testWidgets('metric entry keeps one decimal and stores L/min', (
+      tester,
+    ) async {
       await tester.pumpWidget(_harness(const PlanGasSection()));
       await tester.pumpAndSettle();
       final container = ProviderScope.containerOf(
         tester.element(find.byType(PlanGasSection)),
       );
 
-      tester.widget<Slider>(find.byType(Slider)).onChanged!(20);
+      await tester.enterText(_gasOptionField('Bottom RMV'), '17.5');
       await tester.pumpAndSettle();
 
-      expect(container.read(divePlanNotifierProvider).sacRate, 20);
-      expect(find.text('20.0 L/min'), findsOneWidget);
+      expect(container.read(divePlanNotifierProvider).sacRate, 17.5);
+      expect(_gasOptionText(tester, 'Bottom RMV'), '17.5');
     });
 
     testWidgets('imperial shows the plan RMV converted to cuft/min', (
@@ -233,30 +267,23 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The default 15 L/min is 0.5297 cuft/min, not "15 cuft/min".
-      final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.value, closeTo(15 * _cuftPerLiter, 1e-9));
-      expect(slider.label, '0.53 cuft/min');
-      expect(find.text('0.53 cuft/min'), findsOneWidget);
+      // The default 15 L/min is 0.5297 cuft/min, not "15 cuft/min", and at
+      // 1 decimal it read "0.5".
+      expect(_gasOptionText(tester, 'Bottom RMV'), '0.53');
+      expect(
+        find.descendant(
+          of: _gasOptionRow('Bottom RMV'),
+          matching: find.text('cuft/min'),
+        ),
+        findsOneWidget,
+      );
       expect(find.textContaining('15 cuft'), findsNothing);
       expect(_rmvSemanticsLabel(tester), 'RMV: 0.53 cuft per minute');
     });
 
-    testWidgets('imperial runs 0.30-1.05 cuft/min in 0.05 steps', (
+    testWidgets('imperial entry keeps two decimals and stores L/min', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        _harness(const PlanGasSection(), settings: _imperialVolume),
-      );
-      await tester.pumpAndSettle();
-
-      final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.min, closeTo(0.30, 1e-9));
-      expect(slider.max, closeTo(1.05, 1e-9));
-      expect(slider.divisions, 15);
-    });
-
-    testWidgets('imperial drag stores the plan RMV in L/min', (tester) async {
       await tester.pumpWidget(
         _harness(const PlanGasSection(), settings: _imperialVolume),
       );
@@ -265,17 +292,19 @@ void main() {
         tester.element(find.byType(PlanGasSection)),
       );
 
-      tester.widget<Slider>(find.byType(Slider)).onChanged!(0.55);
+      await tester.enterText(_gasOptionField('Bottom RMV'), '0.55');
       await tester.pumpAndSettle();
 
       expect(
         container.read(divePlanNotifierProvider).sacRate,
         closeTo(0.55 / _cuftPerLiter, 1e-6),
       );
-      expect(find.text('0.55 cuft/min'), findsOneWidget);
+      // The field re-seeds from the plan after every edit; at 1 decimal it
+      // rewrote the diver's "0.55" to "0.6" mid-entry.
+      expect(_gasOptionText(tester, 'Bottom RMV'), '0.55');
     });
 
-    testWidgets('imperial keeps a plan RMV below the slider floor visible', (
+    testWidgets('imperial re-seeds the field when the plan RMV changes', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -286,19 +315,55 @@ void main() {
         tester.element(find.byType(PlanGasSection)),
       );
 
-      // 8 L/min is a valid plan RMV, but it is 0.2825 cuft/min, below the
-      // 0.30 cuft/min imperial floor. A saved plan can carry it.
+      // 8 L/min is 0.2825 cuft/min, which 1 decimal rounded to "0.3".
       final current = container.read(divePlanNotifierProvider);
       container
           .read(divePlanNotifierProvider.notifier)
           .loadPlan(current.copyWith(sacRate: 8));
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.value, slider.min);
-      expect(find.text('0.28 cuft/min'), findsOneWidget);
+      expect(_gasOptionText(tester, 'Bottom RMV'), '0.28');
+      expect(_rmvSemanticsLabel(tester), 'RMV: 0.28 cuft per minute');
       expect(container.read(divePlanNotifierProvider).sacRate, 8);
+    });
+  });
+
+  group('Deco RMV field units (#1823)', () {
+    testWidgets('metric hints and stores L/min', (tester) async {
+      await tester.pumpWidget(_harness(const PlanGasSection()));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasSection)),
+      );
+
+      expect(_gasOptionHint(tester, 'Deco RMV'), '15');
+
+      await tester.enterText(_gasOptionField('Deco RMV'), '12.5');
+      await tester.pumpAndSettle();
+
+      expect(container.read(divePlanNotifierProvider).sacDeco, 12.5);
+      expect(_gasOptionText(tester, 'Deco RMV'), '12.5');
+    });
+
+    testWidgets('imperial hints and edits at two decimals', (tester) async {
+      await tester.pumpWidget(
+        _harness(const PlanGasSection(), settings: _imperialVolume),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasSection)),
+      );
+
+      expect(_gasOptionHint(tester, 'Deco RMV'), '0.53');
+
+      await tester.enterText(_gasOptionField('Deco RMV'), '0.45');
+      await tester.pumpAndSettle();
+
+      expect(
+        container.read(divePlanNotifierProvider).sacDeco,
+        closeTo(0.45 / _cuftPerLiter, 1e-6),
+      );
+      expect(_gasOptionText(tester, 'Deco RMV'), '0.45');
     });
   });
 
@@ -328,7 +393,7 @@ void main() {
       expect(find.text('Use logged average (0.59 cuft/min)'), findsOneWidget);
     });
 
-    testWidgets('imperial tap keeps a logged average below the slider floor', (
+    testWidgets('imperial tap applies a logged average below 0.30 cuft/min', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -347,14 +412,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // 8.2 L/min is inside the planner's 8-30 L/min range but below the
-      // 0.30 cuft/min imperial floor. The plan takes the value the button
-      // named, as it would for a metric diver; only the thumb pins to the
-      // floor.
+      // 0.30 cuft/min floor of the calculator's imperial RMV axis. The plan
+      // takes the value the button named, as it would for a metric diver.
       expect(tester.takeException(), isNull);
       expect(container.read(divePlanNotifierProvider).sacRate, 8.2);
-      final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.value, slider.min);
-      expect(find.text('0.29 cuft/min'), findsOneWidget);
+      expect(_gasOptionText(tester, 'Bottom RMV'), '0.29');
       expect(find.byIcon(Icons.history), findsNothing);
     });
 

@@ -156,9 +156,10 @@ Future<void> _expectRebuilt(AppDatabase db) async {
 }
 
 void main() {
-  test('v210 is in the ladder', () {
-    // Relaxed once v211 (issue #998's auto_tag_imports) landed on top; the
-    // newest rung owns the exact assertion.
+  test('v210 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v211 (issue #998's auto_tag_imports), v213 (the service
+    // anchor) and the planner's stop-minimums (214) and gas-options (215)
+    // landed on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(210));
     expect(AppDatabase.migrationVersions, contains(210));
   });
