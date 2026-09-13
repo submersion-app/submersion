@@ -22203,6 +22203,50 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Algumas linhas não foram importadas';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'Não foi possível ler a data destas linhas. Verifique a coluna de data no arquivo, corrija estas linhas e importe-o novamente.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count linhas não importadas',
+      one: '1 linha não importada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linhas $rows',
+      one: 'Linha $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linhas $rows e mais $count',
+      one: 'Linhas $rows e mais 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22273,6 +22317,85 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nada foi importado: não foi possível ler as datas de $count linhas.',
+      one: 'Nada foi importado: não foi possível ler a data de 1 linha.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Verifique se as colunas de data e hora estão mapeadas nesta etapa e se contêm datas.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'Nenhum dado importável foi encontrado neste arquivo.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'Nenhum dado importável foi encontrado neste arquivo: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'Nenhum dado importável foi encontrado nos arquivos selecionados.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'Não foi possível ler o arquivo selecionado. Selecione-o novamente.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'Não foi possível ler o arquivo: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'Nenhum arquivo importável foi encontrado no arquivo compactado.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'Nenhum arquivo importável foi encontrado na pasta selecionada.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'Não foi possível carregar o arquivo: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'Não foi possível abrir o arquivo: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'Não foi possível verificar a pasta: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'Nenhum dispositivo Garmin conectado foi encontrado. Conecte-o por cabo ou use \"Escolher pasta\" para selecionar a pasta GARMIN/Activity do dispositivo.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'Não foi possível ler o dispositivo Garmin: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'Nenhum mergulho foi encontrado no dispositivo Garmin conectado.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'Não foi possível abrir o arquivo adicional: $details';
+  }
+
+  @override
   String get universalImport_label_columnMapping => 'Mapeamento de Colunas';
 
   @override
@@ -22301,9 +22424,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Importar como novo';
-
-  @override
-  String get universalImport_label_importComplete => 'Importação Concluída';
 
   @override
   String get universalImport_label_importing => 'Importando';
@@ -25164,6 +25284,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Usar os números de mergulho do arquivo importado em vez de atribuí-los automaticamente';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Esta origem não fornece números de mergulho, por isso os mergulhos são numerados automaticamente';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -36748,6 +36872,40 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Salvar Logs de Depuração';
 
   @override
+  String get settings_diagnostics_header => 'Diagnóstico';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Ver log';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Avisos e erros são registrados automaticamente';
+
+  @override
+  String get settings_diagnostics_copy => 'Copiar diagnóstico';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Versão do app, dispositivo e linhas recentes do log para um relatório de erro';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnóstico copiado para a área de transferência';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Abrir pasta de logs';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Não foi possível abrir a pasta de logs. Ela está em: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Não foi possível copiar o diagnóstico: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Salvar como Preset';
 
   @override
@@ -38491,6 +38649,29 @@ class AppLocalizationsPt extends AppLocalizations {
       'Falha ao carregar a evolução da temperatura';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Mergulhos por temperatura da água';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Como seus mergulhos se distribuem entre faixas de temperatura da água';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Nenhum dado de temperatura da água disponível';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Não foi possível carregar as faixas de temperatura da água';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Gráfico de barras. Mergulhos por temperatura da água. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Últimos 5 anos';
 
   @override
@@ -39257,6 +39438,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Atribuir transmissores';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Números de mergulho já em uso';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Estes mergulhos mantiveram o número da sua origem, mas outros mergulhos do seu registo já usam os mesmos números. Abra Numeração de Mergulhos no menu da lista de mergulhos para os renumerar.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

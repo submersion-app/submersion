@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/date_order.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/time_resolver.dart';
 
 void main() {
@@ -790,18 +791,18 @@ void main() {
 
   // ---------------------------------------------------------------------------
   group('resolveInformalTimes - null date handling', () {
-    test('assigns fallback 1970-01-01 when date is unparseable', () {
+    test('leaves the row unresolved when the date is unparseable', () {
+      // Stamping 1970-01-01 imported a dive on a made-up date. Leaving the row
+      // alone lets the transformer skip it and tell the user which row it was.
       final rows = <Map<String, dynamic>>[
         {'date': 'not-a-date', 'time': 'am'},
       ];
 
       final result = resolver.resolveInformalTimes(rows);
 
-      expect(result[0]['_informalTime'], isTrue);
-      final dt = result[0]['dateTime'] as DateTime;
-      // With an unparseable date, fallback is 1970-01-01 at the default hour.
-      expect(dt.year, 1970);
-      expect(dt.hour, 9); // am bucket default
+      expect(result[0].containsKey('dateTime'), isFalse);
+      expect(result[0].containsKey('_informalTime'), isFalse);
+      expect(result[0]['date'], 'not-a-date');
     });
   });
 
@@ -838,6 +839,172 @@ void main() {
         interpretation: TimeInterpretation.localWallClock,
       );
       expect(result, isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Issue #1828: day-first dates with slashes.
+  group('parseDate: day and month order', () {
+    test('reads an ambiguous slash date day first when told to', () {
+      final result = resolver.parseDate(
+        '03/04/1991',
+        order: DateOrder.dayFirst,
+      );
+
+      expect(result, DateTime.utc(1991, 4, 3));
+    });
+
+    test('reads an ambiguous slash date month first when told to', () {
+      final result = resolver.parseDate(
+        '03/04/1991',
+        order: DateOrder.monthFirst,
+      );
+
+      expect(result, DateTime.utc(1991, 3, 4));
+    });
+
+    test('reads single-digit day-first slash dates', () {
+      expect(
+        resolver.parseDate('3/4/1991', order: DateOrder.dayFirst),
+        DateTime.utc(1991, 4, 3),
+      );
+    });
+
+    test('a day above 12 is read day first rather than dropped', () {
+      // Only one reading is a real date, so the row is not lost even when the
+      // column's order was never decided.
+      expect(resolver.parseDate('15/04/1991'), DateTime.utc(1991, 4, 15));
+    });
+
+    test(
+      'an impossible reading in the given order falls back to the other',
+      () {
+        expect(
+          resolver.parseDate('04/15/1991', order: DateOrder.dayFirst),
+          DateTime.utc(1991, 4, 15),
+        );
+      },
+    );
+
+    test('the order applies to dotted and dashed dates too', () {
+      expect(
+        resolver.parseDate('04.03.1991', order: DateOrder.monthFirst),
+        DateTime.utc(1991, 4, 3),
+      );
+      expect(
+        resolver.parseDate('04-03-1991', order: DateOrder.monthFirst),
+        DateTime.utc(1991, 4, 3),
+      );
+    });
+
+    test('rejects dates that are impossible in either order', () {
+      expect(resolver.parseDate('13/13/1991'), isNull);
+      expect(resolver.parseDate('02/30/2023'), isNull);
+      expect(resolver.parseDate('31/02/2023'), isNull);
+    });
+
+    test('an order does not disturb year-first dates', () {
+      expect(
+        resolver.parseDate('1991-04-03', order: DateOrder.dayFirst),
+        DateTime.utc(1991, 4, 3),
+      );
+      expect(
+        resolver.parseDate('1991/04/03', order: DateOrder.dayFirst),
+        DateTime.utc(1991, 4, 3),
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Issue #1829: two-digit years.
+  group('parseDate: two-digit years', () {
+    // Pinned so the pivot does not drift as the real calendar moves on.
+    final pinned = TimeResolver(clock: () => DateTime(2026, 9, 12));
+
+    test('a year ahead of today belongs to the previous century', () {
+      expect(pinned.parseDate('4/15/91'), DateTime.utc(1991, 4, 15));
+    });
+
+    test('this year stays in this century', () {
+      expect(pinned.parseDate('4/15/26'), DateTime.utc(2026, 4, 15));
+    });
+
+    test('next year would be in the future, so it goes back a century', () {
+      expect(pinned.parseDate('4/15/27'), DateTime.utc(1927, 4, 15));
+    });
+
+    test('00 is 2000', () {
+      expect(pinned.parseDate('1/2/00'), DateTime.utc(2000, 1, 2));
+    });
+
+    test('pivots dotted and dashed dates too', () {
+      expect(pinned.parseDate('15.04.91'), DateTime.utc(1991, 4, 15));
+      expect(pinned.parseDate('15-04-91'), DateTime.utc(1991, 4, 15));
+    });
+
+    test('pivots a day-first two-digit year', () {
+      expect(
+        pinned.parseDate('03/04/91', order: DateOrder.dayFirst),
+        DateTime.utc(1991, 4, 3),
+      );
+    });
+
+    test('the century follows the clock', () {
+      final later = TimeResolver(clock: () => DateTime(2126, 1, 1));
+      expect(later.parseDate('4/15/91'), DateTime.utc(2091, 4, 15));
+    });
+
+    test('rejects years that are neither two nor four digits', () {
+      // A three-digit year used to be stored as written (year 991).
+      expect(pinned.parseDate('4/15/991'), isNull);
+      expect(pinned.parseDate('4/15/5'), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('combineDateTime: day-first and two-digit combined values', () {
+    final pinned = TimeResolver(clock: () => DateTime(2026, 9, 12));
+
+    test('parses a day-first combined value', () {
+      final result = pinned.combineDateTime(dateTimeStr: '15/04/1991 14:30');
+
+      expect(result, DateTime.utc(1991, 4, 15, 14, 30));
+    });
+
+    test('applies the given order to an ambiguous combined value', () {
+      final result = pinned.combineDateTime(
+        dateTimeStr: '03/04/1991 09:15:30',
+        dateOrder: DateOrder.dayFirst,
+      );
+
+      expect(result, DateTime.utc(1991, 4, 3, 9, 15, 30));
+    });
+
+    test('pivots a two-digit year in a combined value', () {
+      final result = pinned.combineDateTime(dateTimeStr: '4/15/91 2:00 PM');
+
+      expect(result, DateTime.utc(1991, 4, 15, 14));
+    });
+
+    test('applies the given order to a separate date column', () {
+      final result = pinned.combineDateTime(
+        dateStr: '03/04/1991',
+        timeStr: '09:00',
+        dateOrder: DateOrder.dayFirst,
+      );
+
+      expect(result, DateTime.utc(1991, 4, 3, 9));
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  group('resolveInformalTimes: date order', () {
+    test('reads the date in the given order', () {
+      final result = resolver.resolveInformalTimes([
+        {'date': '03/04/1991', 'time': 'am'},
+      ], dateOrder: DateOrder.dayFirst);
+
+      expect(result[0]['dateTime'], DateTime.utc(1991, 4, 3, 9));
     });
   });
 }

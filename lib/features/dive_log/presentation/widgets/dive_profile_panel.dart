@@ -18,13 +18,14 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
-/// dive. Tooltip floats as an Overlay on top of all content below.
+/// dive, while the active filter lists it. Tooltip floats as an Overlay on
+/// top of all content below.
 class DiveProfilePanel extends ConsumerWidget {
   const DiveProfilePanel({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final highlightedId = ref.watch(highlightedDiveIdProvider);
+    final highlightedId = ref.watch(listedHighlightedDiveIdProvider);
 
     if (highlightedId == null) {
       return _buildEmptyState(context);

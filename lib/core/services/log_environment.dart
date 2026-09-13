@@ -142,9 +142,15 @@ exported: $exportedAt
 ///
 /// Called wherever file logging is switched on, so a log file that spans
 /// several app versions attributes each run to the build that wrote it.
-Future<void> logSessionEnvironment() async {
-  final environment = await LogEnvironment.capture();
+/// Persisted even when only warnings and errors reach the file (#1826):
+/// those lines are what a bug report carries, and they are only triageable
+/// if the build that wrote them is named above them. The marker takes its
+/// place in the file when this is called, so lines logged while the version
+/// lookup is still running land below it.
+Future<void> logSessionEnvironment() {
+  final summary = LogEnvironment.capture().then((e) => e.toSummaryLine());
   const LoggerService(
     'Submersion',
-  ).info(environment.toSummaryLine(), category: LogCategory.app);
+  ).infoInOrder(summary, category: LogCategory.app, alwaysPersist: true);
+  return summary.then((_) {});
 }

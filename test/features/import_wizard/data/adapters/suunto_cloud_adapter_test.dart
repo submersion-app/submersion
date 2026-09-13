@@ -264,6 +264,46 @@ void main() {
     });
   });
 
+  group('retaining source dive numbers (issue #1832)', () {
+    test('forwards the option to the import service', () async {
+      adapter.setParsedDives([makeParsedDive()]);
+      final bundle = await adapter.buildBundle();
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          retainSourceDiveNumber: true,
+        ),
+      ).thenAnswer((_) async => 'new-dive-id');
+
+      await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {},
+        retainSourceDiveNumbers: true,
+      );
+
+      verify(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: diverId,
+          descriptorVendor: 'Suunto',
+          descriptorProduct: 'Suunto Ocean',
+          retainSourceDiveNumber: true,
+        ),
+      ).called(1);
+      verify(
+        mockDiveRepo.countDivesSharingDiveNumber(['new-dive-id']),
+      ).called(1);
+    });
+  });
+
   group('performImport()', () {
     test('imports selected dives against their resolved computer', () async {
       adapter.setParsedDives([makeParsedDive()]);
@@ -523,6 +563,46 @@ void main() {
       expect(result.consolidatedCount, 0);
       expect(result.skippedCount, 1);
       verify(mockDiveRepo.bulkDeleteDives(['new-dive-id'])).called(1);
+    });
+
+    test('a dive kept standalone keeps its source number when retaining '
+        '(issue #1832)', () async {
+      final bundle = await bundleWithMatch();
+      when(
+        mockDiveRepo.getComputerIdForDive('existing-dive'),
+      ).thenAnswer((_) async => 'other-computer');
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          retainSourceDiveNumber: true,
+        ),
+      ).thenAnswer((_) async => 'new-dive-id');
+      when(
+        mockConsolidationService.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenThrow(const UnreadableSeriesException(['series-1']));
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.consolidate},
+        },
+        retainSourceDiveNumbers: true,
+      );
+
+      expect(result.importedDiveIds, ['new-dive-id']);
+      verify(
+        mockDiveRepo.countDivesSharingDiveNumber(['new-dive-id']),
+      ).called(1);
     });
 
     test('keeps the imported dive standalone when the PRE-EXISTING target '

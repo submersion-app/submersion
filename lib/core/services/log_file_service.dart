@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
@@ -16,6 +17,7 @@ class LogFileService {
 
   static const _logFileName = 'submersion.log';
   static const _defaultMaxSize = 5 * 1024 * 1024; // 5MB
+  static const _newline = 0x0A;
 
   late final String _logFilePath;
   bool _isInitialized = false;
@@ -77,7 +79,11 @@ class LogFileService {
     final file = File(_logFilePath);
     if (!file.existsSync()) return [];
 
-    final lines = await file.readAsLines();
+    // Decoded leniently: a device name or native message can put a
+    // malformed UTF-8 byte in the file, and a strict decode would throw and
+    // hide every entry from the viewer.
+    final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
+    final lines = const LineSplitter().convert(text);
     final entries = <LogEntry>[];
     for (final line in lines) {
       final entry = LogEntry.tryParse(line);
@@ -103,6 +109,10 @@ class LogFileService {
 
   /// Check file size and rotate if it exceeds the max.
   /// Rotation keeps the last ~50% of the file content.
+  ///
+  /// Works on bytes, not decoded text: a strict UTF-8 decode throws on one
+  /// malformed byte, which would stop rotation for good and let a file that
+  /// is written for every user (#1826) grow without bound.
   Future<void> _rotateIfNeeded() async {
     final file = File(_logFilePath);
     if (!file.existsSync()) return;
@@ -110,14 +120,12 @@ class LogFileService {
     final size = await file.length();
     if (size <= maxFileSizeBytes) return;
 
-    final content = await file.readAsString();
-    final keepFrom = content.length ~/ 2;
+    final bytes = await file.readAsBytes();
 
     // Find the next newline after the midpoint so we don't split a line
-    final nextNewline = content.indexOf('\n', keepFrom);
+    final nextNewline = bytes.indexOf(_newline, bytes.length ~/ 2);
     if (nextNewline == -1) return;
 
-    final tail = content.substring(nextNewline + 1);
-    await file.writeAsString(tail);
+    await file.writeAsBytes(bytes.sublist(nextNewline + 1));
   }
 }

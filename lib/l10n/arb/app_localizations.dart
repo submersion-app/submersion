@@ -36468,6 +36468,39 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}'**
   String universalImport_summary_noticeAffectedDives(int count);
 
+  /// Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app.
+  ///
+  /// In en, this message translates to:
+  /// **'Some rows were not imported'**
+  String get universalImport_summary_unreadableDatesTitle;
+
+  /// Body of the import summary card for CSV rows skipped because their date could not be read. 'These rows' are the spreadsheet rows listed below it; 'it' is the CSV file.
+  ///
+  /// In en, this message translates to:
+  /// **'The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.'**
+  String get universalImport_summary_unreadableDatesBody;
+
+  /// How many spreadsheet rows of the CSV file were skipped because their date could not be read.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row not imported} other{{count} rows not imported}}'**
+  String universalImport_summary_unreadableDatesCount(int count);
+
+  /// Names the skipped spreadsheet rows so the user can find them in the file. {rows} is a comma-separated list of row numbers such as '4, 9, 12' (the header is row 1); {count} is how many numbers it lists.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Row {rows}} other{Rows {rows}}}'**
+  String universalImport_summary_unreadableDatesRows(int count, String rows);
+
+  /// The long form of universalImport_summary_unreadableDatesRows: {rows} lists the first ten skipped spreadsheet row numbers, and {count} is how many more rows were skipped but not listed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Rows {rows} and 1 more} other{Rows {rows} and {count} more}}'**
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  );
+
   /// Per-file summary line for a successfully imported file
   ///
   /// In en, this message translates to:
@@ -36558,6 +36591,102 @@ abstract class AppLocalizations {
   /// **'Import could not continue: {details}'**
   String universalImport_error_stepFailed(Object details);
 
+  /// First line of the error shown when every CSV row was skipped because its date could not be read
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Nothing was imported: the date in 1 row could not be read.} other{Nothing was imported: the dates in {count} rows could not be read.}}'**
+  String universalImport_error_unreadableDatesHeadline(int count);
+
+  /// Last line of the unreadable-dates error, pointing the user at the date column mapping on the Map Fields step
+  ///
+  /// In en, this message translates to:
+  /// **'Check that the date and time columns are mapped on this step, and that they hold dates.'**
+  String get universalImport_error_unreadableDatesHint;
+
+  /// Error shown when a file produced nothing to import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable data was found in this file.'**
+  String get universalImport_error_noDataInFile;
+
+  /// Error shown when a file produced nothing to import, followed by the parser's own explanation
+  ///
+  /// In en, this message translates to:
+  /// **'No importable data was found in this file: {details}'**
+  String universalImport_error_noDataInFileWithDetails(String details);
+
+  /// Error shown when none of several selected files produced anything to import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable data was found in the selected files.'**
+  String get universalImport_error_noDataInFiles;
+
+  /// Error shown when the selected file's contents are no longer available
+  ///
+  /// In en, this message translates to:
+  /// **'The selected file could not be read. Pick it again.'**
+  String get universalImport_error_fileUnreadable;
+
+  /// Error shown when reading the file failed unexpectedly
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be read: {details}'**
+  String universalImport_error_parseFailed(String details);
+
+  /// Error shown when a ZIP archive holds no file the app can import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable files were found in the archive.'**
+  String get universalImport_error_noFilesInArchive;
+
+  /// Error shown when a chosen folder holds no file the app can import
+  ///
+  /// In en, this message translates to:
+  /// **'No importable files were found in the selected folder.'**
+  String get universalImport_error_noFilesInFolder;
+
+  /// Error shown when a dropped or shared file could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be loaded: {details}'**
+  String universalImport_error_loadFailed(String details);
+
+  /// Error shown when a picked file could not be opened
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be opened: {details}'**
+  String universalImport_error_pickFailed(String details);
+
+  /// Error shown when a chosen folder could not be scanned for importable files
+  ///
+  /// In en, this message translates to:
+  /// **'The folder could not be scanned: {details}'**
+  String universalImport_error_folderScanFailed(String details);
+
+  /// Error shown when Import from Garmin Device finds no connected device; names the Choose Folder button
+  ///
+  /// In en, this message translates to:
+  /// **'No connected Garmin device found. Connect it by cable, or use Choose Folder to select the device\'s GARMIN/Activity folder.'**
+  String get universalImport_error_garminNotFound;
+
+  /// Error shown when a connected Garmin device could not be read
+  ///
+  /// In en, this message translates to:
+  /// **'The Garmin device could not be read: {details}'**
+  String universalImport_error_garminReadFailed(String details);
+
+  /// Error shown when a connected Garmin device holds no dive activities
+  ///
+  /// In en, this message translates to:
+  /// **'No dives were found on the connected Garmin device.'**
+  String get universalImport_error_garminNoDives;
+
+  /// Error shown when the optional additional (profile) file could not be opened
+  ///
+  /// In en, this message translates to:
+  /// **'The additional file could not be opened: {details}'**
+  String universalImport_error_additionalFilePickFailed(String details);
+
   /// Title for the CSV column mapping step
   ///
   /// In en, this message translates to:
@@ -36605,12 +36734,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import as New'**
   String get universalImport_label_importAsNew;
-
-  /// Headline text shown on the import summary step
-  ///
-  /// In en, this message translates to:
-  /// **'Import Complete'**
-  String get universalImport_label_importComplete;
 
   /// Simple importing label when total count is unknown
   ///
@@ -41222,6 +41345,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use dive numbers from the imported file instead of auto-assigning'**
   String get universalImport_label_retainDiveNumbersSubtitle;
+
+  /// Switch subtitle when the import source provides no dive numbers, so the switch is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'This source does not provide dive numbers, so dives are numbered automatically'**
+  String get universalImport_label_retainDiveNumbersUnavailable;
 
   /// Switch title for the session-only auto-tag override in the import options sheet
   ///
@@ -60127,6 +60256,60 @@ abstract class AppLocalizations {
   /// **'Save Debug Logs'**
   String get settings_debugLog_saveDialogTitle;
 
+  /// Header of the Diagnostics card in Settings > About.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get settings_diagnostics_header;
+
+  /// Diagnostics row that opens the log viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'View log'**
+  String get settings_diagnostics_viewLog;
+
+  /// Subtitle explaining that warnings and errors are logged even without debug mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Warnings and errors are recorded automatically'**
+  String get settings_diagnostics_viewLogSubtitle;
+
+  /// Diagnostics row that copies a bug-report summary to the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostics'**
+  String get settings_diagnostics_copy;
+
+  /// Subtitle describing what Copy diagnostics puts on the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'App version, device and recent log lines for a bug report'**
+  String get settings_diagnostics_copySubtitle;
+
+  /// Snack bar confirming the diagnostics summary was copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics copied to clipboard'**
+  String get settings_diagnostics_copiedSnack;
+
+  /// Desktop-only Diagnostics row that opens the log folder in the file manager.
+  ///
+  /// In en, this message translates to:
+  /// **'Open log folder'**
+  String get settings_diagnostics_openFolder;
+
+  /// Snack bar shown when the file manager refuses to open the log folder; shows the folder path instead.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the log folder. It is at: {path}'**
+  String settings_diagnostics_openFolderFailed(String path);
+
+  /// Snack bar shown when Copy diagnostics fails, with the error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not copy diagnostics: {error}'**
+  String settings_diagnostics_copyFailed(Object error);
+
   /// No description provided for @universalImport_preset_saveTitle.
   ///
   /// In en, this message translates to:
@@ -62816,6 +62999,36 @@ abstract class AppLocalizations {
   /// **'Failed to load temperature trend'**
   String get statistics_conditions_tempTrend_error;
 
+  /// Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by Water Temperature'**
+  String get statistics_conditions_waterTempBands_title;
+
+  /// Subtitle under the dives-by-water-temperature card title, explaining that the chart shows how many dives fall in each temperature range
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across water temperature bands'**
+  String get statistics_conditions_waterTempBands_subtitle;
+
+  /// Empty state of the dives-by-water-temperature card, shown when no dive in the current filter has a water temperature recorded
+  ///
+  /// In en, this message translates to:
+  /// **'No water temperature data available'**
+  String get statistics_conditions_waterTempBands_empty;
+
+  /// Error state of the dives-by-water-temperature card, shown when the band counts could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load water temperature bands'**
+  String get statistics_conditions_waterTempBands_error;
+
+  /// Screen-reader summary of the dives-by-water-temperature-band bar chart
+  ///
+  /// In en, this message translates to:
+  /// **'Bar chart. Dives by water temperature. {description}'**
+  String statistics_conditions_waterTempBands_semanticLabel(String description);
+
   /// No description provided for @diveLog_filter_presetLast5Years.
   ///
   /// In en, this message translates to:
@@ -63927,6 +64140,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assign transmitters'**
   String get universalImport_summary_noticeAssignTransmitters;
+
+  /// No description provided for @universalImport_summary_noticeDiveNumberConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive numbers already in use'**
+  String get universalImport_summary_noticeDiveNumberConflictTitle;
+
+  /// No description provided for @universalImport_summary_noticeDiveNumberConflictBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.'**
+  String get universalImport_summary_noticeDiveNumberConflictBody;
 
   /// No description provided for @dataQuality_detector_unknown_transmitter.
   ///

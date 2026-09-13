@@ -49,6 +49,10 @@ void main() {
       );
       await expectLater(repository.getNextDiveNumber(), throwsA(anything));
       await expectLater(
+        repository.countDivesSharingDiveNumber(['test-id']),
+        throwsA(anything),
+      );
+      await expectLater(
         repository.searchDiveSummaries('test'),
         throwsA(anything),
       );

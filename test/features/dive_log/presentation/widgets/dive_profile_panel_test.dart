@@ -118,6 +118,13 @@ Future<void> _pumpUntilChartProfile(
   );
 }
 
+/// The table lists [diveId]. The panel previews the highlight only while the
+/// active filter lists its dive (dive_profile_panel_filter_test.dart); these
+/// tests are about the chart, so the highlighted dive is always listed.
+Override _listedInTable(String diveId) => allDivesForTableProvider.overrideWith(
+  (ref) => AsyncValue.data([createTestDiveWithBottomTime(id: diveId)]),
+);
+
 Widget _buildPanel({
   String? highlightedDiveId,
   Dive? diveToReturn,
@@ -134,6 +141,7 @@ Widget _buildPanel({
         (ref) => MockCurrentDiverIdNotifier(),
       ),
       highlightedDiveIdProvider.overrideWith((ref) => highlightedDiveId),
+      if (highlightedDiveId != null) _listedInTable(highlightedDiveId),
       if (highlightedDiveId != null)
         diveProvider(
           highlightedDiveId,
@@ -234,6 +242,7 @@ void main() {
               (ref) => MockCurrentDiverIdNotifier(),
             ),
             highlightedDiveIdProvider.overrideWith((ref) => 'loading-dive'),
+            _listedInTable('loading-dive'),
             diveProvider(
               'loading-dive',
             ).overrideWith((ref) => Future.value(null)),
@@ -604,6 +613,7 @@ void main() {
               (ref) => MockCurrentDiverIdNotifier(),
             ),
             highlightedDiveIdProvider.overrideWith((ref) => 'dive-switch-1'),
+            _listedInTable('dive-switch-1'),
             diveProvider(
               'dive-switch-1',
             ).overrideWith((ref) => Future.value(dive1)),
@@ -825,6 +835,7 @@ void main() {
               (ref) => MockCurrentDiverIdNotifier(),
             ),
             highlightedDiveIdProvider.overrideWith((ref) => diveId),
+            _listedInTable(diveId),
             diveProvider(diveId).overrideWith((ref) => Future.value(dive)),
             diveDataSourcesProvider(
               diveId,

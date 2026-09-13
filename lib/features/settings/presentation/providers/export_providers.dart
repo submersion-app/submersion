@@ -15,6 +15,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_relations.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -37,6 +38,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -153,6 +155,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
     ).namesByParent({for (final e in equipment) e.id: e});
   }
 
+  /// The diver's dive types by id, so the CSV, Excel and PDF exports name each
+  /// type as the diver did rather than rebuilding a name from its id (#1834).
+  Future<Map<String, DiveTypeEntity>> _diveTypesById() =>
+      diveTypesByIdOrEmpty(_ref.read(diveTypesByIdProvider.future));
+
   /// Localizations for the status messages this notifier publishes.
   ///
   /// A provider has no BuildContext, so the persisted locale setting is
@@ -174,7 +181,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         return;
       }
-      final path = await _exportService.exportDivesToCsv(dives);
+      final path = await _exportService.exportDivesToCsv(
+        dives,
+        diveTypesById: await _diveTypesById(),
+      );
       state = state.copyWith(
         status: ExportStatus.success,
         message: _l10n.settings_export_success_dives,
@@ -255,6 +265,18 @@ class ExportNotifier extends StateNotifier<ExportState> {
     return _ref
         .read(equipmentObservationRepositoryProvider)
         .getAll(diverId: diverId);
+  }
+
+  /// [_validatedDiverDives] with each dive's recorded profile, for the full
+  /// UDDF backup. The dive list leaves profiles out, and the backup writes its
+  /// samples and tank pressures from them (issue #1874); the workbook draws no
+  /// profile, so it keeps the lean list.
+  Future<List<Dive>> _validatedDiverDivesWithProfiles() async {
+    final dives = await _validatedDiverDives();
+    state = state.copyWith(
+      message: _l10n.settings_export_progress_loadingProfiles,
+    );
+    return attachMergedProfiles(_ref.read(diveRepositoryProvider), dives);
   }
 
   /// The active diver's dives for the full UDDF export and the workbook,
@@ -535,6 +557,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       profiles: profiles,
       diverPhoto: diverPhoto,
       includeVerificationAreas: exportOptions.includeVerificationAreas,
+      diveTypesById: await _diveTypesById(),
     );
   }
 
@@ -545,7 +568,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_uddf,
     );
     try {
-      final dives = await _validatedDiverDives();
+      final dives = await _validatedDiverDivesWithProfiles();
 
       // Collect all data for comprehensive export
       state = state.copyWith(
@@ -686,6 +709,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
         observationRows: await _observationRows(equipment, dives),
+        diveTypesById: await _diveTypesById(),
       );
 
       state = state.copyWith(
@@ -795,6 +819,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
         observationRows: await _observationRows(equipment, dives),
+        diveTypesById: await _diveTypesById(),
       );
 
       if (path == null) {
@@ -1002,6 +1027,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveDivesCsvToFile(
         dives,
         dialogTitle: _l10n.settings_export_saveDivesCsvDialogTitle,
+        diveTypesById: await _diveTypesById(),
       );
 
       if (path == null) {
@@ -1127,7 +1153,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingUddf,
     );
     try {
-      final dives = await _validatedDiverDives();
+      final dives = await _validatedDiverDivesWithProfiles();
 
       // Collect all data for comprehensive export
       state = state.copyWith(

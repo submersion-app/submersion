@@ -22290,6 +22290,50 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Certaines lignes n\'ont pas été importées';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'La date de ces lignes n\'a pas pu être lue. Vérifiez la colonne de date du fichier, corrigez ces lignes et importez-le à nouveau.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lignes non importées',
+      one: '1 ligne non importée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lignes $rows',
+      one: 'Ligne $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lignes $rows et $count autres',
+      one: 'Lignes $rows et 1 autre',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22361,6 +22405,85 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Rien n\'a été importé : les dates de $count lignes n\'ont pas pu être lues.',
+      one: 'Rien n\'a été importé : la date d\'une ligne n\'a pas pu être lue.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Vérifiez que les colonnes de date et d\'heure sont associées à cette étape et qu\'elles contiennent des dates.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'Aucune donnée importable n\'a été trouvée dans ce fichier.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'Aucune donnée importable n\'a été trouvée dans ce fichier : $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'Aucune donnée importable n\'a été trouvée dans les fichiers sélectionnés.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'Le fichier sélectionné n\'a pas pu être lu. Sélectionnez-le à nouveau.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'Le fichier n\'a pas pu être lu : $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'Aucun fichier importable n\'a été trouvé dans l\'archive.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'Aucun fichier importable n\'a été trouvé dans le dossier sélectionné.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'Le fichier n\'a pas pu être chargé : $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'Le fichier n\'a pas pu être ouvert : $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'Le dossier n\'a pas pu être analysé : $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'Aucun appareil Garmin connecté n\'a été trouvé. Branchez-le par câble, ou utilisez « Choisir un dossier » pour sélectionner le dossier GARMIN/Activity de l\'appareil.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'L\'appareil Garmin n\'a pas pu être lu : $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'Aucune plongée n\'a été trouvée sur l\'appareil Garmin connecté.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'Le fichier supplémentaire n\'a pas pu être ouvert : $details';
+  }
+
+  @override
   String get universalImport_label_columnMapping => 'Mappage des colonnes';
 
   @override
@@ -22389,9 +22512,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Importer comme nouveau';
-
-  @override
-  String get universalImport_label_importComplete => 'Import terminé';
 
   @override
   String get universalImport_label_importing => 'Import';
@@ -25257,6 +25377,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_label_retainDiveNumbersSubtitle =>
       'Utiliser les numéros de plongée du fichier importé au lieu de les attribuer automatiquement';
+
+  @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Cette source ne fournit pas de numéros de plongée, les plongées sont donc numérotées automatiquement';
 
   @override
   String get universalImport_label_autoTagThisImport =>
@@ -36832,6 +36956,41 @@ class AppLocalizationsFr extends AppLocalizations {
       'Enregistrer les journaux de débogage';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostic';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Afficher le journal';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Les avertissements et les erreurs sont enregistrés automatiquement';
+
+  @override
+  String get settings_diagnostics_copy => 'Copier le diagnostic';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Version de l\'app, appareil et lignes récentes du journal pour un rapport de bug';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostic copié dans le presse-papiers';
+
+  @override
+  String get settings_diagnostics_openFolder =>
+      'Ouvrir le dossier des journaux';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Impossible d\'ouvrir le dossier des journaux. Il se trouve ici : $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Impossible de copier le diagnostic : $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Enregistrer comme preset';
 
   @override
@@ -38586,6 +38745,29 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger l\'évolution de la température';
 
   @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Plongées par température de l\'eau';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Répartition de vos plongées par plage de température de l\'eau';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Aucune donnée de température de l\'eau disponible';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Impossible de charger les plages de température de l\'eau';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Diagramme en barres. Plongées par température de l\'eau. $description';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '5 dernières années';
 
   @override
@@ -39354,6 +39536,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Associer les émetteurs';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Numéros de plongée déjà utilisés';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Ces plongées ont conservé le numéro de leur source, mais d\'autres plongées de votre carnet utilisent déjà ces numéros. Ouvrez Numérotation des plongées dans le menu de la liste des plongées pour les renuméroter.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'Émetteur non associé';

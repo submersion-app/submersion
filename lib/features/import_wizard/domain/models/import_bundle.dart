@@ -172,4 +172,15 @@ class ImportBundle {
 
   /// Returns true if this bundle contains a group of the given [type].
   bool hasType(ImportEntityType type) => groups.containsKey(type);
+
+  /// Whether any dive in this bundle carries a number from its source.
+  ///
+  /// When none does, "Retain source dive numbers" has nothing to retain, so
+  /// the review step disables it and says why rather than letting it silently
+  /// do nothing (issue #1832).
+  bool get hasSourceDiveNumbers =>
+      groups[ImportEntityType.dives]?.items.any(
+        (item) => item.diveData?.diveNumber != null,
+      ) ??
+      false;
 }

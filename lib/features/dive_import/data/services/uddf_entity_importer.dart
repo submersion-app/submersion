@@ -345,6 +345,11 @@ class UddfEntityImporter {
   /// reviewer chose not to import as new rows. Seeding the id mappings with
   /// them makes dive linking resolve to the existing record instead of
   /// silently dropping the association (#756).
+  ///
+  /// [preResolvedDiveTypeIds] does the same for dive types, keyed by the id
+  /// the file's dives reference. The review matches a type by name before
+  /// id, so a custom type the diver already has under another id (a
+  /// colliding slug gets a suffix) links there (#1834).
   Future<UddfEntityImportResult> import({
     required UddfImportResult data,
     required UddfImportSelections selections,
@@ -353,6 +358,7 @@ class UddfEntityImporter {
     bool retainSourceDiveNumbers = false,
     Map<String, String> preResolvedBuddyIds = const {},
     Map<String, String> preResolvedTagIds = const {},
+    Map<String, String> preResolvedDiveTypeIds = const {},
     ImportFormat? sourceFormat,
     Uint8List? sourceFileBytes,
     String? sourceFileName,
@@ -368,6 +374,7 @@ class UddfEntityImporter {
     final buddyIdMapping = <String, String>{...preResolvedBuddyIds};
     final diveCenterIdMapping = <String, String>{};
     final tagIdMapping = <String, String>{...preResolvedTagIds};
+    final diveTypeIdMapping = <String, String>{...preResolvedDiveTypeIds};
     final siteIdMapping = <String, DiveSite>{};
     final courseIdMapping = <String, String>{};
     final setIdMapping = <String, String>{};
@@ -457,6 +464,7 @@ class UddfEntityImporter {
       selections.diveTypes,
       repositories.diveTypeRepository,
       diverId,
+      diveTypeIdMapping,
       now,
       onProgress,
     );
@@ -518,6 +526,7 @@ class UddfEntityImporter {
       buddyIdMapping: buddyIdMapping,
       diveCenterIdMapping: diveCenterIdMapping,
       tagIdMapping: tagIdMapping,
+      diveTypeIdMapping: diveTypeIdMapping,
       siteIdMapping: siteIdMapping,
       courseIdMapping: courseIdMapping,
       setIdMapping: setIdMapping,
@@ -1040,11 +1049,39 @@ class UddfEntityImporter {
 
   // -- Dive Type import --
 
+  /// A dive's type [ids] as stored: each through [idMapping] (the type it
+  /// resolved to on import), in order and without repeats, since two source
+  /// ids can resolve to one type.
+  static List<String> _resolveDiveTypeIds(
+    List<String> ids,
+    Map<String, String> idMapping,
+  ) {
+    final resolved = <String>[];
+    for (final id in ids) {
+      final stored = idMapping[id] ?? id;
+      if (!resolved.contains(stored)) resolved.add(stored);
+    }
+    return resolved;
+  }
+
+  /// Whether an incoming type named [name] under [id] is the [existing] row
+  /// on that id: the same name, ignoring case, or a name that is only the
+  /// display form of the id, which is how exports before #1834 wrote every
+  /// type and so says nothing about the type beyond its id.
+  static bool _isSameDiveType(DiveTypeEntity existing, String id, String name) {
+    final incoming = name.trim().toLowerCase();
+    return existing.name.trim().toLowerCase() == incoming ||
+        Dive.diveTypeDisplayName(id).toLowerCase() == incoming;
+  }
+
+  /// Imports the selected custom types, recording in [idMapping] the id each
+  /// one was stored under, keyed by the id the file's dives reference.
   Future<int> _importDiveTypes(
     List<Map<String, dynamic>> items,
     Set<int> selected,
     DiveTypeRepository repository,
     String diverId,
+    Map<String, String> idMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
   ) async {
@@ -1059,14 +1096,19 @@ class UddfEntityImporter {
       final isBuiltIn = typeData['isBuiltIn'] as bool? ?? false;
       if (isBuiltIn || name == null || name.isEmpty) continue;
 
-      final typeId =
-          typeData['id'] as String? ?? DiveTypeEntity.generateSlug(name);
+      final sourceId = typeData['id'] as String?;
+      final typeId = sourceId ?? DiveTypeEntity.generateSlug(name);
 
       // createDiveType does not reject a colliding id - it suffixes it and
       // inserts anyway. Without this check a source whose vocabulary overlaps
       // the built-ins ("Shore", "Boat", "Night") would add a near-duplicate
-      // custom type beside every one of them.
-      if (await repository.getDiveTypeById(typeId) != null) continue;
+      // custom type beside every one of them. A row that is another type
+      // under the same id is not reused: the incoming type is created under
+      // the suffixed id, and its dives follow the mapping (#1834).
+      final existing = await repository.getDiveTypeById(typeId);
+      if (existing != null && _isSameDiveType(existing, typeId, name)) {
+        continue;
+      }
 
       final diveType = DiveTypeEntity(
         id: typeId,
@@ -1079,7 +1121,8 @@ class UddfEntityImporter {
       );
 
       try {
-        await repository.createDiveType(diveType);
+        final created = await repository.createDiveType(diveType);
+        if (sourceId != null) idMapping[sourceId] = created.id;
         count++;
       } catch (_) {
         // Ignore duplicates — dive type may already exist with same slug
@@ -1839,6 +1882,7 @@ class UddfEntityImporter {
     required Map<String, String> buddyIdMapping,
     required Map<String, String> diveCenterIdMapping,
     required Map<String, String> tagIdMapping,
+    required Map<String, String> diveTypeIdMapping,
     required Map<String, DiveSite> siteIdMapping,
     required Map<String, String> courseIdMapping,
     Map<String, String> setIdMapping = const {},
@@ -2159,9 +2203,11 @@ class UddfEntityImporter {
           )
           ? 'technical'
           : 'recreational';
-      final diveTypeIds =
-          (diveData['diveTypeIds'] as List?)?.cast<String>() ??
-          [diveData['diveType'] as String? ?? defaultDiveType];
+      final diveTypeIds = _resolveDiveTypeIds(
+        (diveData['diveTypeIds'] as List?)?.cast<String>() ??
+            [diveData['diveType'] as String? ?? defaultDiveType],
+        diveTypeIdMapping,
+      );
 
       // Parse dive mode, planner flag, and favorite
       final diveMode =
