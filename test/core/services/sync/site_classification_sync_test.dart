@@ -42,6 +42,31 @@ void main() {
     expect(exported, ['mine']);
   });
 
+  test('a custom site type from a peer applies and updates in place', () async {
+    await serializer.upsertRecord('siteTypes', {
+      'id': 'mine',
+      'diverId': null,
+      'name': 'Mine',
+      'isBuiltIn': false,
+      'sortOrder': 100,
+      'createdAt': 1,
+      'updatedAt': 1,
+      'hlc': null,
+    });
+    final json = await serializer.fetchRecord('siteTypes', 'mine');
+    expect(json?['name'], 'Mine');
+
+    await serializer.upsertRecord('siteTypes', {
+      ...json!,
+      'name': 'Old mine',
+      'updatedAt': 2,
+    });
+    final rows = await (db.select(
+      db.siteTypes,
+    )..where((t) => t.id.equals('mine'))).get();
+    expect(rows.single.name, 'Old mine');
+  });
+
   test('a site junction row round-trips through fetch and upsert', () async {
     await db.customStatement(
       "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "
@@ -179,6 +204,79 @@ void main() {
       expect(tag.appliesToSites, isTrue);
     },
   );
+
+  test(
+    'a folded tag drops its link on a site the survivor already tags',
+    () async {
+      await db.customStatement(
+        "INSERT INTO tags (id, name, created_at, updated_at, "
+        "applies_to_dives, applies_to_sites) "
+        "VALUES ('zzz', 'Avoid', 1, 1, 0, 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO site_tags (id, site_id, tag_id, created_at) "
+        "VALUES ('local', 's1', 'zzz', 1)",
+      );
+      await serializer.applyInDeferredFkTransaction(() async {
+        // The peer's link to its own tag lands first (FKs are deferred), so
+        // when the tag folds, s1 is already tagged with the survivor.
+        await db.customStatement(
+          "INSERT INTO site_tags (id, site_id, tag_id, created_at) "
+          "VALUES ('peer', 's1', 'aaa', 2)",
+        );
+        await serializer.upsertRecord('tags', {
+          'id': 'aaa',
+          'diverId': null,
+          'name': 'avoid',
+          'color': null,
+          'createdAt': 2,
+          'updatedAt': 2,
+          'hlc': null,
+          'appliesToDives': false,
+          'appliesToSites': true,
+        });
+      });
+
+      final links = await db.select(db.siteTags).get();
+      expect(links.map((r) => (r.id, r.tagId)), [('peer', 'aaa')]);
+    },
+  );
+
+  test('an incremental changeset carries only changed sites\' links', () async {
+    const oldHlc = '2026-07-01T00:00:00.000Z-0000-peer';
+    const newHlc = '2026-08-01T00:00:00.000Z-0000-peer';
+    await db.customStatement(
+      "UPDATE dive_sites SET hlc = '$oldHlc' WHERE id = 's1'",
+    );
+    await db.customStatement(
+      "INSERT INTO dive_sites (id, name, created_at, updated_at, hlc) "
+      "VALUES ('s2', 'Changed', 0, 0, '$newHlc')",
+    );
+    await db.customStatement(
+      "INSERT INTO tags (id, name, created_at, updated_at, "
+      "applies_to_dives, applies_to_sites) "
+      "VALUES ('t1', 'To try', 1, 1, 0, 1)",
+    );
+    for (final site in ['s1', 's2']) {
+      await db.customStatement(
+        "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "
+        "VALUES ('type-$site', '$site', 'wreck', 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO site_tags (id, site_id, tag_id, created_at) "
+        "VALUES ('tag-$site', '$site', 't1', 1)",
+      );
+    }
+
+    final changeset = await serializer.exportChangeset(
+      deviceId: 'dev-a',
+      hlcWatermark: oldHlc,
+      deletions: const [],
+    );
+
+    expect(changeset.data.siteSiteTypes.map((r) => r['id']), ['type-s2']);
+    expect(changeset.data.siteTags.map((r) => r['id']), ['tag-s2']);
+  });
 
   group('older peers', () {
     late FakeCloudStorageProvider cloud;
