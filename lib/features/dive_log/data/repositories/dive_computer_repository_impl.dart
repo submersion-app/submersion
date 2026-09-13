@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_import/data/services/imported_file_recl
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
@@ -1898,6 +1899,41 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get events for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// [getEventsForDive] for many dives at once, keyed by dive id; a dive
+  /// without events is absent.
+  ///
+  /// One statement per [kSeriesIdChunkSize] ids instead of one per dive, so
+  /// the full UDDF export costs the same for any logbook size (issue #1867).
+  /// `dive_profile_events` has no `dive_id` index, which made every
+  /// per-dive read a scan of the whole table. Each dive keeps the per-dive
+  /// read's timestamp order.
+  Future<Map<String, List<DiveProfileEvent>>> getEventsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    try {
+      final byDive = <String, List<DiveProfileEvent>>{};
+      for (final chunk in seriesIdChunks(diveIds)) {
+        final rows =
+            await (_db.select(_db.diveProfileEvents)
+                  ..where((t) => t.diveId.isIn(chunk))
+                  ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+                .get();
+        for (final row in rows) {
+          byDive.putIfAbsent(row.diveId, () => []).add(row);
+        }
+      }
+      return byDive;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get events for ${diveIds.length} dives',
         error: e,
         stackTrace: stackTrace,
       );

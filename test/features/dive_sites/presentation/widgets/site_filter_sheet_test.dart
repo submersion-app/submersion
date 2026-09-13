@@ -7,6 +7,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -158,6 +162,107 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(container.read(siteFilterProvider).maxDepth, closeTo(30, 0.001));
+    });
+  });
+
+  group('site type and tag filters (issue #1765)', () {
+    final now = DateTime(2026);
+
+    Future<ProviderContainer> classificationContainer({
+      SiteFilterState filter = const SiteFilterState(),
+    }) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      return ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith(
+            (ref) => MockSettingsNotifier(const AppSettings()),
+          ),
+          siteFilterProvider.overrideWith((ref) => filter),
+          siteTypesProvider.overrideWith(
+            (ref) async => [
+              SiteTypeEntity(
+                id: 'wreck',
+                name: 'Wreck',
+                isBuiltIn: true,
+                createdAt: now,
+                updatedAt: now,
+              ),
+              SiteTypeEntity(
+                id: 'lake',
+                name: 'Lake',
+                isBuiltIn: true,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
+          tagsProvider.overrideWith(
+            (ref) async => [
+              Tag(
+                id: 'dive-tag',
+                name: 'Night',
+                createdAt: now,
+                updatedAt: now,
+              ),
+              Tag(
+                id: 'site-tag',
+                name: 'To try',
+                createdAt: now,
+                updatedAt: now,
+                appliesToDives: false,
+                appliesToSites: true,
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    testWidgets('lists types and only site-scoped tags', (tester) async {
+      _useTallSurface(tester);
+      final container = await classificationContainer();
+      addTearDown(container.dispose);
+      await _openSheet(tester, container);
+
+      expect(find.widgetWithText(FilterChip, 'Wreck'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'Lake'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'To try'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'Night'), findsNothing);
+    });
+
+    testWidgets('applying stores the chosen types and tags', (tester) async {
+      _useTallSurface(tester);
+      final container = await classificationContainer();
+      addTearDown(container.dispose);
+      await _openSheet(tester, container);
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Lake'));
+      await tester.tap(find.widgetWithText(FilterChip, 'To try'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+
+      final applied = container.read(siteFilterProvider);
+      expect(applied.siteTypeIds, {'lake'});
+      expect(applied.tagIds, {'site-tag'});
+    });
+
+    testWidgets('seeds the chips from the current filter', (tester) async {
+      _useTallSurface(tester);
+      final container = await classificationContainer(
+        filter: const SiteFilterState(siteTypeIds: {'wreck'}),
+      );
+      addTearDown(container.dispose);
+      await _openSheet(tester, container);
+
+      expect(
+        tester
+            .widget<FilterChip>(find.widgetWithText(FilterChip, 'Wreck'))
+            .selected,
+        isTrue,
+      );
     });
   });
 }

@@ -11,11 +11,17 @@ class TagInputWidget extends ConsumerStatefulWidget {
   final void Function(List<Tag> tags) onTagsChanged;
   final bool enabled;
 
+  /// Which tags are suggested and what a new tag applies to (issue #1765).
+  /// A name already used by a tag of the other scope widens that tag rather
+  /// than creating a second one.
+  final TagScope scope;
+
   const TagInputWidget({
     super.key,
     required this.selectedTags,
     required this.onTagsChanged,
     this.enabled = true,
+    this.scope = TagScope.dives,
   });
 
   @override
@@ -56,6 +62,7 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
       name.trim(),
       colorHex: TagColors
           .predefined[widget.selectedTags.length % TagColors.predefined.length],
+      scope: widget.scope,
     );
     _addTag(newTag);
   }
@@ -138,7 +145,13 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
           // Suggestions dropdown
           if (_showSuggestions && _textController.text.isNotEmpty)
             allTagsAsync.when(
-              data: (allTags) {
+              data: (everyTag) {
+                // Only tags offered where this input is. Typing the name of
+                // a tag from the other scope still offers "create", which
+                // widens that tag instead of duplicating it.
+                final allTags = everyTag
+                    .where((tag) => tag.appliesTo(widget.scope))
+                    .toList();
                 final query = _textController.text.toLowerCase();
                 final filteredTags = allTags
                     .where(
@@ -170,47 +183,55 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Existing tag suggestions
-                      ...filteredTags.map(
-                        (tag) => ListTile(
-                          dense: true,
-                          leading: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: tag.color,
+                  // The tiles need a Material of their own inside the
+                  // decorated box, or their ink paints behind its background
+                  // (and Flutter asserts in debug builds).
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Existing tag suggestions
+                        ...filteredTags.map(
+                          (tag) => ListTile(
+                            dense: true,
+                            leading: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: tag.color,
+                            ),
+                            title: Text(tag.name),
+                            onTap: () => _addTag(tag),
                           ),
-                          title: Text(tag.name),
-                          onTap: () => _addTag(tag),
                         ),
-                      ),
 
-                      // Create new tag option
-                      if (!exactMatch)
-                        ListTile(
-                          dense: true,
-                          leading: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: TagColors.fromHex(
-                              TagColors.predefined[widget.selectedTags.length %
-                                  TagColors.predefined.length],
+                        // Create new tag option
+                        if (!exactMatch)
+                          ListTile(
+                            dense: true,
+                            leading: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: TagColors.fromHex(
+                                TagColors.predefined[widget
+                                        .selectedTags
+                                        .length %
+                                    TagColors.predefined.length],
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.add,
-                              size: 14,
-                              color: Colors.white,
+                            title: Text(
+                              context.l10n.tags_action_createNamed(
+                                _textController.text,
+                              ),
                             ),
+                            onTap: () => _createAndAddTag(_textController.text),
                           ),
-                          title: Text(
-                            context.l10n.tags_action_createNamed(
-                              _textController.text,
-                            ),
-                          ),
-                          onTap: () => _createAndAddTag(_textController.text),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },

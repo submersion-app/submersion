@@ -42,6 +42,7 @@ void main() {
       'diveSites': 'Dive site',
       'tags': 'Tag',
       'diveTypes': 'Dive type',
+      'siteTypes': 'Site type',
       'divers': 'Diver',
       'buddies': 'Buddy',
       'equipment': 'Equipment',

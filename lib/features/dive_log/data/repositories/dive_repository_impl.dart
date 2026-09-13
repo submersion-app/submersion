@@ -4657,25 +4657,7 @@ class DiveRepository {
             ..orderBy([OrderingTerm.asc(_db.gasSwitches.timestamp)]);
 
       final rows = await query.get();
-      return rows.map((row) {
-        final gs = row.readTable(_db.gasSwitches);
-        final tank = row.readTable(_db.diveTanks);
-
-        return GasSwitchWithTank(
-          gasSwitch: GasSwitch(
-            id: gs.id,
-            diveId: gs.diveId,
-            timestamp: gs.timestamp,
-            tankId: gs.tankId,
-            depth: gs.depth,
-            createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
-          ),
-          tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
-          gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
-          o2Fraction: tank.o2Percent / 100.0,
-          heFraction: tank.hePercent / 100.0,
-        );
-      }).toList();
+      return rows.map(_mapGasSwitchRow).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get gas switches for dive: $diveId',
@@ -4684,6 +4666,69 @@ class DiveRepository {
       );
       return [];
     }
+  }
+
+  /// [getGasSwitchesForDive] for many dives at once, keyed by dive id; a
+  /// dive without switches is absent.
+  ///
+  /// One statement per [kSeriesIdChunkSize] ids instead of one per dive, so
+  /// the full UDDF export costs the same for any logbook size (issue #1867).
+  /// Each dive keeps the per-dive read's timestamp order, and a failure is
+  /// logged and yields no switches, as that read's does.
+  Future<Map<String, List<GasSwitchWithTank>>> getGasSwitchesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    try {
+      final byDive = <String, List<GasSwitchWithTank>>{};
+      for (final chunk in seriesIdChunks(diveIds)) {
+        final rows =
+            await (_db.select(_db.gasSwitches).join([
+                    innerJoin(
+                      _db.diveTanks,
+                      _db.diveTanks.id.equalsExp(_db.gasSwitches.tankId),
+                    ),
+                  ])
+                  ..where(_db.gasSwitches.diveId.isIn(chunk))
+                  ..orderBy([OrderingTerm.asc(_db.gasSwitches.timestamp)]))
+                .get();
+        for (final row in rows) {
+          final gasSwitch = _mapGasSwitchRow(row);
+          byDive
+              .putIfAbsent(gasSwitch.gasSwitch.diveId, () => [])
+              .add(gasSwitch);
+        }
+      }
+      return byDive;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get gas switches for ${diveIds.length} dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {};
+    }
+  }
+
+  /// A `gas_switches` row joined to its `dive_tanks` row.
+  GasSwitchWithTank _mapGasSwitchRow(TypedResult row) {
+    final gs = row.readTable(_db.gasSwitches);
+    final tank = row.readTable(_db.diveTanks);
+
+    return GasSwitchWithTank(
+      gasSwitch: GasSwitch(
+        id: gs.id,
+        diveId: gs.diveId,
+        timestamp: gs.timestamp,
+        tankId: gs.tankId,
+        depth: gs.depth,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
+      ),
+      tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
+      gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
+      o2Fraction: tank.o2Percent / 100.0,
+      heFraction: tank.hePercent / 100.0,
+    );
   }
 
   /// Format gas mix as a readable name (e.g., "Air", "EAN32", "Tx 21/35")
