@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
+import 'package:submersion/features/universal_import/data/models/diver_target.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -57,6 +58,8 @@ class UniversalImportState {
     this.options,
     this.fieldMapping,
     this.payload,
+    this.sourcePayload,
+    this.diverMapping = const {},
     this.duplicateResult,
     this.selections = const {},
     this.importCounts = const {},
@@ -165,6 +168,17 @@ class UniversalImportState {
   /// Parsed import data (set after parsing).
   final ImportPayload? payload;
 
+  /// The payload as parsed, kept once the Divers step has split [payload]
+  /// across profiles (issue #1893). Every re-expansion starts from here, so
+  /// walking Back through the step never expands an expansion.
+  final ImportPayload? sourcePayload;
+
+  /// The Divers step's choice per source diver key (issue #1893).
+  final Map<String, DiverTarget> diverMapping;
+
+  /// The parsed payload, whether or not it has been split across profiles.
+  ImportPayload? get parsedPayload => sourcePayload ?? payload;
+
   /// Duplicate check results (set before review step).
   final ImportDuplicateResult? duplicateResult;
 
@@ -215,6 +229,9 @@ class UniversalImportState {
     bool clearFieldMapping = false,
     ImportPayload? payload,
     bool clearPayload = false,
+    ImportPayload? sourcePayload,
+    Map<String, DiverTarget>? diverMapping,
+    bool clearDiverMapping = false,
     ImportDuplicateResult? duplicateResult,
     bool clearDuplicateResult = false,
     Map<ImportEntityType, Set<int>>? selections,
@@ -277,6 +294,14 @@ class UniversalImportState {
           ? null
           : (fieldMapping ?? this.fieldMapping),
       payload: clearPayload ? null : (payload ?? this.payload),
+      // A payload cleared or replaced by a new parse takes the diver state
+      // that was derived from it along.
+      sourcePayload: clearPayload || clearDiverMapping
+          ? null
+          : (sourcePayload ?? this.sourcePayload),
+      diverMapping: clearPayload || clearDiverMapping
+          ? const {}
+          : (diverMapping ?? this.diverMapping),
       duplicateResult: clearDuplicateResult
           ? null
           : (duplicateResult ?? this.duplicateResult),
