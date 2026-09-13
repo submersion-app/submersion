@@ -85,6 +85,13 @@ render on that dive; no site card is in that position.)
 A card renders only when it is visible in the diver's configuration AND its
 "shows when" rule holds. The rules are unchanged from today.
 
+The menu, the Settings page and the List layout's fold headers label each
+card with the title the card itself shows (English: Map, Dives at this Site,
+Description, Location, Depth Range, Altitude, Features, Tides, Ecosystem,
+Species, Site Media, Difficulty Level, Rating, Hazards & Safety, Access &
+Logistics, Notes), so the menu and the page always agree. The "Card" column
+above is descriptive only.
+
 **Pairs.** Difficulty + Rating and Hazards + Access are separate cards. In the
 Detailed layout each pair renders side by side, at 700px of available width
 or more, whenever both halves are visible and both have content, wherever
@@ -126,13 +133,18 @@ shared code. The dive classes keep their public signatures and delegate.
   `MenuAnchor` dropdown, driven by data and callbacks:
   `layout`, `onLayoutChanged`, `List<SectionMenuEntry> entries` (key,
   label, icon, visible), `onToggle(int)`, `onReorder(int, int)`,
-  `onShowAll` (null disables it), `onOpenSettings`, and the button tooltip.
+  `onShowAll` (the menu disables it while every entry is visible),
+  `onOpenSettings`, and an optional `iconSize` for the compact embedded
+  header. The tooltip text is the same on both pages, so it is not a
+  parameter.
   `DiveDetailPropertiesMenu` keeps its constructor
   (`isGauge`) and becomes a wrapper that builds the entries (applying the
   gauge filter) and wires the callbacks to `settingsProvider`.
 - **`lib/shared/widgets/section_fold.dart`** (moved) is today's
   `DiveSectionFold`, renamed `SectionFold`. It has one call site in
   `dive_detail_page.dart`, which is updated, and its test moves with it.
+  `dive_detail_page_section_config_test.dart` finds the fold by type, so
+  its `DiveSectionFold` references are renamed too (a type-name edit only).
 - **Layout enum.** `DiveDetailLayout` (detailed / list, `fromName`,
   `localizedName`, `pairsSections`, `foldsSections`) is reused as is for the
   site layout. Its spacing getters are dive-specific and are not used by the
@@ -142,8 +154,9 @@ shared code. The dive classes keep their public signatures and delegate.
 
 - **`lib/core/constants/site_detail_sections.dart`** (new):
   `SiteDetailSectionId` (the sixteen ids above, in default order) with
-  `icon`, English fallback `displayName` and `description`, and
-  `localizedDisplayName` / `localizedDescription`. `SiteDetailSectionConfig`
+  `icon` and `localizedDisplayName` / `localizedDescription`. There are no
+  English-fallback getters: one value is named `description`, which a
+  `description` getter would collide with, and nothing needs them. `SiteDetailSectionConfig`
   carries `id`, `visible`, `expanded`, `copyWith`, `toJson` (writes
   `expanded` only when true), `fromJson` / `tryFromJson`, `defaultSections`,
   `sectionsToJson` / `sectionsFromJson`, and `moveRenderedSection` /
@@ -165,9 +178,11 @@ shared code. The dive classes keep their public signatures and delegate.
   matching the Dives row that links to `/settings/dive-detail-sections`.
 - **`site_detail_page.dart`** changes only its `build()` and headers:
   - `build()` replaces the hard-coded `Column` children with a
-    `Map<SiteDetailSectionId, Widget? Function()>`. A builder returns null
-    when the card's "shows when" rule fails. The map goes to the section
-    list builder.
+    `Map<SiteDetailSectionId, Widget?>` built in the page's own `build`
+    (several card builders call `ref.watch`, which only works there). An
+    entry is null when the card's "shows when" rule fails. Building a card
+    widget is cheap; in the List layout a folded card is never mounted. The
+    map goes to `SiteDetailSectionList`.
   - The existing `_build*Section` methods are unchanged.
   - `_pairOrSingle` is removed; pairing now happens in the section list.
   - The tune button is added to the standalone `AppBar` actions and to
@@ -237,8 +252,11 @@ All 11 locales.
   `siteFeature_sectionTitle`, `tides_title`, `reef_section_title`,
   `marineLife_siteSection_title`, `media_siteMediaSection_title`.
 - New: one name key for the Map card, sixteen one-line description keys
-  (`siteDetailSection_<id>_description`), the Settings page title, and the
-  Sites appearance row's title and subtitle.
+  (`siteDetailSection_<id>_description`), the Settings page title
+  (`settings_siteDetailSections_title`), and a "Site Details" group header
+  on the Sites appearance page (`settings_appearance_header_siteDetails`).
+  The link row under that header reuses the Dives row's existing
+  "Section Order & Visibility" title and subtitle keys.
 - The menu's labels (Layout, Sections, Show all, Reorder..., Detailed, List,
   Reset to default) reuse the existing Dive Details keys; the text is
   identical.
@@ -275,7 +293,9 @@ TDD: each unit starts from a failing test.
 `dive_detail_sections_test`, `dive_detail_section_pairs_test`,
 `dive_detail_properties_menu_test`, `dive_detail_page_section_config_test`,
 `dive_detail_page_paired_sections_test`. `dive_section_fold_test` moves to
-`test/shared/widgets/section_fold_test.dart` with only the rename.
+`test/shared/widgets/section_fold_test.dart`, and
+`dive_detail_page_section_config_test` changes only its `DiveSectionFold`
+type references; neither changes an assertion.
 
 **Persistence and sync**
 
