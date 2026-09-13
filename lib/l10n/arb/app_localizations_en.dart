@@ -26478,6 +26478,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => 'Gear attributes';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Gear category';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Any category';
+
+  @override
   String get diveLog_filter_thicknessMin => 'Min';
 
   @override

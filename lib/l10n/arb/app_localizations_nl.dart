@@ -26722,6 +26722,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => 'Uitrustingskenmerken';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Uitrustingscategorie';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Elke categorie';
+
+  @override
   String get diveLog_filter_thicknessMin => 'Min';
 
   @override

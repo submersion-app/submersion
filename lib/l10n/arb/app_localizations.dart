@@ -44327,6 +44327,24 @@ abstract class AppLocalizations {
   /// **'Suit thickness (mm)'**
   String get diveLog_filter_sectionSuitThickness;
 
+  /// No description provided for @diveLog_filter_sectionGearAttributes.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear attributes'**
+  String get diveLog_filter_sectionGearAttributes;
+
+  /// No description provided for @diveLog_filter_gearCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear category'**
+  String get diveLog_filter_gearCategory;
+
+  /// No description provided for @diveLog_filter_gearCategoryAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any category'**
+  String get diveLog_filter_gearCategoryAny;
+
   /// No description provided for @diveLog_filter_thicknessMin.
   ///
   /// In en, this message translates to:

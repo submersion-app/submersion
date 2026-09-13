@@ -25541,6 +25541,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => '装备属性';
+
+  @override
+  String get diveLog_filter_gearCategory => '装备类别';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => '任意类别';
+
+  @override
   String get diveLog_filter_thicknessMin => '最小';
 
   @override

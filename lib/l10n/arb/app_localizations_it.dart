@@ -26927,6 +26927,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'Spessore della muta (mm)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes =>
+      'Caratteristiche dell\'attrezzatura';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Categoria di attrezzatura';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Qualsiasi categoria';
+
+  @override
   String get diveLog_filter_thicknessMin => 'Min';
 
   @override

@@ -26264,6 +26264,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => 'מאפייני ציוד';
+
+  @override
+  String get diveLog_filter_gearCategory => 'קטגוריית ציוד';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'כל קטגוריה';
+
+  @override
   String get diveLog_filter_thicknessMin => 'מינ\'';
 
   @override

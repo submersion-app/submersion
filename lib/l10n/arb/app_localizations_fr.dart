@@ -27025,6 +27025,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Épaisseur de combinaison (mm)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes =>
+      'Caractéristiques de l\'équipement';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Catégorie d\'équipement';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Toutes catégories';
+
+  @override
   String get diveLog_filter_thicknessMin => 'Min';
 
   @override

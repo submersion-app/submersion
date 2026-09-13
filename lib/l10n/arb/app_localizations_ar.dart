@@ -26461,6 +26461,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => 'خصائص المعدات';
+
+  @override
+  String get diveLog_filter_gearCategory => 'فئة المعدات';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'أي فئة';
+
+  @override
   String get diveLog_filter_thicknessMin => 'الأدنى';
 
   @override

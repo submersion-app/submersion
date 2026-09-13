@@ -26927,6 +26927,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'Espessura da roupa (mm)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => 'Atributos do equipamento';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Categoria de equipamento';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Qualquer categoria';
+
+  @override
   String get diveLog_filter_thicknessMin => 'Mín';
 
   @override

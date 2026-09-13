@@ -26822,6 +26822,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => 'Felszerelés jellemzői';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Felszerelés kategóriája';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Bármely kategória';
+
+  @override
   String get diveLog_filter_thicknessMin => 'Min';
 
   @override

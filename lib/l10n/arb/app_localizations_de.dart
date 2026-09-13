@@ -26873,6 +26873,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';
 
   @override
+  String get diveLog_filter_sectionGearAttributes => 'Ausrüstungsmerkmale';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Ausrüstungskategorie';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Beliebige Kategorie';
+
+  @override
   String get diveLog_filter_thicknessMin => 'Min';
 
   @override

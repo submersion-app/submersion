@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide DiveSite, DiveComputer;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -14,7 +15,9 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -89,6 +92,7 @@ void main() {
     WidgetTester tester, {
     DiveFilterState initial = const DiveFilterState(),
     List<DiveComputer>? registeredComputers,
+    List<EquipmentItem> ownedGear = const [],
   }) async {
     final overrides = await getBaseOverrides();
     late WidgetRef capturedRef;
@@ -103,6 +107,7 @@ void main() {
           allDiveComputersProvider.overrideWith(
             (ref) async => registeredComputers ?? computers,
           ),
+          allEquipmentProvider.overrideWith((ref) async => ownedGear),
         ].cast(),
         child: MaterialApp(
           // Pinned: this suite drives the sheet by English label.
@@ -485,6 +490,110 @@ void main() {
 
     await tapText(tester, 'Apply Filters');
     expect(ref.read(filterProvider).equipmentAttrConditions.single.max, 1250);
+  });
+
+  const hoseHp = EquipmentAttrCondition(
+    key: 'hose_type',
+    choices: {'hp'},
+    types: {EquipmentType.hose},
+  );
+  const hoseItem = EquipmentItem(
+    id: 'h',
+    name: 'Gauge hose',
+    type: EquipmentType.hose,
+  );
+
+  testWidgets('no owned gear with choice fields hides the gear section', (
+    tester,
+  ) async {
+    await openSheet(tester);
+    await scrollTo(tester, find.text('Tags'));
+    expect(find.text('Gear attributes'), findsNothing);
+  });
+
+  testWidgets('hose type chips write a condition beside suit thickness', (
+    tester,
+  ) async {
+    final ref = await openSheet(tester, ownedGear: [hoseItem]);
+
+    await scrollTo(tester, find.text('Suit thickness (mm)'));
+    final minField = find.byWidgetPredicate(
+      (w) =>
+          w is TextField &&
+          w.decoration?.labelText == 'Min' &&
+          w.decoration?.suffixText == null,
+    );
+    await tester.enterText(minField, '5');
+    await tester.pumpAndSettle();
+
+    final category = find.byKey(const ValueKey('diveFilter_gearCategory'));
+    await scrollTo(tester, category);
+    await tester.tap(category);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hose').last);
+    await tester.pumpAndSettle();
+
+    final hp = find.byKey(const ValueKey('equipment_filter_attr_hose_type_hp'));
+    await scrollTo(tester, hp);
+    await tester.tap(hp);
+    await tester.pumpAndSettle();
+
+    await tapText(tester, 'Apply Filters');
+    expect(ref.read(filterProvider).equipmentAttrConditions, [
+      EquipmentAttrCondition.suitThickness(min: 5),
+      hoseHp,
+    ]);
+  });
+
+  testWidgets('the gear section hydrates from an existing filter', (
+    tester,
+  ) async {
+    final initial = DiveFilterState(
+      equipmentAttrConditions: [
+        EquipmentAttrCondition.suitThickness(min: 3),
+        hoseHp,
+      ],
+    );
+    final ref = await openSheet(
+      tester,
+      initial: initial,
+      ownedGear: [hoseItem],
+    );
+
+    final hp = find.byKey(const ValueKey('equipment_filter_attr_hose_type_hp'));
+    await scrollTo(tester, hp);
+    expect(tester.widget<FilterChip>(hp).selected, isTrue);
+
+    await tapText(tester, 'Apply Filters');
+    expect(
+      ref.read(filterProvider).equipmentAttrConditions,
+      initial.equipmentAttrConditions,
+    );
+  });
+
+  testWidgets('switching the gear category clears its chips', (tester) async {
+    final ref = await openSheet(
+      tester,
+      initial: const DiveFilterState(equipmentAttrConditions: [hoseHp]),
+      ownedGear: [
+        hoseItem,
+        const EquipmentItem(
+          id: 'g',
+          name: 'Gloves',
+          type: EquipmentType.gloves,
+        ),
+      ],
+    );
+
+    final category = find.byKey(const ValueKey('diveFilter_gearCategory'));
+    await scrollTo(tester, category);
+    await tester.tap(category);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gloves').last);
+    await tester.pumpAndSettle();
+
+    await tapText(tester, 'Apply Filters');
+    expect(ref.read(filterProvider).equipmentAttrConditions, isEmpty);
   });
 
   testWidgets('Clear All resets the filter and closes the sheet', (
