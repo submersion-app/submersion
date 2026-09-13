@@ -101,6 +101,21 @@ void main() {
       );
     });
 
+    test('gives way to an error, which is what sank the file', () {
+      final message = emptyPayloadMessage(en, [
+        _unreadable(2),
+        const ImportWarning(
+          severity: ImportWarningSeverity.error,
+          message: 'Failed to read the file',
+        ),
+      ]);
+
+      expect(
+        message,
+        'No importable data was found in this file: Failed to read the file',
+      );
+    });
+
     test('is written in the language it is given', () {
       final message = emptyPayloadMessage(de, [_unreadable(2), _unreadable(3)]);
 
