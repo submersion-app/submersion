@@ -132,6 +132,37 @@ void main() {
     expect(status.usageByUnit[ExposureUnit.cycles]!.since, 1);
   });
 
+  test('a cycles clock counts on gear that is not battery powered', () async {
+    // Only powered types count cycles by default; a clock the diver set
+    // up in cycles opts the item in, or it could never come due.
+    final bcd = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'BCD',
+        type: EquipmentType.bcd,
+        purchaseDate: DateTime(2025, 1, 1),
+      ),
+    );
+    final schedule = await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: bcd.id,
+        serviceKindId: 'o2-cell-replacement',
+        exposureIntervals: const {ExposureUnit.cycles: 5},
+        createdAt: DateTime(2025),
+        updatedAt: DateTime(2025),
+      ),
+    );
+    await coldDive('c1', bcd.id, 20);
+    await coldDive('c2', bcd.id, 20);
+
+    final statuses = await container.read(
+      serviceClockStatusesProvider(bcd.id).future,
+    );
+    final status = statuses.firstWhere((s) => s.schedule.id == schedule.id);
+    expect(status.usageByUnit[ExposureUnit.cycles]!.since, 2);
+  });
+
   test(
     'an open clock follows a new dive link and an install-date edit',
     () async {

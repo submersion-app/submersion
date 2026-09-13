@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/services/battery_cycles.dart';
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
@@ -118,6 +119,11 @@ class NotificationScheduler {
     final classifier = ExposureClassifier(
       thresholds: exposureThresholdsFromSettings(settings),
       loopTimeOnly: exposure.isRebreather,
+      countsCycles: accruesBatteryCycles(
+        type: item.type,
+        schedules: schedules,
+        kindsById: kindsById,
+      ),
       hasBatteryChild: exposure.fittedChildren.any(
         (c) => c.type == EquipmentType.battery,
       ),

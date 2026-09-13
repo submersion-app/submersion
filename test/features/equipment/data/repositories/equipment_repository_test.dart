@@ -212,6 +212,30 @@ void main() {
 
         expect(result.map((e) => e.name).toList(), ['Active Reg']);
       });
+
+      test('keeps spare gear (#1803)', () async {
+        // Spare is hidden only by the dive pickers that opt in. The active
+        // list also feeds the default Equipment list, service clocks and
+        // reminders, and spare gear still belongs in all of those.
+        await repository.createEquipment(
+          createTestEquipment(name: 'Active Reg'),
+        );
+        await repository.createEquipment(
+          createTestEquipment(
+            name: 'Spare Hose',
+            status: EquipmentStatus.spare,
+          ),
+        );
+
+        final result = await repository.getActiveEquipment();
+
+        expect(result.map((e) => e.name).toSet(), {'Active Reg', 'Spare Hose'});
+        expect(
+          result.singleWhere((e) => e.name == 'Spare Hose').status,
+          EquipmentStatus.spare,
+          reason: 'the status must round-trip through the TEXT column',
+        );
+      });
     });
 
     group('retirement keeps status and isActive in sync (#636)', () {
@@ -355,6 +379,28 @@ void main() {
           reason:
               'only the Retired filter widens to the legacy isActive flag; '
               'other statuses match on status alone',
+        );
+      });
+
+      test('the Spare filter matches only spare gear (#1803)', () async {
+        await repository.createEquipment(
+          createTestEquipment(name: 'Active Reg'),
+        );
+        await repository.createEquipment(
+          createTestEquipment(
+            name: 'Spare Hose',
+            status: EquipmentStatus.spare,
+          ),
+        );
+        await repository.createEquipment(
+          createTestEquipment(name: 'Retired Reg', isActive: false),
+        );
+
+        expect(
+          (await repository.getEquipmentByStatus(
+            EquipmentStatus.spare,
+          )).map((e) => e.name),
+          ['Spare Hose'],
         );
       });
 
