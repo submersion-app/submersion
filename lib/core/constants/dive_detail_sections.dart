@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/detail_section_order.dart'
+    as section_order;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Identifies each configurable section on the Dive Details page.
@@ -309,50 +311,14 @@ class DiveDetailSectionConfig {
     List<DiveDetailSectionId> rendered,
     int oldIndex,
     int newIndex,
-  ) {
-    if (oldIndex == newIndex ||
-        rendered.length < 2 ||
-        oldIndex < 0 ||
-        oldIndex >= rendered.length ||
-        newIndex < 0 ||
-        newIndex >= rendered.length) {
-      return sections;
-    }
-
-    final movedId = rendered[oldIndex];
-    final movedAt = sections.indexWhere((s) => s.id == movedId);
-    if (movedAt < 0) return sections;
-    final config = sections[movedAt];
-
-    final reordered = List.of(rendered)..removeAt(oldIndex);
-    reordered.insert(newIndex, movedId);
-
-    final result = List.of(sections)..removeWhere((s) => s.id == movedId);
-
-    // Anchor on the rendered section that now follows the moved one, so it
-    // lands immediately before it; at the end of the list, anchor on the one
-    // it now follows instead.
-    final followingId = newIndex + 1 < reordered.length
-        ? reordered[newIndex + 1]
-        : null;
-    if (followingId != null) {
-      final at = result.indexWhere((s) => s.id == followingId);
-      if (at >= 0) {
-        result.insert(at, config);
-        return result;
-      }
-    }
-    final precedingId = newIndex > 0 ? reordered[newIndex - 1] : null;
-    if (precedingId != null) {
-      final at = result.indexWhere((s) => s.id == precedingId);
-      if (at >= 0) {
-        result.insert(at + 1, config);
-        return result;
-      }
-    }
-    result.insert(0, config);
-    return result;
-  }
+  ) => section_order
+      .moveRenderedSection<DiveDetailSectionConfig, DiveDetailSectionId>(
+        sections,
+        (s) => s.id,
+        rendered,
+        oldIndex,
+        newIndex,
+      );
 
   static String sectionsToJson(List<DiveDetailSectionConfig> sections) {
     return jsonEncode(sections.map((s) => s.toJson()).toList());
@@ -412,36 +378,11 @@ class DiveDetailSectionConfig {
   /// when none of them is present.
   static List<DiveDetailSectionConfig> ensureAllSections(
     List<DiveDetailSectionConfig> sections,
-  ) {
-    final presentIds = sections.map((s) => s.id).toSet();
-    if (presentIds.length == DiveDetailSectionId.values.length) {
-      return sections;
-    }
-
-    final result = List.of(sections);
-    for (final id in DiveDetailSectionId.values) {
-      if (presentIds.contains(id)) continue;
-      result.insert(
-        _insertionIndex(result, id),
-        DiveDetailSectionConfig(id: id, visible: true),
+  ) => section_order
+      .ensureAllSections<DiveDetailSectionConfig, DiveDetailSectionId>(
+        sections,
+        (s) => s.id,
+        DiveDetailSectionId.values,
+        (id) => DiveDetailSectionConfig(id: id, visible: true),
       );
-      presentIds.add(id);
-    }
-    return result;
-  }
-
-  /// Where [id] belongs in [sections], by default-order adjacency.
-  static int _insertionIndex(
-    List<DiveDetailSectionConfig> sections,
-    DiveDetailSectionId id,
-  ) {
-    final defaultIndex = DiveDetailSectionId.values.indexOf(id);
-    for (var i = defaultIndex - 1; i >= 0; i--) {
-      final position = sections.indexWhere(
-        (s) => s.id == DiveDetailSectionId.values[i],
-      );
-      if (position >= 0) return position + 1;
-    }
-    return 0;
-  }
 }
