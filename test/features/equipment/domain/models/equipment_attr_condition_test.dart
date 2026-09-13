@@ -155,11 +155,14 @@ void main() {
         choices: {'x', 'y'},
         types: {EquipmentType.hose},
       );
-      final b = EquipmentAttrCondition(
+      // A distinct instance: its set literal lists the choices in the other
+      // order, so equality has to come from comparing the sets.
+      const b = EquipmentAttrCondition(
         key: 'k',
         choices: {'y', 'x'},
         types: {EquipmentType.hose},
       );
+      expect(identical(a, b), isFalse);
       expect(a, b);
       expect(a.hashCode, b.hashCode);
       expect(a, isNot(const EquipmentAttrCondition(key: 'k', choices: {'x'})));

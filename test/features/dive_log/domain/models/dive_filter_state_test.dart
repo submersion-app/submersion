@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 /// Helper to create a minimal Dive for filter testing.
 Dive _makeDive({
@@ -853,174 +854,57 @@ void main() {
         });
       });
 
-      group('equipmentAttr axis', () {
-        EquipmentAttribute curated(String key, {String? text, double? num}) =>
-            EquipmentAttribute.curated(
-              equipmentId: 'eq1',
-              key: key,
-              valueText: text,
-              valueNum: num,
-            );
+      group('equipment attribute conditions', () {
+        EquipmentAttribute curated(
+          String id,
+          String key, {
+          String? text,
+          double? num,
+        }) => EquipmentAttribute.curated(
+          equipmentId: id,
+          key: key,
+          valueText: text,
+          valueNum: num,
+        );
 
-        test('key-only matches any dive whose gear has that curated attr', () {
-          const filter = DiveFilterState(equipmentAttrKey: 'thickness_mm');
-          final dives = [
-            _makeDive(
-              id: 'd1',
-              equipment: [
-                _makeEquipment('eq1', attributes: [curated('thickness_mm')]),
-              ],
-            ),
-            _makeDive(
-              id: 'd2',
-              equipment: [
-                _makeEquipment('eq2', attributes: [curated('size', text: 'L')]),
-              ],
-            ),
-            _makeDive(id: 'd3'), // no equipment
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['d1']);
-        });
-
-        test('choice matches value_text exactly', () {
-          const filter = DiveFilterState(
-            equipmentAttrKey: 'size',
-            equipmentAttrChoice: 'L',
+        test('conditions AND together over the dive gear', () {
+          final filter = DiveFilterState(
+            equipmentAttrConditions: [
+              const EquipmentAttrCondition(
+                key: 'hose_type',
+                choices: {'hp'},
+                types: {EquipmentType.hose},
+              ),
+              EquipmentAttrCondition.suitThickness(min: 5),
+            ],
           );
           final dives = [
             _makeDive(
-              id: 'd1',
-              equipment: [
-                _makeEquipment('eq1', attributes: [curated('size', text: 'L')]),
-              ],
-            ),
-            _makeDive(
-              id: 'd2',
-              equipment: [
-                _makeEquipment('eq2', attributes: [curated('size', text: 'M')]),
-              ],
-            ),
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['d1']);
-        });
-
-        test('min/max bound value_num', () {
-          const filter = DiveFilterState(
-            equipmentAttrKey: 'thickness_mm',
-            equipmentAttrMin: 4.0,
-            equipmentAttrMax: 6.0,
-          );
-          final dives = [
-            _makeDive(
-              id: 'd1',
+              id: 'both',
               equipment: [
                 _makeEquipment(
-                  'eq1',
-                  attributes: [curated('thickness_mm', num: 5.0)],
+                  'h',
+                  type: EquipmentType.hose,
+                  attributes: [curated('h', 'hose_type', text: 'hp')],
+                ),
+                _makeEquipment(
+                  'w',
+                  attributes: [curated('w', 'thickness_mm', num: 7)],
                 ),
               ],
             ),
             _makeDive(
-              id: 'd2',
+              id: 'hoseOnly',
               equipment: [
                 _makeEquipment(
-                  'eq2',
-                  attributes: [curated('thickness_mm', num: 3.0)],
-                ),
-              ],
-            ),
-            _makeDive(
-              id: 'd3',
-              equipment: [
-                _makeEquipment(
-                  'eq3',
-                  attributes: [curated('thickness_mm', num: 7.0)],
+                  'h2',
+                  type: EquipmentType.hose,
+                  attributes: [curated('h2', 'hose_type', text: 'hp')],
                 ),
               ],
             ),
           ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['d1']);
-        });
-
-        test('null value_num is excluded when a min bound is set', () {
-          const filter = DiveFilterState(
-            equipmentAttrKey: 'thickness_mm',
-            equipmentAttrMin: 4.0,
-          );
-          final dives = [
-            _makeDive(
-              id: 'd1',
-              equipment: [
-                _makeEquipment(
-                  'eq1',
-                  // Unparseable legacy thickness: text only, no number.
-                  attributes: [curated('thickness_mm', text: 'thin')],
-                ),
-              ],
-            ),
-          ];
-
-          expect(filter.apply(dives), isEmpty);
-        });
-
-        test('thickness_mm matches only exposure suits, not hoods', () {
-          const filter = DiveFilterState(equipmentAttrKey: 'thickness_mm');
-          final dives = [
-            _makeDive(
-              id: 'suit',
-              equipment: [
-                _makeEquipment(
-                  'eq1',
-                  type: EquipmentType.wetsuit,
-                  attributes: [curated('thickness_mm', num: 5.0)],
-                ),
-              ],
-            ),
-            _makeDive(
-              id: 'hood',
-              equipment: [
-                _makeEquipment(
-                  'eq2',
-                  type: EquipmentType.hood,
-                  attributes: [curated('thickness_mm', num: 5.0)],
-                ),
-              ],
-            ),
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['suit']);
-        });
-
-        test('custom attributes are ignored (curated-only, like the SQL)', () {
-          const filter = DiveFilterState(equipmentAttrKey: 'my_field');
-          const custom = EquipmentAttribute(
-            id: 'c1',
-            equipmentId: 'eq1',
-            key: 'my_field',
-            isCustom: true,
-            valueText: 'x',
-          );
-          final dives = [
-            _makeDive(
-              id: 'd1',
-              equipment: [
-                _makeEquipment('eq1', attributes: [custom]),
-              ],
-            ),
-          ];
-
-          expect(filter.apply(dives), isEmpty);
+          expect(filter.apply(dives).map((d) => d.id), ['both']);
         });
       });
     });

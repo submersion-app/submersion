@@ -1,5 +1,4 @@
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 /// Builds a self-contained SQL subquery `SELECT id FROM dives WHERE ...` that
@@ -90,39 +89,11 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
       ..addAll(filter.equipmentIds);
   }
 
-  // Equipment attribute: dives linked to an equipment item whose curated
-  // attribute matches. value_num bounds are canonical metric.
-  if (filter.equipmentAttrKey != null) {
-    // The "Suit thickness" axis (thickness_mm) must match only exposure suits,
-    // mirroring getDivesBySuitThickness(): the same attr_key also exists on
-    // hoods/gloves/boots, which are not suits.
-    final suitOnly = filter.equipmentAttrKey == EquipmentAttrKeys.thicknessMm;
-    final sub = StringBuffer(
-      'id IN (SELECT de.dive_id FROM dive_equipment de '
-      'JOIN equipment_attributes ea ON ea.equipment_id = de.equipment_id ',
-    );
-    if (suitOnly) {
-      sub.write(
-        "JOIN equipment eqf ON eqf.id = de.equipment_id "
-        "AND eqf.type IN ('wetsuit', 'drysuit') ",
-      );
-    }
-    sub.write('WHERE ea.attr_key = ? AND ea.is_custom = 0');
-    params.add(filter.equipmentAttrKey);
-    if (filter.equipmentAttrChoice != null) {
-      sub.write(' AND ea.value_text = ?');
-      params.add(filter.equipmentAttrChoice);
-    }
-    if (filter.equipmentAttrMin != null) {
-      sub.write(' AND ea.value_num >= ?');
-      params.add(filter.equipmentAttrMin);
-    }
-    if (filter.equipmentAttrMax != null) {
-      sub.write(' AND ea.value_num <= ?');
-      params.add(filter.equipmentAttrMax);
-    }
-    sub.write(')');
-    conditions.add(sub.toString());
+  // Equipment attributes: one EXISTS per condition, so they AND.
+  for (final condition in filter.equipmentAttrConditions) {
+    final c = equipmentAttrConditionSql(condition, diveIdRef: 'dives.id');
+    conditions.add(c.sql);
+    params.addAll(c.params);
   }
 
   // Depth: null depth excluded when a bound is set.

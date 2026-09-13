@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -391,9 +392,9 @@ void main() {
 
     await tapText(tester, 'Apply Filters');
     final applied = ref.read(filterProvider);
-    expect(applied.equipmentAttrKey, 'thickness_mm');
-    expect(applied.equipmentAttrMin, 3);
-    expect(applied.equipmentAttrMax, 7);
+    expect(applied.equipmentAttrConditions, [
+      EquipmentAttrCondition.suitThickness(min: 3, max: 7),
+    ]);
   });
 
   testWidgets('suit-thickness bounds hydrate from an existing filter', (
@@ -402,10 +403,10 @@ void main() {
     // Covers the initState branch that reads back an equipment-attribute axis.
     final ref = await openSheet(
       tester,
-      initial: const DiveFilterState(
-        equipmentAttrKey: 'thickness_mm',
-        equipmentAttrMin: 5,
-        equipmentAttrMax: 5,
+      initial: DiveFilterState(
+        equipmentAttrConditions: [
+          EquipmentAttrCondition.suitThickness(min: 5, max: 5),
+        ],
       ),
     );
 
@@ -416,8 +417,9 @@ void main() {
     // Applying without edits preserves the hydrated axis.
     await tapText(tester, 'Apply Filters');
     final applied = ref.read(filterProvider);
-    expect(applied.equipmentAttrMin, 5);
-    expect(applied.equipmentAttrMax, 5);
+    expect(applied.equipmentAttrConditions, [
+      EquipmentAttrCondition.suitThickness(min: 5, max: 5),
+    ]);
   });
 
   testWidgets('suit-thickness bounds keep decimals and accept comma input', (
@@ -426,9 +428,10 @@ void main() {
     // Hydrate with a fractional min: the field must render "2.5", not "2".
     final ref = await openSheet(
       tester,
-      initial: const DiveFilterState(
-        equipmentAttrKey: 'thickness_mm',
-        equipmentAttrMin: 2.5,
+      initial: DiveFilterState(
+        equipmentAttrConditions: [
+          EquipmentAttrCondition.suitThickness(min: 2.5),
+        ],
       ),
     );
 
@@ -453,8 +456,9 @@ void main() {
 
     await tapText(tester, 'Apply Filters');
     final applied = ref.read(filterProvider);
-    expect(applied.equipmentAttrMin, 2.5);
-    expect(applied.equipmentAttrMax, 7.5);
+    expect(applied.equipmentAttrConditions, [
+      EquipmentAttrCondition.suitThickness(min: 2.5, max: 7.5),
+    ]);
   });
 
   testWidgets('a comma is read as thousands under a dot-decimal locale', (
@@ -467,10 +471,7 @@ void main() {
     addTearDown(() => Intl.defaultLocale = previousLocale);
     Intl.defaultLocale = 'en_US';
 
-    final ref = await openSheet(
-      tester,
-      initial: const DiveFilterState(equipmentAttrKey: 'thickness_mm'),
-    );
+    final ref = await openSheet(tester, initial: const DiveFilterState());
     await scrollTo(tester, find.text('Suit thickness (mm)'));
 
     final maxField = find.byWidgetPredicate(
@@ -483,7 +484,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tapText(tester, 'Apply Filters');
-    expect(ref.read(filterProvider).equipmentAttrMax, 1250);
+    expect(ref.read(filterProvider).equipmentAttrConditions.single.max, 1250);
   });
 
   testWidgets('Clear All resets the filter and closes the sheet', (

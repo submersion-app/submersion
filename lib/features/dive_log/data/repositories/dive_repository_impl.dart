@@ -2484,6 +2484,14 @@ class DiveRepository {
         }
       }
     }
+    // Equipment attributes: the same EXISTS Statistics uses, one per
+    // condition. Missing until #1805, so the list and its count ignored the
+    // Suit thickness filter that the table view and Statistics applied.
+    for (final condition in filter.equipmentAttrConditions) {
+      final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
+      clauses.add(c.sql);
+      args.addAll(c.params.map((p) => Variable<Object>(p)));
+    }
     if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
       // The dive editor writes buddies only to the dive_buddies junction;
       // d.buddy is a legacy text column kept for old data (#757).
