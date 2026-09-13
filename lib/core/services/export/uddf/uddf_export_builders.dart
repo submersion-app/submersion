@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -36,7 +38,12 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 /// These methods build individual XML elements for sites, dives,
 /// and application data sections of the UDDF document.
 class UddfExportBuilders {
-  static void buildSiteElement(XmlBuilder builder, DiveSite site) {
+  static void buildSiteElement(
+    XmlBuilder builder,
+    DiveSite site, {
+    List<String> siteTypeIds = const [],
+    List<String> tagIds = const [],
+  }) {
     builder.element(
       'site',
       attributes: {'id': 'site_${site.id}'},
@@ -96,6 +103,11 @@ class UddfExportBuilders {
         if (site.notes.isNotEmpty && site.notes != site.description) {
           builder.element('sitenotesadditional', nest: site.notes);
         }
+        UddfSiteClassificationWriters.writeSiteRefs(
+          builder,
+          siteTypeIds: siteTypeIds,
+          tagIds: tagIds,
+        );
       },
     );
   }
@@ -842,6 +854,7 @@ class UddfExportBuilders {
     Diver? owner,
     List<Tag>? tags,
     List<DiveTypeEntity>? customDiveTypes,
+    List<SiteTypeEntity>? customSiteTypes,
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     List<EquipmentSet>? equipmentSets,
@@ -887,6 +900,7 @@ class UddfExportBuilders {
         owner != null ||
         (tags?.isNotEmpty ?? false) ||
         (customDiveTypes?.isNotEmpty ?? false) ||
+        (customSiteTypes?.any((t) => !t.isBuiltIn) ?? false) ||
         (customDiveRoles?.isNotEmpty ?? false) ||
         (diveComputers?.isNotEmpty ?? false) ||
         (equipmentSets?.isNotEmpty ?? false) ||
@@ -1241,12 +1255,27 @@ class UddfExportBuilders {
                         if (tag.colorHex != null) {
                           builder.element('color', nest: tag.colorHex);
                         }
+                        // Where the tag is offered (issue #1765).
+                        builder.element(
+                          'appliestodives',
+                          nest: tag.appliesToDives.toString(),
+                        );
+                        builder.element(
+                          'appliestosites',
+                          nest: tag.appliesToSites.toString(),
+                        );
                       },
                     );
                   }
                 },
               );
             }
+
+            // Custom site types (issue #1765); built-ins go by slug.
+            UddfSiteClassificationWriters.writeCustomSiteTypeDefinitions(
+              builder,
+              customSiteTypes ?? const [],
+            );
 
             // Custom Dive Types (no UDDF equivalent - UDDF has fixed types)
             if (customDiveTypes != null && customDiveTypes.isNotEmpty) {

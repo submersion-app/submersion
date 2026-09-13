@@ -98,6 +98,19 @@ class SiteClassificationRepository {
     return bySite;
   }
 
+  /// The distinct sites of [diveIds], for the dives-only UDDF export.
+  Future<List<String>> getSiteIdsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return const [];
+    final rows =
+        await (_db.selectOnly(_db.dives, distinct: true)
+              ..addColumns([_db.dives.siteId])
+              ..where(
+                _db.dives.id.isIn(diveIds) & _db.dives.siteId.isNotNull(),
+              ))
+            .get();
+    return [for (final r in rows) r.read(_db.dives.siteId)!];
+  }
+
   /// Raw type ids per site for [siteIds] (no join), for merge snapshots and
   /// exports.
   Future<Map<String, List<String>>> getTypeIdsBySite(
