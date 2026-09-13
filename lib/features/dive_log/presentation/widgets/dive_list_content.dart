@@ -38,6 +38,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -843,6 +844,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           // Keep the export going without the personalization.
         }
       }
+      // Awaited, not read from the list's snapshot: an export started while
+      // the types load would otherwise write every name rebuilt from its id.
+      final diveTypesById = format == _BulkExportFormat.uddf
+          ? const <String, DiveTypeEntity>{}
+          : await diveTypesByIdOrEmpty(ref.read(diveTypesByIdProvider.future));
       if (!mounted) return BulkActionOutcome.cancelled;
 
       if (!keepDialogForDelivery) {
@@ -863,6 +869,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   certifications: certifications,
                   diver: diver,
                   diverPhoto: diverPhoto,
+                  diveTypesById: diveTypesById,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
@@ -872,13 +879,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   certifications: certifications,
                   diver: diver,
                   diverPhoto: diverPhoto,
+                  diveTypesById: diveTypesById,
                 ),
         _BulkExportFormat.csv =>
           sharing
-              ? await exportService.exportDivesToCsv(selectedDives)
+              ? await exportService.exportDivesToCsv(
+                  selectedDives,
+                  diveTypesById: diveTypesById,
+                )
               : await exportService.saveDivesCsvToFile(
                   selectedDives,
                   dialogTitle: csvSaveTitle,
+                  diveTypesById: diveTypesById,
                 ),
         _BulkExportFormat.uddf =>
           sharing

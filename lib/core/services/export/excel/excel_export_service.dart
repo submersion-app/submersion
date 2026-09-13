@@ -13,6 +13,7 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 
@@ -45,6 +46,7 @@ class ExcelExportService {
     List<MaintenanceLogRow> maintenanceRows = const [],
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     final bytes = await generateExcelBytes(
       dives: dives,
@@ -60,6 +62,7 @@ class ExcelExportService {
       maintenanceRows: maintenanceRows,
       componentNames: componentNames,
       observationRows: observationRows,
+      diveTypesById: diveTypesById,
     );
 
     final dateStr = _dateFormat.format(DateTime.now());
@@ -87,12 +90,14 @@ class ExcelExportService {
     List<MaintenanceLogRow> maintenanceRows = const [],
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     final excel = xl.Excel.createExcel();
 
     _buildDivesSheet(
       excel,
       dives,
+      diveTypesById,
       depthUnit,
       temperatureUnit,
       pressureUnit,
@@ -163,6 +168,7 @@ class ExcelExportService {
     List<MaintenanceLogRow> maintenanceRows = const [],
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     final bytes = await generateExcelBytes(
       dives: dives,
@@ -178,6 +184,7 @@ class ExcelExportService {
       maintenanceRows: maintenanceRows,
       componentNames: componentNames,
       observationRows: observationRows,
+      diveTypesById: diveTypesById,
     );
 
     final dateStr = _dateFormat.format(DateTime.now());
@@ -201,6 +208,7 @@ class ExcelExportService {
   void _buildDivesSheet(
     xl.Excel excel,
     List<Dive> dives,
+    Map<String, DiveTypeEntity> diveTypesById,
     DepthUnit depthUnit,
     TemperatureUnit temperatureUnit,
     PressureUnit pressureUnit,
@@ -270,7 +278,7 @@ class ExcelExportService {
         convertTemperature(dive.airTemp, temperatureUnit),
         dive.visibilityMeters?.toStringAsFixed(1) ?? '',
         dive.visibility?.displayName ?? '',
-        dive.diveTypeNames.join('; '),
+        dive.diveTypeNamesFrom(diveTypesById).join('; '),
         dive.diveMode.displayName,
         dive.buddy,
         dive.diveMaster,

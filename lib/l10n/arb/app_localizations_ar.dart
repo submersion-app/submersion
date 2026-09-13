@@ -22034,6 +22034,50 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'لم يتم استيراد بعض الصفوف';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'تعذّرت قراءة التاريخ في هذه الصفوف. تحقق من عمود التاريخ في الملف، وصحّح هذه الصفوف، ثم أعد استيراد الملف.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يتم استيراد $count صفوف',
+      one: 'لم يتم استيراد صف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'الصفوف $rows',
+      one: 'الصف $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'الصفوف $rows و$count أخرى',
+      one: 'الصفوف $rows وصف آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22101,6 +22145,84 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return 'تعذّر متابعة الاستيراد: $details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يتم استيراد أي شيء: تعذّرت قراءة التواريخ في $count صفوف.',
+      one: 'لم يتم استيراد أي شيء: تعذّرت قراءة التاريخ في صف واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'لم يتم العثور على بيانات قابلة للاستيراد في الملفات المحددة.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'تعذّرت قراءة الملف المحدد. اختره مرة أخرى.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'تعذّرت قراءة الملف: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'لم يتم العثور على ملفات قابلة للاستيراد في الأرشيف.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'لم يتم العثور على ملفات قابلة للاستيراد في المجلد المحدد.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'تعذّر تحميل الملف: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'تعذّر فتح الملف: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'تعذّر فحص المجلد: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'لم يتم العثور على جهاز Garmin متصل. وصّله بالكابل، أو استخدم «اختيار مجلد» لتحديد مجلد GARMIN/Activity في الجهاز.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'تعذّرت قراءة جهاز Garmin: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'لم يتم العثور على غطسات في جهاز Garmin المتصل.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'تعذّر فتح الملف الإضافي: $details';
   }
 
   @override
@@ -36591,6 +36713,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'حفظ سجلات التصحيح';
 
   @override
+  String get settings_diagnostics_header => 'التشخيص';
+
+  @override
+  String get settings_diagnostics_viewLog => 'عرض السجل';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'يتم تسجيل التحذيرات والأخطاء تلقائيًا';
+
+  @override
+  String get settings_diagnostics_copy => 'نسخ بيانات التشخيص';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'إصدار التطبيق والجهاز وأحدث أسطر السجل لإرفاقها ببلاغ عن خطأ';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'تم نسخ بيانات التشخيص إلى الحافظة';
+
+  @override
+  String get settings_diagnostics_openFolder => 'فتح مجلد السجلات';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'تعذر فتح مجلد السجلات. موقعه: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'تعذر نسخ بيانات التشخيص: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'حفظ كإعداد مسبق';
 
   @override
@@ -38334,6 +38490,29 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'تعذر تحميل اتجاه درجة الحرارة';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'الغطسات حسب درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'توزيع غطساتك على نطاقات درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'لا توجد بيانات عن درجة حرارة الماء';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'تعذر تحميل نطاقات درجة حرارة الماء';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'مخطط أعمدة. الغطسات حسب درجة حرارة الماء. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'آخر 5 سنوات';

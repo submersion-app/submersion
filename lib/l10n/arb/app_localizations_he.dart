@@ -21864,6 +21864,50 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'חלק מהשורות לא יובאו';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'לא ניתן היה לקרוא את התאריך בשורות אלה. בדקו את עמודת התאריך בקובץ, תקנו את השורות האלה וייבאו את הקובץ שוב.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שורות לא יובאו',
+      one: 'שורה אחת לא יובאה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שורות $rows',
+      one: 'שורה $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שורות $rows ועוד $count',
+      one: 'שורות $rows ועוד אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21931,6 +21975,84 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return 'לא ניתן להמשיך בייבוא: $details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא יובא דבר: לא ניתן היה לקרוא את התאריכים ב-$count שורות.',
+      one: 'לא יובא דבר: לא ניתן היה לקרוא את התאריך בשורה אחת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'לא נמצאו בקובץ הזה נתונים שניתן לייבא.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'לא נמצאו בקובץ הזה נתונים שניתן לייבא: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'לא נמצאו בקבצים שנבחרו נתונים שניתן לייבא.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'לא ניתן היה לקרוא את הקובץ שנבחר. בחר אותו שוב.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'לא ניתן היה לקרוא את הקובץ: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'לא נמצאו בארכיון קבצים שניתן לייבא.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'לא נמצאו בתיקייה שנבחרה קבצים שניתן לייבא.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'לא ניתן היה לטעון את הקובץ: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'לא ניתן היה לפתוח את הקובץ: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'לא ניתן היה לסרוק את התיקייה: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'לא נמצא מכשיר Garmin מחובר. חבר אותו בכבל, או השתמש ב״בחירת תיקייה״ כדי לבחור את תיקיית GARMIN/Activity של המכשיר.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'לא ניתן היה לקרוא את מכשיר ה-Garmin: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'לא נמצאו צלילות במכשיר ה-Garmin המחובר.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'לא ניתן היה לפתוח את הקובץ הנוסף: $details';
   }
 
   @override
@@ -36247,6 +36369,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'שמירת יומני ניפוי באגים';
 
   @override
+  String get settings_diagnostics_header => 'אבחון';
+
+  @override
+  String get settings_diagnostics_viewLog => 'הצגת היומן';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'אזהרות ושגיאות נרשמות באופן אוטומטי';
+
+  @override
+  String get settings_diagnostics_copy => 'העתקת נתוני אבחון';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'גרסת האפליקציה, המכשיר ושורות יומן אחרונות לדיווח על באג';
+
+  @override
+  String get settings_diagnostics_copiedSnack => 'נתוני האבחון הועתקו ללוח';
+
+  @override
+  String get settings_diagnostics_openFolder => 'פתיחת תיקיית היומנים';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'לא ניתן לפתוח את תיקיית היומנים. היא נמצאת ב: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'לא ניתן להעתיק את נתוני האבחון: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'שמירה כתבנית';
 
   @override
@@ -37946,6 +38101,29 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'טעינת מגמת הטמפרטורה נכשלה';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'צלילות לפי טמפרטורת מים';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי טמפרטורת מים';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'אין נתוני טמפרטורת מים זמינים';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'לא ניתן לטעון את טווחי טמפרטורת המים';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'תרשים עמודות. צלילות לפי טמפרטורת מים. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => '5 השנים האחרונות';

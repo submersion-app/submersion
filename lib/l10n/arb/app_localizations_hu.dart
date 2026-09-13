@@ -22365,6 +22365,50 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Néhány sor nem lett importálva';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'Ezekben a sorokban nem olvasható a dátum. Ellenőrizd a fájl dátum oszlopát, javítsd ki ezeket a sorokat, majd importáld újra a fájlt.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sor nem lett importálva',
+      one: '1 sor nem lett importálva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sorok: $rows',
+      one: 'Sor: $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sorok: $rows és további $count',
+      one: 'Sorok: $rows és további 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22433,6 +22477,84 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return 'Az importálás nem folytatható: $details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Semmi sem lett importálva: $count sorban nem olvasható a dátum.',
+      one: 'Semmi sem lett importálva: 1 sorban nem olvasható a dátum.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Ellenőrizd, hogy ebben a lépésben meg vannak-e feleltetve a dátum- és időoszlopok, és hogy dátumokat tartalmaznak-e.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'Ebben a fájlban nem található importálható adat.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'Ebben a fájlban nem található importálható adat: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'A kiválasztott fájlokban nem található importálható adat.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'A kiválasztott fájl nem olvasható. Válaszd ki újra.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'A fájl nem olvasható: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'Az archívumban nem található importálható fájl.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'A kiválasztott mappában nem található importálható fájl.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'A fájl nem tölthető be: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'A fájl nem nyitható meg: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'A mappa nem vizsgálható át: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'Nem található csatlakoztatott Garmin eszköz. Csatlakoztasd kábellel, vagy a „Mappa kiválasztása” gombbal válaszd ki az eszköz GARMIN/Activity mappáját.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'A Garmin eszköz nem olvasható: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'A csatlakoztatott Garmin eszközön nem található merülés.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'A kiegészítő fájl nem nyitható meg: $details';
   }
 
   @override
@@ -36821,6 +36943,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Hibakeresési naplók mentése';
 
   @override
+  String get settings_diagnostics_header => 'Diagnosztika';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Napló megtekintése';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'A figyelmeztetések és a hibák rögzítése automatikus';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnosztika másolása';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'Alkalmazásverzió, eszköz és a legutóbbi naplósorok hibajelentéshez';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'A diagnosztika a vágólapra másolva';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Naplómappa megnyitása';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'A naplómappa nem nyitható meg. Helye: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'A diagnosztika nem másolható: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Mentés előre beállításként';
 
   @override
@@ -38565,6 +38721,29 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'A hőmérséklet alakulása nem tölthető be';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Merülések vízhőmérséklet szerint';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Merüléseid megoszlása vízhőmérséklet-tartományok szerint';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Nincsenek vízhőmérséklet-adatok';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Nem sikerült betölteni a vízhőmérséklet-tartományokat';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Oszlopdiagram. Merülések vízhőmérséklet szerint. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Elmúlt 5 év';

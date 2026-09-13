@@ -22048,6 +22048,50 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Some rows were not imported';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows not imported',
+      one: '1 row not imported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rows $rows',
+      one: 'Row $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rows $rows and $count more',
+      one: 'Rows $rows and 1 more',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22115,6 +22159,85 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return 'Import could not continue: $details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nothing was imported: the dates in $count rows could not be read.',
+      one: 'Nothing was imported: the date in 1 row could not be read.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Check that the date and time columns are mapped on this step, and that they hold dates.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'No importable data was found in this file.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'No importable data was found in this file: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'No importable data was found in the selected files.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'The selected file could not be read. Pick it again.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'The file could not be read: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'No importable files were found in the archive.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'No importable files were found in the selected folder.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'The file could not be loaded: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'The file could not be opened: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'The folder could not be scanned: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'No connected Garmin device found. Connect it by cable, or use Choose Folder to select the device\'s GARMIN/Activity folder.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'The Garmin device could not be read: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'No dives were found on the connected Garmin device.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'The additional file could not be opened: $details';
   }
 
   @override
@@ -36435,6 +36558,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Save Debug Logs';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostics';
+
+  @override
+  String get settings_diagnostics_viewLog => 'View log';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Warnings and errors are recorded automatically';
+
+  @override
+  String get settings_diagnostics_copy => 'Copy diagnostics';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App version, device and recent log lines for a bug report';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostics copied to clipboard';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Open log folder';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Could not open the log folder. It is at: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Could not copy diagnostics: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Save as Preset';
 
   @override
@@ -38133,6 +38290,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'Failed to load temperature trend';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Dives by Water Temperature';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'How your dives split across water temperature bands';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'No water temperature data available';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Failed to load water temperature bands';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Bar chart. Dives by water temperature. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Last 5 years';

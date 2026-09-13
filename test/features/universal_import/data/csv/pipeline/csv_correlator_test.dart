@@ -285,6 +285,118 @@ void main() {
       expect(tags, isNotEmpty);
     });
 
+    group('tagRefs', () {
+      const tagTypes = {ImportEntityType.dives, ImportEntityType.tags};
+
+      test('links each dive to the ids of its tags', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'tags': 'reef, training'},
+          {'dateTime': DateTime(2024, 6, 16, 9, 0), 'tags': 'reef'},
+          {'dateTime': DateTime(2024, 6, 17, 9, 0)},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(entityTypes: tagTypes),
+        );
+
+        final tagIdByName = {
+          for (final tag in result.entitiesOf(ImportEntityType.tags))
+            tag['name'] as String: tag['id'] as String,
+        };
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives[0]['tagRefs'], [
+          tagIdByName['reef'],
+          tagIdByName['training'],
+        ]);
+        expect(dives[1]['tagRefs'], [tagIdByName['reef']]);
+        expect(dives[2].containsKey('tagRefs'), isFalse);
+      });
+
+      test('links a tag repeated within one dive once', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'tags': 'reef, reef'},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(entityTypes: tagTypes),
+        );
+
+        final tag = result.entitiesOf(ImportEntityType.tags).single;
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['tagRefs'], [tag['id']]);
+      });
+
+      test('are not attached when tags are not imported', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'tags': 'reef'},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('tagRefs'), isFalse);
+      });
+    });
+
+    group('suit', () {
+      test('is appended to the dive notes', () {
+        final rows = makeRows([
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'notes': 'Saw a turtle',
+            'suit': '7mm Wetsuit',
+          },
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['notes'], 'Saw a turtle\nSuit: 7mm Wetsuit');
+      });
+
+      test('becomes the notes of a dive with none', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': ' Drysuit '},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['notes'], 'Suit: Drysuit');
+      });
+
+      test('leaves the notes alone when blank', () {
+        final rows = makeRows([
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'notes': 'Saw a turtle',
+            'suit': '  ',
+          },
+          {'dateTime': DateTime(2024, 6, 16, 9, 0), 'suit': ''},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives[0]['notes'], 'Saw a turtle');
+        expect(dives[1].containsKey('notes'), isFalse);
+      });
+    });
+
     test('extracts gear when in entityTypesToImport', () {
       final rows = makeRows([
         {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},

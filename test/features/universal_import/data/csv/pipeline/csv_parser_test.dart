@@ -62,6 +62,26 @@ void main() {
       expect(result.rows, hasLength(2));
     });
 
+    test('remembers the spreadsheet row of each data row', () {
+      // The header is row 1. Skipped blank rows still take up a row in a
+      // spreadsheet, so they must not shift the numbers reported to the user.
+      final bytes = _toBytes('Name,Depth\n\nDive 1,25.5\n\n\nDive 2,30.0\n');
+      final result = parser.parse(bytes);
+
+      expect(result.sourceRowNumber(0), 3);
+      expect(result.sourceRowNumber(1), 6);
+    });
+
+    test('a quoted multi-line cell is still one spreadsheet row', () {
+      final bytes = _toBytes(
+        'Name,Notes\nDive 1,"Line 1\nLine 2"\nDive 2,Calm\n',
+      );
+      final result = parser.parse(bytes);
+
+      expect(result.sourceRowNumber(0), 2);
+      expect(result.sourceRowNumber(1), 3);
+    });
+
     test('throws on empty file', () {
       expect(
         () => parser.parse(Uint8List(0)),

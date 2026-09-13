@@ -13567,6 +13567,47 @@
       }
     }
   },
+  "universalImport_summary_unreadableDatesTitle": "Some rows were not imported",
+  "@universalImport_summary_unreadableDatesTitle": {
+    "description": "Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app."
+  },
+  "universalImport_summary_unreadableDatesBody": "The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.",
+  "@universalImport_summary_unreadableDatesBody": {
+    "description": "Body of the import summary card for CSV rows skipped because their date could not be read. 'These rows' are the spreadsheet rows listed below it; 'it' is the CSV file."
+  },
+  "universalImport_summary_unreadableDatesCount": "{count, plural, =1{1 row not imported} other{{count} rows not imported}}",
+  "@universalImport_summary_unreadableDatesCount": {
+    "description": "How many spreadsheet rows of the CSV file were skipped because their date could not be read.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_unreadableDatesRows": "{count, plural, =1{Row {rows}} other{Rows {rows}}}",
+  "@universalImport_summary_unreadableDatesRows": {
+    "description": "Names the skipped spreadsheet rows so the user can find them in the file. {rows} is a comma-separated list of row numbers such as '4, 9, 12' (the header is row 1); {count} is how many numbers it lists.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_summary_unreadableDatesRowsMore": "{count, plural, =1{Rows {rows} and 1 more} other{Rows {rows} and {count} more}}",
+  "@universalImport_summary_unreadableDatesRowsMore": {
+    "description": "The long form of universalImport_summary_unreadableDatesRows: {rows} lists the first ten skipped spreadsheet row numbers, and {count} is how many more rows were skipped but not listed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_summary_fileImported": "{count, plural, =1{1 dive imported} other{{count} dives imported}}",
   "universalImport_summary_fileNeedsIndividualImport": "Needs individual import",
   "universalImport_summary_fileUnsupported": "Unsupported format",
@@ -13582,6 +13623,118 @@
   "universalImport_error_duplicateCheckFailed": "Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.",
   "universalImport_error_noColumnsToMap": "This file has no columns to map. Go back and select the file again, or choose a different source.",
   "universalImport_error_stepFailed": "Import could not continue: {details}",
+  "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Nothing was imported: the date in 1 row could not be read.} other{Nothing was imported: the dates in {count} rows could not be read.}}",
+  "@universalImport_error_unreadableDatesHeadline": {
+    "description": "First line of the error shown when every CSV row was skipped because its date could not be read",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "universalImport_error_unreadableDatesHint": "Check that the date and time columns are mapped on this step, and that they hold dates.",
+  "@universalImport_error_unreadableDatesHint": {
+    "description": "Last line of the unreadable-dates error, pointing the user at the date column mapping on the Map Fields step"
+  },
+  "universalImport_error_noDataInFile": "No importable data was found in this file.",
+  "@universalImport_error_noDataInFile": {
+    "description": "Error shown when a file produced nothing to import"
+  },
+  "universalImport_error_noDataInFileWithDetails": "No importable data was found in this file: {details}",
+  "@universalImport_error_noDataInFileWithDetails": {
+    "description": "Error shown when a file produced nothing to import, followed by the parser's own explanation",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "Failed to parse XML: Expected a single root element at 1:25"
+      }
+    }
+  },
+  "universalImport_error_noDataInFiles": "No importable data was found in the selected files.",
+  "@universalImport_error_noDataInFiles": {
+    "description": "Error shown when none of several selected files produced anything to import"
+  },
+  "universalImport_error_fileUnreadable": "The selected file could not be read. Pick it again.",
+  "@universalImport_error_fileUnreadable": {
+    "description": "Error shown when the selected file's contents are no longer available"
+  },
+  "universalImport_error_parseFailed": "The file could not be read: {details}",
+  "@universalImport_error_parseFailed": {
+    "description": "Error shown when reading the file failed unexpectedly",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FormatException: unexpected end of input"
+      }
+    }
+  },
+  "universalImport_error_noFilesInArchive": "No importable files were found in the archive.",
+  "@universalImport_error_noFilesInArchive": {
+    "description": "Error shown when a ZIP archive holds no file the app can import"
+  },
+  "universalImport_error_noFilesInFolder": "No importable files were found in the selected folder.",
+  "@universalImport_error_noFilesInFolder": {
+    "description": "Error shown when a chosen folder holds no file the app can import"
+  },
+  "universalImport_error_loadFailed": "The file could not be loaded: {details}",
+  "@universalImport_error_loadFailed": {
+    "description": "Error shown when a dropped or shared file could not be loaded",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
+  "universalImport_error_pickFailed": "The file could not be opened: {details}",
+  "@universalImport_error_pickFailed": {
+    "description": "Error shown when a picked file could not be opened",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
+  "universalImport_error_folderScanFailed": "The folder could not be scanned: {details}",
+  "@universalImport_error_folderScanFailed": {
+    "description": "Error shown when a chosen folder could not be scanned for importable files",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "PathNotFoundException: Directory listing failed"
+      }
+    }
+  },
+  "universalImport_error_garminNotFound": "No connected Garmin device found. Connect it by cable, or use Choose Folder to select the device's GARMIN/Activity folder.",
+  "@universalImport_error_garminNotFound": {
+    "description": "Error shown when Import from Garmin Device finds no connected device; names the Choose Folder button"
+  },
+  "universalImport_error_garminReadFailed": "The Garmin device could not be read: {details}",
+  "@universalImport_error_garminReadFailed": {
+    "description": "Error shown when a connected Garmin device could not be read",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Directory listing failed"
+      }
+    }
+  },
+  "universalImport_error_garminNoDives": "No dives were found on the connected Garmin device.",
+  "@universalImport_error_garminNoDives": {
+    "description": "Error shown when a connected Garmin device holds no dive activities"
+  },
+  "universalImport_error_additionalFilePickFailed": "The additional file could not be opened: {details}",
+  "@universalImport_error_additionalFilePickFailed": {
+    "description": "Error shown when the optional additional (profile) file could not be opened",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
   "universalImport_label_columnMapping": "Column Mapping",
   "universalImport_label_columnsMapped": "{mapped} of {total} columns mapped",
   "universalImport_label_consolidate": "Consolidate",
@@ -21950,6 +22103,15 @@
   "settings_debugLog_minSeverityLabel": "Min severity:",
   "settings_debugLog_shareSubject": "Submersion Debug Logs",
   "settings_debugLog_saveDialogTitle": "Save Debug Logs",
+  "settings_diagnostics_header": "Diagnostics",
+  "settings_diagnostics_viewLog": "View log",
+  "settings_diagnostics_viewLogSubtitle": "Warnings and errors are recorded automatically",
+  "settings_diagnostics_copy": "Copy diagnostics",
+  "settings_diagnostics_copySubtitle": "App version, device and recent log lines for a bug report",
+  "settings_diagnostics_copiedSnack": "Diagnostics copied to clipboard",
+  "settings_diagnostics_openFolder": "Open log folder",
+  "settings_diagnostics_openFolderFailed": "Could not open the log folder. It is at: {path}",
+  "settings_diagnostics_copyFailed": "Could not copy diagnostics: {error}",
   "universalImport_preset_saveTitle": "Save as Preset",
   "universalImport_preset_nameLabel": "Preset Name",
   "universalImport_preset_nameHint": "e.g., My Dive Log CSV",
@@ -22319,6 +22481,43 @@
   },
   "@settings_debugLog_saveDialogTitle": {
     "description": "Title of the system save dialog for the debug log file."
+  },
+  "@settings_diagnostics_header": {
+    "description": "Header of the Diagnostics card in Settings > About."
+  },
+  "@settings_diagnostics_viewLog": {
+    "description": "Diagnostics row that opens the log viewer."
+  },
+  "@settings_diagnostics_viewLogSubtitle": {
+    "description": "Subtitle explaining that warnings and errors are logged even without debug mode."
+  },
+  "@settings_diagnostics_copy": {
+    "description": "Diagnostics row that copies a bug-report summary to the clipboard."
+  },
+  "@settings_diagnostics_copySubtitle": {
+    "description": "Subtitle describing what Copy diagnostics puts on the clipboard."
+  },
+  "@settings_diagnostics_copiedSnack": {
+    "description": "Snack bar confirming the diagnostics summary was copied."
+  },
+  "@settings_diagnostics_openFolder": {
+    "description": "Desktop-only Diagnostics row that opens the log folder in the file manager."
+  },
+  "@settings_diagnostics_openFolderFailed": {
+    "description": "Snack bar shown when the file manager refuses to open the log folder; shows the folder path instead.",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@settings_diagnostics_copyFailed": {
+    "description": "Snack bar shown when Copy diagnostics fails, with the error.",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
   "@universalImport_preset_signatureHeaders": {
     "description": "Count of CSV headers stored as the preset match signature.",
@@ -23536,6 +23735,32 @@
   "statistics_conditions_tempTrend_subtitle": "Every dive in range",
   "statistics_conditions_tempTrend_empty": "No temperature data available",
   "statistics_conditions_tempTrend_error": "Failed to load temperature trend",
+  "statistics_conditions_waterTempBands_title": "Dives by Water Temperature",
+  "@statistics_conditions_waterTempBands_title": {
+    "description": "Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)"
+  },
+  "statistics_conditions_waterTempBands_subtitle": "How your dives split across water temperature bands",
+  "@statistics_conditions_waterTempBands_subtitle": {
+    "description": "Subtitle under the dives-by-water-temperature card title, explaining that the chart shows how many dives fall in each temperature range"
+  },
+  "statistics_conditions_waterTempBands_empty": "No water temperature data available",
+  "@statistics_conditions_waterTempBands_empty": {
+    "description": "Empty state of the dives-by-water-temperature card, shown when no dive in the current filter has a water temperature recorded"
+  },
+  "statistics_conditions_waterTempBands_error": "Failed to load water temperature bands",
+  "@statistics_conditions_waterTempBands_error": {
+    "description": "Error state of the dives-by-water-temperature card, shown when the band counts could not be loaded"
+  },
+  "statistics_conditions_waterTempBands_semanticLabel": "Bar chart. Dives by water temperature. {description}",
+  "@statistics_conditions_waterTempBands_semanticLabel": {
+    "description": "Screen-reader summary of the dives-by-water-temperature-band bar chart",
+    "placeholders": {
+      "description": {
+        "type": "String",
+        "example": "<10°C: 3 dives, 10-18°C: 12 dives"
+      }
+    }
+  },
   "diveLog_filter_presetLast5Years": "Last 5 years",
   "diveLog_filter_presetLast10Years": "Last 10 years",
   "statistics_trend_tooltip_lowest": "Lowest",

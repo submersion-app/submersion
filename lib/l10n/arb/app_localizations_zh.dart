@@ -21259,6 +21259,46 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle => '部分行未导入';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      '无法读取这些行中的日期。请检查文件中的日期列，更正这些行后重新导入该文件。';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 行未导入',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '第 $rows 行',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '第 $rows 行及其他 $count 行',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     return '已导入 $count 次潜水';
   }
@@ -21319,6 +21359,77 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return '导入无法继续：$details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '未导入任何内容：有 $count 行的日期无法读取。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      '请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。';
+
+  @override
+  String get universalImport_error_noDataInFile => '此文件中未找到可导入的数据。';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return '此文件中未找到可导入的数据：$details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles => '所选文件中未找到可导入的数据。';
+
+  @override
+  String get universalImport_error_fileUnreadable => '无法读取所选文件。请重新选择。';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return '无法读取该文件：$details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive => '压缩包中未找到可导入的文件。';
+
+  @override
+  String get universalImport_error_noFilesInFolder => '所选文件夹中未找到可导入的文件。';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return '无法加载该文件：$details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return '无法打开该文件：$details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return '无法扫描该文件夹：$details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      '未找到已连接的 Garmin 设备。请用数据线连接设备，或使用“选择文件夹”选择设备的 GARMIN/Activity 文件夹。';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return '无法读取 Garmin 设备：$details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives => '已连接的 Garmin 设备上未找到潜水记录。';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return '无法打开附加文件：$details';
   }
 
   @override
@@ -34856,6 +34967,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => '保存调试日志';
 
   @override
+  String get settings_diagnostics_header => '诊断';
+
+  @override
+  String get settings_diagnostics_viewLog => '查看日志';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle => '警告和错误会自动记录';
+
+  @override
+  String get settings_diagnostics_copy => '复制诊断信息';
+
+  @override
+  String get settings_diagnostics_copySubtitle => '应用版本、设备和最近的日志行，用于错误报告';
+
+  @override
+  String get settings_diagnostics_copiedSnack => '诊断信息已复制到剪贴板';
+
+  @override
+  String get settings_diagnostics_openFolder => '打开日志文件夹';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return '无法打开日志文件夹。其位置为：$path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return '无法复制诊断信息：$error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => '另存为预设';
 
   @override
@@ -36465,6 +36607,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_conditions_tempTrend_error => '无法加载水温趋势';
+
+  @override
+  String get statistics_conditions_waterTempBands_title => '按水温统计的潜水次数';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle => '您的潜水在各水温区间的分布';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty => '没有可用的水温数据';
+
+  @override
+  String get statistics_conditions_waterTempBands_error => '无法加载水温区间数据';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return '柱状图。按水温区间统计的潜水次数。$description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => '最近 5 年';

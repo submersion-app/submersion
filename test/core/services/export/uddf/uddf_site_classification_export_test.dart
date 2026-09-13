@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
@@ -181,6 +182,7 @@ void main() {
           BuddyRepository(),
           EquipmentComponentRepository(),
           DiveRoleRepository(),
+          TankPressureRepository(),
           null,
           ['d1'],
           const UddfExportOptions(

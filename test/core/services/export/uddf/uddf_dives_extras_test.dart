@@ -5,6 +5,10 @@ import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show TankPressurePoint;
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
@@ -105,6 +109,25 @@ class _Roles extends Fake implements DiveRoleRepository {
   }
 }
 
+const _pressures = {
+  'd1': {
+    'tank-a': [
+      TankPressurePoint(tankId: 'tank-a', timestamp: 0, pressure: 200.0),
+    ],
+  },
+};
+
+class _TankPressures extends Fake implements TankPressureRepository {
+  final calls = <List<String>>[];
+
+  @override
+  Future<Map<String, Map<String, List<TankPressurePoint>>>>
+  getTankPressuresForDives(List<String> diveIds) async {
+    calls.add(diveIds);
+    return _pressures;
+  }
+}
+
 void main() {
   test('fetches participants and components by default', () async {
     final buddies = _Buddies();
@@ -113,6 +136,7 @@ void main() {
       buddies,
       components,
       _Roles(),
+      _TankPressures(),
       'diver-1',
       ['d1'],
       const UddfExportOptions(),
@@ -134,6 +158,7 @@ void main() {
       buddies,
       components,
       _Roles(),
+      _TankPressures(),
       'diver-1',
       ['d1'],
       const UddfExportOptions(includeParticipants: false, includeGear: false),
@@ -152,12 +177,32 @@ void main() {
       _Buddies(),
       _Components(),
       roles,
+      _TankPressures(),
       'diver-1',
       ['d1'],
       const UddfExportOptions(includeParticipants: false, includeGear: false),
     );
     expect(roles.calls, ['diver-1']);
     expect(extras.diveRoles, [_role]);
+  });
+
+  test('fetches the dives\' tank pressures whatever the checkboxes', () async {
+    // Sample pressures are part of the dive's own record, like its profile,
+    // not something a checkbox shares or withholds (issue #1874).
+    final pressures = _TankPressures();
+    final extras = await resolveDivesExtras(
+      _Buddies(),
+      _Components(),
+      _Roles(),
+      pressures,
+      'diver-1',
+      ['d1'],
+      const UddfExportOptions(includeParticipants: false, includeGear: false),
+    );
+    expect(pressures.calls, [
+      ['d1'],
+    ]);
+    expect(extras.diveTankPressures, _pressures);
   });
 
   test('the provider reads every repository for the active diver', () async {
@@ -168,6 +213,7 @@ void main() {
         buddyRepositoryProvider.overrideWithValue(_Buddies()),
         equipmentComponentRepositoryProvider.overrideWithValue(_Components()),
         diveRoleRepositoryProvider.overrideWithValue(roles),
+        tankPressureRepositoryProvider.overrideWithValue(_TankPressures()),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
         siteClassificationRepositoryProvider.overrideWithValue(classification),
         siteTypeRepositoryProvider.overrideWithValue(_SiteTypes()),
@@ -181,6 +227,7 @@ void main() {
     expect(extras.components, [_component]);
     expect(roles.calls, ['diver-1']);
     expect(extras.diveRoles, [_role]);
+    expect(extras.diveTankPressures, _pressures);
     expect(classification.siteQueries, [
       ['d1'],
     ]);
@@ -191,5 +238,6 @@ void main() {
     expect(extras.diveBuddies, isEmpty);
     expect(extras.components, isEmpty);
     expect(extras.diveRoles, isEmpty);
+    expect(extras.diveTankPressures, isEmpty);
   });
 }

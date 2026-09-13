@@ -6,9 +6,10 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 void main() {
   group('UddfExportBuilders.buildDiveElement', () {
-    test('generates synthetic profile from bottomTime when no profile', () {
-      // Dive with bottomTime and maxDepth but NO profile data
-      // This triggers the else branch at line 351
+    test('writes no samples when the dive has no profile', () {
+      // Dive with bottomTime and maxDepth but NO profile data. These used to
+      // produce an invented descent, bottom and ascent, which a restore then
+      // stored as the dive's profile (issue #1874).
       final dive = Dive(
         id: 'dive-no-profile',
         diveNumber: 1,
@@ -45,12 +46,10 @@ void main() {
         },
       );
 
-      final xml = builder.buildDocument().toXmlString();
+      final doc = builder.buildDocument();
 
-      // Should contain synthesized waypoints from bottomTime
-      expect(xml, contains('waypoint'));
-      expect(xml, contains('divetime'));
-      expect(xml, contains('depth'));
+      expect(doc.findAllElements('samples'), isEmpty);
+      expect(doc.findAllElements('waypoint'), isEmpty);
     });
 
     group('tank pressure export', () {

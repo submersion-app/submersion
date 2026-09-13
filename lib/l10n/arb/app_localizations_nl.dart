@@ -22244,6 +22244,50 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Sommige rijen zijn niet geïmporteerd';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'De datum in deze rijen kon niet worden gelezen. Controleer de datumkolom in het bestand, verbeter deze rijen en importeer het bestand opnieuw.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rijen niet geïmporteerd',
+      one: '1 rij niet geïmporteerd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rijen $rows',
+      one: 'Rij $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rijen $rows en nog $count',
+      one: 'Rijen $rows en nog 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22312,6 +22356,86 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return 'Importeren kon niet doorgaan: $details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Er is niets geïmporteerd: de datums in $count rijen konden niet worden gelezen.',
+      one:
+          'Er is niets geïmporteerd: de datum in 1 rij kon niet worden gelezen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Controleer of de datum- en tijdkolommen in deze stap zijn toegewezen en of ze datums bevatten.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'Er zijn geen importeerbare gegevens in dit bestand gevonden.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'Er zijn geen importeerbare gegevens in dit bestand gevonden: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'Er zijn geen importeerbare gegevens in de geselecteerde bestanden gevonden.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'Het geselecteerde bestand kon niet worden gelezen. Kies het opnieuw.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'Het bestand kon niet worden gelezen: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'Er zijn geen importeerbare bestanden in het archief gevonden.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'Er zijn geen importeerbare bestanden in de geselecteerde map gevonden.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'Het bestand kon niet worden geladen: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'Het bestand kon niet worden geopend: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'De map kon niet worden doorzocht: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'Geen verbonden Garmin-apparaat gevonden. Sluit het aan met een kabel, of gebruik \'Map kiezen\' om de map GARMIN/Activity van het apparaat te selecteren.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'Het Garmin-apparaat kon niet worden gelezen: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'Er zijn geen duiken gevonden op het verbonden Garmin-apparaat.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'Het extra bestand kon niet worden geopend: $details';
   }
 
   @override
@@ -36722,6 +36846,40 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Debuglogs opslaan';
 
   @override
+  String get settings_diagnostics_header => 'Diagnostiek';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Log bekijken';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Waarschuwingen en fouten worden automatisch vastgelegd';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnostiek kopiëren';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App-versie, apparaat en recente logregels voor een foutmelding';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnostiek gekopieerd naar klembord';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Logmap openen';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Kan de logmap niet openen. Deze staat in: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Kan diagnostiek niet kopiëren: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Opslaan als voorinstelling';
 
   @override
@@ -38454,6 +38612,29 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'Kan het temperatuurverloop niet laden';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Duiken per watertemperatuur';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Hoe je duiken verdeeld zijn over watertemperatuurbereiken';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Geen watertemperatuurgegevens beschikbaar';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Kan watertemperatuurbereiken niet laden';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Staafdiagram. Duiken per watertemperatuur. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Afgelopen 5 jaar';

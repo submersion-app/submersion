@@ -1020,6 +1020,7 @@ class UddfFullImportService {
       decoModels,
       diveComputers,
     );
+    UddfImportParsers.dropInventedSubmersionProfile(diveElement, diveData);
 
     // Capture the source UUID from the <dive> element's id attribute so
     // downstream consumers (e.g., dive_data_sources sidecar) can persist it.

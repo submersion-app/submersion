@@ -22376,6 +22376,50 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_unreadableDatesTitle =>
+      'Einige Zeilen wurden nicht importiert';
+
+  @override
+  String get universalImport_summary_unreadableDatesBody =>
+      'Das Datum in diesen Zeilen konnte nicht gelesen werden. Prüfe die Datumsspalte in der Datei, korrigiere diese Zeilen und importiere die Datei erneut.';
+
+  @override
+  String universalImport_summary_unreadableDatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen nicht importiert',
+      one: '1 Zeile nicht importiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRows(int count, String rows) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Zeilen $rows',
+      one: 'Zeile $rows',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_summary_unreadableDatesRowsMore(
+    int count,
+    String rows,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Zeilen $rows und $count weitere',
+      one: 'Zeilen $rows und 1 weitere',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_fileImported(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22444,6 +22488,86 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String universalImport_error_stepFailed(Object details) {
     return 'Import konnte nicht fortgesetzt werden: $details';
+  }
+
+  @override
+  String universalImport_error_unreadableDatesHeadline(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Es wurde nichts importiert: Die Datumsangaben in $count Zeilen konnten nicht gelesen werden.',
+      one:
+          'Es wurde nichts importiert: Das Datum in 1 Zeile konnte nicht gelesen werden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_error_unreadableDatesHint =>
+      'Prüfen Sie, ob die Datums- und Uhrzeitspalten in diesem Schritt zugeordnet sind und Datumsangaben enthalten.';
+
+  @override
+  String get universalImport_error_noDataInFile =>
+      'In dieser Datei wurden keine importierbaren Daten gefunden.';
+
+  @override
+  String universalImport_error_noDataInFileWithDetails(String details) {
+    return 'In dieser Datei wurden keine importierbaren Daten gefunden: $details';
+  }
+
+  @override
+  String get universalImport_error_noDataInFiles =>
+      'In den ausgewählten Dateien wurden keine importierbaren Daten gefunden.';
+
+  @override
+  String get universalImport_error_fileUnreadable =>
+      'Die ausgewählte Datei konnte nicht gelesen werden. Wählen Sie sie erneut aus.';
+
+  @override
+  String universalImport_error_parseFailed(String details) {
+    return 'Die Datei konnte nicht gelesen werden: $details';
+  }
+
+  @override
+  String get universalImport_error_noFilesInArchive =>
+      'Im Archiv wurden keine importierbaren Dateien gefunden.';
+
+  @override
+  String get universalImport_error_noFilesInFolder =>
+      'Im ausgewählten Ordner wurden keine importierbaren Dateien gefunden.';
+
+  @override
+  String universalImport_error_loadFailed(String details) {
+    return 'Die Datei konnte nicht geladen werden: $details';
+  }
+
+  @override
+  String universalImport_error_pickFailed(String details) {
+    return 'Die Datei konnte nicht geöffnet werden: $details';
+  }
+
+  @override
+  String universalImport_error_folderScanFailed(String details) {
+    return 'Der Ordner konnte nicht durchsucht werden: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNotFound =>
+      'Kein verbundenes Garmin-Gerät gefunden. Verbinden Sie es per Kabel oder wählen Sie mit „Ordner auswählen“ den Ordner GARMIN/Activity des Geräts aus.';
+
+  @override
+  String universalImport_error_garminReadFailed(String details) {
+    return 'Das Garmin-Gerät konnte nicht gelesen werden: $details';
+  }
+
+  @override
+  String get universalImport_error_garminNoDives =>
+      'Auf dem verbundenen Garmin-Gerät wurden keine Tauchgänge gefunden.';
+
+  @override
+  String universalImport_error_additionalFilePickFailed(String details) {
+    return 'Die zusätzliche Datei konnte nicht geöffnet werden: $details';
   }
 
   @override
@@ -36890,6 +37014,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_debugLog_saveDialogTitle => 'Debug-Protokolle speichern';
 
   @override
+  String get settings_diagnostics_header => 'Diagnose';
+
+  @override
+  String get settings_diagnostics_viewLog => 'Protokoll anzeigen';
+
+  @override
+  String get settings_diagnostics_viewLogSubtitle =>
+      'Warnungen und Fehler werden automatisch aufgezeichnet';
+
+  @override
+  String get settings_diagnostics_copy => 'Diagnosedaten kopieren';
+
+  @override
+  String get settings_diagnostics_copySubtitle =>
+      'App-Version, Gerät und aktuelle Protokollzeilen für einen Fehlerbericht';
+
+  @override
+  String get settings_diagnostics_copiedSnack =>
+      'Diagnosedaten in die Zwischenablage kopiert';
+
+  @override
+  String get settings_diagnostics_openFolder => 'Protokollordner öffnen';
+
+  @override
+  String settings_diagnostics_openFolderFailed(String path) {
+    return 'Der Protokollordner konnte nicht geöffnet werden. Er befindet sich unter: $path';
+  }
+
+  @override
+  String settings_diagnostics_copyFailed(Object error) {
+    return 'Diagnosedaten konnten nicht kopiert werden: $error';
+  }
+
+  @override
   String get universalImport_preset_saveTitle => 'Als Vorlage speichern';
 
   @override
@@ -38639,6 +38797,29 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get statistics_conditions_tempTrend_error =>
       'Temperaturverlauf konnte nicht geladen werden';
+
+  @override
+  String get statistics_conditions_waterTempBands_title =>
+      'Tauchgänge nach Wassertemperatur';
+
+  @override
+  String get statistics_conditions_waterTempBands_subtitle =>
+      'Verteilung deiner Tauchgänge auf Wassertemperaturbereiche';
+
+  @override
+  String get statistics_conditions_waterTempBands_empty =>
+      'Keine Wassertemperaturdaten verfügbar';
+
+  @override
+  String get statistics_conditions_waterTempBands_error =>
+      'Wassertemperaturbereiche konnten nicht geladen werden';
+
+  @override
+  String statistics_conditions_waterTempBands_semanticLabel(
+    String description,
+  ) {
+    return 'Balkendiagramm. Tauchgänge nach Wassertemperatur. $description';
+  }
 
   @override
   String get diveLog_filter_presetLast5Years => 'Letzte 5 Jahre';
