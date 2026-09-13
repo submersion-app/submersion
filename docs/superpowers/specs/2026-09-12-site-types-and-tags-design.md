@@ -67,7 +67,7 @@ Rejected alternatives for type storage:
 
 ## Data model
 
-Schema rung v212. `currentSchemaVersion` becomes 212.
+Schema rung v214. `currentSchemaVersion` becomes 214. (Drafted as v212; renumbered when main shipped v213 and #1639 kept its claim on 212.)
 `minimumCompatibleSchemaVersion` stays at 210: the rung only adds tables,
 defaulted columns and indexes, which the floor's documented rules exempt.
 
@@ -84,7 +84,7 @@ defaulted columns and indexes, which the floor's documented rules exempt.
 | `hlc` | text, nullable | |
 
 Built-in seed, in sort order, inserted with `INSERT OR IGNORE` in both
-`onCreate` and the v212 migration:
+`onCreate` and the v214 migration:
 
 | Slug | English name |
 | --- | --- |
@@ -376,7 +376,7 @@ Mappings only add types. They never replace types a diver has set.
 
 Tests are written first.
 
-- Migration: v211 to v212 creates the tables, unique indexes and seeds, and
+- Migration: v211 to v214 creates the tables, unique indexes and seeds, and
   sets existing tags to dives-only. A fresh `onCreate` database matches the
   upgraded one. Stale version literals in ladder tests are updated.
 - Sync:

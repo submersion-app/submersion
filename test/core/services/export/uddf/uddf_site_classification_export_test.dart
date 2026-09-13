@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
@@ -150,6 +151,8 @@ void main() {
         final extras = await resolveDivesExtras(
           BuddyRepository(),
           EquipmentComponentRepository(),
+          DiveRoleRepository(),
+          null,
           ['d1'],
           const UddfExportOptions(
             includeParticipants: false,

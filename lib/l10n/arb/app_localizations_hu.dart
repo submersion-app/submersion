@@ -21,6 +21,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_components_add => 'Alkatrész hozzáadása';
 
   @override
+  String get equipment_components_containsSection => 'Részei';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Nincsenek alkatrészek. Add hozzá azokat a részeket, amelyekből ez a felszerelés áll.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'Nincsenek saját alkatrészei. Add hozzá őket, ha ez a felszerelés másokból áll.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -97,6 +104,14 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 összeállítás része',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'Része ennek';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role, itt: $rigs';
   }
 
   @override
@@ -5950,6 +5965,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden felszereles mar ki van valasztva';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'A tobbi felszereles tartalekkent van jelolve';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Hiba a felszereles betoltesekor: $error';
   }
@@ -5960,6 +5979,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Tavolitson el elemeket masok hozzaadasahoz';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Allitsa a targy allapotat Aktivra, hogy merulesehez adja';
 
   @override
   String get diveLog_equipmentPicker_title => 'Felszereles hozzaadasa';
@@ -10884,6 +10907,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Eladva';
 
   @override
+  String get enum_equipmentStatus_spare => 'Tartalek';
+
+  @override
   String get enum_equipmentType_backplate => 'Hátlemez';
 
   @override
@@ -11683,6 +11709,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Számlálás kezdete: $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'Lejárt';
 
   @override
@@ -11859,7 +11890,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Akkor használjuk, ha még nincs ilyen típusú szervizbejegyzés';
+      'Az óra ettől a dátumtól számol, amíg újabb szervizt nem rögzítesz.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'Kiindulási dátum törlése';

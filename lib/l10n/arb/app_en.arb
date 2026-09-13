@@ -2,10 +2,12 @@
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Add component",
+  "equipment_components_containsSection": "Contains",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
   "equipment_components_editRole": "Edit role",
   "equipment_components_empty": "No components. Add the parts this item is assembled from.",
+  "equipment_components_emptyLeaf": "No parts of its own. Add them if this item is assembled from others.",
   "equipment_components_historyAlsoPast": "{count, plural, =1{Also update 1 dive} other{Also update {count} dives}}",
   "equipment_components_historyAskAdded": "Add the new part to those dives as well, or only from now on?",
   "equipment_components_historyAskRemoved": "Remove the part from those dives as well, or only from now on?",
@@ -15,6 +17,8 @@
   "equipment_components_historyTitle": "Update past dives?",
   "equipment_components_partOf": "Part of {name}",
   "equipment_components_partOfCount": "{count, plural, =1{Part of 1 assembly} other{Part of {count} assemblies}}",
+  "equipment_components_partOfSection": "Part of",
+  "equipment_components_partOfSubtitle": "{role}, in {rigs}",
   "equipment_components_pickerConfirm": "{count, plural, =0{Add} =1{Add 1} other{Add {count}}}",
   "equipment_components_pickerEmpty": "No other active gear can be added here.",
   "equipment_components_pickerReplaceConfirm": "Replace",
@@ -3335,9 +3339,11 @@
   "diveLog_empty_title": "No dives logged yet",
   "diveLog_equipmentPicker_addFromTab": "Add equipment from the Equipment tab",
   "diveLog_equipmentPicker_allSelected": "All equipment already selected",
+  "diveLog_equipmentPicker_allSpare": "Remaining gear is marked Spare",
   "diveLog_equipmentPicker_errorLoading": "Error loading equipment: {error}",
   "diveLog_equipmentPicker_noEquipment": "No equipment yet",
   "diveLog_equipmentPicker_removeToAdd": "Remove items to add different ones",
+  "diveLog_equipmentPicker_spareHint": "Set an item's status to Active to add it to a dive",
   "diveLog_equipmentPicker_title": "Add Equipment",
   "diveLog_equipmentSetPicker_createHint": "Create sets in Equipment > Sets",
   "diveLog_equipmentSetPicker_emptySet": "Empty set",
@@ -6377,6 +6383,7 @@
   "enum_equipmentStatus_needsService": "Needs Service",
   "enum_equipmentStatus_retired": "Retired",
   "enum_equipmentStatus_sold": "Sold",
+  "enum_equipmentStatus_spare": "Spare",
   "enum_equipmentType_backplate": "Backplate",
   "enum_equipmentType_bcd": "BCD",
   "enum_equipmentType_boots": "Boots",
@@ -6649,6 +6656,14 @@
       }
     }
   },
+  "equipment_serviceClocks_countingSince": "Counting since {date}",
+  "@equipment_serviceClocks_countingSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_overdue": "Overdue",
   "equipment_serviceClocks_divesLeft": "{remaining} of {total} dives left",
   "@equipment_serviceClocks_divesLeft": {
@@ -6784,7 +6799,7 @@
     }
   },
   "equipment_scheduleDialog_anchorDate": "Baseline date",
-  "equipment_scheduleDialog_anchorHint": "Used when no service record of this kind exists yet",
+  "equipment_scheduleDialog_anchorHint": "The clock counts from this date until you log a newer service.",
   "equipment_scheduleDialog_clearAnchor": "Clear baseline date",
   "equipment_scheduleDialog_save": "Save",
   "equipment_scheduleDialog_cancel": "Cancel",

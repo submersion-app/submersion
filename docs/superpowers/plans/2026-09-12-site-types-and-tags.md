@@ -4,7 +4,7 @@
 
 **Goal:** Let a diver give every dive site any number of types (built-in or custom) and any number of tags (from the shared tag list, scoped per tag to dives, sites or both), visible and editable everywhere a site appears, and carried through sync, UDDF and imports (issue #1765).
 
-**Architecture:** Schema rung v212 adds a `site_types` vocabulary (a twin of `dive_types`), two clockless site-child junctions (`site_site_types`, `site_tags`), and two scope flags on `tags`. One new `SiteClassificationRepository` owns both junctions. Site types and tags never live on the `DiveSite` entity (the #1187 partial-entity wipe); they reach the UI through providers and `SiteWithDiveCount`.
+**Architecture:** Schema rung v214 adds a `site_types` vocabulary (a twin of `dive_types`), two clockless site-child junctions (`site_site_types`, `site_tags`), and two scope flags on `tags`. One new `SiteClassificationRepository` owns both junctions. Site types and tags never live on the `DiveSite` entity (the #1187 partial-entity wipe); they reach the UI through providers and `SiteWithDiveCount`.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, go_router, `xml` builder, `flutter gen-l10n` (11 ARB locales).
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema: `currentSchemaVersion` becomes 212; `minimumCompatibleSchemaVersion` stays 210.
+- Schema: `currentSchemaVersion` becomes 214 (drafted as 212; renumbered when main shipped v213 and #1639 kept 212); `minimumCompatibleSchemaVersion` stays 210.
 - Built-in site type slugs, in sort order: `reef`, `wall`, `wreck`, `artificial_reef`, `cave`, `cavern`, `cenote`, `blue_hole`, `lake`, `quarry`, `river`, `spring`, `pool`, `pier`, `muck`, `kelp_forest`. Never synced, never editable.
 - Existing tags migrate to `applies_to_dives = 1`, `applies_to_sites = 0`. A tag must apply to at least one of the two.
 - Junction writers are conflict-safe (`DoNothing`), mark only the junction row pending, and never mark the parent site pending.
@@ -28,7 +28,7 @@
 
 | File | Status | Responsibility |
 | --- | --- | --- |
-| `lib/core/database/database.dart` | modify | Tables, tag columns, v212 rung, onCreate, beforeOpen |
+| `lib/core/database/database.dart` | modify | Tables, tag columns, v214 rung, onCreate, beforeOpen |
 | `lib/core/database/site_type_seed.dart` | create | Built-in site type list and seed SQL |
 | `lib/core/database/site_classification_uniqueness.dart` | create | Unique indexes on both junctions |
 | `lib/core/database/tag_uniqueness.dart` | modify | Duplicate-tag repair repoints `site_tags`, ORs scopes |
@@ -94,7 +94,7 @@
 
 ---
 
-### Task 1: Schema v212
+### Task 1: Schema v214
 
 **Files:**
 - Create: `lib/core/database/site_type_seed.dart`
@@ -102,14 +102,14 @@
 - Modify: `lib/core/database/database.dart`
 - Modify: `lib/core/database/tag_uniqueness.dart`
 - Modify: `test/core/database/migration_v211_auto_tag_imports_test.dart:7-12`
-- Test: `test/core/database/migration_v212_site_classification_test.dart`
+- Test: `test/core/database/migration_v214_site_classification_test.dart`
 
 **Interfaces:**
 - Produces: Drift tables `siteTypes` (data class `SiteType`, companion `SiteTypesCompanion`), `siteSiteTypes` (`SiteSiteType`, `SiteSiteTypesCompanion`), `siteTags` (`SiteTag`, `SiteTagsCompanion`); `Tags.appliesToDives` / `Tags.appliesToSites` (`bool`); `const List<({String id, String name})> kBuiltInSiteTypes`; `final String kSeedBuiltInSiteTypesSql`; `Future<void> assertSiteClassificationUniqueness(DatabaseConnectionUser db)`; index name constants `kSiteSiteTypesUniqueIndexName`, `kSiteTagsUniqueIndexName`.
 
 - [ ] **Step 1: Write the failing migration test**
 
-Create `test/core/database/migration_v212_site_classification_test.dart`:
+Create `test/core/database/migration_v214_site_classification_test.dart`:
 
 ```dart
 import 'package:drift/native.dart';
@@ -119,7 +119,7 @@ import 'package:submersion/core/database/site_classification_uniqueness.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 
 void main() {
-  /// A pre-v212 database: `tags` without the scope flags, no site tables.
+  /// A pre-v214 database: `tags` without the scope flags, no site tables.
   NativeDatabase setupDb({int userVersion = 211}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
@@ -167,11 +167,11 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v212 is the current schema version and is in the ladder', () {
+  test('v214 is the current schema version and is in the ladder', () {
     // This is the newest rung, so it owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 212);
-    expect(AppDatabase.migrationVersions, contains(212));
+    expect(AppDatabase.currentSchemaVersion, 214);
+    expect(AppDatabase.migrationVersions, contains(214));
     expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
   });
 
@@ -341,7 +341,7 @@ void main() {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `flutter test test/core/database/migration_v212_site_classification_test.dart test/core/database/tag_uniqueness_site_tags_test.dart`
+Run: `flutter test test/core/database/migration_v214_site_classification_test.dart test/core/database/tag_uniqueness_site_tags_test.dart`
 Expected: FAIL to compile (`site_classification_uniqueness.dart` and `site_type_seed.dart` do not exist).
 
 - [ ] **Step 3: Create the seed file**
@@ -349,7 +349,7 @@ Expected: FAIL to compile (`site_classification_uniqueness.dart` and `site_type_
 Create `lib/core/database/site_type_seed.dart`:
 
 ```dart
-/// Built-in dive site types (v212, issue #1765).
+/// Built-in dive site types (v214, issue #1765).
 ///
 /// The slug ids are the identity: every device seeds the same rows with
 /// `INSERT OR IGNORE`, sync never exports them, and a `site_site_types` row
@@ -385,7 +385,7 @@ final Set<String> kBuiltInSiteTypeIds = {
   for (final t in kBuiltInSiteTypes) t.id,
 };
 
-/// Idempotent seed of [kBuiltInSiteTypes]. Run by `onCreate`, the v212 rung
+/// Idempotent seed of [kBuiltInSiteTypes]. Run by `onCreate`, the v214 rung
 /// and the `beforeOpen` backstop.
 final String kSeedBuiltInSiteTypesSql = _buildSeedSql();
 
@@ -419,7 +419,7 @@ Create `lib/core/database/site_classification_uniqueness.dart`:
 
 ```dart
 /// Site classification junction identity: one `site_site_types` row per
-/// (site, type) and one `site_tags` row per (site, tag) (v212, issue #1765).
+/// (site, type) and one `site_tags` row per (site, tag) (v214, issue #1765).
 ///
 /// Both junctions follow `dive_dive_types` and `dive_tags`: a surrogate uuid
 /// primary key, so a re-inserted row never collides with the tombstone of the
@@ -475,7 +475,7 @@ Future<bool> _exists(DatabaseConnectionUser db, String type, String name) async 
 /// migration-test fixtures pass through.
 ///
 /// Called from `onCreate` (`createAll()` never builds raw-SQL indexes), the
-/// v212 rung, and `beforeOpen`.
+/// v214 rung, and `beforeOpen`.
 Future<void> assertSiteClassificationUniqueness(
   DatabaseConnectionUser db,
 ) async {
@@ -506,12 +506,12 @@ Future<void> assertSiteClassificationUniqueness(
 Add two columns to `class Tags` (after `hlc`, before `primaryKey`, around line 2428):
 
 ```dart
-  /// Whether the tag is offered on dives (v212, issue #1765). Every tag that
-  /// existed before v212 is a dive tag.
+  /// Whether the tag is offered on dives (v214, issue #1765). Every tag that
+  /// existed before v214 is a dive tag.
   BoolColumn get appliesToDives =>
       boolean().withDefault(const Constant(true))();
 
-  /// Whether the tag is offered on dive sites (v212, issue #1765). A tag
+  /// Whether the tag is offered on dive sites (v214, issue #1765). A tag
   /// always applies to at least one of the two; TagRepository enforces it.
   BoolColumn get appliesToSites =>
       boolean().withDefault(const Constant(false))();
@@ -520,7 +520,7 @@ Add two columns to `class Tags` (after `hlc`, before `primaryKey`, around line 2
 Add three table classes directly after `class DiveDiveTypes` (after line 2509):
 
 ```dart
-/// Dive site type vocabulary (v212, issue #1765). The twin of [DiveTypes]:
+/// Dive site type vocabulary (v214, issue #1765). The twin of [DiveTypes]:
 /// slug ids, built-ins (diverId null) seeded identically on every device by
 /// `kSeedBuiltInSiteTypesSql` and never synced, custom types per diver.
 class SiteTypes extends Table {
@@ -540,7 +540,7 @@ class SiteTypes extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Junction table for a site's types (many-to-many, v212). Surrogate uuid
+/// Junction table for a site's types (many-to-many, v214). Surrogate uuid
 /// primary key, as [DiveDiveTypes]. `siteTypeId` has no foreign key for the
 /// same reason as `DiveDiveTypes.diveTypeId`: a custom type can arrive by
 /// sync after a junction row that references it.
@@ -559,7 +559,7 @@ class SiteSiteTypes extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Junction table for a site's tags (many-to-many, v212), the twin of
+/// Junction table for a site's tags (many-to-many, v214), the twin of
 /// [DiveTags].
 class SiteTags extends Table {
   TextColumn get id => text()();
@@ -581,7 +581,7 @@ class SiteTags extends Table {
 In the `@DriftDatabase(tables: [...])` list, after `SiteFeatures,` (line ~4020) add:
 
 ```dart
-    // Site classification (v212, issue #1765)
+    // Site classification (v214, issue #1765)
     SiteTypes,
     SiteSiteTypes,
     SiteTags,
@@ -596,22 +596,22 @@ import 'package:submersion/core/database/site_type_seed.dart';
 
 - [ ] **Step 6: Bump the version and add the rung**
 
-Change line ~4083 to `static const int currentSchemaVersion = 212;`.
+Change line ~4083 to `static const int currentSchemaVersion = 214;`.
 
 Append to `migrationVersions` after `211,`:
 
 ```dart
-    // v212: dive site types and tags (issue #1765). Three new tables
+    // v214: dive site types and tags (issue #1765). Three new tables
     // (site_types, site_site_types, site_tags), the built-in site type seed,
     // both junction unique indexes, and tags.applies_to_dives /
     // applies_to_sites. Additive only, so the compatibility floor stays.
-    212,
+    214,
 ```
 
 Add the helper next to `_assertDiveTypeVisibilityColumns` (~line 7956):
 
 ```dart
-  /// Idempotent DDL for the tag scope flags (v212, issue #1765). Existing
+  /// Idempotent DDL for the tag scope flags (v214, issue #1765). Existing
   /// tags are dive tags; none applies to sites until the diver says so.
   Future<void> _assertTagScopeColumns() async {
     final cols = await customSelect("PRAGMA table_info('tags')").get();
@@ -631,9 +631,9 @@ Add the helper next to `_assertDiveTypeVisibilityColumns` (~line 7956):
     }
   }
 
-  /// Idempotent creation of the v212 site classification schema: the three
+  /// Idempotent creation of the v214 site classification schema: the three
   /// tables, the built-in seed, and the junction unique indexes. Called from
-  /// the v212 rung and the beforeOpen backstop.
+  /// the v214 rung and the beforeOpen backstop.
   Future<void> _assertSiteClassificationSchema() async {
     await createMigrator().createTable(siteTypes);
     await createMigrator().createTable(siteSiteTypes);
@@ -646,13 +646,13 @@ Add the helper next to `_assertDiveTypeVisibilityColumns` (~line 7956):
 At the end of `onUpgrade`, after the `if (from < 211) await reportProgress();` line:
 
 ```dart
-        // v212: dive site types and tags (issue #1765). Table-and-column
+        // v214: dive site types and tags (issue #1765). Table-and-column
         // rung, no backfill beyond the built-in seed.
-        if (from < 212) {
+        if (from < 214) {
           await _assertTagScopeColumns();
           await _assertSiteClassificationSchema();
         }
-        if (from < 212) await reportProgress();
+        if (from < 214) await reportProgress();
 ```
 
 - [ ] **Step 7: onCreate and beforeOpen**
@@ -660,7 +660,7 @@ At the end of `onUpgrade`, after the `if (from < 211) await reportProgress();` l
 In `onCreate`, after `await assertDiveTypeUniqueness(this);` (line ~8267):
 
 ```dart
-        // Built-in site types and the site junction unique indexes (v212,
+        // Built-in site types and the site junction unique indexes (v214,
         // issue #1765). createAll() builds the tables but never raw-SQL
         // indexes or seeds.
         await customStatement(kSeedBuiltInSiteTypesSql);
@@ -670,14 +670,14 @@ In `onCreate`, after `await assertDiveTypeUniqueness(this);` (line ~8267):
 In `beforeOpen`, as the first lines (before the v211 backstop):
 
 ```dart
-        // v212 backstop: the tag scope flags.
+        // v214 backstop: the tag scope flags.
         await _assertTagScopeColumns();
 ```
 
 In `beforeOpen`, directly after the v152 `createTable(siteFeatures)` backstop (~line 11974):
 
 ```dart
-        // v212 backstop: site classification tables, seed and indexes
+        // v214 backstop: site classification tables, seed and indexes
         // (parallel-branch version-collision self-heal; all idempotent).
         await _assertSiteClassificationSchema();
 ```
@@ -690,7 +690,7 @@ In `lib/core/database/tag_uniqueness.dart`, add after `_repointDiveTagsToSurvivo
 
 ```dart
 /// Repoints `site_tags` at the surviving tag, like the dive junction above
-/// (v212, issue #1765). `OR IGNORE` because the `site_tags` unique index can
+/// (v214, issue #1765). `OR IGNORE` because the `site_tags` unique index can
 /// already exist when this runs: a site holding both the loser and the
 /// survivor keeps its survivor row, and the loser row is swept below.
 const String _repointSiteTagsToSurvivorSql = '''
@@ -767,7 +767,7 @@ In `test/core/database/migration_v211_auto_tag_imports_test.dart` lines 7-12, re
 
 ```dart
   test('v211 is in the ladder', () {
-    // Relaxed once v212 (site types and tags) landed on top; the newest
+    // Relaxed once v214 (site types and tags) landed on top; the newest
     // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(211));
     expect(AppDatabase.migrationVersions, contains(211));
@@ -777,15 +777,15 @@ In `test/core/database/migration_v211_auto_tag_imports_test.dart` lines 7-12, re
 - [ ] **Step 10: Regenerate Drift code and run the tests**
 
 Run: `bash scripts/setup.sh` (runs `build_runner`; a bare `dart run build_runner build` may be refused by a permission rule)
-Then: `flutter test test/core/database/migration_v212_site_classification_test.dart test/core/database/tag_uniqueness_site_tags_test.dart test/core/database/migration_v211_auto_tag_imports_test.dart test/core/database/migration_v149_tag_uniqueness_test.dart test/core/database/migration_v178_dive_type_uniqueness_test.dart`
+Then: `flutter test test/core/database/migration_v214_site_classification_test.dart test/core/database/tag_uniqueness_site_tags_test.dart test/core/database/migration_v211_auto_tag_imports_test.dart test/core/database/migration_v149_tag_uniqueness_test.dart test/core/database/migration_v178_dive_type_uniqueness_test.dart`
 Expected: PASS.
 
 - [ ] **Step 11: Commit**
 
 ```bash
 dart format lib/core/database test/core/database
-git add lib/core/database/database.dart lib/core/database/site_type_seed.dart lib/core/database/site_classification_uniqueness.dart lib/core/database/tag_uniqueness.dart test/core/database/migration_v212_site_classification_test.dart test/core/database/tag_uniqueness_site_tags_test.dart test/core/database/migration_v211_auto_tag_imports_test.dart
-git commit -m "feat(sites): schema v212 for site types and site tags (#1765)"
+git add lib/core/database/database.dart lib/core/database/site_type_seed.dart lib/core/database/site_classification_uniqueness.dart lib/core/database/tag_uniqueness.dart test/core/database/migration_v214_site_classification_test.dart test/core/database/tag_uniqueness_site_tags_test.dart test/core/database/migration_v211_auto_tag_imports_test.dart
+git commit -m "feat(sites): schema v214 for site types and site tags (#1765)"
 ```
 
 ### Task 2: Sync registration
@@ -1267,7 +1267,7 @@ and, if the switch lists `diveDiveTypes`/`diveTags` explicitly, add matching `si
 In `_foldTagInto` (line 2955), directly after the block that repoints `diveTags` rows onto the survivor and marks them pending (lines ~2960-2985), add the same for `siteTags`:
 
 ```dart
-    // Site links follow the survivor too (v212, issue #1765); without this a
+    // Site links follow the survivor too (v214, issue #1765); without this a
     // folded tag would lose every site it was on.
     final siteLinks = await (_db.select(
       _db.siteTags,
@@ -4438,7 +4438,7 @@ In `tag_manage_page.dart`:
 
 - [ ] **Step 6: Dive-side pickers list dive tags only**
 
-`tag_picker_sheet.dart` `_pickedFrom(stats)` / the stats list: filter `stats.where((s) => s.tag.appliesToDives)` before building. In `dive_filter_sheet.dart` (~line 753) filter the tag chip source with `.where((t) => t.appliesToDives)`. Every pre-v212 tag applies to dives, so the dive side shows exactly what it showed before; add one assertion to the existing `tag_picker_sheet_test.dart` that a sites-only tag is not listed.
+`tag_picker_sheet.dart` `_pickedFrom(stats)` / the stats list: filter `stats.where((s) => s.tag.appliesToDives)` before building. In `dive_filter_sheet.dart` (~line 753) filter the tag chip source with `.where((t) => t.appliesToDives)`. Every pre-v214 tag applies to dives, so the dive side shows exactly what it showed before; add one assertion to the existing `tag_picker_sheet_test.dart` that a sites-only tag is not listed.
 
 - [ ] **Step 7: Run and commit**
 

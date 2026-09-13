@@ -1,4 +1,4 @@
-/// Built-in dive site types (v212, issue #1765).
+/// Built-in dive site types (v214, issue #1765).
 ///
 /// The slug ids are the identity: every device seeds the same rows with
 /// `INSERT OR IGNORE`, sync never exports them, and a `site_site_types` row
@@ -34,7 +34,7 @@ final Set<String> kBuiltInSiteTypeIds = {
   for (final t in kBuiltInSiteTypes) t.id,
 };
 
-/// Idempotent seed of [kBuiltInSiteTypes]. Run by `onCreate`, the v212 rung
+/// Idempotent seed of [kBuiltInSiteTypes]. Run by `onCreate`, the v214 rung
 /// and the `beforeOpen` backstop.
 final String kSeedBuiltInSiteTypesSql = _buildSeedSql();
 

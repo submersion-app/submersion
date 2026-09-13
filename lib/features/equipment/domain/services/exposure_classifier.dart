@@ -7,21 +7,25 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 /// so a changed setting changes every total on the next read with nothing
 /// to rebuild.
 ///
-/// Two item-level rules ride on the classifier because they depend on what
+/// Three item-level rules ride on the classifier because they depend on what
 /// the item is, not on the dive:
 /// - [loopTimeOnly]: rebreathers (and their children) accrue
 ///   [ExposureUnit.hours] on CCR and SCR mode dives only. Salt hours still
 ///   count every dive: the unit was wet whatever the loop did.
+/// - [countsCycles]: only an item that `accruesBatteryCycles` counts
+///   [ExposureUnit.cycles]; a BCD or a pair of fins has no battery to cycle.
 /// - [hasBatteryChild]: a parent whose battery is modelled as a child item
 ///   accrues no [ExposureUnit.cycles]; the child does.
 class ExposureClassifier {
   final ExposureThresholds thresholds;
   final bool loopTimeOnly;
+  final bool countsCycles;
   final bool hasBatteryChild;
 
   const ExposureClassifier({
     this.thresholds = ExposureThresholds.defaults,
     this.loopTimeOnly = false,
+    this.countsCycles = false,
     this.hasBatteryChild = false,
   });
 
@@ -55,7 +59,7 @@ class ExposureClassifier {
         final depth = s.maxDepth;
         return depth != null && depth >= thresholds.deepDiveM ? 1 : 0;
       case ExposureUnit.cycles:
-        return hasBatteryChild ? 0 : 1;
+        return countsCycles && !hasBatteryChild ? 1 : 0;
     }
   }
 

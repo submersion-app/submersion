@@ -86,7 +86,7 @@ const String _repointDiveTagsToSurvivorSql = '''
 ''';
 
 /// Repoints `site_tags` at the surviving tag, like the dive junction above
-/// (v212, issue #1765). `OR IGNORE` because the `site_tags` unique index can
+/// (v214, issue #1765). `OR IGNORE` because the `site_tags` unique index can
 /// already exist when this runs: a site holding both the loser and the
 /// survivor keeps its survivor row, and the loser row is swept below.
 const String _repointSiteTagsToSurvivorSql = '''
@@ -101,7 +101,7 @@ const String _repointSiteTagsToSurvivorSql = '''
 
 /// Gives the surviving tag of each group the union of the group's scopes, so
 /// collapsing a dive tag and a site tag of the same name keeps both uses
-/// (v212, issue #1765).
+/// (v214, issue #1765).
 const String _mergeScopesIntoSurvivorSql = '''
   UPDATE tags SET
     applies_to_dives = (
@@ -165,11 +165,11 @@ Future<bool> _columnExists(
 /// Collapses duplicate tags and duplicate junction rows, in the only order
 /// that leaves no ties: normalize the names the grouping keys on, give each
 /// survivor the union of its group's scopes, repoint both junctions
-/// (`dive_tags` and, since v212, `site_tags`) at the surviving tag, drop the
+/// (`dive_tags` and, since v214, `site_tags`) at the surviving tag, drop the
 /// losing tags, then collapse the junction duplicates the repoint created.
 ///
 /// Idempotent: every statement is a no-op on already-clean data. The scope
-/// and site steps self-guard on their schema existing, so pre-v212 fixture
+/// and site steps self-guard on their schema existing, so pre-v214 fixture
 /// databases pass through.
 Future<void> collapseDuplicateTags(DatabaseConnectionUser db) async {
   final hasSiteTags = await _tableExists(db, 'site_tags');

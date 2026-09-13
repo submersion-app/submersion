@@ -5,8 +5,8 @@ import 'package:submersion/core/database/database.dart';
 
 void main() {
   test('v211 is in the ladder', () {
-    // Relaxed once v212 (site types and tags) landed on top; the newest
-    // rung owns the exact assertion.
+    // Relaxed once v213 (service_schedules.anchor_set_at) landed on top; the
+    // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(211));
     expect(AppDatabase.migrationVersions, contains(211));
   });

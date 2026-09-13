@@ -21,6 +21,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_components_add => 'הוספת רכיב';
 
   @override
+  String get equipment_components_containsSection => 'מכיל';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'אין לו חלקים משלו. הוסיפו אותם אם הפריט מורכב מפריטים אחרים.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -96,6 +103,14 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'חלק ממכלול אחד',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'חלק מתוך';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role, ב-$rigs';
   }
 
   @override
@@ -5819,6 +5834,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => 'כל הציוד כבר נבחר';
 
   @override
+  String get diveLog_equipmentPicker_allSpare => 'הציוד הנותר מסומן כרזרבי';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'שגיאה בטעינת ציוד: $error';
   }
@@ -5828,6 +5846,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
 
   @override
   String get diveLog_equipmentPicker_title => 'הוספת ציוד';
@@ -10653,6 +10675,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'נמכר';
 
   @override
+  String get enum_equipmentStatus_spare => 'רזרבי';
+
+  @override
   String get enum_equipmentType_backplate => 'פלטת גב';
 
   @override
@@ -11448,6 +11473,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'נספר מאז $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'באיחור';
 
   @override
@@ -11622,7 +11652,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'בשימוש כאשר עדיין אין רשומת טיפול מסוג זה';
+      'השעון סופר מתאריך זה עד שתתעד טיפול חדש יותר.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => 'ניקוי תאריך הבסיס';

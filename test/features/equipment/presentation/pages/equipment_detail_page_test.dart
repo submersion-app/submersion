@@ -94,6 +94,9 @@ void main() {
               equipmentComponentsProvider(
                 equipment.id,
               ).overrideWith((ref) async => const []),
+              equipmentPartOfProvider(
+                equipment.id,
+              ).overrideWith((ref) async => const []),
               equipmentExposureTotalsProvider(
                 equipment.id,
               ).overrideWith((ref) async => EquipmentExposureTotals.empty),
@@ -176,6 +179,9 @@ void main() {
               equipment.id,
             ).overrideWith((ref) async => 0),
             equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentPartOfProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
             equipmentExposureTotalsProvider(
@@ -269,6 +275,9 @@ void main() {
             equipmentComponentsProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
+            equipmentPartOfProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
             equipmentExposureTotalsProvider(
               equipment.id,
             ).overrideWith((ref) async => EquipmentExposureTotals.empty),
@@ -343,6 +352,9 @@ void main() {
               equipment.id,
             ).overrideWith((ref) async => 0),
             equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentPartOfProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
             equipmentExposureTotalsProvider(
@@ -544,6 +556,9 @@ void main() {
             equipmentComponentsProvider(
               equipment.id,
             ).overrideWith((ref) async => const []),
+            equipmentPartOfProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
             equipmentExposureTotalsProvider(
               equipment.id,
             ).overrideWith((ref) async => EquipmentExposureTotals.empty),
@@ -723,6 +738,9 @@ void main() {
             equipmentComponentsProvider(
               item.id,
             ).overrideWith((ref) async => const []),
+            equipmentPartOfProvider(
+              item.id,
+            ).overrideWith((ref) async => const []),
             observationsForEquipmentProvider(
               item.id,
             ).overrideWith((ref) async => const []),
@@ -804,6 +822,14 @@ void main() {
       expect(find.text('Exposure'), findsOneWidget);
       expect(find.text('Installed parts'), findsNothing);
       expect(find.text('Condition findings'), findsNothing);
+    });
+
+    testWidgets('the Components card renders with no error line', (
+      tester,
+    ) async {
+      await pumpItem(tester, mask);
+      expect(find.text('Components'), findsOneWidget);
+      expect(find.textContaining('Something went wrong'), findsNothing);
     });
   });
 }

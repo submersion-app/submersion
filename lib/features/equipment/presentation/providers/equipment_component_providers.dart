@@ -36,6 +36,45 @@ final equipmentComponentsProvider =
       return repository.getComponents(parentId);
     });
 
+/// One assembly an item is a part of: the edge with its parent hydrated,
+/// and the names of the outermost rigs above that parent (empty when the
+/// parent is itself top-level), sorted.
+typedef PartOfEntry = ({EquipmentComponent edge, List<String> rootNames});
+
+/// The upward view for the Components card's "Part of" section. Ids come
+/// from the adjacency index; names are re-read on any equipment write so a
+/// rename of a parent or a rig shows at once.
+final equipmentPartOfProvider =
+    FutureProvider.family<List<PartOfEntry>, String>((ref, itemId) async {
+      final repository = ref.watch(equipmentComponentRepositoryProvider);
+      final equipment = ref.watch(equipmentRepositoryProvider);
+      final indexFuture = ref.watch(equipmentComponentsIndexProvider.future);
+      ref.invalidateSelfWhen(repository.watchComponentChanges());
+
+      final parents = await repository.getParents(itemId);
+      if (parents.isEmpty) return const [];
+      final index = await indexFuture;
+      final rootsByParent = {
+        for (final p in parents)
+          p.parentEquipmentId: index.rootsOf(p.parentEquipmentId),
+      };
+      final rootIds = {for (final roots in rootsByParent.values) ...roots};
+      final names = {
+        for (final root in await equipment.getEquipmentByIds(rootIds.toList()))
+          root.id: root.name,
+      };
+      return [
+        for (final p in parents)
+          (
+            edge: p,
+            rootNames: [
+              for (final id in rootsByParent[p.parentEquipmentId]!)
+                names[id] ?? id,
+            ]..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+          ),
+      ];
+    });
+
 /// The single most urgent clock in an item's subtree and who owns it, so a
 /// badge can say "Necklace hose: Regulator service overdue".
 typedef RollupClock = ({

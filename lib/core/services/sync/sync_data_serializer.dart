@@ -2973,7 +2973,7 @@ class SyncDataSerializer {
 
     final ids = [remote.id, for (final r in rivals) r.id]..sort();
     final survivor = ids.first;
-    // The survivor keeps every use the folded rows had (v212, issue #1765):
+    // The survivor keeps every use the folded rows had (v214, issue #1765):
     // folding a dive tag and a site tag of the same name must not drop
     // either scope.
     final anyDives =
@@ -3068,7 +3068,7 @@ class SyncDataSerializer {
       }
     }
 
-    // Site links follow the survivor the same way (v212, issue #1765);
+    // Site links follow the survivor the same way (v214, issue #1765);
     // without this the loser's delete would cascade them away.
     final movingSites = await (_db.select(
       _db.siteTags,
@@ -3147,7 +3147,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `site_site_types` row (v212, issue #1765). The
+  /// Applies one incoming `site_site_types` row (v214, issue #1765). The
   /// table has its (site, type) unique index from the day it exists, so a
   /// peer's copy of a pair this device holds under another id is skipped
   /// with DO NOTHING, for the reasons [_applyDiveDiveTypeRecord] gives.
@@ -3162,7 +3162,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `site_tags` row (v212, issue #1765), the site twin
+  /// Applies one incoming `site_tags` row (v214, issue #1765), the site twin
   /// of [_applyDiveTagRecord].
   Future<void> _applySiteTagRecord(SiteTag record) async {
     await _db

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -99,11 +100,36 @@ void main() {
     component: item,
   );
 
+  /// "reg" as a part of [assembly], with the rigs above that assembly.
+  PartOfEntry parentEntry(
+    EquipmentItem assembly, {
+    String role = '',
+    List<String> rigs = const [],
+  }) => (
+    edge: EquipmentComponent(
+      id: 'up-${assembly.id}',
+      parentEquipmentId: assembly.id,
+      componentEquipmentId: 'reg',
+      role: role,
+      createdAt: t0,
+      updatedAt: t0,
+      parent: assembly,
+    ),
+    rootNames: rigs,
+  );
+
+  const card = Scaffold(
+    body: SingleChildScrollView(child: ComponentsCard(equipmentId: 'reg')),
+  );
+
   Widget build(
     List<EquipmentComponent> parts,
     _FakeComponentRepository repo, {
     _FakeEquipmentRepository? equipment,
     _FakeDiveRepository? dives,
+    List<PartOfEntry> partOf = const [],
+    Object? partOfError,
+    bool routed = false,
   }) {
     return ProviderScope(
       overrides: [
@@ -115,6 +141,10 @@ void main() {
           dives ?? _FakeDiveRepository(),
         ),
         equipmentComponentsProvider('reg').overrideWith((ref) async => parts),
+        equipmentPartOfProvider('reg').overrideWith((ref) async {
+          if (partOfError != null) throw partOfError;
+          return partOf;
+        }),
         equipmentComponentsIndexProvider.overrideWith(
           (ref) async => ComponentsIndex.fromRows(parts),
         ),
@@ -123,18 +153,186 @@ void main() {
           (ref) async => const [first, hose, spare],
         ),
       ],
-      child: const MaterialApp(
-        locale: Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: ComponentsCard(equipmentId: 'reg'),
-          ),
-        ),
-      ),
+      child: routed
+          ? MaterialApp.router(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: GoRouter(
+                routes: [
+                  GoRoute(path: '/', builder: (_, _) => card),
+                  GoRoute(
+                    path: '/equipment/:id',
+                    builder: (_, state) =>
+                        Text('Detail ${state.pathParameters['id']}'),
+                  ),
+                ],
+              ),
+            )
+          : const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: card,
+            ),
     );
   }
+
+  group('part of', () {
+    const cold = EquipmentItem(
+      id: 'cold',
+      name: 'Cold water reg',
+      type: EquipmentType.regulator,
+    );
+    const travel = EquipmentItem(
+      id: 'travel',
+      name: 'Travel reg',
+      type: EquipmentType.regulator,
+    );
+    const old = EquipmentItem(
+      id: 'old',
+      name: 'Old reg',
+      type: EquipmentType.regulator,
+      status: EquipmentStatus.retired,
+      isActive: false,
+    );
+
+    testWidgets('an item that is part of nothing keeps the plain card', (
+      tester,
+    ) async {
+      await tester.pumpWidget(build(const [], _FakeComponentRepository()));
+      await tester.pumpAndSettle();
+      expect(find.text('Part of'), findsNothing);
+      expect(find.text('Contains'), findsNothing);
+      expect(find.textContaining('No components'), findsOneWidget);
+    });
+
+    testWidgets('lists each parent with its role and every rig above it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build(
+          [part('c1', first, role: 'Primary')],
+          _FakeComponentRepository(),
+          partOf: [
+            parentEntry(cold),
+            parentEntry(
+              travel,
+              role: 'Octopus',
+              rigs: ['Backmount rig', 'Sidemount rig'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Part of'), findsOneWidget);
+      expect(find.text('Contains'), findsOneWidget);
+      expect(find.text('Cold water reg'), findsOneWidget);
+      // No role falls back to the parent's type; a top-level parent has no
+      // rig line.
+      expect(find.text('Regulator'), findsOneWidget);
+      expect(
+        find.text('Octopus, in Backmount rig, Sidemount rig'),
+        findsOneWidget,
+      );
+      // The item's own parts still follow under Contains.
+      expect(find.text('DGX first stage'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Travel reg')).dy,
+        lessThan(tester.getTopLeft(find.text('Contains')).dy),
+      );
+      expect(
+        tester.getTopLeft(find.text('Contains')).dy,
+        lessThan(tester.getTopLeft(find.text('DGX first stage')).dy),
+      );
+    });
+
+    testWidgets('a retired parent is listed with its status', (tester) async {
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [parentEntry(old, role: 'Octopus')],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Old reg'), findsOneWidget);
+      expect(find.text('Retired'), findsOneWidget);
+    });
+
+    testWidgets('a sold parent keeps its Sold status, not Retired', (
+      tester,
+    ) async {
+      const sold = EquipmentItem(
+        id: 'sold',
+        name: 'Sold reg',
+        type: EquipmentType.regulator,
+        status: EquipmentStatus.sold,
+        isActive: false,
+      );
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [parentEntry(sold, role: 'Octopus')],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Sold'), findsOneWidget);
+      expect(find.text('Retired'), findsNothing);
+    });
+
+    testWidgets('a part with nothing of its own says so, not "no components"', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [parentEntry(cold)],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('No parts of its own'), findsOneWidget);
+      expect(find.textContaining('No components'), findsNothing);
+      expect(find.text('Add component'), findsOneWidget);
+    });
+
+    testWidgets('a parent row opens that assembly and has no edit actions', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [parentEntry(travel, role: 'Octopus')],
+          routed: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      await tester.tap(find.text('Travel reg'));
+      await tester.pumpAndSettle();
+      expect(find.text('Detail travel'), findsOneWidget);
+    });
+
+    testWidgets('a failed upward read is shown, and the parts still render', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build(
+          [part('c1', first)],
+          _FakeComponentRepository(),
+          partOfError: StateError('no database'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Something went wrong'), findsOneWidget);
+      expect(find.text('DGX first stage'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 
   testWidgets('empty state shows the prompt and the add button', (
     tester,
@@ -162,6 +360,36 @@ void main() {
     // A part with no role falls back to its type label.
     expect(find.text('Hose'), findsOneWidget);
     expect(find.text('Retired'), findsOneWidget);
+  });
+
+  testWidgets('a sold part keeps its Sold status, not Retired', (tester) async {
+    const sold = EquipmentItem(
+      id: 'sold',
+      name: 'Sold hose',
+      type: EquipmentType.hose,
+      status: EquipmentStatus.sold,
+      isActive: false,
+    );
+    await tester.pumpWidget(
+      build([part('c1', sold)], _FakeComponentRepository()),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Sold'), findsOneWidget);
+    expect(find.text('Retired'), findsNothing);
+  });
+
+  testWidgets('a lost part still marked active is badged Lost', (tester) async {
+    const lost = EquipmentItem(
+      id: 'lost',
+      name: 'Lost torch',
+      type: EquipmentType.light,
+      status: EquipmentStatus.lost,
+    );
+    await tester.pumpWidget(
+      build([part('c1', lost)], _FakeComponentRepository()),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Lost'), findsOneWidget);
   });
 
   testWidgets('a drag reorders the rows at once and persists the order', (

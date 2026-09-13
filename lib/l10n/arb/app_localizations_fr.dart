@@ -21,6 +21,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_components_add => 'Ajouter un composant';
 
   @override
+  String get equipment_components_containsSection => 'Contient';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41,6 +44,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Aucun composant. Ajoutez les pièces qui composent cet équipement.';
+
+  @override
+  String get equipment_components_emptyLeaf =>
+      'Aucune pièce propre. Ajoutez-en si cet équipement est composé d\'autres éléments.';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -97,6 +104,14 @@ class AppLocalizationsFr extends AppLocalizations {
       one: 'Fait partie de 1 ensemble',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => 'Fait partie de';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role, dans $rigs';
   }
 
   @override
@@ -5990,6 +6005,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Tout l\'équipement est déjà sélectionné';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'L\'équipement restant est marqué De rechange';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Erreur lors du chargement de l\'équipement : $error';
   }
@@ -6000,6 +6019,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Retire des éléments pour en ajouter d\'autres';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Passe le statut d\'un élément à Actif pour l\'ajouter à une plongée';
 
   @override
   String get diveLog_equipmentPicker_title => 'Ajouter de l\'équipement';
@@ -10954,6 +10977,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Vendu';
 
   @override
+  String get enum_equipmentStatus_spare => 'De rechange';
+
+  @override
   String get enum_equipmentType_backplate => 'Plaque dorsale';
 
   @override
@@ -11754,6 +11780,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return 'Décompte depuis le $date';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => 'En retard';
 
   @override
@@ -11933,7 +11964,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_anchorHint =>
-      'Utilisée lorsqu\'aucun entretien de ce type n\'a encore été enregistré';
+      'Le compteur part de cette date jusqu\'à l\'enregistrement d\'un entretien plus récent.';
 
   @override
   String get equipment_scheduleDialog_clearAnchor =>

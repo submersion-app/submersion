@@ -407,8 +407,16 @@ enum EntryMethod {
 }
 
 /// Equipment status
+///
+/// Stored by [name] in a TEXT column, so declaration order only sets the
+/// order of the status dropdown and filter chips.
 enum EquipmentStatus {
   active('Active'),
+
+  /// Usable gear on the shelf rather than in the dive rotation, such as a
+  /// spare hose or O-ring kit (#1803). Still listed, serviced and reminded
+  /// like active gear; only the dive gear pickers leave it out.
+  spare('Spare'),
   needsService('Needs Service'),
   inService('In Service'),
   retired('Retired'),

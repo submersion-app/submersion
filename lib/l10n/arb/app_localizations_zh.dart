@@ -21,6 +21,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_add => '添加组件';
 
   @override
+  String get equipment_components_containsSection => '包含';
+
+  @override
   String equipment_components_count(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -39,6 +42,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_components_empty => '暂无组件。请添加构成此装备的部件。';
+
+  @override
+  String get equipment_components_emptyLeaf => '没有自己的部件。如果此装备由其他装备组成，请添加它们。';
 
   @override
   String equipment_components_historyAlsoPast(num count) {
@@ -91,6 +97,14 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '属于 1 个组合',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_partOfSection => '属于';
+
+  @override
+  String equipment_components_partOfSubtitle(Object rigs, Object role) {
+    return '$role，位于 $rigs';
   }
 
   @override
@@ -5669,6 +5683,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => '所有装备已选择';
 
   @override
+  String get diveLog_equipmentPicker_allSpare => '剩余装备均标记为备用';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return '加载装备出错：$error';
   }
@@ -5678,6 +5695,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint => '将物品状态设为活跃即可添加到潜水';
 
   @override
   String get diveLog_equipmentPicker_title => '添加装备';
@@ -10406,6 +10426,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentStatus_sold => '已售出';
 
   @override
+  String get enum_equipmentStatus_spare => '备用';
+
+  @override
   String get enum_equipmentType_backplate => '背板';
 
   @override
@@ -11194,6 +11217,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_countingSince(String date) {
+    return '自 $date 起计算';
+  }
+
+  @override
   String get equipment_serviceClocks_overdue => '已逾期';
 
   @override
@@ -11359,7 +11387,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_scheduleDialog_anchorDate => '基准日期';
 
   @override
-  String get equipment_scheduleDialog_anchorHint => '在尚无此类维护记录时使用';
+  String get equipment_scheduleDialog_anchorHint => '时钟从此日期开始计算，直到记录更新的维护。';
 
   @override
   String get equipment_scheduleDialog_clearAnchor => '清除基准日期';

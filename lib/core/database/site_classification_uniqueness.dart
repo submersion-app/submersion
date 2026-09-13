@@ -1,5 +1,5 @@
 /// Site classification junction identity: one `site_site_types` row per
-/// (site, type) and one `site_tags` row per (site, tag) (v212, issue #1765).
+/// (site, type) and one `site_tags` row per (site, tag) (v214, issue #1765).
 ///
 /// Both junctions follow `dive_dive_types` and `dive_tags`: a surrogate uuid
 /// primary key, so a re-inserted row never collides with the tombstone of the
@@ -59,7 +59,7 @@ Future<bool> _exists(
 /// migration-test fixtures pass through.
 ///
 /// Called from `onCreate` (`createAll()` never builds raw-SQL indexes), the
-/// v212 rung, and `beforeOpen`.
+/// v214 rung, and `beforeOpen`.
 Future<void> assertSiteClassificationUniqueness(
   DatabaseConnectionUser db,
 ) async {

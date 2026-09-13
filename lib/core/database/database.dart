@@ -1484,8 +1484,9 @@ class ServiceKinds extends Table {
 }
 
 /// One service clock per (equipment item, service kind). Next-due is always
-/// computed from the newest ServiceRecord of the kind (anchorDate/purchase
-/// fallbacks) -- never stored, so dive logging does not churn sync rows.
+/// computed (baseline date, else the newest ServiceRecord of the kind, else
+/// purchase and creation dates) -- never stored, so dive logging does not
+/// churn sync rows.
 @DataClassName('ServiceScheduleRow')
 class ServiceSchedules extends Table {
   TextColumn get id => text()();
@@ -1510,9 +1511,16 @@ class ServiceSchedules extends Table {
   RealColumn get defaultCost => real().nullable()();
   TextColumn get defaultCurrency => text().nullable()();
 
-  /// Baseline when no ServiceRecord of this kind exists yet (e.g. last hydro
-  /// before app adoption). Fallback chain: purchaseDate, then createdAt.
+  /// The diver's baseline date: where the clock counts from (e.g. last hydro
+  /// before app adoption). It outranks the ServiceRecords of the kind until
+  /// one logged after [anchorSetAt] is dated on or after it. Fallback chain
+  /// with no baseline: newest record, purchaseDate, then createdAt.
   IntColumn get anchorDate => integer().nullable()();
+
+  /// v213: when the diver set [anchorDate]. Null on every baseline set
+  /// before v213 (and on legacy clocks), which keeps the pre-v213 rule for
+  /// them: any record of the kind outranks the baseline.
+  IntColumn get anchorSetAt => integer().nullable()();
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -2428,12 +2436,12 @@ class Tags extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
-  /// Whether the tag is offered on dives (v212, issue #1765). Every tag that
-  /// existed before v212 is a dive tag.
+  /// Whether the tag is offered on dives (v214, issue #1765). Every tag that
+  /// existed before v214 is a dive tag.
   BoolColumn get appliesToDives =>
       boolean().withDefault(const Constant(true))();
 
-  /// Whether the tag is offered on dive sites (v212, issue #1765). A tag
+  /// Whether the tag is offered on dive sites (v214, issue #1765). A tag
   /// always applies to at least one of the two; TagRepository enforces it.
   BoolColumn get appliesToSites =>
       boolean().withDefault(const Constant(false))();
@@ -2520,7 +2528,7 @@ class DiveDiveTypes extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Dive site type vocabulary (v212, issue #1765). The twin of [DiveTypes]:
+/// Dive site type vocabulary (v214, issue #1765). The twin of [DiveTypes]:
 /// slug ids, built-ins (diverId null) seeded identically on every device by
 /// `kSeedBuiltInSiteTypesSql` and never synced, custom types per diver.
 class SiteTypes extends Table {
@@ -2540,7 +2548,7 @@ class SiteTypes extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Junction table for a site's types (many-to-many, v212). Surrogate uuid
+/// Junction table for a site's types (many-to-many, v214). Surrogate uuid
 /// primary key, as [DiveDiveTypes]. `siteTypeId` has no foreign key for the
 /// same reason as `DiveDiveTypes.diveTypeId`: a custom type can arrive by
 /// sync after a junction row that references it.
@@ -2559,7 +2567,7 @@ class SiteSiteTypes extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Junction table for a site's tags (many-to-many, v212), the twin of
+/// Junction table for a site's tags (many-to-many, v214), the twin of
 /// [DiveTags].
 class SiteTags extends Table {
   TextColumn get id => text()();
@@ -4089,7 +4097,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Site-species junction
     SiteSpecies,
     SiteFeatures,
-    // Site classification (v212, issue #1765)
+    // Site classification (v214, issue #1765)
     SiteTypes,
     SiteSiteTypes,
     SiteTags,
@@ -4153,7 +4161,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 212;
+  static const int currentSchemaVersion = 214;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4728,11 +4736,17 @@ class AppDatabase extends _$AppDatabase {
     // #478) and v210 (#1769) landed while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     211,
-    // v212: dive site types and tags (issue #1765). Three new tables
+    // v213: service_schedules.anchor_set_at, so a baseline date the diver
+    // sets outranks the service records logged before it. Column-only, no
+    // backfill. 212 is claimed by #1639 (planner gas options), still open.
+    213,
+    // v214: dive site types and tags (issue #1765). Three new tables
     // (site_types, site_site_types, site_tags), the built-in site type seed,
     // both junction unique indexes, and tags.applies_to_dives /
     // applies_to_sites. Additive only, so the compatibility floor stays.
-    212,
+    // Renumbered from 212: main shipped 213 while this branch was open, and
+    // 212 is claimed by #1639.
+    214,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7172,6 +7186,25 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// Idempotent DDL for v213's `service_schedules.anchor_set_at`: when the
+  /// diver set the clock's baseline date. Null (every existing row) keeps
+  /// the pre-v213 rule, under which any record of the kind outranks the
+  /// baseline; see `clockAnchorFromServices`. Called from the v213
+  /// onUpgrade block and the beforeOpen backstop. Self-guarding for partial
+  /// fixture databases.
+  Future<void> _assertServiceScheduleAnchorSetAtColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('service_schedules')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('anchor_set_at')) {
+      await customStatement(
+        'ALTER TABLE service_schedules ADD COLUMN anchor_set_at INTEGER',
+      );
+    }
+  }
+
   /// v163: default_show_estimated_tank_pressure on diver_settings (issue
   /// #731). Synthesized "(est.)" pressure lines previously had no off switch.
   /// Defaults to 1 so existing databases keep drawing them.
@@ -8017,7 +8050,7 @@ class AppDatabase extends _$AppDatabase {
   /// matching the _assertDiveTypeShortNameColumn pattern so a schema-version
   /// collision cannot strand a database without them. Self-guarding when the
   /// table is absent (minimal migration-test fixtures).
-  /// Idempotent DDL for the tag scope flags (v212, issue #1765). Existing
+  /// Idempotent DDL for the tag scope flags (v214, issue #1765). Existing
   /// tags are dive tags; none applies to sites until the diver says so.
   Future<void> _assertTagScopeColumns() async {
     final cols = await customSelect("PRAGMA table_info('tags')").get();
@@ -8037,9 +8070,9 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// Idempotent creation of the v212 site classification schema: the three
+  /// Idempotent creation of the v214 site classification schema: the three
   /// tables, the built-in seed, and the junction unique indexes. Called from
-  /// the v212 rung and the beforeOpen backstop.
+  /// the v214 rung and the beforeOpen backstop.
   ///
   /// Skipped on a partial migration-test fixture that lacks the parent
   /// tables: with foreign keys on (as they are in beforeOpen), SQLite refuses
@@ -8389,7 +8422,7 @@ class AppDatabase extends _$AppDatabase {
         // raw-SQL indexes.
         await assertDiveTypeUniqueness(this);
 
-        // Built-in site types and the site junction unique indexes (v212,
+        // Built-in site types and the site junction unique indexes (v214,
         // issue #1765). createAll() builds the tables but never raw-SQL
         // indexes or seeds.
         await customStatement(kSeedBuiltInSiteTypesSql);
@@ -11992,16 +12025,22 @@ class AppDatabase extends _$AppDatabase {
           await _assertAutoTagImportsColumn();
         }
         if (from < 211) await reportProgress();
-        // v212: dive site types and tags (issue #1765). Table-and-column
+        // v213: service_schedules.anchor_set_at. Column-only, no backfill:
+        // a null keeps the pre-v213 rule for every existing baseline.
+        if (from < 213) {
+          await _assertServiceScheduleAnchorSetAtColumn();
+        }
+        if (from < 213) await reportProgress();
+        // v214: dive site types and tags (issue #1765). Table-and-column
         // rung, no backfill beyond the built-in seed.
-        if (from < 212) {
+        if (from < 214) {
           await _assertTagScopeColumns();
           await _assertSiteClassificationSchema();
         }
-        if (from < 212) await reportProgress();
+        if (from < 214) await reportProgress();
       },
       beforeOpen: (details) async {
-        // v212 backstop: the tag scope flags.
+        // v214 backstop: the tag scope flags.
         await _assertTagScopeColumns();
 
         // v211 backstop: re-assert diver_settings.auto_tag_imports.
@@ -12112,7 +12151,7 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal; createTable is idempotent).
         await createMigrator().createTable(siteFeatures);
 
-        // v212 backstop: site classification tables, seed and indexes
+        // v214 backstop: site classification tables, seed and indexes
         // (parallel-branch version-collision self-heal; all idempotent).
         await _assertSiteClassificationSchema();
 
@@ -12257,6 +12296,11 @@ class AppDatabase extends _$AppDatabase {
         // to it (issue #478; same parallel-branch version-collision
         // self-heal).
         await _assertImportedFilesSchema();
+
+        // v213 backstop: re-assert service_schedules.anchor_set_at (same
+        // parallel-branch version-collision self-heal). Every read of a
+        // schedule selects it.
+        await _assertServiceScheduleAnchorSetAtColumn();
 
         // v160 backstop: re-assert service_kinds.default_category. A device
         // that reached 160 or higher through a parallel branch never enters

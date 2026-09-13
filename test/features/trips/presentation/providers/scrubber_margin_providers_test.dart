@@ -429,9 +429,9 @@ void main() {
   });
 
   test('the repack clock\'s anchor stands in for a missing record', () async {
-    // The clocks engine anchors a clock on its newest record, else the
-    // schedule's anchor date. With no repack logged, the margin must count
-    // from that anchor too, not charge every loop dive the unit ever made.
+    // The clocks engine anchors a clock on the schedule's anchor date, else
+    // its newest record. With no repack logged, the margin must count from
+    // that anchor too, not charge every loop dive the unit ever made.
     final ccr = await EquipmentRepository().createEquipment(
       const EquipmentItem(
         id: '',
@@ -476,6 +476,60 @@ void main() {
     expect(early.consumedMinutes, 60);
     expect(early.consumedSince, isNull);
   });
+
+  test(
+    'the repack clock\'s baseline outranks a repack logged before it',
+    () async {
+      // The clocks engine counts from a baseline date the diver set even when
+      // a repack was already logged (only one logged after the baseline and
+      // dated on or after it takes over). The margin must count from the same
+      // place, or the card and the clock disagree about the scrubber left.
+      final ccr = await rebreather();
+      await ServiceRecordRepository().createRecord(
+        ServiceRecord(
+          id: '',
+          equipmentId: ccr.id,
+          serviceCategory: ServiceCategory.values.first,
+          serviceKindId: 'scrubber-repack',
+          serviceDate: DateTime(2026, 4, 1),
+          currency: 'USD',
+          notes: '',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await db.delete(db.serviceSchedules).go();
+      await ServiceScheduleRepository().createSchedule(
+        ServiceSchedule(
+          id: '',
+          equipmentId: ccr.id,
+          serviceKindId: 'scrubber-repack',
+          anchorDate: DateTime(2026, 3, 1),
+          // Set after the repack above was written (its created_at is the
+          // real clock at insert), and so also after the June trip started:
+          // "as of the start" is by event date, so a baseline dated before
+          // the trip counts however late it was set (maintainer's decision,
+          // 2026-09-12).
+          anchorSetAt: DateTime.now().add(const Duration(minutes: 1)),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await ccrDive('mar', DateTime(2026, 3, 10), ccr.id, runtime: 3000);
+      await ccrDive('apr', DateTime(2026, 4, 10), ccr.id, runtime: 1200);
+
+      final june = await trip(
+        'June',
+        DateTime(2026, 6, 1),
+        DateTime(2026, 6, 5),
+      );
+      final m = (await container.read(
+        tripScrubberMarginsProvider(june.id).future,
+      )).single;
+      expect(m.consumedSince, DateTime(2026, 3, 1));
+      expect(m.consumedMinutes, 70);
+    },
+  );
 
   test('with no repack or anchor the purchase date is the baseline', () async {
     // The clocks engine anchors an unrecorded clock on the purchase date

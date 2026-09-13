@@ -2820,7 +2820,7 @@ class SyncService {
         // remote HLC wins; an exact tie or a local-newer HLC keeps local.
         if (localHlc != null && remoteHlc != null) {
           if (remoteHlc.compareTo(localHlc) > 0) {
-            toUpsert.add(_overlayOntoLocal(recordToApply, local));
+            toUpsert.add(_overlayOntoLocal(entityType, recordToApply, local));
             applied += 1;
           }
           continue;
@@ -2847,7 +2847,7 @@ class SyncService {
         if (remoteUpdatedAt == null ||
             localUpdatedAt == null ||
             remoteUpdatedAt >= localUpdatedAt) {
-          toUpsert.add(_overlayOntoLocal(recordToApply, local));
+          toUpsert.add(_overlayOntoLocal(entityType, recordToApply, local));
           applied += 1;
         }
       } catch (e, stackTrace) {
@@ -2904,10 +2904,29 @@ class SyncService {
   /// every omitted column, silently clearing values a cross-version peer -- one
   /// predating a newly-added nullable column -- never intended to touch. Same-
   /// version peers export full rows, so the overlay is a no-op for them.
+  ///
+  /// One exception: a service clock's `anchorSetAt` (v213) says when the
+  /// diver set its baseline, and a null keeps the pre-v213 rule for it. A
+  /// pre-v213 peer that CHANGES the baseline sends no set time, and
+  /// refilling ours would stamp the peer's baseline with a time that belongs
+  /// to a different date. So a schedule payload that omits the set time but
+  /// moves the baseline lands with none; one that leaves the baseline alone
+  /// keeps ours.
   static Map<String, dynamic> _overlayOntoLocal(
+    String entityType,
     Map<String, dynamic> remote,
     Map<String, dynamic>? local,
-  ) => local == null ? remote : {...local, ...remote};
+  ) {
+    if (local == null) return remote;
+    final merged = {...local, ...remote};
+    if (entityType == 'serviceSchedules' &&
+        !remote.containsKey('anchorSetAt') &&
+        remote.containsKey('anchorDate') &&
+        remote['anchorDate'] != local['anchorDate']) {
+      merged['anchorSetAt'] = null;
+    }
+    return merged;
+  }
 
   /// BLE identifiers are host-specific and must never cross the sync boundary.
   static Map<String, dynamic> _withoutDeviceLocalFields(
@@ -3102,6 +3121,7 @@ class SyncService {
           // an omitted key is already preserved -- apply their map directly.
           final toApply = entityHasUpdatedAt[entityType] == true
               ? _overlayOntoLocal(
+                  entityType,
                   remoteData,
                   await _serializer.fetchRecord(entityType, recordId),
                 )
