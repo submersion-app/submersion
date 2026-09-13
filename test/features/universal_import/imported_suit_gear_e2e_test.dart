@@ -3,8 +3,8 @@
 // The Suit Thickness statistic reads three things: equipment.type as the text
 // 'wetsuit' or 'drysuit', a dive_equipment link, and for a thickness bucket a
 // curated (is_custom = 0) thickness_mm row with a numeric value. These tests
-// assert that persisted shape rather than calling the statistic, whose return
-// type is changing in a parallel PR (#1840).
+// assert that persisted shape and then the statistic itself, so an imported
+// suit is proven to reach the chart.
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -28,6 +28,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
@@ -54,9 +55,11 @@ ImportRepositories _repositories() => ImportRepositories(
   courseRepository: CourseRepository(),
 );
 
+const _diverId = 'diver-suit-e2e';
+
 Future<String> _createDiver() async {
   final now = DateTime.now();
-  const diverId = 'diver-suit-e2e';
+  const diverId = _diverId;
   await DiverRepository().createDiver(
     domain.Diver(
       id: diverId,
@@ -113,6 +116,21 @@ void _expectNoThickness(EquipmentItem item) {
   );
 }
 
+/// The Suit Thickness chart's numbers for the imported diver. Compared field
+/// by field: a record holding a List compares by identity.
+Future<void> _expectSuitStats({
+  required List<({double mm, int count})> byThickness,
+  required int unknownThickness,
+  required int drysuit,
+}) async {
+  final stats = await StatisticsRepository().getDivesBySuitThickness(
+    diverId: _diverId,
+  );
+  expect(stats.byThickness, byThickness);
+  expect(stats.unknownThicknessCount, unknownThickness);
+  expect(stats.drysuitCount, drysuit);
+}
+
 void main() {
   setUp(() async => setUpTestDatabase());
   tearDown(() async => tearDownTestDatabase());
@@ -133,6 +151,10 @@ void main() {
   <suit>Full suit</suit>
   <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
 </dive>
+<dive number='4' date='2025-01-18' time='10:00:00' duration='30:00 min'>
+  <suit>Wetsuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
 </dives>
 </divelog>
 ''';
@@ -145,7 +167,7 @@ void main() {
       payload.entitiesOf(ImportEntityType.dives),
     );
 
-    expect(gearByDive, hasLength(3));
+    expect(gearByDive, hasLength(4));
     final wetsuit = gearByDive[0].single;
     expect(wetsuit.name, '3mm Bare wetsuit');
     expect(wetsuit.type, EquipmentType.wetsuit);
@@ -157,6 +179,18 @@ void main() {
 
     // "Full suit" does not say which suit it is: no gear, as before.
     expect(gearByDive[2], isEmpty);
+
+    final unrated = gearByDive[3].single;
+    expect(unrated.type, EquipmentType.wetsuit);
+    _expectNoThickness(unrated);
+
+    // One dive in each of the chart's three kinds of bucket; the "Full suit"
+    // dive reaches none.
+    await _expectSuitStats(
+      byThickness: [(mm: 3.0, count: 1)],
+      unknownThickness: 1,
+      drysuit: 1,
+    );
   });
 
   test('a CSV suit column becomes typed gear on each dive', () async {
@@ -188,5 +222,12 @@ void main() {
     _expectThickness(wetsuit, '5/4', 5.0);
     expect(gearByDive[2].single.id, wetsuit.id);
     expect(gearByDive[1].single.type, EquipmentType.drysuit);
+
+    // Two dives share the 5/4 suit, whose primary panel is 5 mm.
+    await _expectSuitStats(
+      byThickness: [(mm: 5.0, count: 2)],
+      unknownThickness: 0,
+      drysuit: 1,
+    );
   });
 }
