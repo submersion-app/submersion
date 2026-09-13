@@ -141,6 +141,7 @@ class SubmersionCsvTable {
   }) {
     ImportWarning warn(String base, String value) => ImportWarning(
       severity: ImportWarningSeverity.warning,
+      code: ImportWarningCode.diagnostic,
       message:
           'Row ${rowIndex + 2}: "$value" under "${_header(base)}" could not '
           'be read and was left out',
