@@ -10,6 +10,8 @@ import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_co
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 
@@ -320,5 +322,68 @@ void main() {
       accent.withValues(alpha: 0.15),
     );
     expect(tester.widget<Icon>(find.byIcon(Icons.location_on)).color, accent);
+  });
+
+  group('site types and tags (issue #1765)', () {
+    final now = DateTime(2026);
+    Tag tag(String name) => Tag(
+      id: name,
+      name: name,
+      createdAt: now,
+      updatedAt: now,
+      appliesToSites: true,
+    );
+
+    final classified = SiteWithDiveCount(
+      site: const DiveSite(id: 'site-3', name: 'Lake wreck'),
+      diveCount: 0,
+      featureTypes: const ['wreck', 'mooring'],
+      siteTypes: [
+        SiteTypeEntity(
+          id: 'wreck',
+          name: 'Wreck',
+          isBuiltIn: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        SiteTypeEntity(
+          id: 'lake',
+          name: 'Lake',
+          isBuiltIn: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
+      tags: [
+        tag('Avoid'),
+        tag('Deep'),
+        tag('Night'),
+        tag('To try'),
+        tag('Zeta'),
+      ],
+    );
+
+    testWidgets('types, deduped feature pins, and capped tag chips', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: SiteListTile(entry: classified, onTap: () {}),
+        ),
+      );
+      await tester.pump();
+
+      // A wreck pin on a site typed wreck shows one chip, not two.
+      expect(find.text('Wreck'), findsOneWidget);
+      expect(find.text('Lake'), findsOneWidget);
+      expect(find.text('Mooring'), findsOneWidget);
+      expect(find.text('Avoid'), findsOneWidget);
+      expect(find.text('Deep'), findsOneWidget);
+      expect(find.text('Night'), findsOneWidget);
+      expect(find.text('To try'), findsNothing);
+      expect(find.text('+2'), findsOneWidget);
+    });
   });
 }

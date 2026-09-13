@@ -18,6 +18,10 @@ import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_l
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -198,6 +202,90 @@ void main() {
   // ---------------------------------------------------------------------------
   // Overflow-menu entry into selection mode (discoverable merge)
   // ---------------------------------------------------------------------------
+
+  group('site type and tag filter chips (issue #1765)', () {
+    final types = {
+      // A built-in shows its translation, not the stored English name.
+      'wreck': SiteTypeEntity(
+        id: 'wreck',
+        name: 'stored-wreck',
+        isBuiltIn: true,
+        createdAt: _now,
+        updatedAt: _now,
+      ),
+      'mine': SiteTypeEntity(
+        id: 'mine',
+        name: 'Mine',
+        createdAt: _now,
+        updatedAt: _now,
+      ),
+    };
+    final tags = [
+      Tag(id: 't1', name: 'To try', createdAt: _now, updatedAt: _now),
+    ];
+
+    Future<void> pumpList(WidgetTester tester, SiteFilterState filter) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site')],
+        viewMode: ListViewMode.detailed,
+        filter: filter,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            siteTypesByIdProvider.overrideWith((ref) async => types),
+            tagsProvider.overrideWith((ref) async => tags),
+          ],
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    InputChip chip(WidgetTester tester, String label) => tester.widget(
+      find.ancestor(of: find.text(label), matching: find.byType(InputChip)),
+    );
+
+    testWidgets('label each chip with the type or tag name', (tester) async {
+      await pumpList(
+        tester,
+        const SiteFilterState(
+          siteTypeIds: {'wreck', 'mine', 'gone'},
+          tagIds: {'t1', 'lost'},
+        ),
+      );
+
+      expect(find.text('Wreck'), findsOneWidget);
+      expect(find.text('stored-wreck'), findsNothing);
+      expect(find.text('Mine'), findsOneWidget);
+      expect(find.text('To try'), findsOneWidget);
+      // A type or tag deleted since the filter was set falls back to its id.
+      expect(find.text('gone'), findsOneWidget);
+      expect(find.text('lost'), findsOneWidget);
+    });
+
+    testWidgets('deleting a chip removes only that type or tag', (
+      tester,
+    ) async {
+      await pumpList(
+        tester,
+        const SiteFilterState(siteTypeIds: {'wreck', 'mine'}, tagIds: {'t1'}),
+      );
+
+      chip(tester, 'Wreck').onDeleted!();
+      await tester.pumpAndSettle();
+      expect(find.text('Wreck'), findsNothing);
+      expect(find.text('Mine'), findsOneWidget);
+      expect(find.text('To try'), findsOneWidget);
+
+      chip(tester, 'To try').onDeleted!();
+      await tester.pumpAndSettle();
+      expect(find.text('To try'), findsNothing);
+      expect(find.text('Mine'), findsOneWidget);
+    });
+  });
 
   group('overflow menu "Select sites"', () {
     testWidgets('enters selection mode from the compact app bar', (

@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_dive_statist
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
 
@@ -42,6 +43,7 @@ void main() {
     AppSettings settings = const AppSettings(),
     bool embedded = true,
     Size surface = const Size(600, 1400),
+    List<Tag> tags = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = surface;
@@ -75,6 +77,7 @@ void main() {
           siteProvider(site.id).overrideWith((_) async => site),
           siteDiveCountProvider(site.id).overrideWith((_) async => 4),
           siteDiveStatisticsProvider(site.id).overrideWith((_) async => stats),
+          tagsForSiteProvider(site.id).overrideWith((_) async => tags),
         ].cast<Override>(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -174,5 +177,40 @@ void main() {
       isTrue,
     );
     expect(find.text('Deepest Dive'), findsOneWidget);
+  });
+
+  group('the Tags card', () {
+    final tag = Tag(
+      id: 't1',
+      name: 'To try',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      appliesToSites: true,
+    );
+
+    testWidgets('shows after Site Media when the site has tags', (
+      tester,
+    ) async {
+      await pumpPage(tester, tags: [tag]);
+
+      expect(find.text('To try'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Tags')).dy,
+        greaterThan(tester.getTopLeft(find.text('Site Media')).dy),
+      );
+    });
+
+    testWidgets('stays hidden when switched off, tags or not', (tester) async {
+      await pumpPage(
+        tester,
+        tags: [tag],
+        settings: AppSettings(
+          siteDetailSections: hide(SiteDetailSectionId.tags),
+        ),
+      );
+
+      expect(find.text('To try'), findsNothing);
+      expect(find.text('Tags'), findsNothing);
+    });
   });
 }

@@ -25,6 +25,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
@@ -296,6 +298,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         ),
         onOpenDocument: (item) => DocumentOpenHelper.open(context, ref, item),
       ),
+      // Tags (issue #1765), after media as on a dive. Shown only when the
+      // site has some, decided here so an empty card leaves no gap and, in
+      // the list layout, no empty header.
+      SiteDetailSectionId.tags: () =>
+          (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
+          ? null
+          : SiteTagsCard(siteId: site.id),
       SiteDetailSectionId.difficulty: () => site.difficulty != null
           ? _buildDifficultySection(context, site)
           : null,
@@ -645,6 +654,27 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     );
   }
 
+  /// The site's types as one Location row, in the order they were picked,
+  /// or "Not set" like the rows around it.
+  Widget _buildSiteTypesRow(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final l10n = context.l10n;
+    final types =
+        ref.watch(siteTypesForSiteProvider(site.id)).value ?? const [];
+    return _buildDetailRow(
+      context,
+      Icons.category_outlined,
+      l10n.siteTypes_title,
+      types.isEmpty
+          ? l10n.diveSites_detail_location_notSet
+          : types.map((t) => t.localizedName(l10n)).join(', '),
+      isEmpty: types.isEmpty,
+    );
+  }
+
   Widget _buildLocationSection(
     BuildContext context,
     WidgetRef ref,
@@ -719,6 +749,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   : context.l10n.diveSites_detail_location_notSet,
               isEmpty: site.bodyOfWater?.isNotEmpty != true,
             ),
+            // What kind of place this is (issue #1765), beside the body of
+            // water it overlaps with: "Lake, Wreck".
+            _buildSiteTypesRow(context, ref, site),
             _buildDetailRow(
               context,
               Icons.gps_fixed,

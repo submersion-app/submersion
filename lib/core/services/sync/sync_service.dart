@@ -1393,6 +1393,7 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'diveTypes', records: data.diveTypes, hasUpdatedAt: true),
+          (type: 'siteTypes', records: data.siteTypes, hasUpdatedAt: true),
           (type: 'diveRoles', records: data.diveRoles, hasUpdatedAt: true),
           (type: 'tankPresets', records: data.tankPresets, hasUpdatedAt: true),
           (
@@ -1511,6 +1512,12 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'siteSpecies', records: data.siteSpecies, hasUpdatedAt: false),
+          (
+            type: 'siteSiteTypes',
+            records: data.siteSiteTypes,
+            hasUpdatedAt: false,
+          ),
+          (type: 'siteTags', records: data.siteTags, hasUpdatedAt: false),
           (
             type: 'mediaSpecies',
             records: data.mediaSpecies,
@@ -2310,6 +2317,7 @@ class SyncService {
     'divePlanEquipment': false,
     'diverWeightEntries': true,
     'diveTypes': true,
+    'siteTypes': true,
     'diveRoles': true,
     'tankPresets': true,
     'weightPresets': true,
@@ -2344,6 +2352,8 @@ class SyncService {
     'importedFiles': false,
     'diveDataSources': false,
     'siteSpecies': false,
+    'siteSiteTypes': false,
+    'siteTags': false,
     'mediaSpecies': false,
     'siteFeatures': true,
     'csvPresets': true,
@@ -2524,6 +2534,13 @@ class SyncService {
     'siteSpecies': [
       (field: 'siteId', parent: 'diveSites', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
+    ],
+    // siteTypeId has no FK (a custom type may arrive after its links), so
+    // only the site is a parent, as with diveDiveTypes.
+    'siteSiteTypes': [(field: 'siteId', parent: 'diveSites', nullable: false)],
+    'siteTags': [
+      (field: 'siteId', parent: 'diveSites', nullable: false),
+      (field: 'tagId', parent: 'tags', nullable: false),
     ],
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),

@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v215 is at or below the current schema version and in the ladder', () {
+  test('v215 is in the ladder', () {
     // Renumbered repeatedly (202, 212) as main shipped 211 and 213 while this
     // branch was open, including the 212 main had reserved for it: a rung at
     // or below the shipped version never runs its onUpgrade step.
-    // Stop-minimums took 214. Relaxed once v218 (site detail sections)
+    // Stop-minimums took 214. Relaxed once v217 (site types and tags)
     // landed on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(215));
     expect(AppDatabase.migrationVersions, contains(215));
