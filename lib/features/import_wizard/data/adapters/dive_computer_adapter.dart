@@ -567,7 +567,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         final diveGroup = bundle.groups[ImportEntityType.dives];
         final matchResult = diveGroup?.matchResults?[index];
         if (matchResult != null) {
-          final result = await _consolidateDive(dive, matchResult.diveId, comp);
+          final result = await _consolidateDive(
+            dive,
+            matchResult.diveId,
+            comp,
+            // A dive the fold refuses is kept standalone, so it must carry
+            // the same number an import-as-new would have given it.
+            retainSourceDiveNumber: retainSourceDiveNumbers,
+          );
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
@@ -750,8 +757,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   Future<_ConsolidateResult> _consolidateDive(
     DownloadedDive dive,
     String targetDiveId,
-    DiveComputer comp,
-  ) async {
+    DiveComputer comp, {
+    required bool retainSourceDiveNumber,
+  }) async {
     final targetComputerId = await _diveRepository.getComputerIdForDive(
       targetDiveId,
     );
@@ -769,6 +777,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         descriptorProduct: _descriptorProduct,
         descriptorModel: _descriptorModel,
         libdivecomputerVersion: _libdivecomputerVersion,
+        retainSourceDiveNumber: retainSourceDiveNumber,
       );
       await _consolidationService.apply(
         targetDiveId: targetDiveId,

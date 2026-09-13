@@ -687,6 +687,46 @@ void main() {
       verify(mockDiveRepo.bulkDeleteDives(['new-dive-id'])).called(1);
     });
 
+    test('a dive kept standalone keeps its source number when retaining '
+        '(issue #1832)', () async {
+      final bundle = await bundleWithMatch();
+      when(
+        mockDiveRepo.getComputerIdForDive('existing-dive'),
+      ).thenAnswer((_) async => 'other-computer');
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          retainSourceDiveNumber: true,
+        ),
+      ).thenAnswer((_) async => 'new-dive-id');
+      when(
+        mockConsolidationService.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenThrow(const UnreadableSeriesException(['series-1']));
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.consolidate},
+        },
+        retainSourceDiveNumbers: true,
+      );
+
+      expect(result.importedDiveIds, ['new-dive-id']);
+      verify(
+        mockDiveRepo.countDivesSharingDiveNumber(['new-dive-id']),
+      ).called(1);
+    });
+
     test('keeps the imported dive standalone when the PRE-EXISTING target '
         'holds a series this build cannot decode', () async {
       final bundle = await bundleWithMatch();

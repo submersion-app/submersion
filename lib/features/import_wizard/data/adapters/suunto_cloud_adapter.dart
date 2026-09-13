@@ -345,6 +345,9 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
             parsed,
             matchResult.diveId,
             comp,
+            // A dive the fold refuses is kept standalone, so it must carry
+            // the same number an import-as-new would have given it.
+            retainSourceDiveNumber: retainSourceDiveNumbers,
           );
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
@@ -518,8 +521,9 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   Future<_ConsolidateResult> _consolidateDive(
     SuuntoParsedDive parsed,
     String targetDiveId,
-    DiveComputer comp,
-  ) async {
+    DiveComputer comp, {
+    required bool retainSourceDiveNumber,
+  }) async {
     final targetComputerId = await _diveRepository.getComputerIdForDive(
       targetDiveId,
     );
@@ -535,6 +539,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
         diverId: _diverId,
         descriptorVendor: 'Suunto',
         descriptorProduct: parsed.deviceName,
+        retainSourceDiveNumber: retainSourceDiveNumber,
       );
       await _consolidationService.apply(
         targetDiveId: targetDiveId,
