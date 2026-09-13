@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_dive_statist
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/statistics/data/series_profile_aggregates.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
+import 'package:submersion/features/statistics/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
 
 export 'package:submersion/features/statistics/domain/trend_aggregation.dart'
@@ -1023,10 +1024,16 @@ class StatisticsRepository {
     }
   }
 
-  /// Dives grouped by the primary thickness of linked exposure suits
-  /// (wetsuit/drysuit). COUNT(DISTINCT) so a dive with two suits of the same
-  /// thickness counts once per bucket.
-  Future<List<({double mm, int count})>> getDivesBySuitThickness({
+  /// Dives grouped by the exposure suits linked to them (issue #1824): a
+  /// bucket per wetsuit primary thickness, one for wetsuits with no numeric
+  /// thickness, and one for drysuits, which the attribute catalog gives no
+  /// thickness at all. The thickness join is a LEFT JOIN so a suit without
+  /// the attribute still reaches a bucket. COUNT(DISTINCT) so a dive with two
+  /// suits in the same bucket counts once there.
+  ///
+  /// Errors are rethrown after logging: an empty result would render as
+  /// "no suits linked" and hide the failure behind the card's empty state.
+  Future<SuitThicknessStats> getDivesBySuitThickness({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
@@ -1036,30 +1043,54 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT ea.value_num AS mm, COUNT(DISTINCT d.id) AS count
+        SELECT
+          CASE
+            WHEN e.type = 'drysuit' THEN 'drysuit'
+            WHEN ea.value_num IS NULL THEN 'unknown'
+            ELSE 'mm'
+          END AS bucket,
+          ea.value_num AS mm,
+          COUNT(DISTINCT d.id) AS count
         FROM dives d
         JOIN dive_equipment de ON de.dive_id = d.id
         JOIN equipment e ON e.id = de.equipment_id
           AND e.type IN ('wetsuit', 'drysuit')
-        JOIN equipment_attributes ea ON ea.equipment_id = e.id
+        LEFT JOIN equipment_attributes ea ON ea.equipment_id = e.id
+          AND e.type = 'wetsuit'
           AND ea.attr_key = 'thickness_mm'
           AND ea.is_custom = 0
           AND ea.value_num IS NOT NULL
         WHERE 1=1 $diverFilter ${df.clause}
-        GROUP BY ea.value_num
+        GROUP BY bucket, ea.value_num
         ORDER BY ea.value_num
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      return results.map((row) {
-        return (mm: row.read<double>('mm'), count: row.read<int>('count'));
-      }).toList();
+      final byThickness = <({double mm, int count})>[];
+      var unknownThicknessCount = 0;
+      var drysuitCount = 0;
+      for (final row in results) {
+        final count = row.read<int>('count');
+        switch (row.read<String>('bucket')) {
+          case 'drysuit':
+            drysuitCount = count;
+          case 'unknown':
+            unknownThicknessCount = count;
+          default:
+            byThickness.add((mm: row.read<double>('mm'), count: count));
+        }
+      }
+      return (
+        byThickness: List<({double mm, int count})>.unmodifiable(byThickness),
+        unknownThicknessCount: unknownThicknessCount,
+        drysuitCount: drysuitCount,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dives by suit thickness',
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1590,7 +1621,12 @@ class StatisticsRepository {
     }
   }
 
-  /// Get solo vs buddy dive percentage
+  /// Get solo vs buddy dive percentage.
+  ///
+  /// Each dive counts exactly once: a dive is a buddy dive when it has at
+  /// least one linked buddy or a non-empty free-text buddy. The linked
+  /// buddies are tested with EXISTS rather than a join, because a join yields
+  /// one row per linked buddy and would count a group dive several times.
   Future<({int solo, int buddy})> getSoloVsBuddyCount({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1602,11 +1638,15 @@ class StatisticsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          SUM(CASE WHEN db.buddy_id IS NULL AND (d.buddy IS NULL OR d.buddy = '') THEN 1 ELSE 0 END) AS solo,
-          SUM(CASE WHEN db.buddy_id IS NOT NULL OR (d.buddy IS NOT NULL AND d.buddy != '') THEN 1 ELSE 0 END) AS buddy
-        FROM dives d
-        LEFT JOIN dive_buddies db ON db.dive_id = d.id
-        WHERE 1=1 $diverFilter ${df.clause}
+          SUM(CASE WHEN has_buddy THEN 0 ELSE 1 END) AS solo,
+          SUM(CASE WHEN has_buddy THEN 1 ELSE 0 END) AS buddy
+        FROM (
+          SELECT
+            EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
+              OR (d.buddy IS NOT NULL AND d.buddy != '') AS has_buddy
+          FROM dives d
+          WHERE 1=1 $diverFilter ${df.clause}
+        )
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (solo: 0, buddy: 0);
