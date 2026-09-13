@@ -16115,6 +16115,10 @@
   "@universalImport_label_retainDiveNumbersSubtitle": {
     "description": "Switch subtitle for retaining dive numbers"
   },
+  "universalImport_label_retainDiveNumbersUnavailable": "This source does not provide dive numbers, so dives are numbered automatically",
+  "@universalImport_label_retainDiveNumbersUnavailable": {
+    "description": "Switch subtitle when the import source provides no dive numbers, so the switch is disabled"
+  },
   "universalImport_label_autoTagThisImport": "Tag this import automatically",
   "@universalImport_label_autoTagThisImport": {
     "description": "Switch title for the session-only auto-tag override in the import options sheet"
@@ -23853,6 +23857,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Unassigned transmitters",
   "universalImport_summary_noticeUnknownTransmitterBody": "One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.",
   "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",
+  "universalImport_summary_noticeDiveNumberConflictTitle": "Dive numbers already in use",
+  "universalImport_summary_noticeDiveNumberConflictBody": "These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.",
   "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",
   "dataQuality_msg_unknownTransmitter": "Transmitter {serial} is not assigned to a cylinder",
   "@dataQuality_msg_unknownTransmitter": {

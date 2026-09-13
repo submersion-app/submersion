@@ -16,6 +16,7 @@ import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_ada
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 @GenerateNiceMocks([
@@ -33,9 +34,11 @@ GarminParsedDive makeParsedDive({
   String? deviceModel = 'Descent Mk2',
   String? serialNumber = 'SN-1',
   String? firmwareVersion,
+  int? diveNumber,
 }) {
   return GarminParsedDive(
     dive: DownloadedDive(
+      diveNumber: diveNumber,
       startTime: startTime ?? DateTime.utc(2026, 3, 15, 10, 32),
       durationSeconds: durationSeconds,
       maxDepth: maxDepth,
@@ -299,6 +302,91 @@ void main() {
       final updated = await adapter.checkDuplicates(bundle);
 
       expect(updated.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
+    });
+  });
+
+  group('retaining source dive numbers (issue #1832)', () {
+    void stubRetainingImport([String diveId = 'new-dive-id']) {
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          retainSourceDiveNumber: true,
+        ),
+      ).thenAnswer((_) async => diveId);
+    }
+
+    test('the review item carries the dive number from the FIT file', () async {
+      adapter.setParsedDives([makeParsedDive(diveNumber: 57)]);
+
+      final bundle = await adapter.buildBundle();
+
+      final item = bundle.groups[ImportEntityType.dives]!.items.single;
+      expect(item.diveData?.diveNumber, 57);
+    });
+
+    test('asks the import service to keep the watch number', () async {
+      adapter.setParsedDives([makeParsedDive(diveNumber: 57)]);
+      final bundle = await adapter.buildBundle();
+      stubRetainingImport();
+
+      await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {},
+        retainSourceDiveNumbers: true,
+      );
+
+      verify(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: diverId,
+          descriptorVendor: 'Garmin',
+          descriptorProduct: 'Descent Mk2',
+          retainSourceDiveNumber: true,
+        ),
+      ).called(1);
+    });
+
+    test('reports imported dives whose number is already in use', () async {
+      adapter.setParsedDives([makeParsedDive(diveNumber: 57)]);
+      final bundle = await adapter.buildBundle();
+      stubRetainingImport();
+      when(
+        mockDiveRepo.countDivesSharingDiveNumber(['new-dive-id']),
+      ).thenAnswer((_) async => 1);
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {},
+        retainSourceDiveNumbers: true,
+      );
+
+      final notice = result.notices.single;
+      expect(notice.kind, ImportNoticeKind.diveNumberConflict);
+      expect(notice.affectedDives, 1);
+    });
+
+    test('does not look for number conflicts when auto-numbering', () async {
+      adapter.setParsedDives([makeParsedDive(diveNumber: 57)]);
+      final bundle = await adapter.buildBundle();
+      stubImportAsNew();
+
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: {0},
+      }, {});
+
+      verifyNever(mockDiveRepo.countDivesSharingDiveNumber(any));
+      expect(result.notices, isEmpty);
     });
   });
 
@@ -597,6 +685,46 @@ void main() {
       expect(result.consolidatedCount, 0);
       expect(result.skippedCount, 1);
       verify(mockDiveRepo.bulkDeleteDives(['new-dive-id'])).called(1);
+    });
+
+    test('a dive kept standalone keeps its source number when retaining '
+        '(issue #1832)', () async {
+      final bundle = await bundleWithMatch();
+      when(
+        mockDiveRepo.getComputerIdForDive('existing-dive'),
+      ).thenAnswer((_) async => 'other-computer');
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          retainSourceDiveNumber: true,
+        ),
+      ).thenAnswer((_) async => 'new-dive-id');
+      when(
+        mockConsolidationService.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenThrow(const UnreadableSeriesException(['series-1']));
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.consolidate},
+        },
+        retainSourceDiveNumbers: true,
+      );
+
+      expect(result.importedDiveIds, ['new-dive-id']);
+      verify(
+        mockDiveRepo.countDivesSharingDiveNumber(['new-dive-id']),
+      ).called(1);
     });
 
     test('keeps the imported dive standalone when the PRE-EXISTING target '

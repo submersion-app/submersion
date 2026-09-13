@@ -25104,6 +25104,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchgangsnummern aus der importierten Datei verwenden, statt automatisch zuzuweisen';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Diese Quelle liefert keine Tauchgangsnummern, daher werden die Tauchgänge automatisch nummeriert';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Diesen Import automatisch taggen';
 
@@ -39158,6 +39162,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Sender zuweisen';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Tauchgangsnummern bereits vergeben';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Diese Tauchgänge haben die Nummer aus ihrer Quelle behalten, doch andere Tauchgänge in deinem Logbuch verwenden bereits dieselben Nummern. Öffne „Tauchgangnummerierung“ im Menü der Tauchgangsliste, um sie neu zu nummerieren.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

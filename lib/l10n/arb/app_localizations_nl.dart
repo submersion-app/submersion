@@ -24958,6 +24958,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gebruik de duiknummers uit het geïmporteerde bestand in plaats van automatisch toewijzen';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Deze bron levert geen duiknummers, dus duiken worden automatisch genummerd';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Deze import automatisch taggen';
 
@@ -38967,6 +38971,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Zenders toewijzen';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Duiknummers al in gebruik';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Deze duiken hebben het nummer uit hun bron behouden, maar andere duiken in je logboek gebruiken dezelfde nummers al. Open Duiknummering in het menu van de duiklijst om ze opnieuw te nummeren.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

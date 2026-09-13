@@ -438,6 +438,13 @@ class _NoticeCard extends StatelessWidget {
           route: '/transmitters',
         ),
       ),
+      // No action button: Dive Numbering is a dialog on the dive list, not
+      // a route, so the body tells the diver where to find it.
+      ImportNoticeKind.diveNumberConflict => (
+        l10n.universalImport_summary_noticeDiveNumberConflictTitle,
+        l10n.universalImport_summary_noticeDiveNumberConflictBody,
+        null,
+      ),
     };
 
     return Card(

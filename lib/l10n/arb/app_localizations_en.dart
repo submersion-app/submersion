@@ -24729,6 +24729,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use dive numbers from the imported file instead of auto-assigning';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'This source does not provide dive numbers, so dives are numbered automatically';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Tag this import automatically';
 
@@ -38637,6 +38641,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assign transmitters';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Dive numbers already in use';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

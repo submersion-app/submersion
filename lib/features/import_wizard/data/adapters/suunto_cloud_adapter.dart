@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/import_wizard/data/adapters/cloud_computer_identity.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -344,6 +345,9 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
             parsed,
             matchResult.diveId,
             comp,
+            // A dive the fold refuses is kept standalone, so it must carry
+            // the same number an import-as-new would have given it.
+            retainSourceDiveNumber: retainSourceDiveNumbers,
           );
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
@@ -393,6 +397,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
           diverId: _diverId,
           descriptorVendor: 'Suunto',
           descriptorProduct: parsed.deviceName,
+          retainSourceDiveNumber: retainSourceDiveNumbers,
         );
         imported++;
         importedDiveIds.add(diveId);
@@ -411,12 +416,18 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     scheduleQualityScan(importedDiveIds);
     scheduleSensorSummaryRefresh(importedDiveIds);
 
+    final numberConflict = await diveNumberConflictNotice(
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      diveRepository: _diveRepository,
+      importedDiveIds: importedDiveIds,
+    );
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
       updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      notices: [?numberConflict],
     );
   }
 
@@ -510,8 +521,9 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   Future<_ConsolidateResult> _consolidateDive(
     SuuntoParsedDive parsed,
     String targetDiveId,
-    DiveComputer comp,
-  ) async {
+    DiveComputer comp, {
+    required bool retainSourceDiveNumber,
+  }) async {
     final targetComputerId = await _diveRepository.getComputerIdForDive(
       targetDiveId,
     );
@@ -527,6 +539,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
         diverId: _diverId,
         descriptorVendor: 'Suunto',
         descriptorProduct: parsed.deviceName,
+        retainSourceDiveNumber: retainSourceDiveNumber,
       );
       await _consolidationService.apply(
         targetDiveId: targetDiveId,

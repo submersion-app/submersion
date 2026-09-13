@@ -25,6 +25,11 @@ class IncomingDiveData {
   final String? diveOperator;
   final String? sourceUuid;
 
+  /// The dive number the source itself recorded (the computer's own count,
+  /// or the number in the imported file), or null when it recorded none.
+  /// Only used when the diver chooses to retain source dive numbers.
+  final int? diveNumber;
+
   const IncomingDiveData({
     this.startTime,
     this.maxDepth,
@@ -42,6 +47,7 @@ class IncomingDiveData {
     this.boatCaptain,
     this.diveOperator,
     this.sourceUuid,
+    this.diveNumber,
   });
 
   /// Create from a [DownloadedDive] (dive computer download flow).
@@ -55,6 +61,7 @@ class IncomingDiveData {
       avgDepth: dive.avgDepth,
       durationSeconds: dive.durationSeconds,
       waterTemp: dive.minTemperature,
+      diveNumber: dive.diveNumber,
       computerName: computer?.displayName,
       computerModel: computer?.fullName,
       computerSerial: computer?.serialNumber,
@@ -104,6 +111,7 @@ class IncomingDiveData {
       boatCaptain: data['boatCaptain'] as String?,
       diveOperator: data['diveOperator'] as String?,
       sourceUuid: data['sourceUuid'] as String?,
+      diveNumber: (data['diveNumber'] as num?)?.toInt(),
     );
   }
 }

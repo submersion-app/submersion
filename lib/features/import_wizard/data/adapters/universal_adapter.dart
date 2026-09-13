@@ -45,6 +45,7 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/resolved_photo_attachment.dart';
@@ -795,7 +796,15 @@ class UniversalAdapter implements ImportSourceAdapter {
     // merged into the batch above when there is one, so no extra pass.
     scheduleAllConditionFindingsRefresh();
 
-    final notices = groupImportNotices(payload.warnings, netDives);
+    final numberConflict = await diveNumberConflictNotice(
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      diveRepository: repos.diveRepository,
+      importedDiveIds: netImportedDiveIds,
+    );
+    final notices = [
+      ...groupImportNotices(payload.warnings, netDives),
+      ?numberConflict,
+    ];
 
     return UnifiedImportResult(
       notices: notices,
