@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -732,9 +734,12 @@ class PaginatedDiveListNotifier
     });
     _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       if (previous != next) {
+        _followAttrFilterTick(next);
         loadFirstPage();
       }
     });
+    _followAttrFilterTick(_ref.read(diveFilterProvider));
+    _ref.onDispose(() => _attrFilterSub?.cancel());
     _ref.listen<SortState<DiveSortField>>(diveSortProvider, (previous, next) {
       if (previous != next) {
         loadFirstPage();
@@ -765,6 +770,28 @@ class PaginatedDiveListNotifier
       (_) => _silentReloadLoadedPages(),
     );
     _ref.onDispose(listChangeSub.cancel);
+  }
+
+  /// Subscription to [DiveRepository.watchEquipmentAttrFilterChanges], held
+  /// only while the filter has an equipment-attribute condition.
+  StreamSubscription<void>? _attrFilterSub;
+
+  /// Follows the equipment-attribute tick while [filter] has a condition
+  /// (#1805). The page and count then read the gear tables, which the list
+  /// tick does not watch, so a gear link or an attribute-only write (a sync
+  /// pull, saveAttributes) would otherwise leave them stale. Without a
+  /// condition nothing subscribes, so gear edits never reload an unfiltered
+  /// list.
+  void _followAttrFilterTick(DiveFilterState filter) {
+    final wanted = filter.equipmentAttrConditions.isNotEmpty;
+    if (wanted && _attrFilterSub == null) {
+      _attrFilterSub = _repository.watchEquipmentAttrFilterChanges().listen(
+        (_) => _silentReloadLoadedPages(),
+      );
+    } else if (!wanted && _attrFilterSub != null) {
+      _attrFilterSub!.cancel();
+      _attrFilterSub = null;
+    }
   }
 
   bool get _isDateSort {
