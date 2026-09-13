@@ -6667,16 +6667,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_group_location => 'Helyzet';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Type & Tags';
+  String get diveSites_edit_group_typeTags => 'Típus és címkék';
 
   @override
-  String get diveSites_edit_typeTags_manageTypes => 'Manage types';
+  String get diveSites_edit_typeTags_manageTypes => 'Típusok kezelése';
 
   @override
-  String get diveSites_edit_typeTags_tagsLabel => 'Tags';
+  String get diveSites_edit_typeTags_tagsLabel => 'Címkék';
 
   @override
-  String get diveSites_edit_typeTags_typesLabel => 'Site types';
+  String get diveSites_edit_typeTags_typesLabel => 'Merülőhely-típusok';
 
   @override
   String get diveSites_edit_invite_accessSafety =>
@@ -7074,17 +7074,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get siteTypes_addTooltip => 'Add Site Type';
+  String get siteTypes_addTooltip => 'Merülőhely-típus hozzáadása';
 
   @override
-  String get siteTypes_builtIn => 'Built-in';
+  String get siteTypes_builtIn => 'Beépített';
 
   @override
-  String get siteTypes_custom => 'Custom';
+  String get siteTypes_custom => 'Egyedi';
 
   @override
   String siteTypes_deleteDialog_content(String name) {
-    return 'Delete \"$name\"?';
+    return 'Törli ezt: „$name”?';
   }
 
   @override
@@ -7093,101 +7093,101 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '\"$name\" is used by $count sites. Deleting it removes it from those sites.',
+          'A(z) „$name” típust $count merülőhely használja. Törléskor lekerül ezekről a merülőhelyekről.',
       one:
-          '\"$name\" is used by 1 site. Deleting it removes it from that site.',
+          'A(z) „$name” típust 1 merülőhely használja. Törléskor lekerül erről a merülőhelyről.',
     );
     return '$_temp0';
   }
 
   @override
-  String get siteTypes_deleteDialog_title => 'Delete Site Type?';
+  String get siteTypes_deleteDialog_title => 'Törli a merülőhely-típust?';
 
   @override
-  String get siteTypes_deleteTooltip => 'Delete site type';
+  String get siteTypes_deleteTooltip => 'Merülőhely-típus törlése';
 
   @override
-  String get siteTypes_dialog_addTitle => 'Add Site Type';
+  String get siteTypes_dialog_addTitle => 'Merülőhely-típus hozzáadása';
 
   @override
-  String get siteTypes_dialog_editTitle => 'Edit Site Type';
+  String get siteTypes_dialog_editTitle => 'Merülőhely-típus szerkesztése';
 
   @override
-  String get siteTypes_dialog_nameLabel => 'Name';
+  String get siteTypes_dialog_nameLabel => 'Név';
 
   @override
-  String get siteTypes_dialog_nameRequired => 'Please enter a name';
+  String get siteTypes_dialog_nameRequired => 'Adjon meg egy nevet';
 
   @override
-  String get siteTypes_editTooltip => 'Edit site type';
+  String get siteTypes_editTooltip => 'Merülőhely-típus szerkesztése';
 
   @override
   String siteTypes_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites',
-      one: '1 site',
-      zero: 'No sites',
+      other: '$count merülőhely',
+      one: '1 merülőhely',
+      zero: 'Nincs merülőhely',
     );
     return '$_temp0';
   }
 
   @override
   String siteTypes_snackbar_error(String error) {
-    return 'Could not save the site type: $error';
+    return 'A merülőhely-típus mentése nem sikerült: $error';
   }
 
   @override
-  String get siteTypes_title => 'Site Types';
+  String get siteTypes_title => 'Merülőhely-típusok';
 
   @override
-  String get siteType_builtin_artificial_reef => 'Artificial reef';
+  String get siteType_builtin_artificial_reef => 'Mesterséges zátony';
 
   @override
-  String get siteType_builtin_blue_hole => 'Blue hole';
+  String get siteType_builtin_blue_hole => 'Kék lyuk';
 
   @override
-  String get siteType_builtin_cave => 'Cave';
+  String get siteType_builtin_cave => 'Barlang';
 
   @override
-  String get siteType_builtin_cavern => 'Cavern';
+  String get siteType_builtin_cavern => 'Barlangbejárat';
 
   @override
   String get siteType_builtin_cenote => 'Cenote';
 
   @override
-  String get siteType_builtin_kelp_forest => 'Kelp forest';
+  String get siteType_builtin_kelp_forest => 'Moszaterdő';
 
   @override
-  String get siteType_builtin_lake => 'Lake';
+  String get siteType_builtin_lake => 'Tó';
 
   @override
   String get siteType_builtin_muck => 'Muck';
 
   @override
-  String get siteType_builtin_pier => 'Pier / jetty';
+  String get siteType_builtin_pier => 'Móló / stég';
 
   @override
-  String get siteType_builtin_pool => 'Pool';
+  String get siteType_builtin_pool => 'Medence';
 
   @override
-  String get siteType_builtin_quarry => 'Quarry';
+  String get siteType_builtin_quarry => 'Kőbánya';
 
   @override
-  String get siteType_builtin_reef => 'Reef';
+  String get siteType_builtin_reef => 'Zátony';
 
   @override
-  String get siteType_builtin_river => 'River';
+  String get siteType_builtin_river => 'Folyó';
 
   @override
-  String get siteType_builtin_spring => 'Spring';
+  String get siteType_builtin_spring => 'Forrás';
 
   @override
-  String get siteType_builtin_wall => 'Wall';
+  String get siteType_builtin_wall => 'Fal';
 
   @override
-  String get siteType_builtin_wreck => 'Wreck';
+  String get siteType_builtin_wreck => 'Roncs';
 
   @override
   String get siteMatchReview_sourcePhoto => 'fotóból';
@@ -8666,7 +8666,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveSites_detail_showSitesWith(String name) {
-    return 'Show sites with $name';
+    return 'Merülőhelyek ezzel: $name';
   }
 
   @override
@@ -9361,10 +9361,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_filter_section_options => 'Opciok';
 
   @override
-  String get diveSites_filter_section_siteTypes => 'Site type';
+  String get diveSites_filter_section_siteTypes => 'Merülőhely-típus';
 
   @override
-  String get diveSites_filter_section_tags => 'Tags';
+  String get diveSites_filter_section_tags => 'Címkék';
 
   @override
   String get diveSites_filter_title => 'Helyszinek szurese';
@@ -17429,7 +17429,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Alairta';
 
   @override
-  String get settings_conflict_ref_siteType => 'Site type';
+  String get settings_conflict_ref_siteType => 'Merülőhely-típus';
 
   @override
   String get settings_conflict_ref_sourceDive => 'Forras merules';
@@ -18005,11 +18005,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egyedi merüles tipusok kezelese';
 
   @override
-  String get settings_manage_siteTypes => 'Site Types';
+  String get settings_manage_siteTypes => 'Merülőhely-típusok';
 
   @override
   String get settings_manage_siteTypes_subtitle =>
-      'Built-in and custom dive site types';
+      'Beépített és egyedi merülőhely-típusok';
 
   @override
   String get settings_manage_header_manageData => 'Adatok kezelese';
@@ -19156,19 +19156,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_conditions_siteType_error =>
-      'Failed to load site type data';
+      'A merülőhely-típusok adatai nem tölthetők be';
 
   @override
   String statistics_conditions_siteType_semanticLabel(String description) {
-    return 'Bar chart. Dives per site type. $description';
+    return 'Oszlopdiagram. Merülések merülőhely-típusonként. $description';
   }
 
   @override
   String get statistics_conditions_siteType_subtitle =>
-      'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.';
+      'Merülések merülőhely-típusonként. A több típusú helyen tett merülés mindegyiknél számít; a típus nélküli helyek nem jelennek meg.';
 
   @override
-  String get statistics_conditions_siteType_title => 'Site Types';
+  String get statistics_conditions_siteType_title => 'Merülőhely-típusok';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20527,7 +20527,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_manage_colorLabel => 'Szín';
 
   @override
-  String get tags_manage_narrowDialog_confirm => 'Remove';
+  String get tags_manage_narrowDialog_confirm => 'Eltávolítás';
 
   @override
   String tags_manage_narrowDialog_dives(int count) {
@@ -20535,9 +20535,9 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'This tag is on $count dives. Turning off \"Use for dives\" removes it from those dives.',
+          'Ez a címke $count merülésen szerepel. A „Merülésekhez” kikapcsolása eltávolítja ezekről a merülésekről.',
       one:
-          'This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.',
+          'Ez a címke 1 merülésen szerepel. A „Merülésekhez” kikapcsolása eltávolítja erről a merülésről.',
     );
     return '$_temp0';
   }
@@ -20548,43 +20548,44 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'This tag is on $count sites. Turning off \"Use for sites\" removes it from those sites.',
+          'Ez a címke $count merülőhelyen szerepel. A „Merülőhelyekhez” kikapcsolása eltávolítja ezekről a merülőhelyekről.',
       one:
-          'This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.',
+          'Ez a címke 1 merülőhelyen szerepel. A „Merülőhelyekhez” kikapcsolása eltávolítja erről a merülőhelyről.',
     );
     return '$_temp0';
   }
 
   @override
   String get tags_manage_narrowDialog_title =>
-      'Remove tag from existing items?';
+      'Eltávolítja a címkét a meglévő elemekről?';
 
   @override
-  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+  String get tags_manage_scopeRequired =>
+      'Válasszon merüléseket, merülőhelyeket vagy mindkettőt';
 
   @override
-  String get tags_manage_scope_dives => 'Dives';
+  String get tags_manage_scope_dives => 'Merülések';
 
   @override
-  String get tags_manage_scope_sites => 'Sites';
+  String get tags_manage_scope_sites => 'Merülőhelyek';
 
   @override
   String tags_manage_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites',
-      one: '1 site',
-      zero: '0 sites',
+      other: '$count merülőhely',
+      one: '1 merülőhely',
+      zero: '0 merülőhely',
     );
     return '$_temp0';
   }
 
   @override
-  String get tags_manage_useForDives => 'Use for dives';
+  String get tags_manage_useForDives => 'Merülésekhez';
 
   @override
-  String get tags_manage_useForSites => 'Use for sites';
+  String get tags_manage_useForSites => 'Merülőhelyekhez';
 
   @override
   String get tags_manage_nameRequired => 'A címke neve kötelező';
@@ -29690,16 +29691,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_siteField_averageDuration_short => 'Átlag idő';
 
   @override
-  String get enum_siteField_siteTypes => 'Site Types';
+  String get enum_siteField_siteTypes => 'Merülőhely-típusok';
 
   @override
-  String get enum_siteField_siteTypes_short => 'Types';
+  String get enum_siteField_siteTypes_short => 'Típusok';
 
   @override
-  String get enum_siteField_tags => 'Tags';
+  String get enum_siteField_tags => 'Címkék';
 
   @override
-  String get enum_siteField_tags_short => 'Tags';
+  String get enum_siteField_tags_short => 'Címkék';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Saját max.';

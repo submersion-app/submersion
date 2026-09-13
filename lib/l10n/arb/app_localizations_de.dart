@@ -6683,16 +6683,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_group_location => 'Position';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Type & Tags';
+  String get diveSites_edit_group_typeTags => 'Typ & Tags';
 
   @override
-  String get diveSites_edit_typeTags_manageTypes => 'Manage types';
+  String get diveSites_edit_typeTags_manageTypes => 'Typen verwalten';
 
   @override
   String get diveSites_edit_typeTags_tagsLabel => 'Tags';
 
   @override
-  String get diveSites_edit_typeTags_typesLabel => 'Site types';
+  String get diveSites_edit_typeTags_typesLabel => 'Tauchplatztypen';
 
   @override
   String get diveSites_edit_invite_accessSafety =>
@@ -7091,17 +7091,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get siteTypes_addTooltip => 'Add Site Type';
+  String get siteTypes_addTooltip => 'Tauchplatztyp hinzufügen';
 
   @override
-  String get siteTypes_builtIn => 'Built-in';
+  String get siteTypes_builtIn => 'Integriert';
 
   @override
-  String get siteTypes_custom => 'Custom';
+  String get siteTypes_custom => 'Benutzerdefiniert';
 
   @override
   String siteTypes_deleteDialog_content(String name) {
-    return 'Delete \"$name\"?';
+    return '„$name“ löschen?';
   }
 
   @override
@@ -7110,62 +7110,62 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '\"$name\" is used by $count sites. Deleting it removes it from those sites.',
+          '„$name“ wird von $count Tauchplätzen verwendet. Beim Löschen wird er von diesen Tauchplätzen entfernt.',
       one:
-          '\"$name\" is used by 1 site. Deleting it removes it from that site.',
+          '„$name“ wird von 1 Tauchplatz verwendet. Beim Löschen wird er von diesem Tauchplatz entfernt.',
     );
     return '$_temp0';
   }
 
   @override
-  String get siteTypes_deleteDialog_title => 'Delete Site Type?';
+  String get siteTypes_deleteDialog_title => 'Tauchplatztyp löschen?';
 
   @override
-  String get siteTypes_deleteTooltip => 'Delete site type';
+  String get siteTypes_deleteTooltip => 'Tauchplatztyp löschen';
 
   @override
-  String get siteTypes_dialog_addTitle => 'Add Site Type';
+  String get siteTypes_dialog_addTitle => 'Tauchplatztyp hinzufügen';
 
   @override
-  String get siteTypes_dialog_editTitle => 'Edit Site Type';
+  String get siteTypes_dialog_editTitle => 'Tauchplatztyp bearbeiten';
 
   @override
   String get siteTypes_dialog_nameLabel => 'Name';
 
   @override
-  String get siteTypes_dialog_nameRequired => 'Please enter a name';
+  String get siteTypes_dialog_nameRequired => 'Bitte einen Namen eingeben';
 
   @override
-  String get siteTypes_editTooltip => 'Edit site type';
+  String get siteTypes_editTooltip => 'Tauchplatztyp bearbeiten';
 
   @override
   String siteTypes_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites',
-      one: '1 site',
-      zero: 'No sites',
+      other: '$count Tauchplätze',
+      one: '1 Tauchplatz',
+      zero: 'Keine Tauchplätze',
     );
     return '$_temp0';
   }
 
   @override
   String siteTypes_snackbar_error(String error) {
-    return 'Could not save the site type: $error';
+    return 'Der Tauchplatztyp konnte nicht gespeichert werden: $error';
   }
 
   @override
-  String get siteTypes_title => 'Site Types';
+  String get siteTypes_title => 'Tauchplatztypen';
 
   @override
-  String get siteType_builtin_artificial_reef => 'Artificial reef';
+  String get siteType_builtin_artificial_reef => 'Künstliches Riff';
 
   @override
-  String get siteType_builtin_blue_hole => 'Blue hole';
+  String get siteType_builtin_blue_hole => 'Blue Hole';
 
   @override
-  String get siteType_builtin_cave => 'Cave';
+  String get siteType_builtin_cave => 'Höhle';
 
   @override
   String get siteType_builtin_cavern => 'Cavern';
@@ -7174,37 +7174,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get siteType_builtin_cenote => 'Cenote';
 
   @override
-  String get siteType_builtin_kelp_forest => 'Kelp forest';
+  String get siteType_builtin_kelp_forest => 'Kelpwald';
 
   @override
-  String get siteType_builtin_lake => 'Lake';
+  String get siteType_builtin_lake => 'See';
 
   @override
   String get siteType_builtin_muck => 'Muck';
 
   @override
-  String get siteType_builtin_pier => 'Pier / jetty';
+  String get siteType_builtin_pier => 'Pier / Steg';
 
   @override
-  String get siteType_builtin_pool => 'Pool';
+  String get siteType_builtin_pool => 'Schwimmbad';
 
   @override
-  String get siteType_builtin_quarry => 'Quarry';
+  String get siteType_builtin_quarry => 'Steinbruch';
 
   @override
-  String get siteType_builtin_reef => 'Reef';
+  String get siteType_builtin_reef => 'Riff';
 
   @override
-  String get siteType_builtin_river => 'River';
+  String get siteType_builtin_river => 'Fluss';
 
   @override
-  String get siteType_builtin_spring => 'Spring';
+  String get siteType_builtin_spring => 'Quelle';
 
   @override
-  String get siteType_builtin_wall => 'Wall';
+  String get siteType_builtin_wall => 'Steilwand';
 
   @override
-  String get siteType_builtin_wreck => 'Wreck';
+  String get siteType_builtin_wreck => 'Wrack';
 
   @override
   String get siteMatchReview_sourcePhoto => 'aus Foto';
@@ -8675,7 +8675,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveSites_detail_showSitesWith(String name) {
-    return 'Show sites with $name';
+    return 'Tauchplätze mit $name anzeigen';
   }
 
   @override
@@ -9369,7 +9369,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_filter_section_options => 'Optionen';
 
   @override
-  String get diveSites_filter_section_siteTypes => 'Site type';
+  String get diveSites_filter_section_siteTypes => 'Tauchplatztyp';
 
   @override
   String get diveSites_filter_section_tags => 'Tags';
@@ -17454,7 +17454,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Unterschrieben von';
 
   @override
-  String get settings_conflict_ref_siteType => 'Site type';
+  String get settings_conflict_ref_siteType => 'Tauchplatztyp';
 
   @override
   String get settings_conflict_ref_sourceDive => 'Quell-Tauchgang';
@@ -18028,11 +18028,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Benutzerdefinierte Taucharten verwalten';
 
   @override
-  String get settings_manage_siteTypes => 'Site Types';
+  String get settings_manage_siteTypes => 'Tauchplatztypen';
 
   @override
   String get settings_manage_siteTypes_subtitle =>
-      'Built-in and custom dive site types';
+      'Integrierte und eigene Tauchplatztypen';
 
   @override
   String get settings_manage_header_manageData => 'Daten verwalten';
@@ -19177,19 +19177,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_conditions_siteType_error =>
-      'Failed to load site type data';
+      'Tauchplatztyp-Daten konnten nicht geladen werden';
 
   @override
   String statistics_conditions_siteType_semanticLabel(String description) {
-    return 'Bar chart. Dives per site type. $description';
+    return 'Balkendiagramm. Tauchgänge pro Tauchplatztyp. $description';
   }
 
   @override
   String get statistics_conditions_siteType_subtitle =>
-      'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.';
+      'Tauchgänge pro Tauchplatztyp. Ein Tauchgang an einem Platz mit mehreren Typen zählt für jeden; Plätze ohne Typ werden nicht angezeigt.';
 
   @override
-  String get statistics_conditions_siteType_title => 'Site Types';
+  String get statistics_conditions_siteType_title => 'Tauchplatztypen';
 
   @override
   String get statistics_conditions_waterType_error =>
@@ -20537,7 +20537,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_manage_colorLabel => 'Farbe';
 
   @override
-  String get tags_manage_narrowDialog_confirm => 'Remove';
+  String get tags_manage_narrowDialog_confirm => 'Entfernen';
 
   @override
   String tags_manage_narrowDialog_dives(int count) {
@@ -20545,9 +20545,9 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'This tag is on $count dives. Turning off \"Use for dives\" removes it from those dives.',
+          'Dieser Tag ist an $count Tauchgängen. Wenn „Für Tauchgänge verwenden“ ausgeschaltet wird, wird er von diesen Tauchgängen entfernt.',
       one:
-          'This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.',
+          'Dieser Tag ist an 1 Tauchgang. Wenn „Für Tauchgänge verwenden“ ausgeschaltet wird, wird er von diesem Tauchgang entfernt.',
     );
     return '$_temp0';
   }
@@ -20558,43 +20558,44 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'This tag is on $count sites. Turning off \"Use for sites\" removes it from those sites.',
+          'Dieser Tag ist an $count Tauchplätzen. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesen Tauchplätzen entfernt.',
       one:
-          'This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.',
+          'Dieser Tag ist an 1 Tauchplatz. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesem Tauchplatz entfernt.',
     );
     return '$_temp0';
   }
 
   @override
   String get tags_manage_narrowDialog_title =>
-      'Remove tag from existing items?';
+      'Tag von vorhandenen Einträgen entfernen?';
 
   @override
-  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+  String get tags_manage_scopeRequired =>
+      'Tauchgänge, Tauchplätze oder beides wählen';
 
   @override
-  String get tags_manage_scope_dives => 'Dives';
+  String get tags_manage_scope_dives => 'Tauchgänge';
 
   @override
-  String get tags_manage_scope_sites => 'Sites';
+  String get tags_manage_scope_sites => 'Tauchplätze';
 
   @override
   String tags_manage_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites',
-      one: '1 site',
-      zero: '0 sites',
+      other: '$count Tauchplätze',
+      one: '1 Tauchplatz',
+      zero: '0 Tauchplätze',
     );
     return '$_temp0';
   }
 
   @override
-  String get tags_manage_useForDives => 'Use for dives';
+  String get tags_manage_useForDives => 'Für Tauchgänge verwenden';
 
   @override
-  String get tags_manage_useForSites => 'Use for sites';
+  String get tags_manage_useForSites => 'Für Tauchplätze verwenden';
 
   @override
   String get tags_manage_nameRequired => 'Tag-Name ist erforderlich';
@@ -29747,10 +29748,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_siteField_averageDuration_short => 'Ø Dauer';
 
   @override
-  String get enum_siteField_siteTypes => 'Site Types';
+  String get enum_siteField_siteTypes => 'Tauchplatztypen';
 
   @override
-  String get enum_siteField_siteTypes_short => 'Types';
+  String get enum_siteField_siteTypes_short => 'Typen';
 
   @override
   String get enum_siteField_tags => 'Tags';
