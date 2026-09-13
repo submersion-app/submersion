@@ -201,6 +201,31 @@ void main() {
       expect(payload.warnings.single.code, ImportWarningCode.divesSkipped);
     });
 
+    test('a dive whose samples cannot be read is a skipped dive', () async {
+      // double.tryParse accepts "Infinity", and rounding it to a timestamp
+      // throws: a corrupt sample must cost only its own dive.
+      final payload = await parser.parse(
+        Uint8List.fromList(
+          [
+            'FSH|^~<>{}|OCI201^^|ZXU|20240402090000|',
+            'ZRH|^~<>{}|NEM001|SC02201|FSWG|ThFt|F|PSIA|CF|',
+            'ZDH|1|7|I|Q1M|20240401140000|85|||',
+            'ZDT|1|7|60.0|20240401140300|75||',
+            'ZDH|2|8|I|Q1M|20240401160000|85|||',
+            'ZDP{',
+            '|Infinity|30.0|',
+            'ZDP}',
+            'ZDT|2|8|60.0|20240401160300|75||',
+          ].join('\n').codeUnits,
+        ),
+      );
+
+      expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+      final warning = payload.warnings.single;
+      expect(warning.code, ImportWarningCode.divesSkipped);
+      expect(warning.message, startsWith('Skipped dive 2:'));
+    });
+
     test('structural oddities are recorded but not shown', () async {
       // A stray ZDT after the last dive is ignored by the reader. The dive
       // still imports normally, so the summary has nothing to tell the diver.
