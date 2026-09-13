@@ -17338,6 +17338,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Assinado por';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Mergulho de origem';
 
   @override

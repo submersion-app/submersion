@@ -16476,6 +16476,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_signer => '签署人';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => '源潜水';
 
   @override

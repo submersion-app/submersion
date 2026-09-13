@@ -17023,6 +17023,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_signer => 'وقّع بواسطة';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'الغوصة المصدر';
 
   @override

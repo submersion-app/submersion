@@ -17310,6 +17310,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Unterschrieben von';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Quell-Tauchgang';
 
   @override

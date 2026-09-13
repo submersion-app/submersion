@@ -10327,6 +10327,7 @@
   "settings_conflict_ref_serviceKind": "Service type",
   "settings_conflict_ref_sighting": "Sighting",
   "settings_conflict_ref_signer": "Signed by",
+  "settings_conflict_ref_siteType": "Site type",
   "settings_conflict_ref_sourceDive": "Source dive",
   "settings_conflict_ref_species": "Species",
   "settings_conflict_ref_tag": "Tag",

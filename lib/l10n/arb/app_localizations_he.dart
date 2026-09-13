@@ -16904,6 +16904,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_signer => 'נחתם על ידי';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'צלילת מקור';
 
   @override

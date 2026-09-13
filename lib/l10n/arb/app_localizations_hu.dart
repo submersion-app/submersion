@@ -17285,6 +17285,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Alairta';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Forras merules';
 
   @override

@@ -28525,6 +28525,12 @@ abstract class AppLocalizations {
   /// **'Signed by'**
   String get settings_conflict_ref_signer;
 
+  /// No description provided for @settings_conflict_ref_siteType.
+  ///
+  /// In en, this message translates to:
+  /// **'Site type'**
+  String get settings_conflict_ref_siteType;
+
   /// No description provided for @settings_conflict_ref_sourceDive.
   ///
   /// In en, this message translates to:

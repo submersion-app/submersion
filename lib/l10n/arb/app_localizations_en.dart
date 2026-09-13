@@ -17046,6 +17046,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Signed by';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Source dive';
 
   @override

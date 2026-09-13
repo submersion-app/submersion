@@ -17337,6 +17337,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Firmato da';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Immersione di origine';
 
   @override

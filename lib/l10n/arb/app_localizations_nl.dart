@@ -17200,6 +17200,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_signer => 'Ondertekend door';
 
   @override
+  String get settings_conflict_ref_siteType => 'Site type';
+
+  @override
   String get settings_conflict_ref_sourceDive => 'Bronduik';
 
   @override
