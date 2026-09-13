@@ -98,6 +98,7 @@ import 'package:submersion/features/settings/presentation/pages/photos_media_hub
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
+import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
@@ -1237,6 +1238,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'fix-dive-times',
                 name: 'fixDiveTimes',
                 builder: (context, state) => const FixDiveTimesPage(),
+              ),
+              GoRoute(
+                path: 'link-buddy-names',
+                name: 'linkBuddyNames',
+                builder: (context, state) => const LinkBuddyNamesPage(),
               ),
               GoRoute(
                 path: 'debug-logs',
