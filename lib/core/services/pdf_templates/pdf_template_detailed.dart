@@ -405,13 +405,17 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
+  /// Once the `dive_buddies` junction holds anyone it is authoritative, and the
+  /// legacy [Dive.buddy] / [Dive.diveMaster] text is stale (#1864). This is the
+  /// same rule as the dive list's Buddy and Dive Master columns.
   List<_Field> _teamFields(Dive dive) {
     return [
       for (final buddy in dive.buddies)
         _Field(buddy.role.name, buddy.buddy.name),
       if (dive.buddies.isEmpty && dive.buddy != null)
         _Field('Buddy', dive.buddy!),
-      if (dive.diveMaster != null) _Field('Dive Master', dive.diveMaster!),
+      if (dive.buddies.isEmpty && dive.diveMaster != null)
+        _Field('Dive Master', dive.diveMaster!),
       if (dive.diveCenter != null) _Field('Dive Center', dive.diveCenter!.name),
       if (dive.trip != null) _Field('Trip', dive.trip!.name),
     ];
