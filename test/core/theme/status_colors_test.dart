@@ -69,6 +69,15 @@ void main() {
           );
         });
 
+        test('$mode $tone badge glyph is legible on its accent', () {
+          // A solid accent badge carries a container-colored icon (the
+          // equipment summary's service-due avatar); icons need 3:1.
+          expect(
+            _contrast(swatch.container, swatch.accent),
+            greaterThanOrEqualTo(3.0),
+          );
+        });
+
         test('$mode $tone outline is distinct from its container', () {
           expect(swatch.outline, isNot(swatch.container));
         });

@@ -6,6 +6,7 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -85,6 +86,14 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     List<EquipmentItem> equipment,
     List<EquipmentItem> serviceDue,
   ) {
+    // serviceDue mixes due-soon and overdue items, so the section reads red
+    // only when something is actually overdue and amber otherwise.
+    final anyOverdue = (ref.watch(dueClocksProvider).value ?? const []).any(
+      (c) => c.status.severity == ServiceClockSeverity.overdue,
+    );
+    final status = StatusColors.of(context);
+    final serviceSwatch = anyOverdue ? status.alert : status.warn;
+
     // Calculate stats
     int activeCount = 0;
     for (final item in equipment) {
@@ -136,7 +145,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 icon: Icons.build,
                 value: '${serviceDue.length}',
                 label: context.l10n.equipment_summary_serviceDue,
-                color: StatusColors.of(context).alert.accent,
+                color: serviceSwatch.accent,
               ),
             for (final entry in totalsByCurrency)
               if (entry.value > 0)
@@ -155,7 +164,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
         ),
         if (serviceDue.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildServiceDueSection(context, serviceDue),
+          _buildServiceDueSection(context, serviceDue, serviceSwatch),
         ],
         if (equipment.isNotEmpty) ...[
           const SizedBox(height: 24),
@@ -217,17 +226,14 @@ class EquipmentSummaryWidget extends ConsumerWidget {
   Widget _buildServiceDueSection(
     BuildContext context,
     List<EquipmentItem> serviceDue,
+    StatusSwatch swatch,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(
-              Icons.warning,
-              size: 20,
-              color: StatusColors.of(context).alert.accent,
-            ),
+            Icon(Icons.warning, size: 20, color: swatch.accent),
             const SizedBox(width: 8),
             Text(
               context.l10n.equipment_summary_serviceDueTitle,
@@ -239,7 +245,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Card(
-          color: StatusColors.of(context).alert.container,
+          color: swatch.container,
           child: Column(
             children: serviceDue.take(3).map((item) {
               return Semantics(
@@ -249,31 +255,22 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                   item.type.localizedName(context.l10n),
                 ),
                 child: ListTile(
+                  // A solid accent badge, so it stands out on the tinted
+                  // card; the container-colored glyph holds 3:1 on it.
                   leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    child: Icon(
-                      Icons.build,
-                      color: Theme.of(context).colorScheme.onError,
-                      size: 20,
-                    ),
+                    backgroundColor: swatch.accent,
+                    child: Icon(Icons.build, color: swatch.container, size: 20),
                   ),
                   title: Text(
                     item.name,
-                    style: TextStyle(
-                      color: StatusColors.of(context).alert.onContainer,
-                    ),
+                    style: TextStyle(color: swatch.onContainer),
                   ),
                   subtitle: Text(
                     item.type.localizedName(context.l10n),
-                    style: TextStyle(
-                      color: StatusColors.of(context).alert.onContainer,
-                    ),
+                    style: TextStyle(color: swatch.onContainer),
                   ),
                   trailing: ExcludeSemantics(
-                    child: Icon(
-                      Icons.chevron_right,
-                      color: StatusColors.of(context).alert.onContainer,
-                    ),
+                    child: Icon(Icons.chevron_right, color: swatch.onContainer),
                   ),
                   onTap: () {
                     final state = GoRouterState.of(context);

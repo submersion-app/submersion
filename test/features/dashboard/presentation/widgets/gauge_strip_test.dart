@@ -1129,6 +1129,19 @@ void main() {
             .first,
       );
       expect(sizeOf('Last dive').height, sizeOf('Reg overdue').height);
+
+      // The outline must not grow the pill: Container folds the 1px border
+      // into its padding, so 5px inset + 1px border matches the old 6px
+      // inset exactly (and 11 + 1 matches the old 12 across).
+      final row = tester.getSize(
+        find
+            .ancestor(
+              of: find.textContaining('Reg overdue'),
+              matching: find.byType(Row),
+            )
+            .first,
+      );
+      expect(sizeOf('Reg overdue'), Size(row.width + 24, row.height + 12));
     });
   });
 
