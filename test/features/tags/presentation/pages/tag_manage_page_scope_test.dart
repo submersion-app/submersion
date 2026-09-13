@@ -69,7 +69,7 @@ void main() {
     await tester.pumpWidget(page());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('To try'));
+    await tester.tap(find.byKey(const ValueKey('tag_edit_t1')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
     await tester.pumpAndSettle();
@@ -94,7 +94,7 @@ void main() {
     await tester.pumpWidget(page());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('To try'));
+    await tester.tap(find.byKey(const ValueKey('tag_edit_t1')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
     await tester.pumpAndSettle();
@@ -116,7 +116,7 @@ void main() {
     await tester.pumpWidget(page());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('To try'));
+    await tester.tap(find.byKey(const ValueKey('tag_edit_t1')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
     await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));

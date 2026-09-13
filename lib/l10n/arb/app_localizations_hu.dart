@@ -20423,6 +20423,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_action_deleteTag => 'Címke törlése';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '\"$tagName\" címkéjű merülések megjelenítése';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Biztosan törölni szeretnéd: \"$tagName\"? Ez eltávolítja az összes merülésről.';
   }
@@ -27054,11 +27059,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nincs merülés rögzített ruhavastagsággal';
+      'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Nem sikerült betölteni a vastagsági adatokat';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Ismeretlen';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';

@@ -20307,6 +20307,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_action_deleteTag => 'Tag verwijderen';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Duiken met tag \"$tagName\" tonen';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Weet je zeker dat je \"$tagName\" wilt verwijderen? Dit verwijdert het van alle duiken.';
   }
@@ -26953,11 +26958,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Geen duiken met een geregistreerde pakdikte';
+      'Geen duiken met een gekoppeld wetsuit of droogpak';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Kan pakdiktegegevens niet laden';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Onbekend';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
