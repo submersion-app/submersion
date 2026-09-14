@@ -1,8 +1,20 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-/// Where a tag is offered (issue #1765). A tag applies to at least one.
-enum TagScope { dives, sites }
+import 'package:submersion/core/database/tag_scope_tables.dart';
+
+/// Where a tag is offered (issues #1765, #1942). A tag applies to at least
+/// one. Member order follows [tagScopeTables], which is the display order.
+enum TagScope {
+  dives,
+  sites;
+
+  /// Where this scope stores its flag and its links.
+  TagScopeTable get table => switch (this) {
+    TagScope.dives => diveTagScopeTable,
+    TagScope.sites => siteTagScopeTable,
+  };
+}
 
 /// Tag entity for organizing dives and dive sites
 class Tag extends Equatable {
