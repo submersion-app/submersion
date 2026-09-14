@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart'
+    show CloudStorageException;
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_region.dart';
@@ -423,6 +425,12 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     } on CloudAuthCancelled {
       // The user backed out of the Google sign-in deliberately -- not an
       // error, so no red snackbar.
+    } on CloudStorageException catch (e) {
+      // authenticateWithBrowserWait's own authenticate() call throws this on
+      // a real sign-in failure (not a cancel), e.g. "Google Sign-In did not
+      // produce an authorized client". Without this clause it fell through
+      // as an unhandled exception instead of the page's usual error feedback.
+      _showSnack(e.displayMessage, isError: true);
     } on MediaStoreException catch (e) {
       _showSnack(mediaStoreErrorMessage(l10n, e), isError: true);
     } finally {
