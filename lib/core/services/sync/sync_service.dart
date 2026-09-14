@@ -3102,15 +3102,25 @@ class SyncService {
 
       case ConflictResolution.keepRemote:
         if (isDeletion) {
-          await _serializer.deleteRecord(entityType, recordId);
-          await _syncRepository.logDeletionIfMissing(
-            entityType: entityType,
-            recordId: recordId,
-            deletedAt: deletedAt ?? DateTime.now().millisecondsSinceEpoch,
-            originHlc: remoteData['hlc'] is String
-                ? remoteData['hlc'] as String
-                : null,
-          );
+          // A local row can still reference this record through a
+          // non-cascading FK (a dive plan's source dive, a dive's site), and
+          // a bare delete then fails with SqliteException(787), leaving the
+          // conflict unresolved. Defer the FK checks and repair the dangling
+          // references before COMMIT, as _applyRemoteDeletions does. The
+          // repaired rows are not marked pending: every peer applying this
+          // tombstone runs the same repair.
+          await _serializer.applyInDeferredFkTransaction(() async {
+            await _serializer.deleteRecord(entityType, recordId);
+            await _serializer.repairDanglingForeignKeys();
+            await _syncRepository.logDeletionIfMissing(
+              entityType: entityType,
+              recordId: recordId,
+              deletedAt: deletedAt ?? DateTime.now().millisecondsSinceEpoch,
+              originHlc: remoteData['hlc'] is String
+                  ? remoteData['hlc'] as String
+                  : null,
+            );
+          });
         } else {
           // keepRemote overwrites the local row. For HLC-bearing entities the
           // upsert uses `.toCompanion(false)`, so a cross-version remote map
