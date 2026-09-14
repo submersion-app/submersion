@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
@@ -706,6 +707,53 @@ void main() {
       // Edit icon button(s) rendered somewhere on the page.
       expect(find.byIcon(Icons.edit), findsWidgets);
     });
+
+    testWidgets(
+      'access card lists parking, then access notes, then entry/exit, '
+      'then mooring (#1037)',
+      (tester) async {
+        const accessSite = DiveSite(
+          id: 'access-site',
+          name: 'Access Site',
+          description: 'A nice dive',
+          accessNotes: 'Walk in from the church parking lot',
+          mooringNumber: 'M-12',
+          parkingInfo: 'Free parking by the church',
+          entryMethod: EntryMethod.shore,
+          exitMethod: EntryMethod.boat,
+        );
+        _setMobileTestSurfaceSize(tester);
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              siteProvider(accessSite.id).overrideWith((_) async => accessSite),
+              siteDiveCountProvider(accessSite.id).overrideWith((_) async => 0),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: SiteDetailPage(siteId: accessSite.id),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        double topOf(String text) => tester.getTopLeft(find.text(text)).dy;
+
+        final parkingY = topOf('Free parking by the church');
+        final accessNotesY = topOf('Walk in from the church parking lot');
+        final entryY = topOf('Shore Entry');
+        final exitY = topOf('Boat Entry');
+        final mooringY = topOf('M-12');
+
+        expect(parkingY, lessThan(accessNotesY));
+        expect(accessNotesY, lessThan(entryY));
+        expect(entryY, lessThan(exitY));
+        expect(exitY, lessThan(mooringY));
+      },
+    );
 
     testWidgets('dive count section shows 0 dives', (tester) async {
       _setMobileTestSurfaceSize(tester);

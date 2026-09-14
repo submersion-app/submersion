@@ -1608,8 +1608,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
+            if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[
+              _buildAccessRow(
+                context,
+                Icons.local_parking,
+                context.l10n.diveSites_detail_access_parking,
+                site.parkingInfo!,
+              ),
+            ],
             if (site.accessNotes != null && site.accessNotes!.isNotEmpty) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.info_outline,
                 context.l10n.diveSites_detail_access_accessNotes,
@@ -1617,7 +1625,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ),
             ],
             if (site.entryMethod != null) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.login,
                 context.l10n.diveSites_detail_access_entryMethod,
@@ -1627,7 +1635,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             // Only when it differs: a mirrored exit repeats the entry row.
             if (site.exitMethod != null &&
                 site.exitMethod != site.entryMethod) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.logout,
                 context.l10n.diveSites_detail_access_exitMethod,
@@ -1636,23 +1644,53 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             ],
             if (site.mooringNumber != null &&
                 site.mooringNumber!.isNotEmpty) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.anchor,
                 context.l10n.diveSites_detail_access_mooring,
                 site.mooringNumber!,
               ),
             ],
-            if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[
-              _buildDetailRow(
-                context,
-                Icons.local_parking,
-                context.l10n.diveSites_detail_access_parking,
-                site.parkingInfo!,
-              ),
-            ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// One access-card field: label on its own line so it reads as a
+  /// subheading, value below. Unlike [_buildDetailRow]'s label/value pair on
+  /// one line, these values are often full sentences (access notes, parking
+  /// tips) that need the width, not a right-aligned sliver next to the label
+  /// (#1037).
+  Widget _buildAccessRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+        ],
       ),
     );
   }
