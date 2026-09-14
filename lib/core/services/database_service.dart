@@ -990,7 +990,11 @@ class DatabaseService {
         await _moveIfExists('$asidePath-shm', '$destinationPath-shm');
       }
       await _commitIfNothingAside(journal);
-      await _deleteIfExists(stagingPath);
+      // Best-effort: this is cleanup of an orphaned copy we no longer need,
+      // not a step the rollback depends on. A transient failure to remove it
+      // (the same lock that likely broke the swap above) must not skip the
+      // reopen below and leave the app with no database until restart.
+      await _bestEffortDelete(stagingPath);
       await initialize();
       rethrow;
     }

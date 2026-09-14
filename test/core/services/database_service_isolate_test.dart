@@ -686,6 +686,39 @@ void main() {
     },
   );
 
+  test('a locked staging file during swap rollback still reopens the '
+      'database', () async {
+    // The rollback's own cleanup of the orphaned staging copy must be
+    // best-effort: it runs with the database closed, so a throw there would
+    // skip the reopen and leave the app with no database until restart.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+    );
+    // Sabotage the swap, and make the rollback's staging cleanup fail too.
+    DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+      File(stagingPath).deleteSync();
+      DatabaseService.instance.debugFailDeleteFor = {stagingPath};
+    };
+
+    await expectLater(
+      DatabaseService.instance.restore(backupPath),
+      throwsA(anything),
+    );
+
+    final divers = await DiverRepository().getAllDivers();
+    expect(divers.map((d) => d.name), contains('Keep Me'));
+  });
+
   test('a marker that cannot be cleared does not fail a restore that '
       'succeeded', () async {
     // The failure direction the journal promises: a stuck marker costs one
