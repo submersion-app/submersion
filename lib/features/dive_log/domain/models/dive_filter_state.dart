@@ -63,6 +63,11 @@ class DiveFilterState {
   // v1.5: Additional filter criteria
   final List<String> equipmentIds;
   final String? buddyNameFilter;
+
+  /// Linked buddy to restrict to: a live check against the `dive_buddies`
+  /// junction, never the legacy free-text `buddy` column. The buddy page's
+  /// "View all" sets it beside [diveIds], so a dive that loses its link
+  /// while the filter is active drops out (issue #1919).
   final String? buddyId;
   final List<String> diveIds;
   final double? minO2Percent;
@@ -389,6 +394,9 @@ class DiveFilterState {
             return false;
           }
         }
+      }
+      if (buddyId != null && !dive.buddies.any((b) => b.buddy.id == buddyId)) {
+        return false;
       }
       if (diveIds.isNotEmpty && !diveIds.contains(dive.id)) {
         return false;
