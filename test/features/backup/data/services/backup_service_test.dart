@@ -254,6 +254,17 @@ final _isolatedTempDir = Directory.systemTemp.createTempSync(
   'backup_svc_test_',
 );
 
+/// Whether [dir] lets this process add an entry, which is the same
+/// directory-write permission `unlink` needs to remove one.
+Future<bool> _acceptsNewEntries(Directory dir) async {
+  try {
+    await File('${dir.path}/probe').create();
+    return true;
+  } on FileSystemException {
+    return false;
+  }
+}
+
 void main() {
   tearDownAll(() {
     if (_isolatedTempDir.existsSync()) {
@@ -682,6 +693,16 @@ void main() {
           final lockedPath = '${tempDir.path}/locked_backup.db';
           await File(lockedPath).writeAsString('fake backup data');
           await Process.run('chmod', ['555', tempDir.path]);
+          // Root (and any run where chmod was unavailable or ignored)
+          // bypasses the mode bits, so the locked file would delete cleanly
+          // and the assertions below would fail without exercising the
+          // regression. Probe the directory the same way unlink will
+          // (creating an entry needs the same write access as removing
+          // one) and skip when the denial is not in effect.
+          if (await _acceptsNewEntries(tempDir)) {
+            markTestSkipped('running with permissions that bypass chmod');
+            return;
+          }
 
           await preferences.addRecord(
             BackupRecord(
