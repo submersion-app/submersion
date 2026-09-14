@@ -296,6 +296,30 @@ void main() {
     });
   });
 
+  test('turning on a buddy filter re-reads the maps list', () async {
+    // Unfiltered, the in-memory list does not watch the buddy tables, so a
+    // link synced in meanwhile leaves its hydrated buddies stale. The
+    // filter must not then be applied to that stale data.
+    final container = containerWith(const DiveFilterState());
+    final sub = container.listen(filteredDivesProvider, (_, _) {});
+    addTearDown(sub.close);
+    Set<String>? filteredIds() =>
+        container.read(filteredDivesProvider).value?.map((d) => d.id).toSet();
+    await waitFor(filteredIds, (ids) => ids.length == 2);
+    await link('annDive', 'ann');
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+
+    container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+      buddyNameFilter: 'Ann',
+    );
+
+    expect(await waitFor(filteredIds, (ids) => ids.length == 1), {
+      'annDive',
+    }, reason: 'the link was written while the list was unfiltered');
+  });
+
   test('a local buddy edit reloads the maps list once', () async {
     final counting = _CountingRepository(DiveRepository());
     final container = containerWith(

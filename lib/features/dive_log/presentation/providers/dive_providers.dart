@@ -573,8 +573,9 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // and page-preserving so a local edit-save doesn't shrink the list out
     // from under the diver (#1610).
     //
-    // filteredDivesProvider (the maps) applies the buddy filters to each
-    // dive's hydrated buddies, which a link-only write (a sync pull, a
+    // filteredDivesProvider (the maps) applies the buddy-name and no-buddy
+    // filters to each dive's hydrated buddies (DiveFilterState.apply has no
+    // buddyId clause yet, #1919), which a link-only write (a sync pull, a
     // merge, a rename) changes without a dives write, so under a buddy
     // filter the tick also watches the buddy tables (#1915).
     final divesTick = _BuddyAwareTick(
@@ -582,10 +583,14 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
       withBuddyLinks: _repository.watchDivesChangesWithBuddyLinks,
       onTick: _silentReload,
     );
-    _ref.listen<DiveFilterState>(
-      diveFilterProvider,
-      (_, next) => divesTick.follow(next.readsBuddyLinks),
-    );
+    _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
+      final entering =
+          next.readsBuddyLinks && !(previous?.readsBuddyLinks ?? false);
+      divesTick.follow(next.readsBuddyLinks);
+      // Unfiltered, buddy-only writes were not watched, so the hydrated
+      // buddies may be stale; re-read them before the new filter sees them.
+      if (entering) _silentReload();
+    });
     divesTick.follow(_ref.read(diveFilterProvider).readsBuddyLinks);
     _ref.onDispose(divesTick.cancel);
   }
