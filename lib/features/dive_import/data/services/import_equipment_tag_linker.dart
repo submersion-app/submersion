@@ -19,8 +19,8 @@ class ImportEquipmentTagLinker {
   final EquipmentTagRepository links;
 
   /// [items] are the file's equipment maps. [equipmentIdMapping] and
-  /// [tagIdMapping] map the file's ids (or, for a duplicate linked by name,
-  /// the name) to local ids.
+  /// [tagIdMapping] map the file's ids to local ids; an item with no id is
+  /// keyed by its name, whether it was linked to a duplicate or created.
   Future<void> link({
     required List<Map<String, dynamic>> items,
     required Map<String, String> equipmentIdMapping,
