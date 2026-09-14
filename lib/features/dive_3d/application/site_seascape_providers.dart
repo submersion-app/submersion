@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -101,18 +102,25 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
   final paths = await Future.wait(
     kept.map((d) => ref.watch(spatialReckonedPathProvider(d.id).future)),
   );
+  // A linked primary route carries its own georeferenced start point
+  // (`anchor`), set by the diver on the alignment page; when present it
+  // places the measured route where the diver actually put it, rather than
+  // the dive's own entry fix.
+  final routes = await Future.wait(
+    kept.map((d) => ref.watch(primaryNavTrackForDiveProvider(d.id).future)),
+  );
   final divePaths = <SiteDivePathInput>[];
   for (var i = 0; i < kept.length; i++) {
     final path = paths[i];
     if (path == null || path.points.length < 2) continue;
-    final entry = kept[i].entryLocation;
+    final anchorPoint = routes[i]?.anchor ?? kept[i].entryLocation;
     divePaths.add(
       SiteDivePathInput(
         diveId: kept[i].id,
         path: path,
-        anchor: entry == null
+        anchor: anchorPoint == null
             ? (east: 0.0, north: 0.0)
-            : enuOffsetMeters(center, entry),
+            : enuOffsetMeters(center, anchorPoint),
       ),
     );
   }

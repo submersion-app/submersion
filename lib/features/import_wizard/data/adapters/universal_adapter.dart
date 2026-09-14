@@ -1180,6 +1180,8 @@ class UniversalAdapter implements ImportSourceAdapter {
             },
             importedDives: importedByFileId['f$i'] ?? 0,
             error: f.error,
+            isNavTrackRoute: f.detection.format == ui.ImportFormat.navTrack,
+            filePath: f.path,
           ),
       ];
     }

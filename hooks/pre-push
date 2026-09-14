@@ -292,6 +292,20 @@ format_check() {
     if [ "${#changed_dart[@]}" -eq 0 ]; then
         return 0
     fi
+    # A large merge can list enough paths to overflow the Windows command-line
+    # length limit when dart.bat re-exec's the real dart.exe (observed failing
+    # around 100+ files as "Argument list too long"). Falling back to the
+    # whole-project check keeps that case correct instead of erroring out on
+    # a change that would otherwise format cleanly.
+    local total_len=0
+    for f in "${changed_dart[@]}"; do
+        total_len=$((total_len + ${#f} + 1))
+    done
+    if [ "$total_len" -gt 4000 ]; then
+        echo "(changed file list too long for the command line; formatting the whole project)"
+        dart format --set-exit-if-changed .
+        return
+    fi
     dart format --set-exit-if-changed "${changed_dart[@]}"
 }
 
@@ -571,7 +585,30 @@ if [ "${#test_files[@]}" -gt 0 ]; then
         printf '   %s\n' "${test_files[@]}"
     fi
     echo ""
-    if ! run_tests "${test_files[@]}"; then
+    # Same Windows command-line overflow as the format check above, but here
+    # flutter.bat is the one re-exec'ing: a large merge easily selects
+    # thousands of affected test files. Running the whole suite instead would
+    # sidestep the limit but pulls in every test, including ones the
+    # selection deliberately excluded (distant single-hit importers, most
+    # generated-l10n importers) -- so batch the explicit list into chunks
+    # under the limit instead, preserving the scoped selection.
+    batch=()
+    batch_len=0
+    test_run_ok=1
+    for t in "${test_files[@]}"; do
+        t_len=$((${#t} + 1))
+        if [ "${#batch[@]}" -gt 0 ] && [ "$((batch_len + t_len))" -gt 3000 ]; then
+            run_tests "${batch[@]}" || test_run_ok=0
+            batch=()
+            batch_len=0
+        fi
+        batch+=("$t")
+        batch_len=$((batch_len + t_len))
+    done
+    if [ "${#batch[@]}" -gt 0 ]; then
+        run_tests "${batch[@]}" || test_run_ok=0
+    fi
+    if [ "$test_run_ok" = "0" ]; then
         echo ""
         echo "❌ Tests failed! Fix the failing tests before pushing."
         echo "   (RUN_ALL_TESTS=1 git push runs the full suite; CI runs it regardless.)"
