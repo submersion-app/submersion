@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -466,10 +467,10 @@ class EquipmentRepository {
     }
   }
 
-  /// Delete equipment. Service schedules, service records, and assembly
-  /// component rows are first-class synced children cascade-deleted by
-  /// SQLite, but cascades emit no deletion-log entries, so each is
-  /// tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
+  /// Delete equipment. Service schedules, service records, assembly
+  /// component rows and tag links are first-class synced children
+  /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
+  /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
   /// Cylinders linked to the item are cleared and staged for sync.
   Future<void> deleteEquipment(String id) async {
     try {
@@ -516,6 +517,9 @@ class EquipmentRepository {
         await clearCylinderGearLinks(_db, _syncRepository, [
           id,
         ], now: DateTime.now().millisecondsSinceEpoch);
+        // Tag links (issue #1942): deleted and tombstoned before the row, so
+        // the cascade finds nothing and every peer drops them too.
+        await EquipmentTagRepository().deleteLinksForEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(

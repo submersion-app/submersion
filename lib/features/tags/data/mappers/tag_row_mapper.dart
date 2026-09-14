@@ -24,6 +24,7 @@ Set<domain.TagScope> tagScopesOf(Tag row) => {
     if (switch (scope) {
       domain.TagScope.dives => row.appliesToDives,
       domain.TagScope.sites => row.appliesToSites,
+      domain.TagScope.equipment => row.appliesToEquipment,
     })
       scope,
 };

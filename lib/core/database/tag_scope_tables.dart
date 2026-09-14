@@ -58,8 +58,18 @@ const siteTagScopeTable = TagScopeTable(
   syncEntity: 'siteTags',
 );
 
+/// Equipment tags (v219, issue #1942). A link never re-stamps its item: the
+/// links are clockless children of the equipment row (#1769).
+const equipmentTagScopeTable = TagScopeTable(
+  scopeColumn: 'applies_to_equipment',
+  junctionTable: 'equipment_tags',
+  parentColumn: 'equipment_id',
+  syncEntity: 'equipmentTags',
+);
+
 /// Every scope, in display order.
 const List<TagScopeTable> tagScopeTables = [
   diveTagScopeTable,
   siteTagScopeTable,
+  equipmentTagScopeTable,
 ];

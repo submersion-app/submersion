@@ -20512,6 +20512,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'התגית הזו מופיעה ב-$count פריטי ציוד. כיבוי \"שימוש לציוד\" יסיר אותה מפריטים אלה.',
+      one:
+          'התגית הזו מופיעה בפריט ציוד אחד. כיבוי \"שימוש לציוד\" יסיר אותה מפריט זה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20534,6 +20547,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_scope_dives => 'צלילות';
 
   @override
+  String get tags_manage_scope_equipment => 'ציוד';
+
+  @override
   String get tags_manage_scope_sites => 'אתרים';
 
   @override
@@ -20549,7 +20565,22 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+      zero: '0 פריטי ציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'שימוש לצלילות';
+
+  @override
+  String get tags_manage_useForEquipment => 'שימוש לציוד';
 
   @override
   String get tags_manage_useForSites => 'שימוש לאתרים';

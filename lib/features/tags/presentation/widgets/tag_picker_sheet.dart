@@ -18,9 +18,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Tags already on the dive are omitted entirely -- every row in the list is
 /// an addition, which is what lets the confirm button count ticks.
 ///
-/// [scope] says what is being tagged (issue #1765): a dive lists only dive
-/// tags, most used on dives first; a site lists only site tags, most used on
-/// sites first, each with its site count.
+/// [scope] says what is being tagged (issues #1765, #1942): the sheet lists
+/// only tags offered in that scope, most used there first, each with its
+/// count in that scope.
 class TagPickerSheet extends ConsumerStatefulWidget {
   const TagPickerSheet({
     super.key,
@@ -40,7 +40,7 @@ class TagPickerSheet extends ConsumerStatefulWidget {
   /// Called with the ticked tags, most-used first.
   final void Function(List<Tag> tags) onTagsPicked;
 
-  /// Dive tags or site tags.
+  /// Whose tags these are: dive, site or equipment tags.
   final TagScope scope;
 
   @override

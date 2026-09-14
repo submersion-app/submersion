@@ -20664,6 +20664,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      many:
+          'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      few:
+          'هذا الوسم على $count قطع معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      two:
+          'هذا الوسم على قطعتي معدات. إيقاف \"استخدام للمعدات\" يزيله من هاتين القطعتين.',
+      one:
+          'هذا الوسم على قطعة معدات واحدة. إيقاف \"استخدام للمعدات\" يزيله من تلك القطعة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20687,6 +20706,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_manage_scope_dives => 'الغوصات';
 
   @override
+  String get tags_manage_scope_equipment => 'المعدات';
+
+  @override
   String get tags_manage_scope_sites => 'المواقع';
 
   @override
@@ -20702,7 +20724,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطعة معدات',
+      many: '$count قطعة معدات',
+      few: '$count قطع معدات',
+      two: 'قطعتا معدات',
+      one: 'قطعة معدات واحدة',
+      zero: '0 قطع معدات',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'استخدام للغوصات';
+
+  @override
+  String get tags_manage_useForEquipment => 'استخدام للمعدات';
 
   @override
   String get tags_manage_useForSites => 'استخدام للمواقع';

@@ -7,16 +7,18 @@ import 'package:submersion/core/database/tag_scope_tables.dart';
 /// one. Member order follows [tagScopeTables], which is the display order.
 enum TagScope {
   dives,
-  sites;
+  sites,
+  equipment;
 
   /// Where this scope stores its flag and its links.
   TagScopeTable get table => switch (this) {
     TagScope.dives => diveTagScopeTable,
     TagScope.sites => siteTagScopeTable,
+    TagScope.equipment => equipmentTagScopeTable,
   };
 }
 
-/// Tag entity for organizing dives and dive sites
+/// Tag entity for organizing dives, dive sites and equipment
 class Tag extends Equatable {
   final String id;
   final String? diverId;
