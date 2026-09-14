@@ -6246,7 +6246,7 @@
   "tags_manage_narrowDialog_equipment": "{count, plural, =1{התגית הזו מופיעה בפריט ציוד אחד. כיבוי \"שימוש לציוד\" יסיר אותה מפריט זה.} other{התגית הזו מופיעה ב-{count} פריטי ציוד. כיבוי \"שימוש לציוד\" יסיר אותה מפריטים אלה.}}",
   "tags_manage_narrowDialog_sites": "{count, plural, =1{התגית הזו מופיעה באתר אחד. כיבוי \"שימוש לאתרים\" יסיר אותה מאתר זה.} other{התגית הזו מופיעה ב-{count} אתרים. כיבוי \"שימוש לאתרים\" יסיר אותה מאתרים אלה.}}",
   "tags_manage_narrowDialog_title": "להסיר את התגית מפריטים קיימים?",
-  "tags_manage_scopeRequired": "בחר צלילות, אתרים או את שניהם",
+  "tags_manage_scopeRequired": "בחר לפחות אחד: צלילות, אתרים או ציוד",
   "tags_manage_scope_dives": "צלילות",
   "tags_manage_scope_equipment": "ציוד",
   "tags_manage_scope_sites": "אתרים",

@@ -6246,7 +6246,7 @@
   "tags_manage_narrowDialog_equipment": "{count, plural, =1{Dieser Tag ist an 1 Ausrüstungsteil. Wenn „Für Ausrüstung verwenden“ ausgeschaltet wird, wird er von diesem Ausrüstungsteil entfernt.} other{Dieser Tag ist an {count} Ausrüstungsteilen. Wenn „Für Ausrüstung verwenden“ ausgeschaltet wird, wird er von diesen Ausrüstungsteilen entfernt.}}",
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Dieser Tag ist an 1 Tauchplatz. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesem Tauchplatz entfernt.} other{Dieser Tag ist an {count} Tauchplätzen. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesen Tauchplätzen entfernt.}}",
   "tags_manage_narrowDialog_title": "Tag von vorhandenen Einträgen entfernen?",
-  "tags_manage_scopeRequired": "Tauchgänge, Tauchplätze oder beides wählen",
+  "tags_manage_scopeRequired": "Mindestens eines wählen: Tauchgänge, Tauchplätze oder Ausrüstung",
   "tags_manage_scope_dives": "Tauchgänge",
   "tags_manage_scope_equipment": "Ausrüstung",
   "tags_manage_scope_sites": "Tauchplätze",

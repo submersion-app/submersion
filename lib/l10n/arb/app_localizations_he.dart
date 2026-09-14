@@ -20541,7 +20541,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_narrowDialog_title => 'להסיר את התגית מפריטים קיימים?';
 
   @override
-  String get tags_manage_scopeRequired => 'בחר צלילות, אתרים או את שניהם';
+  String get tags_manage_scopeRequired =>
+      'בחר לפחות אחד: צלילות, אתרים או ציוד';
 
   @override
   String get tags_manage_scope_dives => 'צלילות';

@@ -21085,7 +21085,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rimuovere il tag dagli elementi esistenti?';
 
   @override
-  String get tags_manage_scopeRequired => 'Scegli immersioni, siti o entrambi';
+  String get tags_manage_scopeRequired =>
+      'Scegli almeno uno: immersioni, siti o attrezzatura';
 
   @override
   String get tags_manage_scope_dives => 'Immersioni';

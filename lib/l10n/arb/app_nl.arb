@@ -6246,7 +6246,7 @@
   "tags_manage_narrowDialog_equipment": "{count, plural, =1{Deze tag staat op 1 uitrustingsstuk. Als je \"Gebruiken voor uitrusting\" uitzet, wordt hij van dat uitrustingsstuk verwijderd.} other{Deze tag staat op {count} uitrustingsstukken. Als je \"Gebruiken voor uitrusting\" uitzet, wordt hij van die uitrustingsstukken verwijderd.}}",
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Deze tag staat op 1 duikstek. Als je \"Gebruiken voor duikstekken\" uitzet, wordt hij van die duikstek verwijderd.} other{Deze tag staat op {count} duikstekken. Als je \"Gebruiken voor duikstekken\" uitzet, wordt hij van die duikstekken verwijderd.}}",
   "tags_manage_narrowDialog_title": "Tag van bestaande items verwijderen?",
-  "tags_manage_scopeRequired": "Kies duiken, duikstekken of beide",
+  "tags_manage_scopeRequired": "Kies er minstens één: duiken, duikstekken of uitrusting",
   "tags_manage_scope_dives": "Duiken",
   "tags_manage_scope_equipment": "Uitrusting",
   "tags_manage_scope_sites": "Duikstekken",

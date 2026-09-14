@@ -6424,7 +6424,7 @@
   "tags_manage_narrowDialog_equipment": "{count, plural, =1{此标签用于 1 件装备。关闭“用于装备”将从该装备中移除它。} other{此标签用于 {count} 件装备。关闭“用于装备”将从这些装备中移除它。}}",
   "tags_manage_narrowDialog_sites": "{count, plural, =1{此标签用于 1 个潜水点。关闭“用于潜水点”将从该潜水点移除它。} other{此标签用于 {count} 个潜水点。关闭“用于潜水点”将从这些潜水点移除它。}}",
   "tags_manage_narrowDialog_title": "从现有项目中移除此标签？",
-  "tags_manage_scopeRequired": "请选择潜水、潜水点或两者",
+  "tags_manage_scopeRequired": "请至少选择一项：潜水、潜水点或装备",
   "tags_manage_scope_dives": "潜水",
   "tags_manage_scope_equipment": "装备",
   "tags_manage_scope_sites": "潜水点",

@@ -20723,7 +20723,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remove tag from existing items?';
 
   @override
-  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+  String get tags_manage_scopeRequired =>
+      'Choose at least one: dives, sites, or equipment';
 
   @override
   String get tags_manage_scope_dives => 'Dives';

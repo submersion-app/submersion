@@ -131,11 +131,17 @@ void main() {
     await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Choose dives, sites, or both'), findsOneWidget);
+    expect(
+      find.text('Choose at least one: dives, sites, or equipment'),
+      findsOneWidget,
+    );
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
     await tester.pumpAndSettle();
 
     // Still open, nothing written.
-    expect(find.text('Choose dives, sites, or both'), findsOneWidget);
+    expect(
+      find.text('Choose at least one: dives, sites, or equipment'),
+      findsOneWidget,
+    );
   });
 }

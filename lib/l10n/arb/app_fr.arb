@@ -6142,7 +6142,7 @@
   "tags_manage_narrowDialog_equipment": "{count, plural, =1{Cette étiquette est sur 1 équipement. Désactiver « Utiliser pour l'équipement » la retire de cet équipement.} other{Cette étiquette est sur {count} équipements. Désactiver « Utiliser pour l'équipement » la retire de ces équipements.}}",
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Cette étiquette est sur 1 site. Désactiver « Utiliser pour les sites » la retire de ce site.} other{Cette étiquette est sur {count} sites. Désactiver « Utiliser pour les sites » la retire de ces sites.}}",
   "tags_manage_narrowDialog_title": "Retirer l'étiquette des éléments existants ?",
-  "tags_manage_scopeRequired": "Choisissez les plongées, les sites ou les deux",
+  "tags_manage_scopeRequired": "Choisissez au moins une option : plongées, sites ou équipement",
   "tags_manage_scope_dives": "Plongées",
   "tags_manage_scope_equipment": "Équipement",
   "tags_manage_scope_sites": "Sites",

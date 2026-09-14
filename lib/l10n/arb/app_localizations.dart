@@ -34452,7 +34452,7 @@ abstract class AppLocalizations {
   /// No description provided for @tags_manage_scopeRequired.
   ///
   /// In en, this message translates to:
-  /// **'Choose dives, sites, or both'**
+  /// **'Choose at least one: dives, sites, or equipment'**
   String get tags_manage_scopeRequired;
 
   /// No description provided for @tags_manage_scope_dives.

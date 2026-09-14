@@ -12855,7 +12855,7 @@
     }
   },
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
-  "tags_manage_scopeRequired": "Choose dives, sites, or both",
+  "tags_manage_scopeRequired": "Choose at least one: dives, sites, or equipment",
   "tags_manage_scope_dives": "Dives",
   "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",

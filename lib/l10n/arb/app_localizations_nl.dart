@@ -20909,7 +20909,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tag van bestaande items verwijderen?';
 
   @override
-  String get tags_manage_scopeRequired => 'Kies duiken, duikstekken of beide';
+  String get tags_manage_scopeRequired =>
+      'Kies er minstens één: duiken, duikstekken of uitrusting';
 
   @override
   String get tags_manage_scope_dives => 'Duiken';

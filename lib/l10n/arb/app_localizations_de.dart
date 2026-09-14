@@ -21036,7 +21036,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Tauchgänge, Tauchplätze oder beides wählen';
+      'Mindestens eines wählen: Tauchgänge, Tauchplätze oder Ausrüstung';
 
   @override
   String get tags_manage_scope_dives => 'Tauchgänge';

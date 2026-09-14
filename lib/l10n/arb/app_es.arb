@@ -6246,7 +6246,7 @@
   "tags_manage_narrowDialog_equipment": "{count, plural, =1{Esta etiqueta está en 1 equipo. Desactivar «Usar en equipos» la quita de ese equipo.} other{Esta etiqueta está en {count} equipos. Desactivar «Usar en equipos» la quita de esos equipos.}}",
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Esta etiqueta está en 1 punto. Desactivar «Usar en puntos» la quita de ese punto.} other{Esta etiqueta está en {count} puntos. Desactivar «Usar en puntos» la quita de esos puntos.}}",
   "tags_manage_narrowDialog_title": "¿Quitar la etiqueta de los elementos existentes?",
-  "tags_manage_scopeRequired": "Elige inmersiones, puntos o ambos",
+  "tags_manage_scopeRequired": "Elige al menos uno: inmersiones, puntos o equipo",
   "tags_manage_scope_dives": "Inmersiones",
   "tags_manage_scope_equipment": "Equipo",
   "tags_manage_scope_sites": "Puntos",

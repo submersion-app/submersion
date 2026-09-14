@@ -21091,7 +21091,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Remover a etiqueta dos itens existentes?';
 
   @override
-  String get tags_manage_scopeRequired => 'Escolha mergulhos, pontos ou ambos';
+  String get tags_manage_scopeRequired =>
+      'Escolha pelo menos um: mergulhos, pontos ou equipamentos';
 
   @override
   String get tags_manage_scope_dives => 'Mergulhos';

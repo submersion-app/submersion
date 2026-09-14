@@ -21096,7 +21096,8 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Quitar la etiqueta de los elementos existentes?';
 
   @override
-  String get tags_manage_scopeRequired => 'Elige inmersiones, puntos o ambos';
+  String get tags_manage_scopeRequired =>
+      'Elige al menos uno: inmersiones, puntos o equipo';
 
   @override
   String get tags_manage_scope_dives => 'Inmersiones';

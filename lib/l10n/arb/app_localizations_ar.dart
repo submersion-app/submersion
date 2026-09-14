@@ -20700,7 +20700,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'إزالة الوسم من العناصر الحالية؟';
 
   @override
-  String get tags_manage_scopeRequired => 'اختر الغوصات أو المواقع أو كليهما';
+  String get tags_manage_scopeRequired =>
+      'اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات';
 
   @override
   String get tags_manage_scope_dives => 'الغوصات';

@@ -21169,7 +21169,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Choisissez les plongées, les sites ou les deux';
+      'Choisissez au moins une option : plongées, sites ou équipement';
 
   @override
   String get tags_manage_scope_dives => 'Plongées';

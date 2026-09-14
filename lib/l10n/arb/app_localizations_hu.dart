@@ -21028,7 +21028,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Válasszon merüléseket, merülőhelyeket vagy mindkettőt';
+      'Válasszon legalább egyet: merülések, merülőhelyek vagy felszerelés';
 
   @override
   String get tags_manage_scope_dives => 'Merülések';

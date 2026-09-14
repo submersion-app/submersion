@@ -19960,7 +19960,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_narrowDialog_title => '从现有项目中移除此标签？';
 
   @override
-  String get tags_manage_scopeRequired => '请选择潜水、潜水点或两者';
+  String get tags_manage_scopeRequired => '请至少选择一项：潜水、潜水点或装备';
 
   @override
   String get tags_manage_scope_dives => '潜水';
