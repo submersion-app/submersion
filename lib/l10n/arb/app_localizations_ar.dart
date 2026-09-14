@@ -37975,20 +37975,31 @@ class AppLocalizationsAr extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'حُفظت بيانات غوصك بإصدار أحدث من Submersion (المخطط v$databaseVersion). هذا الإصدار يدعم حتى المخطط v$appVersion فقط.';
+    return 'حُفظ سجل غوصك بالمخطط v$databaseVersion بواسطة إصدار أحدث من Submersion. هذا الإصدار يفتح الملفات حتى المخطط v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'يعني هذا عادةً أن إصدارًا تجريبيًا (بيتا) قد رقّى بياناتك، أو أنه تمت استعادة نسخة احتياطية من إصدار أحدث، أو أن الملف مشترك مع جهاز على قناة تحديث مختلفة. قد لا يكون هناك إصدار مستقر أحدث بعد.';
+  String get startup_versionMismatch_causes_lead => 'يحدث هذا عادةً عندما:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'قام إصدار بيتا بترقية الملف.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'تمت استعادة نسخة احتياطية من إصدار أحدث.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'الملف مشترك مع جهاز على قناة تحديث أخرى.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'بياناتك آمنة ولم تُعدَّل. افتحها بالإصدار الذي كتبها، أو بأي إصدار أحدث. إذا أُخذت نسخة احتياطية قبل الترقية، فهي موجودة في مجلد Backups ويمكن استعادتها بمجرد تشغيل إصدار قادر على فتح الملف.';
+      'لم تُعدَّل بياناتك. افتحها بالإصدار الذي كتبها، أو بإصدار أحدث.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'تم تثبيت هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي أنشأ بياناتك. بياناتك آمنة ولم يتم تعديلها. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم أعد فتحه.';
+      'هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي حفظ بياناتك. لم تُعدَّل بياناتك. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم افتحه مجددًا.';
 
   @override
   String get startup_versionMismatch_download => 'البحث عن إصدار مستقر أحدث';
@@ -38002,7 +38013,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'إذا لم تفتح هذه الأزرار متصفحًا، فتفضل بزيارة:';
+      'إذا لم تفتح الأزرار متصفحًا:';
 
   @override
   String get universalImport_compare_downloaded => 'المنزَّلة';
@@ -39741,12 +39752,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'استعادة النسخة الاحتياطية السابقة للترقية';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'توجد على هذا الجهاز نسخة احتياطية من سجل الغوص أُخذت قبل الترقية، وهذا الإصدار يستطيع فتحها.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'كل ما سجّلته بعد الترقية موجود في الملف الأحدث فقط. يُحتفظ بذلك الملف كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيده.';
+      'الغوصات المسجّلة بعد الترقية موجودة في الملف الأحدث فقط. يُحتفظ به كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيدها.';
 
   @override
   String get startup_interruptedRestore_title => 'لم تكتمل عملية استعادة';

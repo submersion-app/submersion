@@ -24,7 +24,6 @@ class StartupRestoreCard extends StatelessWidget {
     required this.error,
     required this.textColor,
     required this.subtitleColor,
-    this.body,
     this.warning,
   });
 
@@ -36,9 +35,6 @@ class StartupRestoreCard extends StatelessWidget {
   final String? error;
   final Color textColor;
   final Color subtitleColor;
-
-  /// Optional lead-in shown above the backup's own details.
-  final String? body;
 
   /// Optional consequence the diver has to weigh before accepting, rendered
   /// last and emphasised. Used by the schema-mismatch screen, where accepting
@@ -77,14 +73,6 @@ class StartupRestoreCard extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            if (body != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                body!,
-                style: TextStyle(fontSize: 13, color: subtitleColor),
-                textAlign: TextAlign.center,
-              ),
-            ],
             const SizedBox(height: 8),
             Text(
               context.l10n.startup_failure_backupAvailable_taken(

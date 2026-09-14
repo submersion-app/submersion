@@ -38103,20 +38103,32 @@ class AppLocalizationsNl extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Je duikgegevens zijn opgeslagen door een nieuwere versie van Submersion (schema v$databaseVersion). Deze versie ondersteunt schema’s alleen tot v$appVersion.';
+    return 'Je duiklogboek is opgeslagen met schema v$databaseVersion door een nieuwere versie van Submersion. Deze versie opent bestanden tot schema v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'Dit betekent meestal dat een bètaversie je gegevens heeft bijgewerkt, dat er een back-up uit een nieuwere versie is teruggezet, of dat het bestand wordt gedeeld met een apparaat op een ander updatekanaal. Een nieuwere stabiele versie bestaat mogelijk nog niet.';
+  String get startup_versionMismatch_causes_lead =>
+      'Dit gebeurt meestal wanneer:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'Een bètaversie heeft het bestand bijgewerkt.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'Er is een back-up uit een nieuwere versie teruggezet.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'Het bestand wordt gedeeld met een apparaat op een ander updatekanaal.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Je gegevens zijn veilig en zijn niet gewijzigd. Open ze met de versie die ze heeft geschreven, of met een latere versie. Als er vóór de upgrade een back-up is gemaakt, staat die in je map Backups en kan die worden teruggezet zodra je een versie gebruikt die het bestand kan openen.';
+      'Je gegevens zijn niet gewijzigd. Open ze met de versie die ze heeft geschreven, of met een latere.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'Deze app is geïnstalleerd vanuit een appstore en is ouder dan de versie die uw gegevens heeft gemaakt. Uw gegevens zijn veilig en niet gewijzigd. Werk Submersion bij zodra de nieuwe versie in de store verschijnt en open de app daarna opnieuw.';
+      'Deze app komt uit een appstore en is ouder dan de versie die uw gegevens heeft opgeslagen. Uw gegevens zijn niet gewijzigd. Werk Submersion bij zodra de nieuwe versie in de store verschijnt en open de app daarna opnieuw.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -38131,7 +38143,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Als die knoppen geen browser openen, ga naar:';
+      'Als de knoppen geen browser openen:';
 
   @override
   String get universalImport_compare_downloaded => 'Gedownload';
@@ -39878,12 +39890,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Back-up van voor de upgrade terugzetten';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'Er staat een veiligheidskopie van je duiklogboek van voor de upgrade op dit apparaat, en deze versie kan die openen.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Alles wat je na de upgrade hebt gelogd, bestaat alleen in het nieuwere bestand. Dat bestand wordt bewaard als vastgezette back-up, dus je krijgt het terug door de nieuwere versie opnieuw te installeren.';
+      'Duiken die na de upgrade zijn gelogd, bestaan alleen in het nieuwere bestand. Dat wordt bewaard als vastgezette back-up, dus je krijgt ze terug door de nieuwere versie opnieuw te installeren.';
 
   @override
   String get startup_interruptedRestore_title =>

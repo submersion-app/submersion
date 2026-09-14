@@ -37803,20 +37803,32 @@ class AppLocalizationsEn extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Your dive data was saved by a newer version of Submersion (schema v$databaseVersion). This version only supports up to schema v$appVersion.';
+    return 'Your dive log was saved at schema v$databaseVersion by a newer version of Submersion. This version opens files up to schema v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.';
+  String get startup_versionMismatch_causes_lead =>
+      'This usually happens when:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'A beta build upgraded the file.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'A backup from a newer build was restored.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'The file is shared with a device on another update channel.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.';
+      'Your data has not been changed. Open it with the build that wrote it, or with a later one.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'This app was installed from an app store and is older than the version that created your data. Your data is safe and has not been modified. Update Submersion when the new version appears in the store, then reopen it.';
+      'This app came from an app store and is older than the version that saved your data. Your data has not been changed. Update Submersion when the new version appears in the store, then open it again.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -37831,7 +37843,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'If those buttons do not open a browser, visit:';
+      'If the buttons do not open a browser:';
 
   @override
   String get universalImport_compare_downloaded => 'Downloaded';
@@ -39542,12 +39554,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Restore your pre-upgrade backup';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.';
+      'Dives logged after the upgrade exist only in the newer file. It is kept as a pinned backup, so installing the newer version again brings them back.';
 
   @override
   String get startup_interruptedRestore_title => 'A restore did not finish';

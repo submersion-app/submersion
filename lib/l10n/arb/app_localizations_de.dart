@@ -38274,20 +38274,31 @@ class AppLocalizationsDe extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Ihre Tauchdaten wurden mit einer neueren Version von Submersion gespeichert (Schema v$databaseVersion). Diese Version unterstützt Schemata nur bis v$appVersion.';
+    return 'Ihr Tauchlogbuch wurde mit Schema v$databaseVersion von einer neueren Version von Submersion gespeichert. Diese Version öffnet Dateien bis Schema v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'Das bedeutet meist, dass ein Beta-Build Ihre Daten aktualisiert hat, dass eine Sicherung aus einem neueren Build wiederhergestellt wurde oder dass die Datei mit einem Gerät in einem anderen Update-Kanal geteilt wird. Eine neuere stabile Version muss noch nicht existieren.';
+  String get startup_versionMismatch_causes_lead => 'Das passiert meist, wenn:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'Ein Beta-Build hat die Datei aktualisiert.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'Eine Sicherung aus einem neueren Build wurde wiederhergestellt.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'Die Datei wird mit einem Gerät in einem anderen Update-Kanal geteilt.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Ihre Daten sind sicher und wurden nicht verändert. Öffnen Sie sie mit dem Build, der sie geschrieben hat, oder mit einem neueren Build. Falls vor dem Upgrade eine Sicherung erstellt wurde, liegt sie in Ihrem Ordner Backups und kann wiederhergestellt werden, sobald Sie einen Build verwenden, der die Datei öffnet.';
+      'Ihre Daten wurden nicht verändert. Öffnen Sie sie mit dem Build, der sie geschrieben hat, oder mit einem neueren.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'Diese App wurde aus einem App Store installiert und ist älter als die Version, die Ihre Daten erstellt hat. Ihre Daten sind sicher und wurden nicht verändert. Aktualisieren Sie Submersion, sobald die neue Version im Store erscheint, und öffnen Sie die App dann erneut.';
+      'Diese App stammt aus einem App Store und ist älter als die Version, die Ihre Daten gespeichert hat. Ihre Daten wurden nicht verändert. Aktualisieren Sie Submersion, sobald die neue Version im Store erscheint, und öffnen Sie sie dann erneut.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -38302,7 +38313,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Falls diese Schaltflächen keinen Browser öffnen, besuchen Sie:';
+      'Falls die Schaltflächen keinen Browser öffnen:';
 
   @override
   String get universalImport_compare_downloaded => 'Heruntergeladen';
@@ -40067,12 +40078,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sicherung von vor dem Upgrade wiederherstellen';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'Eine Sicherheitskopie deines Tauchlogbuchs von vor dem Upgrade liegt auf diesem Gerät, und diese Version kann sie öffnen.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Alles, was du nach dem Upgrade eingetragen hast, liegt nur in der neueren Datei. Diese Datei wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.';
+      'Tauchgänge, die nach dem Upgrade eingetragen wurden, liegen nur in der neueren Datei. Sie wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.';
 
   @override
   String get startup_interruptedRestore_title =>

@@ -38376,20 +38376,32 @@ class AppLocalizationsPt extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Seus dados de mergulho foram salvos por uma versão mais recente do Submersion (esquema v$databaseVersion). Esta versão suporta apenas até o esquema v$appVersion.';
+    return 'Seu registro de mergulhos foi salvo no esquema v$databaseVersion por uma versão mais recente do Submersion. Esta versão abre arquivos até o esquema v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'Isso geralmente significa que uma versão beta atualizou seus dados, que um backup de uma versão mais recente foi restaurado, ou que o arquivo é compartilhado com um dispositivo em outro canal de atualização. Pode ser que ainda não exista uma versão estável mais recente.';
+  String get startup_versionMismatch_causes_lead =>
+      'Isso geralmente acontece quando:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'Uma versão beta atualizou o arquivo.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'Um backup de uma versão mais recente foi restaurado.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'O arquivo é compartilhado com um dispositivo em outro canal de atualização.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Seus dados estão seguros e não foram modificados. Abra-os com a versão que os gravou, ou com qualquer versão posterior. Se um backup foi feito antes da atualização, ele está na sua pasta Backups e pode ser restaurado assim que você estiver usando uma versão que consiga abrir o arquivo.';
+      'Seus dados não foram modificados. Abra-os com a versão que os gravou, ou com uma posterior.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'Esta app foi instalada a partir de uma loja de aplicações e é mais antiga do que a versão que criou os seus dados. Os seus dados estão seguros e não foram modificados. Atualize o Submersion quando a nova versão aparecer na loja e volte a abri-lo.';
+      'Esta app veio de uma loja de aplicações e é mais antiga do que a versão que guardou os seus dados. Os seus dados não foram modificados. Atualize o Submersion quando a nova versão aparecer na loja e volte a abri-lo.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -38404,7 +38416,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Se esses botões não abrirem um navegador, acesse:';
+      'Se os botões não abrirem um navegador:';
 
   @override
   String get universalImport_compare_downloaded => 'Baixado';
@@ -40157,12 +40169,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Restaurar a cópia anterior à atualização';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'Existe neste dispositivo uma cópia de segurança do teu registo de mergulhos feita antes da atualização, e esta versão consegue abri-la.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Tudo o que registaste depois da atualização existe apenas no ficheiro mais recente. Esse ficheiro fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-o.';
+      'Os mergulhos registados depois da atualização existem apenas no ficheiro mais recente. Ele fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-os.';
 
   @override
   String get startup_interruptedRestore_title => 'Um restauro não terminou';

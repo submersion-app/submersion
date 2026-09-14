@@ -188,6 +188,56 @@ void main() {
     expect(restored, 1);
   });
 
+  testWidgets('keeps the copy in a readable column on a wide window', (
+    tester,
+  ) async {
+    // The screen used to run its prose across the whole desktop window: a
+    // 2000px window produced 150-character lines. Prose and the card are
+    // capped at a measure a reader can track back from.
+    tester.view.physicalSize = const Size(1800, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      host(
+        buildView(
+          UpdateChannel.github,
+          restoreCandidate: candidate(),
+          onRestoreBackup: () {},
+        ),
+      ),
+    );
+
+    // A literal rather than the widget's own constant, so that loosening the
+    // cap cannot loosen this assertion with it. 600px is about 85 characters
+    // at body size, the upper edge of a comfortable measure.
+    const readableMeasure = 600.0;
+    final body = find.textContaining('This version opens files');
+    expect(body, findsOneWidget);
+    expect(tester.getSize(body).width, lessThanOrEqualTo(readableMeasure));
+    expect(
+      tester.getSize(find.byType(Card)).width,
+      lessThanOrEqualTo(readableMeasure),
+    );
+  });
+
+  testWidgets('does not send the diver to the Backups folder when the restore '
+      'is offered right here', (tester) async {
+    // The card and the paragraph under it used to describe the same backup
+    // twice, once as a button and once as a folder to go and find later.
+    await tester.pumpWidget(
+      host(
+        buildView(
+          UpdateChannel.github,
+          restoreCandidate: candidate(),
+          onRestoreBackup: () {},
+        ),
+      ),
+    );
+
+    expect(find.textContaining('Backups folder'), findsNothing);
+    expect(find.textContaining('has not been changed'), findsOneWidget);
+  });
+
   testWidgets('the restore does not displace the stable download as the '
       'primary button', (tester) async {
     // Which route is right depends on facts this build does not have (#1588).

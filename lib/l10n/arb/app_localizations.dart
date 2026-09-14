@@ -62268,28 +62268,46 @@ abstract class AppLocalizations {
   /// Explains a database written by a newer app build. Object, not int, so schema numbers are never group-separated.
   ///
   /// In en, this message translates to:
-  /// **'Your dive data was saved by a newer version of Submersion (schema v{databaseVersion}). This version only supports up to schema v{appVersion}.'**
+  /// **'Your dive log was saved at schema v{databaseVersion} by a newer version of Submersion. This version opens files up to schema v{appVersion}.'**
   String startup_versionMismatch_body(
     Object databaseVersion,
     Object appVersion,
   );
 
-  /// No description provided for @startup_versionMismatch_causes.
+  /// No description provided for @startup_versionMismatch_causes_lead.
   ///
   /// In en, this message translates to:
-  /// **'This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.'**
-  String get startup_versionMismatch_causes;
+  /// **'This usually happens when:'**
+  String get startup_versionMismatch_causes_lead;
+
+  /// No description provided for @startup_versionMismatch_cause_beta.
+  ///
+  /// In en, this message translates to:
+  /// **'A beta build upgraded the file.'**
+  String get startup_versionMismatch_cause_beta;
+
+  /// No description provided for @startup_versionMismatch_cause_restored.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup from a newer build was restored.'**
+  String get startup_versionMismatch_cause_restored;
+
+  /// No description provided for @startup_versionMismatch_cause_shared.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is shared with a device on another update channel.'**
+  String get startup_versionMismatch_cause_shared;
 
   /// No description provided for @startup_versionMismatch_instructions.
   ///
   /// In en, this message translates to:
-  /// **'Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.'**
+  /// **'Your data has not been changed. Open it with the build that wrote it, or with a later one.'**
   String get startup_versionMismatch_instructions;
 
   /// No description provided for @startup_versionMismatch_storeInstructions.
   ///
   /// In en, this message translates to:
-  /// **'This app was installed from an app store and is older than the version that created your data. Your data is safe and has not been modified. Update Submersion when the new version appears in the store, then reopen it.'**
+  /// **'This app came from an app store and is older than the version that saved your data. Your data has not been changed. Update Submersion when the new version appears in the store, then open it again.'**
   String get startup_versionMismatch_storeInstructions;
 
   /// No description provided for @startup_versionMismatch_download.
@@ -62313,7 +62331,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_versionMismatch_manualLink.
   ///
   /// In en, this message translates to:
-  /// **'If those buttons do not open a browser, visit:'**
+  /// **'If the buttons do not open a browser:'**
   String get startup_versionMismatch_manualLink;
 
   /// No description provided for @universalImport_compare_downloaded.
@@ -64992,16 +65010,10 @@ abstract class AppLocalizations {
   /// **'Restore your pre-upgrade backup'**
   String get startup_versionMismatch_restore_title;
 
-  /// No description provided for @startup_versionMismatch_restore_body.
-  ///
-  /// In en, this message translates to:
-  /// **'A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.'**
-  String get startup_versionMismatch_restore_body;
-
   /// No description provided for @startup_versionMismatch_restore_warning.
   ///
   /// In en, this message translates to:
-  /// **'Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.'**
+  /// **'Dives logged after the upgrade exist only in the newer file. It is kept as a pinned backup, so installing the newer version again brings them back.'**
   String get startup_versionMismatch_restore_warning;
 
   /// No description provided for @startup_interruptedRestore_title.
