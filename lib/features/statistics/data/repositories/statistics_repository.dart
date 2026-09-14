@@ -1658,36 +1658,16 @@ class StatisticsRepository {
   }) async {
     try {
       final edges = waterTempBandEdges(unit);
-      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'dives');
-      // A fixed expression chosen by the enum, never user text.
-      final displayTemp = switch (unit) {
-        TemperatureUnit.celsius => 'water_temp',
-        TemperatureUnit.fahrenheit => 'water_temp * 9.0 / 5.0 + 32.0',
-      };
-      // Highest edge first so the first matching WHEN is the dive's band.
-      // Edge variables come first: they appear before the diver and filter
-      // placeholders in the statement below, and Drift binds positionally.
-      final whens = [
-        for (var i = edges.length - 1; i >= 0; i--)
-          'WHEN temp >= ? THEN ${i + 1}',
-      ].join('\n            ');
-      final params = [...edges.reversed, ?diverId, ...df.params];
+      final perDive = _waterTempBandPerDiveQuery(
+        unit: unit,
+        diverId: diverId,
+        filter: filter,
+      );
 
       final results = await _db.customSelect('''
-        SELECT band, COUNT(*) AS count FROM (
-          SELECT CASE
-            $whens
-            ELSE 0
-          END AS band
-          FROM (
-            SELECT ROUND($displayTemp, 1) AS temp
-            FROM dives
-            WHERE water_temp IS NOT NULL $diverFilter ${df.clause}
-          )
-        )
+        SELECT band, COUNT(*) AS count FROM (${perDive.sql})
         GROUP BY band
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
+        ''', variables: perDive.params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return [];
       final counts = <int, int>{
@@ -1711,6 +1691,88 @@ class StatisticsRepository {
       );
       return [];
     }
+  }
+
+  /// The water-temperature band of every dive in scope that has a water
+  /// temperature, as an index into the bands [getDivesByWaterTempBand]
+  /// returns (issue #1873).
+  ///
+  /// Shares its binning with that count, so a per-band average places each
+  /// dive in the band the chart counted it in. Uses the normal statistics
+  /// scope: callers narrow to the gas scope through the per-dive SAC data.
+  Future<Map<String, int>> getWaterTempBandPerDive({
+    required TemperatureUnit unit,
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final perDive = _waterTempBandPerDiveQuery(
+        unit: unit,
+        diverId: diverId,
+        filter: filter,
+      );
+      final results = await _db
+          .customSelect(
+            perDive.sql,
+            variables: perDive.params.map((p) => Variable(p)).toList(),
+          )
+          .get();
+      return {
+        for (final row in results)
+          row.read<String>('dive_id'): row.read<int>('band'),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get water temperature band per dive',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {};
+    }
+  }
+
+  /// One `(dive_id, band)` row per dive in scope with a water temperature,
+  /// and the variables it binds, in order.
+  ///
+  /// Each dive's stored Celsius reading is converted to [unit] and rounded to
+  /// the one decimal `UnitFormatter.formatTemperature` shows before it is
+  /// compared, so a dive displayed as "65°F" lands in the band that starts at
+  /// 65 even when it was stored as 18.33 °C (64.994 °F).
+  ({String sql, List<Object?> params}) _waterTempBandPerDiveQuery({
+    required TemperatureUnit unit,
+    String? diverId,
+    required DiveFilterState filter,
+  }) {
+    final edges = waterTempBandEdges(unit);
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final df = _diveFilter(filter, alias: 'dives');
+    // A fixed expression chosen by the enum, never user text.
+    final displayTemp = switch (unit) {
+      TemperatureUnit.celsius => 'water_temp',
+      TemperatureUnit.fahrenheit => 'water_temp * 9.0 / 5.0 + 32.0',
+    };
+    // Highest edge first so the first matching WHEN is the dive's band.
+    // Edge variables come first: they appear before the diver and filter
+    // placeholders in the statement below, and Drift binds positionally.
+    final whens = [
+      for (var i = edges.length - 1; i >= 0; i--)
+        'WHEN temp >= ? THEN ${i + 1}',
+    ].join('\n          ');
+    return (
+      sql:
+          '''
+        SELECT dive_id, CASE
+          $whens
+          ELSE 0
+        END AS band
+        FROM (
+          SELECT id AS dive_id, ROUND($displayTemp, 1) AS temp
+          FROM dives
+          WHERE water_temp IS NOT NULL $diverFilter ${df.clause}
+        )
+        ''',
+      params: [...edges.reversed, ?diverId, ...df.params],
+    );
   }
 
   // ============================================================================

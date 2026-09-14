@@ -38576,6 +38576,48 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => 'טווח';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => 'צלילות';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => 'SAC ממוצע';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => 'RMV ממוצע';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      'זמן תחתית ממוצע';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error =>
+      'טעינת הממוצעים לפי טווח נכשלה';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value מתוך $dives';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData => 'אין נתונים';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band: $dives. $lane ממוצע: $consumption. זמן תחתית ממוצע: $bottomTime.';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '5 השנים האחרונות';
 
   @override

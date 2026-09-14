@@ -24029,6 +24029,74 @@
       }
     }
   },
+  "statistics_conditions_waterTempBands_table_band": "Band",
+  "@statistics_conditions_waterTempBands_table_band": {
+    "description": "Header of the first column of the per-band averages table on the dives-by-water-temperature card: the water-temperature band, such as 10-18°C"
+  },
+  "statistics_conditions_waterTempBands_table_dives": "Dives",
+  "@statistics_conditions_waterTempBands_table_dives": {
+    "description": "Header of the column of the per-band averages table that counts every dive in the band"
+  },
+  "statistics_conditions_waterTempBands_table_avgSac": "Avg SAC",
+  "@statistics_conditions_waterTempBands_table_avgSac": {
+    "description": "Header of the column of the per-band averages table showing the average SAC (tank-pressure drop per minute) of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_avgRmv": "Avg RMV",
+  "@statistics_conditions_waterTempBands_table_avgRmv": {
+    "description": "Header of the column of the per-band averages table showing the average RMV (surface gas volume per minute) of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_avgBottomTime": "Avg bottom time",
+  "@statistics_conditions_waterTempBands_table_avgBottomTime": {
+    "description": "Header of the column of the per-band averages table showing the average bottom time of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_error": "Failed to load band averages",
+  "@statistics_conditions_waterTempBands_table_error": {
+    "description": "Shown in place of the per-band averages table on the dives-by-water-temperature card when the averages could not be loaded"
+  },
+  "statistics_conditions_waterTempBands_table_averageOver": "{value} over {dives}",
+  "@statistics_conditions_waterTempBands_table_averageOver": {
+    "description": "Screen-reader text for one average and how many dives it is based on",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "1.1 bar/min"
+      },
+      "dives": {
+        "type": "String",
+        "example": "17 dives"
+      }
+    }
+  },
+  "statistics_conditions_waterTempBands_table_noData": "no data",
+  "@statistics_conditions_waterTempBands_table_noData": {
+    "description": "Screen-reader text for an average the band has no dives for, read in place of the value (the table itself shows --)"
+  },
+  "statistics_conditions_waterTempBands_table_rowSemanticLabel": "{band}: {dives}. Average {lane}: {consumption}. Average bottom time: {bottomTime}.",
+  "@statistics_conditions_waterTempBands_table_rowSemanticLabel": {
+    "description": "Screen-reader summary of one row of the per-band averages table: the band, its dive count, its average gas consumption and its average bottom time",
+    "placeholders": {
+      "band": {
+        "type": "String",
+        "example": "65-75°F"
+      },
+      "dives": {
+        "type": "String",
+        "example": "20 dives"
+      },
+      "lane": {
+        "type": "String",
+        "example": "SAC"
+      },
+      "consumption": {
+        "type": "String",
+        "example": "1.1 bar/min over 17 dives"
+      },
+      "bottomTime": {
+        "type": "String",
+        "example": "52 min over 20 dives"
+      }
+    }
+  },
   "diveLog_filter_presetLast5Years": "Last 5 years",
   "diveLog_filter_presetLast10Years": "Last 10 years",
   "statistics_trend_tooltip_lowest": "Lowest",

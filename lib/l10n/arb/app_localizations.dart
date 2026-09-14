@@ -64001,6 +64001,69 @@ abstract class AppLocalizations {
   /// **'Bar chart. Dives by water temperature. {description}'**
   String statistics_conditions_waterTempBands_semanticLabel(String description);
 
+  /// Header of the first column of the per-band averages table on the dives-by-water-temperature card: the water-temperature band, such as 10-18°C
+  ///
+  /// In en, this message translates to:
+  /// **'Band'**
+  String get statistics_conditions_waterTempBands_table_band;
+
+  /// Header of the column of the per-band averages table that counts every dive in the band
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get statistics_conditions_waterTempBands_table_dives;
+
+  /// Header of the column of the per-band averages table showing the average SAC (tank-pressure drop per minute) of the band's dives
+  ///
+  /// In en, this message translates to:
+  /// **'Avg SAC'**
+  String get statistics_conditions_waterTempBands_table_avgSac;
+
+  /// Header of the column of the per-band averages table showing the average RMV (surface gas volume per minute) of the band's dives
+  ///
+  /// In en, this message translates to:
+  /// **'Avg RMV'**
+  String get statistics_conditions_waterTempBands_table_avgRmv;
+
+  /// Header of the column of the per-band averages table showing the average bottom time of the band's dives
+  ///
+  /// In en, this message translates to:
+  /// **'Avg bottom time'**
+  String get statistics_conditions_waterTempBands_table_avgBottomTime;
+
+  /// Shown in place of the per-band averages table on the dives-by-water-temperature card when the averages could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load band averages'**
+  String get statistics_conditions_waterTempBands_table_error;
+
+  /// Screen-reader text for one average and how many dives it is based on
+  ///
+  /// In en, this message translates to:
+  /// **'{value} over {dives}'**
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  );
+
+  /// Screen-reader text for an average the band has no dives for, read in place of the value (the table itself shows --)
+  ///
+  /// In en, this message translates to:
+  /// **'no data'**
+  String get statistics_conditions_waterTempBands_table_noData;
+
+  /// Screen-reader summary of one row of the per-band averages table: the band, its dive count, its average gas consumption and its average bottom time
+  ///
+  /// In en, this message translates to:
+  /// **'{band}: {dives}. Average {lane}: {consumption}. Average bottom time: {bottomTime}.'**
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  );
+
   /// No description provided for @diveLog_filter_presetLast5Years.
   ///
   /// In en, this message translates to:

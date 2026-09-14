@@ -12,6 +12,7 @@ import 'package:submersion/features/statistics/presentation/providers/statistics
 import 'package:submersion/features/statistics/data/services/deco_classification_service.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/domain/suit_thickness_stats.dart';
+import 'package:submersion/features/statistics/domain/water_temp_band_metrics.dart';
 import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 
@@ -367,6 +368,49 @@ final waterTempBandDistributionProvider =
         filter: filter,
       );
     });
+
+/// Average consumption and bottom time per water-temperature band, in the
+/// diver's temperature unit (issue #1873).
+///
+/// Consumption follows the gas page's lane and reads the same per-dive
+/// values its trend does, so it keeps the gas scope (no gauge dives, no
+/// dives excluded from gas statistics). Bottom time and the band placement
+/// use the normal scope.
+final waterTempBandMetricsProvider = FutureProvider<List<WaterTempBandMetrics>>(
+  (ref) async {
+    _keepAliveWithExpiry(ref);
+    final repository = ref.watch(statisticsRepositoryProvider);
+    final currentDiverId = ref.watch(currentDiverIdProvider);
+    final filter = ref.watch(statisticsFilterProvider);
+    final lane = ref.watch(statisticsGasLaneProvider);
+    final unit = ref.watch(settingsProvider.select((s) => s.temperatureUnit));
+
+    final (bandByDive, sacPerDive, bottomTimePerDive) = await (
+      repository.getWaterTempBandPerDive(
+        unit: unit,
+        diverId: currentDiverId,
+        filter: filter,
+      ),
+      lane == GasConsumptionLane.rmv
+          ? repository.getSacVolumePerDive(
+              diverId: currentDiverId,
+              filter: filter,
+            )
+          : repository.getSacPressurePerDive(
+              diverId: currentDiverId,
+              filter: filter,
+            ),
+      repository.getBottomTimePerDive(diverId: currentDiverId, filter: filter),
+    ).wait;
+
+    return aggregateWaterTempBandMetrics(
+      edges: waterTempBandEdges(unit),
+      bandByDive: bandByDive,
+      sacPerDive: sacPerDive,
+      bottomTimePerDive: bottomTimePerDive,
+    );
+  },
+);
 
 // ============================================================================
 // Social & Buddies Providers

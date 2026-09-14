@@ -38966,6 +38966,49 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => 'النطاق';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => 'الغطسات';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => 'متوسط SAC';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => 'متوسط RMV';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      'متوسط وقت القاع';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error =>
+      'تعذر تحميل متوسطات النطاقات';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value من $dives';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData =>
+      'لا توجد بيانات';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band: $dives. متوسط $lane: $consumption. متوسط وقت القاع: $bottomTime.';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'آخر 5 سنوات';
 
   @override

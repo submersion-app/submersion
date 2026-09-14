@@ -39208,6 +39208,48 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => 'Tartomány';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => 'Merülések';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => 'Átl. SAC';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => 'Átl. RMV';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      'Átl. fenékidő';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error =>
+      'Nem sikerült betölteni a tartományok átlagait';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value, $dives alapján';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData => 'nincs adat';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band: $dives. Átlagos $lane: $consumption. Átlagos fenékidő: $bottomTime.';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Elmúlt 5 év';
 
   @override

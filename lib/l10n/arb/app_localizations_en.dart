@@ -38770,6 +38770,48 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => 'Band';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => 'Dives';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => 'Avg SAC';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => 'Avg RMV';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      'Avg bottom time';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error =>
+      'Failed to load band averages';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value over $dives';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData => 'no data';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band: $dives. Average $lane: $consumption. Average bottom time: $bottomTime.';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Last 5 years';
 
   @override

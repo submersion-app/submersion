@@ -39372,6 +39372,48 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => 'Faixa';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => 'Mergulhos';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => 'SAC médio';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => 'RMV médio';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      'Tempo de fundo médio';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error =>
+      'Falha ao carregar as médias por faixa';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value em $dives';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData => 'sem dados';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band: $dives. $lane médio: $consumption. Tempo de fundo médio: $bottomTime.';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Últimos 5 anos';
 
   @override

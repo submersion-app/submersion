@@ -37049,6 +37049,47 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => '范围';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => '潜水次数';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => '平均 SAC';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => '平均 RMV';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      '平均底部时间';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error => '无法加载各范围的平均值';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value（$dives）';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData => '无数据';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band：$dives。平均 $lane：$consumption。平均底部时间：$bottomTime。';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => '最近 5 年';
 
   @override

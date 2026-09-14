@@ -39096,6 +39096,49 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => 'Bereik';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => 'Duiken';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => 'Gem. SAC';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => 'Gem. RMV';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      'Gem. bodemtijd';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error =>
+      'Gemiddelden per bereik konden niet worden geladen';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value over $dives';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData =>
+      'geen gegevens';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band: $dives. Gemiddelde $lane: $consumption. Gemiddelde bodemtijd: $bottomTime.';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'Afgelopen 5 jaar';
 
   @override
