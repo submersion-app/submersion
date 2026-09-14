@@ -155,6 +155,24 @@ void main() {
       expect(exists(db), isFalse);
     });
 
+    test('moves nothing when a sidecar cannot follow the main file', () async {
+      // A directory where the -wal must go makes that one rename fail. The
+      // main file had already moved; it must come back rather than leave the
+      // database split from its journal.
+      touch('$db.pre-restore', 'main');
+      touch('$db.pre-restore-wal', 'wal');
+      Directory('$db.pre-restore.20260913T103005Z-wal').createSync();
+
+      await expectLater(
+        journal().quarantine('$db.pre-restore'),
+        throwsA(isA<FileSystemException>()),
+      );
+
+      expect(read('$db.pre-restore'), 'main');
+      expect(read('$db.pre-restore-wal'), 'wal');
+      expect(exists('$db.pre-restore.20260913T103005Z'), isFalse);
+    });
+
     test('moves orphaned sidecars even when the main file is gone', () async {
       touch('$db.pre-restore-wal', 'wal');
 
@@ -292,6 +310,28 @@ void main() {
         isNot(contains(startsWith('submersion.db.restore-rejected'))),
       );
       expect(exists('$db.restore-pending'), isFalse);
+    });
+
+    test('leaves the original aside, whole, when its -wal cannot follow it '
+        'back', () async {
+      touch('$db.pre-restore', 'original');
+      touch('$db.pre-restore-wal', 'original-wal');
+      touch('$db.restore-pending');
+      Directory('$db-wal').createSync();
+
+      await expectLater(
+        journal().recover(),
+        throwsA(isA<FileSystemException>()),
+      );
+
+      expect(read('$db.pre-restore'), 'original');
+      expect(read('$db.pre-restore-wal'), 'original-wal');
+      expect(exists(db), isFalse);
+      expect(
+        exists('$db.restore-pending'),
+        isTrue,
+        reason: 'still unsettled, so the next launch offers recovery again',
+      );
     });
 
     test('finishes after a crash that already moved the rejected file '

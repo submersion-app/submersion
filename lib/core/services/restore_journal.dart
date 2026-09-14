@@ -106,20 +106,14 @@ class RestoreJournal {
   /// never over an existing file, and returns the new main path.
   ///
   /// Tolerates a missing main file so an orphaned sidecar can be moved out of
-  /// the way too. Main file first, then sidecars, matching the order the
-  /// restore swap itself uses.
+  /// the way too. The files move as a unit (see [_moveTogether]).
   Future<String> quarantine(String path, {String? prefix}) async {
     final base = '${prefix ?? path}.${_stamp(_now().toUtc())}';
     var target = base;
     for (var n = 1; _anyExists(target); n++) {
       target = '$base-$n';
     }
-    final main = File(path);
-    if (main.existsSync()) await main.rename(target);
-    for (final suffix in _sidecarSuffixes) {
-      final sidecar = File('$path$suffix');
-      if (sidecar.existsSync()) await sidecar.rename('$target$suffix');
-    }
+    await _moveTogether(_withSidecars(path), _withSidecars(target));
     return target;
   }
 
@@ -154,11 +148,7 @@ class RestoreJournal {
     if (_anyExists(dbPath)) {
       await quarantine(dbPath, prefix: '$dbPath.restore-rejected');
     }
-    await File(asidePath).rename(dbPath);
-    for (final suffix in _sidecarSuffixes) {
-      final sidecar = File('$asidePath$suffix');
-      if (sidecar.existsSync()) await sidecar.rename('$dbPath$suffix');
-    }
+    await _moveTogether(_withSidecars(asidePath), _withSidecars(dbPath));
     await commit();
   }
 
@@ -210,6 +200,33 @@ class RestoreJournal {
 
   bool _anyExists(String path) =>
       _withSidecars(path).any((candidate) => File(candidate).existsSync());
+
+  /// Renames each existing file in [from] onto the matching path in [to], as
+  /// a unit: when one rename fails, the ones already done are moved back
+  /// (best-effort) and the error is rethrown, so a database is never left
+  /// split from its `-wal`/`-shm`. Main file first, then sidecars, matching
+  /// the order the restore swap itself uses.
+  static Future<void> _moveTogether(List<String> from, List<String> to) async {
+    final moved = <(String, String)>[];
+    try {
+      for (var i = 0; i < from.length; i++) {
+        final source = File(from[i]);
+        if (!source.existsSync()) continue;
+        await source.rename(to[i]);
+        moved.add((from[i], to[i]));
+      }
+    } catch (_) {
+      for (final (source, target) in moved.reversed) {
+        try {
+          await File(target).rename(source);
+        } catch (_) {
+          // Nothing better to do: the original error below is what the
+          // caller needs, and every file still exists under one of its names.
+        }
+      }
+      rethrow;
+    }
+  }
 
   static List<String> _withSidecars(String path) => [
     path,
