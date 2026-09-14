@@ -181,46 +181,6 @@ Future<void> deleteDiverOwnedRows(
   }
 }
 
-/// Clears the links surviving dive plans hold to [diverId]'s dives, stamping
-/// and marking each plan so the change reaches peers. Run it inside the
-/// caller's transaction, after [deleteDiverOwnedRows] (the diver's own plans
-/// are gone by then and must not be published) and before the dives are
-/// deleted.
-///
-/// `dive_plans.source_dive_id` and `linked_dive_id` reference `dives` with no
-/// ON DELETE action, and plans are not owned by a diver in practice, so a
-/// plan built from or linked to one of the diver's dives would otherwise
-/// fail the deletion of those dives and roll the whole diver deletion back.
-Future<void> clearPlanLinksToDiverDives(
-  AppDatabase db,
-  SyncRepository syncRepository,
-  String diverId, {
-  required int now,
-}) async {
-  // stats-scope-exempt: deletion cascade cleanup.
-  const diverDives = 'SELECT id FROM dives WHERE diver_id = ?';
-  final planIds = <String>{};
-  for (final column in const ['source_dive_id', 'linked_dive_id']) {
-    final where = '$column IN ($diverDives)';
-    final ids = await _idsOf(db, 'SELECT id FROM dive_plans WHERE $where', [
-      diverId,
-    ]);
-    if (ids.isEmpty) continue;
-    await db.customStatement(
-      'UPDATE dive_plans SET $column = NULL, updated_at = ? WHERE $where',
-      [now, diverId],
-    );
-    planIds.addAll(ids);
-  }
-  for (final id in planIds) {
-    await syncRepository.markRecordPending(
-      entityType: 'divePlans',
-      recordId: id,
-      localUpdatedAt: now,
-    );
-  }
-}
-
 /// Deletes [diverId]'s custom service kinds, except a kind a surviving
 /// service schedule still uses: that one moves to [survivorId] (or is
 /// shared, when no diver survives), stamped and marked for sync. Run it

@@ -15,6 +15,7 @@ import 'package:submersion/features/divers/data/repositories/diver_owned_rows.da
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
