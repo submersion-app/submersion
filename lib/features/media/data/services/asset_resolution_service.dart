@@ -454,20 +454,34 @@ class AssetResolutionService {
     List<AssetInfo> candidates, {
     Duration tolerance = const Duration(seconds: 2),
   }) {
-    if (item.width == null || item.height == null) return null;
-
-    final itemSeconds = _galleryReadings(
-      item.takenAt,
-    ).map(_truncateToSecond).toList();
-    final matches = candidates.where((c) {
-      if (c.width != item.width || c.height != item.height) return false;
-      final candidateSecond = _truncateToSecond(c.createDateTime);
-      return itemSeconds.any(
-        (s) => candidateSecond.difference(s).abs() <= tolerance,
-      );
-    }).toList();
+    final matches = candidates
+        .where(
+          (c) => matchesTimestampAndDimensions(item, c, tolerance: tolerance),
+        )
+        .toList();
 
     return matches.length == 1 ? matches.first.id : null;
+  }
+
+  /// Whether [candidate] has [item]'s dimensions and was captured within
+  /// [tolerance] of either reading of its stored time (see
+  /// [_galleryReadings]). The per-candidate test behind
+  /// [matchByTimestampAndDimensions], exposed for callers that need every
+  /// match rather than a unique one.
+  static bool matchesTimestampAndDimensions(
+    MediaItem item,
+    AssetInfo candidate, {
+    Duration tolerance = const Duration(seconds: 2),
+  }) {
+    if (item.width == null || item.height == null) return false;
+    if (candidate.width != item.width || candidate.height != item.height) {
+      return false;
+    }
+    final candidateSecond = _truncateToSecond(candidate.createDateTime);
+    return _galleryReadings(item.takenAt).any(
+      (r) =>
+          candidateSecond.difference(_truncateToSecond(r)).abs() <= tolerance,
+    );
   }
 
   /// The readings of a stored [MediaItem.takenAt] that could line up with a

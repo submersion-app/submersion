@@ -5,8 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -36,6 +40,28 @@ class _DeniedPicker implements PhotoPickerService {
 
   @override
   Future<Uint8List?> getFileBytes(String id) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// Photo picker with access granted over a fixed library.
+class _GrantedPicker implements PhotoPickerService {
+  _GrantedPicker(this.library);
+
+  final List<AssetInfo> library;
+
+  @override
+  Future<PhotoPermissionStatus> requestPermission() async =>
+      PhotoPermissionStatus.authorized;
+
+  @override
+  Future<PhotoPermissionStatus> checkPermission() async =>
+      PhotoPermissionStatus.authorized;
+
+  @override
+  Future<List<AssetInfo>> getAssetsInDateRange(DateTime s, DateTime e) async =>
+      library;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -201,6 +227,58 @@ void main() {
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.text('Photo library access denied'), findsOneWidget);
+  });
+
+  testWidgets('scanGalleryForTripPhotos counts a photo linked on another '
+      'device as already linked, not new (#885)', (tester) async {
+    final dive = Dive(id: 'd1', dateTime: DateTime(2026, 3, 26, 10));
+    // Linked on the iPhone, so the synced row carries the iPhone's id; this
+    // device's library knows the same photo as 'mac-1'.
+    final row = MediaItem(
+      id: 'm1',
+      diveId: 'd1',
+      platformAssetId: 'iphone-1',
+      mediaType: MediaType.photo,
+      takenAt: DateTime.utc(2026, 3, 26, 10, 10),
+      createdAt: DateTime.utc(2026, 3, 26),
+      updatedAt: DateTime.utc(2026, 3, 26),
+    );
+    final photo = AssetInfo(
+      id: 'mac-1',
+      type: AssetType.image,
+      createDateTime: DateTime(2026, 3, 26, 10, 10),
+      width: 4032,
+      height: 3024,
+    );
+    await pumpActionButton(
+      tester,
+      [
+        divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
+        mediaForTripProvider('trip-1').overrideWith(
+          (ref) async => {
+            dive: [row],
+          },
+        ),
+        photoPickerServiceProvider.overrideWithValue(_GrantedPicker([photo])),
+        linkedGalleryAssetsProvider.overrideWithValue(
+          LinkedGalleryAssets(
+            resolve: (item) async => item.id == 'm1'
+                ? const ResolutionResult(
+                    localAssetId: 'mac-1',
+                    status: ResolutionStatus.resolved,
+                  )
+                : const ResolutionResult(status: ResolutionStatus.unavailable),
+          ),
+        ),
+      ],
+      (context, ref) =>
+          scanGalleryForTripPhotos(context, ref, 'trip-1', _trip()),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('All photos already linked'), findsOneWidget);
+    expect(find.textContaining('new photos'), findsNothing);
   });
 
   testWidgets('scanLightroomForTrip asks to add dives first when empty', (

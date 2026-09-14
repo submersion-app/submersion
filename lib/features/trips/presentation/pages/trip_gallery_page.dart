@@ -9,6 +9,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/trip_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -92,14 +93,12 @@ class TripGalleryPage extends ConsumerWidget {
 
       // Get existing asset IDs to filter out
       final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
-      final existingIds = <String>{};
-      for (final mediaList in mediaByDive.values) {
-        for (final item in mediaList) {
-          if (item.platformAssetId != null) {
-            existingIds.add(item.platformAssetId!);
-          }
-        }
-      }
+      // Synced asset ids come from whichever device linked each photo, so
+      // also count what every row resolves to here (#885); otherwise a
+      // photo linked on another device is offered again as new.
+      final existingIds = await ref
+          .read(linkedGalleryAssetsProvider)
+          .idsOnThisDevice(mediaByDive.values.expand((items) => items));
 
       // Scan gallery
       final photoPickerService = ref.read(photoPickerServiceProvider);

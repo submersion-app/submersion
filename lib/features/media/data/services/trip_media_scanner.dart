@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
@@ -333,12 +335,13 @@ class TripMediaScanner {
   ///
   /// Uses the dive's entry/exit times with [DivePhotoMatcher.preBuffer] before
   /// entry and [DivePhotoMatcher.postBuffer] after exit as the gallery query
-  /// window. Filters out photos whose asset IDs are in [existingAssetIds].
+  /// window. Filters out photos the dive's [linked] rows already stand for.
   ///
   /// Returns a list of new [AssetInfo] found, or null if permission is denied.
   static Future<List<AssetInfo>?> scanGalleryForDive({
     required Dive dive,
-    required Set<String> existingAssetIds,
+    required List<MediaItem> linked,
+    required LinkedGalleryAssets linkedGalleryAssets,
     required PhotoPickerService photoPickerService,
   }) async {
     final permission = await photoPickerService.requestPermission();
@@ -358,9 +361,13 @@ class TripMediaScanner {
       wallClockUtcToLocal(rangeEnd),
     );
 
-    return assets
-        .where((asset) => !existingAssetIds.contains(asset.id))
-        .toList();
+    // Not a synced-id comparison: a row linked on another device carries
+    // that device's asset id, so it would never match and the photo would
+    // be offered (and imported) a second time (#885).
+    return linkedGalleryAssets.withoutLinked(
+      candidates: assets,
+      linked: linked,
+    );
   }
 
   /// Get the effective entry and exit times for a dive.

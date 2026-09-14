@@ -3,8 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
 /// Helper to create an AssetInfo for testing.
@@ -24,6 +27,17 @@ AssetInfo _testAsset(
   durationSeconds: durationSeconds,
   latitude: latitude,
   longitude: longitude,
+);
+
+/// A gallery row already linked to dive-1.
+MediaItem _linkedRow(String id, {required String platformAssetId}) => MediaItem(
+  id: id,
+  diveId: 'dive-1',
+  platformAssetId: platformAssetId,
+  mediaType: MediaType.photo,
+  takenAt: DateTime.utc(2024, 1, 15, 10, 30),
+  createdAt: DateTime.utc(2024, 1, 15),
+  updatedAt: DateTime.utc(2024, 1, 15),
 );
 
 /// Stub photo picker that records calls and returns the provided
@@ -534,7 +548,8 @@ void main() {
         );
         final result = await TripMediaScanner.scanGalleryForDive(
           dive: dive,
-          existingAssetIds: const {},
+          linked: const [],
+          linkedGalleryAssets: const LinkedGalleryAssets(),
           photoPickerService: picker,
         );
         expect(result, isNull);
@@ -558,7 +573,8 @@ void main() {
 
           final result = await TripMediaScanner.scanGalleryForDive(
             dive: dive,
-            existingAssetIds: const {'a-old'},
+            linked: [_linkedRow('m-old', platformAssetId: 'a-old')],
+            linkedGalleryAssets: const LinkedGalleryAssets(),
             photoPickerService: picker,
           );
 
@@ -587,12 +603,45 @@ void main() {
           );
           final result = await TripMediaScanner.scanGalleryForDive(
             dive: dive,
-            existingAssetIds: const {},
+            linked: const [],
+            linkedGalleryAssets: const LinkedGalleryAssets(),
             photoPickerService: picker,
           );
           expect(result, hasLength(1));
         },
       );
+
+      test('filters a photo linked on another device, which the synced id '
+          'alone cannot recognise (#885)', () async {
+        final picker = _StubPhotoPicker(
+          assets: [
+            _testAsset('mac-1', createdAt: DateTime(2024, 1, 15, 10, 30)),
+            _testAsset('mac-2', createdAt: DateTime(2024, 1, 15, 10, 45)),
+          ],
+        );
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+          entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+          exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+        );
+
+        final result = await TripMediaScanner.scanGalleryForDive(
+          dive: dive,
+          linked: [_linkedRow('m1', platformAssetId: 'iphone-1')],
+          linkedGalleryAssets: LinkedGalleryAssets(
+            resolve: (item) async => item.id == 'm1'
+                ? const ResolutionResult(
+                    localAssetId: 'mac-1',
+                    status: ResolutionStatus.resolved,
+                  )
+                : const ResolutionResult(status: ResolutionStatus.unavailable),
+          ),
+          photoPickerService: picker,
+        );
+
+        expect(result!.map((a) => a.id), ['mac-2']);
+      });
     });
 
     group('scanGalleryForTrip', () {

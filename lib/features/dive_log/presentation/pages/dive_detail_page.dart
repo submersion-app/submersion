@@ -124,6 +124,7 @@ import 'package:submersion/features/media/presentation/helpers/document_open_hel
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
@@ -4904,14 +4905,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     try {
       final mediaRepo = ref.read(mediaRepositoryProvider);
-      final alreadyLinkedIds = await mediaRepo.getLinkedAssetIdsForDive(
-        dive.id,
-      );
+      final linked = await mediaRepo.getMediaForDive(dive.id);
 
       final photoPickerService = ref.read(photoPickerServiceProvider);
       final assets = await TripMediaScanner.scanGalleryForDive(
         dive: dive,
-        existingAssetIds: alreadyLinkedIds,
+        linked: linked,
+        linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
         photoPickerService: photoPickerService,
       );
 
