@@ -257,6 +257,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       equipmentAsync = ref.watch(equipmentByStatusProvider(filter.status!));
     }
 
+    // Whether the tag selection is what emptied the list (issue #1942), so
+    // the empty state blames the tags rather than a stocked category.
+    final tagsEmptied = filter.tagsEmptied(
+      equipmentAsync.value ?? const <EquipmentItem>[],
+      tagIdsByEquipment,
+    );
+
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
@@ -272,6 +279,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         filter,
         hadItemsBeforeTypeFilter:
             (equipmentAsync.value ?? const <EquipmentItem>[]).isNotEmpty,
+        tagsEmptied: tagsEmptied,
       );
     }
 
@@ -323,6 +331,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 context,
                 ref,
                 hadItemsBeforeTypeFilter: equipment.isNotEmpty,
+                tagsEmptied: tagsEmptied,
               )
             : _buildEquipmentList(
                 context,
@@ -597,6 +606,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     AsyncValue<List<EquipmentItem>> equipmentAsync,
     EquipmentFilterState filter, {
     required bool hadItemsBeforeTypeFilter,
+    required bool tagsEmptied,
   }) {
     final visibleIds = (equipmentAsync.value ?? const <EquipmentItem>[])
         .map((e) => e.id)
@@ -637,6 +647,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 context,
                 equipmentAsync,
                 hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
+                tagsEmptied: tagsEmptied,
               ),
             ),
           ],
@@ -650,6 +661,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     AsyncValue<List<EquipmentItem>> equipmentAsync, {
     required bool hadItemsBeforeTypeFilter,
+    required bool tagsEmptied,
   }) {
     return equipmentAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -660,6 +672,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             context,
             ref,
             hadItemsBeforeTypeFilter: hadItemsBeforeTypeFilter,
+            tagsEmptied: tagsEmptied,
           );
         }
         final config = ref.watch(equipmentTableConfigProvider);
@@ -1020,25 +1033,27 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     WidgetRef ref, {
     required bool hadItemsBeforeTypeFilter,
+    required bool tagsEmptied,
   }) {
     final filter = ref.watch(equipmentFilterProvider);
 
-    // Blame the category only when it actually narrowed something away; if
-    // the status-filtered source was already empty, the status (or the lack
-    // of any gear) is the real cause and the wording should say so.
-    final blameCategory = filter.type != null && hadItemsBeforeTypeFilter;
-    // A tag filter (issue #1942) narrows the same way; a tag chip on a
-    // retired item can land here, since the default view hides retired gear.
-    final blameTags =
-        !blameCategory && filter.tagIds.isNotEmpty && hadItemsBeforeTypeFilter;
+    // Blame the tags (issue #1942) when the category and its conditions left
+    // items that none of the selected tags is on: a tag chip on a retired
+    // item can land here, since the default view hides retired gear.
+    final blameTags = tagsEmptied;
+    // Otherwise blame the category only when it actually narrowed something
+    // away; if the status-filtered source was already empty, the status (or
+    // the lack of any gear) is the real cause and the wording should say so.
+    final blameCategory =
+        !blameTags && filter.type != null && hadItemsBeforeTypeFilter;
 
     String filterText;
-    if (blameCategory) {
+    if (blameTags) {
+      filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
+    } else if (blameCategory) {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
         filter.type!.localizedName(context.l10n),
       );
-    } else if (blameTags) {
-      filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else if (filter.serviceDueOnly) {
       filterText = context.l10n.equipment_list_emptyState_filterText_serviceDue;
     } else if (filter.status == null) {
@@ -1065,10 +1080,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ),
           const SizedBox(height: 8),
           Text(
-            blameCategory
-                ? context.l10n.equipment_list_emptyState_noTypeMatch
-                : blameTags
+            blameTags
                 ? context.l10n.equipment_list_emptyState_noTagMatch
+                : blameCategory
+                ? context.l10n.equipment_list_emptyState_noTypeMatch
                 : filter.serviceDueOnly
                 ? context.l10n.equipment_list_emptyState_serviceDueUpToDate
                 : filter.status != null

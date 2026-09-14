@@ -89,6 +89,19 @@ class EquipmentFilterState {
         .toList();
   }
 
+  /// Whether the tag selection is what emptied [equipment]: some item passes
+  /// the category and its conditions, but none of those carries a selected
+  /// tag. The empty state blames the axis that did the emptying.
+  bool tagsEmptied(
+    List<EquipmentItem> equipment,
+    Map<String, Iterable<String>> tagIdsByEquipment,
+  ) =>
+      tagIds.isNotEmpty &&
+      apply(equipment, tagIdsByEquipment).isEmpty &&
+      copyWith(
+        clearTagIds: true,
+      ).apply(equipment, tagIdsByEquipment).isNotEmpty;
+
   /// Copy with per-axis clearing. Clearing the status axis resets both of its
   /// values, since they are one choice to the diver. A new or cleared
   /// category drops the attribute conditions unless new ones are given,

@@ -140,4 +140,48 @@ void main() {
     expect(a, isNot(const EquipmentFilterState(tagIds: {'a'})));
     expect(a, isNot(const EquipmentFilterState()));
   });
+
+  group('tagsEmptied', () {
+    bool emptied(EquipmentFilterState filter) =>
+        filter.tagsEmptied(all, tagIdsByEquipment);
+
+    test('is true when the category holds items but none carries a tag', () {
+      // The mask is the only mask, and it has no tags.
+      expect(
+        emptied(
+          const EquipmentFilterState(
+            type: EquipmentType.mask,
+            tagIds: {'travel'},
+          ),
+        ),
+        isTrue,
+      );
+      expect(emptied(const EquipmentFilterState(tagIds: {'unused'})), isTrue);
+    });
+
+    test('is false when the category itself holds nothing', () {
+      expect(
+        emptied(
+          const EquipmentFilterState(
+            type: EquipmentType.fins,
+            tagIds: {'travel'},
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('is false with no tag selected or with a tag match', () {
+      expect(emptied(const EquipmentFilterState()), isFalse);
+      expect(
+        emptied(
+          const EquipmentFilterState(
+            type: EquipmentType.bcd,
+            tagIds: {'travel'},
+          ),
+        ),
+        isFalse,
+      );
+    });
+  });
 }
