@@ -38403,14 +38403,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'PDF wird vorbereitet...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'Sicherungsdatei wird ausgewählt...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'Wiederherstellung aus der Sicherung...';
-
-  @override
   String get settings_export_empty_dives => 'Keine Tauchgänge zum Exportieren';
 
   @override
@@ -38435,24 +38427,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'Speichern fehlgeschlagen: $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'Sicherung fehlgeschlagen: $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'Wiederherstellung fehlgeschlagen: $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable =>
-      'Auf die Datei konnte nicht zugegriffen werden';
-
-  @override
-  String get settings_export_notADbFile =>
-      'Bitte wählen Sie eine .db-Sicherungsdatei aus';
 
   @override
   String get settings_export_success_dives =>
@@ -38535,28 +38509,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_export_saved_pdf => 'PDF erfolgreich gespeichert';
 
   @override
-  String get settings_export_saved_backup =>
-      'Sicherung erfolgreich gespeichert';
-
-  @override
-  String get settings_export_restoreComplete =>
-      'Wiederherstellung abgeschlossen';
-
-  @override
   String get settings_export_cancelled_save => 'Speichern abgebrochen';
 
   @override
-  String get settings_export_cancelled_backup => 'Sicherung abgebrochen';
-
-  @override
-  String get settings_export_cancelled_restore =>
-      'Wiederherstellung abgebrochen';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'Tauchlogbuch';
-
-  @override
-  String get settings_export_saveBackupDialogTitle => 'Sicherung speichern';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle =>

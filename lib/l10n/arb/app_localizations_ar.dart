@@ -38106,14 +38106,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'جارٍ تحضير ملف PDF...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'جارٍ اختيار ملف النسخة الاحتياطية...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'جارٍ الاستعادة من النسخة الاحتياطية...';
-
-  @override
   String get settings_export_empty_dives => 'لا توجد غوصات للتصدير';
 
   @override
@@ -38135,23 +38127,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'فشل الحفظ: $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'فشل النسخ الاحتياطي: $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'فشلت الاستعادة: $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable => 'تعذّر الوصول إلى الملف';
-
-  @override
-  String get settings_export_notADbFile =>
-      'يُرجى اختيار ملف نسخة احتياطية بامتداد .db';
 
   @override
   String get settings_export_success_dives => 'تم تصدير الغوصات بنجاح';
@@ -38229,25 +38204,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_saved_pdf => 'تم حفظ ملف PDF بنجاح';
 
   @override
-  String get settings_export_saved_backup => 'تم حفظ النسخة الاحتياطية بنجاح';
-
-  @override
-  String get settings_export_restoreComplete => 'اكتملت الاستعادة';
-
-  @override
   String get settings_export_cancelled_save => 'تم إلغاء الحفظ';
 
   @override
-  String get settings_export_cancelled_backup => 'تم إلغاء النسخ الاحتياطي';
-
-  @override
-  String get settings_export_cancelled_restore => 'تم إلغاء الاستعادة';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'سجل الغوص';
-
-  @override
-  String get settings_export_saveBackupDialogTitle => 'حفظ النسخة الاحتياطية';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle => 'حفظ ملف CSV للغوصات';

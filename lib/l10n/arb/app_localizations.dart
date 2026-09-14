@@ -62666,18 +62666,6 @@ abstract class AppLocalizations {
   /// **'Preparing PDF...'**
   String get settings_export_progress_preparingPdf;
 
-  /// No description provided for @settings_export_progress_selectingBackup.
-  ///
-  /// In en, this message translates to:
-  /// **'Selecting backup file...'**
-  String get settings_export_progress_selectingBackup;
-
-  /// No description provided for @settings_export_progress_restoringBackup.
-  ///
-  /// In en, this message translates to:
-  /// **'Restoring from backup...'**
-  String get settings_export_progress_restoringBackup;
-
   /// No description provided for @settings_export_empty_dives.
   ///
   /// In en, this message translates to:
@@ -62719,30 +62707,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save failed: {error}'**
   String settings_export_saveFailed(String error);
-
-  /// No description provided for @settings_export_backupFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup failed: {error}'**
-  String settings_export_backupFailed(String error);
-
-  /// No description provided for @settings_export_restoreFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore failed: {error}'**
-  String settings_export_restoreFailed(String error);
-
-  /// No description provided for @settings_export_fileUnreadable.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not access file'**
-  String get settings_export_fileUnreadable;
-
-  /// No description provided for @settings_export_notADbFile.
-  ///
-  /// In en, this message translates to:
-  /// **'Please select a .db backup file'**
-  String get settings_export_notADbFile;
 
   /// No description provided for @settings_export_success_dives.
   ///
@@ -62840,47 +62804,17 @@ abstract class AppLocalizations {
   /// **'PDF saved successfully'**
   String get settings_export_saved_pdf;
 
-  /// No description provided for @settings_export_saved_backup.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup saved successfully'**
-  String get settings_export_saved_backup;
-
-  /// No description provided for @settings_export_restoreComplete.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore complete'**
-  String get settings_export_restoreComplete;
-
   /// No description provided for @settings_export_cancelled_save.
   ///
   /// In en, this message translates to:
   /// **'Save cancelled'**
   String get settings_export_cancelled_save;
 
-  /// No description provided for @settings_export_cancelled_backup.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup cancelled'**
-  String get settings_export_cancelled_backup;
-
-  /// No description provided for @settings_export_cancelled_restore.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore cancelled'**
-  String get settings_export_cancelled_restore;
-
   /// No description provided for @settings_export_pdfDocumentTitle.
   ///
   /// In en, this message translates to:
   /// **'Dive Logbook'**
   String get settings_export_pdfDocumentTitle;
-
-  /// No description provided for @settings_export_saveBackupDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Backup'**
-  String get settings_export_saveBackupDialogTitle;
 
   /// No description provided for @settings_export_saveDivesCsvDialogTitle.
   ///

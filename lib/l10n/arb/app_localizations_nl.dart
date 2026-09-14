@@ -38231,14 +38231,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'PDF voorbereiden...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'Back-upbestand selecteren...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'Herstellen vanuit de back-up...';
-
-  @override
   String get settings_export_empty_dives => 'Geen duiken om te exporteren';
 
   @override
@@ -38263,23 +38255,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'Opslaan mislukt: $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'Back-up mislukt: $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'Herstellen mislukt: $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable =>
-      'Kan geen toegang krijgen tot het bestand';
-
-  @override
-  String get settings_export_notADbFile => 'Selecteer een .db-back-upbestand';
 
   @override
   String get settings_export_success_dives => 'Duiken succesvol geëxporteerd';
@@ -38362,25 +38337,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_export_saved_pdf => 'PDF succesvol opgeslagen';
 
   @override
-  String get settings_export_saved_backup => 'Back-up succesvol opgeslagen';
-
-  @override
-  String get settings_export_restoreComplete => 'Herstel voltooid';
-
-  @override
   String get settings_export_cancelled_save => 'Opslaan geannuleerd';
 
   @override
-  String get settings_export_cancelled_backup => 'Back-up geannuleerd';
-
-  @override
-  String get settings_export_cancelled_restore => 'Herstellen geannuleerd';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'Duiklogboek';
-
-  @override
-  String get settings_export_saveBackupDialogTitle => 'Back-up opslaan';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle => 'Duiken-CSV opslaan';

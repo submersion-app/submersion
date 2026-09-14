@@ -38595,14 +38595,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'Préparation du PDF...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'Sélection du fichier de sauvegarde...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'Restauration depuis la sauvegarde...';
-
-  @override
   String get settings_export_empty_dives => 'Aucune plongée à exporter';
 
   @override
@@ -38626,24 +38618,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'Échec de l’enregistrement : $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'Échec de la sauvegarde : $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'Échec de la restauration : $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable =>
-      'Impossible d’accéder au fichier';
-
-  @override
-  String get settings_export_notADbFile =>
-      'Veuillez sélectionner un fichier de sauvegarde .db';
 
   @override
   String get settings_export_success_dives => 'Plongées exportées avec succès';
@@ -38724,27 +38698,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_export_saved_pdf => 'PDF enregistré avec succès';
 
   @override
-  String get settings_export_saved_backup =>
-      'Sauvegarde enregistrée avec succès';
-
-  @override
-  String get settings_export_restoreComplete => 'Restauration terminée';
-
-  @override
   String get settings_export_cancelled_save => 'Enregistrement annulé';
 
   @override
-  String get settings_export_cancelled_backup => 'Sauvegarde annulée';
-
-  @override
-  String get settings_export_cancelled_restore => 'Restauration annulée';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'Carnet de plongée';
-
-  @override
-  String get settings_export_saveBackupDialogTitle =>
-      'Enregistrer la sauvegarde';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle =>

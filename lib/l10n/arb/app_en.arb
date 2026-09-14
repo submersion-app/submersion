@@ -23383,8 +23383,6 @@
   "settings_export_progress_preparingObservationsCsv": "Preparing gear check-ins CSV...",
   "settings_export_progress_preparingUddf": "Preparing UDDF file...",
   "settings_export_progress_preparingPdf": "Preparing PDF...",
-  "settings_export_progress_selectingBackup": "Selecting backup file...",
-  "settings_export_progress_restoringBackup": "Restoring from backup...",
   "settings_export_empty_dives": "No dives to export",
   "settings_export_empty_sites": "No sites to export",
   "settings_export_empty_equipment": "No equipment to export",
@@ -23392,10 +23390,6 @@
   "settings_export_empty_data": "No data to export",
   "settings_export_empty_diveSites": "No dive sites to export",
   "settings_export_saveFailed": "Save failed: {error}",
-  "settings_export_backupFailed": "Backup failed: {error}",
-  "settings_export_restoreFailed": "Restore failed: {error}",
-  "settings_export_fileUnreadable": "Could not access file",
-  "settings_export_notADbFile": "Please select a .db backup file",
   "settings_export_success_dives": "Dives exported successfully",
   "settings_export_success_sites": "Sites exported successfully",
   "settings_export_success_equipment": "Equipment exported successfully",
@@ -23412,13 +23406,8 @@
   "settings_export_saved_observationsCsv": "Gear check-ins CSV saved",
   "settings_export_saved_uddf": "UDDF file saved successfully",
   "settings_export_saved_pdf": "PDF saved successfully",
-  "settings_export_saved_backup": "Backup saved successfully",
-  "settings_export_restoreComplete": "Restore complete",
   "settings_export_cancelled_save": "Save cancelled",
-  "settings_export_cancelled_backup": "Backup cancelled",
-  "settings_export_cancelled_restore": "Restore cancelled",
   "settings_export_pdfDocumentTitle": "Dive Logbook",
-  "settings_export_saveBackupDialogTitle": "Save Backup",
   "settings_export_saveDivesCsvDialogTitle": "Save Dives CSV",
   "settings_export_saveSitesCsvDialogTitle": "Save Sites CSV",
   "settings_export_saveEquipmentCsvDialogTitle": "Save Equipment CSV",
@@ -23486,20 +23475,6 @@
     }
   },
   "@settings_export_saveFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "@settings_export_backupFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "@settings_export_restoreFailed": {
     "placeholders": {
       "error": {
         "type": "String"

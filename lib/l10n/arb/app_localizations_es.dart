@@ -38529,14 +38529,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'Preparando el PDF...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'Seleccionando el archivo de copia de seguridad...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'Restaurando desde la copia de seguridad...';
-
-  @override
   String get settings_export_empty_dives => 'No hay inmersiones para exportar';
 
   @override
@@ -38561,23 +38553,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'Error al guardar: $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'Error en la copia de seguridad: $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'Error al restaurar: $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable => 'No se pudo acceder al archivo';
-
-  @override
-  String get settings_export_notADbFile =>
-      'Selecciona un archivo de copia de seguridad .db';
 
   @override
   String get settings_export_success_dives =>
@@ -38663,27 +38638,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_export_saved_pdf => 'PDF guardado correctamente';
 
   @override
-  String get settings_export_saved_backup =>
-      'Copia de seguridad guardada correctamente';
-
-  @override
-  String get settings_export_restoreComplete => 'Restauración completa';
-
-  @override
   String get settings_export_cancelled_save => 'Guardado cancelado';
 
   @override
-  String get settings_export_cancelled_backup => 'Copia de seguridad cancelada';
-
-  @override
-  String get settings_export_cancelled_restore => 'Restauración cancelada';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'Registro de buceo';
-
-  @override
-  String get settings_export_saveBackupDialogTitle =>
-      'Guardar copia de seguridad';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle =>

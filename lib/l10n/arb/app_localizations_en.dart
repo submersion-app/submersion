@@ -37924,14 +37924,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'Preparing PDF...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'Selecting backup file...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'Restoring from backup...';
-
-  @override
   String get settings_export_empty_dives => 'No dives to export';
 
   @override
@@ -37954,22 +37946,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'Save failed: $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'Backup failed: $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'Restore failed: $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable => 'Could not access file';
-
-  @override
-  String get settings_export_notADbFile => 'Please select a .db backup file';
 
   @override
   String get settings_export_success_dives => 'Dives exported successfully';
@@ -38046,25 +38022,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_export_saved_pdf => 'PDF saved successfully';
 
   @override
-  String get settings_export_saved_backup => 'Backup saved successfully';
-
-  @override
-  String get settings_export_restoreComplete => 'Restore complete';
-
-  @override
   String get settings_export_cancelled_save => 'Save cancelled';
 
   @override
-  String get settings_export_cancelled_backup => 'Backup cancelled';
-
-  @override
-  String get settings_export_cancelled_restore => 'Restore cancelled';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'Dive Logbook';
-
-  @override
-  String get settings_export_saveBackupDialogTitle => 'Save Backup';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle => 'Save Dives CSV';

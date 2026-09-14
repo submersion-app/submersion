@@ -36247,12 +36247,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_progress_preparingPdf => '正在准备 PDF...';
 
   @override
-  String get settings_export_progress_selectingBackup => '正在选择备份文件...';
-
-  @override
-  String get settings_export_progress_restoringBackup => '正在从备份恢复...';
-
-  @override
   String get settings_export_empty_dives => '没有可导出的潜水记录';
 
   @override
@@ -36274,22 +36268,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return '保存失败：$error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return '备份失败：$error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return '恢复失败：$error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable => '无法访问文件';
-
-  @override
-  String get settings_export_notADbFile => '请选择 .db 备份文件';
 
   @override
   String get settings_export_success_dives => '潜水记录导出成功';
@@ -36358,25 +36336,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_saved_pdf => 'PDF 保存成功';
 
   @override
-  String get settings_export_saved_backup => '备份保存成功';
-
-  @override
-  String get settings_export_restoreComplete => '恢复完成';
-
-  @override
   String get settings_export_cancelled_save => '已取消保存';
 
   @override
-  String get settings_export_cancelled_backup => '已取消备份';
-
-  @override
-  String get settings_export_cancelled_restore => '已取消恢复';
-
-  @override
   String get settings_export_pdfDocumentTitle => '潜水日志';
-
-  @override
-  String get settings_export_saveBackupDialogTitle => '保存备份';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle => '保存潜水记录 CSV';

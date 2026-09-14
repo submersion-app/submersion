@@ -38338,14 +38338,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'PDF előkészítése...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'Biztonsági mentés fájljának kiválasztása...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'Visszaállítás biztonsági mentésből...';
-
-  @override
   String get settings_export_empty_dives => 'Nincs exportálható merülés';
 
   @override
@@ -38369,23 +38361,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'A mentés nem sikerült: $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'A biztonsági mentés nem sikerült: $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'A visszaállítás nem sikerült: $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable => 'A fájl nem érhető el';
-
-  @override
-  String get settings_export_notADbFile =>
-      'Válasszon egy .db kiterjesztésű mentésfájlt';
 
   @override
   String get settings_export_success_dives =>
@@ -38467,27 +38442,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_export_saved_pdf => 'A PDF mentve';
 
   @override
-  String get settings_export_saved_backup => 'A biztonsági mentés elmentve';
-
-  @override
-  String get settings_export_restoreComplete => 'A visszaállítás befejeződött';
-
-  @override
   String get settings_export_cancelled_save => 'Mentés megszakítva';
 
   @override
-  String get settings_export_cancelled_backup =>
-      'Biztonsági mentés megszakítva';
-
-  @override
-  String get settings_export_cancelled_restore => 'Visszaállítás megszakítva';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'Merülési Napló';
-
-  @override
-  String get settings_export_saveBackupDialogTitle =>
-      'Biztonsági mentés mentése';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle =>
