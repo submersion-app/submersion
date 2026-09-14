@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -78,6 +79,7 @@ Future<NavSpy> pumpStrip(
   DashboardGauges gauges, {
   MockSettingsNotifier? settingsNotifier,
   List<Override> extraOverrides = const [],
+  ThemeData? theme,
 }) async {
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final spy = NavSpy();
@@ -157,6 +159,7 @@ Future<NavSpy> pumpStrip(
         ...extraOverrides,
       ].cast(),
       child: MaterialApp.router(
+        theme: theme,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -1034,6 +1037,111 @@ void main() {
       }
       await pumpStrip(tester, _emptyGauges, settingsNotifier: settingsNotifier);
       expect(find.byType(Wrap), findsNothing);
+    });
+  });
+
+  group('tone colors', () {
+    final gauges = DashboardGauges(
+      gearGauges: [
+        _gearGauge(
+          'Reg',
+          EquipmentType.regulator,
+          ServiceClockSeverity.overdue,
+        ),
+        _gearGauge(
+          'BCD',
+          EquipmentType.bcd,
+          ServiceClockSeverity.dueSoon,
+          dueDate: DateTime.now().add(const Duration(days: 3)),
+        ),
+        _gearGauge('Fins', EquipmentType.fins, ServiceClockSeverity.ok),
+      ],
+      hasGear: true,
+      insurance: null,
+      noFlyStatus: null,
+      daysSinceLastDive: 12,
+    );
+
+    /// The pill behind the chip whose label contains [text].
+    BoxDecoration pill(WidgetTester tester, String text) {
+      final container = tester.widget<Container>(
+        find
+            .ancestor(
+              of: find.textContaining(text),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      return container.decoration! as BoxDecoration;
+    }
+
+    Color labelColor(WidgetTester tester, String text) =>
+        tester.widget<Text>(find.textContaining(text)).style!.color!;
+
+    void expectSwatch(WidgetTester tester, String text, StatusSwatch swatch) {
+      final decoration = pill(tester, text);
+      expect(decoration.color, swatch.container, reason: '$text fill');
+      expect(
+        (decoration.border! as Border).top.color,
+        swatch.outline,
+        reason: '$text outline',
+      );
+      expect(labelColor(tester, text), swatch.onContainer, reason: text);
+    }
+
+    testWidgets('gear severities use the light status palette', (tester) async {
+      await pumpStrip(tester, gauges);
+
+      expectSwatch(tester, 'Reg overdue', StatusColors.light.alert);
+      expectSwatch(tester, 'BCD due in', StatusColors.light.warn);
+      expectSwatch(tester, 'Fins OK', StatusColors.light.ok);
+    });
+
+    testWidgets('gear severities use the dark status palette', (tester) async {
+      await pumpStrip(
+        tester,
+        gauges,
+        theme: ThemeData(brightness: Brightness.dark),
+      );
+
+      expectSwatch(tester, 'Reg overdue', StatusColors.dark.alert);
+      expectSwatch(tester, 'BCD due in', StatusColors.dark.warn);
+      expectSwatch(tester, 'Fins OK', StatusColors.dark.ok);
+    });
+
+    testWidgets('a neutral chip is outlined and matches the others in size', (
+      tester,
+    ) async {
+      await pumpStrip(tester, gauges);
+
+      final neutral = pill(tester, 'Last dive');
+      expect(neutral.border, isNotNull);
+      // Neutral must not be the page color: the hand-built presets resolve
+      // surfaceContainerHighest to their surface, which erased the pill.
+      expect(neutral.color, isNot(ThemeData().colorScheme.surface));
+
+      Size sizeOf(String text) => tester.getSize(
+        find
+            .ancestor(
+              of: find.textContaining(text),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(sizeOf('Last dive').height, sizeOf('Reg overdue').height);
+
+      // The outline must not grow the pill: Container folds the 1px border
+      // into its padding, so 5px inset + 1px border matches the old 6px
+      // inset exactly (and 11 + 1 matches the old 12 across).
+      final row = tester.getSize(
+        find
+            .ancestor(
+              of: find.textContaining('Reg overdue'),
+              matching: find.byType(Row),
+            )
+            .first,
+      );
+      expect(sizeOf('Reg overdue'), Size(row.width + 24, row.height + 12));
     });
   });
 

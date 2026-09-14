@@ -676,7 +676,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         if (unmatched.isNotEmpty && writtenDives.isNotEmpty)
           ImportNotice(
             kind: ImportNoticeKind.unknownTransmitter,
-            affectedDives: _divesCarrying(unmatched, writtenDives),
+            count: _divesCarrying(unmatched, writtenDives),
           ),
         ?numberConflict,
       ],

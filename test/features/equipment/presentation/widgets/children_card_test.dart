@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -183,11 +184,11 @@ void main() {
     expect(find.text('Handset battery'), findsOneWidget);
     expect(find.textContaining('40 days ago'), findsOneWidget);
     expect(find.textContaining('6 months ago'), findsOneWidget);
-    final scheme = Theme.of(
-      tester.element(find.byType(ChildrenCard)),
-    ).colorScheme;
     final dots = tester.widgetList<Icon>(find.byIcon(Icons.circle)).toList();
-    expect(dots.where((d) => d.color == scheme.error), hasLength(1));
+    expect(
+      dots.where((d) => d.color == StatusColors.light.alert.accent),
+      hasLength(1),
+    );
   });
 
   testWidgets('replace confirms, calls the repository and reports', (

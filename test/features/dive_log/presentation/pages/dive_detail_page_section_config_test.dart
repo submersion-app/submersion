@@ -18,7 +18,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_section_fold.dart';
+import 'package:submersion/shared/widgets/section_fold.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -787,7 +787,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveSectionFold), findsNothing);
+      expect(find.byType(SectionFold), findsNothing);
       expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
     });
 
@@ -804,7 +804,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveSectionFold), findsNWidgets(2));
+      expect(find.byType(SectionFold), findsNWidgets(2));
       // Folded: the header row names the section, the content is not built.
       expect(find.text('Notes'), findsOneWidget);
       expect(find.text('Great dive, saw a lot of fish.'), findsNothing);
@@ -845,7 +845,7 @@ void main() {
       // The fold's own chevron, not the title: once unfolded, the Notes card
       // underneath carries a "Notes" heading of its own.
       final chevron = find.descendant(
-        of: find.byType(DiveSectionFold),
+        of: find.byType(SectionFold),
         matching: find.byIcon(Icons.expand_more),
       );
 
@@ -870,7 +870,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveSectionFold), findsOneWidget);
+      expect(find.byType(SectionFold), findsOneWidget);
       expect(find.text('Tags'), findsNothing);
     });
 
@@ -886,7 +886,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveSectionFold), findsNothing);
+      expect(find.byType(SectionFold), findsNothing);
     });
   });
 
@@ -939,7 +939,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveSectionFold), findsOneWidget);
+      expect(find.byType(SectionFold), findsOneWidget);
       expect(find.byType(DiveProfileChart), findsNothing);
 
       await tester.tap(find.text('Dive Profile'));
@@ -1025,7 +1025,7 @@ void main() {
 
       // Only the profile chart folds in -- depth over time is what a gauge
       // records, the deco math is not.
-      expect(find.byType(DiveSectionFold), findsOneWidget);
+      expect(find.byType(SectionFold), findsOneWidget);
       expect(find.text('Dive Profile'), findsOneWidget);
     });
   });
@@ -1043,7 +1043,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveSectionFold), findsNWidgets(2));
+      expect(find.byType(SectionFold), findsNWidgets(2));
       expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
       // The section the diver never opened stays folded.
       expect(find.text('Night Dive'), findsNothing);
@@ -1097,7 +1097,7 @@ void main() {
       // card underneath carries a "Notes" heading of its own.
       await tester.tap(
         find.descendant(
-          of: find.byType(DiveSectionFold),
+          of: find.byType(SectionFold),
           matching: find.byIcon(Icons.expand_more),
         ),
       );
@@ -1159,7 +1159,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveSectionFold), findsNWidgets(2));
+      expect(find.byType(SectionFold), findsNWidgets(2));
       expect(find.byType(ReorderableListView), findsNothing);
       expect(find.byIcon(Icons.drag_handle), findsNothing);
     });
@@ -1209,7 +1209,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final folds = find.byType(DiveSectionFold);
+      final folds = find.byType(SectionFold);
       expect(
         tester.getTopLeft(folds.at(1)).dy,
         tester.getBottomLeft(folds.at(0)).dy,

@@ -80,6 +80,59 @@ void main() {
         expect(find.text('Dive Details'), findsNothing);
       },
     );
+
+    testWidgets('shows a Site Details group linking to the card settings', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('sites'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Site Details'), findsOneWidget);
+      expect(find.text('Section Order & Visibility'), findsOneWidget);
+    });
+
+    testWidgets('the Site Details row opens the site sections page', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                const SectionAppearancePage(sectionKey: 'sites'),
+          ),
+          GoRoute(
+            path: '/settings/site-detail-sections',
+            builder: (context, state) =>
+                const Scaffold(body: Text('SITE_SECTIONS_PAGE')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Section Order & Visibility'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SITE_SECTIONS_PAGE'), findsOneWidget);
+    });
   });
 
   group('SectionAppearancePage - Buddies section', () {

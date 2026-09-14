@@ -397,7 +397,11 @@ void main() {
       const a = ImportPayload(
         entities: {},
         warnings: [
-          ImportWarning(severity: ImportWarningSeverity.warning, message: 'w1'),
+          ImportWarning(
+            severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.diagnostic,
+            message: 'w1',
+          ),
         ],
       );
       final merged = merger.merge([

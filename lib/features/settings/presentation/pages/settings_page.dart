@@ -2446,6 +2446,16 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.category),
+                  title: Text(context.l10n.settings_manage_siteTypes),
+                  subtitle: Text(
+                    context.l10n.settings_manage_siteTypes_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/site-types'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.groups),
                   title: Text(context.l10n.settings_manage_diveRoles),
                   subtitle: Text(
@@ -2921,6 +2931,14 @@ class _DataSectionContent extends ConsumerWidget {
                   subtitle: Text(context.l10n.settings_fixDiveTimes_subtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/fix-dive-times'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.group_add),
+                  title: Text(context.l10n.buddies_linkText_page_title),
+                  subtitle: Text(context.l10n.buddies_linkText_page_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/link-buddy-names'),
                 ),
                 const Divider(height: 1),
                 ListTile(

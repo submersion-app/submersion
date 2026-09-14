@@ -958,6 +958,11 @@ class PaginatedDiveListNotifier
     await loadFirstPage();
   }
 
+  /// Re-reads the loaded pages in place, for a write to a table the list
+  /// tick does not watch. A links-only buddy conversion writes just
+  /// `dive_buddies`, which the buddy filters read (#1831).
+  Future<void> reloadLoadedPages() => _silentReloadLoadedPages();
+
   /// Reload every page already loaded, without flashing a loading spinner.
   ///
   /// Mirrors [loadFirstPage] (same diver/filter/sort params, re-read from the

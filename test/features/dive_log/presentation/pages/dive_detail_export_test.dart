@@ -14,6 +14,7 @@ import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -23,12 +24,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
 
 /// Records which delivery the single-dive export sheet chose.
@@ -100,6 +103,9 @@ class _RecordingExportService implements ExportService {
   Future<String?> savePdfToFile(List<int> bytes, String fileName) =>
       _save('pdf');
 
+  /// The dives the last CSV delivery was handed.
+  List<Dive>? csvDives;
+
   /// The units the last CSV export was written in (#1813).
   CsvExportUnits? csvUnits;
 
@@ -109,6 +115,7 @@ class _RecordingExportService implements ExportService {
     CsvExportUnits units = CsvExportUnits.metric,
     Map<String, DiveTypeEntity> diveTypesById = const {},
   }) {
+    csvDives = dives;
     csvUnits = units;
     this.diveTypesById = diveTypesById;
     return _share('csv');
@@ -121,6 +128,7 @@ class _RecordingExportService implements ExportService {
     CsvExportUnits units = CsvExportUnits.metric,
     Map<String, DiveTypeEntity> diveTypesById = const {},
   }) {
+    csvDives = dives;
     csvSaveTitle = dialogTitle;
     csvUnits = units;
     this.diveTypesById = diveTypesById;
@@ -189,6 +197,8 @@ void main() {
     WidgetTester tester, {
     Diver? diver,
     DiverPhotoLoader? photoLoader,
+    List<BuddyWithRole> linkedBuddies = const [],
+    Object? buddiesFailure,
     Future<List<DiveTypeEntity>>? diveTypes,
   }) async {
     final base = await getBaseOverrides();
@@ -231,7 +241,10 @@ void main() {
           // The PDF route enriches the export with buddies, certifications
           // and the diver; those reads reach a database widget tests have
           // not got, and never settle.
-          buddiesForDiveProvider(dive.id).overrideWith((ref) async => const []),
+          buddiesForDiveProvider(dive.id).overrideWith((ref) async {
+            if (buddiesFailure != null) throw buddiesFailure;
+            return linkedBuddies;
+          }),
           allCertificationsProvider.overrideWith((ref) async => const []),
           currentDiverProvider.overrideWith((ref) async => diver),
           // The real loader reads the file system, and a dart:io await never
@@ -358,6 +371,43 @@ void main() {
 
     expect(exportService.calls, ['share:csv']);
     expect(find.text('Dive exported successfully'), findsOneWidget);
+  });
+
+  group('CSV export carries the linked buddies (#1861)', () {
+    // getDiveById does not hydrate the dive_buddies junction, so the CSV's
+    // Buddy and Dive Master columns came out empty for a picker-linked team.
+    final team = [
+      linkedParticipant('Ana', DiveRole.buddyId),
+      linkedParticipant('Mia', DiveRole.diveMasterId),
+    ];
+
+    for (final destination in ['Share', 'Save to File']) {
+      testWidgets('via $destination', (tester) async {
+        await pumpAndOpenExportSheet(tester, linkedBuddies: team);
+        await chooseFormatAndDestination(tester, 'CSV', destination);
+
+        expect(exportService.csvDives, hasLength(1));
+        expect(exportService.csvDives!.single.buddies, team);
+      });
+    }
+
+    testWidgets('a failed buddy lookup fails the export, not the columns', (
+      tester,
+    ) async {
+      await pumpAndOpenExportSheet(
+        tester,
+        buddiesFailure: StateError('buddy lookup failed'),
+      );
+      await chooseFormatAndDestination(tester, 'CSV', 'Share');
+
+      expect(
+        exportService.csvDives,
+        isNull,
+        reason: 'a CSV with silently blank Buddy columns is a wrong file',
+      );
+      expect(find.textContaining('buddy lookup failed'), findsOneWidget);
+      expect(find.text('Dive exported successfully'), findsNothing);
+    });
   });
 
   group('names each dive type as the diver did (#1834)', () {

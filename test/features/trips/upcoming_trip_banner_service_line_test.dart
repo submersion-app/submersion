@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -27,7 +28,10 @@ void main() {
     updatedAt: t0,
   );
 
-  DueClock alert(String scheduleId) => (
+  DueClock alert(
+    String scheduleId, {
+    ServiceClockSeverity severity = ServiceClockSeverity.dueSoon,
+  }) => (
     item: const EquipmentItem(id: 'e1', name: 'AL80', type: EquipmentType.tank),
     status: ServiceClockStatus(
       schedule: ServiceSchedule(
@@ -47,7 +51,7 @@ void main() {
       ),
       anchor: t0,
       dueDate: now.add(const Duration(days: 5)),
-      severity: ServiceClockSeverity.dueSoon,
+      severity: severity,
       now: now,
     ),
   );
@@ -85,6 +89,40 @@ void main() {
 
     expect(find.byIcon(Icons.build), findsOneWidget);
     expect(find.text('1 item needs service before this trip'), findsOneWidget);
+  });
+
+  Color? serviceLineColor(WidgetTester tester) =>
+      tester.widget<Text>(find.textContaining('needs service')).style?.color;
+
+  testWidgets('a service line with gear only coming due reads warn', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildBanner([alert('hydro')]));
+    await tester.pumpAndSettle();
+
+    expect(serviceLineColor(tester), StatusColors.light.warn.accent);
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.build)).color,
+      StatusColors.light.warn.accent,
+    );
+  });
+
+  testWidgets('any overdue clock turns the service line to alert', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildBanner([
+        alert('hydro'),
+        alert('vip', severity: ServiceClockSeverity.overdue),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(serviceLineColor(tester), StatusColors.light.alert.accent);
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.build)).color,
+      StatusColors.light.alert.accent,
+    );
   });
 
   testWidgets('no service line when nothing blocks the trip', (tester) async {

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/ratio_xml_parser.dart';
 
 /// Builds a minimal Ratio XML string with the given header fields and samples.
@@ -132,6 +133,20 @@ void main() {
       payload.warnings.any((w) => w.message.contains('diveSegment')),
       isTrue,
     );
+  });
+
+  test('a file with no samples is coded as an unreadable profile', () async {
+    // The dive still imports from the header, just without a profile, and the
+    // import summary shows coded warnings only.
+    final xml = _buildRatioXml().replaceAll(
+      RegExp(r'<samples>.*</samples>', dotAll: true),
+      '',
+    );
+
+    final payload = await parser.parse(_toBytes(xml));
+
+    expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+    expect(payload.warnings.single.code, ImportWarningCode.profileUnreadable);
   });
 
   test('returns error for diveSegment without segmentHeader', () async {

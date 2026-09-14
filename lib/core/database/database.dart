@@ -10,6 +10,8 @@ import 'package:submersion/core/database/performance_indexes.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
+import 'package:submersion/core/database/site_classification_uniqueness.dart';
+import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 import 'package:submersion/core/constants/enums.dart';
 
@@ -2241,6 +2243,11 @@ class DiverSettings extends Table {
   // Dive detail page layout: detailed | list (v185). A stored "compact",
   // from before that layout was dropped, reads back as detailed.
   TextColumn get diveDetailLayout => text().nullable()();
+  // Site detail page card order, visibility and fold state (v218): JSON
+  // array in the dive_detail_sections format. Null reads as the defaults.
+  TextColumn get siteDetailSections => text().nullable()();
+  // Site detail page layout: detailed | list (v218). Null reads as detailed.
+  TextColumn get siteDetailLayout => text().nullable()();
   // Table view profile panel default visibility (v61)
   BoolColumn get showProfilePanelInTableView =>
       boolean().withDefault(const Constant(true))();
@@ -2449,6 +2456,16 @@ class Tags extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
+  /// Whether the tag is offered on dives (v217, issue #1765). Every tag that
+  /// existed before v217 is a dive tag.
+  BoolColumn get appliesToDives =>
+      boolean().withDefault(const Constant(true))();
+
+  /// Whether the tag is offered on dive sites (v217, issue #1765). A tag
+  /// always applies to at least one of the two; TagRepository enforces it.
+  BoolColumn get appliesToSites =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -2527,6 +2544,63 @@ class DiveDiveTypes extends Table {
   /// v210: this child's own clock, stamped when it is marked pending. The
   /// merge refuses a remote copy strictly older than the local one, so a
   /// stale full row from a peer cannot overwrite a newer local edit
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
+/// Dive site type vocabulary (v217, issue #1765). The twin of [DiveTypes]:
+/// slug ids, built-ins (diverId null) seeded identically on every device by
+/// `kSeedBuiltInSiteTypesSql` and never synced, custom types per diver.
+class SiteTypes extends Table {
+  TextColumn get id => text()(); // Unique identifier (slug)
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id)(); // null for built-ins
+  TextColumn get name => text()();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for a site's types (many-to-many, v217). Surrogate uuid
+/// primary key, as [DiveDiveTypes]. `siteTypeId` has no foreign key for the
+/// same reason as `DiveDiveTypes.diveTypeId`: a custom type can arrive by
+/// sync after a junction row that references it.
+class SiteSiteTypes extends Table {
+  TextColumn get id => text()();
+  TextColumn get siteId =>
+      text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+  TextColumn get siteTypeId => text()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
+/// Junction table for a site's tags (many-to-many, v217), the twin of
+/// [DiveTags].
+class SiteTags extends Table {
+  TextColumn get id => text()();
+  TextColumn get siteId =>
+      text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
   /// (SyncDataSerializer.parentGatedChildEntities).
   TextColumn get hlc => text().nullable()();
 }
@@ -4043,6 +4117,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Site-species junction
     SiteSpecies,
     SiteFeatures,
+    // Site classification (v217, issue #1765)
+    SiteTypes,
+    SiteSiteTypes,
+    SiteTags,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -4103,7 +4181,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 215;
+  static const int currentSchemaVersion = 218;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4694,6 +4772,21 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 202, then 212, for the same collisions; stop-minimums
     // took 214.
     215,
+    // v217: dive site types and tags (issue #1765). Three new tables
+    // (site_types, site_site_types, site_tags), the built-in site type seed,
+    // both junction unique indexes, and tags.applies_to_dives /
+    // applies_to_sites. Additive only, so the compatibility floor stays.
+    // Renumbered from 212, then 214: main shipped 213, 214 and 215 while
+    // this branch was open, and 216 is claimed by the site detail sections
+    // work.
+    217,
+    // v218: diver_settings.site_detail_sections and site_detail_layout, the
+    // Site Details page's card order, visibility, fold state and layout
+    // (issue #1884). Additive nullable columns, no backfill. Takes 218, not
+    // 216: open PR #1860 holds 216 (metric-source defaults) and 217 (site
+    // types and tags) shipped first, and a rung at or below the shipped
+    // version never runs its onUpgrade step, so this one sits above both.
+    218,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5131,6 +5224,8 @@ class AppDatabase extends _$AppDatabase {
       'dive_custom_fields',
       'dive_data_sources',
       'site_species',
+      'site_site_types',
+      'site_tags',
       'dive_profile_events',
       'dive_safety_reviews',
       'dive_safety_findings',
@@ -6133,6 +6228,27 @@ class AppDatabase extends _$AppDatabase {
     if (cols.isNotEmpty && !names.contains('dive_detail_layout')) {
       await customStatement(
         'ALTER TABLE diver_settings ADD COLUMN dive_detail_layout TEXT',
+      );
+    }
+  }
+
+  /// v218: diver_settings.site_detail_sections and site_detail_layout (issue
+  /// #1884). Idempotent, so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop, and a no-op when the table does not exist yet.
+  Future<void> _assertSiteDetailColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('site_detail_sections')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN site_detail_sections TEXT',
+      );
+    }
+    if (!names.contains('site_detail_layout')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN site_detail_layout TEXT',
       );
     }
   }
@@ -8053,6 +8169,49 @@ class AppDatabase extends _$AppDatabase {
   /// matching the _assertDiveTypeShortNameColumn pattern so a schema-version
   /// collision cannot strand a database without them. Self-guarding when the
   /// table is absent (minimal migration-test fixtures).
+  /// Idempotent DDL for the tag scope flags (v217, issue #1765). Existing
+  /// tags are dive tags; none applies to sites until the diver says so.
+  Future<void> _assertTagScopeColumns() async {
+    final cols = await customSelect("PRAGMA table_info('tags')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('applies_to_dives')) {
+      await customStatement(
+        'ALTER TABLE tags ADD COLUMN applies_to_dives '
+        'INTEGER NOT NULL DEFAULT 1 CHECK (applies_to_dives IN (0, 1))',
+      );
+    }
+    if (!names.contains('applies_to_sites')) {
+      await customStatement(
+        'ALTER TABLE tags ADD COLUMN applies_to_sites '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (applies_to_sites IN (0, 1))',
+      );
+    }
+  }
+
+  /// Idempotent creation of the v217 site classification schema: the three
+  /// tables, the built-in seed, and the junction unique indexes. Called from
+  /// the v217 rung and the beforeOpen backstop.
+  ///
+  /// Skipped on a partial migration-test fixture that lacks the parent
+  /// tables: with foreign keys on (as they are in beforeOpen), SQLite refuses
+  /// the seed insert into `site_types` when `divers` does not exist, even for
+  /// a NULL diver id.
+  Future<void> _assertSiteClassificationSchema() async {
+    for (final parent in const ['divers', 'dive_sites', 'tags']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(siteTypes);
+    await createMigrator().createTable(siteSiteTypes);
+    await createMigrator().createTable(siteTags);
+    await customStatement(kSeedBuiltInSiteTypesSql);
+    await assertSiteClassificationUniqueness(this);
+  }
+
   Future<void> _assertDiveTypeVisibilityColumns() async {
     final cols = await customSelect("PRAGMA table_info('dive_types')").get();
     if (cols.isEmpty) return;
@@ -8381,6 +8540,12 @@ class AppDatabase extends _$AppDatabase {
         // reason as the tag indexes above -- createAll() does not build
         // raw-SQL indexes.
         await assertDiveTypeUniqueness(this);
+
+        // Built-in site types and the site junction unique indexes (v217,
+        // issue #1765). createAll() builds the tables but never raw-SQL
+        // indexes or seeds.
+        await customStatement(kSeedBuiltInSiteTypesSql);
+        await assertSiteClassificationUniqueness(this);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -12001,8 +12166,24 @@ class AppDatabase extends _$AppDatabase {
           await _assertPlanGasOptionColumns();
         }
         if (from < 215) await reportProgress();
+        // v217: dive site types and tags (issue #1765). Table-and-column
+        // rung, no backfill beyond the built-in seed.
+        if (from < 217) {
+          await _assertTagScopeColumns();
+          await _assertSiteClassificationSchema();
+        }
+        if (from < 217) await reportProgress();
+        // v218: diver_settings site detail columns. Column-only rung, no
+        // backfill: null reads back as the default order and layout.
+        if (from < 218) {
+          await _assertSiteDetailColumns();
+        }
+        if (from < 218) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v217 backstop: the tag scope flags.
+        await _assertTagScopeColumns();
+
         // v211 backstop: re-assert diver_settings.auto_tag_imports.
         await _assertAutoTagImportsColumn();
 
@@ -12110,6 +12291,10 @@ class AppDatabase extends _$AppDatabase {
         // v152 backstop: site features table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await createMigrator().createTable(siteFeatures);
+
+        // v217 backstop: site classification tables, seed and indexes
+        // (parallel-branch version-collision self-heal; all idempotent).
+        await _assertSiteClassificationSchema();
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it
@@ -12351,6 +12536,12 @@ class AppDatabase extends _$AppDatabase {
         // rung would throw on the first read instead of falling back to the
         // default layout.
         await _assertDiveDetailLayoutColumn();
+
+        // v218 backstop: re-assert the diver_settings site detail columns.
+        // Every settings read selects the whole row, so a database that
+        // arrives by restore or sync-adopt without them would throw on the
+        // first read.
+        await _assertSiteDetailColumns();
         // v182 backstop: re-assert the packed profile series tables, then
         // pack any dive that still has legacy rows and no series row. A
         // schema-version collision with a parallel branch skips the rung on

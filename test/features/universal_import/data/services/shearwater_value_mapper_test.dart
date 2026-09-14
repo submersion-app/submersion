@@ -27,6 +27,16 @@ void main() {
     });
 
     group('conditions mapping', () {
+      test('maps environment to a built-in site type (issue #1765)', () {
+        expect(ShearwaterValueMapper.mapSiteType('Pool'), 'pool');
+        expect(ShearwaterValueMapper.mapSiteType('Lake'), 'lake');
+        expect(ShearwaterValueMapper.mapSiteType('Quarry'), 'quarry');
+        expect(ShearwaterValueMapper.mapSiteType('River'), 'river');
+        // The water, not the kind of place.
+        expect(ShearwaterValueMapper.mapSiteType('Ocean/Sea'), isNull);
+        expect(ShearwaterValueMapper.mapSiteType('Brackish'), isNull);
+        expect(ShearwaterValueMapper.mapSiteType(null), isNull);
+      });
       test('maps environment to waterType', () {
         expect(ShearwaterValueMapper.mapWaterType('Ocean/Sea'), WaterType.salt);
         expect(ShearwaterValueMapper.mapWaterType('Pool'), WaterType.fresh);

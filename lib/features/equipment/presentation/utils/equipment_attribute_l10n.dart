@@ -70,6 +70,10 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'balance_zone' => l10n.attrLabel_balance_zone,
   'tilt_tolerance_deg' => l10n.attrLabel_tilt_tolerance_deg,
   'tool_type' => l10n.attrLabel_tool_type,
+  // Rig accessories (#1877).
+  'band_style' => l10n.attrLabel_band_style,
+  'pocket_capacity_kg' => l10n.attrLabel_pocket_capacity_kg,
+  'pocket_mount' => l10n.attrLabel_pocket_mount,
   // Purchase record (issue #1517), present on every type.
   'sku' => l10n.attrLabel_sku,
   'retailer' => l10n.attrLabel_retailer,
@@ -213,5 +217,11 @@ String attributeChoiceLabel(
   'hose_type_lp' => l10n.attrChoice_hose_type_lp,
   'hose_type_hp' => l10n.attrChoice_hose_type_hp,
   'hose_type_lpi' => l10n.attrChoice_hose_type_lpi,
+  // Rig accessories (#1877).
+  'band_style_cam_strap' => l10n.attrChoice_band_style_cam_strap,
+  'band_style_stainless_band' => l10n.attrChoice_band_style_stainless_band,
+  'pocket_mount_harness' => l10n.attrChoice_pocket_mount_harness,
+  'pocket_mount_waist_belt' => l10n.attrChoice_pocket_mount_waist_belt,
+  'pocket_mount_thigh' => l10n.attrChoice_pocket_mount_thigh,
   _ => option,
 };

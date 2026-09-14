@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_summary_widget.dart';
 
@@ -25,6 +29,8 @@ void main() {
     WidgetTester tester,
     List<EquipmentItem> equipment, {
     String defaultCurrency = 'USD',
+    List<EquipmentItem> serviceDue = const [],
+    List<DueClock> dueClocks = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1600);
@@ -54,7 +60,8 @@ void main() {
         overrides: [
           ...overrides,
           allEquipmentProvider.overrideWith((ref) async => equipment),
-          serviceDueEquipmentProvider.overrideWith((ref) async => const []),
+          serviceDueEquipmentProvider.overrideWith((ref) async => serviceDue),
+          dueClocksProvider.overrideWith((ref) async => dueClocks),
         ],
       ),
     );
@@ -63,6 +70,91 @@ void main() {
 
   String card(double total, String code) =>
       '${currencySymbol(code)}${total.toStringAsFixed(0)}';
+
+  DueClock clock(EquipmentItem item, ServiceClockSeverity severity) {
+    final t0 = DateTime(2026, 1, 1);
+    return (
+      item: item,
+      status: ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's-${item.id}',
+          equipmentId: item.id,
+          serviceKindId: 'annual',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: ServiceKind(
+          id: 'annual',
+          name: 'Annual service',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        anchor: t0,
+        dueDate: DateTime.now().add(const Duration(days: 5)),
+        severity: severity,
+        now: DateTime.now(),
+      ),
+    );
+  }
+
+  /// Asserts the whole service-due section (heading icon, card, avatar
+  /// badge) is painted from [swatch].
+  void expectServiceDueSwatch(WidgetTester tester, StatusSwatch swatch) {
+    final heading = find.text('Service Due');
+    final icon = tester.widget<Icon>(
+      find.descendant(
+        of: find.ancestor(of: heading, matching: find.byType(Row)).first,
+        matching: find.byIcon(Icons.warning),
+      ),
+    );
+    expect(icon.color, swatch.accent);
+
+    // The item is listed twice: in the service-due card and again under
+    // recent items. The service-due section renders first.
+    final row = find.text('Item d1').first;
+    final card = tester.widget<Card>(
+      find.ancestor(of: row, matching: find.byType(Card)).first,
+    );
+    expect(card.color, swatch.container);
+
+    final tile = find.ancestor(of: row, matching: find.byType(ListTile)).first;
+    final avatar = tester.widget<CircleAvatar>(
+      find.descendant(of: tile, matching: find.byType(CircleAvatar)),
+    );
+    expect(avatar.backgroundColor, swatch.accent);
+    final glyph = tester.widget<Icon>(
+      find.descendant(of: tile, matching: find.byIcon(Icons.build)),
+    );
+    expect(glyph.color, swatch.container);
+  }
+
+  testWidgets('an overdue item paints the service-due section as alert', (
+    tester,
+  ) async {
+    final due = _priced('d1', null, 'USD');
+    await pumpSummary(
+      tester,
+      [due],
+      serviceDue: [due],
+      dueClocks: [clock(due, ServiceClockSeverity.overdue)],
+    );
+
+    expectServiceDueSwatch(tester, StatusColors.light.alert);
+  });
+
+  testWidgets('items only coming due paint the section as warn, not alert', (
+    tester,
+  ) async {
+    final due = _priced('d1', null, 'USD');
+    await pumpSummary(
+      tester,
+      [due],
+      serviceDue: [due],
+      dueClocks: [clock(due, ServiceClockSeverity.dueSoon)],
+    );
+
+    expectServiceDueSwatch(tester, StatusColors.light.warn);
+  });
 
   testWidgets('one currency yields a single total in that currency', (
     tester,

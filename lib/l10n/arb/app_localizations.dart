@@ -2461,6 +2461,192 @@ abstract class AppLocalizations {
   /// **'Not specified'**
   String get buddies_label_notSpecified;
 
+  /// No description provided for @buddies_linkText_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to buddy records'**
+  String get buddies_linkText_action;
+
+  /// No description provided for @buddies_linkText_addName.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a name'**
+  String get buddies_linkText_addName;
+
+  /// No description provided for @buddies_linkText_chipWithRole.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {role}'**
+  String buddies_linkText_chipWithRole(String name, String role);
+
+  /// No description provided for @buddies_linkText_chooseExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose existing buddy'**
+  String get buddies_linkText_chooseExisting;
+
+  /// No description provided for @buddies_linkText_editName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get buddies_linkText_editName;
+
+  /// No description provided for @buddies_linkText_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not link buddies: {error}'**
+  String buddies_linkText_error(String error);
+
+  /// No description provided for @buddies_linkText_linkCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Link 1} other{Link {count}}}'**
+  String buddies_linkText_linkCount(int count);
+
+  /// No description provided for @buddies_linkText_linkedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Linked 1 buddy} other{Linked {count} buddies}}'**
+  String buddies_linkText_linkedSnackbar(int count);
+
+  /// No description provided for @buddies_linkText_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get buddies_linkText_nameLabel;
+
+  /// Notes stored on a buddy created from a dive's legacy buddy text
+  ///
+  /// In en, this message translates to:
+  /// **'Converted from dive buddy text'**
+  String get buddies_linkText_newBuddyNote;
+
+  /// No description provided for @buddies_linkText_noBuddiesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No buddies found'**
+  String get buddies_linkText_noBuddiesFound;
+
+  /// No description provided for @buddies_linkText_page_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}'**
+  String buddies_linkText_page_diveNumber(int number);
+
+  /// No description provided for @buddies_linkText_page_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Every buddy name is linked to a buddy record'**
+  String get buddies_linkText_page_empty;
+
+  /// No description provided for @buddies_linkText_page_errorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load dives: {error}'**
+  String buddies_linkText_page_errorLoading(String error);
+
+  /// No description provided for @buddies_linkText_page_linkDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Link 1 dive} other{Link {count} dives}}'**
+  String buddies_linkText_page_linkDives(int count);
+
+  /// No description provided for @buddies_linkText_page_linkedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Linked buddies on 1 dive} other{Linked buddies on {count} dives}}'**
+  String buddies_linkText_page_linkedSnackbar(int count);
+
+  /// No description provided for @buddies_linkText_page_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn buddy names on imported dives into buddy records'**
+  String get buddies_linkText_page_subtitle;
+
+  /// No description provided for @buddies_linkText_page_summaryDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String buddies_linkText_page_summaryDives(int count);
+
+  /// No description provided for @buddies_linkText_page_summaryExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 existing buddy} other{{count} existing buddies}}'**
+  String buddies_linkText_page_summaryExisting(int count);
+
+  /// No description provided for @buddies_linkText_page_summaryNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new buddy} other{{count} new buddies}}'**
+  String buddies_linkText_page_summaryNew(int count);
+
+  /// No description provided for @buddies_linkText_page_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Link buddy names'**
+  String get buddies_linkText_page_title;
+
+  /// No description provided for @buddies_linkText_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search buddies'**
+  String get buddies_linkText_searchHint;
+
+  /// No description provided for @buddies_linkText_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link buddy records'**
+  String get buddies_linkText_sheetTitle;
+
+  /// No description provided for @buddies_linkText_sourceBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'From \"{text}\"'**
+  String buddies_linkText_sourceBuddy(String text);
+
+  /// No description provided for @buddies_linkText_sourceDiveMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive master \"{text}\"'**
+  String buddies_linkText_sourceDiveMaster(String text);
+
+  /// No description provided for @buddies_linkText_statusExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing buddy'**
+  String get buddies_linkText_statusExisting;
+
+  /// No description provided for @buddies_linkText_statusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New buddy'**
+  String get buddies_linkText_statusNew;
+
+  /// No description provided for @buddies_linkText_suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean {name}?'**
+  String buddies_linkText_suggestion(String name);
+
+  /// No description provided for @buddies_linkText_tie.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 buddy named {name}} other{{count} buddies named {name}}}'**
+  String buddies_linkText_tie(int count, String name);
+
+  /// No description provided for @buddies_linkText_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy links removed'**
+  String get buddies_linkText_undone;
+
+  /// No description provided for @buddies_linkText_useSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get buddies_linkText_useSuggestion;
+
   /// No description provided for @buddies_message_added.
   ///
   /// In en, this message translates to:
@@ -11013,6 +11199,30 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get diveSites_edit_group_location;
 
+  /// Site form group: the site's types (reef, wreck, lake...) and its tags
+  ///
+  /// In en, this message translates to:
+  /// **'Type & Tags'**
+  String get diveSites_edit_group_typeTags;
+
+  /// No description provided for @diveSites_edit_typeTags_manageTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage types'**
+  String get diveSites_edit_typeTags_manageTypes;
+
+  /// No description provided for @diveSites_edit_typeTags_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get diveSites_edit_typeTags_tagsLabel;
+
+  /// No description provided for @diveSites_edit_typeTags_typesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get diveSites_edit_typeTags_typesLabel;
+
   /// Empty-state invitation for the Access & safety group
   ///
   /// In en, this message translates to:
@@ -11696,6 +11906,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assigned {name}'**
   String siteSuggestion_assignedSnack(Object name);
+
+  /// No description provided for @siteTypes_addTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Site Type'**
+  String get siteTypes_addTooltip;
+
+  /// No description provided for @siteTypes_builtIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get siteTypes_builtIn;
+
+  /// No description provided for @siteTypes_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get siteTypes_custom;
+
+  /// No description provided for @siteTypes_deleteDialog_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String siteTypes_deleteDialog_content(String name);
+
+  /// No description provided for @siteTypes_deleteDialog_inUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{\"{name}\" is used by 1 site. Deleting it removes it from that site.} other{\"{name}\" is used by {count} sites. Deleting it removes it from those sites.}}'**
+  String siteTypes_deleteDialog_inUse(int count, String name);
+
+  /// No description provided for @siteTypes_deleteDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Site Type?'**
+  String get siteTypes_deleteDialog_title;
+
+  /// No description provided for @siteTypes_deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete site type'**
+  String get siteTypes_deleteTooltip;
+
+  /// No description provided for @siteTypes_dialog_addTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Site Type'**
+  String get siteTypes_dialog_addTitle;
+
+  /// No description provided for @siteTypes_dialog_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Site Type'**
+  String get siteTypes_dialog_editTitle;
+
+  /// No description provided for @siteTypes_dialog_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get siteTypes_dialog_nameLabel;
+
+  /// No description provided for @siteTypes_dialog_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get siteTypes_dialog_nameRequired;
+
+  /// No description provided for @siteTypes_editTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit site type'**
+  String get siteTypes_editTooltip;
+
+  /// No description provided for @siteTypes_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No sites} =1{1 site} other{{count} sites}}'**
+  String siteTypes_siteCount(int count);
+
+  /// No description provided for @siteTypes_snackbar_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the site type: {error}'**
+  String siteTypes_snackbar_error(String error);
+
+  /// No description provided for @siteTypes_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get siteTypes_title;
+
+  /// No description provided for @siteType_builtin_artificial_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Artificial reef'**
+  String get siteType_builtin_artificial_reef;
+
+  /// No description provided for @siteType_builtin_blue_hole.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue hole'**
+  String get siteType_builtin_blue_hole;
+
+  /// No description provided for @siteType_builtin_cave.
+  ///
+  /// In en, this message translates to:
+  /// **'Cave'**
+  String get siteType_builtin_cave;
+
+  /// No description provided for @siteType_builtin_cavern.
+  ///
+  /// In en, this message translates to:
+  /// **'Cavern'**
+  String get siteType_builtin_cavern;
+
+  /// No description provided for @siteType_builtin_cenote.
+  ///
+  /// In en, this message translates to:
+  /// **'Cenote'**
+  String get siteType_builtin_cenote;
+
+  /// No description provided for @siteType_builtin_kelp_forest.
+  ///
+  /// In en, this message translates to:
+  /// **'Kelp forest'**
+  String get siteType_builtin_kelp_forest;
+
+  /// No description provided for @siteType_builtin_lake.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake'**
+  String get siteType_builtin_lake;
+
+  /// No description provided for @siteType_builtin_muck.
+  ///
+  /// In en, this message translates to:
+  /// **'Muck'**
+  String get siteType_builtin_muck;
+
+  /// No description provided for @siteType_builtin_pier.
+  ///
+  /// In en, this message translates to:
+  /// **'Pier / jetty'**
+  String get siteType_builtin_pier;
+
+  /// No description provided for @siteType_builtin_pool.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool'**
+  String get siteType_builtin_pool;
+
+  /// No description provided for @siteType_builtin_quarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarry'**
+  String get siteType_builtin_quarry;
+
+  /// No description provided for @siteType_builtin_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Reef'**
+  String get siteType_builtin_reef;
+
+  /// No description provided for @siteType_builtin_river.
+  ///
+  /// In en, this message translates to:
+  /// **'River'**
+  String get siteType_builtin_river;
+
+  /// No description provided for @siteType_builtin_spring.
+  ///
+  /// In en, this message translates to:
+  /// **'Spring'**
+  String get siteType_builtin_spring;
+
+  /// No description provided for @siteType_builtin_wall.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall'**
+  String get siteType_builtin_wall;
+
+  /// No description provided for @siteType_builtin_wreck.
+  ///
+  /// In en, this message translates to:
+  /// **'Wreck'**
+  String get siteType_builtin_wreck;
 
   /// No description provided for @siteMatchReview_sourcePhoto.
   ///
@@ -14296,6 +14692,12 @@ abstract class AppLocalizations {
   /// **'ppO₂ of {value} bar exceeds working limit'**
   String divePlanner_warning_ppO2High(Object value);
 
+  /// Tooltip on a site type or tag chip; tapping it opens the site list filtered to it
+  ///
+  /// In en, this message translates to:
+  /// **'Show sites with {name}'**
+  String diveSites_detail_showSitesWith(String name);
+
   /// No description provided for @diveSites_detail_access_accessNotes.
   ///
   /// In en, this message translates to:
@@ -15459,6 +15861,18 @@ abstract class AppLocalizations {
   /// **'Options'**
   String get diveSites_filter_section_options;
 
+  /// No description provided for @diveSites_filter_section_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site type'**
+  String get diveSites_filter_section_siteTypes;
+
+  /// No description provided for @diveSites_filter_section_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get diveSites_filter_section_tags;
+
   /// No description provided for @diveSites_filter_title.
   ///
   /// In en, this message translates to:
@@ -15668,6 +16082,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get diveSites_list_activeFilter_clear;
+
+  /// Chip on a site card standing in for the tags that did not fit
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String diveSites_list_moreTags(int count);
 
   /// No description provided for @diveSites_list_activeFilter_country.
   ///
@@ -18135,6 +18555,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Harness'**
   String get enum_equipmentType_harness;
+
+  /// No description provided for @enum_equipmentType_tankBand.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Band'**
+  String get enum_equipmentType_tankBand;
+
+  /// No description provided for @enum_equipmentType_weightPocket.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Pocket'**
+  String get enum_equipmentType_weightPocket;
+
+  /// No description provided for @enum_equipmentType_gearPocket.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear Pocket'**
+  String get enum_equipmentType_gearPocket;
 
   /// No description provided for @enum_equipmentType_hose.
   ///
@@ -27256,6 +27694,126 @@ abstract class AppLocalizations {
   /// **'Connected dive computers, source management'**
   String get diveDetailSection_dataSources_description;
 
+  /// No description provided for @siteDetailSection_map_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get siteDetailSection_map_name;
+
+  /// No description provided for @siteDetailSection_map_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Map preview of the site location'**
+  String get siteDetailSection_map_description;
+
+  /// No description provided for @siteDetailSection_diveStatistics_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count, depths reached, longest and latest dives'**
+  String get siteDetailSection_diveStatistics_description;
+
+  /// No description provided for @siteDetailSection_description_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your description of the site'**
+  String get siteDetailSection_description_description;
+
+  /// No description provided for @siteDetailSection_location_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Country, region, body of water, GPS coordinates'**
+  String get siteDetailSection_location_description;
+
+  /// No description provided for @siteDetailSection_depth_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Rated depth range and depths reached on dives'**
+  String get siteDetailSection_depth_description;
+
+  /// No description provided for @siteDetailSection_altitude_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude and altitude dive category'**
+  String get siteDetailSection_altitude_description;
+
+  /// No description provided for @siteDetailSection_features_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Features marked on the site map'**
+  String get siteDetailSection_features_description;
+
+  /// No description provided for @siteDetailSection_tide_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tide cycle graph and timing'**
+  String get siteDetailSection_tide_description;
+
+  /// No description provided for @siteDetailSection_reefHealth_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite water conditions at the site'**
+  String get siteDetailSection_reefHealth_description;
+
+  /// No description provided for @siteDetailSection_marineLife_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Species seen at this site'**
+  String get siteDetailSection_marineLife_description;
+
+  /// No description provided for @siteDetailSection_media_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos, videos and documents for the site'**
+  String get siteDetailSection_media_description;
+
+  /// No description provided for @siteDetailSection_tags_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags on this site'**
+  String get siteDetailSection_tags_description;
+
+  /// No description provided for @siteDetailSection_difficulty_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty level of the site'**
+  String get siteDetailSection_difficulty_description;
+
+  /// No description provided for @siteDetailSection_rating_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating of the site'**
+  String get siteDetailSection_rating_description;
+
+  /// No description provided for @siteDetailSection_hazards_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Hazards and safety notes'**
+  String get siteDetailSection_hazards_description;
+
+  /// No description provided for @siteDetailSection_access_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry and exit, parking, mooring, access notes'**
+  String get siteDetailSection_access_description;
+
+  /// No description provided for @siteDetailSection_notes_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes about the site'**
+  String get siteDetailSection_notes_description;
+
+  /// No description provided for @settings_siteDetailSections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Detail Sections'**
+  String get settings_siteDetailSections_title;
+
+  /// No description provided for @settings_appearance_header_siteDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Details'**
+  String get settings_appearance_header_siteDetails;
+
   /// No description provided for @settings_appearance_header_language.
   ///
   /// In en, this message translates to:
@@ -28663,6 +29221,12 @@ abstract class AppLocalizations {
   /// **'Signed by'**
   String get settings_conflict_ref_signer;
 
+  /// No description provided for @settings_conflict_ref_siteType.
+  ///
+  /// In en, this message translates to:
+  /// **'Site type'**
+  String get settings_conflict_ref_siteType;
+
   /// No description provided for @settings_conflict_ref_sourceDive.
   ///
   /// In en, this message translates to:
@@ -29620,6 +30184,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage custom dive types'**
   String get settings_manage_diveTypes_subtitle;
+
+  /// No description provided for @settings_manage_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get settings_manage_siteTypes;
+
+  /// No description provided for @settings_manage_siteTypes_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in and custom dive site types'**
+  String get settings_manage_siteTypes_subtitle;
 
   /// No description provided for @settings_manage_header_manageData.
   ///
@@ -31589,6 +32165,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visibility Distribution'**
   String get statistics_conditions_visibility_title;
+
+  /// No description provided for @statistics_conditions_siteType_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load site type data'**
+  String get statistics_conditions_siteType_error;
+
+  /// No description provided for @statistics_conditions_siteType_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar chart. Dives per site type. {description}'**
+  String statistics_conditions_siteType_semanticLabel(String description);
+
+  /// No description provided for @statistics_conditions_siteType_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.'**
+  String get statistics_conditions_siteType_subtitle;
+
+  /// No description provided for @statistics_conditions_siteType_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get statistics_conditions_siteType_title;
 
   /// No description provided for @statistics_conditions_waterType_error.
   ///
@@ -33713,6 +34313,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get tags_manage_colorLabel;
+
+  /// No description provided for @tags_manage_narrowDialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get tags_manage_narrowDialog_confirm;
+
+  /// No description provided for @tags_manage_narrowDialog_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}'**
+  String tags_manage_narrowDialog_dives(int count);
+
+  /// No description provided for @tags_manage_narrowDialog_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.} other{This tag is on {count} sites. Turning off \"Use for sites\" removes it from those sites.}}'**
+  String tags_manage_narrowDialog_sites(int count);
+
+  /// No description provided for @tags_manage_narrowDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove tag from existing items?'**
+  String get tags_manage_narrowDialog_title;
+
+  /// No description provided for @tags_manage_scopeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dives, sites, or both'**
+  String get tags_manage_scopeRequired;
+
+  /// No description provided for @tags_manage_scope_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get tags_manage_scope_dives;
+
+  /// No description provided for @tags_manage_scope_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get tags_manage_scope_sites;
+
+  /// No description provided for @tags_manage_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 sites} =1{1 site} other{{count} sites}}'**
+  String tags_manage_siteCount(int count);
+
+  /// No description provided for @tags_manage_useForDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for dives'**
+  String get tags_manage_useForDives;
+
+  /// No description provided for @tags_manage_useForSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for sites'**
+  String get tags_manage_useForSites;
 
   /// No description provided for @tags_manage_nameRequired.
   ///
@@ -36561,7 +37221,7 @@ abstract class AppLocalizations {
   /// No description provided for @universalImport_summary_noticesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Not in the file'**
+  /// **'Import notes'**
   String get universalImport_summary_noticesTitle;
 
   /// No description provided for @universalImport_summary_noticeNoTankPressureTitle.
@@ -36581,6 +37241,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}'**
   String universalImport_summary_noticeAffectedDives(int count);
+
+  /// No description provided for @universalImport_summary_noticeDivesSkippedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dives could not be read'**
+  String get universalImport_summary_noticeDivesSkippedTitle;
+
+  /// No description provided for @universalImport_summary_noticeDivesSkippedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives were skipped because their data in the file could not be read.'**
+  String get universalImport_summary_noticeDivesSkippedBody;
+
+  /// No description provided for @universalImport_summary_noticeDivesSkippedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive skipped} other{{count} dives skipped}}'**
+  String universalImport_summary_noticeDivesSkippedCount(int count);
+
+  /// No description provided for @universalImport_summary_noticeMultipleDiversTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives from more than one diver'**
+  String get universalImport_summary_noticeMultipleDiversTitle;
+
+  /// No description provided for @universalImport_summary_noticeMultipleDiversBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This MacDive library has dives logged by {names}. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.'**
+  String universalImport_summary_noticeMultipleDiversBody(String names);
+
+  /// No description provided for @universalImport_summary_noticeProfileUnreadableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some profiles could not be read'**
+  String get universalImport_summary_noticeProfileUnreadableTitle;
+
+  /// No description provided for @universalImport_summary_noticeProfileUnreadableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives were imported without a depth profile because the profile data in the file is missing or could not be read.'**
+  String get universalImport_summary_noticeProfileUnreadableBody;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveProfileUndecodableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive profiles not decoded'**
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveProfileUndecodableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive stored these profiles in a form Submersion cannot read. To import them, export from MacDive as XML (File > Export > MacDive XML) and import that file instead.'**
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody;
+
+  /// No description provided for @universalImport_summary_noticeProfileUndecodableOnPlatformTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles not decoded on this device'**
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle;
+
+  /// No description provided for @universalImport_summary_noticeProfileUndecodableOnPlatformBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.'**
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody;
+
+  /// No description provided for @universalImport_summary_noticeColumnsNotImportedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some columns were not imported'**
+  String get universalImport_summary_noticeColumnsNotImportedTitle;
+
+  /// No description provided for @universalImport_summary_noticeColumnsNotImportedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These columns matched a field that another column already fills, so they were left out: {names}. To use one of them instead, import the file again and choose it on the Map Fields step.'**
+  String universalImport_summary_noticeColumnsNotImportedBody(String names);
+
+  /// No description provided for @universalImport_summary_noticeValuesNotConvertedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some values left blank'**
+  String get universalImport_summary_noticeValuesNotConvertedTitle;
+
+  /// No description provided for @universalImport_summary_noticeValuesNotConvertedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.} other{{count} values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.}}'**
+  String universalImport_summary_noticeValuesNotConvertedBody(int count);
+
+  /// No description provided for @universalImport_summary_noticePhotosSkippedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos skipped'**
+  String get universalImport_summary_noticePhotosSkippedTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotosSkippedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo had no file name and could not be linked.} other{{count} photos had no file name and could not be linked.}}'**
+  String universalImport_summary_noticePhotosSkippedBody(int count);
+
+  /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications and service records not in the file'**
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.'**
+  String get universalImport_summary_noticeMacdiveXmlCertsBody;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveLogbooksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive logbooks not imported'**
+  String get universalImport_summary_noticeMacdiveLogbooksTitle;
+
+  /// No description provided for @universalImport_summary_noticeMacdiveLogbooksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDive logbooks ({names}) are saved searches, not fixed lists of dives, so there is nothing to import. You can recreate them as dive filters.'**
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names);
 
   /// Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app.
   ///
@@ -43796,6 +44582,24 @@ abstract class AppLocalizations {
   /// **'Tool type'**
   String get attrLabel_tool_type;
 
+  /// No description provided for @attrLabel_band_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_band_style;
+
+  /// No description provided for @attrLabel_pocket_capacity_kg.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get attrLabel_pocket_capacity_kg;
+
+  /// No description provided for @attrLabel_pocket_mount.
+  ///
+  /// In en, this message translates to:
+  /// **'Mount'**
+  String get attrLabel_pocket_mount;
+
   /// No description provided for @attrChoice_plate_material_aluminum.
   ///
   /// In en, this message translates to:
@@ -44071,6 +44875,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'LPI (inflator)'**
   String get attrChoice_hose_type_lpi;
+
+  /// No description provided for @attrChoice_band_style_cam_strap.
+  ///
+  /// In en, this message translates to:
+  /// **'Cam strap'**
+  String get attrChoice_band_style_cam_strap;
+
+  /// No description provided for @attrChoice_band_style_stainless_band.
+  ///
+  /// In en, this message translates to:
+  /// **'Stainless band'**
+  String get attrChoice_band_style_stainless_band;
+
+  /// No description provided for @attrChoice_pocket_mount_harness.
+  ///
+  /// In en, this message translates to:
+  /// **'Harness'**
+  String get attrChoice_pocket_mount_harness;
+
+  /// No description provided for @attrChoice_pocket_mount_waist_belt.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist belt'**
+  String get attrChoice_pocket_mount_waist_belt;
+
+  /// No description provided for @attrChoice_pocket_mount_thigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Thigh'**
+  String get attrChoice_pocket_mount_thigh;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///
@@ -48827,6 +49661,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Avg time'**
   String get enum_siteField_averageDuration_short;
+
+  /// No description provided for @enum_siteField_siteTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Types'**
+  String get enum_siteField_siteTypes;
+
+  /// No description provided for @enum_siteField_siteTypes_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Types'**
+  String get enum_siteField_siteTypes_short;
+
+  /// No description provided for @enum_siteField_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_siteField_tags;
+
+  /// No description provided for @enum_siteField_tags_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_siteField_tags_short;
 
   /// No description provided for @enum_siteField_maxDepthReached_short.
   ///

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
@@ -103,7 +104,9 @@ void main() {
       expect(view.maxDepth, 40);
       expect(view.location, const GeoPoint(0, 0));
       verifyNever(dives.setSite(any, any));
-      verifyNever(sites.createSite(any));
+      verifyNever(
+        sites.createSite(any, classification: anyNamed('classification')),
+      );
     });
 
     test('no candidates -> none', () async {
@@ -132,7 +135,9 @@ void main() {
 
   group('applyConfirmed', () {
     setUp(() {
-      when(sites.createSite(any)).thenAnswer((inv) async {
+      when(
+        sites.createSite(any, classification: anyNamed('classification')),
+      ).thenAnswer((inv) async {
         final s = inv.positionalArguments.first as DiveSite;
         return s.copyWith(id: 'new-${s.name}');
       });
@@ -152,7 +157,9 @@ void main() {
       expect(result.divesLinked, 1);
       expect(result.sitesCreated, 0);
       verify(dives.setSite('d1', 's1')).called(1);
-      verifyNever(sites.createSite(any));
+      verifyNever(
+        sites.createSite(any, classification: anyNamed('classification')),
+      );
     });
 
     test(
@@ -190,9 +197,52 @@ void main() {
 
         expect(result.divesLinked, 2);
         expect(result.sitesCreated, 1);
-        verify(sites.createSite(any)).called(1);
+        verify(
+          sites.createSite(any, classification: anyNamed('classification')),
+        ).called(1);
         verify(dives.setSite('d1', 'new-Wreck')).called(1);
         verify(dives.setSite('d2', 'new-Wreck')).called(1);
+      },
+    );
+
+    test(
+      'a materialised bundled site carries its mapped site types (#1765)',
+      () async {
+        when(
+          api.searchNearby(
+            latitude: anyNamed('latitude'),
+            longitude: anyNamed('longitude'),
+            radiusKm: anyNamed('radiusKm'),
+          ),
+        ).thenAnswer(
+          (_) async => const DiveSiteSearchResult(
+            sites: [
+              ExternalDiveSite(
+                externalId: 'osm_2',
+                name: 'Lake wreck',
+                latitude: 0,
+                longitude: 0,
+                features: ['wreck', 'lake', 'sharks'],
+                source: 'OpenStreetMap',
+              ),
+            ],
+          ),
+        );
+        final s = service();
+        await s.computeProposals([_diveAt('d1', _eastMeters(22))]);
+
+        await s.applyConfirmed([const ConfirmedMatch('d1', 'osm_2')]);
+
+        final captured = verify(
+          sites.createSite(
+            any,
+            classification: captureAnyNamed('classification'),
+          ),
+        ).captured;
+        expect((captured.single as SiteClassification).typeIds, [
+          'wreck',
+          'lake',
+        ]);
       },
     );
 
@@ -235,7 +285,9 @@ void main() {
 
         expect(result.sitesCreated, 0);
         verify(dives.setSite('d1', 's-exist')).called(1);
-        verifyNever(sites.createSite(any));
+        verifyNever(
+          sites.createSite(any, classification: anyNamed('classification')),
+        );
       },
     );
 
@@ -413,7 +465,9 @@ void main() {
 
   group('createAndLink', () {
     setUp(() {
-      when(sites.createSite(any)).thenAnswer((inv) async {
+      when(
+        sites.createSite(any, classification: anyNamed('classification')),
+      ).thenAnswer((inv) async {
         final s = inv.positionalArguments.first as DiveSite;
         return s.copyWith(id: 'new-${s.name}');
       });

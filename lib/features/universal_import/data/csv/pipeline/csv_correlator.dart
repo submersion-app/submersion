@@ -32,7 +32,8 @@ class CsvCorrelator {
   /// 4. Extract sites via [SiteExtractor] (deduplicated).
   /// 5. Link each dive to its site using [SiteExtractor.siteIdForName].
   /// 6. Conditionally extract buddies, tags, and gear.
-  /// 7. Attach tanks list to each dive map, and link buddies and tags.
+  /// 7. Attach tanks list to each dive map, link buddies and tags, and link
+  ///    each dive to the suit gear extracted from its row.
   /// 8. If [profileRows] provided, run [ProfileExtractor] and attach profiles.
   /// 9. Build metadata and return [CorrelatedPayload].
   CorrelatedPayload correlate({
@@ -97,9 +98,11 @@ class CsvCorrelator {
     }
 
     // Step 6c: Extract gear/equipment if requested.
+    GearExtractor? gearExtractor;
     final gear = <Map<String, dynamic>>[];
     if (entityTypes.contains(ImportEntityType.equipment)) {
-      gear.addAll(GearExtractor().extractFromRows(rows));
+      gearExtractor = GearExtractor();
+      gear.addAll(gearExtractor.extractFromRows(rows));
     }
 
     // Step 6d: Extract the dive types the dives reference, if requested.
@@ -127,10 +130,17 @@ class CsvCorrelator {
         ? _attachTagRefs(divesWithBuddyRefs, rows, tagExtractor)
         : divesWithBuddyRefs;
 
+    // Step 7d: Link each dive to the suit on its row, so the imported suit
+    // is gear the dive wore rather than an item no dive references (#1824).
+    // The suit also stays in the notes (DiveExtractor), as in Subsurface XML.
+    final divesWithGearRefs = gearExtractor != null
+        ? _attachSuitRefs(divesWithTagRefs, rows, gearExtractor)
+        : divesWithTagRefs;
+
     // Step 8: Attach profile data if provided.
     final finalDives = profileRows != null
-        ? _attachProfiles(divesWithTagRefs, profileRows.rows)
-        : divesWithTagRefs;
+        ? _attachProfiles(divesWithGearRefs, profileRows.rows)
+        : divesWithGearRefs;
 
     // Step 9: Build metadata and entities map.
     final metadata = <String, dynamic>{
@@ -163,6 +173,28 @@ class CsvCorrelator {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  /// Set `equipmentRefs` on each dive to the gear extracted from the suit on
+  /// the same row. [dives] and [rows] share an index: every dive is
+  /// extracted from the row at its position.
+  List<Map<String, dynamic>> _attachSuitRefs(
+    List<Map<String, dynamic>> dives,
+    List<Map<String, dynamic>> rows,
+    GearExtractor extractor,
+  ) {
+    return [
+      for (var i = 0; i < dives.length; i++)
+        switch (extractor.gearIdForName(
+          rows[i]['suit']?.toString().trim() ?? '',
+        )) {
+          final gearId? => {
+            ...dives[i],
+            'equipmentRefs': [gearId],
+          },
+          null => dives[i],
+        },
+    ];
+  }
 
   /// Convert raw buddy/diveMaster string fields on each dive into the
   /// buddyRefs / unmatchedDiveGuideNames lists that

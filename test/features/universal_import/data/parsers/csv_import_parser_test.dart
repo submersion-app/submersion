@@ -954,6 +954,9 @@ void main() {
       expect(warning.field, 'siteName');
       expect(warning.message, contains('"Location"'));
       expect(warning.message, contains('"Site"'));
+      // The import summary names the dropped column in its own card.
+      expect(warning.code, ImportWarningCode.columnsNotImported);
+      expect(warning.names, ['Location']);
     });
 
     test('maps "Dive Name" and "Title" headers to the dive name', () async {

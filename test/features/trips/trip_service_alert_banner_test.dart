@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -139,6 +140,35 @@ void main() {
     expect(find.text('1 item needs service before this trip'), findsOneWidget);
   });
 
+  /// The banner strip behind the count label.
+  Container banner(WidgetTester tester) => tester.widget<Container>(
+    find
+        .ancestor(
+          of: find.textContaining('needs service'),
+          matching: find.byType(Container),
+        )
+        .first,
+  );
+
+  Color? bannerLabelColor(WidgetTester tester) =>
+      tester.widget<Text>(find.textContaining('needs service')).style?.color;
+
+  testWidgets('a due-soon alert uses the warn palette, banner and sheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildBanner(upcomingTrip(), [hydroAlert()]));
+    await tester.pumpAndSettle();
+
+    expect(banner(tester).color, StatusColors.light.warn.container);
+    expect(bannerLabelColor(tester), StatusColors.light.warn.onContainer);
+
+    await tester.tap(find.byType(InkWell).first);
+    await tester.pumpAndSettle();
+
+    final dot = tester.widget<Icon>(find.byIcon(Icons.circle));
+    expect(dot.color, StatusColors.light.warn.accent);
+  });
+
   testWidgets('overdue alert styles the banner and taps through to the item', (
     tester,
   ) async {
@@ -173,8 +203,16 @@ void main() {
     await tester.pumpWidget(buildBanner(upcomingTrip(), [overdue]));
     await tester.pumpAndSettle();
 
+    expect(banner(tester).color, StatusColors.light.alert.container);
+    expect(bannerLabelColor(tester), StatusColors.light.alert.onContainer);
+
     await tester.tap(find.byType(InkWell).first);
     await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.circle)).color,
+      StatusColors.light.alert.accent,
+    );
 
     // Overdue clocks phrase without a due date.
     expect(find.text('Hydrostatic test overdue'), findsOneWidget);

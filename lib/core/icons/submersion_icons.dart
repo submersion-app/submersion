@@ -69,4 +69,13 @@ abstract final class SubmersionIcons {
 
   /// Base layer: a long-sleeved thermal top, stopping at the hips.
   static const IconData baselayer = IconData(0xe90b, fontFamily: fontFamily);
+
+  /// A cylinder with a band clamped around it and a cam buckle on the side.
+  static const IconData tankBand = IconData(0xe90c, fontFamily: fontFamily);
+
+  /// Pouch with a quick-release pull handle and a lead block inside.
+  static const IconData weightPocket = IconData(0xe90d, fontFamily: fontFamily);
+
+  /// Pouch under a pointed flap held down by a snap.
+  static const IconData gearPocket = IconData(0xe90e, fontFamily: fontFamily);
 }

@@ -63,8 +63,9 @@ class DiveExtractor {
       }
     }
 
-    // A dive has no suit field and the presets create no gear from it, so
-    // the suit is kept in the notes, as the Subsurface XML import keeps it.
+    // A dive has no suit field, so the suit is kept in the notes, as the
+    // Subsurface XML import keeps it. When equipment is imported the suit
+    // also becomes gear linked to the dive (CsvCorrelator, #1824).
     final suit = row['suit']?.toString().trim() ?? '';
     if (suit.isNotEmpty) {
       final notes = dive['notes']?.toString() ?? '';

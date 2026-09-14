@@ -48,6 +48,7 @@ class MacDiveXmlParser implements ImportParser {
   /// stays true there and still names the remedy.
   static const _formatGapNotice = ImportWarning(
     severity: ImportWarningSeverity.info,
+    code: ImportWarningCode.macdiveXmlOmitsCertsAndService,
     message:
         'This MacDive XML file contains no certifications or equipment '
         'service records: MacDive omits both from its XML export. To bring '

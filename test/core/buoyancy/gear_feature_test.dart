@@ -528,4 +528,37 @@ void main() {
       expect(feature.dryMassKg, 1.2);
     });
   });
+
+  group('tank bands and pockets (#1877)', () {
+    // These used to be typed BCD, so each one modeled 3.5 kg of vest. The
+    // weight pocket's figure is the empty pouch: the lead inside it is a
+    // Weights item of its own.
+    GearFeature part(EquipmentType type, {double? weightKg}) =>
+        GearFeature.fromEquipment(
+          id: 'gear-1',
+          type: type,
+          name: 'Rig part',
+          weightKg: weightKg,
+        );
+
+    test('carry the dry mass of the part, not of a BCD', () {
+      expect(part(EquipmentType.tankBand).dryMassKg, 0.2);
+      expect(part(EquipmentType.weightPocket).dryMassKg, 0.3);
+      expect(part(EquipmentType.gearPocket).dryMassKg, 0.2);
+    });
+
+    test('contribute no buoyancy prior', () {
+      for (final type in [
+        EquipmentType.tankBand,
+        EquipmentType.weightPocket,
+        EquipmentType.gearPocket,
+      ]) {
+        expect(part(type).priorKg, 0.0, reason: type.name);
+      }
+    });
+
+    test('still honour an explicit user dry weight', () {
+      expect(part(EquipmentType.weightPocket, weightKg: 0.8).dryMassKg, 0.8);
+    });
+  });
 }

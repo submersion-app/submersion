@@ -284,6 +284,8 @@ const _subsurface = CsvPreset(
     ImportEntityType.sites,
     ImportEntityType.tags,
     ImportEntityType.buddies,
+    // The suit column becomes gear linked to each dive (#1824).
+    ImportEntityType.equipment,
   },
 );
 

@@ -90,7 +90,11 @@ enum SiteField implements EntityField {
   firstDived,
   averageDepthReached,
   longestDive,
-  averageDuration;
+  averageDuration,
+
+  // Classification (issue #1765). Appended, never reordered or renamed.
+  siteTypes,
+  tags;
 
   @override
   String get name => toString().split('.').last;
@@ -160,6 +164,10 @@ enum SiteField implements EntityField {
         return 'Longest Dive';
       case SiteField.averageDuration:
         return 'Avg Duration';
+      case SiteField.siteTypes:
+        return 'Site Types';
+      case SiteField.tags:
+        return 'Tags';
     }
   }
 
@@ -228,6 +236,10 @@ enum SiteField implements EntityField {
         return 'Longest';
       case SiteField.averageDuration:
         return 'Avg time';
+      case SiteField.siteTypes:
+        return 'Types';
+      case SiteField.tags:
+        return 'Tags';
     }
   }
 
@@ -264,6 +276,8 @@ enum SiteField implements EntityField {
     SiteField.averageDepthReached => l10n.enum_siteField_averageDepthReached,
     SiteField.longestDive => l10n.enum_siteField_longestDive,
     SiteField.averageDuration => l10n.enum_siteField_averageDuration,
+    SiteField.siteTypes => l10n.enum_siteField_siteTypes,
+    SiteField.tags => l10n.enum_siteField_tags,
   };
 
   @override
@@ -300,6 +314,8 @@ enum SiteField implements EntityField {
       l10n.enum_siteField_averageDepthReached_short,
     SiteField.longestDive => l10n.enum_siteField_longestDive_short,
     SiteField.averageDuration => l10n.enum_siteField_averageDuration_short,
+    SiteField.siteTypes => l10n.enum_siteField_siteTypes_short,
+    SiteField.tags => l10n.enum_siteField_tags_short,
   };
 
   @override
@@ -367,6 +383,10 @@ enum SiteField implements EntityField {
         return Icons.timer;
       case SiteField.averageDuration:
         return Icons.hourglass_bottom;
+      case SiteField.siteTypes:
+        return Icons.category_outlined;
+      case SiteField.tags:
+        return Icons.sell_outlined;
     }
   }
 
@@ -435,6 +455,9 @@ enum SiteField implements EntityField {
         return 100;
       case SiteField.averageDuration:
         return 100;
+      case SiteField.siteTypes:
+      case SiteField.tags:
+        return 160;
     }
   }
 
@@ -503,6 +526,9 @@ enum SiteField implements EntityField {
         return 60;
       case SiteField.averageDuration:
         return 60;
+      case SiteField.siteTypes:
+      case SiteField.tags:
+        return 80;
     }
   }
 
@@ -530,6 +556,8 @@ enum SiteField implements EntityField {
       case SiteField.longestDive:
       case SiteField.averageDuration:
         return true;
+      case SiteField.siteTypes:
+      case SiteField.tags:
       case SiteField.location:
       case SiteField.waterType:
       case SiteField.typicalVisibility:
@@ -585,6 +613,9 @@ enum SiteField implements EntityField {
       case SiteField.longestDive:
       case SiteField.averageDuration:
         return SiteFieldCategory.statistics.name;
+      case SiteField.siteTypes:
+      case SiteField.tags:
+        return SiteFieldCategory.details.name;
     }
   }
 
@@ -603,6 +634,8 @@ enum SiteField implements EntityField {
       case SiteField.longestDive:
       case SiteField.averageDuration:
         return true;
+      case SiteField.siteTypes:
+      case SiteField.tags:
       case SiteField.siteName:
       case SiteField.location:
       case SiteField.country:
@@ -718,6 +751,16 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return entity.longestDiveSeconds;
       case SiteField.averageDuration:
         return entity.averageDurationSeconds;
+      // Stored names, as the table already renders difficulty and water type
+      // through displayName; an empty list reads as no value.
+      case SiteField.siteTypes:
+        return entity.siteTypes.isEmpty
+            ? null
+            : [for (final t in entity.siteTypes) t.name];
+      case SiteField.tags:
+        return entity.tags.isEmpty
+            ? null
+            : [for (final t in entity.tags) t.name];
     }
   }
 
@@ -779,6 +822,9 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.longestDive:
       case SiteField.averageDuration:
         return _formatDurationSeconds(value as num);
+      case SiteField.siteTypes:
+      case SiteField.tags:
+        return (value as List).join(', ');
     }
   }
 

@@ -4,10 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -27,14 +29,17 @@ void main() {
   ProviderContainer makeContainer(_RecordingExportService exportService) {
     final container = ProviderContainer(
       overrides: [
-        divesProvider.overrideWith(
-          (ref) async => [
+        // The dives CSV reads the logbook fresh through the validated diver id
+        // (#1861), not through the cached divesProvider.
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
+        diveRepositoryProvider.overrideWithValue(
+          _FixedDivesRepository([
             Dive(
               id: 'd1',
               dateTime: DateTime(2026, 1, 1),
               diveTypeIds: [custom.id],
             ),
-          ],
+          ]),
         ),
         diveTypesProvider.overrideWith((ref) async => [custom]),
         settingsProvider.overrideWith((ref) => _FixedSettings()),
@@ -62,6 +67,18 @@ void main() {
 
     expect(exportService.diveTypesById, {custom.id: custom});
   });
+}
+
+/// Serves a fixed dive list as the diver's logbook.
+class _FixedDivesRepository implements DiveRepository {
+  _FixedDivesRepository(this.dives);
+  final List<Dive> dives;
+
+  @override
+  Future<List<Dive>> getAllDives({String? diverId}) async => dives;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _RecordingExportService implements ExportService {

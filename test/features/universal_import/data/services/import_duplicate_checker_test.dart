@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/universal_import/data/csv/extractors/gear_extractor.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
@@ -334,7 +335,8 @@ void main() {
 
     test('an import type the importer cannot parse counts as `other`', () {
       // The importer stores a type that names no EquipmentType as `other`
-      // (CSV emits 'exposure_suit'), so the checker must read it the same way.
+      // (CSV emitted 'exposure_suit' before #1883), so the checker must read
+      // it the same way.
       final result = checkWith(
         payload: const ImportPayload(
           entities: {
@@ -354,6 +356,40 @@ void main() {
 
       expect(result.duplicates[ImportEntityType.equipment], {0});
     });
+
+    // A suit typed from its name meets the stored suit on the exact key, so a
+    // same-named `other` row left by an older CSV import does not claim it.
+    test(
+      'a re-imported CSV suit matches its stored suit, not an `other` twin',
+      () {
+        final reimported = GearExtractor().extractFromRows([
+          {'suit': '7mm Wetsuit'},
+        ]);
+
+        final result = checkWith(
+          payload: ImportPayload(
+            entities: {ImportEntityType.equipment: reimported},
+          ),
+          equipment: [
+            const EquipmentItem(
+              id: 'legacy',
+              name: '7mm Wetsuit',
+              type: EquipmentType.other,
+            ),
+            const EquipmentItem(
+              id: 'suit',
+              name: '7mm Wetsuit',
+              type: EquipmentType.wetsuit,
+            ),
+          ],
+        );
+
+        expect(
+          result.entityMatches[ImportEntityType.equipment]![0]!.existingId,
+          'suit',
+        );
+      },
+    );
 
     test('an exact name + type match wins over an `other` match', () {
       final result = checkWith(

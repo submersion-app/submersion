@@ -188,6 +188,10 @@ class StatisticsRepository {
           TableUpdateQuery.onTable(_db.sightings),
           TableUpdateQuery.onTable(_db.species),
           TableUpdateQuery.onTable(_db.diveSites),
+          // Site type links and names (issue #1765). A link is written
+          // without touching dive_sites, so it needs its own trigger.
+          TableUpdateQuery.onTable(_db.siteSiteTypes),
+          TableUpdateQuery.onTable(_db.siteTypes),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
         ]),
@@ -1292,6 +1296,61 @@ class StatisticsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get water type distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// Dives per site type (issue #1765), most-dived first; labels are site
+  /// type ids. A dive at a site with several types counts once under each,
+  /// as [getDiveTypeDistribution] counts a dive's own types, so the counts
+  /// can sum past the dive total. Dives without a site, or at a site without
+  /// types, are not counted.
+  Future<List<DistributionSegment>> getSiteTypeDistribution({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+
+      // A built-in is labelled by its slug, which the page translates. A
+      // custom type carries its stored name, because a shared site can hold
+      // another profile's custom type that the current diver's vocabulary
+      // does not include. A link whose type is gone falls back to its id.
+      final results = await _db.customSelect('''
+        SELECT
+          CASE WHEN st.is_built_in = 0 THEN st.name
+            ELSE sst.site_type_id END AS site_type,
+          COUNT(*) AS count
+        FROM dives d
+        JOIN site_site_types sst ON sst.site_id = d.site_id
+        LEFT JOIN site_types st ON st.id = sst.site_type_id
+        WHERE 1=1 $diverFilter ${df.clause}
+        GROUP BY sst.site_type_id
+        ORDER BY count DESC, sst.site_type_id
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
+      if (total == 0) return [];
+
+      return results.map((row) {
+        final count = row.read<int>('count');
+        return DistributionSegment(
+          label: row.read<String>('site_type'),
+          count: count,
+          percentage: count / total * 100,
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get site type distribution',
         error: e,
         stackTrace: stackTrace,
       );

@@ -17,6 +17,7 @@ import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -1229,6 +1230,34 @@ void main() {
         _locationOfRoute(router.configuration.routes, 'unrecognizedBackups'),
         UnrecognizedBackupsNotice.routeLocation,
       );
+    });
+  });
+
+  group('site detail sections route', () {
+    test('resolves to the path the Sites appearance row pushes', () {
+      expect(
+        _locationOfRoute(router.configuration.routes, 'siteDetailSections'),
+        '/settings/site-detail-sections',
+      );
+    });
+
+    testWidgets('builds the site detail sections page', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+      final config = router.configuration;
+      final route = _findRouteByName(config.routes, 'siteDetailSections');
+      expect(route, isNotNull);
+
+      const location = '/settings/site-detail-sections';
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse(location),
+        matchedLocation: location,
+        fullPath: location,
+        pathParameters: const {},
+        pageKey: const ValueKey(location),
+      );
+      expect(route!.builder!(context, state), isA<SiteDetailSectionsPage>());
     });
   });
 }

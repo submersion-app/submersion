@@ -69,6 +69,75 @@ void main() {
         expect(warnings.first.severity, ImportWarningSeverity.warning);
         expect(warnings.first.entityType, ImportEntityType.dives);
       });
+
+      // The import summary shows coded warnings only. Each of these leaves a
+      // dive without its profile, so each must say so under one code.
+      group('summary codes', () {
+        const channel =
+            'dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerHostApi.'
+            'parseRawDiveData';
+
+        ShearwaterRawDive teric() => ShearwaterRawDive(
+          diveId: 'teric-1',
+          fileName: 'Teric[AABB1234]#10 2025-06-15 10-30-00.swlogzp',
+          decompressedLogData: Uint8List.fromList(List.filled(100, 0)),
+        );
+
+        /// Answers the decode call with [reply], a pigeon reply list.
+        void answerDecode(List<Object?> reply) {
+          final messenger =
+              TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+          messenger.setMockMessageHandler(
+            channel,
+            (_) async => const StandardMessageCodec().encodeMessage(reply),
+          );
+          addTearDown(() => messenger.setMockMessageHandler(channel, null));
+        }
+
+        setUp(TestWidgetsFlutterBinding.ensureInitialized);
+
+        test('an unknown model is coded as an unreadable profile', () async {
+          final warnings = <ImportWarning>[];
+          await ShearwaterDiveMapper.mapDive(
+            ShearwaterRawDive(
+              diveId: 'test-unknown',
+              fileName: 'UnknownModel[ABCD]#1 2025-1-1 0-0-0.swlogzp',
+              decompressedLogData: Uint8List.fromList([1, 2, 3]),
+            ),
+            warnings: warnings,
+          );
+
+          expect(warnings.single.code, ImportWarningCode.profileUnreadable);
+        });
+
+        test(
+          'a decoder that rejects the data is coded as unreadable',
+          () async {
+            answerDecode(['PARSE_ERROR', 'corrupt dive data', null]);
+            final warnings = <ImportWarning>[];
+
+            final result = await ShearwaterDiveMapper.mapDive(
+              teric(),
+              warnings: warnings,
+            );
+
+            expect(result['profile'], isEmpty);
+            expect(warnings.single.code, ImportWarningCode.profileUnreadable);
+            expect(warnings.single.message, contains('PARSE_ERROR'));
+          },
+        );
+
+        test('any other decode failure is coded as unreadable', () async {
+          // A reply that is not a ParsedDive fails the cast, which is neither
+          // a platform nor a plugin error.
+          answerDecode(['not a parsed dive']);
+          final warnings = <ImportWarning>[];
+
+          await ShearwaterDiveMapper.mapDive(teric(), warnings: warnings);
+
+          expect(warnings.single.code, ImportWarningCode.profileUnreadable);
+        });
+      });
     });
 
     group('mergeWithParsedDive', () {

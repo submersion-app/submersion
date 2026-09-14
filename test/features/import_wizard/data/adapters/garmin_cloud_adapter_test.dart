@@ -373,7 +373,7 @@ void main() {
 
       final notice = result.notices.single;
       expect(notice.kind, ImportNoticeKind.diveNumberConflict);
-      expect(notice.affectedDives, 1);
+      expect(notice.count, 1);
     });
 
     test('does not look for number conflicts when auto-numbering', () async {

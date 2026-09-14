@@ -960,8 +960,11 @@ class DatabaseService {
     // If the move-in fails, roll the old file back so the app is never left
     // with no database and no data. Renaming into a non-existent destination
     // works identically on POSIX and Windows, so no per-platform branching.
+    //
     // Nothing to delete here: _settleLeftoverPreRestore already cleared or
-    // quarantined this path before close().
+    // quarantined this path before close(), so a locked leftover fails the
+    // restore while the database is still open instead of stranding a closed
+    // one (the concern #1856 addressed by guarding a delete at this point).
     final asidePath = journal.asidePath;
     final destFile = File(destinationPath);
     final hadDest = await destFile.exists();
@@ -1025,13 +1028,25 @@ class DatabaseService {
       // (corruption, a locked file) is the restored file's own problem and
       // keeps its existing handling, which may legitimately want the
       // swapped-in file left in place for recovery.
-      await _deleteIfExists(destinationPath);
+      //
+      // The rejected file's journal goes FIRST and strictly. SQLite replays
+      // whatever -wal sits beside a database, and the pre-restore copy
+      // usually has no sidecar of its own to overwrite it (a clean close
+      // checkpoints it away). If it cannot be removed, stop here: the
+      // original stays untouched at asidePath rather than being paired with
+      // a foreign journal, and a reopen would only reject the same file.
       await _deleteIfExists('$destinationPath-wal');
       await _deleteIfExists('$destinationPath-shm');
       if (hadDest && await File(asidePath).exists()) {
+        // No delete first: rename replaces its destination on every
+        // platform, so the live path always holds a complete database. A
+        // delete-then-rename would leave a window with no file there, in
+        // which a failed rename makes the next open create an empty one.
         await File(asidePath).rename(destinationPath);
         await _moveIfExists('$asidePath-wal', '$destinationPath-wal');
         await _moveIfExists('$asidePath-shm', '$destinationPath-shm');
+      } else {
+        await _deleteIfExists(destinationPath);
       }
       await _commitIfNothingAside(journal);
       await initialize();

@@ -10,6 +10,7 @@ import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 
 /// Writes the dives CSV. Every unit-bearing cell and every date and time
@@ -115,8 +116,8 @@ class CsvDivesWriter {
               .diveTypeNamesFrom(diveTypesById)
               .join(DiveCsvColumns.diveTypeSeparator),
         ),
-        sanitizeCsvField(dive.buddy),
-        sanitizeCsvField(dive.diveMaster),
+        sanitizeCsvField(dive.resolvedBuddyNames),
+        sanitizeCsvField(dive.resolvedDiveMasterNames),
         dive.rating ?? '',
         units.value(CsvColumns.startPressure, tank?.startPressure),
         units.value(CsvColumns.endPressure, tank?.endPressure),

@@ -104,6 +104,7 @@ class RatioXmlParser implements ImportParser {
       warnings.add(
         const ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.profileUnreadable,
           message:
               'Ratio XML file has no <samples> section; '
               'dive profile will be empty.',

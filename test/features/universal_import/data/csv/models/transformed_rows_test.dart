@@ -16,6 +16,7 @@ void main() {
     test('constructs with all parameters', () {
       const warning = ImportWarning(
         severity: ImportWarningSeverity.info,
+        code: ImportWarningCode.diagnostic,
         message: 'Test warning',
       );
       const rows = TransformedRows(
@@ -120,7 +121,11 @@ void main() {
           {'maxDepth': 25.0},
         ],
         warnings: [
-          ImportWarning(severity: ImportWarningSeverity.info, message: 'msg A'),
+          ImportWarning(
+            severity: ImportWarningSeverity.info,
+            code: ImportWarningCode.diagnostic,
+            message: 'msg A',
+          ),
         ],
       );
       const b = TransformedRows(
@@ -128,7 +133,11 @@ void main() {
           {'maxDepth': 25.0},
         ],
         warnings: [
-          ImportWarning(severity: ImportWarningSeverity.info, message: 'msg B'),
+          ImportWarning(
+            severity: ImportWarningSeverity.info,
+            code: ImportWarningCode.diagnostic,
+            message: 'msg B',
+          ),
         ],
       );
 
@@ -138,6 +147,7 @@ void main() {
     test('props includes all fields', () {
       const warning = ImportWarning(
         severity: ImportWarningSeverity.info,
+        code: ImportWarningCode.diagnostic,
         message: 'test',
       );
       const rows = TransformedRows(

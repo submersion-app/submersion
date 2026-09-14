@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
@@ -26,6 +28,14 @@ class UpcomingTripBanner extends ConsumerWidget {
         ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
     final marginLine = tripScrubberMarginSummary(context.l10n, margins);
     final marginCaution = margins.any((m) => m.caution);
+    // Red only when a blocking clock is already overdue; gear merely coming
+    // due before the trip reads amber, matching the trip page's banner.
+    final serviceColor =
+        serviceAlerts.any(
+          (a) => a.status.severity == ServiceClockSeverity.overdue,
+        )
+        ? StatusColors.of(context).alert.accent
+        : StatusColors.of(context).warn.accent;
 
     final countdown = trip.isInProgress
         ? context.l10n.trips_list_inProgress
@@ -65,7 +75,7 @@ class UpcomingTripBanner extends ConsumerWidget {
             padding: const EdgeInsets.only(top: 2),
             child: Row(
               children: [
-                Icon(Icons.build, size: 14, color: theme.colorScheme.error),
+                Icon(Icons.build, size: 14, color: serviceColor),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -75,7 +85,7 @@ class UpcomingTripBanner extends ConsumerWidget {
                       serviceAlerts.map((a) => a.item.id).toSet().length,
                     ),
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.error,
+                      color: serviceColor,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
