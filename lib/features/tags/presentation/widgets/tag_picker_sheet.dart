@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Bottom sheet listing tags the diver has used before, so tagging stays
@@ -65,26 +66,21 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
 
   /// The tags this sheet offers, "tags you use most" first.
   ///
-  /// The provider already orders `dive_count DESC, site_count DESC, name`,
-  /// exactly right for dives. A tag used just for sites ("to try") has no
-  /// place on a dive, nor a dive-only tag on a site (issue #1765); from a
-  /// site the order is by site use instead. The sort is stable, so ties
-  /// keep the provider's order.
+  /// The provider already orders by dive count, then each later scope's
+  /// count, then name: exactly right for dives. A tag used only for sites
+  /// ("to try") has no place on a dive, nor a dive-only tag on a site (issue
+  /// #1765); from any other scope the order is by that scope's use instead.
+  /// The sort is stable, so ties keep the provider's order.
   List<TagStatistic> _inScope(List<TagStatistic> stats) {
-    switch (widget.scope) {
-      case TagScope.dives:
-        return [
-          for (final stat in stats)
-            if (stat.tag.appliesToDives) stat,
-        ];
-      case TagScope.sites:
-        final sites = [
-          for (final stat in stats)
-            if (stat.tag.appliesToSites) stat,
-        ];
-        mergeSort(sites, compare: (a, b) => b.siteCount - a.siteCount);
-        return sites;
+    final scope = widget.scope;
+    final inScope = [
+      for (final stat in stats)
+        if (stat.tag.appliesTo(scope)) stat,
+    ];
+    if (scope != TagScope.dives) {
+      mergeSort(inScope, compare: (a, b) => b.count(scope) - a.count(scope));
     }
+    return inScope;
   }
 
   /// Picked tags in the provider's most-used-first order rather than the
@@ -198,14 +194,9 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
           controlAffinity: ListTileControlAffinity.trailing,
           secondary: CircleAvatar(radius: 12, backgroundColor: stat.tag.color),
           title: Text(stat.tag.name),
-          subtitle: Text(switch (widget.scope) {
-            TagScope.dives => context.l10n.tags_manage_diveCount(
-              stat.diveCount,
-            ),
-            TagScope.sites => context.l10n.tags_manage_siteCount(
-              stat.siteCount,
-            ),
-          }),
+          subtitle: Text(
+            tagScopeCount(context.l10n, widget.scope, stat.count(widget.scope)),
+          ),
         );
       },
     );

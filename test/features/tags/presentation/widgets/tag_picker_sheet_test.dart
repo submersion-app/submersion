@@ -19,7 +19,7 @@ TagStatistic _stat(String id, String name, int diveCount) => TagStatistic(
     createdAt: DateTime(2024),
     updatedAt: DateTime(2024),
   ),
-  diveCount: diveCount,
+  counts: {TagScope.dives: diveCount},
 );
 
 void main() {
@@ -99,11 +99,9 @@ void main() {
           name: 'To try',
           createdAt: DateTime(2024),
           updatedAt: DateTime(2024),
-          appliesToDives: false,
-          appliesToSites: true,
+          scopes: const {TagScope.sites},
         ),
-        diveCount: 0,
-        siteCount: 3,
+        counts: const {TagScope.dives: 0, TagScope.sites: 3},
       );
       await tester.pumpWidget(buildTestWidget(stats: [...testStats, siteOnly]));
       await tester.pumpAndSettle();
@@ -124,11 +122,9 @@ void main() {
           name: name,
           createdAt: DateTime(2024),
           updatedAt: DateTime(2024),
-          appliesToDives: forDives,
-          appliesToSites: true,
+          scopes: {if (forDives) TagScope.dives, TagScope.sites},
         ),
-        diveCount: dives,
-        siteCount: sites,
+        counts: {TagScope.dives: dives, TagScope.sites: sites},
       );
 
       // Dive-first order, as tagStatisticsProvider returns it.

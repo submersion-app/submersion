@@ -104,8 +104,8 @@ void main() {
 
       final tags = await classification.getTagsForSite(restored.id);
       expect(tags.single.name, 'To try');
-      expect(tags.single.appliesToSites, isTrue);
-      expect(tags.single.appliesToDives, isFalse);
+      expect(tags.single.appliesTo(TagScope.sites), isTrue);
+      expect(tags.single.appliesTo(TagScope.dives), isFalse);
       expect(tags.single.colorHex, '#EF4444', reason: 'tag color on import');
     },
   );

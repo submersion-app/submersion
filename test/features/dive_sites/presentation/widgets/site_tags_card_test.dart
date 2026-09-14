@@ -16,7 +16,7 @@ void main() {
     name: name,
     createdAt: now,
     updatedAt: now,
-    appliesToSites: true,
+    scopes: const {TagScope.dives, TagScope.sites},
   );
 
   ProviderContainer containerWith(List<Tag> tags) => ProviderContainer(
