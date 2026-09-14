@@ -64,4 +64,46 @@ void main() {
     expect(merged.entitiesOf(ImportEntityType.tags), hasLength(1));
     expect(refsOf(merged, 'Second reg'), ['a:tag_1']);
   });
+
+  group('an item two files share', () {
+    ImportPayload sharedItem(String tagId, String tagName) => ImportPayload(
+      entities: {
+        ImportEntityType.equipment: [
+          {
+            'uddfId': 'equip_1',
+            'name': 'Travel reg',
+            'type': 'regulator',
+            'tagRefs': [tagId],
+          },
+        ],
+        ImportEntityType.tags: [
+          {'uddfId': tagId, 'name': tagName},
+        ],
+      },
+    );
+
+    ImportPayload mergeTwo(ImportPayload a, ImportPayload b) => merger.merge([
+      FilePayload(fileId: 'a', fileName: 'a.uddf', payload: a),
+      FilePayload(fileId: 'b', fileName: 'b.uddf', payload: b),
+    ]);
+
+    test('keeps the tags each file gives it', () {
+      final merged = mergeTwo(
+        sharedItem('tag_1', 'Rental'),
+        sharedItem('tag_2', 'Cold water'),
+      );
+
+      expect(merged.entitiesOf(ImportEntityType.equipment), hasLength(1));
+      expect(refsOf(merged, 'Travel reg'), ['a:tag_1', 'b:tag_2']);
+    });
+
+    test('lists a tag both files give it once', () {
+      final merged = mergeTwo(
+        sharedItem('tag_1', 'Rental'),
+        sharedItem('tag_1', 'Rental'),
+      );
+
+      expect(refsOf(merged, 'Travel reg'), ['a:tag_1']);
+    });
+  });
 }

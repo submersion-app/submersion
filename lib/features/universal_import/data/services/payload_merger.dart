@@ -361,6 +361,7 @@ class PayloadMerger {
       if (id != null) {
         final first = firstById[id];
         if (first != null) {
+          _unionRefLists(type, first, item);
           _enrich(first, item);
           continue;
         }
@@ -404,6 +405,7 @@ class PayloadMerger {
         if (key != null) (survivors[key] ??= []).add(_Survivor(item, sourceId));
         continue;
       }
+      _unionRefLists(type, survivor.item, item);
       _enrich(survivor.item, item);
       if (sourceId != null) survivor.sourceIds.add(sourceId);
       // A dive names its types by id (the slug), not by uddfId (#1834).
@@ -416,6 +418,27 @@ class PayloadMerger {
       if (foldedId is String && survivorId is String) {
         aliases[foldedId] = survivorId;
       }
+    }
+  }
+
+  /// Unions [item]'s reference lists into [survivor]'s, for the fields
+  /// where each file's record carries links of its own: an item's tags
+  /// (issue #1942). [_enrich] only fills a missing field, so without this
+  /// the folded record's links would be lost. Repeats that later resolve to
+  /// one id are dropped by [_rewriteAliases].
+  static void _unionRefLists(
+    ImportEntityType type,
+    Map<String, dynamic> survivor,
+    Map<String, dynamic> item,
+  ) {
+    if (type != ImportEntityType.equipment) return;
+    for (final field in _equipmentListRefFields) {
+      final incoming = item[field];
+      if (incoming is! List) continue;
+      final existing = survivor[field];
+      survivor[field] = [
+        ...{if (existing is List) ...existing, ...incoming},
+      ];
     }
   }
 
@@ -544,13 +567,16 @@ class PayloadMerger {
 
     for (final item in entities[ImportEntityType.equipment] ?? const []) {
       _rewriteNested(item, 'components', _componentRefFields, resolve);
-      // An item's tag references follow a folded tag (issue #1942).
+      // An item's tag references follow a folded tag (issue #1942). Two
+      // references that fold into one tag become one.
       for (final field in _equipmentListRefFields) {
         final refs = item[field];
         if (refs is List) {
           item[field] = [
-            for (final ref in refs)
-              if (ref is String) resolve(ref) else ref,
+            ...{
+              for (final ref in refs)
+                if (ref is String) resolve(ref) else ref,
+            },
           ];
         }
       }
