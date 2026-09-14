@@ -54,6 +54,11 @@ void main() {
       isNull,
       reason: 'equipment links are clockless children (#1769)',
     );
+    expect(
+      equipmentTagScopeTable.sweepsOrphanLinks,
+      isTrue,
+      reason: 'equipment links follow their site twin',
+    );
   });
 
   test('no two scopes share a column, a junction or a sync entity', () {

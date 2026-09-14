@@ -81,7 +81,8 @@ Findings from reading the code while planning. They explain choices the tasks ma
    - Every junction also deletes the links still pointing at a losing tag,
      before the losers are deleted. The site orphan sweep
      (`DELETE FROM site_tags WHERE tag_id NOT IN tags`) is kept, as a
-     registry flag, `TagScopeTable.sweepsOrphanLinks`, true for sites only:
+     registry flag, `TagScopeTable.sweepsOrphanLinks`, true for sites and
+     (from Task 3) equipment, never dives:
      a blanket orphan sweep over `dive_tags` would break the v149 rule pinned
      by `migration_v149_tag_uniqueness_test.dart:226` ("a junction row whose
      tag is already gone survives untouched"). (Review of #1963: the first

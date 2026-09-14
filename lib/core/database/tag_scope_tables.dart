@@ -66,12 +66,14 @@ const siteTagScopeTable = TagScopeTable(
 );
 
 /// Equipment tags (v219, issue #1942). A link never re-stamps its item: the
-/// links are clockless children of the equipment row (#1769).
+/// links are clockless children of the equipment row (#1769). Like site
+/// links, links to a tag that no longer exists are swept by the repair.
 const equipmentTagScopeTable = TagScopeTable(
   scopeColumn: 'applies_to_equipment',
   junctionTable: 'equipment_tags',
   parentColumn: 'equipment_id',
   syncEntity: 'equipmentTags',
+  sweepsOrphanLinks: true,
 );
 
 /// Every scope, in display order.
