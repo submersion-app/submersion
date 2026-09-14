@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -5,15 +7,17 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 
-/// Applies every equipment set that lists a dive's computer as a member
-/// (issue #1020).
+/// Applies every equipment set that lists a dive's computer as a member and
+/// has opted in to `autoApplyOnComputerImport` (issue #1020).
 ///
 /// A diver who keeps a computer permanently paired with the rest of a rig
 /// (e.g. a CCR controller with drysuit, tec fins, bailout) models that by
 /// adding the computer's gear twin to an `EquipmentSet` alongside the other
-/// items. Once the computer that logged this dive is known, this service
-/// looks up every set containing that computer's gear-twin equipment id and
-/// adds that set's full roster.
+/// items, then turning the set's "apply when this computer is imported"
+/// switch on -- off by default, so existing sets are unaffected until a
+/// diver opts in. Once the computer that logged this dive is known, this
+/// service looks up every opted-in set containing that computer's gear-twin
+/// equipment id and adds that set's full roster.
 ///
 /// Runs at every seam `DiveComputerGearLinker` runs at, after it. Unlike
 /// `DiveEquipmentDefaulter` this is NOT gated on the dive being empty and NOT
@@ -53,7 +57,17 @@ class EquipmentSetForComputerLinker {
       final memberRows = await (_db.select(
         _db.equipmentSetItems,
       )..where((t) => t.equipmentId.isIn(computerEquipmentIds))).get();
-      final setIds = memberRows.map((r) => r.setId).toSet();
+      final candidateSetIds = memberRows.map((r) => r.setId).toSet();
+      if (candidateSetIds.isEmpty) return false;
+
+      final optedInRows =
+          await (_db.select(_db.equipmentSets)..where(
+                (t) =>
+                    t.id.isIn(candidateSetIds) &
+                    t.autoApplyOnComputerImport.equals(true),
+              ))
+              .get();
+      final setIds = optedInRows.map((r) => r.id).toSet();
       if (setIds.isEmpty) return false;
 
       var appliedAny = false;

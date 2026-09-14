@@ -214,6 +214,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Apply when this set\'s computer is imported';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override

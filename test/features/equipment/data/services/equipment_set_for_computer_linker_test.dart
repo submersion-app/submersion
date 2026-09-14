@@ -55,7 +55,11 @@ void main() {
     );
   }
 
-  Future<void> insertSet(String id, {String? diverId}) async {
+  Future<void> insertSet(
+    String id, {
+    String? diverId,
+    bool autoApplyOnComputerImport = true,
+  }) async {
     final t = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.equipmentSets)
@@ -64,6 +68,7 @@ void main() {
             id: id,
             diverId: Value(diverId),
             name: id,
+            autoApplyOnComputerImport: Value(autoApplyOnComputerImport),
             createdAt: t,
             updatedAt: t,
           ),
@@ -180,6 +185,42 @@ void main() {
         db.diveEquipment,
       )..where((t) => t.equipmentId.equals('gear-fins'))).getSingle();
       expect(finsRow.viaSetId, 'set-geo');
+    },
+  );
+
+  test(
+    'is a no-op when the matching set has not opted in (default off)',
+    () async {
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-ccr', autoApplyOnComputerImport: false);
+      await addToSet('set-ccr', 'gear-computer');
+      await addToSet('set-ccr', 'gear-drysuit');
+      await linkSource('dive1', 'c1');
+
+      expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+      expect(await equipmentOn('dive1'), isEmpty);
+    },
+  );
+
+  test(
+    'applies only the opted-in set when another matching set has not',
+    () async {
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertGear('gear-bailout', type: 'cylinder');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-ccr', autoApplyOnComputerImport: true);
+      await addToSet('set-ccr', 'gear-computer');
+      await addToSet('set-ccr', 'gear-drysuit');
+      await insertSet('set-other', autoApplyOnComputerImport: false);
+      await addToSet('set-other', 'gear-computer');
+      await addToSet('set-other', 'gear-bailout');
+      await linkSource('dive1', 'c1');
+
+      expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
+      expect(await equipmentOn('dive1'), {'gear-computer', 'gear-drysuit'});
     },
   );
 

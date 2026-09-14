@@ -215,6 +215,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Apply when this set\'s computer is imported';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
