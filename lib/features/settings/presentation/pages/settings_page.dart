@@ -3352,26 +3352,11 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                   title: Text(context.l10n.settings_about_reportIssue),
                   onTap: () => launchReportIssue(context),
                 ),
-                const Divider(height: 1),
-                // CC-BY attribution for the seascape's bathymetry sources.
-                ListTile(
-                  leading: const Icon(Icons.water),
-                  title: Text(
-                    context.l10n.settings_about_bathymetryCredit,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  dense: true,
-                ),
+                // The CC BY bathymetry credit lives on the license page
+                // (BathymetryAttribution), not in this card.
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_diagnostics_header,
-          ),
-          const SizedBox(height: 8),
-          const DiagnosticsCard(),
           // Auto-update section (only for non-store builds)
           if (UpdateChannelConfig.isAutoUpdateEnabled) ...[
             const SizedBox(height: 24),
@@ -3379,6 +3364,13 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
             const SizedBox(height: 8),
             _buildUpdatesCard(context),
           ],
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_diagnostics_header,
+          ),
+          const SizedBox(height: 8),
+          const DiagnosticsCard(),
           const SizedBox(height: 24),
           // App info card
           Center(

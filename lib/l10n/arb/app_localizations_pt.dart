@@ -2548,6 +2548,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'Adicionar certificacao';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'Mais opções';
+
+  @override
   String get certifications_wallet_tooltip_share => 'Compartilhar certificacao';
 
   @override
@@ -27383,10 +27386,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String dive3d_seascape_axis_distance(String unitSymbol) {
     return 'Distância ($unitSymbol)';
   }
-
-  @override
-  String get settings_about_bathymetryCredit =>
-      'Dados de batimetria: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)';
 
   @override
   String get dive3d_metric_depth => 'Profundidade';

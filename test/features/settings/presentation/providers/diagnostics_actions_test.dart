@@ -30,6 +30,15 @@ void main() {
   void writeRaw(String content) =>
       File(service.logFilePath).writeAsStringSync(content);
 
+  /// The report with no room left for log lines: just the header, whose
+  /// length the cap tests budget on top of.
+  Future<String> headerOnly() => buildDiagnosticsReport(
+    service,
+    verboseLogging: false,
+    environment: _environment,
+    maxChars: 0,
+  );
+
   group('buildDiagnosticsReport', () {
     test('starts with the environment header and the logging mode', () async {
       writeRaw('[2026-09-12T09:00:00.000] [APP] [ERROR] boom\n');
@@ -55,18 +64,84 @@ void main() {
       expect(report, contains('verbose logging: on'));
     });
 
-    test('keeps only the newest lines', () async {
+    test('fits under the character cap GitHub issue bodies allow', () {
+      // GitHub rejects an issue body over 65,536 characters, and the diver
+      // needs room around the pasted report to describe the problem.
+      expect(diagnosticsReportCharLimit, lessThan(65536));
+      expect(diagnosticsReportCharLimit, greaterThanOrEqualTo(50000));
+    });
+
+    test('keeps the newest lines that fit the character cap', () async {
       writeRaw([for (var i = 0; i < 10; i++) 'line $i'].join('\n'));
+      final header = await headerOnly();
+
+      // Room for exactly three six-character lines and their two newlines.
+      final report = await buildDiagnosticsReport(
+        service,
+        verboseLogging: false,
+        environment: _environment,
+        maxChars: header.length + 20,
+      );
+
+      expect(report, isNot(contains('line 6')));
+      expect(report, endsWith('line 7\nline 8\nline 9'));
+      expect(report.length, lessThanOrEqualTo(header.length + 20));
+    });
+
+    test('carries far more than the old 200-line tail by default', () async {
+      writeRaw(
+        [
+          for (var i = 0; i < 5000; i++)
+            '[2026-09-12T09:00:00.000] [APP] [INFO] entry $i',
+        ].join('\n'),
+      );
+
+      final report = await buildDiagnosticsReport(
+        service,
+        verboseLogging: true,
+        environment: _environment,
+      );
+
+      expect(report.length, lessThanOrEqualTo(diagnosticsReportCharLimit));
+      expect(report, endsWith('entry 4999'));
+      expect(report, contains('entry 4000'));
+      expect(report, isNot(contains('entry 3000\n')));
+    });
+
+    test('cuts a newest line longer than the whole cap to fit', () async {
+      writeRaw('older\n${'x' * 500}');
+      final header = await headerOnly();
 
       final report = await buildDiagnosticsReport(
         service,
         verboseLogging: false,
         environment: _environment,
-        maxLines: 3,
+        maxChars: header.length + 100,
       );
 
-      expect(report, isNot(contains('line 6')));
-      expect(report, endsWith('line 7\nline 8\nline 9'));
+      expect(report, endsWith('x' * 100));
+      expect(report.length, header.length + 100);
+      expect(report, isNot(contains('older')));
+    });
+
+    test('measures the cap after redaction', () async {
+      // Redaction can change a line's length, so the budget must be spent on
+      // the text that actually lands on the clipboard.
+      writeRaw(
+        'keep me\n'
+        'callback https://x.test/?access_token=${'s' * 200}',
+      );
+      final header = await headerOnly();
+
+      final report = await buildDiagnosticsReport(
+        service,
+        verboseLogging: false,
+        environment: _environment,
+        maxChars: header.length + 120,
+      );
+
+      expect(report, contains('keep me'));
+      expect(report, isNot(contains('s' * 20)));
     });
 
     test('keeps continuation lines the log viewer cannot parse', () async {

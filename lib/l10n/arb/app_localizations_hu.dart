@@ -2538,6 +2538,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'Tanusitvany hozzaadasa';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'További lehetőségek';
+
+  @override
   String get certifications_wallet_tooltip_share => 'Tanusitvany megosztasa';
 
   @override
@@ -27282,10 +27285,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String dive3d_seascape_axis_distance(String unitSymbol) {
     return 'Távolság ($unitSymbol)';
   }
-
-  @override
-  String get settings_about_bathymetryCredit =>
-      'Batimetriai adatok: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)';
 
   @override
   String get dive3d_metric_depth => 'Mélység';

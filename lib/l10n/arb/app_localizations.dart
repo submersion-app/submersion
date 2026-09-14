@@ -4103,6 +4103,12 @@ abstract class AppLocalizations {
   /// **'Add certification'**
   String get certifications_wallet_tooltip_add;
 
+  /// No description provided for @certifications_wallet_tooltip_moreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get certifications_wallet_tooltip_moreOptions;
+
   /// No description provided for @certifications_wallet_tooltip_share.
   ///
   /// In en, this message translates to:
@@ -43988,12 +43994,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Distance ({unitSymbol})'**
   String dive3d_seascape_axis_distance(String unitSymbol);
-
-  /// No description provided for @settings_about_bathymetryCredit.
-  ///
-  /// In en, this message translates to:
-  /// **'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)'**
-  String get settings_about_bathymetryCredit;
 
   /// No description provided for @dive3d_metric_depth.
   ///
