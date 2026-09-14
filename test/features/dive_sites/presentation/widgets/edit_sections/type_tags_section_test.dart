@@ -126,8 +126,7 @@ void main() {
           name: name,
           createdAt: now,
           updatedAt: now,
-          appliesToDives: dives,
-          appliesToSites: sites,
+          scopes: {if (dives) TagScope.dives, if (sites) TagScope.sites},
         );
     final avoid = tag('avoid', 'Avoid');
     final toTry = tag('try', 'To try');
@@ -143,9 +142,15 @@ void main() {
           onTagsChanged: (tags) => reported = tags,
         ),
         tagStats: [
-          TagStatistic(tag: night, diveCount: 9),
-          TagStatistic(tag: toTry, diveCount: 0, siteCount: 3),
-          TagStatistic(tag: avoid, diveCount: 0, siteCount: 1),
+          TagStatistic(tag: night, counts: const {TagScope.dives: 9}),
+          TagStatistic(
+            tag: toTry,
+            counts: const {TagScope.dives: 0, TagScope.sites: 3},
+          ),
+          TagStatistic(
+            tag: avoid,
+            counts: const {TagScope.dives: 0, TagScope.sites: 1},
+          ),
         ],
       ),
     );

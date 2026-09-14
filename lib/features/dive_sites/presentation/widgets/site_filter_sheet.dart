@@ -502,7 +502,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   /// tag matches. Hidden when there are none.
   Widget _buildTagSection() {
     final tags = (ref.watch(tagsProvider).value ?? const <Tag>[])
-        .where((t) => t.appliesToSites)
+        .where((t) => t.appliesTo(TagScope.sites))
         .toList();
     if (tags.isEmpty) return const SizedBox.shrink();
     return Padding(

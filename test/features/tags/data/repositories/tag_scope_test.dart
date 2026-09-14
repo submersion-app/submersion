@@ -5,6 +5,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../tag_test_helpers.dart';
 
 /// Tag scope: dives, sites, or both (issue #1765).
 void main() {
@@ -27,48 +28,51 @@ void main() {
         "VALUES ('st-$siteId-$tagId', '$siteId', '$tagId', 0)",
       );
 
-  test('site tag changes emit, so the site counts refresh', () async {
-    final tag = await repository.getOrCreateTag(
-      'To try',
-      scope: TagScope.sites,
-    );
-    final emitted = <void>[];
-    final sub = repository.watchSiteTagsChanges().listen(emitted.add);
-    addTearDown(sub.cancel);
+  test(
+    'site tag changes emit on the link watcher, so the site counts refresh',
+    () async {
+      final tag = await repository.getOrCreateTag(
+        'To try',
+        scope: TagScope.sites,
+      );
+      final emitted = <void>[];
+      final sub = repository.watchTagLinkChanges().listen(emitted.add);
+      addTearDown(sub.cancel);
 
-    // A typed insert: Drift cannot tell which table a raw statement touched.
-    final db = DatabaseService.instance.database;
-    await db
-        .into(db.siteTags)
-        .insert(
-          SiteTagsCompanion.insert(
-            id: 'st1',
-            siteId: 's1',
-            tagId: tag.id,
-            createdAt: 0,
-          ),
-        );
-    await pumpEventQueue();
+      // A typed insert: Drift cannot tell which table a raw statement touched.
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.siteTags)
+          .insert(
+            SiteTagsCompanion.insert(
+              id: 'st1',
+              siteId: 's1',
+              tagId: tag.id,
+              createdAt: 0,
+            ),
+          );
+      await pumpEventQueue();
 
-    expect(emitted, isNotEmpty);
-  });
+      expect(emitted, isNotEmpty);
+    },
+  );
 
   test('a tag created from the site picker applies to sites only', () async {
     final tag = await repository.getOrCreateTag(
       'To try',
       scope: TagScope.sites,
     );
-    expect(tag.appliesToSites, isTrue);
-    expect(tag.appliesToDives, isFalse);
+    expect(tag.appliesTo(TagScope.sites), isTrue);
+    expect(tag.appliesTo(TagScope.dives), isFalse);
     final stored = await repository.getTagById(tag.id);
-    expect(stored!.appliesToSites, isTrue);
-    expect(stored.appliesToDives, isFalse);
+    expect(stored!.appliesTo(TagScope.sites), isTrue);
+    expect(stored.appliesTo(TagScope.dives), isFalse);
   });
 
   test('a tag created without a scope stays a dive tag', () async {
     final tag = await repository.getOrCreateTag('Night');
-    expect(tag.appliesToDives, isTrue);
-    expect(tag.appliesToSites, isFalse);
+    expect(tag.appliesTo(TagScope.dives), isTrue);
+    expect(tag.appliesTo(TagScope.sites), isFalse);
   });
 
   test('a name collision widens the existing tag instead of failing', () async {
@@ -79,10 +83,10 @@ void main() {
     );
 
     expect(widened.id, diveTag.id);
-    expect(widened.appliesToDives, isTrue);
-    expect(widened.appliesToSites, isTrue);
+    expect(widened.appliesTo(TagScope.dives), isTrue);
+    expect(widened.appliesTo(TagScope.sites), isTrue);
     final stored = await repository.getTagById(diveTag.id);
-    expect(stored!.appliesToSites, isTrue);
+    expect(stored!.appliesTo(TagScope.sites), isTrue);
   });
 
   test('createTag on a colliding name widens the incumbent too', () async {
@@ -91,7 +95,7 @@ void main() {
       Tag.create(id: '', name: 'NIGHT', scope: TagScope.sites),
     );
     expect(result.id, diveTag.id);
-    expect(result.appliesToSites, isTrue);
+    expect(result.appliesTo(TagScope.sites), isTrue);
   });
 
   test('scope-filtered listing', () async {
@@ -109,14 +113,12 @@ void main() {
   test('a tag must apply to at least one of dives and sites', () async {
     final tag = await repository.getOrCreateTag('Night');
     await expectLater(
-      repository.updateTag(
-        tag.copyWith(appliesToDives: false, appliesToSites: false),
-      ),
+      repository.updateTag(tag.copyWith(scopes: const {})),
       throwsArgumentError,
     );
     await expectLater(
       repository.createTag(
-        Tag.create(id: '', name: 'Nothing').copyWith(appliesToDives: false),
+        Tag.create(id: '', name: 'Nothing').copyWith(scopes: const {}),
       ),
       throwsArgumentError,
     );
@@ -129,9 +131,7 @@ void main() {
     );
     await linkSite('s1', tag.id);
 
-    await repository.updateTag(
-      tag.copyWith(appliesToDives: true, appliesToSites: false),
-    );
+    await repository.updateTag(tag.copyWith(scopes: const {TagScope.dives}));
 
     final db = DatabaseService.instance.database;
     expect(await db.select(db.siteTags).get(), isEmpty);
@@ -142,8 +142,8 @@ void main() {
         .get();
     expect(tombstones, hasLength(1));
     final stored = await repository.getTagById(tag.id);
-    expect(stored!.appliesToDives, isTrue);
-    expect(stored.appliesToSites, isFalse);
+    expect(stored!.appliesTo(TagScope.dives), isTrue);
+    expect(stored.appliesTo(TagScope.sites), isFalse);
   });
 
   test('a plain rename keeps the site links', () async {
@@ -167,12 +167,15 @@ void main() {
     );
     await linkSite('s1', tag.id);
 
-    expect(await repository.getTagUsage(tag.id), (dives: 0, sites: 1));
+    expect(divesAndSites(await repository.getTagUsage(tag.id)), (
+      dives: 0,
+      sites: 1,
+    ));
     final stats = await repository.getTagStatistics();
     final stat = stats.singleWhere((s) => s.tag.id == tag.id);
-    expect(stat.siteCount, 1);
-    expect(stat.diveCount, 0);
-    expect(stat.tag.appliesToSites, isTrue);
+    expect(stat.count(TagScope.sites), 1);
+    expect(stat.count(TagScope.dives), 0);
+    expect(stat.tag.appliesTo(TagScope.sites), isTrue);
   });
 
   test('merging ORs the scopes and relinks site tags', () async {
@@ -191,8 +194,8 @@ void main() {
     );
 
     final merged = await repository.getTagById(survivor.id);
-    expect(merged!.appliesToDives, isTrue);
-    expect(merged.appliesToSites, isTrue);
+    expect(merged!.appliesTo(TagScope.dives), isTrue);
+    expect(merged.appliesTo(TagScope.sites), isTrue);
     expect(await repository.getTagById(source.id), isNull);
     final db = DatabaseService.instance.database;
     final links = await db.select(db.siteTags).get();

@@ -1144,11 +1144,11 @@ class UddfExportBuilders {
                         // Where the tag is offered (issue #1765).
                         builder.element(
                           'appliestodives',
-                          nest: tag.appliesToDives.toString(),
+                          nest: tag.appliesTo(TagScope.dives).toString(),
                         );
                         builder.element(
                           'appliestosites',
-                          nest: tag.appliesToSites.toString(),
+                          nest: tag.appliesTo(TagScope.sites).toString(),
                         );
                       },
                     );

@@ -13,8 +13,7 @@ domain.Tag mapTagRow(Tag row) {
     colorHex: row.color,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
-    appliesToDives: row.appliesToDives,
-    appliesToSites: row.appliesToSites,
+    scopes: tagScopesOf(row),
   );
 }
 
