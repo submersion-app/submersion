@@ -142,6 +142,22 @@ Finder _findListItem(String text) {
   return find.descendant(of: find.byType(ListView), matching: find.text(text));
 }
 
+/// Resolves the localizations the widget under test is rendering with, so
+/// assertions follow whichever locale the test platform resolves to.
+AppLocalizations _l10n(WidgetTester tester) =>
+    AppLocalizations.of(tester.element(find.byType(ScanStepWidget)));
+
+/// Taps the dropdown entry labelled [label]. DropdownMenu builds an offstage
+/// clone of every entry (an unkeyed MenuItemButton) purely to measure the
+/// widest label; the real, tappable one carries a GlobalKey and is the last
+/// match, so a bare find.text(...).last can hit the invisible clone instead.
+Future<void> _selectManufacturer(WidgetTester tester, String label) async {
+  await tester.tap(find.byType(DropdownMenu<String?>));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(MenuItemButton, label).last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('USB tab search UI', () {
     testWidgets('shows a persistent search text field and brand dropdown', (
@@ -246,11 +262,13 @@ void main() {
       expect(_findListItem('Suunto'), findsNothing);
       expect(_findListItem('Mares'), findsNothing);
 
-      // Should show some kind of "no results" indication.
+      // The localized no-results message echoes the query back.
       expect(
-        find.textContaining('No'),
-        findsWidgets,
-        reason: 'Should display a no-results message',
+        find.text(
+          _l10n(tester).diveComputer_discovery_usbNoResults('NonExistentBrand'),
+        ),
+        findsOneWidget,
+        reason: 'Should display a no-results message naming the query',
       );
     });
 
@@ -261,22 +279,35 @@ void main() {
       await tester.pumpAndSettle();
       await _switchToUsbTab(tester);
 
-      // Tap the dropdown to open menu
-      await tester.tap(find.byType(DropdownMenu<String?>));
-      await tester.pumpAndSettle();
-
-      // Tap on 'Suunto'. DropdownMenu builds an offstage clone of every
-      // entry (an unkeyed MenuItemButton) purely to measure the widest
-      // label; the real, tappable one carries a GlobalKey and is the last
-      // match, so a bare find.text(...).last can hit the invisible clone
-      // instead.
-      await tester.tap(find.widgetWithText(MenuItemButton, 'Suunto').last);
-      await tester.pumpAndSettle();
+      await _selectManufacturer(tester, 'Suunto');
 
       // Only Suunto devices should remain
       expect(_findListItem('D5'), findsOneWidget);
       expect(_findListItem('Shearwater'), findsNothing);
       expect(_findListItem('Mares'), findsNothing);
+    });
+
+    testWidgets('selecting "All computers" clears the brand filter', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+      await _switchToUsbTab(tester);
+
+      await _selectManufacturer(tester, 'Suunto');
+      expect(_findListItem('Shearwater'), findsNothing);
+      expect(_findListItem('Mares'), findsNothing);
+
+      // The reset entry carries a null value, a distinct path from picking
+      // a brand, so it must restore every manufacturer group.
+      await _selectManufacturer(
+        tester,
+        _l10n(tester).diveLog_filter_allComputers,
+      );
+
+      expect(_findListItem('Shearwater'), findsOneWidget);
+      expect(_findListItem('Suunto'), findsOneWidget);
+      expect(_findListItem('Mares'), findsOneWidget);
     });
 
     testWidgets('search matches partial text', (tester) async {

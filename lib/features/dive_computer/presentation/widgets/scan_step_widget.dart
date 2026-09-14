@@ -402,6 +402,9 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                   const SizedBox(width: 12),
                   DropdownMenu<String?>(
                     initialSelection: _selectedManufacturer,
+                    label: Text(
+                      context.l10n.diveComputer_detail_labelManufacturer,
+                    ),
                     hintText: context.l10n.diveLog_filter_allComputers,
                     dropdownMenuEntries: [
                       DropdownMenuEntry(
