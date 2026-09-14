@@ -137,7 +137,11 @@ class PayloadSlicer {
           payload: ImportPayload(
             entities: entities,
             warnings: payload.warnings,
-            metadata: payload.metadata,
+            // The first slice keeps every definition, as a restore expects;
+            // the rest take only the ones their own items name.
+            metadata: slices.isEmpty
+                ? payload.metadata
+                : _metadataFor(payload.metadata, entities),
             sourceDivers: payload.sourceDivers,
           ),
           globalIndices: globalIndices,
@@ -145,5 +149,48 @@ class PayloadSlicer {
       );
     }
     return slices;
+  }
+
+  /// [metadata] with its custom dive role and site type definitions cut to
+  /// those [entities] reference. The importer creates every definition it is
+  /// given under the slice's diver, so an unfiltered copy would give each
+  /// profile the whole library's roles and site types (issue #1893).
+  static Map<String, dynamic> _metadataFor(
+    Map<String, dynamic> metadata,
+    Map<ImportEntityType, List<Map<String, dynamic>>> entities,
+  ) {
+    final roleIds = <Object?>{
+      for (final dive in entities[ImportEntityType.dives] ?? const []) ...[
+        dive['diverRoleId'],
+        if (dive['buddyRoleRefs'] case final List refs)
+          for (final r in refs)
+            if (r is Map) r['roleId'],
+      ],
+    };
+    final siteTypeIds = <Object?>{
+      for (final site in entities[ImportEntityType.sites] ?? const [])
+        if (site['siteTypeRefs'] case final List refs) ...refs,
+    };
+
+    List<Object?>? keep(String key, Set<Object?> used) {
+      final defs = metadata[key];
+      if (defs is! List) return null;
+      return [
+        for (final d in defs)
+          if (d is Map && used.contains(d['id'])) d,
+      ];
+    }
+
+    return {
+      ...metadata,
+      ImportPayload.customDiveRolesKey: ?keep(
+        ImportPayload.customDiveRolesKey,
+        roleIds,
+      ),
+      ImportPayload.customSiteTypesKey: ?keep(
+        ImportPayload.customSiteTypesKey,
+        siteTypeIds,
+      ),
+    };
   }
 }

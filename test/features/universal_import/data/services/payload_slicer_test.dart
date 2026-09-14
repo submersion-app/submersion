@@ -72,6 +72,63 @@ void main() {
       expect(bMedia.single['_diveIndex'], 0);
     });
 
+    test('custom roles and site types reach only the slices that use them', () {
+      const payload = ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {_key: 'diver:a'},
+            {
+              _key: 'new:b',
+              'diverRoleId': 'role-guide',
+              'buddyRoleRefs': [
+                {'buddyRef': 'kim', 'roleId': 'role-photo'},
+              ],
+            },
+          ],
+          ImportEntityType.sites: [
+            {
+              'uddfId': 'S',
+              _key: 'new:b',
+              'siteTypeRefs': ['wreck'],
+            },
+          ],
+        },
+        metadata: {
+          ImportPayload.customDiveRolesKey: [
+            {'id': 'role-guide', 'name': 'Guide'},
+            {'id': 'role-photo', 'name': 'Photographer'},
+            {'id': 'role-unused', 'name': 'Unused'},
+          ],
+          ImportPayload.customSiteTypesKey: [
+            {'id': 'wreck', 'name': 'Wreck'},
+            {'id': 'cave', 'name': 'Cave'},
+          ],
+          'source': 'test',
+        },
+      );
+      List<Object?> ids(DiverSlice s, String key) => [
+        for (final d in s.payload.metadata[key] as List? ?? const [])
+          (d as Map)['id'],
+      ];
+
+      final slices = PayloadSlicer.slice(payload, firstTargetKey: 'diver:a');
+      final a = slices[0];
+      final b = slices[1];
+      // The first slice keeps every definition, as a restore expects.
+      expect(ids(a, ImportPayload.customDiveRolesKey), [
+        'role-guide',
+        'role-photo',
+        'role-unused',
+      ]);
+      expect(ids(a, ImportPayload.customSiteTypesKey), ['wreck', 'cave']);
+      expect(ids(b, ImportPayload.customDiveRolesKey), [
+        'role-guide',
+        'role-photo',
+      ]);
+      expect(ids(b, ImportPayload.customSiteTypesKey), ['wreck']);
+      expect(b.payload.metadata['source'], 'test');
+    });
+
     test('index helpers translate both ways', () {
       final a = PayloadSlicer.slice(_expanded).first;
       const dives = ImportEntityType.dives;
