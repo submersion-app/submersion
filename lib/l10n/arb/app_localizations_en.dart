@@ -11581,6 +11581,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_appBar_title => 'Equipment';
 
   @override
+  String get equipment_bulkTags_action => 'Edit tags';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'adding to all $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated tags on $count items',
+      one: 'Updated tags on 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Adding to all $count equipment items',
+      one: 'Adding to 1 equipment item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removing from all $count equipment items',
+      one: 'Removing from 1 equipment item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Apply changes?';
+
+  @override
+  String get equipment_bulkTags_empty => 'No equipment tags yet';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Could not update tags: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'on all $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'on $count of $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'removing from all';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Tags';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Edit tags on $count items',
+      one: 'Edit tags on 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Undo';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Cancel';
 
   @override

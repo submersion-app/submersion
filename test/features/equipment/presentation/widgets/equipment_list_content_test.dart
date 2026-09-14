@@ -207,7 +207,10 @@ void main() {
   group('bulk actions', () {
     late _CapturingEquipmentNotifier notifier;
 
-    Future<Widget> host(List<EquipmentItem> items) async {
+    Future<Widget> host(
+      List<EquipmentItem> items, {
+      bool showAppBar = true,
+    }) async {
       notifier = _CapturingEquipmentNotifier();
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -230,7 +233,7 @@ void main() {
           ),
           highlightedEquipmentIdProvider.overrideWith((ref) => null),
         ],
-        child: const EquipmentListContent(showAppBar: true),
+        child: EquipmentListContent(showAppBar: showAppBar),
       );
     }
 
@@ -299,6 +302,77 @@ void main() {
       );
 
       expect(notifier.deleted, isEmpty);
+    });
+
+    // Issue #1942.
+    testWidgets('edit tags sits beside retire and reactivate', (tester) async {
+      final widget = await host(const [
+        EquipmentItem(id: 'e1', name: 'Aaa Reg', type: EquipmentType.regulator),
+        EquipmentItem(
+          id: 'e2',
+          name: 'Bbb BCD',
+          type: EquipmentType.bcd,
+          isActive: false,
+        ),
+      ]);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      final editTags = find.byKey(const ValueKey('selection_action_editTags'));
+      // Nothing checked yet.
+      expect(tester.widget<IconButton>(editTags).onPressed, isNull);
+
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      // A mixed selection turns retire and reactivate off; tags apply to any
+      // selection.
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('selection_action_retire')),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(tester.widget<IconButton>(editTags).onPressed, isNotNull);
+      expect(tester.widget<IconButton>(editTags).tooltip, 'Edit tags');
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(of: editTags, matching: find.byType(Icon)),
+            )
+            .icon,
+        Icons.sell,
+      );
+    });
+
+    testWidgets('in the pane, edit tags is in the overflow menu', (
+      tester,
+    ) async {
+      final widget = await host([
+        _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+      ], showAppBar: false);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('selection_action_editTags')),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      final entry = find.byKey(const ValueKey('selection_menu_editTags'));
+      expect(entry, findsOneWidget);
+      expect(tester.widget<PopupMenuItem<String>>(entry).enabled, isTrue);
     });
   });
 

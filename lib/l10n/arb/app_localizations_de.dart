@@ -11758,6 +11758,88 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_appBar_title => 'Ausrüstung';
 
   @override
+  String get equipment_bulkTags_action => 'Tags bearbeiten';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'wird zu allen $total hinzugefügt';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags von $count Teilen aktualisiert',
+      one: 'Tags von 1 Teil aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird zu allen $count Ausrüstungsteilen hinzugefügt',
+      one: 'Wird zu 1 Ausrüstungsteil hinzugefügt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird von allen $count Ausrüstungsteilen entfernt',
+      one: 'Wird von 1 Ausrüstungsteil entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Änderungen anwenden?';
+
+  @override
+  String get equipment_bulkTags_empty => 'Noch keine Ausrüstungs-Tags';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Tags konnten nicht aktualisiert werden: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'an allen $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'an $count von $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'wird von allen entfernt';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Tags';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags von $count Teilen bearbeiten',
+      one: 'Tags von 1 Teil bearbeiten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Rückgängig';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Abbrechen';
 
   @override

@@ -11236,6 +11236,88 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_appBar_title => '装备';
 
   @override
+  String get equipment_bulkTags_action => '编辑标签';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return '添加到全部 $total 件';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更新 $count 件物品的标签',
+      one: '已更新 1 件物品的标签',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加到全部 $count 件装备',
+      one: '添加到 1 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '从全部 $count 件装备移除',
+      one: '从 1 件装备移除',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => '应用更改？';
+
+  @override
+  String get equipment_bulkTags_empty => '还没有装备标签';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return '无法更新标签：$error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return '全部 $count 件装备';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return '$count/$total 件装备';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => '从全部移除';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => '标签';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '编辑 $count 件物品的标签',
+      one: '编辑 1 件物品的标签',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => '撤消';
+
+  @override
   String get equipment_deleteDialog_cancel => '取消';
 
   @override
