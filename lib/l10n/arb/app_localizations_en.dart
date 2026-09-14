@@ -20821,7 +20821,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Choose at least one: dives, sites or equipment';
+      'Choose at least one: dives, sites, or equipment';
 
   @override
   String get tags_manage_scope_dives => 'Dives';

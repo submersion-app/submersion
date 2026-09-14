@@ -21184,7 +21184,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Scegli almeno uno tra immersioni, siti o attrezzatura';
+      'Scegli almeno uno: immersioni, siti o attrezzatura';
 
   @override
   String get tags_manage_scope_dives => 'Immersioni';

@@ -6160,7 +6160,7 @@
   "tags_manage_narrowDialog_equipment": "{count, plural, =1{Questo tag è su 1 attrezzatura. Disattivando \"Usa per l'attrezzatura\" verrà rimosso da quell'attrezzatura.} other{Questo tag è su {count} attrezzature. Disattivando \"Usa per l'attrezzatura\" verrà rimosso da quelle attrezzature.}}",
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Questo tag è su 1 sito. Disattivando \"Usa per i siti\" verrà rimosso da quel sito.} other{Questo tag è su {count} siti. Disattivando \"Usa per i siti\" verrà rimosso da quei siti.}}",
   "tags_manage_narrowDialog_title": "Rimuovere il tag dagli elementi esistenti?",
-  "tags_manage_scopeRequired": "Scegli almeno uno tra immersioni, siti o attrezzatura",
+  "tags_manage_scopeRequired": "Scegli almeno uno: immersioni, siti o attrezzatura",
   "tags_manage_scope_dives": "Immersioni",
   "tags_manage_scope_equipment": "Attrezzatura",
   "tags_manage_scope_sites": "Siti",

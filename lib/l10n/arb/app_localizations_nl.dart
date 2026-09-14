@@ -21007,7 +21007,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Kies ten minste één: duiken, duikstekken of uitrusting';
+      'Kies er minstens één: duiken, duikstekken of uitrusting';
 
   @override
   String get tags_manage_scope_dives => 'Duiken';
