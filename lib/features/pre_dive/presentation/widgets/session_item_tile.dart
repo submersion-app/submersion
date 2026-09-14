@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
@@ -53,9 +54,10 @@ class SessionItemTile extends ConsumerWidget {
     this.staleSourceValue,
   });
 
-  /// The item's overdue-service entries to display, paired with the instant
-  /// they should be read against: live-computed from its linked equipment
-  /// while pending (so the warning tracks the current service state up to the
+  /// The item's linked equipment's service entries to display -- every
+  /// configured clock, not only overdue ones -- paired with the instant they
+  /// should be read against: live-computed from its linked equipment while
+  /// pending (so the display tracks the current service state up to the
   /// moment of decision), or the frozen snapshot once resolved (so a later
   /// service log entry cannot silently rewrite what the diver saw when they
   /// made the call).
@@ -67,7 +69,7 @@ class SessionItemTile extends ConsumerWidget {
   /// item against the wall clock would silently reword the snapshot once that
   /// date passes. Resolved items therefore read against completedAt, the same
   /// instant the repository stamped when it froze the snapshot.
-  (List<OverdueServiceEntry>, DateTime) _overdueEntries(WidgetRef ref) {
+  (List<OverdueServiceEntry>, DateTime) _serviceEntries(WidgetRef ref) {
     if (item.state != PreDiveItemState.pending) {
       return (
         item.overdueServices ?? const [],
@@ -79,11 +81,7 @@ class SessionItemTile extends ConsumerWidget {
     final statuses =
         ref.watch(serviceClockStatusesProvider(equipmentId)).value ?? const [];
     return (
-      [
-        for (final status in statuses)
-          if (status.severity == ServiceClockSeverity.overdue)
-            OverdueServiceEntry.fromStatus(status),
-      ],
+      [for (final status in statuses) OverdueServiceEntry.fromStatus(status)],
       DateTime.now(),
     );
   }
@@ -113,7 +111,10 @@ class SessionItemTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final (overdueEntries, overdueAsOf) = _overdueEntries(ref);
+    final (serviceEntries, serviceAsOf) = _serviceEntries(ref);
+    final hasOverdue = serviceEntries.any(
+      (entry) => entry.severity == ServiceClockSeverity.overdue,
+    );
     final significantFindings = _significantFindings(ref);
     final actionable = ChecklistSessionEngine.isItemActionable(
       session,
@@ -220,20 +221,21 @@ class SessionItemTile extends ConsumerWidget {
         ),
       if (item.notes.isNotEmpty)
         Text(item.notes, style: theme.textTheme.bodySmall),
-      if (overdueEntries.isNotEmpty) ...[
-        Text(
-          l10n.preDive_runner_serviceOverdue,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.error,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        for (final entry in overdueEntries)
+      if (serviceEntries.isNotEmpty) ...[
+        if (hasOverdue)
           Text(
-            '${entry.kindName}: '
-            '${formatServiceTriggerText(context, units: UnitFormatter(ref.watch(settingsProvider)), now: overdueAsOf, dueDate: entry.dueDate, divesSinceAnchor: entry.divesSinceAnchor, divesRemaining: entry.divesRemaining, hoursSinceAnchor: entry.hoursSinceAnchor, hoursRemaining: entry.hoursRemaining)}',
+            l10n.preDive_runner_serviceOverdue,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.error,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        for (final entry in serviceEntries)
+          Text(
+            '${entry.kindName}: '
+            '${formatServiceTriggerText(context, units: UnitFormatter(ref.watch(settingsProvider)), now: serviceAsOf, dueDate: entry.dueDate, divesSinceAnchor: entry.divesSinceAnchor, divesRemaining: entry.divesRemaining, hoursSinceAnchor: entry.hoursSinceAnchor, hoursRemaining: entry.hoursRemaining, usageByUnit: entry.usageByUnit)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: serviceSeverityDotColor(context, entry.severity),
             ),
           ),
       ],
