@@ -487,9 +487,9 @@ class DiverRepository {
 
         // Step 1b: Delete and tombstone the diver's templates, presets,
         // configs, plans and sessions, then free the surviving plans that
-        // point at the dives step 2 deletes.
+        // point at the dives and private sites deleted below.
         await deleteDiverOwnedRows(_db, _syncRepository, id);
-        await clearPlanLinksToDiverDives(
+        await clearPlanLinksToDiverRows(
           _db,
           _syncRepository,
           id,
@@ -509,6 +509,12 @@ class DiverRepository {
         // FKs, so without this step the upcoming DELETEs would violate the
         // foreign-key constraint.
         final nullifyNow = DateTime.now().millisecondsSinceEpoch;
+        await clearDiveLinksToDiverCenters(
+          _db,
+          _syncRepository,
+          id,
+          now: nullifyNow,
+        );
 
         final divesLosingSite = await _db
             .customSelect(
@@ -568,6 +574,7 @@ class DiverRepository {
           '(SELECT id FROM trips WHERE diver_id = ?)',
           [id],
         );
+        await deleteDiverTripChildren(_db, _syncRepository, id);
 
         // Step 4: Delete remaining per-diver entities (private records only,
         // since shared ones were reassigned in Step 0).

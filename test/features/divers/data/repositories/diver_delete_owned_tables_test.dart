@@ -359,6 +359,53 @@ void main() {
         ('pre_dive_session_items', 'preDiveSessionItems', 'pdsi-a'),
       ];
     },
+    // The trip is not listed: private trips are deleted in bulk without a
+    // tombstone. Its checklist and weather rows reference it with no
+    // ON DELETE action, so they are what blocked `DELETE FROM trips`.
+    'a trip with a checklist and weather': () async {
+      await db
+          .into(db.trips)
+          .insert(
+            TripsCompanion.insert(
+              id: 'trip-a',
+              name: 'Red Sea',
+              startDate: stale,
+              endDate: stale,
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.tripChecklistItems)
+          .insert(
+            TripChecklistItemsCompanion.insert(
+              id: 'tci-a',
+              tripId: 'trip-a',
+              title: 'Passport',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.tripDayWeather)
+          .insert(
+            TripDayWeatherCompanion.insert(
+              id: 'tdw-a',
+              tripId: 'trip-a',
+              date: stale,
+              latitude: 27.9,
+              longitude: 34.3,
+              fetchedAt: stale,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('trip_checklist_items', 'tripChecklistItems', 'tci-a'),
+        ('trip_day_weather', 'tripDayWeather', 'tdw-a'),
+      ];
+    },
   };
 
   for (final MapEntry(key: label, value: seed) in seeders.entries) {
@@ -451,13 +498,25 @@ void main() {
     });
   });
 
-  test("a surviving plan linked to the diver's dives is cleared, stamped "
-      'and marked', () async {
-    // dive_plans.source_dive_id and linked_dive_id reference dives with no
-    // ON DELETE action, and plans are not owned by a diver in practice, so
-    // any plan built from or linked to one of the diver's dives failed the
-    // `DELETE FROM dives` step.
+  test("a surviving plan linked to the diver's dives and site is cleared, "
+      'stamped and marked', () async {
+    // dive_plans.source_dive_id, linked_dive_id and site_id reference dives
+    // and dive_sites with no ON DELETE action, and plans are not owned by a
+    // diver in practice, so any plan built from or linked to one of the
+    // diver's dives failed the `DELETE FROM dives` step, and one set at the
+    // diver's private site failed `DELETE FROM dive_sites`.
     await insertDiver('diver-a');
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 'site-a',
+            name: 'Thistlegorm',
+            diverId: const Value('diver-a'),
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
     await db
         .into(db.dives)
         .insert(
@@ -479,6 +538,7 @@ void main() {
             gfHigh: 70,
             sourceDiveId: const Value('dive-a'),
             linkedDiveId: const Value('dive-a'),
+            siteId: const Value('site-a'),
             createdAt: stale,
             updatedAt: stale,
           ),
@@ -489,69 +549,166 @@ void main() {
     expect(await diverExists('diver-a'), isFalse);
     final plan = await db
         .customSelect(
-          'SELECT source_dive_id, linked_dive_id, updated_at FROM dive_plans '
-          "WHERE id = 'plan-x'",
+          'SELECT source_dive_id, linked_dive_id, site_id, updated_at '
+          "FROM dive_plans WHERE id = 'plan-x'",
         )
         .getSingle();
     expect(plan.readNullable<String>('source_dive_id'), isNull);
     expect(plan.readNullable<String>('linked_dive_id'), isNull);
+    expect(plan.readNullable<String>('site_id'), isNull);
     expect(plan.read<int>('updated_at'), greaterThan(stale));
     expect(await pendingCountFor('divePlans', 'plan-x'), 1);
   });
 
-  test('every table owned by a diver is either cascaded by the schema or '
-      'cleared by the diver delete', () async {
-    // Adding a table with a plain `diver_id REFERENCES divers(id)` re-breaks
-    // the delete for any diver who owns a row of it. This fails until the
-    // new table gets an ON DELETE action or a step in
-    // deleteDiverWithReassignment, and is listed here.
-    const clearedByDelete = {
-      'buddies',
-      'certifications',
-      'checklist_templates',
-      'cylinder_configs',
-      'dive_centers',
-      'dive_computers',
-      'dive_plans',
-      'dive_roles',
-      'dive_sites',
-      'dive_types',
-      'diver_settings',
-      'diver_weight_entries',
-      'dives',
-      'equipment',
-      'equipment_sets',
-      'pre_dive_checklist_templates',
-      'pre_dive_sessions',
-      'service_kinds',
-      'site_types',
-      'tags',
-      'tank_presets',
-      'transmitters',
-      'trips',
-      'weight_presets',
-    };
+  test("another diver's dive at the diver's dive center is cleared, stamped "
+      'and marked', () async {
+    // dives.dive_center_id references dive_centers with no ON DELETE
+    // action, so Bob's dive logged at Alice's center failed
+    // `DELETE FROM dive_centers`.
+    await insertDiver('diver-a');
+    await insertDiver('diver-b', isDefault: true);
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion.insert(
+            id: 'center-a',
+            name: 'Blue Planet',
+            diverId: const Value('diver-a'),
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'dive-b',
+            diverId: const Value('diver-b'),
+            diveCenterId: const Value('center-a'),
+            diveDateTime: stale,
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+
+    await repository.deleteDiverWithReassignment('diver-a');
+
+    expect(await diverExists('diver-a'), isFalse);
+    final dive = await db
+        .customSelect(
+          "SELECT dive_center_id, updated_at FROM dives WHERE id = 'dive-b'",
+        )
+        .getSingle();
+    expect(dive.readNullable<String>('dive_center_id'), isNull);
+    expect(dive.read<int>('updated_at'), greaterThan(stale));
+    expect(await pendingCountFor('dives', 'dive-b'), 1);
+  });
+
+  /// Every foreign key in the live schema, as (from table, from column,
+  /// referenced table, ON DELETE action).
+  Future<List<(String, String, String, String)>> foreignKeys() async {
     final tables = await db
         .customSelect(
           "SELECT name FROM sqlite_master WHERE type = 'table' "
           "AND name NOT LIKE 'sqlite_%'",
         )
         .get();
-    final unhandled = <String>[];
-    for (final row in tables) {
-      final table = row.read<String>('name');
-      final keys = await db
-          .customSelect("PRAGMA foreign_key_list('$table')")
-          .get();
-      final blocksDelete = keys.any(
-        (k) =>
-            k.read<String>('table') == 'divers' &&
-            k.read<String>('on_delete').toUpperCase() != 'CASCADE',
-      );
-      if (blocksDelete && !clearedByDelete.contains(table)) {
-        unhandled.add(table);
-      }
-    }
+    return [
+      for (final row in tables)
+        for (final k
+            in await db
+                .customSelect(
+                  "PRAGMA foreign_key_list('${row.read<String>('name')}')",
+                )
+                .get())
+          (
+            row.read<String>('name'),
+            k.read<String>('from'),
+            k.read<String>('table'),
+            k.read<String>('on_delete').toUpperCase(),
+          ),
+    ];
+  }
+
+  test('every table owned by a diver is either cascaded by the schema or '
+      'cleared by the diver delete', () async {
+    // Adding a table with a plain `diver_id REFERENCES divers(id)` re-breaks
+    // the delete for any diver who owns a row of it. This fails until the
+    // new table gets an ON DELETE action or a step in
+    // deleteDiverWithReassignment, and is listed in _clearedByDelete.
+    final unhandled = {
+      for (final (table, _, target, onDelete) in await foreignKeys())
+        if (target == 'divers' &&
+            onDelete != 'CASCADE' &&
+            !_clearedByDelete.contains(table))
+          table,
+    };
+    expect(unhandled, isEmpty);
+  });
+
+  test('every reference into a table the diver delete clears is either '
+      'acted on by the schema or cleared by the delete', () async {
+    // A row that survives the delete (another diver's, or an ownerless one)
+    // and points with no ON DELETE action at a row the delete removes fails
+    // that DELETE and rolls the diver deletion back: a plan at the diver's
+    // site, another diver's dive at the diver's center, a checklist on the
+    // diver's trip. This fails until the new reference gets an ON DELETE
+    // action or a clearing step in deleteDiverWithReassignment, and is listed
+    // here.
+    const clearedReferences = {
+      'checklist_template_items.template_id',
+      'dive_plan_segments.plan_id',
+      'dive_plan_tanks.plan_id',
+      'dive_plans.linked_dive_id',
+      'dive_plans.site_id',
+      'dive_plans.source_dive_id',
+      'dives.computer_id',
+      'dives.dive_center_id',
+      'dives.site_id',
+      'dives.trip_id',
+      'liveaboard_detail_records.trip_id',
+      'pre_dive_checklist_template_items.template_id',
+      'trip_checklist_items.trip_id',
+      'trip_day_weather.trip_id',
+      'trip_itinerary_days.trip_id',
+    };
+    final unhandled = {
+      for (final (table, column, target, onDelete) in await foreignKeys())
+        if (_clearedByDelete.contains(target) &&
+            onDelete != 'CASCADE' &&
+            onDelete != 'SET NULL' &&
+            !clearedReferences.contains('$table.$column'))
+          '$table.$column',
+    };
     expect(unhandled, isEmpty);
   });
 }
+
+/// The tables whose `diver_id` references `divers` without a cascade and
+/// that deleteDiverWithReassignment clears itself.
+const _clearedByDelete = {
+  'buddies',
+  'certifications',
+  'checklist_templates',
+  'cylinder_configs',
+  'dive_centers',
+  'dive_computers',
+  'dive_plans',
+  'dive_roles',
+  'dive_sites',
+  'dive_types',
+  'diver_settings',
+  'diver_weight_entries',
+  'dives',
+  'equipment',
+  'equipment_sets',
+  'pre_dive_checklist_templates',
+  'pre_dive_sessions',
+  'service_kinds',
+  'site_types',
+  'tags',
+  'tank_presets',
+  'transmitters',
+  'trips',
+  'weight_presets',
+};

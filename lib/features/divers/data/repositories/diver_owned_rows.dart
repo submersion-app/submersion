@@ -130,6 +130,31 @@ Future<List<String>> _idsOf(
   return [for (final r in rows) r.read<String>('id')];
 }
 
+/// Deletes the [child] rows whose parent is one of [parentIds] (a query
+/// taking [diverId] as its only argument), logging a deletion for each.
+Future<void> _deleteChildren(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  _ChildTable child,
+  String parentIds,
+  String diverId,
+) async {
+  final where = '${child.parentColumn} IN ($parentIds)';
+  final ids = await _idsOf(db, 'SELECT id FROM ${child.table} WHERE $where', [
+    diverId,
+  ]);
+  if (ids.isEmpty) return;
+  await db.customStatement('DELETE FROM ${child.table} WHERE $where', [
+    diverId,
+  ]);
+  for (final id in ids) {
+    await syncRepository.logDeletion(
+      entityType: child.entityType,
+      recordId: id,
+    );
+  }
+}
+
 /// Deletes [diverId]'s rows of every table in [_ownedTables], with their
 /// children, logging a deletion for each row. Run it inside the caller's
 /// transaction.
@@ -150,22 +175,7 @@ Future<void> deleteDiverOwnedRows(
         : 'diver_id = ?';
     final ownedIds = 'SELECT id FROM ${owned.table} WHERE $ownedWhere';
     for (final child in owned.children) {
-      final childWhere = '${child.parentColumn} IN ($ownedIds)';
-      final childIds = await _idsOf(
-        db,
-        'SELECT id FROM ${child.table} WHERE $childWhere',
-        [diverId],
-      );
-      if (childIds.isEmpty) continue;
-      await db.customStatement('DELETE FROM ${child.table} WHERE $childWhere', [
-        diverId,
-      ]);
-      for (final id in childIds) {
-        await syncRepository.logDeletion(
-          entityType: child.entityType,
-          recordId: id,
-        );
-      }
+      await _deleteChildren(db, syncRepository, child, ownedIds, diverId);
     }
     final ids = await _idsOf(db, ownedIds, [diverId]);
     if (ids.isEmpty) continue;
@@ -181,17 +191,56 @@ Future<void> deleteDiverOwnedRows(
   }
 }
 
-/// Clears the links surviving dive plans hold to [diverId]'s dives, stamping
-/// and marking each plan so the change reaches peers. Run it inside the
-/// caller's transaction, after [deleteDiverOwnedRows] (the diver's own plans
-/// are gone by then and must not be published) and before the dives are
-/// deleted.
+/// Trip children whose `trip_id` has no ON DELETE action. The diver deletion
+/// removes liveaboard details and itinerary days itself; these two are
+/// deleted and tombstoned the way `TripRepository.deleteTrip` does.
+const List<_ChildTable> _tripChildren = [
+  (
+    table: 'trip_checklist_items',
+    entityType: 'tripChecklistItems',
+    parentColumn: 'trip_id',
+  ),
+  (
+    table: 'trip_day_weather',
+    entityType: 'tripDayWeather',
+    parentColumn: 'trip_id',
+  ),
+];
+
+/// Deletes the checklist items and weather days of [diverId]'s trips,
+/// logging a deletion for each. Run it inside the caller's transaction,
+/// after shared trips have moved to a surviving diver (theirs stay with
+/// them) and before the diver's trips are deleted, which these rows would
+/// otherwise block.
+Future<void> deleteDiverTripChildren(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  String diverId,
+) async {
+  for (final child in _tripChildren) {
+    await _deleteChildren(
+      db,
+      syncRepository,
+      child,
+      'SELECT id FROM trips WHERE diver_id = ?',
+      diverId,
+    );
+  }
+}
+
+/// Clears the links surviving dive plans hold to [diverId]'s dives and
+/// private sites, stamping and marking each plan so the change reaches
+/// peers. Run it inside the caller's transaction, after shared sites have
+/// moved to a surviving diver and after [deleteDiverOwnedRows] (the diver's
+/// own plans are gone by then and must not be published), and before the
+/// dives are deleted.
 ///
-/// `dive_plans.source_dive_id` and `linked_dive_id` reference `dives` with no
+/// `dive_plans.source_dive_id`, `linked_dive_id` and `site_id` have no
 /// ON DELETE action, and plans are not owned by a diver in practice, so a
-/// plan built from or linked to one of the diver's dives would otherwise
-/// fail the deletion of those dives and roll the whole diver deletion back.
-Future<void> clearPlanLinksToDiverDives(
+/// plan built from one of the diver's dives, linked to one, or set at one of
+/// the diver's sites would otherwise fail the deletion of that dive or site
+/// and roll the whole diver deletion back.
+Future<void> clearPlanLinksToDiverRows(
   AppDatabase db,
   SyncRepository syncRepository,
   String diverId, {
@@ -199,9 +248,14 @@ Future<void> clearPlanLinksToDiverDives(
 }) async {
   // stats-scope-exempt: deletion cascade cleanup.
   const diverDives = 'SELECT id FROM dives WHERE diver_id = ?';
+  const diverSites = 'SELECT id FROM dive_sites WHERE diver_id = ?';
   final planIds = <String>{};
-  for (final column in const ['source_dive_id', 'linked_dive_id']) {
-    final where = '$column IN ($diverDives)';
+  for (final (column, targets) in const [
+    ('source_dive_id', diverDives),
+    ('linked_dive_id', diverDives),
+    ('site_id', diverSites),
+  ]) {
+    final where = '$column IN ($targets)';
     final ids = await _idsOf(db, 'SELECT id FROM dive_plans WHERE $where', [
       diverId,
     ]);
@@ -215,6 +269,39 @@ Future<void> clearPlanLinksToDiverDives(
   for (final id in planIds) {
     await syncRepository.markRecordPending(
       entityType: 'divePlans',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+  }
+}
+
+/// Clears the dive center of other divers' dives logged at one of
+/// [diverId]'s centers, stamping and marking each dive so the change reaches
+/// peers. Run it inside the caller's transaction, after the diver's own
+/// dives are deleted (so every dive still pointing at a center survives) and
+/// before the centers are deleted.
+///
+/// `dives.dive_center_id` has no ON DELETE action, so such a dive would
+/// otherwise fail the deletion of the center and roll the whole diver
+/// deletion back.
+Future<void> clearDiveLinksToDiverCenters(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  String diverId, {
+  required int now,
+}) async {
+  const where =
+      'dive_center_id IN (SELECT id FROM dive_centers WHERE diver_id = ?)';
+  // stats-scope-exempt: deletion cascade cleanup.
+  final ids = await _idsOf(db, 'SELECT id FROM dives WHERE $where', [diverId]);
+  if (ids.isEmpty) return;
+  await db.customStatement(
+    'UPDATE dives SET dive_center_id = NULL, updated_at = ? WHERE $where',
+    [now, diverId],
+  );
+  for (final id in ids) {
+    await syncRepository.markRecordPending(
+      entityType: 'dives',
       recordId: id,
       localUpdatedAt: now,
     );
