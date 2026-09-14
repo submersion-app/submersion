@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_tag_re
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -33,7 +36,11 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> pumpEditor(WidgetTester tester, String? equipmentId) async {
+  Future<void> pumpEditor(
+    WidgetTester tester,
+    String? equipmentId, {
+    List<Object> extraOverrides = const [],
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 4000);
     addTearDown(() {
@@ -46,6 +53,7 @@ void main() {
         overrides: [
           ...overrides,
           equipmentRepositoryProvider.overrideWithValue(repository),
+          ...extraOverrides,
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -101,6 +109,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await tagRepository.getTagsForEquipment(item.id), isEmpty);
+  });
+
+  group('while the stored tags are still loading', () {
+    late EquipmentItem item;
+    late Completer<List<Tag>> pending;
+
+    setUp(() async {
+      item = await repository.createEquipment(
+        const EquipmentItem(id: '', name: 'Wing', type: EquipmentType.bcd),
+      );
+      await tagRepository.replaceTags(item.id, ['t1']);
+    });
+
+    /// The completer is made inside the test body: one made in setUp lives
+    /// outside the test's fake-async zone, so pumping never delivers it.
+    Future<void> pumpLoading(WidgetTester tester) {
+      pending = Completer<List<Tag>>();
+      return pumpEditor(
+        tester,
+        item.id,
+        extraOverrides: [
+          tagsForEquipmentProvider(
+            item.id,
+          ).overrideWith((ref) => pending.future),
+        ],
+      );
+    }
+
+    testWidgets('the Tags field is disabled until they arrive', (tester) async {
+      await pumpLoading(tester);
+      // A disabled TagInputWidget drops its text field.
+      expect(tagField, findsNothing);
+
+      pending.complete(await tagRepository.getTagsForEquipment(item.id));
+      await tester.pumpAndSettle();
+
+      expect(tagField, findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Travel kit'), findsOneWidget);
+    });
+
+    testWidgets('a save leaves the stored tags alone', (tester) async {
+      await pumpLoading(tester);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        [
+          for (final t in await tagRepository.getTagsForEquipment(item.id))
+            t.id,
+        ],
+        ['t1'],
+      );
+    });
   });
 
   testWidgets('suggestions list equipment tags only', (tester) async {
