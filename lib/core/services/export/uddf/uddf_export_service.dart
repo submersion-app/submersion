@@ -371,10 +371,10 @@ class UddfExportService {
                               builder.element('divetype', nest: typeId);
                             }
                             // Entry method
-                            if (dive.entryMethod != null) {
+                            if (dive.effectiveEntryMethod != null) {
                               builder.element(
                                 'entrytype',
-                                nest: dive.entryMethod!.name,
+                                nest: dive.effectiveEntryMethod!.name,
                               );
                             }
                             UddfExportBuilders.buildDiverRole(builder, dive);
@@ -517,10 +517,10 @@ class UddfExportService {
                               );
                             }
                             // Conditions
-                            if (dive.waterType != null) {
+                            if (dive.effectiveWaterType != null) {
                               builder.element(
                                 'watertype',
-                                nest: dive.waterType!.name,
+                                nest: dive.effectiveWaterType!.name,
                               );
                             }
                             if (dive.currentDirection != null) {

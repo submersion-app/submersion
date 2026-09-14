@@ -283,8 +283,11 @@ class UddfExportBuilders {
                 attributes: {'ref': 'course_${dive.courseId}'},
               );
             }
-            if (dive.entryMethod != null) {
-              builder.element('entrytype', nest: dive.entryMethod!.name);
+            if (dive.effectiveEntryMethod != null) {
+              builder.element(
+                'entrytype',
+                nest: dive.effectiveEntryMethod!.name,
+              );
             }
             buildDiveGpsElements(builder, 'entry', dive.entryLocation);
             // Link to buddy records in diver section
@@ -504,8 +507,8 @@ class UddfExportBuilders {
               );
             }
             // Conditions
-            if (dive.waterType != null) {
-              builder.element('watertype', nest: dive.waterType!.name);
+            if (dive.effectiveWaterType != null) {
+              builder.element('watertype', nest: dive.effectiveWaterType!.name);
             }
             if (dive.currentDirection != null) {
               builder.element(
