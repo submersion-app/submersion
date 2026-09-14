@@ -119,6 +119,10 @@ void main() {
         tagListNotifierProvider.overrideWith((ref) => mockNotifier),
       ],
       child: MaterialApp(
+        // flutter_test resolves against the host machine's locale list, so an
+        // unpinned app renders translated on a non-English machine and the
+        // English assertions here stop matching.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: TagMergeSheet(selectedStats: stats ?? testStats)),

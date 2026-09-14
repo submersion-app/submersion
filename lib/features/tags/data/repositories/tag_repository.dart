@@ -718,20 +718,22 @@ class TagRepository {
   Future<({int dives, int sites})> getMergedUsage(List<String> tagIds) async {
     if (tagIds.isEmpty) return (dives: 0, sites: 0);
     try {
-      final placeholders = tagIds.map((_) => '?').join(',');
-      final ids = tagIds.map((id) => Variable.withString(id)).toList();
+      final rows = tagIds.map((_) => '(?)').join(', ');
       final row = await _db
           .customSelect(
             // stats-scope-exempt: delete and merge preview. Tells the diver
             // how many dives and sites the change rewrites, which is every
-            // one of them. Both subqueries sit in the SELECT list, so their
-            // placeholders bind in order: dives, then sites.
+            // one of them. The ids bind once, in the CTE, and both counts
+            // read from it: binding them per count would halve the selection
+            // SQLite's bound-variable limit allows. Chunking would not do,
+            // since a union count cannot be summed across chunks.
+            'WITH selected(tag_id) AS (VALUES $rows) '
             'SELECT '
             '(SELECT COUNT(DISTINCT dive_id) FROM dive_tags '
-            'WHERE tag_id IN ($placeholders)) AS dives, '
+            'WHERE tag_id IN (SELECT tag_id FROM selected)) AS dives, '
             '(SELECT COUNT(DISTINCT site_id) FROM site_tags '
-            'WHERE tag_id IN ($placeholders)) AS sites',
-            variables: [...ids, ...ids],
+            'WHERE tag_id IN (SELECT tag_id FROM selected)) AS sites',
+            variables: tagIds.map((id) => Variable.withString(id)).toList(),
           )
           .getSingle();
       return (dives: row.read<int>('dives'), sites: row.read<int>('sites'));

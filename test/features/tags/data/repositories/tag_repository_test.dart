@@ -224,6 +224,24 @@ void main() {
       },
     );
 
+    test('binds each id once, so a selection past half the SQLite variable '
+        'limit still counts', () async {
+      // SQLite allows 32,766 bound variables per statement. Binding every id
+      // for both the dive and the site count failed from 16,384 ids; binding
+      // them once keeps the ceiling the dive-only count had.
+      await insertTestDiver('diver1');
+      await insertTestTag(id: 'tag1', name: 'Reef', diverId: 'diver1');
+      await insertTestDive(id: 'dive1', diverId: 'diver1');
+      await insertTestSite('site1');
+      await insertDiveTag(id: 'dt1', diveId: 'dive1', tagId: 'tag1');
+      await insertSiteTag(id: 'st1', siteId: 'site1', tagId: 'tag1');
+
+      final ids = [...List.generate(20000, (i) => 'absent-$i'), 'tag1'];
+      final usage = await repository.getMergedUsage(ids);
+
+      expect(usage, (dives: 1, sites: 1));
+    });
+
     test('counts dives and sites independently (#1902)', () async {
       await insertTestDiver('diver1');
       await insertTestTag(id: 'tag1', name: 'Reef', diverId: 'diver1');
