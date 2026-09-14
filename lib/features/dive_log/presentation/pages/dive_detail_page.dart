@@ -5616,11 +5616,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 final saveTitle =
                     context.l10n.settings_export_saveDivesCsvDialogTitle;
                 Navigator.of(sheetContext).pop();
+                // getDiveById does not hydrate the buddy junction, which the
+                // Buddy and Dive Master columns read (#1861). Unlike the PDF
+                // route's best-effort enrichment, a failed lookup fails the
+                // export: those columns are data, and blanking them silently
+                // would ship a wrong file.
+                Future<List<Dive>> csvDives() async {
+                  final buddies = await ref.read(
+                    buddiesForDiveProvider(dive.id).future,
+                  );
+                  return [dive.copyWith(buddies: buddies)];
+                }
+
                 CsvExportUnits csvUnitsFor(ExportChoice choice) =>
                     CsvExportUnits.forMode(
                       choice.csvUnitMode,
                       ref.read(settingsProvider),
                     );
+
                 _handleSingleDiveExport(
                   context,
                   ref,
@@ -5629,7 +5642,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   shareFn: (choice) async => ref
                       .read(exportServiceProvider)
                       .exportDivesToCsv(
-                        [dive],
+                        await csvDives(),
                         units: csvUnitsFor(choice),
                         diveTypesById: await diveTypesByIdOrEmpty(
                           ref.read(diveTypesByIdProvider.future),
@@ -5638,7 +5651,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   saveFn: (choice) async => ref
                       .read(exportServiceProvider)
                       .saveDivesCsvToFile(
-                        [dive],
+                        await csvDives(),
                         dialogTitle: saveTitle,
                         units: csvUnitsFor(choice),
                         diveTypesById: await diveTypesByIdOrEmpty(

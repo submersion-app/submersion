@@ -371,6 +371,40 @@ abstract final class EquipmentAttributeCatalog {
     ],
     EquipmentType.wing: [_liftCapacity],
     EquipmentType.harness: [_size],
+    // Rig accessories (#1877).
+    EquipmentType.tankBand: [
+      EquipmentAttributeDef(
+        key: 'band_style',
+        kind: AttributeKind.choice,
+        choiceKeys: ['cam_strap', 'stainless_band'],
+      ),
+    ],
+    EquipmentType.weightPocket: [
+      // The Weights type's key and wording, offering the placements a pocket
+      // can have: ankle weights strap on and have no pocket. Kept an in-order
+      // subset of the Weights list, because a lookup by key alone
+      // ([defFor], which the active-filter label orders its options by)
+      // resolves to that list.
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.weightStyle,
+        kind: AttributeKind.choice,
+        choiceKeys: ['belt', 'integrated', 'trim'],
+      ),
+      // What the pocket holds, not what it weighs: `dry_weight_kg` stays the
+      // pouch's own mass.
+      EquipmentAttributeDef(
+        key: 'pocket_capacity_kg',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.massKg,
+      ),
+    ],
+    EquipmentType.gearPocket: [
+      EquipmentAttributeDef(
+        key: 'pocket_mount',
+        kind: AttributeKind.choice,
+        choiceKeys: ['harness', 'waist_belt', 'thigh'],
+      ),
+    ],
     EquipmentType.fins: [
       _size,
       EquipmentAttributeDef(

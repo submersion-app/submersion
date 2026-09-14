@@ -62,6 +62,28 @@ void main() {
       expect(payload.warnings.first.severity, ImportWarningSeverity.error);
     });
 
+    test('fails a library with no dives with an error', () async {
+      // Nothing is imported, so the file fails and this message becomes the
+      // reason shown for it.
+      final path =
+          '${Directory.systemTemp.path}/msp_empty_${DateTime.now().microsecondsSinceEpoch}.sqlite';
+      final file = buildSyntheticMacDiveDb(path);
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+      final db = sqlite3.sqlite3.open(path);
+      db.execute('DELETE FROM ZDIVE;');
+      db.close();
+
+      final payload = await const MacDiveSqliteParser().parse(
+        Uint8List.fromList(await file.readAsBytes()),
+      );
+
+      expect(payload.isEmpty, isTrue);
+      expect(payload.warnings.single.severity, ImportWarningSeverity.error);
+      expect(payload.warnings.single.message, contains('no dives'));
+    });
+
     test('returns error payload on totally invalid bytes', () async {
       final garbage = Uint8List.fromList(const [0, 1, 2, 3, 4]);
       final payload = await const MacDiveSqliteParser().parse(garbage);

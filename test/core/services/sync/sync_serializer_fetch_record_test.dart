@@ -111,6 +111,9 @@ void main() {
       'tags',
       'diveTags',
       'diveTypes',
+      'siteTypes',
+      'siteSiteTypes',
+      'siteTags',
       'tankPresets',
       'diveComputers',
       'tankPressureProfiles',
@@ -312,5 +315,23 @@ void main() {
       await serializer.deleteRecord('diveSafetyFindings', 'f1');
       expect(await serializer.fetchRecord('diveSafetyFindings', 'f1'), isNull);
     });
+  });
+
+  group('SyncDataSerializer.deleteRecord for site classification', () {
+    // Site types and both site junctions (issue #1765), each keyed by id.
+    for (final t in [
+      (type: 'siteTypes', table: 'site_types'),
+      (type: 'siteSiteTypes', table: 'site_site_types'),
+      (type: 'siteTags', table: 'site_tags'),
+    ]) {
+      test('deletes a ${t.table} row by id', () async {
+        await db.customStatement('PRAGMA foreign_keys = OFF');
+        await seedMinimalRow(t.table, 'row-1');
+        expect(await serializer.fetchRecord(t.type, 'row-1'), isNotNull);
+
+        await serializer.deleteRecord(t.type, 'row-1');
+        expect(await serializer.fetchRecord(t.type, 'row-1'), isNull);
+      });
+    }
   });
 }

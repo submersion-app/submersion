@@ -17,6 +17,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_relations.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -41,6 +42,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -181,7 +183,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_divesCsv,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -301,6 +303,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
   /// id, so a stale one (a restore, or a sync that removed the diver) found
   /// no dives and aborted the export as empty, and any dive list scoped
   /// apart from the check-ins could leave a check-in's dive out of the file.
+  ///
+  /// The dives CSV and the PDF logbook read it too: they print linked buddy
+  /// names (#1861), and [divesProvider] only refreshes on `dives` table
+  /// writes, so a buddy renamed since the list was cached exported under its
+  /// old name. An export is one-shot, so a fresh read costs nothing extra.
   Future<List<Dive>> _validatedDiverDives() async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     return _ref.read(diveRepositoryProvider).getAllDives(diverId: diverId);
@@ -446,7 +453,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_pdf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -614,6 +621,24 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      // Site types and site tags (issue #1765). The definitions are the
+      // diver's own vocabulary plus whatever the exported sites reference,
+      // resolved by id: a shared site can carry another profile's custom
+      // type or tag, and a reference without its definition is dropped on
+      // import.
+      final siteClassification = await loadSiteClassificationForExport(
+        _ref.read(siteClassificationRepositoryProvider),
+        _ref.read(siteTypeRepositoryProvider),
+        [for (final s in sites) s.id],
+      );
+      final customSiteTypes = mergeById(
+        [
+          for (final type in await _ref.read(siteTypesProvider.future))
+            if (!type.isBuiltIn) type,
+        ],
+        siteClassification.customSiteTypes,
+        (type) => type.id,
+      );
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -645,9 +670,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: relations.diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: tags,
+        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
         diveTags: relations.diveTags,
         customDiveTypes: customDiveTypes,
+        customSiteTypes: customSiteTypes,
+        siteTypeIdsBySite: siteClassification.typeIdsBySite,
+        siteTagIdsBySite: siteClassification.tagIdsBySite,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
@@ -1031,7 +1059,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingDivesCsv,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -1206,6 +1234,24 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      // Site types and site tags (issue #1765). The definitions are the
+      // diver's own vocabulary plus whatever the exported sites reference,
+      // resolved by id: a shared site can carry another profile's custom
+      // type or tag, and a reference without its definition is dropped on
+      // import.
+      final siteClassification = await loadSiteClassificationForExport(
+        _ref.read(siteClassificationRepositoryProvider),
+        _ref.read(siteTypeRepositoryProvider),
+        [for (final s in sites) s.id],
+      );
+      final customSiteTypes = mergeById(
+        [
+          for (final type in await _ref.read(siteTypesProvider.future))
+            if (!type.isBuiltIn) type,
+        ],
+        siteClassification.customSiteTypes,
+        (type) => type.id,
+      );
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -1237,9 +1283,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: relations.diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: tags,
+        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
         diveTags: relations.diveTags,
         customDiveTypes: customDiveTypes,
+        customSiteTypes: customSiteTypes,
+        siteTypeIdsBySite: siteClassification.typeIdsBySite,
+        siteTagIdsBySite: siteClassification.tagIdsBySite,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
@@ -1288,7 +1337,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingPdf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,

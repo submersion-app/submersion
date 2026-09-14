@@ -57,6 +57,7 @@ class DanDl7Parser implements ImportParser {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.diagnostic,
           message: readerWarning,
         ),
       );
@@ -94,16 +95,13 @@ class DanDl7Parser implements ImportParser {
           zrhFields: doc.zrhFields,
           sitesByUddfId: sitesByUddfId,
         );
-        if (dive != null) dives.add(dive);
+        if (dive != null) {
+          dives.add(dive);
+        } else {
+          warnings.add(_skippedDive(i, 'no readable start time'));
+        }
       } catch (e) {
-        warnings.add(
-          ImportWarning(
-            severity: ImportWarningSeverity.warning,
-            message: 'Skipped dive ${i + 1}: $e',
-            entityType: ImportEntityType.dives,
-            itemIndex: i,
-          ),
-        );
+        warnings.add(_skippedDive(i, e));
       }
     }
 
@@ -119,6 +117,18 @@ class DanDl7Parser implements ImportParser {
     );
   }
 
+  /// A dive left out of the import, counted by the summary's "dives could not
+  /// be read" notice.
+  static ImportWarning _skippedDive(int index, Object reason) => ImportWarning(
+    severity: ImportWarningSeverity.warning,
+    code: ImportWarningCode.divesSkipped,
+    message: 'Skipped dive ${index + 1}: $reason',
+    entityType: ImportEntityType.dives,
+    itemIndex: index,
+  );
+
+  /// Returns null when the dive has no readable start time, since it cannot
+  /// be placed in the log without one.
   Map<String, dynamic>? _parseDive(
     Dl7DiveRecord record, {
     required Dl7Units units,

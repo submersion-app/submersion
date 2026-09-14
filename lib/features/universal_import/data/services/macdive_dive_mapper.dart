@@ -221,6 +221,8 @@ class MacDiveDiveMapper {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.macdiveProfileUndecodable,
+          count: unreadable,
           message:
               '$unreadable dive(s) had profile data Submersion could not '
               'decode. To import those profiles, export from MacDive as XML '
@@ -233,6 +235,8 @@ class MacDiveDiveMapper {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.profileUndecodableOnPlatform,
+          count: platformBlocked,
           message:
               '$platformBlocked dive(s) had dive computer data that could '
               'not be decoded on this platform. Their details were imported '
@@ -254,6 +258,8 @@ class MacDiveDiveMapper {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.macdiveLogbooksNotImported,
+          names: logNames,
           message:
               'MacDive logbooks (${logNames.join(', ')}) were not imported. '
               'MacDive stores them as saved searches rather than as fixed '

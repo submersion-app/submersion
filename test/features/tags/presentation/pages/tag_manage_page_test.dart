@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -62,8 +64,17 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   @override
   Future<Tag> addTag(Tag tag) async => tag;
   @override
-  Future<Tag> getOrCreateTag(String name, {String? colorHex}) async {
-    return Tag.create(id: 'new-tag', name: name, colorHex: colorHex);
+  Future<Tag> getOrCreateTag(
+    String name, {
+    String? colorHex,
+    TagScope scope = TagScope.dives,
+  }) async {
+    return Tag.create(
+      id: 'new-tag',
+      name: name,
+      colorHex: colorHex,
+      scope: scope,
+    );
   }
 
   @override
@@ -150,6 +161,11 @@ Widget _buildRoutedTestWidget({
         path: '/dives',
         builder: (context, state) =>
             const Scaffold(body: Text('DIVES_LIST_PAGE')),
+      ),
+      GoRoute(
+        path: '/sites',
+        builder: (context, state) =>
+            const Scaffold(body: Text('SITES_LIST_PAGE')),
       ),
     ],
   );
@@ -361,7 +377,15 @@ void main() {
       expect(find.text('Edit Tag'), findsOneWidget);
       expect(find.widgetWithText(TextField, 'Night Dive'), findsOneWidget);
       expect(find.text('1 selected'), findsNothing);
-      expect(find.byType(Checkbox), findsNothing);
+      // Selection checkboxes only: the tag edit dialog has scope checkboxes
+      // of its own (issue #1765).
+      expect(
+        find.descendant(
+          of: find.byType(SelectionLeading),
+          matching: find.byType(Checkbox),
+        ),
+        findsNothing,
+      );
       expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
     });
 
@@ -493,6 +517,54 @@ void main() {
       expect(filter.tagIds, ['tag1']);
       expect(filter.siteId, isNull);
       expect(filter.favoritesOnly, isNull);
+    });
+
+    group('a tag used on sites (issue #1765)', () {
+      TagStatistic siteStat({required bool forDives}) => TagStatistic(
+        tag: Tag(
+          id: 'site-tag',
+          name: 'To try',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          appliesToDives: forDives,
+          appliesToSites: true,
+        ),
+        diveCount: forDives ? 2 : 0,
+        siteCount: 3,
+      );
+
+      testWidgets('a sites-only tag opens the site list filtered to it', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _buildRoutedTestWidget(stats: [siteStat(forDives: false)]),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('To try'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('SITES_LIST_PAGE'), findsOneWidget);
+        final container = ProviderScope.containerOf(
+          tester.element(find.text('SITES_LIST_PAGE')),
+        );
+        expect(container.read(siteFilterProvider).tagIds, {'site-tag'});
+        expect(container.read(diveFilterProvider).tagIds, isEmpty);
+      });
+
+      testWidgets('a tag also used on dives still opens its dives', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _buildRoutedTestWidget(stats: [siteStat(forDives: true)]),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('To try'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
+      });
     });
 
     testWidgets('a row tap while selecting toggles it and stays put', (

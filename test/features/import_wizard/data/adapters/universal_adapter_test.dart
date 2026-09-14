@@ -2433,7 +2433,7 @@ void main() {
           final notice = result.notices.singleWhere(
             (n) => n.kind == ImportNoticeKind.diveNumberConflict,
           );
-          expect(notice.affectedDives, 1);
+          expect(notice.count, 1);
         },
       );
     });

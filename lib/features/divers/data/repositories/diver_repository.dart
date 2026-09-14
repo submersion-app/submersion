@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
 ///
@@ -594,6 +595,16 @@ class DiverRepository {
         await _db.customStatement(
           'DELETE FROM dive_types WHERE diver_id = ? AND is_built_in = 0',
           [id],
+        );
+        // Custom site types go with their links, tombstoned: a link on
+        // another diver's surviving site has no foreign key to cascade it.
+        await deleteSiteTypesWithLinks(
+          _db,
+          _syncRepository,
+          await _idsOf(
+            'SELECT id FROM site_types WHERE diver_id = ? AND is_built_in = 0',
+            [id],
+          ),
         );
         await _db.customStatement(
           'DELETE FROM tank_presets WHERE diver_id = ?',

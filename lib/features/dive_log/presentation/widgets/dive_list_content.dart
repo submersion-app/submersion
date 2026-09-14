@@ -808,9 +808,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       var selectedDives = await repository.getDivesByIds(_selectedIds.toList());
 
       // getDivesByIds hydrates profiles but not the buddy junction, which only
-      // getAllDives loads. #1017 asks for buddies in the detailed logbook, so
-      // attach them here rather than shipping an export that omits the team.
-      if (format == _BulkExportFormat.pdf) {
+      // getAllDives loads. The PDF logbook (#1017) and the CSV Buddy and Dive
+      // Master columns (#1861) both read it, so attach it here, in one batched
+      // query, rather than shipping an export that omits the team. UDDF loads
+      // its participants separately, through its extras fetch.
+      if (format == _BulkExportFormat.pdf || format == _BulkExportFormat.csv) {
         final buddiesByDive = await ref
             .read(buddyRepositoryProvider)
             .getBuddiesForDives(selectedDives.map((d) => d.id).toList());

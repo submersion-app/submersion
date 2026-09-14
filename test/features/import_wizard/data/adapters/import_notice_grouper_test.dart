@@ -11,6 +11,18 @@ ImportWarning _noPressure() => const ImportWarning(
   message: 'This file contains no tank pressure.',
 );
 
+ImportWarning _coded(
+  ImportWarningCode code, {
+  int count = 1,
+  List<String> names = const [],
+}) => ImportWarning(
+  severity: ImportWarningSeverity.info,
+  code: code,
+  message: 'English text the summary never shows',
+  count: count,
+  names: names,
+);
+
 void main() {
   test('no warnings produces no notices', () {
     expect(groupImportNotices(const [], 5), isEmpty);
@@ -21,7 +33,7 @@ void main() {
 
     expect(notices, hasLength(1));
     expect(notices.single.kind, ImportNoticeKind.noTankPressure);
-    expect(notices.single.affectedDives, 1);
+    expect(notices.single.count, 1);
   });
 
   test('identical warnings from a batch collapse into a single row', () {
@@ -34,7 +46,7 @@ void main() {
     );
 
     expect(notices, hasLength(1));
-    expect(notices.single.affectedDives, 12);
+    expect(notices.single.count, 12);
   });
 
   test('the count never exceeds the dives actually imported', () {
@@ -45,7 +57,7 @@ void main() {
       4,
     );
 
-    expect(notices.single.affectedDives, 4);
+    expect(notices.single.count, 4);
   });
 
   test('a run that imported nothing reports no notices', () {
@@ -86,7 +98,7 @@ void main() {
 
       expect(notices, hasLength(1));
       expect(notices.single.kind, ImportNoticeKind.unreadableDates);
-      expect(notices.single.affectedDives, 3);
+      expect(notices.single.count, 3);
       expect(notices.single.rowNumbers, [4, 9, 12]);
     });
 
@@ -98,7 +110,7 @@ void main() {
         1,
       );
 
-      expect(notices.single.affectedDives, 5);
+      expect(notices.single.count, 5);
     });
 
     test('are reported even when nothing was imported', () {
@@ -110,29 +122,144 @@ void main() {
     test('are counted even without a row number', () {
       final notices = groupImportNotices([skippedRow(null), skippedRow(3)], 5);
 
-      expect(notices.single.affectedDives, 2);
+      expect(notices.single.count, 2);
       expect(notices.single.rowNumbers, [3]);
     });
 
-    test('sit alongside the other notices', () {
+    test('sit alongside the other notices, missing dives first', () {
       final notices = groupImportNotices([_noPressure(), skippedRow(2)], 1);
 
       expect(notices.map((n) => n.kind), [
-        ImportNoticeKind.noTankPressure,
         ImportNoticeKind.unreadableDates,
+        ImportNoticeKind.noTankPressure,
       ]);
     });
   });
 
-  test('uncoded warnings are skipped', () {
-    // These carry English-only messages with no localized summary wording.
-    final notices = groupImportNotices(const [
-      ImportWarning(
-        severity: ImportWarningSeverity.warning,
-        message: 'Column "buddy" was not mapped.',
-      ),
+  test('diagnostic warnings are recorded but never shown', () {
+    final notices = groupImportNotices([
+      _coded(ImportWarningCode.diagnostic),
     ], 3);
 
     expect(notices, isEmpty);
+  });
+
+  test('every shown code maps to its own notice kind', () {
+    const expected = {
+      ImportWarningCode.noTankPressure: ImportNoticeKind.noTankPressure,
+      ImportWarningCode.unreadableDate: ImportNoticeKind.unreadableDates,
+      ImportWarningCode.divesSkipped: ImportNoticeKind.divesSkipped,
+      ImportWarningCode.multipleDivers: ImportNoticeKind.multipleDivers,
+      ImportWarningCode.profileUnreadable: ImportNoticeKind.profileUnreadable,
+      ImportWarningCode.macdiveProfileUndecodable:
+          ImportNoticeKind.macdiveProfileUndecodable,
+      ImportWarningCode.profileUndecodableOnPlatform:
+          ImportNoticeKind.profileUndecodableOnPlatform,
+      ImportWarningCode.columnsNotImported: ImportNoticeKind.columnsNotImported,
+      ImportWarningCode.valuesNotConverted: ImportNoticeKind.valuesNotConverted,
+      ImportWarningCode.photosSkipped: ImportNoticeKind.photosSkipped,
+      ImportWarningCode.macdiveXmlOmitsCertsAndService:
+          ImportNoticeKind.macdiveXmlOmitsCertsAndService,
+      ImportWarningCode.macdiveLogbooksNotImported:
+          ImportNoticeKind.macdiveLogbooksNotImported,
+    };
+    // Every code but diagnostic must be listed, so a new code cannot be added
+    // without deciding which notice it becomes.
+    expect(
+      expected.keys.toSet(),
+      ImportWarningCode.values.toSet()..remove(ImportWarningCode.diagnostic),
+    );
+
+    for (final entry in expected.entries) {
+      final notices = groupImportNotices([_coded(entry.key)], 1);
+      expect(notices.single.kind, entry.value, reason: '${entry.key}');
+    }
+  });
+
+  test('an aggregated warning contributes its own count', () {
+    // The MacDive mapper emits one warning for all of a file's undecodable
+    // profiles; two files in a batch contribute 3 and 4.
+    final notices = groupImportNotices([
+      _coded(ImportWarningCode.macdiveProfileUndecodable, count: 3),
+      _coded(ImportWarningCode.macdiveProfileUndecodable, count: 4),
+    ], 10);
+
+    expect(notices.single.count, 7);
+  });
+
+  test('per-dive kinds are clamped to the dives imported', () {
+    for (final code in const [
+      ImportWarningCode.profileUnreadable,
+      ImportWarningCode.macdiveProfileUndecodable,
+      ImportWarningCode.profileUndecodableOnPlatform,
+    ]) {
+      final notices = groupImportNotices([_coded(code, count: 9)], 2);
+      expect(notices.single.count, 2, reason: '$code');
+    }
+  });
+
+  test('skipped dives are reported even when nothing was imported', () {
+    // Like rows with an unreadable date, these are dives missing from the
+    // import, so a run that imported nothing still has them to report.
+    final notices = groupImportNotices([
+      _coded(ImportWarningCode.divesSkipped),
+      _noPressure(),
+    ], 0);
+
+    expect(notices.map((n) => n.kind), [ImportNoticeKind.divesSkipped]);
+  });
+
+  test('skipped dives are not clamped: they were never imported', () {
+    final notices = groupImportNotices(
+      List.generate(5, (_) => _coded(ImportWarningCode.divesSkipped)),
+      2,
+    );
+
+    expect(notices.single.count, 5);
+  });
+
+  test('values and photos count themselves, not dives, so are not clamped', () {
+    final notices = groupImportNotices([
+      ...List.generate(40, (_) => _coded(ImportWarningCode.valuesNotConverted)),
+      ...List.generate(6, (_) => _coded(ImportWarningCode.photosSkipped)),
+    ], 2);
+
+    expect(
+      {for (final n in notices) n.kind: n.count},
+      {
+        ImportNoticeKind.valuesNotConverted: 40,
+        ImportNoticeKind.photosSkipped: 6,
+      },
+    );
+  });
+
+  test(
+    'names from several files merge without repeats, in first-seen order',
+    () {
+      final notices = groupImportNotices([
+        _coded(ImportWarningCode.multipleDivers, names: ['Ann', 'Bo']),
+        _coded(ImportWarningCode.multipleDivers, names: ['Bo', 'Cy']),
+      ], 3);
+
+      expect(notices.single.names, ['Ann', 'Bo', 'Cy']);
+    },
+  );
+
+  test('notices come out data loss first, whatever order the files gave', () {
+    final notices = groupImportNotices([
+      _coded(ImportWarningCode.macdiveLogbooksNotImported, names: ['Reef']),
+      _noPressure(),
+      _coded(ImportWarningCode.photosSkipped),
+      _coded(ImportWarningCode.divesSkipped),
+      _coded(ImportWarningCode.multipleDivers, names: ['Ann', 'Bo']),
+    ], 3);
+
+    expect(notices.map((n) => n.kind), [
+      ImportNoticeKind.divesSkipped,
+      ImportNoticeKind.multipleDivers,
+      ImportNoticeKind.noTankPressure,
+      ImportNoticeKind.photosSkipped,
+      ImportNoticeKind.macdiveLogbooksNotImported,
+    ]);
   });
 }

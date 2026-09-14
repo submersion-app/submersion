@@ -7,23 +7,41 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// How many row numbers are listed before the rest are summarised as a count.
 const _maxListedRows = 10;
 
-/// Reports CSV rows that were not imported because their date could not be
-/// read (issue #1828), with the spreadsheet rows to go and fix.
+/// Reports dives that are missing from the import: CSV rows whose date could
+/// not be read (issue #1828), with the spreadsheet rows to go and fix, and
+/// dives a parser could not read at all.
 ///
-/// Unlike the "Not in the file" notices this is a problem with the import
-/// itself: these dives are missing. It is styled with the theme's error
-/// container so it is not mistaken for a footnote.
-class UnreadableDatesCard extends StatelessWidget {
-  /// A notice of kind [ImportNoticeKind.unreadableDates].
+/// Unlike the import notes this is a problem with the import itself: these
+/// dives are missing. It is styled with the theme's error container so it is
+/// not mistaken for a footnote.
+class MissingDivesCard extends StatelessWidget {
+  /// A notice whose kind [ImportNoticeKind.reportsMissingDives].
   final ImportNotice notice;
 
-  const UnreadableDatesCard({super.key, required this.notice});
+  const MissingDivesCard({super.key, required this.notice});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final foreground = theme.colorScheme.onErrorContainer;
+    final (title, body, countLine) = switch (notice.kind) {
+      ImportNoticeKind.divesSkipped => (
+        l10n.universalImport_summary_noticeDivesSkippedTitle,
+        l10n.universalImport_summary_noticeDivesSkippedBody,
+        l10n.universalImport_summary_noticeDivesSkippedCount(notice.count),
+      ),
+      ImportNoticeKind.unreadableDates => (
+        l10n.universalImport_summary_unreadableDatesTitle,
+        l10n.universalImport_summary_unreadableDatesBody,
+        l10n.universalImport_summary_unreadableDatesCount(notice.count),
+      ),
+      _ => throw ArgumentError.value(
+        notice.kind,
+        'notice.kind',
+        'not a kind that reports missing dives',
+      ),
+    };
     final rowsLine = _rowsLine(l10n, notice.rowNumbers);
 
     return Card(
@@ -42,23 +60,21 @@ class UnreadableDatesCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.universalImport_summary_unreadableDatesTitle,
+                    title,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: foreground,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    l10n.universalImport_summary_unreadableDatesBody,
+                    body,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: foreground,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    l10n.universalImport_summary_unreadableDatesCount(
-                      notice.affectedDives,
-                    ),
+                    countLine,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: foreground,
                     ),
@@ -80,7 +96,8 @@ class UnreadableDatesCard extends StatelessWidget {
   }
 
   /// "Rows 4, 9, 12", or the first few followed by how many more; null when
-  /// the parser could not say which rows they were.
+  /// there are no rows to name (the parser could not say, or the dives did
+  /// not come from spreadsheet rows).
   static String? _rowsLine(AppLocalizations l10n, List<int> rows) {
     if (rows.isEmpty) return null;
     if (rows.length <= _maxListedRows) {

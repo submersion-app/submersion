@@ -5,10 +5,12 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
@@ -25,8 +27,13 @@ void main() {
   ProviderContainer make(_FakeExportService export) {
     final container = ProviderContainer(
       overrides: [
-        divesProvider.overrideWith(
-          (ref) async => [Dive(id: 'd1', dateTime: DateTime.utc(2026, 3, 1))],
+        // The dives CSV reads the logbook fresh through the validated diver id
+        // (#1861), not through the cached divesProvider.
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
+        diveRepositoryProvider.overrideWithValue(
+          _FixedDivesRepository([
+            Dive(id: 'd1', dateTime: DateTime.utc(2026, 3, 1)),
+          ]),
         ),
         sitesProvider.overrideWith(
           (ref) async => const [DiveSite(id: 's1', name: 'Reef')],
@@ -87,6 +94,18 @@ void main() {
         .saveDivesCsvToFile(unitMode: CsvUnitMode.metric);
     expect(export.units, same(CsvExportUnits.metric));
   });
+}
+
+/// Serves a fixed dive list as the diver's logbook.
+class _FixedDivesRepository implements DiveRepository {
+  _FixedDivesRepository(this.dives);
+  final List<Dive> dives;
+
+  @override
+  Future<List<Dive>> getAllDives({String? diverId}) async => dives;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeExportService implements ExportService {

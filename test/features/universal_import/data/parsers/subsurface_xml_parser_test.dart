@@ -2626,6 +2626,7 @@ $diveXml
         result.warnings.any((w) => w.entityType == ImportEntityType.media),
         isTrue,
       );
+      expect(result.warnings.single.code, ImportWarningCode.photosSkipped);
     });
 
     test('collects pictures from trip-wrapped dives too', () async {
@@ -2667,6 +2668,90 @@ $diveXml
       );
 
       expect(result.entities.containsKey(ImportEntityType.media), isFalse);
+    });
+  });
+
+  // A gradient factor too large for an int makes the dive's parse throw,
+  // which is how a real file with a corrupt dive reaches the skip path.
+  group('a dive that cannot be read', () {
+    const corruptDive = '''
+<dive number='2' date='2025-01-16' time='10:00:00'>
+  <divecomputer model='X'>
+    <extradata key='Deco model' value='GF 99999999999999999999/85'/>
+  </divecomputer>
+</dive>''';
+    const goodDive = "<dive number='1' date='2025-01-15' time='10:00:00'/>";
+
+    test('is coded as a skipped dive', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+$goodDive
+$corruptDive
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
+    });
+
+    test('inside a trip is coded as a skipped dive too', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' time='09:00:00' location='Somewhere'>
+$goodDive
+$corruptDive
+</trip>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
+    });
+
+    // A dive with no date cannot be placed in the log, so it is left out.
+    // The summary must count it rather than let it vanish silently.
+    const datelessDive = "<dive number='3' time='10:00:00'/>";
+
+    test('with no date is coded as a skipped dive', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+$goodDive
+$datelessDive
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
+    });
+
+    test('with no date inside a trip is coded as a skipped dive', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' time='09:00:00' location='Somewhere'>
+$goodDive
+$datelessDive
+</trip>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
     });
   });
 }

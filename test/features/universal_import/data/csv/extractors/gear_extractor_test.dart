@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/gear_extractor.dart';
 
 void main() {
@@ -9,7 +10,7 @@ void main() {
   });
 
   group('GearExtractor', () {
-    test('extracts suit as gear with type exposure_suit', () {
+    test('extracts suit as gear with its name, type and id', () {
       final rows = <Map<String, dynamic>>[
         {'suit': '7mm Wetsuit'},
       ];
@@ -18,8 +19,46 @@ void main() {
 
       expect(gear, hasLength(1));
       expect(gear[0]['name'], '7mm Wetsuit');
-      expect(gear[0]['type'], 'exposure_suit');
+      expect(gear[0]['type'], EquipmentType.wetsuit.name);
       expect(gear[0]['id'], isNotNull);
+    });
+
+    group('suit type', () {
+      String typeOf(String suit) =>
+          extractor.extractFromRows([
+                {'suit': suit},
+              ]).single['type']
+              as String;
+
+      test('types a wetsuit name as wetsuit', () {
+        expect(typeOf('7mm Wetsuit'), EquipmentType.wetsuit.name);
+      });
+
+      test('types a drysuit name as drysuit', () {
+        expect(typeOf('Trilam Drysuit'), EquipmentType.drysuit.name);
+      });
+
+      test('keeps a drysuit layer that names itself', () {
+        expect(typeOf('Arctic Undersuit'), EquipmentType.undersuit.name);
+      });
+
+      test('keeps a base layer that names itself', () {
+        expect(typeOf('Fourth Element Thermals'), EquipmentType.baselayer.name);
+      });
+
+      test('keeps a rash guard that names itself', () {
+        expect(typeOf('Lycra top'), EquipmentType.rashGuard.name);
+      });
+
+      test('falls back to wetsuit when the name does not say', () {
+        expect(typeOf('3mm Shorty'), EquipmentType.wetsuit.name);
+      });
+
+      test('falls back to wetsuit when the name reads as other gear', () {
+        // "fin" inside "definition" reads as fins to the free-text mapper,
+        // but the column is known to hold a suit.
+        expect(typeOf('Scubapro Definition 6.5mm'), EquipmentType.wetsuit.name);
+      });
     });
 
     test('deduplicates by name across rows', () {
@@ -90,10 +129,13 @@ void main() {
       final gear = extractor.extractFromRows(rows);
 
       expect(gear, hasLength(3));
-      final names = gear.map((g) => g['name']).toList();
-      expect(names, containsAll(['7mm Wetsuit', '3mm Shorty', 'Drysuit']));
+      final typesByName = {for (final g in gear) g['name']: g['type']};
+      expect(typesByName, {
+        '7mm Wetsuit': EquipmentType.wetsuit.name,
+        '3mm Shorty': EquipmentType.wetsuit.name,
+        'Drysuit': EquipmentType.drysuit.name,
+      });
       for (final item in gear) {
-        expect(item['type'], 'exposure_suit');
         expect(item['id'], isNotNull);
       }
     });

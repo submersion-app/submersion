@@ -31,6 +31,11 @@ class ImportPayload extends Equatable {
   /// of the dive links that reference them.
   static const customDiveRolesKey = 'customDiveRoles';
 
+  /// Metadata key for custom site type definitions (issue #1765): maps with
+  /// `id`, `name` and `sortOrder`. Like dive roles they have no review step;
+  /// site maps reference them by id in `siteTypeRefs`.
+  static const customSiteTypesKey = 'customSiteTypes';
+
   /// The people the source attributes records to (issue #1893). Empty for
   /// every format that has no notion of several divers.
   final List<SourceDiver> sourceDivers;
@@ -62,6 +67,11 @@ class ImportPayload extends Equatable {
 
   /// Whether the payload has any data to import.
   bool get isNotEmpty => !isEmpty;
+
+  /// The message to show when this payload imports nothing, from
+  /// [ImportFailureDetail.failureDetail]; null when nothing showable was
+  /// recorded.
+  String? get failureReason => warnings.failureDetail?.message;
 
   /// Whether two or more divers have records, so the wizard must ask where
   /// each diver's records go (issue #1893). Records with no diver do not

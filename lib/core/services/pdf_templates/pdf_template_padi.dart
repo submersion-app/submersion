@@ -13,6 +13,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dar
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
@@ -390,7 +391,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                     children: [
                       _buildSignOffField(
                         'Buddy',
-                        dive.buddy,
+                        dive.resolvedBuddyNames,
                         signatures
                             ?.where((s) => s.isBuddySignature)
                             .firstOrNull,
@@ -398,7 +399,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                       pw.SizedBox(width: 16),
                       _buildSignOffField(
                         'Verified by',
-                        dive.diveMaster,
+                        dive.resolvedDiveMasterNames,
                         signatures
                             ?.where((s) => !s.isBuddySignature)
                             .firstOrNull,
