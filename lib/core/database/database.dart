@@ -1311,6 +1311,14 @@ class EquipmentSets extends Table {
   /// layer, mirroring DiverRepository.setDefaultDiver.
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
 
+  /// Whether this set is auto-applied to a dive whose computer is a member
+  /// of it (issue #1020), e.g. a CCR rig set that bundles the controller
+  /// with drysuit and tec fins. Opt-in per set, off by default: unlike
+  /// [isDefault] this has no diver-wide mutual exclusion, several sets can
+  /// have it on at once.
+  BoolColumn get autoApplyOnComputerImport =>
+      boolean().withDefault(const Constant(false))();
+
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
@@ -4181,7 +4189,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 218;
+  static const int currentSchemaVersion = 219;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4787,6 +4795,9 @@ class AppDatabase extends _$AppDatabase {
     // types and tags) shipped first, and a rung at or below the shipped
     // version never runs its onUpgrade step, so this one sits above both.
     218,
+    // v219: equipment_sets.auto_apply_on_computer_import (issue #1020).
+    // Additive column, default off. Column-only rung, no backfill.
+    219,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6242,6 +6253,24 @@ class AppDatabase extends _$AppDatabase {
   /// v218: diver_settings.site_detail_sections and site_detail_layout (issue
   /// #1884). Idempotent, so it is safe to call from both onUpgrade and the
   /// beforeOpen backstop, and a no-op when the table does not exist yet.
+  /// v219: equipment_sets.auto_apply_on_computer_import (issue #1020).
+  /// Additive column, default off, so pre-existing sets keep today's
+  /// behavior until a diver opts in.
+  Future<void> _assertEquipmentSetComputerAutoApplyColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('equipment_sets')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('auto_apply_on_computer_import')) {
+      await customStatement(
+        'ALTER TABLE equipment_sets '
+        'ADD COLUMN auto_apply_on_computer_import INTEGER NOT NULL '
+        'DEFAULT 0',
+      );
+    }
+  }
+
   Future<void> _assertSiteDetailColumns() async {
     final cols = await customSelect(
       "PRAGMA table_info('diver_settings')",
@@ -12186,8 +12215,17 @@ class AppDatabase extends _$AppDatabase {
           await _assertSiteDetailColumns();
         }
         if (from < 218) await reportProgress();
+        // v219: equipment_sets.auto_apply_on_computer_import (issue #1020).
+        // Column-only rung, no backfill: null/0 reads back as off.
+        if (from < 219) {
+          await _assertEquipmentSetComputerAutoApplyColumn();
+        }
+        if (from < 219) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v219 backstop: the computer-set auto-apply opt-in column.
+        await _assertEquipmentSetComputerAutoApplyColumn();
+
         // v217 backstop: the tag scope flags.
         await _assertTagScopeColumns();
 

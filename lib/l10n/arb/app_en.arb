@@ -78,6 +78,8 @@
   "common_action_dismiss": "Dismiss",
   "equipment_setEdit_defaultSwitch_title": "Default set",
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",

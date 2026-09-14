@@ -217,6 +217,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wird automatisch auf neue Tauchgänge ohne Ausrüstung angewendet';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Anwenden, wenn dieser Tauchcomputer importiert wird';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override

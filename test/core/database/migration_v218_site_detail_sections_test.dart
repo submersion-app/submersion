@@ -6,10 +6,10 @@ import 'package:submersion/core/database/database.dart';
 const _columns = ['site_detail_sections', 'site_detail_layout'];
 
 void main() {
-  test('v218 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 218);
+  test('v218 is in the ladder', () {
+    // The newest rung owns the exact currentSchemaVersion assertion; this one
+    // was relaxed when v219 landed.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(218));
     expect(AppDatabase.migrationVersions, contains(218));
   });
 
@@ -56,7 +56,7 @@ void main() {
     },
   );
 
-  test('a v217 database upgrades to v218 with both columns', () async {
+  test('a v217 database upgrades and gains both columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 217');
@@ -77,8 +77,11 @@ void main() {
         .get();
     final names = cols.map((c) => c.read<String>('name')).toSet();
     expect(names, containsAll(_columns));
+    // Not asserted against 218: onUpgrade runs the whole span in one call, so
+    // a v217 database upgrading today lands on the current version, not on
+    // the version this rung happened to introduce.
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 218);
+    expect(version.read<int>('user_version'), AppDatabase.currentSchemaVersion);
   });
 
   test('the assert is a no-op when the table is absent', () async {

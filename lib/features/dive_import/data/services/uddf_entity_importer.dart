@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_import/domain/resyncable_import_formats
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
+import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
@@ -2593,6 +2594,11 @@ class UddfEntityImporter {
       // that already has equipment, so linking first would suppress the
       // diver's default and geofenced sets.
       await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
+      // Apply every equipment set that lists this computer as a member
+      // (issue #1020). Additive, independent of the defaulter above.
+      await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+        diveId: dive.id,
+      );
       importedDiveIds.add(diveId);
       diveIdByIndex[i] = diveId;
       final sourceUuid = diveData['sourceUuid'];

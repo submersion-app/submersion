@@ -205,6 +205,8 @@
   "equipment_components_title": "Componenti",
   "equipment_setEdit_defaultSwitch_title": "Set predefinito",
   "equipment_setEdit_defaultSwitch_subtitle": "Applicato automaticamente alle nuove immersioni senza attrezzatura",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Applica quando viene importato il computer di questo set",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "Se questo set include un computer da immersione, aggiunge automaticamente l'intero set a un'immersione scaricata o importata da esso",
   "equipment_setEdit_geofencesTitle": "Geofence",
   "equipment_setEdit_geofencesSubtitle": "Suggerisci automaticamente questo set per le immersioni vicino a queste posizioni",
   "equipment_setEdit_addGeofence": "Aggiungi geofence",

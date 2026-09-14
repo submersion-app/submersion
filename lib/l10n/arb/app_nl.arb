@@ -205,6 +205,8 @@
   "equipment_components_title": "Onderdelen",
   "equipment_setEdit_defaultSwitch_title": "Standaardset",
   "equipment_setEdit_defaultSwitch_subtitle": "Automatisch toegepast op nieuwe duiken zonder uitrusting",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Toepassen wanneer de computer van deze set wordt geïmporteerd",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "Als deze set een duikcomputer bevat, wordt de hele set automatisch toegevoegd aan een duik die van deze computer is gedownload of geïmporteerd",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Deze set automatisch voorstellen voor duiken bij deze locaties",
   "equipment_setEdit_addGeofence": "Geofence toevoegen",

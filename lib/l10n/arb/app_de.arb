@@ -205,6 +205,8 @@
   "equipment_components_title": "Komponenten",
   "equipment_setEdit_defaultSwitch_title": "Standard-Set",
   "equipment_setEdit_defaultSwitch_subtitle": "Wird automatisch auf neue Tauchgänge ohne Ausrüstung angewendet",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Anwenden, wenn dieser Tauchcomputer importiert wird",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Dieses Set automatisch für Tauchgänge in der Nähe dieser Orte vorschlagen",
   "equipment_setEdit_addGeofence": "Geofence hinzufügen",
