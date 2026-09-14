@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/l10n/l10n_extension.dart';
-
-/// Initial presence of an item across the selected dives.
+/// Initial presence of an item across the selected entities.
 enum MembershipPresence { all, some, none }
 
 /// The desired end-state the user picked for an item in a bulk edit.
 ///
-/// - [ensureOn]: the item must end up on ALL selected dives.
-/// - [ensureOff]: the item must end up on NONE of the selected dives.
+/// - [ensureOn]: the item must end up on ALL selected entities.
+/// - [ensureOff]: the item must end up on NONE of the selected entities.
 /// - [leaveAsIs]: do not change membership (the safe default for "on some").
 enum MembershipChoice { ensureOn, ensureOff, leaveAsIs }
 
@@ -23,9 +21,10 @@ class BulkMembershipItem {
 /// Pure derivation of the (addIds, removeIds) to apply, given each item's
 /// initial presence across the selection and the user's chosen end-state.
 ///
-/// A checked item that was not already on all dives becomes an add; an
-/// unchecked item that was on some/all becomes a remove; "leave as-is" (and
-/// no-op cases like checking an already-on-all item) produce nothing.
+/// A checked item that was not already on every selected entity becomes an
+/// add; an unchecked item that was on some/all becomes a remove; "leave
+/// as-is" (and no-op cases like checking an already-on-all item) produce
+/// nothing.
 class MembershipDelta {
   final List<String> addIds;
   final List<String> removeIds;
@@ -56,36 +55,75 @@ class MembershipDelta {
   }
 }
 
-/// A tri-state membership editor for one id-based collection in bulk mode.
+/// Every word a [BulkMembershipEditor] shows. Each caller supplies its own,
+/// because several translations agree with the noun being edited (Spanish
+/// "en todas las 3" is feminine for dives), so one set of strings cannot
+/// serve dives and equipment items alike (issue #1942).
+@immutable
+class BulkMembershipLabels {
+  const BulkMembershipLabels({
+    required this.onAll,
+    required this.onSome,
+    required this.adding,
+    required this.removing,
+    required this.empty,
+    required this.add,
+  });
+
+  /// Status line of a row already on every selected entity ("on all 3").
+  final String Function(int total) onAll;
+
+  /// Status line of a row on some of them, left as is ("on 2 of 3").
+  final String Function(int count, int total) onSome;
+
+  /// Status line of a row being put on all of them ("adding to all 3").
+  final String Function(int total) adding;
+
+  /// Status line of a row being taken off all of them.
+  final String removing;
+
+  /// Shown in place of the rows when there are none.
+  final String empty;
+
+  /// Label of the add button beside the title.
+  final String add;
+}
+
+/// A tri-state membership editor for one id-based collection in bulk mode,
+/// shared by the dive bulk editor and the equipment bulk tag sheet (#1942).
 ///
 /// Shows every [items] row with a tri-state checkbox reflecting how many of
-/// the [totalDives] selected dives currently have it (from [counts]):
+/// the [total] selected entities currently have it (from [counts]):
 /// checked = on all, dash = on some (leave as-is), and lets the user ensure
-/// an item onto all or off all dives. Reports the resulting add/remove sets
-/// via [onChanged]. The parent owns the [items] list and handles [onAdd]
-/// (opening the collection's picker to bring in new items).
+/// an item onto all or off all of them. Reports the resulting add/remove
+/// sets via [onChanged]. The parent owns the [items] list, handles [onAdd]
+/// (opening the collection's picker to bring in new items), and supplies
+/// every visible word through [labels].
 class BulkMembershipEditor extends StatefulWidget {
   const BulkMembershipEditor({
     super.key,
     required this.title,
-    required this.totalDives,
+    required this.total,
+    required this.labels,
     required this.items,
     required this.counts,
     required this.onAdd,
     required this.onChanged,
-    this.addLabel,
     this.secondaryAction,
     this.trailingBuilder,
     this.ensureOn,
+    this.absentStartsChecked = true,
   });
 
   final String title;
-  final int totalDives;
+
+  /// How many entities are selected; each value in [counts] is out of this.
+  final int total;
+  final BulkMembershipLabels labels;
   final List<BulkMembershipItem> items;
   final Map<String, int> counts;
   final VoidCallback onAdd;
   final ValueChanged<MembershipDelta> onChanged;
-  final String? addLabel;
   final Widget? secondaryAction;
 
   /// Optional per-row control rendered at the trailing edge, for collections
@@ -94,13 +132,23 @@ class BulkMembershipEditor extends StatefulWidget {
   /// (tags, dive types, equipment) leave it null.
   final Widget Function(BulkMembershipItem item)? trailingBuilder;
 
-  /// A one-shot instruction to put [ids] on every selected dive, whatever
+  /// A one-shot instruction to put [ids] on every selected entity, whatever
   /// their rows currently say. An update carrying the same [serial] changes
   /// nothing, so a row the user unchecks afterwards stays unchecked; a fresh
   /// State (a remount) starts from the defaults and applies it again.
   /// Applying an equipment set sends one, because the set's items must end up
   /// on all the dives, including rows the user had already unchecked (#1754).
+  /// The equipment tag sheet sends one for the tags picked through its Add
+  /// button (#1942).
   final ({int serial, Set<String> ids})? ensureOn;
+
+  /// Whether a row on none of the selected entities starts checked, as an
+  /// add. The dive editor lists only rows already on some dive or just
+  /// picked, so there an absent row is a pick and starts checked. A caller
+  /// that lists a whole vocabulary (the equipment tag sheet lists every
+  /// equipment tag) passes false: an absent row is then only an offer that
+  /// changes nothing until ticked, and [ensureOn] switches picked rows on.
+  final bool absentStartsChecked;
 
   @override
   State<BulkMembershipEditor> createState() => _BulkMembershipEditorState();
@@ -163,7 +211,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
 
   MembershipPresence _presenceOf(String id) {
     final c = widget.counts[id] ?? 0;
-    if (widget.totalDives > 0 && c >= widget.totalDives) {
+    if (widget.total > 0 && c >= widget.total) {
       return MembershipPresence.all;
     }
     if (c <= 0) return MembershipPresence.none;
@@ -172,7 +220,10 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
 
   MembershipChoice _defaultChoice(MembershipPresence p) => switch (p) {
     MembershipPresence.all => MembershipChoice.ensureOn,
-    MembershipPresence.none => MembershipChoice.ensureOn,
+    MembershipPresence.none =>
+      widget.absentStartsChecked
+          ? MembershipChoice.ensureOn
+          : MembershipChoice.ensureOff,
     MembershipPresence.some => MembershipChoice.leaveAsIs,
   };
 
@@ -211,26 +262,25 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
   /// The status line for a row, or null when the choice is a no-op for this
   /// item (e.g. a just-added "none" item toggled back off) so the subtitle
   /// never claims a change the delta won't actually make.
-  String? _subtitle(BuildContext context, String id) {
-    final l10n = context.l10n;
+  String? _subtitle(String id) {
+    final labels = widget.labels;
     final presence = _presenceOf(id);
     final choice = _choices[id] ?? _defaultChoice(presence);
     final count = widget.counts[id] ?? 0;
     return switch (choice) {
       MembershipChoice.ensureOn =>
         presence == MembershipPresence.all
-            ? l10n.diveLog_bulkEdit_membership_onAll(widget.totalDives)
-            : l10n.diveLog_bulkEdit_membership_adding(widget.totalDives),
-      // "off" on an item that's on no dives changes nothing -> no status line.
+            ? labels.onAll(widget.total)
+            : labels.adding(widget.total),
+      // "off" on an item that is on none of them changes nothing, so there
+      // is no status line.
       MembershipChoice.ensureOff =>
-        presence == MembershipPresence.none
-            ? null
-            : l10n.diveLog_bulkEdit_membership_removing,
+        presence == MembershipPresence.none ? null : labels.removing,
       // leaveAsIs only arises for a "some" item (all/none default to a
-      // definite choice), so any other presence is a no-op -> no status line.
+      // definite choice), so any other presence is a no-op with no line.
       MembershipChoice.leaveAsIs =>
         presence == MembershipPresence.some
-            ? l10n.diveLog_bulkEdit_membership_onSome(count, widget.totalDives)
+            ? labels.onSome(count, widget.total)
             : null,
     };
   }
@@ -238,7 +288,6 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
       child: Column(
@@ -257,7 +306,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
                   TextButton.icon(
                     onPressed: widget.onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: Text(widget.addLabel ?? l10n.diveLog_edit_add),
+                    label: Text(widget.labels.add),
                   ),
                 ],
               ),
@@ -267,7 +316,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                l10n.diveLog_bulkEdit_membership_empty,
+                widget.labels.empty,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -294,7 +343,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
                     Expanded(child: Text(item.label)),
                   ],
                 ),
-                subtitle: switch (_subtitle(context, item.id)) {
+                subtitle: switch (_subtitle(item.id)) {
                   final s? => Text(s),
                   _ => null,
                 },

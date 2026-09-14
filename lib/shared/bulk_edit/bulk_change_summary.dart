@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 
 /// One bulk-editable collection as the confirmation sees it: its heading,
 /// the delta its editor reported, and the rows that name its ids.
@@ -26,7 +25,7 @@ class BulkChangeSection {
 
 /// Names every membership change a bulk save is about to make, one section per
 /// collection that changes, so the confirmation can show the diver what comes
-/// off every selected dive before it happens (#1754).
+/// off every selected entity before it happens (#1754).
 ///
 /// Names are sorted case-insensitively so a long list can be scanned. An id
 /// with no listed row falls back to the id itself rather than disappearing.
@@ -47,22 +46,30 @@ List<BulkChangeSection> summarizeBulkMembership(
   }).toList();
 }
 
-/// The body of the bulk-edit confirmation: per collection, what is being added
-/// to and removed from every selected dive. Removals use the error color.
+/// The body of a bulk-edit confirmation: per collection, what is being added
+/// to and removed from every selected entity. Removals use the error color.
+///
+/// The caller words both headings with its own noun and count ("Adding to
+/// all 5 dives"), so each feature and locale reads naturally (#1942).
 class BulkChangeSummary extends StatelessWidget {
   const BulkChangeSummary({
     super.key,
     required this.sections,
-    required this.totalDives,
+    required this.addingHeading,
+    required this.removingHeading,
   });
 
   final List<BulkChangeSection> sections;
-  final int totalDives;
+
+  /// Heading over each section's additions.
+  final String addingHeading;
+
+  /// Heading over each section's removals.
+  final String removingHeading;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = context.l10n;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,15 +77,12 @@ class BulkChangeSummary extends StatelessWidget {
         for (final section in sections) ...[
           Text(section.title, style: theme.textTheme.titleSmall),
           if (section.added.isNotEmpty) ...[
-            Text(
-              l10n.diveLog_bulkEdit_confirmAdding(totalDives),
-              style: theme.textTheme.labelMedium,
-            ),
+            Text(addingHeading, style: theme.textTheme.labelMedium),
             Text(section.added.join(', ')),
           ],
           if (section.removed.isNotEmpty) ...[
             Text(
-              l10n.diveLog_bulkEdit_confirmRemoving(totalDives),
+              removingHeading,
               style: theme.textTheme.labelMedium?.copyWith(
                 color: theme.colorScheme.error,
               ),

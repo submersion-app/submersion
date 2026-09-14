@@ -8,7 +8,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_tank_specs_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/core/constants/enums.dart';

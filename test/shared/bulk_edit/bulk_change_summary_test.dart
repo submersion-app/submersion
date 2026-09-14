@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_change_summary.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/bulk_edit/bulk_change_summary.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 
 void main() {
   const equipment = [
@@ -69,18 +68,19 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: BulkChangeSummary(sections: sections, totalDives: 19),
+            body: BulkChangeSummary(
+              sections: sections,
+              addingHeading: 'Adding to all 19 items',
+              removingHeading: 'Removing from all 19 items',
+            ),
           ),
         ),
       );
       await tester.pumpAndSettle();
     }
 
-    testWidgets('shows what is added to and removed from every dive', (
+    testWidgets('shows what is added to and removed from every item', (
       tester,
     ) async {
       await pumpSummary(tester, const [
@@ -92,9 +92,9 @@ void main() {
       ]);
 
       expect(find.text('Equipment'), findsOneWidget);
-      expect(find.text('Adding to all 19 dives'), findsOneWidget);
+      expect(find.text('Adding to all 19 items'), findsOneWidget);
       expect(find.text('Knife'), findsOneWidget);
-      expect(find.text('Removing from all 19 dives'), findsOneWidget);
+      expect(find.text('Removing from all 19 items'), findsOneWidget);
       expect(find.text('DSMB, Wing'), findsOneWidget);
     });
 
@@ -103,8 +103,8 @@ void main() {
         BulkChangeSection(title: 'Tags', added: [], removed: ['Nitrox']),
       ]);
 
-      expect(find.text('Adding to all 19 dives'), findsNothing);
-      expect(find.text('Removing from all 19 dives'), findsOneWidget);
+      expect(find.text('Adding to all 19 items'), findsNothing);
+      expect(find.text('Removing from all 19 items'), findsOneWidget);
     });
   });
 }
