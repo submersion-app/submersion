@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -58,12 +61,17 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   /// backed by real work rather than only by the bar disappearing.
   final List<String> deleted = [];
   final List<List<String>> bulkDeleted = [];
+  final List<Tag> added = [];
   final List<Tag> updated = [];
 
   @override
   Future<void> refresh() async {}
   @override
-  Future<Tag> addTag(Tag tag) async => tag;
+  Future<Tag> addTag(Tag tag) async {
+    added.add(tag);
+    return tag;
+  }
+
   @override
   Future<Tag> getOrCreateTag(
     String name, {
@@ -119,6 +127,7 @@ Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
   MockSettingsNotifier? settingsNotifier,
+  TagRepository? repository,
 }) {
   return ProviderScope(
     overrides: [
@@ -126,7 +135,9 @@ Widget _buildTestWidget({
       tagListNotifierProvider.overrideWith(
         (ref) => notifier ?? _MockTagListNotifier(_tagsFromStats(stats)),
       ),
-      tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
+      tagRepositoryProvider.overrideWithValue(
+        repository ?? _MockTagRepository(),
+      ),
       settingsProvider.overrideWith(
         (ref) => settingsNotifier ?? MockSettingsNotifier(),
       ),
@@ -700,6 +711,305 @@ void main() {
     });
   });
 
+  group('a tag dialog closes only once its save lands (#1907)', () {
+    // Save used to drop its write: create closed at once and edit's Future
+    // went unobserved, so a failure gave no feedback and reached the zone
+    // unattributed.
+
+    const errorText = 'Something went wrong. Please try again.';
+
+    // Inside the dialog, not a SnackBar: the page's SnackBar renders under
+    // the dialog's barrier, dimmed and out of reach.
+    final dialogError = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.text(errorText),
+    );
+
+    TextButton button(WidgetTester tester, String label) =>
+        tester.widget<TextButton>(find.widgetWithText(TextButton, label));
+
+    Future<void> openCreate(WidgetTester tester, String name) async {
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, name);
+    }
+
+    Future<void> openEdit(WidgetTester tester, String name) async {
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag1')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Night Dive'),
+        name,
+      );
+    }
+
+    testWidgets('a failed edit shows an error and keeps the edits', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          stats: _testStats,
+          notifier: _FailingSaveTagListNotifier(_tagsFromStats(_testStats)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(dialogError, findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.text('Edit Tag'), findsOneWidget);
+      expect(
+        find.widgetWithText(TextField, 'Night Dive Renamed'),
+        findsOneWidget,
+      );
+      expect(button(tester, 'Save').onPressed, isNotNull, reason: 'retry');
+    });
+
+    testWidgets('a failed create shows an error and keeps the dialog open', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          stats: _testStats,
+          notifier: _FailingSaveTagListNotifier(_tagsFromStats(_testStats)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(dialogError, findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Wreck'), findsOneWidget);
+      expect(button(tester, 'Save').onPressed, isNotNull, reason: 'retry');
+    });
+
+    testWidgets('a create holds the dialog until the tag is saved', (
+      tester,
+    ) async {
+      final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      // Mid-save: still open, and neither button can start a second write.
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(button(tester, 'Save').onPressed, isNull);
+      expect(button(tester, 'Cancel').onPressed, isNull);
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      notifier.gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(notifier.added.map((t) => t.name), ['Wreck']);
+      expect(find.text(errorText), findsNothing);
+    });
+
+    testWidgets('an edit disables both buttons until its save lands', (
+      tester,
+    ) async {
+      final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      expect(find.text('Edit Tag'), findsOneWidget);
+      expect(button(tester, 'Save').onPressed, isNull);
+      expect(button(tester, 'Cancel').onPressed, isNull);
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      notifier.gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
+    });
+
+    testWidgets('a create saves the chosen color and scope', (tester) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'To try');
+      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final created = notifier.added.single;
+      expect(created.name, 'To try');
+      expect(created.colorHex, '#22C55E');
+      expect(created.appliesToDives, isFalse);
+      expect(created.appliesToSites, isTrue);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('Cancel closes either dialog without saving', (tester) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+
+      expect(notifier.added, isEmpty);
+      expect(notifier.updated, isEmpty);
+    });
+
+    testWidgets('a retry clears the error while it runs', (tester) async {
+      final notifier = _FailOnceTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(dialogError, findsOneWidget);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+      expect(dialogError, findsNothing, reason: 'the retry is under way');
+
+      notifier.gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
+    });
+
+    testWidgets('two taps in one frame save once', (tester) async {
+      final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      // No pump between: the button still holds the callback built before
+      // saving flipped, so only a check inside the callback stops the second.
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      notifier.gate.complete();
+      await tester.pumpAndSettle();
+      expect(notifier.added.map((t) => t.name), ['Wreck']);
+    });
+
+    testWidgets('a save in flight cannot be dismissed, so a failure keeps '
+        'the edits', (tester) async {
+      final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEdit(tester, 'Night Dive Renamed');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      // The barrier, Escape and Back all ask the route before popping it.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      await navigator.maybePop();
+      // Long enough for any dismissal to finish its exit animation.
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('Edit Tag'), findsOneWidget);
+
+      notifier.gate.completeError(StateError('update failed'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(dialogError, findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(
+        find.widgetWithText(TextField, 'Night Dive Renamed'),
+        findsOneWidget,
+      );
+
+      // Once the save has settled the dialog dismisses as usual.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Tag'), findsNothing);
+    });
+
+    testWidgets('an edit writes the values the diver saved, not later ones', (
+      tester,
+    ) async {
+      // Turning dives off asks for usage first; hold that read open to act
+      // in the gap between tapping Save and the write.
+      final repository = _GatedUsageTagRepository();
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(
+          stats: _testStats,
+          notifier: notifier,
+          repository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      // Mid-save edits the confirmation never saw.
+      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      await tester.pump();
+
+      repository.usage.complete((dives: 0, sites: 0));
+      await tester.pumpAndSettle();
+
+      final saved = notifier.updated.single;
+      expect(saved.colorHex, '#EF4444');
+      expect(saved.appliesToDives, isFalse);
+      expect(saved.appliesToSites, isTrue);
+    });
+  });
+
   group('deleting from the edit dialog (#1889)', () {
     // Delete was reachable only through selection mode, which divers did not
     // find. The editor now offers it too, behind the same confirmation.
@@ -841,6 +1151,27 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(AlertDialog), findsNothing);
     });
+
+    testWidgets('Delete is disabled while a save is in flight', (tester) async {
+      // A delete started mid-save would race the write it interrupts (#1907
+      // disables Cancel for the same reason).
+      final notifier = _GatedSaveTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openEditor(tester, 'tag1');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pump();
+
+      final delete = find.byKey(const ValueKey('tag_edit_delete'));
+      expect(tester.widget<TextButton>(delete).onPressed, isNull);
+
+      notifier.gate.complete();
+      await tester.pumpAndSettle();
+      expect(notifier.deleted, isEmpty);
+    });
   });
 }
 
@@ -852,4 +1183,65 @@ class _FailingDeleteTagListNotifier extends _MockTagListNotifier {
   @override
   Future<void> deleteTag(String id) async =>
       throw StateError('delete failed for $id');
+}
+
+/// A notifier whose first edit save fails and whose second waits on [gate],
+/// so a test can watch a retry while it is in flight.
+class _FailOnceTagListNotifier extends _MockTagListNotifier {
+  _FailOnceTagListNotifier(super.tags);
+
+  final Completer<void> gate = Completer<void>();
+  bool _failed = false;
+
+  @override
+  Future<void> updateTag(Tag tag) async {
+    if (!_failed) {
+      _failed = true;
+      throw StateError('update failed for ${tag.id}');
+    }
+    updated.add(tag);
+    await gate.future;
+  }
+}
+
+/// A repository whose usage read waits on [usage], so a test can act while
+/// the narrowing check is in flight.
+class _GatedUsageTagRepository extends _MockTagRepository {
+  final Completer<({int dives, int sites})> usage = Completer();
+
+  @override
+  Future<({int dives, int sites})> getTagUsage(String tagId) => usage.future;
+}
+
+/// A notifier whose saves fail, as a database or sync failure would.
+class _FailingSaveTagListNotifier extends _MockTagListNotifier {
+  _FailingSaveTagListNotifier(super.tags);
+
+  @override
+  Future<Tag> addTag(Tag tag) async =>
+      throw StateError('create failed for ${tag.name}');
+
+  @override
+  Future<void> updateTag(Tag tag) async =>
+      throw StateError('update failed for ${tag.id}');
+}
+
+/// A notifier whose saves wait on [gate], so a test can act mid-save.
+class _GatedSaveTagListNotifier extends _MockTagListNotifier {
+  _GatedSaveTagListNotifier(super.tags);
+
+  final Completer<void> gate = Completer<void>();
+
+  @override
+  Future<Tag> addTag(Tag tag) async {
+    added.add(tag);
+    await gate.future;
+    return tag;
+  }
+
+  @override
+  Future<void> updateTag(Tag tag) async {
+    updated.add(tag);
+    await gate.future;
+  }
 }

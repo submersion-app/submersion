@@ -141,6 +141,7 @@ class DatabaseService {
     // The service is a singleton, so a restore seam set by one test would
     // otherwise leak into the next and fire unexpectedly.
     debugOnRestoreWindowOpen = null;
+    debugFailDeleteFor = null;
   }
 
   /// Registers [locationService] without opening anything.
@@ -933,10 +934,17 @@ class DatabaseService {
     // with no database and no data. Renaming into a non-existent destination
     // works identically on POSIX and Windows, so no per-platform branching.
     final asidePath = '$destinationPath.pre-restore';
-    await _deleteIfExists(asidePath);
     final destFile = File(destinationPath);
     final hadDest = await destFile.exists();
     try {
+      // Inside the try: a stray `.pre-restore` left by an earlier failed
+      // restore can be locked by exactly the kind of transient condition
+      // (a cloud-sync daemon materializing/evicting it, an AV scan, ...)
+      // that also causes the swap below to fail. Before this was inside the
+      // guarded block, a delete failure here escaped uncaught AFTER close()
+      // had already run, leaving the app with no open database until restart
+      // and masking itself as a bare "cannot delete file" error.
+      await _deleteIfExists(asidePath);
       if (hadDest) await destFile.rename(asidePath);
       // The old WAL/SHM sidecars belong to the pre-restore database and must
       // not be next to the swapped-in file: SQLite would replay them into it
@@ -960,7 +968,11 @@ class DatabaseService {
         await _moveIfExists('$asidePath-wal', '$destinationPath-wal');
         await _moveIfExists('$asidePath-shm', '$destinationPath-shm');
       }
-      await _deleteIfExists(stagingPath);
+      // Best-effort: this is cleanup of an orphaned copy we no longer need,
+      // not a step the rollback depends on. A transient failure to remove it
+      // (the same lock that likely broke the swap above) must not skip the
+      // reopen below and leave the app with no database until restart.
+      await _bestEffortDelete(stagingPath);
       await initialize();
       rethrow;
     }
@@ -991,13 +1003,25 @@ class DatabaseService {
       // (corruption, a locked file) is the restored file's own problem and
       // keeps its existing handling, which may legitimately want the
       // swapped-in file left in place for recovery.
-      await _deleteIfExists(destinationPath);
+      //
+      // The rejected file's journal goes FIRST and strictly. SQLite replays
+      // whatever -wal sits beside a database, and the pre-restore copy
+      // usually has no sidecar of its own to overwrite it (a clean close
+      // checkpoints it away). If it cannot be removed, stop here: the
+      // original stays untouched at asidePath rather than being paired with
+      // a foreign journal, and a reopen would only reject the same file.
       await _deleteIfExists('$destinationPath-wal');
       await _deleteIfExists('$destinationPath-shm');
       if (hadDest && await File(asidePath).exists()) {
+        // No delete first: rename replaces its destination on every
+        // platform, so the live path always holds a complete database. A
+        // delete-then-rename would leave a window with no file there, in
+        // which a failed rename makes the next open create an empty one.
         await File(asidePath).rename(destinationPath);
         await _moveIfExists('$asidePath-wal', '$destinationPath-wal');
         await _moveIfExists('$asidePath-shm', '$destinationPath-shm');
+      } else {
+        await _deleteIfExists(destinationPath);
       }
       await initialize();
       rethrow;
@@ -1022,7 +1046,20 @@ class DatabaseService {
     await source.rename(to);
   }
 
+  /// Test seam: paths on which EVERY [_deleteIfExists] call raises instead of
+  /// deleting, until the set is cleared, simulating a locked-file condition
+  /// that outlasts the restore (e.g. a cloud-sync provider materializing or
+  /// evicting the file) that real permission errors on desktop otherwise
+  /// need flaky OS-level setup to reproduce. It raises before the existence
+  /// check, so a path behaves as present-but-locked whether or not the file
+  /// is there. [resetForTesting] also clears it.
+  @visibleForTesting
+  Set<String>? debugFailDeleteFor;
+
   Future<void> _deleteIfExists(String path) async {
+    if (debugFailDeleteFor?.contains(path) ?? false) {
+      throw FileSystemException('debug: simulated delete failure', path);
+    }
     final file = File(path);
     if (await file.exists()) {
       await file.delete();

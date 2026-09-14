@@ -326,6 +326,86 @@ void main() {
     },
   );
 
+  test(
+    'a cleanup failure during swap rollback still reopens the database',
+    () async {
+      // Regression guard: the rollback catch block used to delete the
+      // orphaned staging file with a call that could itself throw (e.g. a
+      // cloud-sync provider transiently locking it) and skip initialize(),
+      // leaving the app with no open database until restart. That cleanup
+      // must be best-effort.
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+
+      final now = DateTime.now();
+      await DiverRepository().createDiver(
+        domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+      );
+
+      // Sabotage the swap (as in the sibling test above), and also make the
+      // rollback's own staging-file cleanup fail.
+      DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+        File(stagingPath).deleteSync();
+        DatabaseService.instance.debugFailDeleteFor = {stagingPath};
+      };
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(anything),
+      );
+
+      // The database must still be open and usable, with the original data
+      // intact, despite the cleanup failure.
+      final divers = await DiverRepository().getAllDivers();
+      expect(divers.map((d) => d.name), contains('Keep Me'));
+    },
+  );
+
+  test('a locked stale .pre-restore file fails the restore without leaving '
+      'the database closed', () async {
+    // Regression guard: this delete used to run AFTER close() but OUTSIDE
+    // any try/catch, so a transient failure to remove a leftover
+    // .pre-restore file (a prior restore's own best-effort cleanup can
+    // fail the same way) propagated out of restore() with the live
+    // database already closed and no reopen ever attempted.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+    );
+
+    // A stale .pre-restore left by some earlier run, and locked.
+    final asidePath = '$defaultPath.pre-restore';
+    File(asidePath).writeAsStringSync('stale');
+    DatabaseService.instance.debugFailDeleteFor = {asidePath};
+
+    await expectLater(
+      DatabaseService.instance.restore(backupPath),
+      throwsA(anything),
+    );
+
+    // The original database must still be open and usable, not left
+    // closed by a delete failure that occurred after close().
+    final divers = await DiverRepository().getAllDivers();
+    expect(divers.map((d) => d.name), contains('Keep Me'));
+  });
+
   test('a newer-schema file rejected at the post-swap reopen rolls back '
       '(no data loss)', () async {
     // The sibling test above covers a failed SWAP, which the rename's own
@@ -371,6 +451,50 @@ void main() {
     );
     expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
     expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+  });
+
+  test('a newer-schema rollback never puts the original back beside a '
+      'journal it could not remove', () async {
+    // SQLite replays whatever -wal sits beside a database file, and WAL frames
+    // carry no identity of the database they came from. The pre-restore copy
+    // normally has no -wal of its own (a clean close checkpoints it away), so
+    // nothing would overwrite a leftover journal of the rejected file. If
+    // removing that journal fails, the rollback must stop with the original
+    // untouched at .pre-restore rather than pair it with a foreign journal.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+
+    final raw = sqlite3.sqlite3.open(backupPath);
+    raw.execute(
+      'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
+    );
+    raw.close();
+
+    // The seam raises before the existence check, which is exactly how a
+    // present-but-locked journal looks to the rollback. The swap never deletes
+    // this path (it only moves an existing -wal aside), so the first delete of
+    // it is the rollback's own.
+    DatabaseService.instance.debugFailDeleteFor = {'$defaultPath-wal'};
+
+    await expectLater(
+      DatabaseService.instance.restore(backupPath),
+      throwsA(isA<FileSystemException>()),
+    );
+
+    expect(
+      File('$defaultPath.pre-restore').existsSync(),
+      isTrue,
+      reason:
+          'the original must stay aside, not be moved next to a journal '
+          'that belongs to the rejected file',
+    );
   });
 
   test(
