@@ -397,6 +397,44 @@ void main() {
         expect(resolveParsedTanks(parsed).single.role, 'oxygenSupply');
       });
 
+      test('HP CCR oxygen tank with no matched gas mix defaults to 100% O2, '
+          'not the diluent it would otherwise fall back to (issue #726)', () {
+        // Real Shearwater HP CCR dive: two pressure-telemetry tanks
+        // (diluent + O2), neither linked to a gas mix (DC_GASMIX_UNKNOWN)
+        // and neither breathed in the OC sense samples track, so both
+        // would otherwise fall through to the "primary mix" guess and the
+        // O2 tank would be mislabeled with the diluent's 18% trimix.
+        final parsed = makeParsedDive(
+          gasMixes: [pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0)],
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: unknownGasMixIndex,
+              startPressureBar: 200.0,
+              usage: 2, // DC_USAGE_DILUENT
+            ),
+            pigeon.TankInfo(
+              index: 1,
+              gasMixIndex: unknownGasMixIndex,
+              startPressureBar: 200.0,
+              usage: 1, // DC_USAGE_OXYGEN
+            ),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        final oxygenTank = tanks.firstWhere((t) => t.index == 1);
+        expect(oxygenTank.role, 'oxygenSupply');
+        expect(oxygenTank.o2Percent, 100.0);
+        expect(oxygenTank.hePercent, 0.0);
+
+        // The diluent tank is unaffected: it still falls back to the
+        // primary mix, since that guess is meaningful for it.
+        final diluentTank = tanks.firstWhere((t) => t.index == 0);
+        expect(diluentTank.role, 'diluent');
+        expect(diluentTank.o2Percent, 18.0);
+        expect(diluentTank.hePercent, 45.0);
+      });
+
       test('synthesized deco cylinder (no transmitter) gets the deco role', () {
         final parsed = makeParsedDive(
           gasMixes: [
