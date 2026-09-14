@@ -316,8 +316,8 @@ class _RefUsage {
   }
 
   /// Items reached through another item follow it: an item's components and
-  /// parent, a set's items, a course's instructor. Repeats until nothing new
-  /// is reached, so chains of any depth are followed.
+  /// parent, a set's items, a course's instructor, a site's tags. Repeats
+  /// until nothing new is reached, so chains of any depth are followed.
   void _followLinks(ImportPayload source) {
     var changed = true;
     while (changed) {
@@ -358,6 +358,14 @@ class _RefUsage {
         follow(ImportEntityType.courses, ImportEntityType.buddies, course, [
           course['instructorRef'],
         ]);
+      }
+      for (final site in source.entitiesOf(ImportEntityType.sites)) {
+        for (final MapEntry(:key, value: type) in siteListRefTypes.entries) {
+          final refs = site[key];
+          follow(ImportEntityType.sites, type, site, [
+            if (refs is List) ...refs,
+          ]);
+        }
       }
     }
   }

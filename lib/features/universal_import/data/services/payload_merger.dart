@@ -64,6 +64,9 @@ class PayloadMerger {
   /// the person holding each exact role.
   static final _buddyRoleRefFields = buddyRoleRefTypes.keys.toList();
 
+  /// Site map fields holding a list of entity references (issue #1765).
+  static final _siteListRefFields = siteListRefTypes.keys.toList();
+
   /// Rewrites the string reference [fields] of every map in [item]'s
   /// [key] list through [rewrite], copying rather than mutating the
   /// nested maps. A null reference stays null; a map without the list is
@@ -266,12 +269,14 @@ class PayloadMerger {
     // A site's tag references point at namespaced tag ids, like a dive's
     // (issue #1765). Its siteTypeRefs are slugs and stay as they are.
     if (type == ImportEntityType.sites) {
-      final refs = item['tagRefs'];
-      if (refs is List) {
-        item['tagRefs'] = [
-          for (final ref in refs)
-            if (ref is String && ref.isNotEmpty) '$fileId:$ref' else ref,
-        ];
+      for (final field in _siteListRefFields) {
+        final refs = item[field];
+        if (refs is List) {
+          item[field] = [
+            for (final ref in refs)
+              if (ref is String && ref.isNotEmpty) '$fileId:$ref' else ref,
+          ];
+        }
       }
     }
 
@@ -515,12 +520,14 @@ class PayloadMerger {
 
     // A site's tag references follow a folded tag like a dive's (#1765).
     for (final site in entities[ImportEntityType.sites] ?? const []) {
-      final refs = site['tagRefs'];
-      if (refs is List) {
-        site['tagRefs'] = [
-          for (final ref in refs)
-            if (ref is String) resolve(ref) else ref,
-        ];
+      for (final field in _siteListRefFields) {
+        final refs = site[field];
+        if (refs is List) {
+          site[field] = [
+            for (final ref in refs)
+              if (ref is String) resolve(ref) else ref,
+          ];
+        }
       }
     }
   }

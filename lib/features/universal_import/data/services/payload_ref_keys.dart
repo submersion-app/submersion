@@ -34,6 +34,13 @@ const Map<String, ImportEntityType> componentRefTypes = {
   'componentRef': ImportEntityType.equipment,
 };
 
+/// Site map fields holding a list of entity references (issue #1765). A
+/// site's `siteTypeRefs` are slugs into metadata, not entities, so they are
+/// not listed.
+const Map<String, ImportEntityType> siteListRefTypes = {
+  'tagRefs': ImportEntityType.tags,
+};
+
 /// Field inside a dive's `buddyRoleRefs` entries (issue #1737).
 const Map<String, ImportEntityType> buddyRoleRefTypes = {
   'buddyRef': ImportEntityType.buddies,

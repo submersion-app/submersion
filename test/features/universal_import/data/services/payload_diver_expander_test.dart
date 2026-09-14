@@ -212,6 +212,37 @@ void main() {
     expect(_targets(out, ImportEntityType.buddies, 'kim'), [_newBo]);
   });
 
+  test("a site's own tags follow the site (#1765)", () {
+    final out = _expand(
+      const ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {
+              SourceDiver.mapKey: _bo,
+              'site': {'uddfId': 'Pier'},
+            },
+            {SourceDiver.mapKey: _ann},
+          ],
+          ImportEntityType.sites: [
+            {
+              'uddfId': 'Pier',
+              'tagRefs': ['Shore'],
+            },
+          ],
+          ImportEntityType.tags: [
+            {'uddfId': 'Shore', 'name': 'Shore'},
+          ],
+        },
+        sourceDivers: [
+          SourceDiver(key: _ann, name: 'Ann Lee', diveCount: 1),
+          SourceDiver(key: _bo, name: 'Bo Ray', diveCount: 1),
+        ],
+      ),
+    );
+    expect(_targets(out, ImportEntityType.sites, 'Pier'), [_newBo]);
+    expect(_targets(out, ImportEntityType.tags, 'Shore'), [_newBo]);
+  });
+
   test('media follow their dive and are renumbered', () {
     final out = _expand(_source());
     final media = out.entitiesOf(ImportEntityType.media);
