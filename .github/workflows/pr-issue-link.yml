@@ -1,0 +1,77 @@
+name: PR Issue Link
+
+# Every pull request must link the issue it relates to (issue #1800): a
+# closing keyword (`Closes #N`) when it resolves the issue, or `Refs #N` /
+# `Part of #N` / `Related to #N` when it does not. Without the keyword GitHub
+# leaves a resolved issue open after the merge. The rule itself lives in
+# scripts/check_pr_issue_link.py, which Script Tests in ci.yaml unit-tests.
+#
+# Kept out of ci.yaml on purpose. The check has to re-run when the description
+# is edited, and adding `edited` to ci.yaml's triggers would restart the whole
+# pipeline on every description edit. It blocks a merge by being listed as a
+# required status check ("PR Issue Link") next to CI Success in main's branch
+# protection. No `paths` filter: a required check that never reports leaves
+# the PR waiting forever.
+#
+# pull_request_target, not pull_request: under pull_request the workflow and
+# the script come from the PR's merge ref, so a PR could edit either to report
+# green and walk through its own gate. pull_request_target runs both as they
+# exist on main, and its check run still lands on the PR's head commit, where
+# branch protection looks for it. That trigger is safe here only because this
+# job never checks out or executes PR code: the checkout below is main, and
+# the description is read through the API as data. Keep it that way. Two
+# consequences: a PR that changes the rule is judged by main's copy until it
+# merges (Script Tests still runs its own unit tests), and the PR that first
+# adds this file gets no run.
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  issue-link:
+    name: PR Issue Link
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # No `ref:`: under pull_request_target the default is main. Never point
+      # this at the PR head; that would run untrusted code with this token.
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Fetch the current PR description
+        # Read live rather than from the event payload: re-running a failed
+        # job replays the original payload, which would still hold the
+        # description from before the author fixed it.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.body // ""' \
+            > "${RUNNER_TEMP}/pr_body.md"
+
+      - name: Check the description links an issue
+        # Untrusted PR fields reach the script only through env vars, never
+        # through ${{ }} interpolation inside the shell text.
+        env:
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
+        run: |
+          python3 scripts/check_pr_issue_link.py \
+            --body-file "${RUNNER_TEMP}/pr_body.md" \
+            --branch "$HEAD_REF" \
+            --author-type "$AUTHOR_TYPE" \
+            --repo "$REPO"

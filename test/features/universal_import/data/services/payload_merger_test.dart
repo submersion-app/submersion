@@ -407,6 +407,361 @@ void main() {
     });
   });
 
+  group('same-name records within one file (issue #1807)', () {
+    // A file that holds nothing foldable, so the batch path runs without
+    // giving the namesakes anything to fold into.
+    final unrelated = payloadWith(
+      dives: [
+        {'dateTime': DateTime(2026, 3, 1, 9)},
+      ],
+    );
+
+    List<Object?> idsOf(ImportPayload merged, ImportEntityType type) => [
+      for (final e in merged.entitiesOf(type)) e['uddfId'],
+    ];
+
+    test('keeps two people with the same name apart, with their roles', () {
+      final a = payloadWith(
+        buddies: [
+          {'uddfId': 'b1', 'name': 'Chris Diver'},
+          {'uddfId': 'b2', 'name': 'Chris Diver'},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 1, 1, 9),
+            'buddyRefs': ['b1'],
+            'diveGuideRefs': ['b2'],
+            'buddyRoleRefs': [
+              {'buddyRef': 'b1', 'roleId': 'buddy'},
+              {'buddyRef': 'b2', 'roleId': 'diveGuide'},
+            ],
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.fit', payload: unrelated),
+      ]);
+
+      expect(idsOf(merged, ImportEntityType.buddies), ['f0:b1', 'f0:b2']);
+      final dive = merged.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['buddyRefs'], ['f0:b1']);
+      expect(dive['diveGuideRefs'], ['f0:b2']);
+      expect(dive['buddyRoleRefs'], [
+        {'buddyRef': 'f0:b1', 'roleId': 'buddy'},
+        {'buddyRef': 'f0:b2', 'roleId': 'diveGuide'},
+      ]);
+    });
+
+    test('keeps same-name records apart for every name-folded type', () {
+      List<Map<String, dynamic>> pair(
+        String prefix, [
+        Map<String, dynamic> extra = const {},
+      ]) => [
+        {'uddfId': '${prefix}1', 'name': 'Same', ...extra},
+        {'uddfId': '${prefix}2', 'name': 'Same', ...extra},
+      ];
+
+      final a = ImportPayload(
+        entities: {
+          ImportEntityType.sites: pair('s'),
+          ImportEntityType.trips: pair('t'),
+          ImportEntityType.diveCenters: pair('d'),
+          ImportEntityType.tags: pair('g'),
+          ImportEntityType.courses: pair('k'),
+          ImportEntityType.equipmentSets: pair('q'),
+          ImportEntityType.equipment: pair('e', {'type': 'computer'}),
+          ImportEntityType.certifications: pair('c', {'agency': 'PADI'}),
+        },
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.fit', payload: unrelated),
+      ]);
+
+      for (final type in a.entities.keys) {
+        expect(merged.entitiesOf(type), hasLength(2), reason: type.name);
+      }
+    });
+
+    test('folds repeats of one id, which are the same record', () {
+      // MacDive keys sites by name, so two same-name rows share an id.
+      final a = payloadWith(
+        sites: [
+          {'uddfId': 'Blue Hole', 'name': 'Blue Hole'},
+          {'uddfId': 'Blue Hole', 'name': 'Blue Hole', 'latitude': 12.2},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 1, 1, 9),
+            'site': {'uddfId': 'Blue Hole', 'name': 'Blue Hole'},
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.sqlite', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.fit', payload: unrelated),
+      ]);
+
+      final sites = merged.entitiesOf(ImportEntityType.sites);
+      expect(sites, hasLength(1));
+      expect(sites.single['uddfId'], 'f0:Blue Hole');
+      expect(sites.single['latitude'], 12.2);
+    });
+
+    test('a repeated id folds with its record into an earlier file', () {
+      final a = payloadWith(
+        sites: [
+          {'uddfId': 's0', 'name': 'Blue Hole'},
+        ],
+      );
+      final b = payloadWith(
+        sites: [
+          {'uddfId': 'Blue Hole', 'name': 'Blue Hole'},
+          {'uddfId': 'Blue Hole', 'name': 'Blue Hole', 'latitude': 12.2},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 2, 1, 9),
+            'site': {'uddfId': 'Blue Hole', 'name': 'Blue Hole'},
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.sqlite', payload: b),
+      ]);
+
+      final sites = merged.entitiesOf(ImportEntityType.sites);
+      expect(sites, hasLength(1));
+      expect(sites.single['uddfId'], 'f0:s0');
+      expect(sites.single['latitude'], 12.2);
+      final dive = merged.entitiesOf(ImportEntityType.dives).single;
+      expect((dive['site'] as Map<String, dynamic>)['uddfId'], 'f0:s0');
+    });
+
+    test('a repeated id is one record even when only a repeat is named', () {
+      final a = payloadWith(
+        sites: [
+          {'uddfId': 's0', 'name': 'Blue Hole'},
+        ],
+      );
+      final b = payloadWith(
+        sites: [
+          {'uddfId': 's1'},
+          {'uddfId': 's1', 'name': 'Blue Hole'},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 2, 1, 9),
+            'site': {'uddfId': 's1'},
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: b),
+      ]);
+
+      // The name arrives on the repeat, and still folds the one record.
+      expect(idsOf(merged, ImportEntityType.sites), ['f0:s0']);
+      final dive = merged.entitiesOf(ImportEntityType.dives).single;
+      expect((dive['site'] as Map<String, dynamic>)['uddfId'], 'f0:s0');
+    });
+
+    test('a dive type is identified by its slug over any uddfId', () {
+      const a = ImportPayload(
+        entities: {
+          ImportEntityType.diveTypes: [
+            {'id': 'wreck', 'uddfId': 'w1', 'name': 'Wreck'},
+            {'id': 'wreck', 'uddfId': 'w2', 'name': 'Wreck'},
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        const FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.fit', payload: unrelated),
+      ]);
+
+      expect(merged.entitiesOf(ImportEntityType.diveTypes), hasLength(1));
+    });
+
+    test('folds dive types sharing a slug, which is their id', () {
+      const a = ImportPayload(
+        entities: {
+          ImportEntityType.diveTypes: [
+            {'id': 'wreck', 'name': 'Wreck'},
+            {'id': 'wreck', 'name': 'Wreck', 'sortOrder': 7},
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        const FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.fit', payload: unrelated),
+      ]);
+
+      final types = merged.entitiesOf(ImportEntityType.diveTypes);
+      expect(types, hasLength(1));
+      expect(types.single['sortOrder'], 7);
+    });
+
+    test('pairs namesakes in two files by their source id', () {
+      // Two backups of one logbook: the same pair of namesakes, listed in
+      // a different order.
+      final a = payloadWith(
+        buddies: [
+          {'uddfId': 'b1', 'name': 'Chris Diver'},
+          {'uddfId': 'b2', 'name': 'Chris Diver'},
+        ],
+      );
+      final b = payloadWith(
+        buddies: [
+          {'uddfId': 'b2', 'name': 'Chris Diver'},
+          {'uddfId': 'b1', 'name': 'Chris Diver'},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 2, 1, 9),
+            'buddyRefs': ['b1'],
+            'diveGuideRefs': ['b2'],
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: b),
+      ]);
+
+      expect(idsOf(merged, ImportEntityType.buddies), ['f0:b1', 'f0:b2']);
+      final dive = merged.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['buddyRefs'], ['f0:b1']);
+      expect(dive['diveGuideRefs'], ['f0:b2']);
+    });
+
+    test('keeps a later record apart when earlier namesakes are ambiguous', () {
+      final a = payloadWith(
+        buddies: [
+          {'uddfId': 'b1', 'name': 'Chris Diver'},
+          {'uddfId': 'b2', 'name': 'Chris Diver'},
+        ],
+      );
+      final b = payloadWith(
+        buddies: [
+          {'uddfId': 'x9', 'name': 'Chris Diver'},
+        ],
+        dives: [
+          {
+            'dateTime': DateTime(2026, 2, 1, 9),
+            'buddyRefs': ['x9'],
+          },
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: b),
+      ]);
+
+      expect(idsOf(merged, ImportEntityType.buddies), [
+        'f0:b1',
+        'f0:b2',
+        'f1:x9',
+      ]);
+      final dive = merged.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['buddyRefs'], ['f1:x9']);
+    });
+
+    test('keeps later namesakes apart unless one shares the source id', () {
+      final a = payloadWith(
+        buddies: [
+          {'uddfId': 'b1', 'name': 'Chris Diver'},
+        ],
+      );
+      ImportPayload later(String first) => payloadWith(
+        buddies: [
+          {'uddfId': first, 'name': 'Chris Diver'},
+          {'uddfId': 'c2', 'name': 'Chris Diver'},
+        ],
+      );
+
+      final noMatch = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: later('c1')),
+      ]);
+      expect(idsOf(noMatch, ImportEntityType.buddies), [
+        'f0:b1',
+        'f1:c1',
+        'f1:c2',
+      ]);
+
+      final idMatch = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: later('b1')),
+      ]);
+      expect(idsOf(idMatch, ImportEntityType.buddies), ['f0:b1', 'f1:c2']);
+    });
+
+    test('keeps a leftover namesake apart after a partial id match', () {
+      final a = payloadWith(
+        buddies: [
+          {'uddfId': 'b1', 'name': 'Chris Diver'},
+          {'uddfId': 'b2', 'name': 'Chris Diver'},
+        ],
+      );
+      final b = payloadWith(
+        buddies: [
+          {'uddfId': 'b1', 'name': 'Chris Diver'},
+          {'uddfId': 'x9', 'name': 'Chris Diver'},
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: b),
+      ]);
+
+      // b1 pairs by id. x9 and f0:b2 are then the only records left on
+      // each side, but after an ambiguous start that is no evidence they
+      // are the same person, so x9 stays its own record.
+      expect(idsOf(merged, ImportEntityType.buddies), [
+        'f0:b1',
+        'f0:b2',
+        'f1:x9',
+      ]);
+    });
+
+    test('a fold carries its source ids forward to later files', () {
+      ImportPayload chrises(List<String> ids) => payloadWith(
+        buddies: [
+          for (final id in ids) {'uddfId': id, 'name': 'Chris Diver'},
+        ],
+        dives: [
+          {'dateTime': DateTime(2026, 2, 1, 9), 'buddyRefs': ids},
+        ],
+      );
+
+      final merged = merger.merge([
+        FilePayload(fileId: 'f0', fileName: 'a', payload: chrises(['x'])),
+        // One on each side: y folds into f0:x as today.
+        FilePayload(fileId: 'f1', fileName: 'b', payload: chrises(['y'])),
+        // y is known as f0:x now, so it pairs there; z stays apart.
+        FilePayload(fileId: 'f2', fileName: 'c', payload: chrises(['y', 'z'])),
+      ]);
+
+      expect(idsOf(merged, ImportEntityType.buddies), ['f0:x', 'f2:z']);
+      final dives = merged.entitiesOf(ImportEntityType.dives);
+      expect(dives[2]['buddyRefs'], ['f0:x', 'f2:z']);
+    });
+  });
+
   group('media', () {
     ImportPayload mediaPayload({
       required int diveCount,

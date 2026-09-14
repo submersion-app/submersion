@@ -51,6 +51,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/services/components_index.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -207,6 +208,22 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.diveTags),
           TableUpdateQuery.onTable(_db.tags),
           TableUpdateQuery.onTable(_db.diveDiveTypes),
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
+  /// Change tick for [getDiveIdsMatchingEquipmentAttrs]: the dives, both
+  /// gear links, the items (their type) and their attribute rows.
+  /// `saveAttributes` and a sync pull write only `equipment_attributes`,
+  /// which no other dive tick watches.
+  Stream<void> watchEquipmentAttrFilterChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.diveEquipment),
+          TableUpdateQuery.onTable(_db.diveTanks),
+          TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.equipmentAttributes),
         ]),
       )
       .debounce(changeTickDebounce);
@@ -2156,6 +2173,11 @@ class DiveRepository {
                 _db.diveSafetyFindings,
                 _db.diveProfileSeries,
                 _db.diveProfileEvents,
+                // The equipment-attribute filter (#1805) reads these.
+                _db.diveEquipment,
+                _db.diveTanks,
+                _db.equipment,
+                _db.equipmentAttributes,
               },
             )
             .get();
@@ -2226,6 +2248,11 @@ class DiveRepository {
                 _db.diveSites,
                 _db.diveProfileSeries,
                 _db.diveProfileEvents,
+                // The equipment-attribute filter (#1805) reads these.
+                _db.diveEquipment,
+                _db.diveTanks,
+                _db.equipment,
+                _db.equipmentAttributes,
               },
             )
             .get();
@@ -2279,6 +2306,11 @@ class DiveRepository {
                 _db.dives,
                 _db.diveProfileSeries,
                 _db.diveProfileEvents,
+                // The equipment-attribute filter (#1805) reads these.
+                _db.diveEquipment,
+                _db.diveTanks,
+                _db.equipment,
+                _db.equipmentAttributes,
               },
             )
             .getSingle();
@@ -2336,6 +2368,64 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to resolve deco-signal dive ids',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The ids of every dive satisfying all of [conditions], through the same
+  /// [equipmentAttrConditionSql] the paginated list uses.
+  ///
+  /// The in-memory filter path ([DiveFilterState.apply]) cannot answer this:
+  /// a cylinder matched only through the transmitter registry reaches the
+  /// entity as a bare `DiveTank.equipmentId`, without its item or its
+  /// attributes. So the entity-backed surfaces (the table view, the activity
+  /// and heat maps) resolve the axis here. Only called while a condition is
+  /// set.
+  // stats-scope-exempt: backs a view-filter axis; consumers apply the scope themselves
+  Future<Set<String>> getDiveIdsMatchingEquipmentAttrs(
+    List<EquipmentAttrCondition> conditions, {
+    String? diverId,
+  }) async {
+    try {
+      return await PerfTimer.measure(
+        'getDiveIdsMatchingEquipmentAttrs',
+        () async {
+          final whereClauses = <String>[];
+          final args = <Variable<Object>>[];
+          for (final condition in conditions) {
+            final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
+            whereClauses.add(c.sql);
+            args.addAll(c.params.map((p) => Variable<Object>(p)));
+          }
+          if (diverId != null) {
+            whereClauses.add('d.diver_id = ?');
+            args.add(Variable(diverId));
+          }
+          final where = whereClauses.isEmpty
+              ? ''
+              : 'WHERE ${whereClauses.join(' AND ')}';
+          final rows = await _db
+              .customSelect(
+                'SELECT d.id AS id FROM dives d $where',
+                variables: args,
+                readsFrom: {
+                  _db.dives,
+                  _db.diveEquipment,
+                  _db.diveTanks,
+                  _db.equipment,
+                  _db.equipmentAttributes,
+                },
+              )
+              .get();
+          return rows.map((r) => r.read<String>('id')).toSet();
+        },
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to resolve equipment-attribute dive ids',
         error: e,
         stackTrace: stackTrace,
       );
@@ -2483,6 +2573,14 @@ class DiveRepository {
           args.add(Variable(eqId));
         }
       }
+    }
+    // Equipment attributes: the same EXISTS Statistics uses, one per
+    // condition. Missing until #1805, so the list and its count ignored the
+    // Suit thickness filter that the table view and Statistics applied.
+    for (final condition in filter.equipmentAttrConditions) {
+      final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
+      clauses.add(c.sql);
+      args.addAll(c.params.map((p) => Variable<Object>(p)));
     }
     if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
       // The dive editor writes buddies only to the dive_buddies junction;

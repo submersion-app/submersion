@@ -351,6 +351,23 @@ class UnitFormatter {
       (feet * 12 + inches) * _cmPerInch;
 
   // ============================================================================
+  // Short length
+  // ============================================================================
+
+  /// Convert a short length stored in meters (a regulator hose, an SMB) to
+  /// the unit it is sold in: centimeters for a metric diver, inches for an
+  /// imperial one. Keyed off the depth unit, like [heightIsMetric] (#1804).
+  double convertShortLength(double meters) =>
+      heightIsMetric ? meters * 100 : meters * 100 / _cmPerInch;
+
+  /// Convert a short length in the diver's unit back to meters for storage.
+  double shortLengthToMeters(double value) =>
+      heightIsMetric ? value / 100 : value * _cmPerInch / 100;
+
+  /// Symbol for [convertShortLength]'s output.
+  String get shortLengthSymbol => heightIsMetric ? 'cm' : 'in';
+
+  // ============================================================================
   // Altitude
   // ============================================================================
 

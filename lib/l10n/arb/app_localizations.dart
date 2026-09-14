@@ -9789,6 +9789,12 @@ abstract class AppLocalizations {
   /// **'All equipment already selected'**
   String get diveLog_equipmentPicker_allSelected;
 
+  /// No description provided for @diveLog_equipmentPicker_allSpare.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining gear is marked Spare'**
+  String get diveLog_equipmentPicker_allSpare;
+
   /// No description provided for @diveLog_equipmentPicker_errorLoading.
   ///
   /// In en, this message translates to:
@@ -9806,6 +9812,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
+
+  /// No description provided for @diveLog_equipmentPicker_spareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set an item\'s status to Active to add it to a dive'**
+  String get diveLog_equipmentPicker_spareHint;
 
   /// No description provided for @diveLog_equipmentPicker_title.
   ///
@@ -17974,6 +17986,12 @@ abstract class AppLocalizations {
   /// **'Sold'**
   String get enum_equipmentStatus_sold;
 
+  /// No description provided for @enum_equipmentStatus_spare.
+  ///
+  /// In en, this message translates to:
+  /// **'Spare'**
+  String get enum_equipmentStatus_spare;
+
   /// No description provided for @enum_equipmentType_backplate.
   ///
   /// In en, this message translates to:
@@ -20487,6 +20505,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get equipment_list_activeFilter_clear;
+
+  /// Active-filter chip for an equipment attribute filter. {field} is the field name (e.g. Hose type), {values} the selected options joined with commas.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {values}'**
+  String equipment_list_activeFilter_attribute(String field, String values);
 
   /// No description provided for @equipment_filter_title.
   ///
@@ -33420,6 +33444,12 @@ abstract class AppLocalizations {
   /// **'Delete tag'**
   String get tags_action_deleteTag;
 
+  /// Tooltip on a tag chip; tapping the chip opens the dive list filtered to that tag
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives tagged \"{tagName}\"'**
+  String tags_action_showDives(String tagName);
+
   /// No description provided for @tags_dialog_deleteMessage.
   ///
   /// In en, this message translates to:
@@ -43109,6 +43139,12 @@ abstract class AppLocalizations {
   /// **'Hose length'**
   String get attrLabel_hose_length_m;
 
+  /// No description provided for @attrLabel_hose_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Hose type'**
+  String get attrLabel_hose_type;
+
   /// No description provided for @attrLabel_plate_material.
   ///
   /// In en, this message translates to:
@@ -43775,6 +43811,24 @@ abstract class AppLocalizations {
   /// **'Yoke (INT)'**
   String get attrChoice_connection_yoke;
 
+  /// No description provided for @attrChoice_hose_type_lp.
+  ///
+  /// In en, this message translates to:
+  /// **'LP (low pressure)'**
+  String get attrChoice_hose_type_lp;
+
+  /// No description provided for @attrChoice_hose_type_hp.
+  ///
+  /// In en, this message translates to:
+  /// **'HP (high pressure)'**
+  String get attrChoice_hose_type_hp;
+
+  /// No description provided for @attrChoice_hose_type_lpi.
+  ///
+  /// In en, this message translates to:
+  /// **'LPI (inflator)'**
+  String get attrChoice_hose_type_lpi;
+
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///
   /// In en, this message translates to:
@@ -44282,7 +44336,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_progression_divesBySuitThickness_empty.
   ///
   /// In en, this message translates to:
-  /// **'No dives with a suit thickness recorded'**
+  /// **'No dives with a wetsuit or drysuit linked'**
   String get statistics_progression_divesBySuitThickness_empty;
 
   /// No description provided for @statistics_progression_divesBySuitThickness_error.
@@ -44291,11 +44345,35 @@ abstract class AppLocalizations {
   /// **'Could not load suit thickness data'**
   String get statistics_progression_divesBySuitThickness_error;
 
+  /// No description provided for @statistics_progression_divesBySuitThickness_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get statistics_progression_divesBySuitThickness_unknown;
+
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///
   /// In en, this message translates to:
   /// **'Suit thickness (mm)'**
   String get diveLog_filter_sectionSuitThickness;
+
+  /// No description provided for @diveLog_filter_sectionGearAttributes.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear attributes'**
+  String get diveLog_filter_sectionGearAttributes;
+
+  /// No description provided for @diveLog_filter_gearCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear category'**
+  String get diveLog_filter_gearCategory;
+
+  /// No description provided for @diveLog_filter_gearCategoryAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any category'**
+  String get diveLog_filter_gearCategoryAny;
 
   /// No description provided for @diveLog_filter_thicknessMin.
   ///

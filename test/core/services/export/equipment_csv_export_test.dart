@@ -47,6 +47,28 @@ void main() {
     expect(lines[1], contains('2.5'));
   });
 
+  test('a hose length exports in canonical metres, as its key says', () {
+    // The app shows a hose in cm or inches (issue #1804), but the CSV is a
+    // raw data export: "hose_length_m=15" would claim metres for an inch
+    // value, so the stored metres go out unconverted.
+    final csv = CsvExportService().generateEquipmentCsvContent([
+      EquipmentItem(
+        id: 'h1',
+        name: 'Long hose',
+        type: EquipmentType.hose,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: 'h1',
+            key: 'hose_length_m',
+            valueNum: 0.381,
+          ),
+        ],
+      ),
+    ]);
+
+    expect(csv.split('\n')[1], contains('hose_length_m=0.381'));
+  });
+
   test('custom field colliding with a curated key is not dropped', () {
     final csv = CsvExportService().generateEquipmentCsvContent([
       const EquipmentItem(

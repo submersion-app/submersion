@@ -96,7 +96,10 @@ void main() {
       'lift_capacity_kg': AttributeDimension.massKg,
       'buoyancy_kg': AttributeDimension.massKg,
       'dry_weight_kg': AttributeDimension.massKg,
-      'length_m': AttributeDimension.lengthM,
+      // Hose and SMB lengths are read in cm / in; a reel's line stays in
+      // m / ft (issue #1804).
+      'hose_length_m': AttributeDimension.shortLengthM,
+      'length_m': AttributeDimension.shortLengthM,
       'line_length_m': AttributeDimension.lengthM,
       'depth_rating_m': AttributeDimension.depthM,
       'thickness_mm': AttributeDimension.thicknessMm,
@@ -142,6 +145,39 @@ void main() {
     // Non-numeric garbage is still rejected.
     expect(isValidThicknessDesignation('thin'), isFalse);
     expect(isValidThicknessDesignation('abc'), isFalse);
+  });
+
+  group('hose attributes (#1805)', () {
+    test('hose_type is a spec choice of lp, hp and lpi, before the length', () {
+      final def = EquipmentAttributeCatalog.defFor(EquipmentAttrKeys.hoseType);
+      expect(def, isNotNull);
+      expect(def!.kind, AttributeKind.choice);
+      expect(def.group, AttributeGroup.spec);
+      // The picker renders choiceKeys in this order.
+      expect(def.choiceKeys, ['lp', 'hp', 'lpi']);
+
+      final keys = EquipmentAttributeCatalog.attributesFor(
+        EquipmentType.hose,
+      ).map((d) => d.key).toList();
+      expect(
+        keys.indexOf('hose_type'),
+        lessThan(keys.indexOf('hose_length_m')),
+      );
+    });
+
+    test('hose type label and options read in English', () {
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      expect(attributeLabel(l10n, 'hose_type'), 'Hose type');
+      expect(
+        attributeChoiceLabel(l10n, 'hose_type', 'lp'),
+        'LP (low pressure)',
+      );
+      expect(
+        attributeChoiceLabel(l10n, 'hose_type', 'hp'),
+        'HP (high pressure)',
+      );
+      expect(attributeChoiceLabel(l10n, 'hose_type', 'lpi'), 'LPI (inflator)');
+    });
   });
 
   group('gloves attributes', () {

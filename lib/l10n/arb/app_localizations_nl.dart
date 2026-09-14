@@ -5942,6 +5942,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle uitrusting al geselecteerd';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'Resterende uitrusting is gemarkeerd als reserve';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Fout bij laden van uitrusting: $error';
   }
@@ -5952,6 +5956,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Verwijder items om andere toe te voegen';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Zet de status van een item op Actief om het aan een duik toe te voegen';
 
   @override
   String get diveLog_equipmentPicker_title => 'Uitrusting toevoegen';
@@ -10697,6 +10705,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Verkocht';
 
   @override
+  String get enum_equipmentStatus_spare => 'Reserve';
+
+  @override
   String get enum_equipmentType_backplate => 'Backplate';
 
   @override
@@ -12121,6 +12132,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => 'Wissen';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
 
   @override
   String get equipment_filter_title => 'Uitrusting filteren';
@@ -20121,6 +20137,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_action_deleteTag => 'Tag verwijderen';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Duiken met tag \"$tagName\" tonen';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Weet je zeker dat je \"$tagName\" wilt verwijderen? Dit verwijdert het van alle duiken.';
   }
@@ -26104,6 +26125,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Slanglengte';
 
   @override
+  String get attrLabel_hose_type => 'Slangtype';
+
+  @override
   String get attrLabel_plate_material => 'Plaatmateriaal';
 
   @override
@@ -26438,6 +26462,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Beugel (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'MD (middendruk)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HD (hoge druk)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflatorslang (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Jacket';
 
   @override
@@ -26695,14 +26728,26 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Geen duiken met een geregistreerde pakdikte';
+      'Geen duiken met een gekoppeld wetsuit of droogpak';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Kan pakdiktegegevens niet laden';
 
   @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Onbekend';
+
+  @override
   String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Uitrustingskenmerken';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Uitrustingscategorie';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Elke categorie';
 
   @override
   String get diveLog_filter_thicknessMin => 'Min';

@@ -5986,6 +5986,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todos os equipamentos ja selecionados';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'O equipamento restante esta marcado como reserva';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Erro ao carregar equipamentos: $error';
   }
@@ -5996,6 +6000,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Remova itens para adicionar outros';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Defina o status de um item como Ativo para adiciona-lo a um mergulho';
 
   @override
   String get diveLog_equipmentPicker_title => 'Adicionar Equipamento';
@@ -10780,6 +10788,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Vendido';
 
   @override
+  String get enum_equipmentStatus_spare => 'Reserva';
+
+  @override
   String get enum_equipmentType_backplate => 'Backplate';
 
   @override
@@ -12208,6 +12219,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => 'Limpar';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
 
   @override
   String get equipment_filter_title => 'Filtrar Equipamento';
@@ -20304,6 +20320,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tags_action_deleteTag => 'Excluir tag';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Mostrar mergulhos com a tag \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Tem certeza de que deseja excluir \"$tagName\"? Isso irá removê-la de todos os mergulhos.';
   }
@@ -26307,6 +26328,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Comprimento da mangueira';
 
   @override
+  String get attrLabel_hose_type => 'Tipo de mangueira';
+
+  @override
   String get attrLabel_plate_material => 'Material da placa';
 
   @override
@@ -26643,6 +26667,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Garra (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'LP (baixa pressão)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'HP (alta pressão)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflador (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Colete';
 
   @override
@@ -26900,14 +26933,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nenhum mergulho com espessura de roupa registrada';
+      'Nenhum mergulho vinculado a roupa de neoprene ou roupa seca';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Não foi possível carregar os dados de espessura';
 
   @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Desconhecida';
+
+  @override
   String get diveLog_filter_sectionSuitThickness => 'Espessura da roupa (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Atributos do equipamento';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Categoria de equipamento';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Qualquer categoria';
 
   @override
   String get diveLog_filter_thicknessMin => 'Mín';

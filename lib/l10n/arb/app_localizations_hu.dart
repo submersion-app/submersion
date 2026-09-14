@@ -5965,6 +5965,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden felszereles mar ki van valasztva';
 
   @override
+  String get diveLog_equipmentPicker_allSpare =>
+      'A tobbi felszereles tartalekkent van jelolve';
+
+  @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
     return 'Hiba a felszereles betoltesekor: $error';
   }
@@ -5975,6 +5979,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Tavolitson el elemeket masok hozzaadasahoz';
+
+  @override
+  String get diveLog_equipmentPicker_spareHint =>
+      'Allitsa a targy allapotat Aktivra, hogy merulesehez adja';
 
   @override
   String get diveLog_equipmentPicker_title => 'Felszereles hozzaadasa';
@@ -10755,6 +10763,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentStatus_sold => 'Eladva';
 
   @override
+  String get enum_equipmentStatus_spare => 'Tartalek';
+
+  @override
   String get enum_equipmentType_backplate => 'Hátlemez';
 
   @override
@@ -12180,6 +12191,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_list_activeFilter_clear => 'Torles';
+
+  @override
+  String equipment_list_activeFilter_attribute(String field, String values) {
+    return '$field: $values';
+  }
 
   @override
   String get equipment_filter_title => 'Felszereles szurese';
@@ -20237,6 +20253,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_action_deleteTag => 'Címke törlése';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return '\"$tagName\" címkéjű merülések megjelenítése';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Biztosan törölni szeretnéd: \"$tagName\"? Ez eltávolítja az összes merülésről.';
   }
@@ -26204,6 +26225,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_hose_length_m => 'Tömlő hossza';
 
   @override
+  String get attrLabel_hose_type => 'Tömlő típusa';
+
+  @override
   String get attrLabel_plate_material => 'Lemez anyaga';
 
   @override
@@ -26537,6 +26561,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrChoice_connection_yoke => 'Kengyel (INT)';
 
   @override
+  String get attrChoice_hose_type_lp => 'Középnyomású (LP)';
+
+  @override
+  String get attrChoice_hose_type_hp => 'Nagynyomású (HP)';
+
+  @override
+  String get attrChoice_hose_type_lpi => 'Inflátor (LPI)';
+
+  @override
   String get attrChoice_bcd_style_jacket => 'Mellény';
 
   @override
@@ -26795,14 +26828,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nincs merülés rögzített ruhavastagsággal';
+      'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Nem sikerült betölteni a vastagsági adatokat';
 
   @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Ismeretlen';
+
+  @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
+
+  @override
+  String get diveLog_filter_sectionGearAttributes => 'Felszerelés jellemzői';
+
+  @override
+  String get diveLog_filter_gearCategory => 'Felszerelés kategóriája';
+
+  @override
+  String get diveLog_filter_gearCategoryAny => 'Bármely kategória';
 
   @override
   String get diveLog_filter_thicknessMin => 'Min';

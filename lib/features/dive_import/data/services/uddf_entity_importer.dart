@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -301,6 +302,35 @@ class UddfEntityImporter {
     return null;
   }
 
+  /// [value] trimmed, or null when it is not a string or is blank.
+  static String? _nonBlankString(Object? value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// A dive's custom fields from the `{key, value}` maps parsers emit under
+  /// 'customFields' (UDDF applicationdata, CSV `custom:<key>` columns), in
+  /// payload order. Entries without a key are dropped; the repository
+  /// assigns ids on create.
+  static List<DiveCustomField> _customFields(Object? raw) {
+    if (raw is! List) return const [];
+    final fields = <DiveCustomField>[];
+    for (final entry in raw.whereType<Map>()) {
+      final key = _nonBlankString(entry['key']);
+      if (key == null) continue;
+      fields.add(
+        DiveCustomField(
+          id: '',
+          key: key,
+          value: entry['value']?.toString() ?? '',
+          sortOrder: fields.length,
+        ),
+      );
+    }
+    return fields;
+  }
+
   /// Import selected entities from [data] using [repositories].
   ///
   /// Only entities at indices present in [selections] are imported.
@@ -433,10 +463,17 @@ class UddfEntityImporter {
 
     // Custom dive roles restore unconditionally (no selection UI): they are
     // tiny reference rows whose ids are referenced by imported dive_buddies
-    // and dives rows, and the id-preserving insert is idempotent.
+    // and dives rows. Each lands as one of this diver's roles, and
+    // [roleIdMapping] points the file's id at it.
+    final roleIdMapping = <String, String>{};
     final diveRoleRepository = repositories.diveRoleRepository;
     if (diveRoleRepository != null) {
-      await _importDiveRoles(data.customDiveRoles, diveRoleRepository, diverId);
+      await _importDiveRoles(
+        data.customDiveRoles,
+        diveRoleRepository,
+        diverId,
+        roleIdMapping,
+      );
     }
 
     final sitesCount = await _importSites(
@@ -484,6 +521,7 @@ class UddfEntityImporter {
       siteIdMapping: siteIdMapping,
       courseIdMapping: courseIdMapping,
       setIdMapping: setIdMapping,
+      roleIdMapping: roleIdMapping,
       sourceFileName: sourceFileName ?? data.sourceFileName,
       sourceFormat: sourceFormat,
       sourceFileBytes: sourceFileBytes,
@@ -1052,32 +1090,82 @@ class UddfEntityImporter {
     return count;
   }
 
+  /// Lands each custom role of the file as one of [diverId]'s roles and
+  /// records where in [idMapping] (file id to local id).
+  ///
+  /// Custom roles are diver-scoped (#1806). A role keeps its id when that
+  /// id is free (#551), so a restore onto a new device leaves every link
+  /// as written. The same backup restored into a second profile finds the
+  /// id taken by the first, so this profile gets its own copy under a new
+  /// id. Before either, the diver's own role wins: one already holding the
+  /// id (a repeat restore), then one with the same name, so neither path
+  /// adds a second "Photographer" to the diver's list.
   Future<int> _importDiveRoles(
     List<Map<String, dynamic>> items,
     DiveRoleRepository repository,
     String diverId,
+    Map<String, String> idMapping,
   ) async {
+    if (items.isEmpty) return 0;
     var count = 0;
+    final ownIdsByName = <String, String>{};
+    try {
+      for (final role in await repository.getAllDiveRoles(diverId: diverId)) {
+        if (!role.isBuiltIn) {
+          ownIdsByName.putIfAbsent(_roleNameKey(role.name), () => role.id);
+        }
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to list dive roles; custom roles not restored',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return 0;
+    }
+
     for (final roleData in items) {
       final name = roleData['name'] as String?;
       final id = roleData['id'] as String?;
       final isBuiltIn = roleData['isBuiltIn'] as bool? ?? false;
-      if (isBuiltIn || id == null || name == null || name.isEmpty) continue;
+      if (isBuiltIn || id == null || name == null || name.trim().isEmpty) {
+        continue;
+      }
+      // A built-in id is never a custom role, and remapping it would move
+      // every link using the built-in onto the copy.
+      if (DiveRole.builtInIds.contains(id)) continue;
 
       try {
-        final imported = await repository.importDiveRole(
-          id: id,
-          name: name,
-          diverId: diverId,
-          sortOrder: roleData['sortOrder'] as int? ?? 100,
+        final existing = await repository.getDiveRoleById(id);
+        final nameKey = _roleNameKey(name);
+        var localId = existing?.diverId == diverId ? id : ownIdsByName[nameKey];
+        if (localId == null) {
+          final newId = existing == null ? id : _uuid.v4();
+          final imported = await repository.importDiveRole(
+            id: newId,
+            name: name,
+            diverId: diverId,
+            sortOrder: roleData['sortOrder'] as int? ?? 100,
+          );
+          if (imported) count++;
+          localId = newId;
+          ownIdsByName[nameKey] = newId;
+        }
+        idMapping[id] = localId;
+      } catch (e, stackTrace) {
+        // Links naming this role fall back as for a role that never
+        // arrived; the rest of the import goes on.
+        _log.error(
+          'Failed to restore dive role: $id',
+          error: e,
+          stackTrace: stackTrace,
         );
-        if (imported) count++;
-      } catch (_) {
-        // Ignore duplicates -- the role may already exist with the same id.
       }
     }
     return count;
   }
+
+  static String _roleNameKey(String name) => name.trim().toLowerCase();
 
   // -- Site import --
 
@@ -1226,6 +1314,8 @@ class UddfEntityImporter {
         minDepth: siteData['minDepth'] as double?,
         maxDepth: siteData['maxDepth'] as double?,
         difficulty: difficulty,
+        city: siteData['city'] as String?,
+        island: siteData['island'] as String?,
         country: country,
         region: region,
         rating: siteData['rating'] as double?,
@@ -1301,6 +1391,8 @@ class UddfEntityImporter {
         minDepth: siteData['minDepth'] as double?,
         maxDepth: siteData['maxDepth'] as double?,
         difficulty: difficulty,
+        city: siteData['city'] as String?,
+        island: siteData['island'] as String?,
         country: country,
         region: region,
         rating: siteData['rating'] as double?,
@@ -1750,6 +1842,7 @@ class UddfEntityImporter {
     required Map<String, DiveSite> siteIdMapping,
     required Map<String, String> courseIdMapping,
     Map<String, String> setIdMapping = const {},
+    Map<String, String> roleIdMapping = const {},
     String? sourceFileName,
     ImportFormat? sourceFormat,
     Uint8List? sourceFileBytes,
@@ -1768,7 +1861,14 @@ class UddfEntityImporter {
     final diveIdByIndex = <int, String>{};
     final diveIdBySourceUuid = <String, String>{};
     final inlineBuddyIds = <String>{};
-    final roleExists = <String, bool>{};
+    final ownsRole = <String, bool>{};
+    Future<String?> localRoleId(String roleId) => _localRoleId(
+      roleId,
+      diverId,
+      repos.diveRoleRepository,
+      roleIdMapping,
+      ownsRole,
+    );
 
     // Sort selected indices by dateTime (oldest first) for sequential
     // numbering. An undated dive is stored at [now] further down, so it has
@@ -2067,20 +2167,12 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
-      // The diver's own role. A custom role this diver lacks (its definition
-      // never arrived, or it belongs to another diver) leaves the dive with
-      // no role rather than one this diver's role list cannot resolve.
+      // The diver's own role, as this diver's copy of it. A custom role this
+      // diver lacks (its definition never arrived) leaves the dive with no
+      // role rather than one this diver's role list cannot resolve.
       final diverRoleValue = diveData['diverRoleId'];
-      final diverRoleId =
-          diverRoleValue is String &&
-              diverRoleValue.isNotEmpty &&
-              await _roleExists(
-                diverRoleValue,
-                diverId,
-                repos.diveRoleRepository,
-                roleExists,
-              )
-          ? diverRoleValue
+      final diverRoleId = diverRoleValue is String && diverRoleValue.isNotEmpty
+          ? await localRoleId(diverRoleValue)
           : null;
       final isFavorite = diveData['isFavorite'] as bool? ?? false;
       final excludedFromStats = diveData['excludedFromStats'] as bool? ?? false;
@@ -2160,6 +2252,21 @@ class UddfEntityImporter {
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
         waterType: _parseEnum(diveData['waterType'], WaterType.values),
         altitude: asDoubleOrNull(diveData['altitude']),
+        // Weather as the source recorded it. weatherSource stays null, as
+        // for weather typed in by hand: it marks an Open-Meteo fetch.
+        windSpeed: asDoubleOrNull(diveData['windSpeed']),
+        windDirection: _parseEnum(
+          diveData['windDirection'],
+          CurrentDirection.values,
+        ),
+        cloudCover: _parseEnum(diveData['cloudCover'], CloudCover.values),
+        precipitation: _parseEnum(
+          diveData['precipitation'],
+          Precipitation.values,
+        ),
+        humidity: asDoubleOrNull(diveData['humidity']),
+        weatherDescription: _nonBlankString(diveData['weatherDescription']),
+        customFields: _customFields(diveData['customFields']),
         // Entry/exit GPS, so file-imported dives become eligible for the
         // existing site matcher.
         entryLocation: gps.entry,
@@ -2395,8 +2502,7 @@ class UddfEntityImporter {
         diverId,
         buddyIdMapping,
         repos.buddyRepository,
-        roleRepository: repos.diveRoleRepository,
-        roleExists: roleExists,
+        localRoleId: localRoleId,
       );
       inlineBuddyIds.addAll(linkedIds);
 
@@ -2706,8 +2812,7 @@ class UddfEntityImporter {
     String diverId,
     Map<String, String> buddyIdMapping,
     BuddyRepository repository, {
-    DiveRoleRepository? roleRepository,
-    required Map<String, bool> roleExists,
+    required Future<String?> Function(String roleId) localRoleId,
   }) async {
     // Link referenced buddies (from pre-imported buddy entities)
     final buddyRefsValue = diveData['buddyRefs'];
@@ -2744,7 +2849,10 @@ class UddfEntityImporter {
         ? unmatchedNamesValue.whereType<String>().toList()
         : <String>[];
     for (final buddyName in unmatchedNames) {
-      final buddy = await repository.findOrCreateByName(buddyName);
+      final buddy = await repository.findOrCreateByName(
+        buddyName,
+        diverId: diverId,
+      );
       if (buddy.diverId == null) {
         await repository.updateBuddy(buddy.copyWith(diverId: diverId));
       }
@@ -2758,7 +2866,10 @@ class UddfEntityImporter {
         ? unmatchedGuideValue.whereType<String>().toList()
         : <String>[];
     for (final guideName in unmatchedGuides) {
-      final guide = await repository.findOrCreateByName(guideName);
+      final guide = await repository.findOrCreateByName(
+        guideName,
+        diverId: diverId,
+      );
       if (guide.diverId == null) {
         await repository.updateBuddy(guide.copyWith(diverId: diverId));
       }
@@ -2769,7 +2880,7 @@ class UddfEntityImporter {
     // Exact roles from Submersion's private <buddyroles> block (issue
     // #1737). Applied last: addBuddyToDive keeps one row per person, so
     // these override any role inferred from the standard elements. A role
-    // this database lacks can only be a custom role whose definition never
+    // this diver lacks can only be a custom role whose definition never
     // arrived, which the standard elements carried as a plain buddy.
     final roleRefsValue = diveData['buddyRoleRefs'];
     final roleRefs = roleRefsValue is List ? roleRefsValue : const [];
@@ -2780,38 +2891,41 @@ class UddfEntityImporter {
       if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId == null) continue;
-      final known = await _roleExists(
-        roleId,
-        diverId,
-        roleRepository,
-        roleExists,
-      );
       await repository.addBuddyToDive(
         diveId,
         newBuddyId,
-        known ? roleId : DiveRole.buddyId,
+        await localRoleId(roleId) ?? DiveRole.buddyId,
       );
     }
 
     return inlineIds;
   }
 
-  /// Whether [roleId] names a role [diverId] can use: built in, or one of
-  /// that diver's custom roles, already present or restored ahead of the
-  /// dives. Custom roles are diver-scoped, so another diver's role (its id
-  /// taken when that diver's backup is restored into this profile) does
-  /// not count: this diver's role list could only show its raw id.
-  /// Memoized in [cache] across one import, which has a single diver.
-  Future<bool> _roleExists(
+  /// The id under which [diverId] holds the role the file calls [roleId],
+  /// or null when this diver has no such role.
+  ///
+  /// Built-in ids stand as written. A custom role restored by this import
+  /// resolves through [roleIdMapping] to this diver's copy (#1806). Any
+  /// other id counts only if it already names one of this diver's custom
+  /// roles: a dives-only file declares no roles, yet may name one the
+  /// diver has. Custom roles are diver-scoped, so another diver's role
+  /// does not count, as this diver's role list could only show its raw id.
+  /// Ownership is memoized in [ownsRole] across one import, which has a
+  /// single diver.
+  Future<String?> _localRoleId(
     String roleId,
     String diverId,
     DiveRoleRepository? repository,
-    Map<String, bool> cache,
+    Map<String, String> roleIdMapping,
+    Map<String, bool> ownsRole,
   ) async {
-    if (DiveRole.builtInIds.contains(roleId)) return true;
-    if (repository == null) return false;
-    return cache[roleId] ??=
+    if (DiveRole.builtInIds.contains(roleId)) return roleId;
+    final mapped = roleIdMapping[roleId];
+    if (mapped != null) return mapped;
+    if (repository == null) return null;
+    final owned = ownsRole[roleId] ??=
         (await repository.getDiveRoleById(roleId))?.diverId == diverId;
+    return owned ? roleId : null;
   }
 
   Future<void> _linkTagsToDive(
