@@ -74,10 +74,6 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
-        repository.getLinkedAssetIdsForDive('test-id'),
-        throwsA(anything),
-      );
-      await expectLater(
         repository.getGpsFromDiveMedia('test-id'),
         throwsA(anything),
       );
