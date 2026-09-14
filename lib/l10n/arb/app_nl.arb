@@ -6843,8 +6843,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "Sommige duiken konden niet worden gelezen",
   "universalImport_summary_noticeDivesSkippedBody": "Deze duiken zijn overgeslagen omdat hun gegevens in het bestand niet konden worden gelezen.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 duik overgeslagen} other{{count} duiken overgeslagen}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "Duiken van meer dan één duiker",
-  "universalImport_summary_noticeMultipleDiversBody": "Deze MacDive-bibliotheek bevat duiken gelogd door {names}. Ze zijn allemaal geïmporteerd bij de huidige duiker, en elke duik heeft een tag met de naam waaronder hij is gelogd.",
   "universalImport_summary_noticeProfileUnreadableTitle": "Sommige profielen konden niet worden gelezen",
   "universalImport_summary_noticeProfileUnreadableBody": "Deze duiken zijn zonder diepteprofiel geïmporteerd omdat de profielgegevens in het bestand ontbreken of niet konden worden gelezen.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "MacDive-profielen niet gedecodeerd",

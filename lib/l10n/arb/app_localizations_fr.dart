@@ -22677,15 +22677,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Plongées de plusieurs plongeurs';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'Cette bibliothèque MacDive contient des plongées enregistrées par $names. Elles ont toutes été importées pour le plongeur actuel, et chaque plongée porte une étiquette avec le nom sous lequel elle a été enregistrée.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'Certains profils n\'ont pas pu être lus';
 

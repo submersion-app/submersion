@@ -21410,14 +21410,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle => '来自多位潜水员的潜水';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return '此 MacDive 资料库包含由 $names 记录的潜水。所有潜水都已导入当前潜水员，并且每次潜水都已标记其记录时使用的名称。';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle => '部分剖面无法读取';
 
   @override

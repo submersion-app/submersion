@@ -7029,8 +7029,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "部分潜水无法读取",
   "universalImport_summary_noticeDivesSkippedBody": "这些潜水已跳过，因为无法读取文件中的相关数据。",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, other{已跳过 {count} 次潜水}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "来自多位潜水员的潜水",
-  "universalImport_summary_noticeMultipleDiversBody": "此 MacDive 资料库包含由 {names} 记录的潜水。所有潜水都已导入当前潜水员，并且每次潜水都已标记其记录时使用的名称。",
   "universalImport_summary_noticeProfileUnreadableTitle": "部分剖面无法读取",
   "universalImport_summary_noticeProfileUnreadableBody": "这些潜水已在没有深度剖面的情况下导入，因为文件中的剖面数据缺失或无法读取。",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "未解码的 MacDive 剖面",

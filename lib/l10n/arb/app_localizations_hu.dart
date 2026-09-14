@@ -22521,15 +22521,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Több búvár merülései';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'Ez a MacDive-könyvtár a következő búvárok merüléseit tartalmazza: $names. Mindet az aktuális búvárhoz importáltuk, és minden merülést megcímkéztünk azzal a névvel, amelyen rögzítették.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'Néhány profilt nem sikerült beolvasni';
 

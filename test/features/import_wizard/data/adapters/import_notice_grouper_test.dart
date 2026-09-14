@@ -149,7 +149,6 @@ void main() {
       ImportWarningCode.noTankPressure: ImportNoticeKind.noTankPressure,
       ImportWarningCode.unreadableDate: ImportNoticeKind.unreadableDates,
       ImportWarningCode.divesSkipped: ImportNoticeKind.divesSkipped,
-      ImportWarningCode.multipleDivers: ImportNoticeKind.multipleDivers,
       ImportWarningCode.profileUnreadable: ImportNoticeKind.profileUnreadable,
       ImportWarningCode.macdiveProfileUndecodable:
           ImportNoticeKind.macdiveProfileUndecodable,
@@ -237,11 +236,17 @@ void main() {
     'names from several files merge without repeats, in first-seen order',
     () {
       final notices = groupImportNotices([
-        _coded(ImportWarningCode.multipleDivers, names: ['Ann', 'Bo']),
-        _coded(ImportWarningCode.multipleDivers, names: ['Bo', 'Cy']),
+        _coded(
+          ImportWarningCode.macdiveLogbooksNotImported,
+          names: ['Reef', 'Wreck'],
+        ),
+        _coded(
+          ImportWarningCode.macdiveLogbooksNotImported,
+          names: ['Wreck', 'Night'],
+        ),
       ], 3);
 
-      expect(notices.single.names, ['Ann', 'Bo', 'Cy']);
+      expect(notices.single.names, ['Reef', 'Wreck', 'Night']);
     },
   );
 
@@ -251,12 +256,10 @@ void main() {
       _noPressure(),
       _coded(ImportWarningCode.photosSkipped),
       _coded(ImportWarningCode.divesSkipped),
-      _coded(ImportWarningCode.multipleDivers, names: ['Ann', 'Bo']),
     ], 3);
 
     expect(notices.map((n) => n.kind), [
       ImportNoticeKind.divesSkipped,
-      ImportNoticeKind.multipleDivers,
       ImportNoticeKind.noTankPressure,
       ImportNoticeKind.photosSkipped,
       ImportNoticeKind.macdiveLogbooksNotImported,

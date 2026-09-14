@@ -6759,8 +6759,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "Néhány merülést nem sikerült beolvasni",
   "universalImport_summary_noticeDivesSkippedBody": "Ezeket a merüléseket kihagytuk, mert az adataikat nem sikerült beolvasni a fájlból.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 merülés kihagyva} other{{count} merülés kihagyva}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "Több búvár merülései",
-  "universalImport_summary_noticeMultipleDiversBody": "Ez a MacDive-könyvtár a következő búvárok merüléseit tartalmazza: {names}. Mindet az aktuális búvárhoz importáltuk, és minden merülést megcímkéztünk azzal a névvel, amelyen rögzítették.",
   "universalImport_summary_noticeProfileUnreadableTitle": "Néhány profilt nem sikerült beolvasni",
   "universalImport_summary_noticeProfileUnreadableBody": "Ezek a merülések mélységprofil nélkül lettek importálva, mert a profiladatok hiányoznak a fájlból, vagy nem sikerült beolvasni őket.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "Nem dekódolt MacDive-profilok",

@@ -22532,15 +22532,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Tauchgänge mehrerer Taucher';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'Diese MacDive-Bibliothek enthält Tauchgänge von $names. Alle wurden beim aktuellen Taucher importiert, und jeder Tauchgang ist mit dem Namen markiert, unter dem er aufgezeichnet wurde.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'Einige Profile konnten nicht gelesen werden';
 

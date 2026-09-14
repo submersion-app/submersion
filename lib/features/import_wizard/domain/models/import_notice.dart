@@ -16,10 +16,6 @@ enum ImportNoticeKind {
   /// [ImportNotice.rowNumbers] lists them.
   unreadableDates,
 
-  /// A MacDive library held dives for several divers, all imported into the
-  /// current diver. [ImportNotice.names] lists the divers.
-  multipleDivers,
-
   /// Profile data missing or unreadable, so the affected dives have no depth
   /// profile. [ImportNotice.count] is the number of imported dives affected.
   profileUnreadable,
@@ -90,7 +86,6 @@ enum ImportNoticeKind {
     diveNumberConflict => true,
     divesSkipped ||
     unreadableDates ||
-    multipleDivers ||
     columnsNotImported ||
     valuesNotConverted ||
     photosSkipped ||

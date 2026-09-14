@@ -22603,15 +22603,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Inmersiones de más de un buceador';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'Esta biblioteca de MacDive tiene inmersiones registradas por $names. Todas se importaron en el buceador actual y cada inmersión está etiquetada con el nombre con el que se registró.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'No se pudieron leer algunos perfiles';
 

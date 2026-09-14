@@ -37020,18 +37020,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 dive skipped} other{{count} dives skipped}}'**
   String universalImport_summary_noticeDivesSkippedCount(int count);
 
-  /// No description provided for @universalImport_summary_noticeMultipleDiversTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives from more than one diver'**
-  String get universalImport_summary_noticeMultipleDiversTitle;
-
-  /// No description provided for @universalImport_summary_noticeMultipleDiversBody.
-  ///
-  /// In en, this message translates to:
-  /// **'This MacDive library has dives logged by {names}. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.'**
-  String universalImport_summary_noticeMultipleDiversBody(String names);
-
   /// No description provided for @universalImport_summary_noticeProfileUnreadableTitle.
   ///
   /// In en, this message translates to:

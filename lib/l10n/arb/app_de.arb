@@ -6843,8 +6843,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "Einige Tauchgänge konnten nicht gelesen werden",
   "universalImport_summary_noticeDivesSkippedBody": "Diese Tauchgänge wurden übersprungen, weil ihre Daten in der Datei nicht gelesen werden konnten.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 Tauchgang übersprungen} other{{count} Tauchgänge übersprungen}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "Tauchgänge mehrerer Taucher",
-  "universalImport_summary_noticeMultipleDiversBody": "Diese MacDive-Bibliothek enthält Tauchgänge von {names}. Alle wurden beim aktuellen Taucher importiert, und jeder Tauchgang ist mit dem Namen markiert, unter dem er aufgezeichnet wurde.",
   "universalImport_summary_noticeProfileUnreadableTitle": "Einige Profile konnten nicht gelesen werden",
   "universalImport_summary_noticeProfileUnreadableBody": "Diese Tauchgänge wurden ohne Tiefenprofil importiert, weil die Profildaten in der Datei fehlen oder nicht gelesen werden konnten.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "MacDive-Profile nicht dekodiert",

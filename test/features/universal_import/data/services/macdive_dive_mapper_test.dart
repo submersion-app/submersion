@@ -1204,15 +1204,6 @@ void main() {
         },
       );
 
-      test('a multi-diver library names its divers', () async {
-        final payload = await MacDiveDiveMapper.toPayload(_multiDiverLogbook());
-
-        final w = payload.warnings.singleWhere(
-          (w) => w.code == ImportWarningCode.multipleDivers,
-        );
-        expect(w.names, ['Ann Lee', 'Bo Ray']);
-      });
-
       test('logbooks that were not imported are named', () async {
         final logbook = await MacDiveDbReader.readAll(bytes);
         final payload = await MacDiveDiveMapper.toPayload(logbook);

@@ -22588,15 +22588,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Mergulhos de mais de um mergulhador';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'Esta biblioteca do MacDive tem mergulhos registrados por $names. Todos foram importados para o mergulhador atual, e cada mergulho recebeu uma etiqueta com o nome sob o qual foi registrado.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'Alguns perfis não puderam ser lidos';
 

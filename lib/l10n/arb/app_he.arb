@@ -6843,8 +6843,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "לא ניתן היה לקרוא חלק מהצלילות",
   "universalImport_summary_noticeDivesSkippedBody": "הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{צלילה אחת דולגה} other{{count} צלילות דולגו}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "צלילות של יותר מצולל אחד",
-  "universalImport_summary_noticeMultipleDiversBody": "ספריית MacDive זו כוללת צלילות שנרשמו על ידי {names}. כולן יובאו לצולל הנוכחי, וכל צלילה תויגה בשם שתחתיו נרשמה.",
   "universalImport_summary_noticeProfileUnreadableTitle": "לא ניתן היה לקרוא חלק מהפרופילים",
   "universalImport_summary_noticeProfileUnreadableBody": "הצלילות האלה יובאו ללא פרופיל עומק כי נתוני הפרופיל בקובץ חסרים או שלא ניתן היה לקרוא אותם.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "פרופילי MacDive לא פוענחו",

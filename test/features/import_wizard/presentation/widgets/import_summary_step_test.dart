@@ -1446,20 +1446,6 @@ void main() {
       );
     });
 
-    testWidgets('names the divers of a multi-diver library', (tester) async {
-      await expectCard(
-        tester,
-        const ImportNotice(
-          kind: ImportNoticeKind.multipleDivers,
-          count: 2,
-          names: ['Ann Lee', 'Bo Ray'],
-        ),
-        title: 'Dives from more than one diver',
-        bodyFragment: 'has dives logged by Ann Lee, Bo Ray.',
-        countLine: null,
-      );
-    });
-
     testWidgets('explains unreadable profiles', (tester) async {
       await expectCard(
         tester,

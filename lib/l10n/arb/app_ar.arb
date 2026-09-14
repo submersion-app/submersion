@@ -6843,8 +6843,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "تعذّرت قراءة بعض الغطسات",
   "universalImport_summary_noticeDivesSkippedBody": "تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{تم تخطي غطسة واحدة} other{تم تخطي {count} غطسات}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "غطسات لأكثر من غوّاص",
-  "universalImport_summary_noticeMultipleDiversBody": "تحتوي مكتبة MacDive هذه على غطسات سجّلها {names}. تم استيرادها كلها إلى الغوّاص الحالي، ووُسمت كل غطسة بالاسم الذي سُجّلت به.",
   "universalImport_summary_noticeProfileUnreadableTitle": "تعذّرت قراءة بعض ملفات العمق",
   "universalImport_summary_noticeProfileUnreadableBody": "تم استيراد هذه الغطسات بدون ملف العمق لأن بيانات ملف العمق في الملف مفقودة أو تعذّرت قراءتها.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "لم يُفك ترميز ملفات العمق من MacDive",

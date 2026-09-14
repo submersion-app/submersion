@@ -22020,15 +22020,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'צלילות של יותר מצולל אחד';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'ספריית MacDive זו כוללת צלילות שנרשמו על ידי $names. כולן יובאו לצולל הנוכחי, וכל צלילה תויגה בשם שתחתיו נרשמה.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'לא ניתן היה לקרוא חלק מהפרופילים';
 

@@ -6755,8 +6755,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "Alcune immersioni non sono state lette",
   "universalImport_summary_noticeDivesSkippedBody": "Queste immersioni sono state saltate perché i loro dati nel file non sono leggibili.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 immersione saltata} other{{count} immersioni saltate}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "Immersioni di più subacquei",
-  "universalImport_summary_noticeMultipleDiversBody": "Questa libreria MacDive contiene immersioni registrate da {names}. Sono state tutte importate nel subacqueo attuale e ogni immersione è etichettata con il nome con cui è stata registrata.",
   "universalImport_summary_noticeProfileUnreadableTitle": "Alcuni profili non sono stati letti",
   "universalImport_summary_noticeProfileUnreadableBody": "Queste immersioni sono state importate senza profilo di profondità perché i dati del profilo nel file mancano o non sono leggibili.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "Profili MacDive non decodificati",

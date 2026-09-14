@@ -22204,15 +22204,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Dives from more than one diver';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'This MacDive library has dives logged by $names. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'Some profiles could not be read';
 

@@ -22400,15 +22400,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Duiken van meer dan één duiker';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'Deze MacDive-bibliotheek bevat duiken gelogd door $names. Ze zijn allemaal geïmporteerd bij de huidige duiker, en elke duik heeft een tag met de naam waaronder hij is gelogd.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'Sommige profielen konden niet worden gelezen';
 

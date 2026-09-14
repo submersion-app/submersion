@@ -13631,15 +13631,6 @@
       }
     }
   },
-  "universalImport_summary_noticeMultipleDiversTitle": "Dives from more than one diver",
-  "universalImport_summary_noticeMultipleDiversBody": "This MacDive library has dives logged by {names}. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.",
-  "@universalImport_summary_noticeMultipleDiversBody": {
-    "placeholders": {
-      "names": {
-        "type": "String"
-      }
-    }
-  },
   "universalImport_summary_noticeProfileUnreadableTitle": "Some profiles could not be read",
   "universalImport_summary_noticeProfileUnreadableBody": "These dives were imported without a depth profile because the profile data in the file is missing or could not be read.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "MacDive profiles not decoded",

@@ -6843,8 +6843,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "No se pudieron leer algunas inmersiones",
   "universalImport_summary_noticeDivesSkippedBody": "Estas inmersiones se omitieron porque sus datos en el archivo no se pudieron leer.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 inmersión omitida} other{{count} inmersiones omitidas}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "Inmersiones de más de un buceador",
-  "universalImport_summary_noticeMultipleDiversBody": "Esta biblioteca de MacDive tiene inmersiones registradas por {names}. Todas se importaron en el buceador actual y cada inmersión está etiquetada con el nombre con el que se registró.",
   "universalImport_summary_noticeProfileUnreadableTitle": "No se pudieron leer algunos perfiles",
   "universalImport_summary_noticeProfileUnreadableBody": "Estas inmersiones se importaron sin perfil de profundidad porque los datos del perfil en el archivo faltan o no se pudieron leer.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "Perfiles de MacDive no decodificados",

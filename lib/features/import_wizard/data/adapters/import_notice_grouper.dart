@@ -62,7 +62,6 @@ ImportNoticeKind? _kindFor(ImportWarningCode? code) => switch (code) {
   ImportWarningCode.noTankPressure => ImportNoticeKind.noTankPressure,
   ImportWarningCode.unreadableDate => ImportNoticeKind.unreadableDates,
   ImportWarningCode.divesSkipped => ImportNoticeKind.divesSkipped,
-  ImportWarningCode.multipleDivers => ImportNoticeKind.multipleDivers,
   ImportWarningCode.profileUnreadable => ImportNoticeKind.profileUnreadable,
   ImportWarningCode.macdiveProfileUndecodable =>
     ImportNoticeKind.macdiveProfileUndecodable,

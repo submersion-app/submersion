@@ -465,11 +465,6 @@ _FileNoticeWording? _fileNoticeWording(
   final names = notice.names.join(', ');
   return switch (notice.kind) {
     ImportNoticeKind.divesSkipped || ImportNoticeKind.unreadableDates => null,
-    ImportNoticeKind.multipleDivers => (
-      title: l10n.universalImport_summary_noticeMultipleDiversTitle,
-      body: l10n.universalImport_summary_noticeMultipleDiversBody(names),
-      action: null,
-    ),
     ImportNoticeKind.profileUnreadable => (
       title: l10n.universalImport_summary_noticeProfileUnreadableTitle,
       body: l10n.universalImport_summary_noticeProfileUnreadableBody,

@@ -22190,15 +22190,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'غطسات لأكثر من غوّاص';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'تحتوي مكتبة MacDive هذه على غطسات سجّلها $names. تم استيرادها كلها إلى الغوّاص الحالي، ووُسمت كل غطسة بالاسم الذي سُجّلت به.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'تعذّرت قراءة بعض ملفات العمق';
 

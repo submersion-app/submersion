@@ -45,7 +45,7 @@ void main() {
       const warning = ImportWarning(
         severity: ImportWarningSeverity.warning,
         message: 'Two divers',
-        code: ImportWarningCode.multipleDivers,
+        code: ImportWarningCode.columnsNotImported,
         entityType: ImportEntityType.dives,
         itemIndex: 3,
         field: 'maxDepth',
@@ -55,7 +55,7 @@ void main() {
 
       expect(warning.severity, ImportWarningSeverity.warning);
       expect(warning.message, 'Two divers');
-      expect(warning.code, ImportWarningCode.multipleDivers);
+      expect(warning.code, ImportWarningCode.columnsNotImported);
       expect(warning.entityType, ImportEntityType.dives);
       expect(warning.itemIndex, 3);
       expect(warning.field, 'maxDepth');

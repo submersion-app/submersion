@@ -6843,8 +6843,6 @@
   "universalImport_summary_noticeDivesSkippedTitle": "Alguns mergulhos não puderam ser lidos",
   "universalImport_summary_noticeDivesSkippedBody": "Esses mergulhos foram ignorados porque os dados deles no arquivo não puderam ser lidos.",
   "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 mergulho ignorado} other{{count} mergulhos ignorados}}",
-  "universalImport_summary_noticeMultipleDiversTitle": "Mergulhos de mais de um mergulhador",
-  "universalImport_summary_noticeMultipleDiversBody": "Esta biblioteca do MacDive tem mergulhos registrados por {names}. Todos foram importados para o mergulhador atual, e cada mergulho recebeu uma etiqueta com o nome sob o qual foi registrado.",
   "universalImport_summary_noticeProfileUnreadableTitle": "Alguns perfis não puderam ser lidos",
   "universalImport_summary_noticeProfileUnreadableBody": "Esses mergulhos foram importados sem perfil de profundidade porque os dados do perfil no arquivo estão ausentes ou não puderam ser lidos.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "Perfis do MacDive não decodificados",

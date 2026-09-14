@@ -22583,15 +22583,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'Immersioni di più subacquei';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'Questa libreria MacDive contiene immersioni registrate da $names. Sono state tutte importate nel subacqueo attuale e ogni immersione è etichettata con il nome con cui è stata registrata.';
-  }
-
-  @override
   String get universalImport_summary_noticeProfileUnreadableTitle =>
       'Alcuni profili non sono stati letti';
 
