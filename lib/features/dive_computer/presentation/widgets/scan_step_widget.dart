@@ -347,150 +347,172 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
         final filtered = _filterDevices(usbDevicesByManufacturer);
         final manufacturers = filtered.keys.toList();
 
-        return Column(
-          children: [
-            // Instructions + search
-            Container(
-              margin: const EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: 8,
-              ),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: colorScheme.primary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      context.l10n.diveComputer_discovery_usbInstructions,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Search and brand filter, stacked so each gets the full width.
-            // Side by side, the dropdown sizes to its widest brand name and
-            // starves the search field, overflowing under large text.
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // One scroll view for the whole tab: the instruction card and the
+        // two filters are a fixed ~270px, which is more than a portrait
+        // phone leaves the tab once the search field raises the keyboard,
+        // and a fixed header above an Expanded list overflows there. As a
+        // box sliver the header scrolls away with the list instead.
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText:
-                          context.l10n.diveComputer_discovery_usbSearchHint,
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      isDense: true,
+                  // Instructions + search
+                  Container(
+                    margin: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 16,
+                      bottom: 8,
                     ),
-                    onChanged: (value) => setState(() => _searchQuery = value),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: colorScheme.primary),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            context.l10n.diveComputer_discovery_usbInstructions,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  DropdownMenu<String?>(
-                    expandedInsets: EdgeInsets.zero,
-                    // Match the search field above so the stacked pair reads
-                    // as one control group.
-                    inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-                      isDense: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+
+                  // Search and brand filter, stacked so each gets the full
+                  // width. Side by side, the dropdown sizes to its widest
+                  // brand name and starves the search field, overflowing
+                  // under large text.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                    initialSelection: _selectedManufacturer,
-                    label: Text(
-                      context.l10n.diveComputer_detail_labelManufacturer,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: context
+                                .l10n
+                                .diveComputer_discovery_usbSearchHint,
+                            prefixIcon: const Icon(Icons.search),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            isDense: true,
+                          ),
+                          onChanged: (value) =>
+                              setState(() => _searchQuery = value),
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownMenu<String?>(
+                          expandedInsets: EdgeInsets.zero,
+                          // Match the search field above so the stacked pair
+                          // reads as one control group.
+                          inputDecorationTheme: theme.inputDecorationTheme
+                              .copyWith(
+                                isDense: true,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                          initialSelection: _selectedManufacturer,
+                          label: Text(
+                            context.l10n.diveComputer_detail_labelManufacturer,
+                          ),
+                          hintText: context.l10n.diveLog_filter_allComputers,
+                          dropdownMenuEntries: [
+                            DropdownMenuEntry(
+                              value: null,
+                              label: context.l10n.diveLog_filter_allComputers,
+                            ),
+                            ...usbDevicesByManufacturer.keys.map(
+                              (m) => DropdownMenuEntry(value: m, label: m),
+                            ),
+                          ],
+                          onSelected: (value) {
+                            setState(() {
+                              _selectedManufacturer = value;
+                            });
+                          },
+                        ),
+                      ],
                     ),
-                    hintText: context.l10n.diveLog_filter_allComputers,
-                    dropdownMenuEntries: [
-                      DropdownMenuEntry(
-                        value: null,
-                        label: context.l10n.diveLog_filter_allComputers,
-                      ),
-                      ...usbDevicesByManufacturer.keys.map(
-                        (m) => DropdownMenuEntry(value: m, label: m),
-                      ),
-                    ],
-                    onSelected: (value) {
-                      setState(() {
-                        _selectedManufacturer = value;
-                      });
-                    },
                   ),
                 ],
               ),
             ),
 
             // Device list grouped by manufacturer
-            Expanded(
-              child: filtered.isEmpty
-                  ? Center(
-                      child: Text(
-                        context.l10n.diveComputer_discovery_usbNoResults(
-                          _searchQuery,
-                        ),
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final manufacturer = manufacturers[index];
-                        final devices = filtered[manufacturer]!;
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Manufacturer header
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                manufacturer,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Devices
-                            ...devices.map(
-                              (model) => _UsbDeviceListTile(
-                                model: model,
-                                onTap: () {
-                                  final discoveredDevice = DiscoveredDevice(
-                                    id: model.id,
-                                    name: model.fullName,
-                                    connectionType: DeviceConnectionType.usb,
-                                    address: model.id,
-                                    recognizedModel: model,
-                                    discoveredAt: DateTime.now(),
-                                  );
-                                  widget.onDeviceSelected(discoveredDevice);
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                          ],
-                        );
-                      },
+            if (filtered.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Text(
+                    context.l10n.diveComputer_discovery_usbNoResults(
+                      _searchQuery,
                     ),
-            ),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverList.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final manufacturer = manufacturers[index];
+                    final devices = filtered[manufacturer]!;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Manufacturer header
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            manufacturer,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        // Devices
+                        ...devices.map(
+                          (model) => _UsbDeviceListTile(
+                            model: model,
+                            onTap: () {
+                              final discoveredDevice = DiscoveredDevice(
+                                id: model.id,
+                                name: model.fullName,
+                                connectionType: DeviceConnectionType.usb,
+                                address: model.id,
+                                recognizedModel: model,
+                                discoveredAt: DateTime.now(),
+                              );
+                              widget.onDeviceSelected(discoveredDevice);
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    );
+                  },
+                ),
+              ),
           ],
         );
       },

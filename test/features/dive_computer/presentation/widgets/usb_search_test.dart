@@ -127,13 +127,13 @@ Widget _buildTestWidget({Map<String, List<DeviceModel>>? usbDevices}) {
 }
 
 Future<void> _switchToUsbTab(WidgetTester tester) async {
-  await tester.tap(find.text('USB Cable'));
+  await tester.tap(find.text(_l10n(tester).diveComputer_scan_tabUsb));
   await tester.pumpAndSettle();
 }
 
 /// Pumps the scan step and opens the USB tab. The default view is tall
-/// enough for every group in [_testUsbDevices] to be built, because
-/// ListView.builder skips rows below the viewport and its cache extent.
+/// enough for every group in [_testUsbDevices] to be built, because the
+/// sliver list skips rows below the viewport and its cache extent.
 Future<void> _pumpUsbTab(
   WidgetTester tester, {
   Map<String, List<DeviceModel>>? usbDevices,
@@ -154,8 +154,13 @@ Finder _findSearchField() {
   );
 }
 
+/// Scoped to the device list sliver: the dropdown above it keeps an offstage
+/// clone of every manufacturer entry, so a wider scope would count those.
 Finder _findListItem(String text) {
-  return find.descendant(of: find.byType(ListView), matching: find.text(text));
+  return find.descendant(
+    of: find.byType(SliverList),
+    matching: find.text(text),
+  );
 }
 
 /// Resolves the localizations the widget under test is rendering with, so
@@ -341,6 +346,31 @@ void main() {
       expect(search.width, contentWidth);
       expect(dropdown.width, contentWidth);
       expect(dropdown.top, greaterThanOrEqualTo(search.bottom));
+    });
+
+    testWidgets('scrolls the header away instead of overflowing a short tab', (
+      tester,
+    ) async {
+      // Opening the search field raises the keyboard, which shrinks the tab
+      // to roughly this height on a portrait phone; landscape is shorter
+      // still. A fixed header above an Expanded list overflows there, so the
+      // whole tab scrolls as one and the header can leave the viewport.
+      await _pumpUsbTab(tester);
+      tester.view.physicalSize = const Size(412, 300);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final search = _findSearchField();
+      final searchTop = tester.getRect(search).top;
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(search).top, lessThan(searchTop));
+      final viewport = tester.getRect(find.byType(CustomScrollView));
+      final firstGroup = tester.getRect(_findListItem('Shearwater'));
+      expect(firstGroup.top, greaterThanOrEqualTo(viewport.top));
+      expect(firstGroup.bottom, lessThanOrEqualTo(viewport.bottom));
     });
 
     testWidgets('search matches partial text', (tester) async {
