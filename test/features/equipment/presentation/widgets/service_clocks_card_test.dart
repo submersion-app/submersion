@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -78,14 +79,20 @@ void main() {
     now: now,
   );
 
-  Widget buildCard() {
+  Widget buildCard({List<ServiceClockStatus>? statuses}) {
     return ProviderScope(
       overrides: [
         serviceClockStatusesProvider('e1').overrideWith(
-          (ref) async => [
-            status(hydro, ServiceClockSeverity.overdue, DateTime(2026, 1, 1)),
-            status(vip, ServiceClockSeverity.ok, DateTime(2027, 5, 1)),
-          ],
+          (ref) async =>
+              statuses ??
+              [
+                status(
+                  hydro,
+                  ServiceClockSeverity.overdue,
+                  DateTime(2026, 1, 1),
+                ),
+                status(vip, ServiceClockSeverity.ok, DateTime(2027, 5, 1)),
+              ],
         ),
         serviceSchedulesForEquipmentProvider(
           'e1',
@@ -116,6 +123,29 @@ void main() {
     expect(find.text('Visual inspection (VIP)'), findsOneWidget);
     expect(find.textContaining('Overdue since'), findsOneWidget);
     expect(find.textContaining('Due '), findsOneWidget);
+  });
+
+  testWidgets('due and overdue clocks get the status palette dots', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildCard(
+        statuses: [
+          status(hydro, ServiceClockSeverity.overdue, DateTime(2026, 1, 1)),
+          status(vip, ServiceClockSeverity.dueSoon, DateTime(2026, 7, 30)),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dots = tester
+        .widgetList<Icon>(find.byIcon(Icons.circle))
+        .map((d) => d.color)
+        .toList();
+    expect(dots, [
+      StatusColors.light.alert.accent,
+      StatusColors.light.warn.accent,
+    ]);
   });
 
   testWidgets('each clock says which date it counts from', (tester) async {

@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
@@ -492,6 +493,12 @@ class AppSettings {
   /// How the dive detail page arranges the sections it shows.
   final DiveDetailLayout diveDetailLayout;
 
+  /// Ordered list of Site Details card visibility and fold preferences.
+  final List<SiteDetailSectionConfig> siteDetailSections;
+
+  /// How the Site Details page arranges the cards it shows.
+  final DiveDetailLayout siteDetailLayout;
+
   /// Home dashboard gauge-strip chip types the user has hidden.
   /// Ids are [HomeChipType.name] values; empty means all chips shown.
   /// Device-local, not per-diver.
@@ -660,6 +667,8 @@ class AppSettings {
     this.showDetailsPaneCourses = false,
     this.diveDetailSections = DiveDetailSectionConfig.defaultSections,
     this.diveDetailLayout = DiveDetailLayout.detailed,
+    this.siteDetailSections = SiteDetailSectionConfig.defaultSections,
+    this.siteDetailLayout = DiveDetailLayout.detailed,
     this.hiddenHomeChips = const <String>{},
     this.homeCardOrder = const <String>[],
     this.hiddenHomeCards = const <String>{},
@@ -835,6 +844,9 @@ class AppSettings {
     List<DiveDetailSectionConfig>? diveDetailSections,
     bool clearDiveDetailSections = false,
     DiveDetailLayout? diveDetailLayout,
+    List<SiteDetailSectionConfig>? siteDetailSections,
+    bool clearSiteDetailSections = false,
+    DiveDetailLayout? siteDetailLayout,
     Set<String>? hiddenHomeChips,
     List<String>? homeCardOrder,
     Set<String>? hiddenHomeCards,
@@ -1015,6 +1027,10 @@ class AppSettings {
           ? DiveDetailSectionConfig.defaultSections
           : (diveDetailSections ?? this.diveDetailSections),
       diveDetailLayout: diveDetailLayout ?? this.diveDetailLayout,
+      siteDetailSections: clearSiteDetailSections
+          ? SiteDetailSectionConfig.defaultSections
+          : (siteDetailSections ?? this.siteDetailSections),
+      siteDetailLayout: siteDetailLayout ?? this.siteDetailLayout,
       hiddenHomeChips: hiddenHomeChips ?? this.hiddenHomeChips,
       homeCardOrder: homeCardOrder ?? this.homeCardOrder,
       hiddenHomeCards: hiddenHomeCards ?? this.hiddenHomeCards,
@@ -2140,6 +2156,41 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     if (!sections.any((s) => s.id == id && s.expanded != expanded)) return;
     state = state.copyWith(
       diveDetailSections: [
+        for (final section in sections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setSiteDetailSections(
+    List<SiteDetailSectionConfig> sections,
+  ) async {
+    state = state.copyWith(siteDetailSections: sections);
+    await _saveSettings();
+  }
+
+  Future<void> resetSiteDetailSections() async {
+    state = state.copyWith(clearSiteDetailSections: true);
+    await _saveSettings();
+  }
+
+  Future<void> setSiteDetailLayout(DiveDetailLayout layout) async {
+    state = state.copyWith(siteDetailLayout: layout);
+    await _saveSettings();
+  }
+
+  /// Record whether Site Details card [id] shows unfolded in the list
+  /// layout. Fold state rides in the card list, so this rewrites that list
+  /// with the one entry changed, and does nothing when it already matches.
+  Future<void> setSiteDetailSectionExpanded(
+    SiteDetailSectionId id,
+    bool expanded,
+  ) async {
+    final sections = state.siteDetailSections;
+    if (!sections.any((s) => s.id == id && s.expanded != expanded)) return;
+    state = state.copyWith(
+      siteDetailSections: [
         for (final section in sections)
           section.id == id ? section.copyWith(expanded: expanded) : section,
       ],

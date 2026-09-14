@@ -4,6 +4,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -149,6 +150,9 @@ void main() {
           uddfDivesExtrasFetchProvider.overrideWithValue(
             (diveIds, options) async => const UddfDivesExtras.empty(),
           ),
+          // The CSV route attaches the dive's linked buddies (#1861); the real
+          // read would reach the database and never settle.
+          buddiesForDiveProvider(dive.id).overrideWith((ref) async => const []),
         ],
         child: DiveDetailPage(diveId: dive.id, embedded: true),
       ),

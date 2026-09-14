@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attr_condition_text.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -33,6 +34,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_arranger
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
@@ -1118,13 +1120,13 @@ class EquipmentListTile extends ConsumerWidget {
             // colors even with accents on -- a cosmetic preference must not
             // hide a service warning.
             backgroundColor: isOverdue
-                ? theme.colorScheme.errorContainer
+                ? StatusColors.of(context).alert.container
                 : accent?.withValues(alpha: 0.15) ??
                       theme.colorScheme.tertiaryContainer,
             child: Icon(
               equipmentTypeIcon(item.type),
               color: isOverdue
-                  ? theme.colorScheme.onErrorContainer
+                  ? StatusColors.of(context).alert.onContainer
                   : accent ?? theme.colorScheme.onTertiaryContainer,
             ),
           ),
@@ -1204,9 +1206,10 @@ class EquipmentListTile extends ConsumerWidget {
                 ? context.l10n.equipment_list_worstClock(kindLabel)
                 : kindLabel,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: overdue
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.tertiary,
+              color: serviceSeveritySwatch(
+                StatusColors.of(context),
+                worstClock.status.severity,
+              )?.accent,
               fontWeight: FontWeight.w600,
             ),
           ),

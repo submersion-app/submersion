@@ -371,7 +371,7 @@ Plausible remaining interpretations, in rough order of likelihood:
 
 ### Corrective action taken
 
-Commit **(to be tagged at revert time)** removed the ZRAWDATA → libdivecomputer decoder path. `MacDiveDiveMapper` no longer calls `parseRawDiveData`, no longer emits a `profile` key on any dive, and the `_vendorProductFromZComputer` map has been deleted. When a logbook contains dives with non-empty `ZRAWDATA`, a single aggregated `ImportWarning` is emitted pointing the user at MacDive's XML export as the working profile path. The warning is surfaced in `ImportSummaryStep`.
+Commit **(to be tagged at revert time)** removed the ZRAWDATA → libdivecomputer decoder path. `MacDiveDiveMapper` no longer calls `parseRawDiveData`, no longer emits a `profile` key on any dive, and the `_vendorProductFromZComputer` map has been deleted. When a logbook contains dives with non-empty `ZRAWDATA`, a single aggregated `ImportWarning` is emitted pointing the user at MacDive's XML export as the working profile path. (Correction, 2026-09-13: this warning never actually reached the user. The only widget that rendered raw `payload.warnings` was a dead, never-imported copy of the summary step, and the live import wizard's notice grouper drops every warning without an `ImportWarningCode`. See "Where it landed" at the end of this document for how it is shown now.)
 
 Net effect on the 540-dive reference DB:
 - **217 Teric + 50 Tern** dives: previously produced parser error spam and empty profiles; now produce no spam and the same empty profiles, with one aggregated warning.
@@ -791,6 +791,15 @@ than cross-checked against ground truth.
   counted: toward the platform warning when the native channel was never
   reachable (an XML export cannot rescue what MacDive never drew), toward the
   XML-export warning otherwise.
+
+  Both warnings carry an `ImportWarningCode` and a dive `count`
+  (`profileUndecodableOnPlatform` and `macdiveProfileUndecodable`), which is
+  what gets them into the import wizard's summary step
+  (`lib/features/import_wizard/presentation/widgets/import_summary_step.dart`):
+  `groupImportNotices` turns each into a localized card, "Profiles not decoded
+  on this device" and "MacDive profiles not decoded", with the number of
+  affected dives. A warning without a code is never shown, which is why the
+  `ImportWarning` constructor asserts that every info or warning has one.
 
 The ratio of the two columns in the reference library: 267 dives have both,
 83 have only `ZSAMPLES`, and 190 have neither. Those 83 were the entire

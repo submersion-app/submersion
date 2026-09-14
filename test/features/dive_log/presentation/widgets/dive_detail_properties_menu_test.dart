@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -342,5 +343,51 @@ void main() {
         );
       });
     });
+  });
+
+  testWidgets('"reorder sections" opens the dive sections settings page', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(600, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(
+              actions: const [DiveDetailPropertiesMenu(isGauge: false)],
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/settings/dive-detail-sections',
+          name: 'diveDetailSections',
+          builder: (context, state) =>
+              const Scaffold(body: Text('DIVE_SECTIONS_PAGE')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _FakeSettingsNotifier(const AppSettings()),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await _openMenu(tester);
+
+    await _tapMenuItem(tester, 'Reorder sections...');
+
+    expect(find.text('DIVE_SECTIONS_PAGE'), findsOneWidget);
   });
 }

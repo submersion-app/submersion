@@ -6,23 +6,29 @@ const _maxListedRows = 5;
 
 /// The text shown when a parsed file produced nothing to import.
 ///
-/// A CSV whose every row was skipped for an unreadable date gets a summary:
-/// how many rows, which ones, and where to look (the date mapping on the
-/// step the user is on). The raw per-row warnings are English transformer
-/// strings, and whichever came first used to be the whole message.
+/// A CSV whose every row was skipped for an unreadable date, with no error
+/// recorded, gets a summary: how many rows, which ones, and where to look (the
+/// date mapping on the step the user is on). The raw per-row warnings are
+/// English transformer strings, and whichever came first used to be the whole
+/// message.
 ///
 /// Anything else leads with a localized sentence and keeps the parser's own
 /// warning as detail, since that text is what tells a user their file is
-/// truncated or malformed. An error is preferred over an earlier note.
+/// truncated or malformed. An error is preferred over an earlier note, and a
+/// diagnostic is never shown.
 String emptyPayloadMessage(
   AppLocalizations l10n,
   List<ImportWarning> warnings,
 ) {
+  // An error is what sank the file, so it wins over the row summary.
+  final hasError = warnings.any(
+    (w) => w.severity == ImportWarningSeverity.error,
+  );
   final unreadable = [
     for (final warning in warnings)
       if (warning.code == ImportWarningCode.unreadableDate) warning,
   ];
-  if (unreadable.isNotEmpty) {
+  if (unreadable.isNotEmpty && !hasError) {
     final rows = {for (final warning in unreadable) ?warning.sourceRow}.toList()
       ..sort();
     return [
@@ -32,11 +38,7 @@ String emptyPayloadMessage(
     ].join('\n');
   }
 
-  final detail =
-      warnings
-          .where((w) => w.severity == ImportWarningSeverity.error)
-          .firstOrNull ??
-      warnings.firstOrNull;
+  final detail = warnings.failureDetail;
   return detail == null
       ? l10n.universalImport_error_noDataInFile
       : l10n.universalImport_error_noDataInFileWithDetails(detail.message);

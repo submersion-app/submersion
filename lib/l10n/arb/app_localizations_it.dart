@@ -1493,6 +1493,180 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_label_notSpecified => 'Non specificato';
 
   @override
+  String get buddies_linkText_action => 'Collega a schede compagno';
+
+  @override
+  String get buddies_linkText_addName => 'Aggiungi un nome';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'Scegli un compagno esistente';
+
+  @override
+  String get buddies_linkText_editName => 'Modifica nome';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Impossibile collegare i compagni: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collega $count',
+      one: 'Collega 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compagni collegati',
+      one: '1 compagno collegato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Nome';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Convertito dal testo compagno di un\'immersione';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Nessun compagno trovato';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Tutti i nomi dei compagni sono collegati a una scheda';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Impossibile caricare le immersioni: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collega $count immersioni',
+      one: 'Collega 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Compagni collegati su $count immersioni',
+      one: 'Compagni collegati su 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Trasforma i nomi dei compagni delle immersioni importate in schede';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compagni esistenti',
+      one: '1 compagno esistente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nuovi compagni',
+      one: '1 nuovo compagno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Collega i nomi dei compagni';
+
+  @override
+  String get buddies_linkText_searchHint => 'Cerca compagni';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Collega schede compagno';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Da «$text»';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Divemaster «$text»';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Compagno esistente';
+
+  @override
+  String get buddies_linkText_statusNew => 'Nuovo compagno';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Intendevi $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compagni di nome $name',
+      one: '1 compagno di nome $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Collegamenti ai compagni rimossi';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Usa';
+
+  @override
   String get buddies_message_added => 'Compagno aggiunto con successo';
 
   @override
@@ -11008,6 +11182,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_harness => 'Imbrago';
 
   @override
+  String get enum_equipmentType_tankBand => 'Cinghia per bombola';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Tasca porta zavorra';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Tasca porta attrezzatura';
+
+  @override
   String get enum_equipmentType_hose => 'Frusta';
 
   @override
@@ -16645,6 +16828,81 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveDetailSection_dataSources_description =>
       'Computer subacquei collegati, gestione sorgenti';
+
+  @override
+  String get siteDetailSection_map_name => 'Mappa';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Anteprima della mappa della posizione del sito';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Numero di immersioni, profondità raggiunte, immersioni più lunghe e più recenti';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Descrizione del sito';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Paese, regione, specchio d\'acqua, coordinate GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Intervallo di profondità indicato e profondità raggiunte nelle immersioni';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Altitudine e categoria di immersione in quota';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Elementi segnati sulla mappa del sito';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Grafico ciclo marea e tempi';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Condizioni dell\'acqua da satellite presso il sito';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Specie avvistate in questo sito';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Foto, video e documenti del sito';
+
+  @override
+  String get siteDetailSection_tags_description => 'Tag di questo sito';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Livello di difficoltà del sito';
+
+  @override
+  String get siteDetailSection_rating_description =>
+      'La tua valutazione del sito';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Pericoli e note di sicurezza';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Entrata e uscita, parcheggio, ormeggio, note di accesso';
+
+  @override
+  String get siteDetailSection_notes_description => 'Le tue note sul sito';
+
+  @override
+  String get settings_siteDetailSections_title => 'Sezioni del dettaglio sito';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Dettagli sito';
 
   @override
   String get settings_appearance_header_language => 'Lingua';
@@ -22470,7 +22728,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'File';
 
   @override
-  String get universalImport_summary_noticesTitle => 'Non presente nel file';
+  String get universalImport_summary_noticesTitle => 'Note sull\'importazione';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22489,6 +22747,117 @@ class AppLocalizationsIt extends AppLocalizations {
       one: 'Riguarda 1 immersione',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'Alcune immersioni non sono state lette';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'Queste immersioni sono state saltate perché i loro dati nel file non sono leggibili.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni saltate',
+      one: '1 immersione saltata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Immersioni di più subacquei';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'Questa libreria MacDive contiene immersioni registrate da $names. Sono state tutte importate nel subacqueo attuale e ogni immersione è etichettata con il nome con cui è stata registrata.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'Alcuni profili non sono stati letti';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'Queste immersioni sono state importate senza profilo di profondità perché i dati del profilo nel file mancano o non sono leggibili.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'Profili MacDive non decodificati';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive ha salvato questi profili in un formato che Submersion non sa leggere. Per importarli, esporta da MacDive in XML (File > Export > MacDive XML) e importa invece quel file.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'Profili non decodificati su questo dispositivo';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'Questo dispositivo non è riuscito a decodificare i dati del computer subacqueo nel file, quindi queste immersioni sono state importate senza profilo di profondità.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Alcune colonne non sono state importate';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Queste colonne corrispondevano a un campo già compilato da un\'altra colonna, quindi sono state escluse: $names. Per usarne una al suo posto, importa di nuovo il file e sceglila nel passaggio «Map Fields».';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Alcuni valori lasciati vuoti';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count valori non sono stati convertiti e sono stati lasciati vuoti. Se un campo sembra sbagliato, controlla l\'associazione delle colonne e importa di nuovo.',
+      one:
+          '1 valore non è stato convertito ed è stato lasciato vuoto. Se un campo sembra sbagliato, controlla l\'associazione delle colonne e importa di nuovo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Alcune foto saltate';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto non avevano un nome file e non è stato possibile collegarle.',
+      one: '1 foto non aveva un nome file e non è stato possibile collegarla.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'Certificazioni e registri di manutenzione non presenti nel file';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive esclude certificazioni e registri di manutenzione dell\'attrezzatura dalla sua esportazione XML. Per importarli, importa il tuo database MacDive.sqlite.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'Logbook MacDive non importati';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'I logbook MacDive ($names) sono ricerche salvate, non elenchi fissi di immersioni, quindi non c\'è nulla da importare. Puoi ricrearli come filtri delle immersioni.';
   }
 
   @override
@@ -26956,6 +27325,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_tool_type => 'Tipo di attrezzo';
 
   @override
+  String get attrLabel_band_style => 'Stile';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capacità';
+
+  @override
+  String get attrLabel_pocket_mount => 'Montaggio';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alluminio';
 
   @override
@@ -27094,6 +27472,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Frusta inflator (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Cinghia con fibbia a camma';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'Fascetta in acciaio inox';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Imbrago';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Cintura ventrale';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Coscia';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

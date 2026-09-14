@@ -1481,6 +1481,180 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_label_notSpecified => 'Niet opgegeven';
 
   @override
+  String get buddies_linkText_action => 'Koppelen aan buddy-records';
+
+  @override
+  String get buddies_linkText_addName => 'Naam toevoegen';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'Bestaande buddy kiezen';
+
+  @override
+  String get buddies_linkText_editName => 'Naam bewerken';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Buddies konden niet worden gekoppeld: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count koppelen',
+      one: '1 koppelen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddies gekoppeld',
+      one: '1 buddy gekoppeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Naam';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Omgezet uit de buddytekst van een duik';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Geen buddies gevonden';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Elke buddynaam is aan een buddy-record gekoppeld';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Duiken konden niet worden geladen: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken koppelen',
+      one: '1 duik koppelen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Buddies gekoppeld bij $count duiken',
+      one: 'Buddies gekoppeld bij 1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Buddynamen van geïmporteerde duiken omzetten in buddy-records';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestaande buddies',
+      one: '1 bestaande buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nieuwe buddies',
+      one: '1 nieuwe buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Buddynamen koppelen';
+
+  @override
+  String get buddies_linkText_searchHint => 'Buddies zoeken';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Buddy-records koppelen';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Uit “$text”';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Divemaster “$text”';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Bestaande buddy';
+
+  @override
+  String get buddies_linkText_statusNew => 'Nieuwe buddy';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Bedoel je $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddies met de naam $name',
+      one: '1 buddy met de naam $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Buddykoppelingen verwijderd';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Gebruiken';
+
+  @override
   String get buddies_message_added => 'Buddy succesvol toegevoegd';
 
   @override
@@ -10926,6 +11100,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harnas';
 
   @override
+  String get enum_equipmentType_tankBand => 'Flesband';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Loodtas';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Uitrustingstas';
+
+  @override
   String get enum_equipmentType_hose => 'Slang';
 
   @override
@@ -16519,6 +16702,82 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveDetailSection_dataSources_description =>
       'Verbonden duikcomputers, bronbeheer';
+
+  @override
+  String get siteDetailSection_map_name => 'Kaart';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Kaartvoorbeeld van de duikstek';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Aantal duiken, bereikte diepten, langste en laatste duiken';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Beschrijving van de duikstek';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Land, regio, wateroppervlak, GPS-coördinaten';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Opgegeven dieptebereik en bij duiken bereikte diepten';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Hoogte en categorie hoogteduik';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Kenmerken gemarkeerd op de kaart van de duikstek';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Getijdecyclusgrafiek en timing';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Satellietwateromstandigheden bij de duikstek';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Soorten gezien bij deze duikstek';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Foto\'s, video\'s en documenten van de duikstek';
+
+  @override
+  String get siteDetailSection_tags_description => 'Tags van deze duikstek';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Moeilijkheidsgraad van de duikstek';
+
+  @override
+  String get siteDetailSection_rating_description =>
+      'Jouw beoordeling van de duikstek';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Gevaren en veiligheidsnotities';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'In- en uitstap, parkeren, meerboei, toegangsnotities';
+
+  @override
+  String get siteDetailSection_notes_description =>
+      'Jouw notities over de duikstek';
+
+  @override
+  String get settings_siteDetailSections_title => 'Secties duikstekdetails';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Duikstekdetails';
 
   @override
   String get settings_appearance_header_language => 'Taal';
@@ -22287,7 +22546,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Bestanden';
 
   @override
-  String get universalImport_summary_noticesTitle => 'Niet in het bestand';
+  String get universalImport_summary_noticesTitle => 'Importnotities';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22306,6 +22565,117 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'Geldt voor 1 duik',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'Sommige duiken konden niet worden gelezen';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'Deze duiken zijn overgeslagen omdat hun gegevens in het bestand niet konden worden gelezen.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken overgeslagen',
+      one: '1 duik overgeslagen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Duiken van meer dan één duiker';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'Deze MacDive-bibliotheek bevat duiken gelogd door $names. Ze zijn allemaal geïmporteerd bij de huidige duiker, en elke duik heeft een tag met de naam waaronder hij is gelogd.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'Sommige profielen konden niet worden gelezen';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'Deze duiken zijn zonder diepteprofiel geïmporteerd omdat de profielgegevens in het bestand ontbreken of niet konden worden gelezen.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'MacDive-profielen niet gedecodeerd';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive heeft deze profielen opgeslagen in een vorm die Submersion niet kan lezen. Exporteer vanuit MacDive als XML (File > Export > MacDive XML) en importeer in plaats daarvan dat bestand om ze te importeren.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'Profielen niet gedecodeerd op dit apparaat';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'Dit apparaat kon de duikcomputergegevens in het bestand niet decoderen, dus deze duiken zijn zonder diepteprofiel geïmporteerd.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Sommige kolommen zijn niet geïmporteerd';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Deze kolommen kwamen overeen met een veld dat al door een andere kolom wordt gevuld en zijn daarom weggelaten: $names. Wil je een ervan gebruiken, importeer het bestand dan opnieuw en kies die kolom in de stap ‘Map Fields’.';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Sommige waarden leeg gelaten';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count waarden konden niet worden omgezet en zijn leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.',
+      one:
+          '1 waarde kon niet worden omgezet en is leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Sommige foto\'s overgeslagen';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto\'s hadden geen bestandsnaam en konden niet worden gekoppeld.',
+      one: '1 foto had geen bestandsnaam en kon niet worden gekoppeld.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'Brevetten en servicerecords niet in het bestand';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive laat brevetten en servicerecords van uitrusting weg uit de XML-export. Importeer je MacDive.sqlite-database om ze op te nemen.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'MacDive-logboeken niet geïmporteerd';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'MacDive-logboeken ($names) zijn opgeslagen zoekopdrachten, geen vaste lijsten met duiken, dus er is niets te importeren. Je kunt ze opnieuw maken als duikfilters.';
   }
 
   @override
@@ -26752,6 +27122,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_tool_type => 'Soort gereedschap';
 
   @override
+  String get attrLabel_band_style => 'Stijl';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capaciteit';
+
+  @override
+  String get attrLabel_pocket_mount => 'Bevestiging';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -26889,6 +27268,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Inflatorslang (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Camband';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'RVS-band';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Harnas';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Heupband';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Dij';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

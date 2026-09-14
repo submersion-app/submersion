@@ -1490,6 +1490,181 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_label_notSpecified => 'Nicht angegeben';
 
   @override
+  String get buddies_linkText_action => 'Mit Tauchpartner-Einträgen verknüpfen';
+
+  @override
+  String get buddies_linkText_addName => 'Namen hinzufügen';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting =>
+      'Vorhandenen Tauchpartner wählen';
+
+  @override
+  String get buddies_linkText_editName => 'Namen bearbeiten';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Tauchpartner konnten nicht verknüpft werden: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verknüpfen',
+      one: '1 verknüpfen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchpartner verknüpft',
+      one: '1 Tauchpartner verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Name';
+
+  @override
+  String get buddies_linkText_newBuddyNote =>
+      'Aus dem Tauchpartner-Text eines Tauchgangs übernommen';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'Keine Tauchpartner gefunden';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Alle Tauchpartner-Namen sind mit Einträgen verknüpft';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Tauchgänge konnten nicht geladen werden: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge verknüpfen',
+      one: '1 Tauchgang verknüpfen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tauchpartner bei $count Tauchgängen verknüpft',
+      one: 'Tauchpartner bei 1 Tauchgang verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Tauchpartner-Namen importierter Tauchgänge in Einträge umwandeln';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vorhandene Tauchpartner',
+      one: '1 vorhandener Tauchpartner',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count neue Tauchpartner',
+      one: '1 neuer Tauchpartner',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Tauchpartner-Namen verknüpfen';
+
+  @override
+  String get buddies_linkText_searchHint => 'Tauchpartner suchen';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Tauchpartner-Einträge verknüpfen';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'Aus „$text“';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Divemaster „$text“';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Vorhandener Tauchpartner';
+
+  @override
+  String get buddies_linkText_statusNew => 'Neuer Tauchpartner';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Meinst du $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchpartner namens $name',
+      one: '1 Tauchpartner namens $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Tauchpartner-Verknüpfungen entfernt';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Übernehmen';
+
+  @override
   String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';
 
   @override
@@ -11007,6 +11182,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harness';
 
   @override
+  String get enum_equipmentType_tankBand => 'Flaschenband';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Bleitasche';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Ausrüstungstasche';
+
+  @override
   String get enum_equipmentType_hose => 'Schlauch';
 
   @override
@@ -16622,6 +16806,81 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveDetailSection_dataSources_description =>
       'Verbundene Tauchcomputer, Quellenverwaltung';
+
+  @override
+  String get siteDetailSection_map_name => 'Karte';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Kartenvorschau des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Beschreibung des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Land, Region, Gewässer, GPS-Koordinaten';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Angegebener Tiefenbereich und bei Tauchgängen erreichte Tiefen';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Höhenlage und Kategorie des Höhentauchgangs';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Auf der Tauchplatzkarte markierte Merkmale';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Gezeitenzyklusdiagramm und Zeiten';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Satellitengestützte Wasserbedingungen am Tauchplatz';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'An diesem Tauchplatz gesichtete Arten';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Fotos, Videos und Dokumente zum Tauchplatz';
+
+  @override
+  String get siteDetailSection_tags_description => 'Tags dieses Tauchplatzes';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Schwierigkeitsgrad des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_rating_description =>
+      'Bewertung des Tauchplatzes';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Gefahren und Sicherheitshinweise';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Ein- und Ausstieg, Parken, Boje, Zugangshinweise';
+
+  @override
+  String get siteDetailSection_notes_description => 'Notizen zum Tauchplatz';
+
+  @override
+  String get settings_siteDetailSections_title => 'Tauchplatz-Detailabschnitte';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Tauchplatz-Details';
 
   @override
   String get settings_appearance_header_language => 'Sprache';
@@ -22419,7 +22678,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Dateien';
 
   @override
-  String get universalImport_summary_noticesTitle => 'Nicht in der Datei';
+  String get universalImport_summary_noticesTitle => 'Hinweise zum Import';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22438,6 +22697,117 @@ class AppLocalizationsDe extends AppLocalizations {
       one: 'Betrifft 1 Tauchgang',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'Einige Tauchgänge konnten nicht gelesen werden';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'Diese Tauchgänge wurden übersprungen, weil ihre Daten in der Datei nicht gelesen werden konnten.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge übersprungen',
+      one: '1 Tauchgang übersprungen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Tauchgänge mehrerer Taucher';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'Diese MacDive-Bibliothek enthält Tauchgänge von $names. Alle wurden beim aktuellen Taucher importiert, und jeder Tauchgang ist mit dem Namen markiert, unter dem er aufgezeichnet wurde.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'Einige Profile konnten nicht gelesen werden';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'Diese Tauchgänge wurden ohne Tiefenprofil importiert, weil die Profildaten in der Datei fehlen oder nicht gelesen werden konnten.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'MacDive-Profile nicht dekodiert';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive hat diese Profile in einem Format gespeichert, das Submersion nicht lesen kann. Um sie zu importieren, exportieren Sie aus MacDive als XML (File > Export > MacDive XML) und importieren Sie stattdessen diese Datei.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'Profile auf diesem Gerät nicht dekodiert';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'Dieses Gerät konnte die Tauchcomputerdaten in der Datei nicht dekodieren, daher wurden diese Tauchgänge ohne Tiefenprofil importiert.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Einige Spalten wurden nicht importiert';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'Diese Spalten passten zu einem Feld, das bereits eine andere Spalte füllt, und wurden daher ausgelassen: $names. Um stattdessen eine davon zu verwenden, importieren Sie die Datei erneut und wählen Sie sie im Schritt „Map Fields“ aus.';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Einige Werte leer gelassen';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Werte konnten nicht umgewandelt werden und wurden leer gelassen. Wenn ein Feld falsch aussieht, prüfen Sie die Spaltenzuordnung und importieren Sie erneut.',
+      one:
+          '1 Wert konnte nicht umgewandelt werden und wurde leer gelassen. Wenn ein Feld falsch aussieht, prüfen Sie die Spaltenzuordnung und importieren Sie erneut.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Einige Fotos übersprungen';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Fotos hatten keinen Dateinamen und konnten nicht verknüpft werden.',
+      one: '1 Foto hatte keinen Dateinamen und konnte nicht verknüpft werden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'Zertifizierungen und Wartungseinträge nicht in der Datei';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive lässt Zertifizierungen und Wartungseinträge der Ausrüstung in seinem XML-Export weg. Um sie zu übernehmen, importieren Sie Ihre MacDive.sqlite-Datenbank.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'MacDive-Logbücher nicht importiert';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'MacDive-Logbücher ($names) sind gespeicherte Suchen und keine festen Listen von Tauchgängen, daher gibt es nichts zu importieren. Sie können sie als Tauchgangsfilter neu anlegen.';
   }
 
   @override
@@ -26902,6 +27272,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_tool_type => 'Werkzeugart';
 
   @override
+  String get attrLabel_band_style => 'Bauart';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Fassungsvermögen';
+
+  @override
+  String get attrLabel_pocket_mount => 'Befestigung';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -27040,6 +27419,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'Inflator (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Camband';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'Edelstahlschelle';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Harness';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Bauchgurt';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Oberschenkel';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

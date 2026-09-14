@@ -144,9 +144,9 @@ Widget _buildTestWidget({
   );
 }
 
-/// Like [_buildTestWidget], but under a GoRouter with a stub dive list, so a
-/// row tap can navigate. [initialFilter] seeds the dive filter the diver had
-/// before opening Manage Tags.
+/// Like [_buildTestWidget], but under a GoRouter with stub dive and site
+/// lists, so a test can prove a row tap does not navigate. [initialFilter]
+/// seeds the dive filter the diver had before opening Manage Tags.
 Widget _buildRoutedTestWidget({
   required List<TagStatistic> stats,
   DiveFilterState initialFilter = const DiveFilterState(),
@@ -364,7 +364,7 @@ void main() {
       expect(find.byType(FloatingActionButton), findsNothing);
     });
 
-    testWidgets('long-press on a tag edits it and does not enter selection', (
+    testWidgets('long-press on a tag does nothing outside selection', (
       tester,
     ) async {
       await tester.pumpWidget(_buildTestWidget(stats: _testStats));
@@ -373,10 +373,9 @@ void main() {
       await tester.longPress(find.text('Night Dive'));
       await tester.pumpAndSettle();
 
-      // A long press opened the editor before a row tap started opening the
-      // tag's dives (#1833), and still does.
-      expect(find.text('Edit Tag'), findsOneWidget);
-      expect(find.widgetWithText(TextField, 'Night Dive'), findsOneWidget);
+      // The edit button is the one way to edit a tag, and a long press must
+      // not become a way into multi-select either.
+      expect(find.text('Edit Tag'), findsNothing);
       expect(find.text('1 selected'), findsNothing);
       // Selection checkboxes only: the tag edit dialog has scope checkboxes
       // of its own (issue #1765).
@@ -474,36 +473,12 @@ void main() {
     });
   });
 
-  group('tapping a tag opens its dives (#1833)', () {
-    testWidgets('a row tap opens the dive list filtered to that tag', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_buildRoutedTestWidget(stats: _testStats));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Night Dive'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
-      final container = ProviderScope.containerOf(
-        tester.element(find.text('DIVES_LIST_PAGE')),
-      );
-      expect(container.read(diveFilterProvider).tagIds, ['tag1']);
-    });
-
-    testWidgets('the tag filter replaces the filter the diver had before', (
-      tester,
-    ) async {
-      // A leftover filter would hide some of the tag's dives, so the list
-      // would no longer match the count shown on the row.
+  group('a row tap stays on the page', () {
+    testWidgets('a row tap neither navigates nor edits', (tester) async {
       await tester.pumpWidget(
         _buildRoutedTestWidget(
           stats: _testStats,
-          initialFilter: const DiveFilterState(
-            siteId: 'site-1',
-            tagIds: ['tag2'],
-            favoritesOnly: true,
-          ),
+          initialFilter: const DiveFilterState(siteId: 'site-1'),
         ),
       );
       await tester.pumpAndSettle();
@@ -511,13 +486,16 @@ void main() {
       await tester.tap(find.text('Night Dive'));
       await tester.pumpAndSettle();
 
+      expect(find.text('DIVES_LIST_PAGE'), findsNothing);
+      expect(find.text('Edit Tag'), findsNothing);
+      expect(find.text('1 selected'), findsNothing);
+      // The dive list filter is the diver's own and a tap here leaves it be.
       final container = ProviderScope.containerOf(
-        tester.element(find.text('DIVES_LIST_PAGE')),
+        tester.element(find.text('Night Dive')),
       );
       final filter = container.read(diveFilterProvider);
-      expect(filter.tagIds, ['tag1']);
-      expect(filter.siteId, isNull);
-      expect(filter.favoritesOnly, isNull);
+      expect(filter.tagIds, isEmpty);
+      expect(filter.siteId, 'site-1');
     });
 
     group('a tag used on sites (issue #1765)', () {
@@ -534,26 +512,29 @@ void main() {
         siteCount: 3,
       );
 
-      testWidgets('a sites-only tag opens the site list filtered to it', (
-        tester,
-      ) async {
+      Future<void> tapAndExpectStayPut(WidgetTester tester) async {
+        await tester.tap(find.text('To try'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('SITES_LIST_PAGE'), findsNothing);
+        expect(find.text('DIVES_LIST_PAGE'), findsNothing);
+        final container = ProviderScope.containerOf(
+          tester.element(find.text('To try')),
+        );
+        expect(container.read(siteFilterProvider).tagIds, isEmpty);
+        expect(container.read(diveFilterProvider).tagIds, isEmpty);
+      }
+
+      testWidgets('a sites-only tag row stays on the page', (tester) async {
         await tester.pumpWidget(
           _buildRoutedTestWidget(stats: [siteStat(forDives: false)]),
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('To try'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('SITES_LIST_PAGE'), findsOneWidget);
-        final container = ProviderScope.containerOf(
-          tester.element(find.text('SITES_LIST_PAGE')),
-        );
-        expect(container.read(siteFilterProvider).tagIds, {'site-tag'});
-        expect(container.read(diveFilterProvider).tagIds, isEmpty);
+        await tapAndExpectStayPut(tester);
       });
 
-      testWidgets('a tag also used on dives still opens its dives', (
+      testWidgets('a tag used on dives and sites stays on the page', (
         tester,
       ) async {
         await tester.pumpWidget(
@@ -561,10 +542,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('To try'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
+        await tapAndExpectStayPut(tester);
       });
     });
 

@@ -663,9 +663,10 @@ class UddfEntityImporter {
   /// Persists service records for equipment that was actually imported.
   ///
   /// Each record names its owner through `equipmentRef`, the same key
-  /// `_importEquipment` registered in [equipmentIdMapping]. Records whose
-  /// equipment was not imported (deselected, or a dangling reference) are
-  /// skipped - a service record with no item to attach to is unreachable.
+  /// `_importEquipment` registered in [equipmentIdMapping], which must hold
+  /// only the items this import created. Records whose equipment was not
+  /// imported (deselected, or a dangling reference) are skipped; a service
+  /// record with no item to attach to is unreachable.
   Future<int> _importServiceRecords(
     List<Map<String, dynamic>> items,
     ServiceRecordRepository? repository,
@@ -740,6 +741,11 @@ class UddfEntityImporter {
 
       final sizeText = (equipData['size'] as String?)?.trim();
       final size = sizeText == null || sizeText.isEmpty ? null : sizeText;
+      final thickness = _importedThickness(
+        newId,
+        equipType,
+        equipData['thickness'],
+      );
 
       final item = EquipmentItem(
         id: newId,
@@ -764,14 +770,18 @@ class UddfEntityImporter {
               key: EquipmentAttrKeys.size,
               valueText: size,
             ),
+          ?thickness,
           // Every other attribute the source carried (the Submersion CSV
-          // writes them all; issue #1813). A size in the list defers to the
-          // dedicated key above.
+          // writes them all; issue #1813). A size or thickness in the list
+          // defers to the dedicated key above.
           ...equipmentAttributesFromImport(
             equipData['attributes'],
             equipmentId: newId,
             newId: _uuid.v4,
-            takenKeys: {if (size != null) EquipmentAttrKeys.size},
+            takenKeys: {
+              if (size != null) EquipmentAttrKeys.size,
+              if (thickness != null) EquipmentAttrKeys.thicknessMm,
+            },
           ),
         ],
       );
@@ -3178,6 +3188,32 @@ class UddfEntityImporter {
         await repository.addTagToDive(diveId, newTagId);
       }
     }
+  }
+
+  /// The curated `thickness_mm` row for an imported item that states a
+  /// thickness designation ("5/4", "7mm"; issue #1824), stored the way the
+  /// edit form stores it: the designation as text, its primary panel as the
+  /// number. Null unless the item's type has a thickness in the catalog and
+  /// the designation is one the edit form would accept.
+  EquipmentAttribute? _importedThickness(
+    String equipmentId,
+    EquipmentType type,
+    dynamic raw,
+  ) {
+    final designation = raw is String ? raw.trim() : '';
+    if (designation.isEmpty || !isValidThicknessDesignation(designation)) {
+      return null;
+    }
+    final hasThickness = EquipmentAttributeCatalog.attributesFor(
+      type,
+    ).any((def) => def.key == EquipmentAttrKeys.thicknessMm);
+    if (!hasThickness) return null;
+    return EquipmentAttribute.curated(
+      equipmentId: equipmentId,
+      key: EquipmentAttrKeys.thicknessMm,
+      valueText: designation,
+      valueNum: parsePrimaryThickness(designation),
+    );
   }
 
   // -- Enum parsing helpers --

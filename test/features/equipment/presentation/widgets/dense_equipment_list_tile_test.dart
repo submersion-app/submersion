@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -27,7 +32,61 @@ EquipmentItem _makeItem({
   );
 }
 
+RollupClock _clock(EquipmentItem item, ServiceClockSeverity severity) {
+  final t0 = DateTime(2026, 1, 1);
+  return (
+    ownerId: item.id,
+    ownerName: item.name,
+    status: ServiceClockStatus(
+      schedule: ServiceSchedule(
+        id: 's-${item.id}',
+        equipmentId: item.id,
+        serviceKindId: 'annual',
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+      kind: ServiceKind(
+        id: 'annual',
+        name: 'Annual service',
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+      anchor: t0,
+      dueDate: DateTime.now().add(const Duration(days: 5)),
+      severity: severity,
+      now: DateTime.now(),
+    ),
+  );
+}
+
 void main() {
+  group('DenseEquipmentListTile service label', () {
+    for (final (severity, expected) in [
+      (ServiceClockSeverity.overdue, StatusColors.light.alert.accent),
+      (ServiceClockSeverity.dueSoon, StatusColors.light.warn.accent),
+    ]) {
+      testWidgets('a ${severity.name} clock uses the status accent', (
+        tester,
+      ) async {
+        final item = _makeItem();
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              equipmentRollupClockProvider.overrideWith(
+                (ref) async => {item.id: _clock(item, severity)},
+              ),
+            ],
+            child: DenseEquipmentListTile(item: item, onTap: () {}),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final label = tester.widget<Text>(find.text('Annual service'));
+        expect(label.style?.color, expected);
+      });
+    }
+  });
+
   group('DenseEquipmentListTile', () {
     testWidgets('a screen reader hears the condition badge', (tester) async {
       // The badge is text and colour on screen. The row's Semantics label

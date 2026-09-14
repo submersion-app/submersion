@@ -292,6 +292,63 @@ add(
     ),
 )
 
+# BCD rig parts (issue #1877). A band on its own is a ring, which the wing's
+# donut already means, so the tank band is shown doing its job: clamped
+# around a cylinder, with the cam buckle standing proud on the side. The
+# cylinder is two separate pieces above and below the band rather than one
+# body with the band cut out of it, so the gap never depends on a hole.
+add(
+    "tank_band",
+    "Tank Band",
+    "A cylinder with a band clamped around it and a cam buckle on the side.",
+    g(
+        "M6 8.2V5.6A4.4 3 0 0 1 14.8 5.6V8.2Z",       # cylinder shoulder
+        rrect(9.2, 1.0, 2.4, 2.6, 0.6),               # valve
+        rrect(6.0, 15.8, 8.8, 6.6, 1.4),              # cylinder below the band
+        rrect(4.4, 9.2, 12.8, 5.6, 1.2),              # band
+        rrect(15.6, 8.2, 5.2, 7.6, 1.4),              # cam buckle
+        rrect(17.2, 10.0, 2.0, 4.0, 0.6, solid=False),  # buckle slot
+    ),
+)
+
+# At 20px the two pockets are told apart by their details. The weight
+# pocket's cues are its pull handle and the lead block inside it; the gear
+# pocket's are its pointed flap and snap.
+add(
+    "weight_pocket",
+    "Weight Pocket",
+    "Pouch with a quick-release pull handle and a lead block inside.",
+    g(
+        rrect(9.0, 1.6, 6.0, 5.4, 2.4),               # pull handle
+        rrect(4.2, 6.4, 15.6, 4.2, 1.4),              # flap
+        rrect(5.0, 11.4, 14.0, 10.8, 2.4),            # pouch body
+        rrect(10.6, 3.0, 2.8, 2.6, 1.2, solid=False),  # handle opening
+        poly(
+            [(9.8, 13.6), (14.2, 13.6), (15.6, 19.8), (8.4, 19.8)],
+            solid=False,
+        ),                                             # lead block
+    ),
+)
+
+# A zip across a plain box, and mounting loops above it, both read as a
+# calendar. The pointed flap is what says pocket; the pouch's top edge runs
+# parallel to it so the gap between them survives at 20px.
+add(
+    "gear_pocket",
+    "Gear Pocket",
+    "Pouch under a pointed flap held down by a snap.",
+    g(
+        poly(
+            [(4.0, 3.0), (20.0, 3.0), (20.0, 8.4), (12.0, 11.2), (4.0, 8.4)]
+        ),                                             # flap
+        poly(
+            [(4.8, 9.6), (12.0, 12.2), (19.2, 9.6), (19.2, 17.0), (4.8, 17.0)]
+        ),                                             # pouch, top edge
+        rrect(4.8, 14.0, 14.4, 7.6, 2.4),             # pouch, rounded base
+        circle(12.0, 7.6, 1.2, solid=False),          # snap
+    ),
+)
+
 # Private Use Area code points, assigned in declaration order and never
 # renumbered: they are baked into the committed font and into
 # lib/core/icons/submersion_icons.dart.

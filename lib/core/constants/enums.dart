@@ -21,6 +21,12 @@ enum EquipmentType {
   backplate('Backplate'),
   wing('Wing'),
   harness('Harness'),
+  // Rig accessories requested in #1877. Divers had been filing them under
+  // BCD, which buried the real BCDs under cam bands and pouches whenever the
+  // list was filtered or grouped by type.
+  tankBand('Tank Band'),
+  weightPocket('Weight Pocket'),
+  gearPocket('Gear Pocket'),
   wetsuit('Wetsuit'),
   drysuit('Drysuit'),
   // The two drysuit layers, requested in #1537. They sit next to the suits

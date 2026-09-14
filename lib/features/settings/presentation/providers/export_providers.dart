@@ -183,7 +183,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_divesCsv,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -303,6 +303,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
   /// id, so a stale one (a restore, or a sync that removed the diver) found
   /// no dives and aborted the export as empty, and any dive list scoped
   /// apart from the check-ins could leave a check-in's dive out of the file.
+  ///
+  /// The dives CSV and the PDF logbook read it too: they print linked buddy
+  /// names (#1861), and [divesProvider] only refreshes on `dives` table
+  /// writes, so a buddy renamed since the list was cached exported under its
+  /// old name. An export is one-shot, so a fresh read costs nothing extra.
   Future<List<Dive>> _validatedDiverDives() async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     return _ref.read(diveRepositoryProvider).getAllDives(diverId: diverId);
@@ -448,7 +453,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_pdf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -1054,7 +1059,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingDivesCsv,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,
@@ -1332,7 +1337,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       message: _l10n.settings_export_progress_preparingPdf,
     );
     try {
-      final dives = await _ref.read(divesProvider.future);
+      final dives = await _validatedDiverDives();
       if (dives.isEmpty) {
         state = state.copyWith(
           status: ExportStatus.error,

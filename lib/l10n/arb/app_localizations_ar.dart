@@ -1475,6 +1475,178 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_label_notSpecified => 'غير محدد';
 
   @override
+  String get buddies_linkText_action => 'ربط بسجلات الرفاق';
+
+  @override
+  String get buddies_linkText_addName => 'إضافة اسم';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'اختيار رفيق موجود';
+
+  @override
+  String get buddies_linkText_editName => 'تعديل الاسم';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'تعذر ربط الرفاق: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ربط $count',
+      one: 'ربط 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط $count رفيق',
+      one: 'تم ربط رفيق واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'الاسم';
+
+  @override
+  String get buddies_linkText_newBuddyNote => 'تم التحويل من نص الرفيق في غطسة';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'لم يتم العثور على رفاق';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty => 'كل أسماء الرفاق مرتبطة بسجل رفيق';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'تعذر تحميل الغطسات: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ربط $count غطسة',
+      one: 'ربط غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط الرفاق في $count غطسة',
+      one: 'تم ربط الرفاق في غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'تحويل أسماء الرفاق في الغطسات المستوردة إلى سجلات رفاق';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رفيق موجود',
+      one: 'رفيق موجود واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رفيق جديد',
+      one: 'رفيق جديد واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'ربط أسماء الرفاق';
+
+  @override
+  String get buddies_linkText_searchHint => 'البحث عن رفاق';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'ربط سجلات الرفاق';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'من «$text»';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'دايف ماستر «$text»';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'رفيق موجود';
+
+  @override
+  String get buddies_linkText_statusNew => 'رفيق جديد';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'هل تقصد $name؟';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رفيق باسم $name',
+      one: 'رفيق واحد باسم $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'تمت إزالة روابط الرفاق';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'استخدام';
+
+  @override
   String get buddies_message_added => 'تمت إضافة الرفيق بنجاح';
 
   @override
@@ -10813,6 +10985,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_harness => 'حزام';
 
   @override
+  String get enum_equipmentType_tankBand => 'حزام الأسطوانة';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'جيب الأثقال';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'جيب المعدات';
+
+  @override
   String get enum_equipmentType_hose => 'خرطوم';
 
   @override
@@ -16351,6 +16532,77 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveDetailSection_dataSources_description =>
       'أجهزة الغوص المتصلة، إدارة المصادر';
+
+  @override
+  String get siteDetailSection_map_name => 'الخريطة';
+
+  @override
+  String get siteDetailSection_map_description => 'معاينة خريطة لموقع الغوص';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها';
+
+  @override
+  String get siteDetailSection_description_description => 'وصف الموقع';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'نطاق العمق المصنف والأعماق التي تم بلوغها في الغوصات';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'الارتفاع وفئة الغوص على ارتفاع';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'المعالم المحددة على خريطة الموقع';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'رسم بياني لدورة المد والجزر والتوقيت';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'أحوال المياه عبر الأقمار الصناعية في الموقع';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'الأنواع التي شوهدت في هذا الموقع';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'صور ومقاطع فيديو ومستندات الموقع';
+
+  @override
+  String get siteDetailSection_tags_description => 'وسوم هذا الموقع';
+
+  @override
+  String get siteDetailSection_difficulty_description => 'مستوى صعوبة الموقع';
+
+  @override
+  String get siteDetailSection_rating_description => 'تقييمك للموقع';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'المخاطر وملاحظات السلامة';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'الدخول والخروج، مواقف السيارات، الرسو، ملاحظات الوصول';
+
+  @override
+  String get siteDetailSection_notes_description => 'ملاحظاتك عن الموقع';
+
+  @override
+  String get settings_siteDetailSections_title => 'أقسام تفاصيل الموقع';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'تفاصيل الموقع';
 
   @override
   String get settings_appearance_header_language => 'اللغة';
@@ -22077,7 +22329,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'الملفات';
 
   @override
-  String get universalImport_summary_noticesTitle => 'غير موجود في الملف';
+  String get universalImport_summary_noticesTitle => 'ملاحظات الاستيراد';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22096,6 +22348,116 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'يؤثر على غطسة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'تعذّرت قراءة بعض الغطسات';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تخطي $count غطسات',
+      one: 'تم تخطي غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'غطسات لأكثر من غوّاص';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'تحتوي مكتبة MacDive هذه على غطسات سجّلها $names. تم استيرادها كلها إلى الغوّاص الحالي، ووُسمت كل غطسة بالاسم الذي سُجّلت به.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'تعذّرت قراءة بعض ملفات العمق';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'تم استيراد هذه الغطسات بدون ملف العمق لأن بيانات ملف العمق في الملف مفقودة أو تعذّرت قراءتها.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'لم يُفك ترميز ملفات العمق من MacDive';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'خزّن MacDive ملفات العمق هذه بصيغة لا يستطيع Submersion قراءتها. لاستيرادها، صدّر من MacDive بصيغة XML (File > Export > MacDive XML) ثم استورد ذلك الملف بدلاً من ذلك.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'لم يُفك ترميز ملفات العمق على هذا الجهاز';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'تعذّر على هذا الجهاز فك ترميز بيانات حاسوب الغوص في الملف، لذا تم استيراد هذه الغطسات بدون ملفات العمق.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'لم يتم استيراد بعض الأعمدة';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'طابقت هذه الأعمدة حقلًا يملؤه عمود آخر بالفعل، لذا تم استبعادها: $names. لاستخدام أحدها بدلاً من ذلك، استورد الملف مجددًا واختره في خطوة \"Map Fields\".';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'تُركت بعض القيم فارغة';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تعذّر تحويل $count قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
+      one:
+          'تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'تم تخطي بعض الصور';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يكن لـ $count صور اسم ملف فتعذّر ربطها.',
+      one: 'لم يكن لصورة واحدة اسم ملف فتعذّر ربطها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'الشهادات وسجلات الصيانة غير موجودة في الملف';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'يستبعد MacDive الشهادات وسجلات صيانة المعدات من تصدير XML. لاستيرادها، استورد قاعدة بيانات MacDive.sqlite الخاصة بك.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'لم يتم استيراد دفاتر سجل MacDive';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'دفاتر سجل MacDive ($names) هي عمليات بحث محفوظة وليست قوائم ثابتة من الغطسات، لذا لا يوجد ما يُستورد. يمكنك إعادة إنشائها كعوامل تصفية للغطسات.';
   }
 
   @override
@@ -26489,6 +26851,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_tool_type => 'نوع الأداة';
 
   @override
+  String get attrLabel_band_style => 'النمط';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'السعة';
+
+  @override
+  String get attrLabel_pocket_mount => 'التثبيت';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'ألومنيوم';
 
   @override
@@ -26625,6 +26996,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'منفاخ (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'حزام بإبزيم كامي';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'طوق فولاذي مقاوم للصدأ';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'حزام';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'حزام الخصر';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'الفخذ';
 
   @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
@@ -15,7 +16,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_e
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -328,8 +332,10 @@ void main() {
   group('EquipmentDetailPage purchase price', () {
     Future<void> pumpWithEquipment(
       WidgetTester tester,
-      EquipmentItem equipment,
-    ) async {
+      EquipmentItem equipment, {
+      List<ServiceClockStatus>? clocks,
+      bool embedded = false,
+    }) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(600, 1600);
       addTearDown(() {
@@ -381,17 +387,132 @@ void main() {
             serviceRecordNotifierProvider(
               equipment.id,
             ).overrideWith((ref) => _MockServiceRecordNotifier()),
+            if (clocks != null)
+              serviceClockStatusesProvider(
+                equipment.id,
+              ).overrideWith((ref) async => clocks),
           ].cast(),
           child: MaterialApp(
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: EquipmentDetailPage(equipmentId: equipment.id),
+            home: embedded
+                ? Scaffold(
+                    body: EquipmentDetailPage(
+                      equipmentId: equipment.id,
+                      embedded: true,
+                    ),
+                  )
+                : EquipmentDetailPage(equipmentId: equipment.id),
           ),
         ),
       );
       await tester.pumpAndSettle();
     }
+
+    ServiceClockStatus overdueClock(EquipmentItem equipment) {
+      final t0 = DateTime(2025, 1, 1);
+      return ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's1',
+          equipmentId: equipment.id,
+          serviceKindId: 'annual',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: ServiceKind(
+          id: 'annual',
+          name: 'Annual service',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        anchor: t0,
+        dueDate: DateTime(2026, 1, 1),
+        severity: ServiceClockSeverity.overdue,
+        now: DateTime(2026, 6, 1),
+      );
+    }
+
+    testWidgets('an overdue clock lights the embedded header avatar too', (
+      tester,
+    ) async {
+      const equipment = EquipmentItem(
+        id: 'equip-overdue-embedded',
+        name: 'Old reg',
+        type: EquipmentType.regulator,
+      );
+
+      await pumpWithEquipment(
+        tester,
+        equipment,
+        clocks: [overdueClock(equipment)],
+        embedded: true,
+      );
+
+      final alert = StatusColors.light.alert;
+      final avatar = tester
+          .widgetList<CircleAvatar>(find.byType(CircleAvatar))
+          .firstWhere((a) => a.radius == 20);
+      expect(avatar.backgroundColor, alert.container);
+      final glyph = tester.widget<Icon>(
+        find.descendant(of: find.byWidget(avatar), matching: find.byType(Icon)),
+      );
+      expect(glyph.color, alert.onContainer);
+    });
+
+    testWidgets('an overdue clock lights the header in the alert palette', (
+      tester,
+    ) async {
+      const equipment = EquipmentItem(
+        id: 'equip-overdue',
+        name: 'Old reg',
+        type: EquipmentType.regulator,
+      );
+      final t0 = DateTime(2025, 1, 1);
+      final overdue = ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's1',
+          equipmentId: equipment.id,
+          serviceKindId: 'annual',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: ServiceKind(
+          id: 'annual',
+          name: 'Annual service',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        anchor: t0,
+        dueDate: DateTime(2026, 1, 1),
+        severity: ServiceClockSeverity.overdue,
+        now: DateTime(2026, 6, 1),
+      );
+
+      await pumpWithEquipment(tester, equipment, clocks: [overdue]);
+
+      final alert = StatusColors.light.alert;
+      final avatar = tester
+          .widgetList<CircleAvatar>(find.byType(CircleAvatar))
+          .firstWhere((a) => a.radius == 32);
+      expect(avatar.backgroundColor, alert.container);
+
+      final box = tester.widget<Container>(
+        find
+            .ancestor(
+              of: find.text('Service is overdue!'),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      final decoration = box.decoration! as BoxDecoration;
+      expect(decoration.color, alert.container);
+      expect((decoration.border! as Border).top.color, alert.outline);
+      expect(
+        tester.widget<Text>(find.text('Service is overdue!')).style?.color,
+        alert.onContainer,
+      );
+    });
 
     testWidgets('renders the item currency symbol, not a hardcoded dollar', (
       tester,

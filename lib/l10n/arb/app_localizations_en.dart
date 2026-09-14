@@ -1467,6 +1467,179 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_label_notSpecified => 'Not specified';
 
   @override
+  String get buddies_linkText_action => 'Link to buddy records';
+
+  @override
+  String get buddies_linkText_addName => 'Add a name';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'Choose existing buddy';
+
+  @override
+  String get buddies_linkText_editName => 'Edit name';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'Could not link buddies: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Link $count',
+      one: 'Link 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linked $count buddies',
+      one: 'Linked 1 buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'Name';
+
+  @override
+  String get buddies_linkText_newBuddyNote => 'Converted from dive buddy text';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'No buddies found';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'Every buddy name is linked to a buddy record';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'Could not load dives: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Link $count dives',
+      one: 'Link 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linked buddies on $count dives',
+      one: 'Linked buddies on 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'Turn buddy names on imported dives into buddy records';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count existing buddies',
+      one: '1 existing buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new buddies',
+      one: '1 new buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'Link buddy names';
+
+  @override
+  String get buddies_linkText_searchHint => 'Search buddies';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'Link buddy records';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'From \"$text\"';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'Dive master \"$text\"';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'Existing buddy';
+
+  @override
+  String get buddies_linkText_statusNew => 'New buddy';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'Did you mean $name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddies named $name',
+      one: '1 buddy named $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'Buddy links removed';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'Use';
+
+  @override
   String get buddies_message_added => 'Buddy added successfully';
 
   @override
@@ -10834,6 +11007,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harness';
 
   @override
+  String get enum_equipmentType_tankBand => 'Tank Band';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'Weight Pocket';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'Gear Pocket';
+
+  @override
   String get enum_equipmentType_hose => 'Hose';
 
   @override
@@ -16376,6 +16558,80 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveDetailSection_dataSources_description =>
       'Connected dive computers, source management';
+
+  @override
+  String get siteDetailSection_map_name => 'Map';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'Map preview of the site location';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'Dive count, depths reached, longest and latest dives';
+
+  @override
+  String get siteDetailSection_description_description =>
+      'Your description of the site';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'Country, region, body of water, GPS coordinates';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'Rated depth range and depths reached on dives';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'Altitude and altitude dive category';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'Features marked on the site map';
+
+  @override
+  String get siteDetailSection_tide_description =>
+      'Tide cycle graph and timing';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'Satellite water conditions at the site';
+
+  @override
+  String get siteDetailSection_marineLife_description =>
+      'Species seen at this site';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'Photos, videos and documents for the site';
+
+  @override
+  String get siteDetailSection_tags_description => 'Tags on this site';
+
+  @override
+  String get siteDetailSection_difficulty_description =>
+      'Difficulty level of the site';
+
+  @override
+  String get siteDetailSection_rating_description => 'Your rating of the site';
+
+  @override
+  String get siteDetailSection_hazards_description =>
+      'Hazards and safety notes';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'Entry and exit, parking, mooring, access notes';
+
+  @override
+  String get siteDetailSection_notes_description => 'Your notes about the site';
+
+  @override
+  String get settings_siteDetailSections_title => 'Site Detail Sections';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'Site Details';
 
   @override
   String get settings_appearance_header_language => 'Language';
@@ -22091,7 +22347,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'Files';
 
   @override
-  String get universalImport_summary_noticesTitle => 'Not in the file';
+  String get universalImport_summary_noticesTitle => 'Import notes';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -22110,6 +22366,116 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Affects 1 dive',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'Some dives could not be read';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'These dives were skipped because their data in the file could not be read.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives skipped',
+      one: '1 dive skipped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'Dives from more than one diver';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'This MacDive library has dives logged by $names. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'Some profiles could not be read';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'These dives were imported without a depth profile because the profile data in the file is missing or could not be read.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'MacDive profiles not decoded';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive stored these profiles in a form Submersion cannot read. To import them, export from MacDive as XML (File > Export > MacDive XML) and import that file instead.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'Profiles not decoded on this device';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'Some columns were not imported';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'These columns matched a field that another column already fills, so they were left out: $names. To use one of them instead, import the file again and choose it on the Map Fields step.';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'Some values left blank';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.',
+      one:
+          '1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'Some photos skipped';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos had no file name and could not be linked.',
+      one: '1 photo had no file name and could not be linked.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'Certifications and service records not in the file';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'MacDive logbooks not imported';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'MacDive logbooks ($names) are saved searches, not fixed lists of dives, so there is nothing to import. You can recreate them as dive filters.';
   }
 
   @override
@@ -26508,6 +26874,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_tool_type => 'Tool type';
 
   @override
+  String get attrLabel_band_style => 'Style';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'Capacity';
+
+  @override
+  String get attrLabel_pocket_mount => 'Mount';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminum';
 
   @override
@@ -26644,6 +27019,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'LPI (inflator)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'Cam strap';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'Stainless band';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'Harness';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'Waist belt';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'Thigh';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

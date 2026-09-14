@@ -1402,6 +1402,169 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_label_notSpecified => '未指定';
 
   @override
+  String get buddies_linkText_action => '关联到潜伴记录';
+
+  @override
+  String get buddies_linkText_addName => '添加名字';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => '选择已有潜伴';
+
+  @override
+  String get buddies_linkText_editName => '编辑名字';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return '无法关联潜伴：$error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '关联 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已关联 $count 位潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => '名字';
+
+  @override
+  String get buddies_linkText_newBuddyNote => '由潜水记录中的潜伴文本转换而来';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => '未找到潜伴';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty => '所有潜伴名字都已关联到潜伴记录';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return '无法加载潜水记录：$error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '关联 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已为 $count 次潜水关联潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle => '将导入潜水中的潜伴名字转换为潜伴记录';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位已有潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位新潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => '关联潜伴名字';
+
+  @override
+  String get buddies_linkText_searchHint => '搜索潜伴';
+
+  @override
+  String get buddies_linkText_sheetTitle => '关联潜伴记录';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return '来自“$text”';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return '潜水长“$text”';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => '已有潜伴';
+
+  @override
+  String get buddies_linkText_statusNew => '新潜伴';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return '您是指 $name 吗？';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位名为 $name 的潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => '已移除潜伴关联';
+
+  @override
+  String get buddies_linkText_useSuggestion => '使用';
+
+  @override
   String get buddies_message_added => '潜伴添加成功';
 
   @override
@@ -10503,6 +10666,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_harness => '背带';
 
   @override
+  String get enum_equipmentType_tankBand => '气瓶绑带';
+
+  @override
+  String get enum_equipmentType_weightPocket => '配重袋';
+
+  @override
+  String get enum_equipmentType_gearPocket => '装备袋';
+
+  @override
   String get enum_equipmentType_hose => '软管';
 
   @override
@@ -15838,6 +16010,67 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_dataSources_description => '已连接的潜水电脑、数据源管理';
+
+  @override
+  String get siteDetailSection_map_name => '地图';
+
+  @override
+  String get siteDetailSection_map_description => '潜水点位置的地图预览';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      '潜水次数、到达深度、最长和最近的潜水';
+
+  @override
+  String get siteDetailSection_description_description => '潜水点描述';
+
+  @override
+  String get siteDetailSection_location_description => '国家、地区、水域、GPS 坐标';
+
+  @override
+  String get siteDetailSection_depth_description => '标注深度范围及潜水实际到达深度';
+
+  @override
+  String get siteDetailSection_altitude_description => '海拔及高海拔潜水类别';
+
+  @override
+  String get siteDetailSection_features_description => '在潜水点地图上标记的特征';
+
+  @override
+  String get siteDetailSection_tide_description => '潮汐周期图和时间';
+
+  @override
+  String get siteDetailSection_reefHealth_description => '潜水点的卫星水况';
+
+  @override
+  String get siteDetailSection_marineLife_description => '在此潜水点见到的物种';
+
+  @override
+  String get siteDetailSection_media_description => '潜水点的照片、视频和文档';
+
+  @override
+  String get siteDetailSection_tags_description => '此潜水点的标签';
+
+  @override
+  String get siteDetailSection_difficulty_description => '潜水点难度等级';
+
+  @override
+  String get siteDetailSection_rating_description => '你对潜水点的评分';
+
+  @override
+  String get siteDetailSection_hazards_description => '危险与安全须知';
+
+  @override
+  String get siteDetailSection_access_description => '入水与出水、停车、系泊、到达说明';
+
+  @override
+  String get siteDetailSection_notes_description => '你对潜水点的备注';
+
+  @override
+  String get settings_siteDetailSections_title => '潜水点详情区块';
+
+  @override
+  String get settings_appearance_header_siteDetails => '潜水点详情';
 
   @override
   String get settings_appearance_header_language => '语言';
@@ -21304,7 +21537,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_filesTitle => '文件';
 
   @override
-  String get universalImport_summary_noticesTitle => '文件中没有此数据';
+  String get universalImport_summary_noticesTitle => '导入说明';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle => '未记录气瓶压力';
@@ -21321,6 +21554,105 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '影响 $count 次潜水',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle => '部分潜水无法读取';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      '这些潜水已跳过，因为无法读取文件中的相关数据。';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已跳过 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle => '来自多位潜水员的潜水';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return '此 MacDive 资料库包含由 $names 记录的潜水。所有潜水都已导入当前潜水员，并且每次潜水都已标记其记录时使用的名称。';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle => '部分剖面无法读取';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      '这些潜水已在没有深度剖面的情况下导入，因为文件中的剖面数据缺失或无法读取。';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      '未解码的 MacDive 剖面';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive 以 Submersion 无法读取的格式存储了这些剖面。要导入它们，请从 MacDive 导出为 XML（File > Export > MacDive XML），然后改为导入该文件。';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      '此设备无法解码剖面';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      '此设备无法解码文件中的潜水电脑数据，因此这些潜水在没有深度剖面的情况下导入。';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle => '部分列未导入';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return '这些列匹配的字段已由另一列填充，因此已被忽略：$names。如需改用其中一列，请重新导入文件，并在“Map Fields”步骤中选择它。';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle => '部分值留空';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个值无法转换，已留空。如果某个字段看起来不正确，请检查列映射后重新导入。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle => '部分照片已跳过';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片没有文件名，无法关联。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      '文件中没有证书和维护记录';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive 的 XML 导出不包含证书和装备维护记录。要导入它们，请导入您的 MacDive.sqlite 数据库。';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      '未导入 MacDive 日志簿';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'MacDive 日志簿（$names）是已保存的搜索，而不是固定的潜水列表，因此没有可导入的内容。您可以将它们重新创建为潜水筛选条件。';
   }
 
   @override
@@ -25552,6 +25884,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_tool_type => '工具类型';
 
   @override
+  String get attrLabel_band_style => '款式';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => '容量';
+
+  @override
+  String get attrLabel_pocket_mount => '佩戴方式';
+
+  @override
   String get attrChoice_plate_material_aluminum => '铝';
 
   @override
@@ -25688,6 +26029,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => '充气管（LPI）';
+
+  @override
+  String get attrChoice_band_style_cam_strap => '凸轮扣绑带';
+
+  @override
+  String get attrChoice_band_style_stainless_band => '不锈钢瓶箍';
+
+  @override
+  String get attrChoice_pocket_mount_harness => '背带';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => '腰带';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => '大腿';
 
   @override
   String get attrChoice_bcd_style_jacket => '夹克式';

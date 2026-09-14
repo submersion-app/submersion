@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -22,12 +23,13 @@ import 'package:submersion/features/site_scape/presentation/site_features_sectio
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
@@ -178,124 +180,23 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     final site = widget.site;
     final siteId = widget.siteId;
     final embedded = widget.embedded;
-    final hasHazards = site.hazards != null && site.hazards!.isNotEmpty;
-    final difficultyAndRating = _pairOrSingle(
-      site.difficulty != null ? _buildDifficultySection(context, site) : null,
-      _buildRatingSection(context, site),
+    final sections = ref.watch(
+      settingsProvider.select((s) => s.siteDetailSections),
     );
-    final hazardsAndAccess = _pairOrSingle(
-      hasHazards ? _buildHazardsSection(context, site) : null,
-      _hasAccessInfo(site) ? _buildAccessSection(context, site) : null,
+    final layout = ref.watch(
+      settingsProvider.select((s) => s.siteDetailLayout),
     );
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Map Section (if coordinates exist)
-          if (site.hasCoordinates) ...[
-            _buildMapSection(context, ref, site),
-            const SizedBox(height: 12),
-          ],
-
-          // Dives at this Site: the count and the aggregates derived from
-          // those dives. High on the page because "how many dives have I
-          // logged here" is the question this page exists to answer.
-          _buildDiveStatisticsSection(context, ref, site),
-          const SizedBox(height: 12),
-
-          // Description Section
-          _buildDescriptionSection(context, site),
-          const SizedBox(height: 12),
-
-          // Location Details Section
-          _buildLocationSection(context, ref, site),
-          const SizedBox(height: 12),
-
-          // Depth Information Section
-          _buildDepthSection(context, ref, site),
-          const SizedBox(height: 12),
-
-          // Altitude Section (only if altitude is set)
-          if (site.altitude != null) ...[
-            _buildAltitudeSection(context, ref, site),
-            const SizedBox(height: 12),
-          ],
-
-          // Site Features Section (diver-placed annotations; placement happens
-          // on the map, so the add action opens the fullscreen scape armed to
-          // place)
-          if (site.hasCoordinates) ...[
-            SiteFeaturesSection(
-              siteId: site.id,
-              onAddFeature: () =>
-                  _showFullscreenMap(context, ref, site, startPlacing: true),
-            ),
-            const SizedBox(height: 12),
-          ],
-
-          // Tide Section (only for non-freshwater sites with coordinates:
-          // a quarry or lake has no tides, and a nearby ocean station must
-          // not leak in)
-          if (site.hasCoordinates && site.waterType != WaterType.fresh) ...[
-            TideSection(location: site.location!),
-            const SizedBox(height: 12),
-          ],
-
-          // Reef Section (only if site has coordinates)
-          if (site.hasCoordinates) ...[
-            ReefSection(location: site.location!, waterType: site.waterType),
-            const SizedBox(height: 12),
-          ],
-
-          // Marine Life Section
-          SiteMarineLifeSection(
-            siteId: site.id,
-            location: site.location,
-            waterType: site.waterType,
-          ),
-          const SizedBox(height: 12),
-
-          // Site Media Section (attachments + dive photos)
-          SiteMediaSection(
-            siteId: site.id,
-            onAddPhotosPressed: () => SiteMediaImportHelper.importPhotosForSite(
-              context: context,
-              ref: ref,
-              siteId: site.id,
-            ),
-            onAddDocumentPressed: () => DocumentOpenHelper.pickAndAttach(
-              context: context,
-              ref: ref,
-              siteId: site.id,
-            ),
-            onOpenDocument: (item) =>
-                DocumentOpenHelper.open(context, ref, item),
-          ),
-          const SizedBox(height: 12),
-
-          // Tags (issue #1765), after media as on a dive; collapses to
-          // nothing, gap included, when the site has none.
-          SiteTagsCard(siteId: site.id, bottomGap: 12),
-
-          // Difficulty + Rating, and Hazards + Access: four short cards that
-          // waste most of a wide pane on their own.
-          if (difficultyAndRating != null) ...[
-            difficultyAndRating,
-            const SizedBox(height: 12),
-          ],
-
-          if (hazardsAndAccess != null) ...[
-            hazardsAndAccess,
-            const SizedBox(height: 12),
-          ],
-
-          // Notes Section
-          _buildNotesSection(context, site),
-          const SizedBox(height: 12),
-        ],
+      padding: EdgeInsets.all(layout.foldsSections ? 8 : 16),
+      child: SiteDetailSectionList(
+        sections: sections,
+        layout: layout,
+        cards: _sectionCards(context, site, sections),
+        onFoldChanged: (id, expanded) => ref
+            .read(settingsProvider.notifier)
+            .setSiteDetailSectionExpanded(id, expanded),
       ),
     );
 
@@ -319,6 +220,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onPressed: () =>
                   _showFullscreenMap(context, ref, site, initialScape3d: true),
             ),
+          const SiteDetailPropertiesMenu(),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveSites_detail_editTooltip,
@@ -330,16 +232,109 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     );
   }
 
-  /// Puts two short cards side by side when both have content and the pane is
-  /// wide enough, and falls back to whichever one has content.
+  /// A builder for each card the diver has switched on, keyed by id; null
+  /// where a card has nothing to show for this site. [SiteDetailSectionList]
+  /// decides their order and layout, and calls a builder only when its card
+  /// is laid out: a folded card in the list layout is never built.
   ///
-  /// The presence gates live here rather than inside the cards: a pair with
-  /// an empty half lays out a blank column beside a half-width card.
-  Widget? _pairOrSingle(Widget? first, Widget? second) {
-    if (first != null && second != null) {
-      return ResponsiveSectionPair(first: first, second: second);
-    }
-    return first ?? second;
+  /// Whether a card has anything to show is decided here, from the site
+  /// itself, so an empty card takes no slot. The cards that watch providers
+  /// build inside their own [Consumer], so their lookups start only once the
+  /// card is mounted, and a hidden or folded card starts none.
+  Map<SiteDetailSectionId, WidgetBuilder?> _sectionCards(
+    BuildContext context,
+    DiveSite site,
+    List<SiteDetailSectionConfig> sections,
+  ) {
+    WidgetBuilder watching(Widget Function(BuildContext, WidgetRef) build) =>
+        (_) => Consumer(builder: (context, ref, _) => build(context, ref));
+
+    final hasHazards = site.hazards != null && site.hazards!.isNotEmpty;
+    final cards = <SiteDetailSectionId, WidgetBuilder? Function()>{
+      SiteDetailSectionId.map: () => site.hasCoordinates
+          ? watching((context, ref) => _buildMapSection(context, ref, site))
+          : null,
+      // The count and the aggregates derived from the dives at this site.
+      SiteDetailSectionId.diveStatistics: () => watching(
+        (context, ref) => _buildDiveStatisticsSection(context, ref, site),
+      ),
+      SiteDetailSectionId.description: () =>
+          (context) => _buildDescriptionSection(context, site),
+      SiteDetailSectionId.location: () =>
+          watching((context, ref) => _buildLocationSection(context, ref, site)),
+      SiteDetailSectionId.depth: () =>
+          watching((context, ref) => _buildDepthSection(context, ref, site)),
+      SiteDetailSectionId.altitude: () => site.altitude != null
+          ? watching(
+              (context, ref) => _buildAltitudeSection(context, ref, site),
+            )
+          : null,
+      // Diver-placed annotations. Placement happens on the map, so the add
+      // action opens the fullscreen scape armed to place.
+      SiteDetailSectionId.features: () => site.hasCoordinates
+          ? (_) => SiteFeaturesSection(
+              siteId: site.id,
+              onAddFeature: () =>
+                  _showFullscreenMap(context, ref, site, startPlacing: true),
+            )
+          : null,
+      // A quarry or lake has no tides, and a nearby ocean station must not
+      // leak in.
+      SiteDetailSectionId.tide: () =>
+          site.hasCoordinates && site.waterType != WaterType.fresh
+          ? (_) => TideSection(location: site.location!)
+          : null,
+      SiteDetailSectionId.reefHealth: () => site.hasCoordinates
+          ? (_) =>
+                ReefSection(location: site.location!, waterType: site.waterType)
+          : null,
+      SiteDetailSectionId.marineLife: () =>
+          (_) => SiteMarineLifeSection(
+            siteId: site.id,
+            location: site.location,
+            waterType: site.waterType,
+          ),
+      // Attachments and dive photos.
+      SiteDetailSectionId.media: () =>
+          (_) => SiteMediaSection(
+            siteId: site.id,
+            onAddPhotosPressed: () => SiteMediaImportHelper.importPhotosForSite(
+              context: context,
+              ref: ref,
+              siteId: site.id,
+            ),
+            onAddDocumentPressed: () => DocumentOpenHelper.pickAndAttach(
+              context: context,
+              ref: ref,
+              siteId: site.id,
+            ),
+            onOpenDocument: (item) =>
+                DocumentOpenHelper.open(context, ref, item),
+          ),
+      // Tags (issue #1765), after media as on a dive. Shown only when the
+      // site has some, decided here so an empty card leaves no gap and, in
+      // the list layout, no empty header.
+      SiteDetailSectionId.tags: () =>
+          (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
+          ? null
+          : (_) => SiteTagsCard(siteId: site.id),
+      SiteDetailSectionId.difficulty: () => site.difficulty != null
+          ? (context) => _buildDifficultySection(context, site)
+          : null,
+      SiteDetailSectionId.rating: () =>
+          (context) => _buildRatingSection(context, site),
+      SiteDetailSectionId.hazards: () =>
+          hasHazards ? (context) => _buildHazardsSection(context, site) : null,
+      SiteDetailSectionId.access: () => _hasAccessInfo(site)
+          ? (context) => _buildAccessSection(context, site)
+          : null,
+      SiteDetailSectionId.notes: () =>
+          (context) => _buildNotesSection(context, site),
+    };
+    return {
+      for (final section in sections)
+        if (section.visible) section.id: cards[section.id]!(),
+    };
   }
 
   Widget _buildEmbeddedHeader(
@@ -395,6 +390,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onPressed: () =>
                   _showFullscreenMap(context, ref, site, initialScape3d: true),
             ),
+          const SiteDetailPropertiesMenu(iconSize: 20),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             tooltip: context.l10n.diveSites_detail_editTooltipShort,

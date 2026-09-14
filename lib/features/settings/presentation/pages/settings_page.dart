@@ -2934,6 +2934,14 @@ class _DataSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.group_add),
+                  title: Text(context.l10n.buddies_linkText_page_title),
+                  subtitle: Text(context.l10n.buddies_linkText_page_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/link-buddy-names'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.rule),
                   title: Text(context.l10n.dataQuality_settings_title),
                   subtitle: Text(context.l10n.dataQuality_settings_subtitle),

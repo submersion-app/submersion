@@ -275,6 +275,37 @@ void main() {
       },
     );
 
+    test('reports the error that sank the file, not a diagnostic', () async {
+      // The DL7 reader records the stray ZDT as a diagnostic ahead of the
+      // parser's "no dives" error. Diagnostics are never meant to be shown.
+      final notifier = await _notifier();
+      notifier.state = notifier.state.copyWith(
+        detectionResult: const DetectionResult(
+          format: ImportFormat.danDl7,
+          sourceApp: SourceApp.generic,
+          confidence: 0.9,
+        ),
+        files: [
+          _file(
+            _bytes(
+              'FSH|^~<>{}|OCI201^^|ZXU|20240402090000|\n'
+              'ZDT|1|7|60.0|20240401140300|75||\n',
+            ),
+          ),
+        ],
+      );
+
+      await expectLater(
+        notifier.confirmSource(
+          overrideApp: SourceApp.generic,
+          overrideFormat: ImportFormat.danDl7,
+        ),
+        throwsA(isA<ImportStepFailure>()),
+      );
+      expect(notifier.state.error, contains('No dives found in DL7 file'));
+      expect(notifier.state.error, isNot(contains('ZDT')));
+    });
+
     test('reports the failure when the picked file carries no bytes', () async {
       final notifier = await _notifier();
       notifier.state = notifier.state.copyWith(

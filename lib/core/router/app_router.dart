@@ -98,12 +98,14 @@ import 'package:submersion/features/settings/presentation/pages/photos_media_hub
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
+import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
+import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
 import 'package:submersion/features/safety/presentation/pages/chambers_directory_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
@@ -1133,6 +1135,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const DiveDetailSectionsPage(),
               ),
               GoRoute(
+                path: 'site-detail-sections',
+                name: 'siteDetailSections',
+                builder: (context, state) => const SiteDetailSectionsPage(),
+              ),
+              GoRoute(
                 path: 'safety',
                 name: 'safetySettings',
                 builder: (context, state) => const SafetySettingsPage(),
@@ -1238,6 +1245,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'fix-dive-times',
                 name: 'fixDiveTimes',
                 builder: (context, state) => const FixDiveTimesPage(),
+              ),
+              GoRoute(
+                path: 'link-buddy-names',
+                name: 'linkBuddyNames',
+                builder: (context, state) => const LinkBuddyNamesPage(),
               ),
               GoRoute(
                 path: 'debug-logs',

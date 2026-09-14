@@ -2073,6 +2073,135 @@ void main() {
       expect(tank.endPressure, 90.0);
     });
 
+    // Each parse below resolves to no cylinder at all, so the tank rewrite
+    // would have nothing to put back in place of what it deletes. The raw
+    // bytes did not change, so this can only be the parser/resolver finding
+    // less than it did before, never a genuine "tank removed".
+    for (final (shape, parsed) in <(String, pigeon.ParsedDive)>[
+      (
+        'reports no tank or gas-mix data at all',
+        makeParsedDive(tanks: [], gasMixes: []),
+      ),
+      // The resolver keeps a gauge dive tankless even when the computer
+      // reports a gas mix, rather than fabricate an air cylinder.
+      (
+        'is a gauge dive reporting a gas mix but no tank records',
+        makeParsedDive(
+          diveMode: 'gauge',
+          gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+        ),
+      ),
+      // Sample pressure with no tank record or gas mix has no cylinder to
+      // attach to, so the pressure rewrite cannot restore it.
+      (
+        'reports sample pressure but no tank records or gas mixes',
+        makeParsedDive(
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 0,
+              depthMeters: 0.0,
+              pressureBar: 200.0,
+              tankIndex: 0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 60,
+              depthMeters: 10.0,
+              pressureBar: 180.0,
+              tankIndex: 0,
+            ),
+          ],
+        ),
+      ),
+    ]) {
+      test('a parse that $shape preserves the existing tank, its pressure '
+          'history and its gas switches (issue #1853)', () async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+
+        // Existing tank with a real pressure history, exactly as an earlier
+        // parse of these same raw bytes recorded it.
+        await db
+            .into(db.diveTanks)
+            .insert(
+              const DiveTanksCompanion(
+                id: Value('tank-0'),
+                diveId: Value('dive-1'),
+                volume: Value(12.0),
+                startPressure: Value(220.0),
+                endPressure: Value(90.0),
+                o2Percent: Value(32.0),
+                hePercent: Value(0.0),
+                tankOrder: Value(0),
+                tankRole: Value('backGas'),
+              ),
+            );
+        await insertTankPressureSeries(
+          id: 'pp-0',
+          diveId: 'dive-1',
+          tankId: 'tank-0',
+          computerId: 'comp-1',
+          timestamp: 0,
+          pressure: 220.0,
+        );
+        await db
+            .into(db.gasSwitches)
+            .insert(
+              GasSwitchesCompanion(
+                id: const Value('switch-0'),
+                diveId: const Value('dive-1'),
+                timestamp: const Value(600),
+                tankId: const Value('tank-0'),
+                createdAt: Value(nowMs),
+              ),
+            );
+
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: parsed,
+          descriptorVendor: null,
+          descriptorProduct: null,
+          descriptorModel: null,
+          libdivecomputerVersion: null,
+        );
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('dive-1'))).get();
+        expect(
+          tanks,
+          hasLength(1),
+          reason:
+              'the existing tank must survive a parse with nothing to '
+              'replace it with',
+        );
+        expect(tanks.single.id, 'tank-0');
+
+        final pressureSeries = await tankSeries.getSeriesForDive('dive-1');
+        expect(
+          pressureSeries,
+          hasLength(1),
+          reason:
+              'existing tank-pressure history must not be wiped when '
+              'the fresh parse has no pressure data of its own',
+        );
+        expect(pressureSeries.single.samples.single.pressure, 220.0);
+
+        final switches = await (db.select(
+          db.gasSwitches,
+        )..where((t) => t.diveId.equals('dive-1'))).get();
+        expect(switches.map((s) => s.id), [
+          'switch-0',
+        ], reason: 'the existing gas switch must survive alongside its tank');
+      });
+    }
+
     test('keeps both transmitters when a sample reports two tank pressures '
         '(issue #1223)', () async {
       // A CCR dive with an O2 and a diluent transmitter: libdivecomputer

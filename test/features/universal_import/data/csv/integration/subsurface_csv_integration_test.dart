@@ -194,8 +194,8 @@ void main() {
           .entitiesOf(ImportEntityType.dives)
           .firstWhere((d) => d['diveNumber']?.toString() == '1');
 
-      // The preset maps the suit column but creates no gear, so the suit
-      // is kept the way the Subsurface XML import keeps it.
+      // The suit is kept in the notes the way the Subsurface XML import
+      // keeps it, whether or not it also becomes linked gear (#1824).
       expect(dive['notes'], 'Summary:\nSuit: 3mm Bare wetsuit');
     });
 

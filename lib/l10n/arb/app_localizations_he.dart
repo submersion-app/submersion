@@ -1460,6 +1460,179 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_label_notSpecified => 'לא צוין';
 
   @override
+  String get buddies_linkText_action => 'קישור לרשומות חברי צוללים';
+
+  @override
+  String get buddies_linkText_addName => 'הוספת שם';
+
+  @override
+  String buddies_linkText_chipWithRole(String name, String role) {
+    return '$name · $role';
+  }
+
+  @override
+  String get buddies_linkText_chooseExisting => 'בחירת חבר צוללים קיים';
+
+  @override
+  String get buddies_linkText_editName => 'עריכת שם';
+
+  @override
+  String buddies_linkText_error(String error) {
+    return 'לא ניתן לקשר את חברי הצוללים: $error';
+  }
+
+  @override
+  String buddies_linkText_linkCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קישור $count',
+      one: 'קישור 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים קושרו',
+      one: 'חבר צוללים אחד קושר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_nameLabel => 'שם';
+
+  @override
+  String get buddies_linkText_newBuddyNote => 'הומר מטקסט חבר הצוללים של צלילה';
+
+  @override
+  String get buddies_linkText_noBuddiesFound => 'לא נמצאו חברי צוללים';
+
+  @override
+  String buddies_linkText_page_diveNumber(int number) {
+    return '#$number';
+  }
+
+  @override
+  String get buddies_linkText_page_empty =>
+      'כל שמות חברי הצוללים מקושרים לרשומה';
+
+  @override
+  String buddies_linkText_page_errorLoading(String error) {
+    return 'לא ניתן לטעון את הצלילות: $error';
+  }
+
+  @override
+  String buddies_linkText_page_linkDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קישור $count צלילות',
+      one: 'קישור צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_linkedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'חברי צוללים קושרו ב-$count צלילות',
+      one: 'חברי צוללים קושרו בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_subtitle =>
+      'המרת שמות חברי צוללים מצלילות מיובאות לרשומות';
+
+  @override
+  String buddies_linkText_page_summaryDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryExisting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים קיימים',
+      one: 'חבר צוללים קיים אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_linkText_page_summaryNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים חדשים',
+      one: 'חבר צוללים חדש אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_page_title => 'קישור שמות חברי צוללים';
+
+  @override
+  String get buddies_linkText_searchHint => 'חיפוש חברי צוללים';
+
+  @override
+  String get buddies_linkText_sheetTitle => 'קישור רשומות חברי צוללים';
+
+  @override
+  String buddies_linkText_sourceBuddy(String text) {
+    return 'מתוך \"$text\"';
+  }
+
+  @override
+  String buddies_linkText_sourceDiveMaster(String text) {
+    return 'דייבמאסטר \"$text\"';
+  }
+
+  @override
+  String get buddies_linkText_statusExisting => 'חבר צוללים קיים';
+
+  @override
+  String get buddies_linkText_statusNew => 'חבר צוללים חדש';
+
+  @override
+  String buddies_linkText_suggestion(String name) {
+    return 'האם התכוונת ל-$name?';
+  }
+
+  @override
+  String buddies_linkText_tie(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברי צוללים בשם $name',
+      one: 'חבר צוללים אחד בשם $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddies_linkText_undone => 'קישורי חברי הצוללים הוסרו';
+
+  @override
+  String get buddies_linkText_useSuggestion => 'שימוש';
+
+  @override
   String get buddies_message_added => 'חבר צוללים נוסף בהצלחה';
 
   @override
@@ -10752,6 +10925,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_harness => 'רתמה';
 
   @override
+  String get enum_equipmentType_tankBand => 'רצועת בלון';
+
+  @override
+  String get enum_equipmentType_weightPocket => 'כיס משקולות';
+
+  @override
+  String get enum_equipmentType_gearPocket => 'כיס ציוד';
+
+  @override
   String get enum_equipmentType_hose => 'צינור';
 
   @override
@@ -16242,6 +16424,75 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveDetailSection_dataSources_description =>
       'מחשבי צלילה מחוברים, ניהול מקורות';
+
+  @override
+  String get siteDetailSection_map_name => 'מפה';
+
+  @override
+  String get siteDetailSection_map_description =>
+      'תצוגה מקדימה של מפת מיקום האתר';
+
+  @override
+  String get siteDetailSection_diveStatistics_description =>
+      'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
+
+  @override
+  String get siteDetailSection_description_description => 'תיאור האתר';
+
+  @override
+  String get siteDetailSection_location_description =>
+      'מדינה, אזור, מקווה מים, קואורדינטות GPS';
+
+  @override
+  String get siteDetailSection_depth_description =>
+      'טווח עומק מדורג ועומקים שהושגו בצלילות';
+
+  @override
+  String get siteDetailSection_altitude_description =>
+      'גובה וקטגוריית צלילת גובה';
+
+  @override
+  String get siteDetailSection_features_description =>
+      'מאפיינים שסומנו במפת האתר';
+
+  @override
+  String get siteDetailSection_tide_description => 'גרף מחזור גאות ושפל וזמן';
+
+  @override
+  String get siteDetailSection_reefHealth_description =>
+      'תנאי מים לווייניים באתר';
+
+  @override
+  String get siteDetailSection_marineLife_description => 'מינים שנצפו באתר זה';
+
+  @override
+  String get siteDetailSection_media_description =>
+      'תמונות, סרטונים ומסמכים של האתר';
+
+  @override
+  String get siteDetailSection_tags_description => 'תגיות של אתר זה';
+
+  @override
+  String get siteDetailSection_difficulty_description => 'רמת הקושי של האתר';
+
+  @override
+  String get siteDetailSection_rating_description => 'הדירוג שלך לאתר';
+
+  @override
+  String get siteDetailSection_hazards_description => 'סכנות והערות בטיחות';
+
+  @override
+  String get siteDetailSection_access_description =>
+      'כניסה ויציאה, חניה, עגינה, הערות גישה';
+
+  @override
+  String get siteDetailSection_notes_description => 'ההערות שלך על האתר';
+
+  @override
+  String get settings_siteDetailSections_title => 'סעיפי פרטי האתר';
+
+  @override
+  String get settings_appearance_header_siteDetails => 'פרטי האתר';
 
   @override
   String get settings_appearance_header_language => 'שפה';
@@ -21907,7 +22158,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'קבצים';
 
   @override
-  String get universalImport_summary_noticesTitle => 'לא נמצא בקובץ';
+  String get universalImport_summary_noticesTitle => 'הערות ייבוא';
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
@@ -21926,6 +22177,116 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'משפיע על צלילה אחת',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedTitle =>
+      'לא ניתן היה לקרוא חלק מהצלילות';
+
+  @override
+  String get universalImport_summary_noticeDivesSkippedBody =>
+      'הצלילות האלה דולגו כי לא ניתן היה לקרוא את הנתונים שלהן בקובץ.';
+
+  @override
+  String universalImport_summary_noticeDivesSkippedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות דולגו',
+      one: 'צלילה אחת דולגה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMultipleDiversTitle =>
+      'צלילות של יותר מצולל אחד';
+
+  @override
+  String universalImport_summary_noticeMultipleDiversBody(String names) {
+    return 'ספריית MacDive זו כוללת צלילות שנרשמו על ידי $names. כולן יובאו לצולל הנוכחי, וכל צלילה תויגה בשם שתחתיו נרשמה.';
+  }
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableTitle =>
+      'לא ניתן היה לקרוא חלק מהפרופילים';
+
+  @override
+  String get universalImport_summary_noticeProfileUnreadableBody =>
+      'הצלילות האלה יובאו ללא פרופיל עומק כי נתוני הפרופיל בקובץ חסרים או שלא ניתן היה לקרוא אותם.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableTitle =>
+      'פרופילי MacDive לא פוענחו';
+
+  @override
+  String get universalImport_summary_noticeMacdiveProfileUndecodableBody =>
+      'MacDive שמר את הפרופילים האלה בפורמט ש-Submersion לא יכול לקרוא. כדי לייבא אותם, יש לייצא מ-MacDive כ-XML (File > Export > MacDive XML) ולייבא את הקובץ הזה במקום.';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformTitle =>
+      'פרופילים לא פוענחו במכשיר זה';
+
+  @override
+  String get universalImport_summary_noticeProfileUndecodableOnPlatformBody =>
+      'המכשיר הזה לא הצליח לפענח את נתוני מחשב הצלילה שבקובץ, ולכן הצלילות האלה יובאו ללא פרופיל עומק.';
+
+  @override
+  String get universalImport_summary_noticeColumnsNotImportedTitle =>
+      'חלק מהעמודות לא יובאו';
+
+  @override
+  String universalImport_summary_noticeColumnsNotImportedBody(String names) {
+    return 'העמודות האלה התאימו לשדה שעמודה אחרת כבר ממלאת, ולכן הושמטו: $names. כדי להשתמש באחת מהן במקום, יש לייבא את הקובץ שוב ולבחור בה בשלב \"Map Fields\".';
+  }
+
+  @override
+  String get universalImport_summary_noticeValuesNotConvertedTitle =>
+      'חלק מהערכים נשארו ריקים';
+
+  @override
+  String universalImport_summary_noticeValuesNotConvertedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ערכים לא הומרו ונשארו ריקים. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+      one:
+          'ערך אחד לא הומר ונשאר ריק. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosSkippedTitle =>
+      'חלק מהתמונות דולגו';
+
+  @override
+  String universalImport_summary_noticePhotosSkippedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count תמונות לא היה שם קובץ ולא ניתן היה לקשר אותן.',
+      one: 'לתמונה אחת לא היה שם קובץ ולא ניתן היה לקשר אותה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
+      'הסמכות ורשומות טיפול לא נמצאות בקובץ';
+
+  @override
+  String get universalImport_summary_noticeMacdiveXmlCertsBody =>
+      'MacDive משמיט הסמכות ורשומות טיפול בציוד מייצוא ה-XML שלו. כדי להביא אותן, יש לייבא את מסד הנתונים MacDive.sqlite.';
+
+  @override
+  String get universalImport_summary_noticeMacdiveLogbooksTitle =>
+      'יומני MacDive לא יובאו';
+
+  @override
+  String universalImport_summary_noticeMacdiveLogbooksBody(String names) {
+    return 'יומני MacDive ($names) הם חיפושים שמורים ולא רשימות קבועות של צלילות, ולכן אין מה לייבא. אפשר ליצור אותם מחדש כמסנני צלילות.';
   }
 
   @override
@@ -26290,6 +26651,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_tool_type => 'סוג הכלי';
 
   @override
+  String get attrLabel_band_style => 'סגנון';
+
+  @override
+  String get attrLabel_pocket_capacity_kg => 'קיבולת';
+
+  @override
+  String get attrLabel_pocket_mount => 'התקנה';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'אלומיניום';
 
   @override
@@ -26426,6 +26796,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_hose_type_lpi => 'מנפח (LPI)';
+
+  @override
+  String get attrChoice_band_style_cam_strap => 'רצועה עם אבזם קאם';
+
+  @override
+  String get attrChoice_band_style_stainless_band => 'חבק נירוסטה';
+
+  @override
+  String get attrChoice_pocket_mount_harness => 'רתמה';
+
+  @override
+  String get attrChoice_pocket_mount_waist_belt => 'חגורת מותניים';
+
+  @override
+  String get attrChoice_pocket_mount_thigh => 'ירך';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';

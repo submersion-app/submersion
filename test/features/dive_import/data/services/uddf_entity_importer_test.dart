@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     show ServiceRecord;
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -788,6 +789,94 @@ void main() {
       ).captured;
       expect((captured[0] as EquipmentItem).type, EquipmentType.regulator);
       expect((captured[1] as EquipmentItem).type, EquipmentType.fins);
+    });
+
+    group('imported suit thickness (#1824)', () {
+      Future<EquipmentItem> importOne(Map<String, dynamic> item) async {
+        when(mockEquipmentRepo.createEquipment(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as EquipmentItem,
+        );
+        await importer.import(
+          data: UddfImportResult(equipment: [item]),
+          selections: const UddfImportSelections(equipment: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+        return verify(
+              mockEquipmentRepo.createEquipment(captureAny),
+            ).captured.single
+            as EquipmentItem;
+      }
+
+      test('a wetsuit thickness becomes the curated thickness_mm', () async {
+        final item = await importOne({
+          'name': 'Bare 5/4',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': '5/4',
+        });
+
+        final attr = item.attributes.singleWhere(
+          (a) => a.key == EquipmentAttrKeys.thicknessMm,
+        );
+        expect(attr.isCustom, isFalse);
+        expect(attr.valueText, '5/4');
+        expect(attr.valueNum, 5.0);
+        expect(attr.equipmentId, item.id);
+      });
+
+      test('a type without a thickness in the catalog records none', () async {
+        final item = await importOne({
+          'name': '4mm neoprene drysuit',
+          'type': 'drysuit',
+          'uddfId': 'suit-1',
+          'thickness': '4mm',
+        });
+
+        expect(
+          item.attributes.where((a) => a.key == EquipmentAttrKeys.thicknessMm),
+          isEmpty,
+        );
+      });
+
+      test('the suit thickness wins over a thickness_mm in the attribute '
+          'list, as size does', () async {
+        final item = await importOne({
+          'name': 'Bare 7mm',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': '7mm',
+          'attributes': [
+            {
+              'key': EquipmentAttrKeys.thicknessMm,
+              'isCustom': false,
+              'valueText': '5',
+              'valueNum': 5.0,
+            },
+          ],
+        });
+
+        final rows = item.attributes.where(
+          (a) => a.key == EquipmentAttrKeys.thicknessMm,
+        );
+        expect(rows, hasLength(1));
+        expect(rows.single.valueNum, 7.0);
+      });
+
+      test('a designation the catalog rejects records none', () async {
+        final item = await importOne({
+          'name': 'Thin wetsuit',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': 'thin',
+        });
+
+        expect(
+          item.attributes.where((a) => a.key == EquipmentAttrKeys.thicknessMm),
+          isEmpty,
+        );
+      });
     });
   });
 
@@ -4343,6 +4432,27 @@ void main() {
       );
 
       verifyNever(mockServiceRecordRepo.createRecord(any));
+    });
+
+    test('an item imported despite a seed still gets its service history '
+        '(#1824)', () async {
+      await importer.import(
+        data: dataWith([
+          {'equipmentRef': 'gear-1', 'serviceDate': DateTime(2025, 5, 12)},
+        ]),
+        selections: const UddfImportSelections(equipment: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'gear-1': 'existing-gear-1'},
+      );
+
+      final record =
+          verify(mockServiceRecordRepo.createRecord(captureAny)).captured.single
+              as ServiceRecord;
+      final equipment =
+          verify(mockEquipmentRepo.createEquipment(captureAny)).captured.single
+              as EquipmentItem;
+      expect(record.equipmentId, equipment.id);
     });
 
     test('skips a record with no service date', () async {

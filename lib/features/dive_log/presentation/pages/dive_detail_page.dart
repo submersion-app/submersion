@@ -42,6 +42,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_text_section.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
@@ -105,7 +106,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/playback_contr
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_section_fold.dart';
+import 'package:submersion/shared/widgets/section_fold.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
@@ -872,7 +873,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     List<Widget> content, {
     required bool isExpanded,
   }) {
-    return DiveSectionFold(
+    return SectionFold(
       key: ValueKey('diveSectionFold_${id.name}'),
       title: id.localizedDisplayName(context.l10n),
       icon: id.icon,
@@ -4650,10 +4651,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return buddiesAsync.when(
       data: (buddies) {
         // The dive_buddies junction is authoritative once it holds anyone.
-        // The legacy free-text dives.buddy column is only a fallback for a
-        // dive whose buddy was never linked, such as a CSV import that did
-        // not bring in buddy records, so it is not called solo (#1831).
-        final textBuddy = buddies.isEmpty ? dive.buddy?.trim() ?? '' : '';
+        // The legacy free-text dives.buddy and dives.dive_master columns are
+        // only a fallback for a dive whose people were never linked, such as
+        // a CSV import, so such a dive is not called solo, and the section
+        // offers to link the text to buddy records (#1831). A text holding
+        // only a placeholder like "None" does not count.
+        final showLegacyText =
+            buddies.isEmpty && LegacyBuddyTextSection.hasContent(dive);
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -4679,8 +4683,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 const Divider(),
                 if (dive.diverRoleId != null)
                   _buildMyRoleTile(context, ref, dive),
-                if (textBuddy.isNotEmpty)
-                  _buildTextBuddyTile(context, textBuddy)
+                if (showLegacyText)
+                  LegacyBuddyTextSection(dive: dive)
                 else if (buddies.isEmpty && dive.diverRoleId == null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -4721,23 +4725,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       subtitle: Text(bwr.role.localizedName(context.l10n)),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () => context.push('/buddies/${bwr.buddy.id}'),
-    );
-  }
-
-  /// A buddy stored only as free text on the dive (#1831). There is no buddy
-  /// record behind it, so the tile has no role and nothing to open.
-  Widget _buildTextBuddyTile(BuildContext context, String name) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: colorScheme.primaryContainer,
-        child: Icon(
-          Icons.person_outline,
-          color: colorScheme.onPrimaryContainer,
-        ),
-      ),
-      title: Text(name),
     );
   }
 
@@ -5616,11 +5603,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 final saveTitle =
                     context.l10n.settings_export_saveDivesCsvDialogTitle;
                 Navigator.of(sheetContext).pop();
+                // getDiveById does not hydrate the buddy junction, which the
+                // Buddy and Dive Master columns read (#1861). Unlike the PDF
+                // route's best-effort enrichment, a failed lookup fails the
+                // export: those columns are data, and blanking them silently
+                // would ship a wrong file.
+                Future<List<Dive>> csvDives() async {
+                  final buddies = await ref.read(
+                    buddiesForDiveProvider(dive.id).future,
+                  );
+                  return [dive.copyWith(buddies: buddies)];
+                }
+
                 CsvExportUnits csvUnitsFor(ExportChoice choice) =>
                     CsvExportUnits.forMode(
                       choice.csvUnitMode,
                       ref.read(settingsProvider),
                     );
+
                 _handleSingleDiveExport(
                   context,
                   ref,
@@ -5629,7 +5629,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   shareFn: (choice) async => ref
                       .read(exportServiceProvider)
                       .exportDivesToCsv(
-                        [dive],
+                        await csvDives(),
                         units: csvUnitsFor(choice),
                         diveTypesById: await diveTypesByIdOrEmpty(
                           ref.read(diveTypesByIdProvider.future),
@@ -5638,7 +5638,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   saveFn: (choice) async => ref
                       .read(exportServiceProvider)
                       .saveDivesCsvToFile(
-                        [dive],
+                        await csvDives(),
                         dialogTitle: saveTitle,
                         units: csvUnitsFor(choice),
                         diveTypesById: await diveTypesByIdOrEmpty(

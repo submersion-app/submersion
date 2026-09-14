@@ -171,6 +171,7 @@ void main() {
       warnings: const [
         ImportWarning(
           severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.diagnostic,
           message: 'something to keep',
           entityType: ImportEntityType.dives,
         ),

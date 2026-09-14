@@ -31,10 +31,10 @@ void main() {
       expect(result.entities, isEmpty);
     });
 
-    test('returns info-level warning', () async {
+    test('returns an error: nothing in the file can be imported', () async {
       final result = await parser.parse(Uint8List(0));
       expect(result.warnings, isNotEmpty);
-      expect(result.warnings.first.severity, ImportWarningSeverity.info);
+      expect(result.warnings.first.severity, ImportWarningSeverity.error);
     });
 
     test('includes format name in message', () async {

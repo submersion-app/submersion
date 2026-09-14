@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -568,6 +569,32 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     state = state.copyWith(
       diveDetailSections: [
         for (final section in state.diveDetailSections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
+  }
+
+  @override
+  Future<void> setSiteDetailSections(
+    List<SiteDetailSectionConfig> sections,
+  ) async => state = state.copyWith(siteDetailSections: sections);
+
+  @override
+  Future<void> resetSiteDetailSections() async =>
+      state = state.copyWith(clearSiteDetailSections: true);
+
+  @override
+  Future<void> setSiteDetailLayout(DiveDetailLayout layout) async =>
+      state = state.copyWith(siteDetailLayout: layout);
+
+  @override
+  Future<void> setSiteDetailSectionExpanded(
+    SiteDetailSectionId id,
+    bool expanded,
+  ) async {
+    state = state.copyWith(
+      siteDetailSections: [
+        for (final section in state.siteDetailSections)
           section.id == id ? section.copyWith(expanded: expanded) : section,
       ],
     );
