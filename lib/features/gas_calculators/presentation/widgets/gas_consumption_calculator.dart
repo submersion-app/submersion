@@ -272,7 +272,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                           displayDepth.toStringAsFixed(0),
                           depthSymbol,
                         ),
-                        '${((depth / 10) + 1).toStringAsFixed(2)} ATM',
+                        units.formatPressure((depth / 10) + 1, decimals: 2),
                       ),
                       _buildBreakdownRow(
                         context,

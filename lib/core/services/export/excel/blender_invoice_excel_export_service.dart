@@ -34,13 +34,20 @@ class BlenderInvoiceExcelExportService {
     }
 
     var row = 4;
-    _writeRow(sheet, row, const ['Fill', 'Gas', 'Volume', 'Cost', 'Total']);
+    _writeRow(sheet, row, const [
+      'Fill',
+      'Gas',
+      'Volume',
+      'Cylinder',
+      'Cost',
+      'Total',
+    ]);
     row++;
     for (final fill in data.fills) {
       // A lump-sum fill (BilledFill.isManual) has no gas lines, so its label
       // still belongs in the Fill column with the rest blank.
       if (fill.lines.isEmpty) {
-        _writeRow(sheet, row, [fill.label, '', '', '', fill.total]);
+        _writeRow(sheet, row, [fill.label, '', '', '', '', fill.total]);
         row++;
         continue;
       }
@@ -50,6 +57,7 @@ class BlenderInvoiceExcelExportService {
           i == 0 ? fill.label : '',
           line.gas,
           line.volume,
+          line.cylinder,
           line.cost,
           i == 0 ? fill.total : '',
         ]);
@@ -58,7 +66,7 @@ class BlenderInvoiceExcelExportService {
     }
 
     row++;
-    _writeRow(sheet, row, ['Total', '', '', '', data.total]);
+    _writeRow(sheet, row, ['Total', '', '', '', '', data.total]);
     if (data.incomplete) {
       row++;
       _writeRow(sheet, row, ['Incomplete: one or more lines have no price.']);

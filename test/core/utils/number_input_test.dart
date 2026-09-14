@@ -273,4 +273,57 @@ void main() {
       }
     });
   });
+
+  group('smartParseUserDecimal', () {
+    test('reads whatever parseUserDecimal already reads', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserDecimal('12,5'), 12.5);
+    });
+
+    test('corrects a dot typed under a comma-decimal locale (#1876)', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserDecimal('14.8'), 14.8);
+      expect(smartParseUserDecimal('0.5'), 0.5);
+      expect(smartParseUserDecimal('123.45'), 123.45);
+    });
+
+    test('corrects a comma typed under a dot-decimal locale', () {
+      Intl.defaultLocale = 'en_US';
+      expect(smartParseUserDecimal('14,8'), 14.8);
+    });
+
+    test(
+      'leaves a well-formed grouped integer alone rather than reinterpreting '
+      'it as a decimal',
+      () {
+        Intl.defaultLocale = 'de';
+        // "12.500" is already a valid German thousands grouping (twelve
+        // thousand five hundred); parseUserDecimal reads it directly, so
+        // there is nothing here for the correction to even consider.
+        expect(smartParseUserDecimal('12.500'), 12500.0);
+      },
+    );
+
+    test('refuses the one genuinely ambiguous shape: an invalid grouping whose '
+        'swap would read as exactly three fraction digits', () {
+      Intl.defaultLocale = 'de';
+      // "1234.500" is not well-formed grouping (a leading group of 4), so
+      // parseUserDecimal already refuses it. Swapping to "1234,500" would
+      // parse cleanly, but three digits after the swapped separator is the
+      // one shape that could also have been a (malformed) grouping, so
+      // this is left unreadable rather than guessed.
+      expect(smartParseUserDecimal('1234.500'), isNull);
+    });
+
+    test('does not correct a second, genuinely malformed separator', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserDecimal('1.2.3'), isNull);
+    });
+
+    test('blank text is not a value to correct', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserDecimal(''), isNull);
+      expect(smartParseUserDecimal('   '), isNull);
+    });
+  });
 }

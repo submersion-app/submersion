@@ -70,6 +70,7 @@ void main() {
                       addedBar: 10,
                       cost: 10,
                       freeGasLiters: 30,
+                      cylinderLiters: 12,
                     ),
                     BilledGasLine(gas: 'He', addedBar: 80, cost: 20),
                   ],
@@ -85,10 +86,17 @@ void main() {
         expect(find.textContaining('Mar 5, 2026'), findsOneWidget);
         expect(find.textContaining('Billed to: Ada'), findsOneWidget);
         expect(find.text('Tx 18/45'), findsOneWidget);
-        // The line saved with a volume shows litres...
-        expect(find.textContaining('30 L'), findsOneWidget);
-        // ...while the line saved before #1335 falls back to pressure.
-        expect(find.textContaining('bar'), findsWidgets);
+        // The line saved with a volume and a cylinder size shows both,
+        // units in the column header rather than repeated per cell...
+        expect(find.text('30'), findsOneWidget);
+        expect(find.text('12'), findsOneWidget);
+        // ...while the He line saved before #1335, with neither
+        // freeGasLiters nor cylinderLiters, falls back to a dash in both
+        // columns (see BlenderBilledLineRow). A bare
+        // `find.textContaining('bar')` would pass regardless of either
+        // fallback, since the "Hinzufügen (bar)" column header itself
+        // contains that substring.
+        expect(find.text('—'), findsNWidgets(2));
         expect(find.text('Total'), findsOneWidget);
       },
     );
@@ -114,6 +122,82 @@ void main() {
 
       expect(find.text('Incomplete'), findsOneWidget);
     });
+
+    testWidgets(
+      'the app bar delete action removes the invoice and pops back, once '
+      'confirmed',
+      (tester) async {
+        // The app bar action shares deleteArchivedInvoice with the archive
+        // list tile (issue #1876), so the running invoice's data stays in
+        // sync from either entry point.
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => MockSettingsNotifier(
+                const AppSettings(defaultCurrency: 'CHF'),
+              ),
+            ),
+            blenderArchivedInvoicesProvider.overrideWith(
+              (ref) => [
+                ArchivedInvoice(
+                  id: 'inv-1',
+                  date: DateTime(2026, 3, 5),
+                  billedTo: 'Ada',
+                  fills: const [
+                    BilledFill(
+                      id: 'f1',
+                      label: 'Tx 18/45',
+                      lines: [],
+                      total: 30,
+                    ),
+                  ],
+                  total: 30,
+                  currencyCode: 'CHF',
+                ),
+              ],
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const BlenderInvoiceArchiveDetailPage(
+                        invoiceId: 'inv-1',
+                      ),
+                    ),
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+        expect(find.text('Tx 18/45'), findsOneWidget);
+
+        await tester.tap(
+          find.byKey(const Key('blender-archived-invoice-detail-delete')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        expect(container.read(blenderArchivedInvoicesProvider), isEmpty);
+        expect(find.text('open'), findsOneWidget);
+        expect(find.text('Tx 18/45'), findsNothing);
+      },
+    );
   });
 
   group('reached without the calculator', () {

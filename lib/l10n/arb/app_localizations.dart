@@ -22461,6 +22461,17 @@ abstract class AppLocalizations {
   /// **'Maximum Operating Depth'**
   String get gasCalculators_mod_maximumOperatingDepth;
 
+  /// No description provided for @gasCalculators_mod_semanticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Operating Depth: {depth} {unit} at {ppo2} bar ppO2 with {o2}% oxygen'**
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  );
+
   /// No description provided for @gasCalculators_mod_oxygenO2.
   ///
   /// In en, this message translates to:
@@ -22846,7 +22857,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_blender_stepAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add {gas}'**
+  /// **'+ {gas}'**
   String gasCalculators_blender_stepAdd(String gas);
 
   /// No description provided for @gasCalculators_blender_stepStartLabel.
@@ -22854,6 +22865,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start'**
   String get gasCalculators_blender_stepStartLabel;
+
+  /// No description provided for @gasCalculators_blender_stepColumnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get gasCalculators_blender_stepColumnAction;
+
+  /// No description provided for @gasCalculators_blender_stepColumnAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get gasCalculators_blender_stepColumnAdded;
+
+  /// No description provided for @gasCalculators_blender_stepColumnPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get gasCalculators_blender_stepColumnPressure;
+
+  /// No description provided for @gasCalculators_blender_stepColumnMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Mix'**
+  String get gasCalculators_blender_stepColumnMix;
 
   /// No description provided for @gasCalculators_blender_settlesTo.
   ///
@@ -22963,6 +22998,12 @@ abstract class AppLocalizations {
   /// **'Price per 100 {unit}'**
   String gasCalculators_blender_unitPrice(String unit);
 
+  /// No description provided for @gasCalculators_blender_invalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number (decimal separator: \"{separator}\")'**
+  String gasCalculators_blender_invalidNumber(String separator);
+
   /// No description provided for @gasCalculators_blender_currency.
   ///
   /// In en, this message translates to:
@@ -23028,6 +23069,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Purge volume'**
   String get gasCalculators_blender_flushFeeVolume;
+
+  /// No description provided for @gasCalculators_blender_flushFeeColumnGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get gasCalculators_blender_flushFeeColumnGas;
+
+  /// No description provided for @gasCalculators_blender_cylinderColumnShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get gasCalculators_blender_cylinderColumnShort;
+
+  /// No description provided for @gasCalculators_blender_volumeColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get gasCalculators_blender_volumeColumn;
 
   /// No description provided for @gasCalculators_blender_flushFeeLine.
   ///
@@ -23155,6 +23214,12 @@ abstract class AppLocalizations {
   /// **'Delete {label}'**
   String gasCalculators_blender_deleteLine(String label);
 
+  /// No description provided for @gasCalculators_blender_lineActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions for {label}'**
+  String gasCalculators_blender_lineActions(String label);
+
   /// No description provided for @gasCalculators_blender_fillAdded.
   ///
   /// In en, this message translates to:
@@ -23232,6 +23297,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invoice not found.'**
   String get gasCalculators_blender_invoiceArchiveNotFound;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this invoice'**
+  String get gasCalculators_blender_invoiceArchiveDelete;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete invoice?'**
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get gasCalculators_blender_invoiceArchiveDeleteBody;
 
   /// No description provided for @gasCalculators_blender_defaults.
   ///

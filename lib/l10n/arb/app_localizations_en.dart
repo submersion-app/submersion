@@ -13262,6 +13262,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Maximum Operating Depth';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return 'Maximum Operating Depth: $depth $unit at $ppo2 bar ppO2 with $o2% oxygen';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => 'Oxygen (O₂)';
 
   @override
@@ -13485,11 +13495,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return 'Add $gas';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => 'Start';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => 'Action';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => 'Added';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => 'Pressure';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => 'Mix';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13560,6 +13582,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return 'Enter a valid number (decimal separator: \"$separator\")';
+  }
+
+  @override
   String get gasCalculators_blender_currency => 'Currency';
 
   @override
@@ -13596,6 +13623,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_flushFeeVolume => 'Purge volume';
+
+  @override
+  String get gasCalculators_blender_flushFeeColumnGas => 'Gas';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => 'Cylinder';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => 'Volume';
 
   @override
   String gasCalculators_blender_flushFeeLine(String gas) {
@@ -13675,6 +13711,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return 'Actions for $label';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return '$mix added to the bill';
   }
@@ -13720,6 +13761,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound =>
       'Invoice not found.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete =>
+      'Delete this invoice';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'Delete invoice?';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'This cannot be undone.';
 
   @override
   String get gasCalculators_blender_defaults => 'Default settings and billing';

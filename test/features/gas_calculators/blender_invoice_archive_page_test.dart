@@ -139,6 +139,47 @@ void main() {
     );
 
     testWidgets(
+      'the delete icon removes the invoice from the archive after confirming',
+      (tester) async {
+        final ref = await _pump(tester);
+        ref.read(blenderArchivedInvoicesProvider.notifier).state = [
+          _invoice(id: 'a', date: DateTime(2026, 1, 1), billedTo: 'Ada'),
+        ];
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.byKey(const Key('blender-archived-invoice-delete-a')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        expect(ref.read(blenderArchivedInvoicesProvider), isEmpty);
+        expect(find.text('Ada'), findsNothing);
+      },
+    );
+
+    testWidgets('dismissing the delete confirmation keeps the invoice', (
+      tester,
+    ) async {
+      final ref = await _pump(tester);
+      ref.read(blenderArchivedInvoicesProvider.notifier).state = [
+        _invoice(id: 'a', date: DateTime(2026, 1, 1), billedTo: 'Ada'),
+      ];
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('blender-archived-invoice-delete-a')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+
+      expect(ref.read(blenderArchivedInvoicesProvider), hasLength(1));
+      expect(find.text('Ada'), findsOneWidget);
+    });
+
+    testWidgets(
       'a date filter narrows the list, and its chip clears it again',
       (tester) async {
         final ref = await _pump(tester);

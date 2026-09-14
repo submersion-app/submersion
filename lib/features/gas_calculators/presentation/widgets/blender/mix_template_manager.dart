@@ -57,10 +57,13 @@ class _MixTemplateManagerState extends ConsumerState<MixTemplateManager> {
       setState(() => _message = problem);
       return;
     }
-    ref.read(blenderTemplatesProvider.notifier).state = [
+    // Sorts the whole list, not just where the new entry lands, so a list
+    // saved before this rule existed straightens itself out on the next add
+    // rather than staying half-ordered forever (issue #1876).
+    ref.read(blenderTemplatesProvider.notifier).state = MixTemplate.sorted([
       ...existing,
       candidate,
-    ];
+    ]);
     saveBlenderPreferences(ref);
     setState(() => _message = null);
     _o2.clear();
