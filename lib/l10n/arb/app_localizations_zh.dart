@@ -19932,6 +19932,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此标签用于 $count 件装备。关闭“用于装备”将从这些装备中移除它。',
+      one: '此标签用于 1 件装备。关闭“用于装备”将从该装备中移除它。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -19952,6 +19963,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_scope_dives => '潜水';
 
   @override
+  String get tags_manage_scope_equipment => '装备';
+
+  @override
   String get tags_manage_scope_sites => '潜水点';
 
   @override
@@ -19967,7 +19981,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备',
+      one: '1 件装备',
+      zero: '0 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => '用于潜水';
+
+  @override
+  String get tags_manage_useForEquipment => '用于装备';
 
   @override
   String get tags_manage_useForSites => '用于潜水点';

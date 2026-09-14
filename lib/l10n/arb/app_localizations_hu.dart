@@ -20994,6 +20994,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ez a címke $count felszerelésen szerepel. A „Felszereléshez” kikapcsolása eltávolítja ezekről a felszerelésekről.',
+      one:
+          'Ez a címke 1 felszerelésen szerepel. A „Felszereléshez” kikapcsolása eltávolítja erről a felszerelésről.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21018,6 +21031,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_manage_scope_dives => 'Merülések';
 
   @override
+  String get tags_manage_scope_equipment => 'Felszerelés';
+
+  @override
   String get tags_manage_scope_sites => 'Merülőhelyek';
 
   @override
@@ -21033,7 +21049,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés',
+      one: '1 felszerelés',
+      zero: '0 felszerelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Merülésekhez';
+
+  @override
+  String get tags_manage_useForEquipment => 'Felszereléshez';
 
   @override
   String get tags_manage_useForSites => 'Merülőhelyekhez';

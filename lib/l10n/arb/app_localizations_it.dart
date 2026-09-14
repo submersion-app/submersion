@@ -21052,6 +21052,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Questo tag è su $count attrezzature. Disattivando \"Usa per l\'attrezzatura\" verrà rimosso da quelle attrezzature.',
+      one:
+          'Questo tag è su 1 attrezzatura. Disattivando \"Usa per l\'attrezzatura\" verrà rimosso da quell\'attrezzatura.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21075,6 +21088,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_manage_scope_dives => 'Immersioni';
 
   @override
+  String get tags_manage_scope_equipment => 'Attrezzatura';
+
+  @override
   String get tags_manage_scope_sites => 'Siti';
 
   @override
@@ -21090,7 +21106,22 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attrezzature',
+      one: '1 attrezzatura',
+      zero: '0 attrezzature',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Usa per le immersioni';
+
+  @override
+  String get tags_manage_useForEquipment => 'Usa per l\'attrezzatura';
 
   @override
   String get tags_manage_useForSites => 'Usa per i siti';

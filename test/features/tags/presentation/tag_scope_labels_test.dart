@@ -36,4 +36,22 @@ void main() {
       'that site.',
     );
   });
+
+  test('has the equipment wording (#1942)', () {
+    expect(tagScopeName(l10n, TagScope.equipment), 'Equipment');
+    expect(tagScopeUseForLabel(l10n, TagScope.equipment), 'Use for equipment');
+    expect(tagScopeCount(l10n, TagScope.equipment, 0), '0 equipment items');
+    expect(tagScopeCount(l10n, TagScope.equipment, 1), '1 equipment item');
+    expect(tagScopeCount(l10n, TagScope.equipment, 4), '4 equipment items');
+    expect(
+      tagScopeNarrowLine(l10n, TagScope.equipment, 1),
+      'This tag is on 1 equipment item. Turning off "Use for equipment" '
+      'removes it from that item.',
+    );
+    expect(
+      tagScopeNarrowLine(l10n, TagScope.equipment, 3),
+      'This tag is on 3 equipment items. Turning off "Use for equipment" '
+      'removes it from those items.',
+    );
+  });
 }

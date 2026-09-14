@@ -12837,6 +12837,14 @@
       }
     }
   },
+  "tags_manage_narrowDialog_equipment": "{count, plural, =1{This tag is on 1 equipment item. Turning off \"Use for equipment\" removes it from that item.} other{This tag is on {count} equipment items. Turning off \"Use for equipment\" removes it from those items.}}",
+  "@tags_manage_narrowDialog_equipment": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tags_manage_narrowDialog_sites": "{count, plural, =1{This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.} other{This tag is on {count} sites. Turning off \"Use for sites\" removes it from those sites.}}",
   "@tags_manage_narrowDialog_sites": {
     "placeholders": {
@@ -12848,6 +12856,7 @@
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
   "tags_manage_scopeRequired": "Choose dives, sites, or both",
   "tags_manage_scope_dives": "Dives",
+  "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",
   "tags_manage_siteCount": "{count, plural, =0{0 sites} =1{1 site} other{{count} sites}}",
   "@tags_manage_siteCount": {
@@ -12857,7 +12866,16 @@
       }
     }
   },
+  "tags_manage_equipmentCount": "{count, plural, =0{0 equipment items} =1{1 equipment item} other{{count} equipment items}}",
+  "@tags_manage_equipmentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tags_manage_useForDives": "Use for dives",
+  "tags_manage_useForEquipment": "Use for equipment",
   "tags_manage_useForSites": "Use for sites",
   "tags_manage_nameRequired": "Tag name is required",
   "tags_manage_deleteTitle": "Delete Tag?",
