@@ -20738,7 +20738,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remove tag from existing items?';
 
   @override
-  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+  String get tags_manage_scopeRequired =>
+      'Choose at least one: dives, sites or equipment';
 
   @override
   String get tags_manage_scope_dives => 'Dives';
@@ -20833,8 +20834,89 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipment items',
+      one: '1 equipment item',
+    );
+    return '\"$tagName\" will be removed from $_temp0. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount dives',
+      one: '1 dive',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return '\"$tagName\" will be removed from $_temp0 and $_temp1. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount sites',
+      one: '1 site',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return '\"$tagName\" will be removed from $_temp0 and $_temp1. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount dives',
+      one: '1 dive',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount sites',
+      one: '1 site',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return '\"$tagName\" will be removed from $_temp0, $_temp1 and $_temp2. This cannot be undone.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" is not used on any dives or sites. This cannot be undone.';
+    return '\"$tagName\" is not used on any dives, sites or equipment. This cannot be undone.';
   }
 
   @override
@@ -20886,8 +20968,86 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return 'These tags will be removed from $_temp0 total. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount dives',
+      one: '1 dive',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return 'These tags will be removed from $_temp0 and $_temp1 total. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount sites',
+      one: '1 site',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return 'These tags will be removed from $_temp0 and $_temp1 total. This cannot be undone.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount dives',
+      one: '1 dive',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount sites',
+      one: '1 site',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return 'These tags will be removed from $_temp0, $_temp1 and $_temp2 total. This cannot be undone.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'These tags are not used on any dives or sites. This cannot be undone.';
+      'These tags are not used on any dives, sites or equipment. This cannot be undone.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -20941,8 +21101,86 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipment items',
+      one: '1 equipment item',
+    );
+    return 'This will affect $_temp0 total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount dives',
+      one: '1 dive',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return 'This will affect $_temp0 and $_temp1 total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount sites',
+      one: '1 site',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return 'This will affect $_temp0 and $_temp1 total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount dives',
+      one: '1 dive',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount sites',
+      one: '1 site',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipment items',
+      one: '1 equipment item',
+    );
+    return 'This will affect $_temp0, $_temp1 and $_temp2 total.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'These tags are not used on any dives or sites.';
+      'These tags are not used on any dives, sites or equipment.';
 
   @override
   String get tags_manage_mergeAction => 'Merge';

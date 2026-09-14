@@ -20555,7 +20555,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_narrowDialog_title => 'להסיר את התגית מפריטים קיימים?';
 
   @override
-  String get tags_manage_scopeRequired => 'בחר צלילות, אתרים או את שניהם';
+  String get tags_manage_scopeRequired =>
+      'בחר לפחות אחד: צלילות, אתרים או ציוד';
 
   @override
   String get tags_manage_scope_dives => 'צלילות';
@@ -20650,8 +20651,89 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0 ומ-$_temp1. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0 ומ-$_temp1. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0, מ-$_temp1 ומ-$_temp2. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" אינה בשימוש באף צלילה או אתר. לא ניתן לבטל פעולה זו.';
+    return '\"$tagName\" אינה בשימוש באף צלילה, אתר או פריט ציוד. לא ניתן לבטל פעולה זו.';
   }
 
   @override
@@ -20703,8 +20785,86 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 ומ-$_temp1 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 ומ-$_temp1 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0, מ-$_temp1 ומ-$_temp2 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'תגיות אלו אינן בשימוש באף צלילה או אתר. לא ניתן לבטל פעולה זו.';
+      'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד. לא ניתן לבטל פעולה זו.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -20758,8 +20918,86 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 בסך הכל.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 ועל $_temp1 בסך הכל.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 ועל $_temp1 בסך הכל.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0, על $_temp1 ועל $_temp2 בסך הכל.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'תגיות אלו אינן בשימוש באף צלילה או אתר.';
+      'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד.';
 
   @override
   String get tags_manage_mergeAction => 'מיזוג';

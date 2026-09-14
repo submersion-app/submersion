@@ -20715,7 +20715,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'إزالة الوسم من العناصر الحالية؟';
 
   @override
-  String get tags_manage_scopeRequired => 'اختر الغوصات أو المواقع أو كليهما';
+  String get tags_manage_scopeRequired =>
+      'اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات';
 
   @override
   String get tags_manage_scope_dives => 'الغوصات';
@@ -20813,8 +20814,113 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطعة معدات',
+      many: '$count قطعة معدات',
+      few: '$count قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1 و$_temp2. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" غير مستخدم في أي غوصة أو موقع. لا يمكن التراجع عن هذا الإجراء.';
+    return '\"$tagName\" غير مستخدم في أي غوصة أو موقع أو قطعة معدات. لا يمكن التراجع عن هذا الإجراء.';
   }
 
   @override
@@ -20866,8 +20972,110 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 و$_temp2 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع. لا يمكن التراجع عن هذا الإجراء.';
+      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -20921,8 +21129,110 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطعة معدات',
+      many: '$count قطعة معدات',
+      few: '$count قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 و$_temp2 إجمالاً.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع.';
+      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات.';
 
   @override
   String get tags_manage_mergeAction => 'دمج';

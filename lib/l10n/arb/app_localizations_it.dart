@@ -21100,7 +21100,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rimuovere il tag dagli elementi esistenti?';
 
   @override
-  String get tags_manage_scopeRequired => 'Scegli immersioni, siti o entrambi';
+  String get tags_manage_scopeRequired =>
+      'Scegli almeno uno tra immersioni, siti o attrezzatura';
 
   @override
   String get tags_manage_scope_dives => 'Immersioni';
@@ -21195,8 +21196,89 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attrezzature',
+      one: '1 attrezzatura',
+    );
+    return '\"$tagName\" verrà rimosso da $_temp0. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return '\"$tagName\" verrà rimosso da $_temp0 e $_temp1. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return '\"$tagName\" verrà rimosso da $_temp0 e $_temp1. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return '\"$tagName\" verrà rimosso da $_temp0, $_temp1 e $_temp2. Questa azione non può essere annullata.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" non è usato in nessuna immersione né in nessun sito. Questa azione non può essere annullata.';
+    return '\"$tagName\" non è usato in nessuna immersione, in nessun sito né in nessuna attrezzatura. Questa azione non può essere annullata.';
   }
 
   @override
@@ -21248,8 +21330,86 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questi tag verranno rimossi da $_temp0 in totale. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questi tag verranno rimossi da $_temp0 e $_temp1 in totale. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questi tag verranno rimossi da $_temp0 e $_temp1 in totale. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questi tag verranno rimossi da $_temp0, $_temp1 e $_temp2 in totale. Questa azione non può essere annullata.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'Questi tag non sono usati in nessuna immersione né in nessun sito. Questa azione non può essere annullata.';
+      'Questi tag non sono usati in nessuna immersione, in nessun sito né in nessuna attrezzatura. Questa azione non può essere annullata.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21303,8 +21463,86 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questo influenzerà $_temp0 in totale.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questo influenzerà $_temp0 e $_temp1 in totale.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questo influenzerà $_temp0 e $_temp1 in totale.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount attrezzature',
+      one: '1 attrezzatura',
+    );
+    return 'Questo influenzerà $_temp0, $_temp1 e $_temp2 in totale.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'Questi tag non sono usati in nessuna immersione né in nessun sito.';
+      'Questi tag non sono usati in nessuna immersione, in nessun sito né in nessuna attrezzatura.';
 
   @override
   String get tags_manage_mergeAction => 'Unisci';

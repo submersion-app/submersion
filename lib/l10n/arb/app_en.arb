@@ -12867,7 +12867,7 @@
     }
   },
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
-  "tags_manage_scopeRequired": "Choose dives, sites, or both",
+  "tags_manage_scopeRequired": "Choose at least one: dives, sites or equipment",
   "tags_manage_scope_dives": "Dives",
   "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",
@@ -12928,7 +12928,63 @@
       }
     }
   },
-  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives or sites. This cannot be undone.",
+  "tags_manage_deleteMessage_equipment": "\"{tagName}\" will be removed from {count, plural, =1{1 equipment item} other{{count} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_equipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_divesAndEquipment": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_divesAndEquipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_sitesAndEquipment": "\"{tagName}\" will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_sitesAndEquipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_all": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_all": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives, sites or equipment. This cannot be undone.",
   "@tags_manage_deleteMessage_unused": {
     "placeholders": {
       "tagName": {
@@ -12971,7 +13027,51 @@
       }
     }
   },
-  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives or sites. This cannot be undone.",
+  "tags_manage_bulkDeleteMessage_equipment": "These tags will be removed from {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_equipment": {
+    "placeholders": {
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_divesAndEquipment": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_divesAndEquipment": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_sitesAndEquipment": "These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_sitesAndEquipment": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_all": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_all": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives, sites or equipment. This cannot be undone.",
   "tags_manage_mergeTitle": "Merge {count} Tags",
   "@tags_manage_mergeTitle": {
     "placeholders": {
@@ -13009,7 +13109,51 @@
       }
     }
   },
-  "tags_manage_mergeAffected_unused": "These tags are not used on any dives or sites.",
+  "tags_manage_mergeAffected_equipment": "This will affect {count, plural, =1{1 equipment item} other{{count} equipment items}} total.",
+  "@tags_manage_mergeAffected_equipment": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_divesAndEquipment": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_divesAndEquipment": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_sitesAndEquipment": "This will affect {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_sitesAndEquipment": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_all": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_all": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_unused": "These tags are not used on any dives, sites or equipment.",
   "tags_manage_mergeAction": "Merge",
   "tags_title_manageTags": "Manage Tags",
   "tank_al100_description": "Aluminum 100 cu ft",
