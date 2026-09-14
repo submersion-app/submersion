@@ -80,6 +80,19 @@ class RestoreJournal {
 
   bool get hasMarker => File(markerPath).existsSync();
 
+  /// The aside copy while a restore is unsettled (the marker is present, or
+  /// nothing is live), otherwise null.
+  ///
+  /// Until it is settled, that copy is the database the diver actually has,
+  /// so startup must judge encryption by ITS header. The live path may be
+  /// missing or hold a plaintext restored file, and reading either as "the
+  /// database is not encrypted" switches encryption off and drops the key
+  /// that the encrypted original needs.
+  String? get pendingAsidePath {
+    if (!File(asidePath).existsSync()) return null;
+    return hasMarker || !File(dbPath).existsSync() ? asidePath : null;
+  }
+
   /// Opens this restore's journal entry. Flushed, because the marker is only
   /// worth anything if it survives the crash it exists for.
   Future<void> begin() async {

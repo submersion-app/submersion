@@ -211,6 +211,31 @@ void main() {
     });
   });
 
+  group('pendingAsidePath', () {
+    test('null when nothing is aside', () {
+      touch(db);
+      expect(journal().pendingAsidePath, isNull);
+    });
+
+    test('the aside copy while the marker says the restore is unsettled', () {
+      touch(db);
+      touch('$db.pre-restore');
+      touch('$db.restore-pending');
+      expect(journal().pendingAsidePath, '$db.pre-restore');
+    });
+
+    test('the aside copy when nothing is live, marker or not', () {
+      touch('$db.pre-restore');
+      expect(journal().pendingAsidePath, '$db.pre-restore');
+    });
+
+    test('null for an unmarked leftover beside a live file', () {
+      touch(db);
+      touch('$db.pre-restore');
+      expect(journal().pendingAsidePath, isNull);
+    });
+  });
+
   group('findInterrupted', () {
     // The state an unsettled restore leaves: the original aside (openable
     // here), a rejected file live, and the marker.

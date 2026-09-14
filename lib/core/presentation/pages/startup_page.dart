@@ -302,7 +302,17 @@ class _StartupWrapperState extends State<StartupWrapper>
 
       // App Security gate: must resolve BEFORE the schema probe below, which
       // needs the cipher key to read an encrypted file.
-      await _resolveSecurityGate(dbPath);
+      //
+      // While a restore is unsettled, the diver's database is the aside copy,
+      // so the gate judges encryption by that file's header. Judged by the
+      // live path (missing, or a plaintext restored file) an encrypted
+      // install read as an interrupted disable-encryption run and lost the
+      // key the recovery probe below needs (issue #1901).
+      final journal = _restoreJournal(dbPath);
+      await _resolveSecurityGate(
+        dbPath,
+        headerPath: journal.pendingAsidePath ?? dbPath,
+      );
 
       // An earlier restore that never settled left the previous database
       // aside. Checked after the security gate (probing an encrypted file
@@ -310,7 +320,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       // file would otherwise be created fresh by onCreate, and a rejected one
       // would route to the version-mismatch screen, neither of which is what
       // happened.
-      final interrupted = _restoreJournal(dbPath).findInterrupted();
+      final interrupted = journal.findInterrupted();
       if (interrupted != null) {
         if (mounted) {
           setState(() {
@@ -467,11 +477,14 @@ class _StartupWrapperState extends State<StartupWrapper>
   ///
   /// Also self-heals a flag/file mismatch: the file header is the truth
   /// (an interrupted enable/disable or restored prefs can disagree).
-  Future<void> _resolveSecurityGate(String dbPath) async {
+  ///
+  /// [headerPath] is the file whose header decides "encrypted or not", when
+  /// that is not [dbPath]: the aside copy of an unsettled restore.
+  Future<void> _resolveSecurityGate(String dbPath, {String? headerPath}) async {
     final security = DatabaseSecurityService.instance;
     await security.configure(prefs: widget.prefs);
 
-    final fileEncrypted = isEncryptedDatabaseFile(dbPath);
+    final fileEncrypted = isEncryptedDatabaseFile(headerPath ?? dbPath);
     if (!fileEncrypted && security.encryptionEnabled) {
       // Interrupted disable-encryption run: the file is plaintext, the flag
       // is stale. The file wins.
