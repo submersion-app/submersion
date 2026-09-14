@@ -4163,6 +4163,7 @@
   "equipment_retypeOther_subtitle": "Geïmporteerde uitrusting het type geven dat de naam noemt",
   "equipment_retypeOther_title": "Uitrusting gemarkeerd als Overig corrigeren",
   "equipment_retypeOther_undoFailed": "{count, plural, =1{1 item kon niet worden teruggezet} other{{count} items konden niet worden teruggezet}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 item is sindsdien gewijzigd en blijft zoals het is} other{{count} items zijn sindsdien gewijzigd en blijven zoals ze zijn}}",
   "equipment_retypeOther_undone": "Typewijziging ongedaan gemaakt",
   "equipment_search_backTooltip": "Terug",
   "equipment_search_clearTooltip": "Zoekopdracht wissen",

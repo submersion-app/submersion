@@ -26,24 +26,19 @@ class RetypeCandidate extends Equatable {
   List<Object?> get props => [item, type, thickness];
 }
 
-/// One item a retype changed, as Undo needs it.
+/// One item a retype changed: the item as stored before it and as the
+/// retype left it. Undo puts [before] back only while the item still equals
+/// [after], so it never reverses an edit or a synced change made since.
 class RetypedItem extends Equatable {
-  const RetypedItem({
-    required this.id,
-    required this.previousType,
-    required this.type,
-    required this.addedThickness,
-  });
+  const RetypedItem({required this.before, required this.after});
 
-  final String id;
-  final EquipmentType previousType;
-  final EquipmentType type;
+  final EquipmentItem before;
+  final EquipmentItem after;
 
-  /// Whether the retype wrote the item's thickness, so Undo removes it.
-  final bool addedThickness;
+  String get id => after.id;
 
   @override
-  List<Object?> get props => [id, previousType, type, addedThickness];
+  List<Object?> get props => [before, after];
 }
 
 /// What applying a batch of [RetypeCandidate]s did.
@@ -52,10 +47,32 @@ class RetypeReceipt extends Equatable {
 
   final List<RetypedItem> retyped;
 
-  /// Items whose write threw. Items that changed since they were listed are
-  /// skipped instead, and counted in neither.
+  /// Items whose write threw, and was rolled back. Items that changed since
+  /// they were listed are skipped instead, and counted in neither.
   final int failed;
 
   @override
   List<Object?> get props => [retyped, failed];
+}
+
+/// What undoing a [RetypeReceipt] did.
+class RetypeUndoResult extends Equatable {
+  const RetypeUndoResult({
+    this.restored = 0,
+    this.skipped = 0,
+    this.failed = 0,
+  });
+
+  /// Items put back as they were.
+  final int restored;
+
+  /// Items left alone because they changed, or were deleted, since the
+  /// retype.
+  final int skipped;
+
+  /// Items whose write threw, and was rolled back.
+  final int failed;
+
+  @override
+  List<Object?> get props => [restored, skipped, failed];
 }

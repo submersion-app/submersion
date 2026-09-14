@@ -12719,6 +12719,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem azóta megváltozott, ezért változatlan marad',
+      one: '1 elem azóta megváltozott, ezért változatlan marad',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => 'Típusmódosítás visszavonva';
 
   @override

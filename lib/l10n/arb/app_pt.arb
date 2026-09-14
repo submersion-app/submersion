@@ -4163,6 +4163,7 @@
   "equipment_retypeOther_subtitle": "Dê ao equipamento importado o tipo indicado pelo nome",
   "equipment_retypeOther_title": "Corrigir equipamento marcado como Outro",
   "equipment_retypeOther_undoFailed": "{count, plural, =1{Não foi possível restaurar 1 item} other{Não foi possível restaurar {count} itens}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 item mudou desde então e foi mantido como está} other{{count} itens mudaram desde então e foram mantidos como estão}}",
   "equipment_retypeOther_undone": "Alteração de tipo desfeita",
   "equipment_search_backTooltip": "Voltar",
   "equipment_search_clearTooltip": "Limpar Busca",

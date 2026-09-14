@@ -43,16 +43,14 @@ Future<RetypeReceipt> applyOtherGearRetype({
             : SnackBarAction(
                 label: l10n.diveLog_bulkDelete_undo,
                 onPressed: () async {
-                  final failed = await service.undo(receipt);
+                  final result = await service.undo(receipt);
                   refreshAfterOtherGearRetype(container);
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(
-                        failed == 0
-                            ? l10n.equipment_retypeOther_undone
-                            : l10n.equipment_retypeOther_undoFailed(failed),
+                      content: Text(_undoMessage(l10n, result)),
+                      duration: Duration(
+                        seconds: result.skipped + result.failed == 0 ? 2 : 5,
                       ),
-                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
@@ -61,3 +59,11 @@ Future<RetypeReceipt> applyOtherGearRetype({
     );
   return receipt;
 }
+
+/// "Retype undone", or what Undo left alone and why.
+String _undoMessage(AppLocalizations l10n, RetypeUndoResult result) => [
+  if (result.restored > 0) l10n.equipment_retypeOther_undone,
+  if (result.skipped > 0)
+    l10n.equipment_retypeOther_undoSkipped(result.skipped),
+  if (result.failed > 0) l10n.equipment_retypeOther_undoFailed(result.failed),
+].join(' · ');

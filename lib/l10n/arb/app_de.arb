@@ -4163,6 +4163,7 @@
   "equipment_retypeOther_subtitle": "Importierter Ausrüstung den Typ geben, den ihr Name nennt",
   "equipment_retypeOther_title": "Ausrüstung vom Typ Sonstige korrigieren",
   "equipment_retypeOther_undoFailed": "{count, plural, =1{1 Teil konnte nicht zurückgesetzt werden} other{{count} Teile konnten nicht zurückgesetzt werden}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 Teil wurde inzwischen geändert und bleibt unverändert} other{{count} Teile wurden inzwischen geändert und bleiben unverändert}}",
   "equipment_retypeOther_undone": "Typänderung rückgängig gemacht",
   "equipment_search_backTooltip": "Zurück",
   "equipment_search_clearTooltip": "Suche löschen",

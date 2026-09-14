@@ -4308,6 +4308,7 @@
   "equipment_retypeOther_subtitle": "按名称为导入的装备设置类型",
   "equipment_retypeOther_title": "更正标为“其他”的装备",
   "equipment_retypeOther_undoFailed": "{count, plural, other{有 {count} 件物品无法恢复}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, other{有 {count} 件物品此后已更改，保持不变}}",
   "equipment_retypeOther_undone": "已撤销类型更改",
   "equipment_search_backTooltip": "返回",
   "equipment_search_clearTooltip": "清除搜索",

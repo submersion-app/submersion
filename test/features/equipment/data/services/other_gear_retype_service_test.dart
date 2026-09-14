@@ -24,6 +24,18 @@ class _FailingRepository extends EquipmentRepository {
   }
 }
 
+/// Fails every attribute save: [updateEquipment] has already written the
+/// equipment row by then, so only a transaction can take it back.
+class _AttributesFail extends EquipmentRepository {
+  @override
+  Future<void> saveAttributes(
+    String equipmentId,
+    List<EquipmentAttribute> desired,
+  ) async {
+    throw StateError('attributes failed');
+  }
+}
+
 void main() {
   late AppDatabase db;
   late EquipmentRepository repo;
@@ -125,20 +137,16 @@ void main() {
         final receipt = await service.apply(await service.findCandidates('d1'));
 
         expect(receipt.failed, 0);
-        expect(receipt.retyped, [
-          RetypedItem(
-            id: suit.id,
-            previousType: EquipmentType.other,
-            type: EquipmentType.wetsuit,
-            addedThickness: true,
-          ),
-          RetypedItem(
-            id: fins.id,
-            previousType: EquipmentType.other,
-            type: EquipmentType.fins,
-            addedThickness: false,
-          ),
-        ]);
+        expect(
+          [
+            for (final r in receipt.retyped)
+              (r.id, r.before.type, r.after.type, thicknessOf(r.after)),
+          ],
+          [
+            (suit.id, EquipmentType.other, EquipmentType.wetsuit, '7mm'),
+            (fins.id, EquipmentType.other, EquipmentType.fins, null),
+          ],
+        );
         final storedSuit = (await repo.getEquipmentById(suit.id))!;
         expect(storedSuit.type, EquipmentType.wetsuit);
         expect(thicknessOf(storedSuit), '7mm');
@@ -203,6 +211,21 @@ void main() {
       expect(receipt.retyped.map((r) => r.id), [fins.id]);
       expect((await repo.getEquipmentById(fins.id))!.type, EquipmentType.fins);
     });
+
+    test('rolls back an item whose write fails part way', () async {
+      final suit = await add('7mm Wetsuit');
+      await db.delete(db.syncRecords).go();
+      final failing = OtherGearRetypeService(_AttributesFail());
+
+      final receipt = await failing.apply(await failing.findCandidates('d1'));
+
+      expect(receipt.failed, 1);
+      expect(receipt.retyped, isEmpty);
+      final stored = (await repo.getEquipmentById(suit.id))!;
+      expect(stored.type, EquipmentType.other);
+      expect(thicknessOf(stored), isNull);
+      expect(await isPending(suit.id), isFalse);
+    });
   });
 
   group('undo', () {
@@ -220,9 +243,9 @@ void main() {
       final receipt = await service.apply(await service.findCandidates('d1'));
       await db.delete(db.syncRecords).go();
 
-      final failed = await service.undo(receipt);
+      final result = await service.undo(receipt);
 
-      expect(failed, 0);
+      expect(result, const RetypeUndoResult(restored: 1));
       final stored = (await repo.getEquipmentById(suit.id))!;
       expect(stored.type, EquipmentType.other);
       expect(thicknessOf(stored), isNull);
@@ -246,8 +269,9 @@ void main() {
       );
       final receipt = await service.apply(await service.findCandidates('d1'));
 
-      await service.undo(receipt);
+      final result = await service.undo(receipt);
 
+      expect(result, const RetypeUndoResult(restored: 1));
       final stored = (await repo.getEquipmentById(suit.id))!;
       expect(stored.type, EquipmentType.other);
       expect(thicknessOf(stored), '5');
@@ -259,12 +283,78 @@ void main() {
       final current = (await repo.getEquipmentById(suit.id))!;
       await repo.updateEquipment(current.copyWith(type: EquipmentType.drysuit));
 
-      await service.undo(receipt);
+      final result = await service.undo(receipt);
 
+      expect(result, const RetypeUndoResult(skipped: 1));
       expect(
         (await repo.getEquipmentById(suit.id))!.type,
         EquipmentType.drysuit,
       );
+    });
+
+    test('leaves an item edited since, even at the same type', () async {
+      final suit = await add('7mm Wetsuit');
+      final receipt = await service.apply(await service.findCandidates('d1'));
+      final current = (await repo.getEquipmentById(suit.id))!;
+      await repo.updateEquipment(current.copyWith(brand: 'Bare'));
+
+      final result = await service.undo(receipt);
+
+      expect(result, const RetypeUndoResult(skipped: 1));
+      final stored = (await repo.getEquipmentById(suit.id))!;
+      expect(stored.type, EquipmentType.wetsuit);
+      expect(stored.brand, 'Bare');
+      expect(thicknessOf(stored), '7mm');
+    });
+
+    test('leaves a thickness changed since', () async {
+      final suit = await add('7mm Wetsuit');
+      final receipt = await service.apply(await service.findCandidates('d1'));
+      final current = (await repo.getEquipmentById(suit.id))!;
+      await repo.updateEquipment(
+        current.copyWith(
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: suit.id,
+              key: EquipmentAttrKeys.thicknessMm,
+              valueText: '5',
+              valueNum: 5,
+            ),
+          ],
+        ),
+      );
+
+      final result = await service.undo(receipt);
+
+      expect(result, const RetypeUndoResult(skipped: 1));
+      final stored = (await repo.getEquipmentById(suit.id))!;
+      expect(stored.type, EquipmentType.wetsuit);
+      expect(thicknessOf(stored), '5');
+    });
+
+    test('skips an item deleted since', () async {
+      final suit = await add('7mm Wetsuit');
+      final receipt = await service.apply(await service.findCandidates('d1'));
+      await repo.deleteEquipment(suit.id);
+
+      final result = await service.undo(receipt);
+
+      expect(result, const RetypeUndoResult(skipped: 1));
+      expect(await repo.getEquipmentById(suit.id), isNull);
+    });
+
+    test('rolls back an item whose undo fails part way', () async {
+      final suit = await add('7mm Wetsuit');
+      final receipt = await service.apply(await service.findCandidates('d1'));
+
+      final result = await OtherGearRetypeService(
+        _AttributesFail(),
+      ).undo(receipt);
+
+      expect(result, const RetypeUndoResult(failed: 1));
+      final stored = (await repo.getEquipmentById(suit.id))!;
+      expect(stored.type, EquipmentType.wetsuit);
+      expect(thicknessOf(stored), '7mm');
     });
   });
 }

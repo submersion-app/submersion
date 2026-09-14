@@ -12793,6 +12793,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments ont changé depuis et restent tels quels',
+      one: '1 élément a changé depuis et reste tel quel',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => 'Changement de type annulé';
 
   @override

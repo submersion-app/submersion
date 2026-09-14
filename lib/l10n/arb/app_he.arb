@@ -4059,6 +4059,7 @@
   "equipment_retypeOther_subtitle": "מתן הסוג ששמו מציין לציוד מיובא",
   "equipment_retypeOther_title": "תיקון ציוד שסומן כאחר",
   "equipment_retypeOther_undoFailed": "{count, plural, =1{לא ניתן לשחזר פריט אחד} other{לא ניתן לשחזר {count} פריטים}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{פריט אחד השתנה מאז ונשאר כפי שהוא} other{{count} פריטים השתנו מאז ונשארו כפי שהם}}",
   "equipment_retypeOther_undone": "שינוי הסוג בוטל",
   "equipment_search_backTooltip": "חזרה",
   "equipment_search_clearTooltip": "נקה חיפוש",

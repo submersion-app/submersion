@@ -4059,6 +4059,7 @@
   "equipment_retypeOther_subtitle": "Az importált felszerelés megkapja a nevében szereplő típust",
   "equipment_retypeOther_title": "Egyéb típusú felszerelés javítása",
   "equipment_retypeOther_undoFailed": "{count, plural, =1{1 elemet nem sikerült visszaállítani} other{{count} elemet nem sikerült visszaállítani}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 elem azóta megváltozott, ezért változatlan marad} other{{count} elem azóta megváltozott, ezért változatlan marad}}",
   "equipment_retypeOther_undone": "Típusmódosítás visszavonva",
   "equipment_search_backTooltip": "Vissza",
   "equipment_search_clearTooltip": "Kereses torlese",

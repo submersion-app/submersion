@@ -21223,6 +21223,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 item could not be put back} other{{count} items could not be put back}}'**
   String equipment_retypeOther_undoFailed(int count);
 
+  /// No description provided for @equipment_retypeOther_undoSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item changed since and was left as it is} other{{count} items changed since and were left as they are}}'**
+  String equipment_retypeOther_undoSkipped(int count);
+
   /// No description provided for @equipment_retypeOther_undone.
   ///
   /// In en, this message translates to:

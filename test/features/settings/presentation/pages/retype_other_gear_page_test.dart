@@ -21,11 +21,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Records what the page applies and undoes, failing [failures] items.
+/// Records what the page applies and undoes. Apply fails [failures] items;
+/// Undo reports [undoResult].
 class _FakeRetypeService extends OtherGearRetypeService {
-  _FakeRetypeService({this.failures = 0}) : super(EquipmentRepository());
+  _FakeRetypeService({
+    this.failures = 0,
+    this.undoResult = const RetypeUndoResult(restored: 1),
+  }) : super(EquipmentRepository());
 
   final int failures;
+  final RetypeUndoResult undoResult;
   final applied = <List<RetypeCandidate>>[];
   final undone = <RetypeReceipt>[];
 
@@ -37,10 +42,8 @@ class _FakeRetypeService extends OtherGearRetypeService {
       retyped: [
         for (final c in written)
           RetypedItem(
-            id: c.item.id,
-            previousType: EquipmentType.other,
-            type: c.type,
-            addedThickness: c.thickness != null,
+            before: c.item,
+            after: c.item.copyWith(type: c.type),
           ),
       ],
       failed: candidates.length - written.length,
@@ -48,9 +51,9 @@ class _FakeRetypeService extends OtherGearRetypeService {
   }
 
   @override
-  Future<int> undo(RetypeReceipt receipt) async {
+  Future<RetypeUndoResult> undo(RetypeReceipt receipt) async {
     undone.add(receipt);
-    return 0;
+    return undoResult;
   }
 }
 
@@ -164,6 +167,35 @@ void main() {
 
     expect(service.undone.single.retyped.map((r) => r.id), ['suit']);
     expect(find.text(_l10n.equipment_retypeOther_undone), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Undo reports items it left alone or could not put back', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _FakeRetypeService(
+        undoResult: const RetypeUndoResult(restored: 1, skipped: 1, failed: 1),
+      ),
+      _candidates,
+    );
+
+    await tester.tap(find.text(_l10n.equipment_retypeOther_apply(2)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(_l10n.diveLog_bulkDelete_undo));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        [
+          _l10n.equipment_retypeOther_undone,
+          _l10n.equipment_retypeOther_undoSkipped(1),
+          _l10n.equipment_retypeOther_undoFailed(1),
+        ].join(' · '),
+      ),
+      findsOneWidget,
+    );
     await tester.pump(const Duration(seconds: 6));
   });
 

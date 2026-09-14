@@ -12741,6 +12741,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count elementos cambiaron desde entonces y se han dejado como están',
+      one: '1 elemento cambió desde entonces y se ha dejado como está',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => 'Cambio de tipo deshecho';
 
   @override

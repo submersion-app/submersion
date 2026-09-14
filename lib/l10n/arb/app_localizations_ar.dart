@@ -12535,6 +12535,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغير $count عنصر منذ ذلك الحين وتُركت كما هي',
+      one: 'تغير عنصر واحد منذ ذلك الحين وتُرك كما هو',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => 'تم التراجع عن تغيير النوع';
 
   @override

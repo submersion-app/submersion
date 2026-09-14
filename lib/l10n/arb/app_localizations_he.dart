@@ -12467,6 +12467,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים השתנו מאז ונשארו כפי שהם',
+      one: 'פריט אחד השתנה מאז ונשאר כפי שהוא',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => 'שינוי הסוג בוטל';
 
   @override

@@ -12556,6 +12556,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items changed since and were left as they are',
+      one: '1 item changed since and was left as it is',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => 'Retype undone';
 
   @override

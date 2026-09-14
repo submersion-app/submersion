@@ -4059,6 +4059,7 @@
   "equipment_retypeOther_subtitle": "Donner à l'équipement importé le type indiqué par son nom",
   "equipment_retypeOther_title": "Corriger l'équipement marqué Autre",
   "equipment_retypeOther_undoFailed": "{count, plural, =1{Impossible de rétablir 1 élément} other{Impossible de rétablir {count} éléments}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 élément a changé depuis et reste tel quel} other{{count} éléments ont changé depuis et restent tels quels}}",
   "equipment_retypeOther_undone": "Changement de type annulé",
   "equipment_search_backTooltip": "Retour",
   "equipment_search_clearTooltip": "Effacer la recherche",

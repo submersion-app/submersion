@@ -7266,6 +7266,14 @@
       }
     }
   },
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 item changed since and was left as it is} other{{count} items changed since and were left as they are}}",
+  "@equipment_retypeOther_undoSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipment_retypeOther_undone": "Retype undone",
   "equipment_search_backTooltip": "Back",
   "equipment_search_clearTooltip": "Clear Search",

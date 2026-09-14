@@ -12168,6 +12168,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 件物品此后已更改，保持不变',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => '已撤销类型更改';
 
   @override

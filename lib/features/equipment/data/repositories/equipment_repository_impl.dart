@@ -390,6 +390,12 @@ class EquipmentRepository {
     );
   }
 
+  /// Runs [action] in one database transaction, so an edit built from
+  /// several calls here commits all or nothing. [updateEquipment] writes the
+  /// row, its attributes and the pending mark in separate steps.
+  Future<T> transaction<T>(Future<T> Function() action) =>
+      _db.transaction(action);
+
   /// Update equipment
   Future<void> updateEquipment(EquipmentItem equipment) async {
     try {

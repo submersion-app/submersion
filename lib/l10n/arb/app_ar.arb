@@ -4163,6 +4163,7 @@
   "equipment_retypeOther_subtitle": "منح المعدات المستوردة النوع الذي يذكره اسمها",
   "equipment_retypeOther_title": "تصحيح المعدات المصنفة كأخرى",
   "equipment_retypeOther_undoFailed": "{count, plural, =1{تعذرت استعادة عنصر واحد} other{تعذرت استعادة {count} عنصر}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{تغير عنصر واحد منذ ذلك الحين وتُرك كما هو} other{تغير {count} عنصر منذ ذلك الحين وتُركت كما هي}}",
   "equipment_retypeOther_undone": "تم التراجع عن تغيير النوع",
   "equipment_search_backTooltip": "رجوع",
   "equipment_search_clearTooltip": "مسح البحث",

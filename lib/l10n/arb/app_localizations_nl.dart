@@ -12659,6 +12659,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items zijn sindsdien gewijzigd en blijven zoals ze zijn',
+      one: '1 item is sindsdien gewijzigd en blijft zoals het is',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_retypeOther_undone => 'Typewijziging ongedaan gemaakt';
 
   @override
