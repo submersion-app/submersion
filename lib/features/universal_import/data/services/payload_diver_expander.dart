@@ -107,11 +107,12 @@ class PayloadDiverExpander {
     // A service record rides with every copy of its equipment.
     out[ImportEntityType.serviceRecords] = [
       for (final record in source.entitiesOf(ImportEntityType.serviceRecords))
-        for (final target in switch (record['equipmentRef']) {
-          final String ref when equipmentTargets.containsKey(ref) =>
-            equipmentTargets[ref]!,
-          _ => [?primary],
-        })
+        for (final target
+            in switch (record[serviceRecordRefTypes.keys.single]) {
+              final String ref when equipmentTargets.containsKey(ref) =>
+                equipmentTargets[ref]!,
+              _ => [?primary],
+            })
           {...record, DiverTarget.itemKey: target},
     ];
 

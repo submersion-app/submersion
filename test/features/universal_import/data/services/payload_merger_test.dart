@@ -889,6 +889,52 @@ void main() {
     });
   });
 
+  group('service records (#1893 review)', () {
+    test('keep pointing at their equipment after namespacing and folding', () {
+      Map<String, dynamic> bcd() => {
+        'name': 'Hydros',
+        'type': 'bcd',
+        'uddfId': 'gear-1',
+      };
+      final merged = const PayloadMerger().merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'one.sqlite',
+          payload: ImportPayload(
+            entities: {
+              ImportEntityType.equipment: [bcd()],
+              ImportEntityType.serviceRecords: [
+                {'equipmentRef': 'gear-1', 'notes': 'first'},
+              ],
+            },
+          ),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'two.sqlite',
+          payload: ImportPayload(
+            entities: {
+              ImportEntityType.equipment: [bcd()],
+              ImportEntityType.serviceRecords: [
+                {'equipmentRef': 'gear-1', 'notes': 'second'},
+              ],
+            },
+          ),
+        ),
+      ]);
+
+      // The second file's BCD folds into the first, so both records must
+      // name the survivor for the importer's equipment map to find it.
+      expect(merged.entitiesOf(ImportEntityType.equipment), hasLength(1));
+      expect(
+        merged
+            .entitiesOf(ImportEntityType.serviceRecords)
+            .map((r) => r['equipmentRef']),
+        ['f0:gear-1', 'f0:gear-1'],
+      );
+    });
+  });
+
   group('source divers (#1893)', () {
     test('sums one diver across files and leaves the dive key alone', () {
       final merged = const PayloadMerger().merge([

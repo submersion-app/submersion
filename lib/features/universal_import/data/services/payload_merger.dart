@@ -67,6 +67,11 @@ class PayloadMerger {
   /// Site map fields holding a list of entity references (issue #1765).
   static final _siteListRefFields = siteListRefTypes.keys.toList();
 
+  /// Service record fields naming their equipment item. Equipment ids are
+  /// namespaced and folded, so these have to follow or the importer, which
+  /// attaches a record only through its equipment's id, drops the record.
+  static final _serviceRecordRefFields = serviceRecordRefTypes.keys.toList();
+
   /// Rewrites the string reference [fields] of every map in [item]'s
   /// [key] list through [rewrite], copying rather than mutating the
   /// nested maps. A null reference stays null; a map without the list is
@@ -287,6 +292,13 @@ class PayloadMerger {
         _componentRefFields,
         (ref) => '$fileId:$ref',
       );
+    }
+
+    if (type == ImportEntityType.serviceRecords) {
+      for (final field in _serviceRecordRefFields) {
+        final ref = item[field];
+        if (ref is String && ref.isNotEmpty) item[field] = '$fileId:$ref';
+      }
     }
 
     if (type == ImportEntityType.equipmentSets) {
@@ -515,6 +527,15 @@ class PayloadMerger {
           for (final ref in refs)
             if (ref is String) resolve(ref) else ref,
         ];
+      }
+    }
+
+    // A service record follows its equipment when that folds.
+    for (final record
+        in entities[ImportEntityType.serviceRecords] ?? const []) {
+      for (final field in _serviceRecordRefFields) {
+        final ref = record[field];
+        if (ref is String) record[field] = resolve(ref);
       }
     }
 

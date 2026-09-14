@@ -41,6 +41,11 @@ const Map<String, ImportEntityType> siteListRefTypes = {
   'tagRefs': ImportEntityType.tags,
 };
 
+/// Service record field naming the equipment item it belongs to.
+const Map<String, ImportEntityType> serviceRecordRefTypes = {
+  'equipmentRef': ImportEntityType.equipment,
+};
+
 /// Field inside a dive's `buddyRoleRefs` entries (issue #1737).
 const Map<String, ImportEntityType> buddyRoleRefTypes = {
   'buddyRef': ImportEntityType.buddies,
