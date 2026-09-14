@@ -531,7 +531,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 .toList(),
             onChanged: (value) {
               if (value != null) {
-                setState(() => _role = value);
+                setState(() {
+                  _role = value;
+                  // A CCR oxygen supply cylinder feeds pure O2 into the loop
+                  // by definition, so there's nothing to analyze -- default
+                  // it instead of making the diver enter 100% by hand (#726).
+                  if (value == TankRole.oxygenSupply) {
+                    _o2Controller.text = formatDecimalForInput(100);
+                    _heController.text = formatDecimalForInput(0);
+                  }
+                });
                 _notifyChange();
               }
             },

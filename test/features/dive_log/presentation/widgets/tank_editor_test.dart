@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -234,6 +235,75 @@ void main() {
       expect(updatedTank!.computerId, 'dc-1');
       expect(updatedTank!.transmitterSerial, '180777');
     });
+
+    testWidgets(
+      'selecting Oxygen Supply role auto-fills 100% O2 / 0% He (issue #726)',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+
+        final mockSettings = MockSettingsNotifier();
+
+        final builtInPresets = TankPresets.all
+            .map((p) => TankPresetEntity.fromBuiltIn(p))
+            .toList();
+
+        const tank = DiveTank(
+          id: 'tank-oxygen',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+        );
+
+        DiveTank? updatedTank;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => mockSettings),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              tankPresetListNotifierProvider.overrideWith(
+                (ref) => _MockTankPresetListNotifier(builtInPresets),
+              ),
+              tankPresetsProvider.overrideWith(
+                (ref) => Future.value(builtInPresets),
+              ),
+            ].cast(),
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: TankEditor(
+                    tank: tank,
+                    tankNumber: 1,
+                    onChanged: (t) => updatedTank = t,
+                    onRemove: () {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final roleDropdown = find.byType(DropdownButtonFormField<TankRole>);
+        expect(roleDropdown, findsOneWidget);
+        await tester.tap(roleDropdown);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('O₂ Supply').last);
+        await tester.pumpAndSettle();
+
+        expect(find.widgetWithText(TextFormField, '100'), findsOneWidget);
+        expect(updatedTank, isNotNull);
+        expect(updatedTank!.role, TankRole.oxygenSupply);
+        expect(updatedTank!.gasMix.o2, 100.0);
+        expect(updatedTank!.gasMix.he, 0.0);
+      },
+    );
 
     testWidgets('applyPreset shows volumeCuft in imperial mode', (
       tester,
