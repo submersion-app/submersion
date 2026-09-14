@@ -144,11 +144,14 @@ class DiveFilterState {
   /// Whether a filter reads the `dive_buddies` junction (the name filter also
   /// joins `buddies.name`). Those tables change without a `dives` write (a
   /// sync pull of a buddy link, a buddy merge or rename), so a list filtered
-  /// this way must follow [DiveRepository.watchBuddyFilterChanges] (#1915).
+  /// this way must also follow those tables' writes (#1915). A name filter
+  /// counts only with a non-blank comma-separated part: the SQL builder and
+  /// [apply] both drop blank parts, so `' , '` filters nothing.
   bool get readsBuddyLinks =>
       buddyId != null ||
       noBuddyOnly == true ||
-      (buddyNameFilter != null && buddyNameFilter!.isNotEmpty);
+      (buddyNameFilter?.split(',').any((name) => name.trim().isNotEmpty) ??
+          false);
 
   bool get hasActiveFilters =>
       startDate != null ||

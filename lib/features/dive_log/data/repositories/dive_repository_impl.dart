@@ -196,21 +196,21 @@ class DiveRepository {
   /// filter most sessions never switch on. This is no worse than the
   /// dives-only tick it replaces.
   Stream<void> watchDiveListChanges() => _db
-      .tableUpdates(
-        TableUpdateQuery.allOf([
-          TableUpdateQuery.onTable(_db.dives),
-          TableUpdateQuery.onTable(_db.diveSites),
-          TableUpdateQuery.onTable(_db.trips),
-          TableUpdateQuery.onTable(_db.diveSafetyFindings),
-          // Row chips: tag membership and tag names, and the dive-type
-          // badges. The type NAMES resolve through their own provider, so
-          // only the junction is needed for them.
-          TableUpdateQuery.onTable(_db.diveTags),
-          TableUpdateQuery.onTable(_db.tags),
-          TableUpdateQuery.onTable(_db.diveDiveTypes),
-        ]),
-      )
+      .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
       .debounce(changeTickDebounce);
+
+  List<TableUpdateQuery> get _diveListTables => [
+    TableUpdateQuery.onTable(_db.dives),
+    TableUpdateQuery.onTable(_db.diveSites),
+    TableUpdateQuery.onTable(_db.trips),
+    TableUpdateQuery.onTable(_db.diveSafetyFindings),
+    // Row chips: tag membership and tag names, and the dive-type badges. The
+    // type NAMES resolve through their own provider, so only the junction is
+    // needed for them.
+    TableUpdateQuery.onTable(_db.diveTags),
+    TableUpdateQuery.onTable(_db.tags),
+    TableUpdateQuery.onTable(_db.diveDiveTypes),
+  ];
 
   /// Change tick for [getDiveIdsMatchingEquipmentAttrs]: the dives, both
   /// gear links, the items (their type) and their attribute rows.
@@ -228,22 +228,39 @@ class DiveRepository {
       )
       .debounce(changeTickDebounce);
 
-  /// Change tick for the buddy filters ([DiveFilterState.readsBuddyLinks]):
-  /// the `dive_buddies` junction and `buddies`, whose name the buddy-name
-  /// filter matches. A sync pull of a buddy link writes only `dive_buddies`
-  /// (the parent dive is never restamped, #1769), and a merge or rename
-  /// writes no `dives` row either, so no other list tick sees them (#1915).
-  ///
-  /// `dives` is left out on purpose: every consumer already follows a dives
-  /// tick, and adding it here would reload a filtered list twice per edit.
-  Stream<void> watchBuddyFilterChanges() => _db
+  /// [watchDiveListChanges] plus the tables the buddy filters read
+  /// ([DiveFilterState.readsBuddyLinks]), for a list filtered by buddy.
+  /// See [_buddyLinkTables].
+  Stream<void> watchDiveListChangesWithBuddyLinks() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([..._diveListTables, ..._buddyLinkTables]),
+      )
+      .debounce(changeTickDebounce);
+
+  /// [watchDivesChanges] plus the tables the buddy filters read, for a
+  /// dives-tick consumer filtered by buddy. See [_buddyLinkTables].
+  Stream<void> watchDivesChangesWithBuddyLinks() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
-          TableUpdateQuery.onTable(_db.diveBuddies),
-          TableUpdateQuery.onTable(_db.buddies),
+          TableUpdateQuery.onTable(_db.dives),
+          ..._buddyLinkTables,
         ]),
       )
       .debounce(changeTickDebounce);
+
+  /// The `dive_buddies` junction and `buddies`, whose name the buddy-name
+  /// filter matches. A sync pull of a buddy link writes only `dive_buddies`
+  /// (the parent dive is never restamped, #1769), and a merge or rename
+  /// writes no `dives` row either, so no plain dive tick sees them (#1915).
+  ///
+  /// They join a consumer's own tick rather than forming a second one: the
+  /// dive editor's link writers touch `dive_buddies` and then bump the dive
+  /// row outside a transaction, and two separately debounced ticks would
+  /// reload the list once for each write.
+  List<TableUpdateQuery> get _buddyLinkTables => [
+    TableUpdateQuery.onTable(_db.diveBuddies),
+    TableUpdateQuery.onTable(_db.buddies),
+  ];
 
   /// Aggregate change-tick for the dive DETAIL page: fires when ANY table that
   /// feeds a dive's detail view is written -- including a sync applying remote

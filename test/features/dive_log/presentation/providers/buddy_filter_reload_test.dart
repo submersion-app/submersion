@@ -6,10 +6,12 @@ import 'package:submersion/core/database/database.dart'
     show AppDatabase, BuddiesCompanion, DiveBuddiesCompanion;
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -30,6 +32,16 @@ class _CountingRepository implements DiveRepository {
 
   final DiveRepository _inner;
   int summaryCalls = 0;
+  int allDivesCalls = 0;
+
+  @override
+  Future<List<Dive>> getAllDives({String? diverId}) {
+    allDivesCalls++;
+    return _inner.getAllDives(diverId: diverId);
+  }
+
+  @override
+  Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
 
   @override
   Future<List<DiveSummary>> getDiveSummaries({
@@ -67,7 +79,12 @@ class _CountingRepository implements DiveRepository {
       _inner.watchEquipmentAttrFilterChanges();
 
   @override
-  Stream<void> watchBuddyFilterChanges() => _inner.watchBuddyFilterChanges();
+  Stream<void> watchDiveListChangesWithBuddyLinks() =>
+      _inner.watchDiveListChangesWithBuddyLinks();
+
+  @override
+  Stream<void> watchDivesChangesWithBuddyLinks() =>
+      _inner.watchDivesChangesWithBuddyLinks();
 
   @override
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
@@ -246,6 +263,62 @@ void main() {
 
       expect(counting.summaryCalls, before);
     });
+
+    test('a local buddy edit reloads a buddy-filtered page once', () async {
+      // The dive editor's link writers touch dive_buddies and then bump the
+      // dive row, outside a transaction. Two separately debounced ticks
+      // would reload the page once for each write.
+      final counting = _CountingRepository(DiveRepository());
+      final container = containerWith(
+        const DiveFilterState(buddyId: 'ann'),
+        repository: counting,
+      );
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+      await listedIds(container, (ids) => ids.isEmpty);
+      await Future<void>.delayed(
+        DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+      );
+      final before = counting.summaryCalls;
+
+      await BuddyRepository().addBuddyToDive(
+        'annDive',
+        'ann',
+        DiveRole.buddyId,
+      );
+      await Future<void>.delayed(
+        DiveRepository.changeTickDebounce * 2 +
+            const Duration(milliseconds: 300),
+      );
+
+      expect(await listedIds(container, (ids) => ids.isNotEmpty), {'annDive'});
+      expect(counting.summaryCalls - before, 1);
+    });
+  });
+
+  test('a local buddy edit reloads the maps list once', () async {
+    final counting = _CountingRepository(DiveRepository());
+    final container = containerWith(
+      const DiveFilterState(buddyNameFilter: 'Ann'),
+      repository: counting,
+    );
+    final sub = container.listen(filteredDivesProvider, (_, _) {});
+    addTearDown(sub.close);
+    Set<String>? filteredIds() =>
+        container.read(filteredDivesProvider).value?.map((d) => d.id).toSet();
+    await waitFor(filteredIds, (ids) => ids.isEmpty);
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+    final before = counting.allDivesCalls;
+
+    await BuddyRepository().addBuddyToDive('annDive', 'ann', DiveRole.buddyId);
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce * 2 + const Duration(milliseconds: 300),
+    );
+
+    expect(await waitFor(filteredIds, (ids) => ids.isNotEmpty), {'annDive'});
+    expect(counting.allDivesCalls - before, 1);
   });
 
   test('a link-only write refreshes detail-page neighbor ids', () async {

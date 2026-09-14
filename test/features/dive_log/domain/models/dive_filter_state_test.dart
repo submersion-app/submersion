@@ -92,6 +92,12 @@ void main() {
           ).readsBuddyLinks,
           isFalse,
         );
+        // Both the SQL builder and apply() drop blank comma-separated parts,
+        // so this filters nothing and must not subscribe to buddy writes.
+        expect(
+          const DiveFilterState(buddyNameFilter: ' , ').readsBuddyLinks,
+          isFalse,
+        );
       });
 
       test('is true for each filter that reads dive_buddies', () {
