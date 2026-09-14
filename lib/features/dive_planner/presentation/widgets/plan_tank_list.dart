@@ -315,7 +315,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                         labelText: context.l10n.divePlanner_field_o2Percent,
                       ),
                       keyboardType: TextInputType.number,
-                      validator: _validateGasPercent,
+                      validator: (value) => _validateGasPercent(
+                        value,
+                        parseUserDecimal(_heController.text),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -326,7 +329,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                         labelText: context.l10n.divePlanner_field_hePercent,
                       ),
                       keyboardType: TextInputType.number,
-                      validator: _validateGasPercent,
+                      validator: (value) => _validateGasPercent(
+                        value,
+                        parseUserDecimal(_o2Controller.text),
+                      ),
                     ),
                   ),
                 ],
@@ -372,14 +378,21 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     );
   }
 
-  /// Empty is fine ([_save] defaults it); anything else must parse (#1900)
-  /// -- a mistyped gas percentage otherwise silently becomes air rather than
-  /// telling the diver their input was rejected.
-  String? _validateGasPercent(String? value) {
+  /// Empty is fine ([_save] defaults it); anything else must parse to a
+  /// percentage in [0, 100] (#1900), and combined with [otherPercent] --
+  /// the sibling O2/He field's own current value -- must not exceed 100.
+  /// GasMix derives N2 as the remainder of the two, so an over-100 mix
+  /// feeds a negative N2 fraction straight into gas-planning math.
+  String? _validateGasPercent(String? value, double? otherPercent) {
     if (value == null || value.trim().isEmpty) return null;
-    return parseUserDecimal(value) == null
-        ? context.l10n.numberInput_invalidValue
-        : null;
+    final parsed = parseUserDecimal(value);
+    if (parsed == null || parsed < 0 || parsed > 100) {
+      return context.l10n.numberInput_invalidValue;
+    }
+    if (otherPercent != null && parsed + otherPercent > 100) {
+      return context.l10n.gasCalculators_blender_templateInvalid;
+    }
+    return null;
   }
 
   void _save() {

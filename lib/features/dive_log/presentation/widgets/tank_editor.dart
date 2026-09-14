@@ -68,6 +68,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// picks one or a preset prefills it from the last pairing.
   String? _regulatorEquipmentId;
 
+  /// The last O2/He value each field actually parsed to, tracked separately
+  /// from [widget.tank]: `_notifyChange` fires on every keystroke, so a
+  /// diver clearing a field to retype it round-trips a blank-default 0.0
+  /// through the parent and back into `widget.tank.gasMix` before they
+  /// finish typing. Falling back to that value for a following invalid
+  /// keystroke would still turn a mistyped trimix into air; falling back to
+  /// these instead means the fallback is always something the diver
+  /// actually typed, not a transient intermediate state (#1900 review).
+  late double _lastValidO2;
+  late double _lastValidHe;
+
   @override
   void initState() {
     super.initState();
@@ -139,6 +150,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _heController = TextEditingController(
       text: formatDecimalForInput(widget.tank.gasMix.he),
     );
+    _lastValidO2 = widget.tank.gasMix.o2;
+    _lastValidHe = widget.tank.gasMix.he;
     _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
@@ -287,18 +300,22 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// Blank text means "not set" and defaults to air, same as before. Text
   /// that fails to parse (a diver typing "." where the locale expects ",",
   /// say) is NOT the same as blank: falling back to the same 21/0 default
-  /// would silently turn a mistyped trimix into air. Falling back to the
-  /// tank's last known-good mix instead means a typo shows the validator's
-  /// error without corrupting the stored gas the moment it fires (#1900).
+  /// would silently turn a mistyped trimix into air. Falling back to
+  /// [_lastValidO2]/[_lastValidHe] instead means a typo shows the
+  /// validator's error without corrupting the stored gas the moment it
+  /// fires (#1900) -- deliberately NOT `widget.tank.gasMix`, which
+  /// `_notifyChange` overwrites on every keystroke including a blank
+  /// intermediate one, so clearing a field to retype it would otherwise
+  /// round-trip a stale 0.0 back in as the "last known good" value.
   GasMix _currentGasMix() {
     final o2Text = _o2Controller.text;
     final heText = _heController.text;
     final o2 =
         parseUserDecimal(o2Text) ??
-        (o2Text.trim().isEmpty ? 21.0 : widget.tank.gasMix.o2);
+        (o2Text.trim().isEmpty ? 21.0 : _lastValidO2);
     final he =
         parseUserDecimal(heText) ??
-        (heText.trim().isEmpty ? 0.0 : widget.tank.gasMix.he);
+        (heText.trim().isEmpty ? 0.0 : _lastValidHe);
     return GasMix(o2: o2, he: he);
   }
 
@@ -699,8 +716,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 ),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: _validateGasPercent,
-                onChanged: (_) {
+                onChanged: (value) {
                   _mndDriven = false;
+                  final parsed = parseUserDecimal(value);
+                  if (parsed != null) _lastValidO2 = parsed;
                   setState(() {});
                   _notifyChange();
                 },
@@ -720,8 +739,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 ),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: _validateGasPercent,
-                onChanged: (_) {
+                onChanged: (value) {
                   _mndDriven = false;
+                  final parsed = parseUserDecimal(value);
+                  if (parsed != null) _lastValidHe = parsed;
                   setState(() {});
                   _notifyChange();
                 },
@@ -845,9 +866,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   endLimit: settings.endLimit,
                   o2Narcotic: settings.o2Narcotic,
                 );
-                _heController.text = formatDecimalForInput(
-                  newHe.roundToDouble(),
-                );
+                _lastValidHe = newHe.roundToDouble();
+                _heController.text = formatDecimalForInput(_lastValidHe);
                 setState(() {});
                 _notifyChange();
               } else {
@@ -977,6 +997,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     setState(() {
       _o2Controller.text = formatDecimalForInput(template.o2);
       _heController.text = formatDecimalForInput(template.he);
+      _lastValidO2 = template.o2;
+      _lastValidHe = template.he;
     });
     _notifyChange();
   }
