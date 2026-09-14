@@ -23,6 +23,7 @@ const _censusFiles = <String>[
   'lib/features/dive_types/data/repositories/dive_type_repository.dart',
   'lib/features/dive_roles/data/repositories/dive_role_repository.dart',
   'lib/features/divers/data/repositories/diver_repository.dart',
+  'lib/features/divers/data/repositories/diver_owned_rows.dart',
   'lib/features/marine_life/data/repositories/seen_species_repository.dart',
   'lib/features/marine_life/data/repositories/species_repository.dart',
   'lib/features/equipment/data/repositories/equipment_repository_impl.dart',

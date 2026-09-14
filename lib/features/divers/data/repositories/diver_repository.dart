@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_import/data/services/imported_file_recl
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/divers/data/repositories/diver_owned_rows.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
@@ -484,6 +485,17 @@ class DiverRepository {
           );
         }
 
+        // Step 1b: Delete and tombstone the diver's templates, presets,
+        // configs, plans and sessions, then free the surviving plans that
+        // point at the dives step 2 deletes.
+        await deleteDiverOwnedRows(_db, _syncRepository, id);
+        await clearPlanLinksToDiverDives(
+          _db,
+          _syncRepository,
+          id,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+
         // Step 2: Delete dives (cascades: profiles, tanks, data_sources, etc.)
         // stats-scope-exempt: deletion cascade. Deletes the diver's dives,
         // excluded ones included.
@@ -576,6 +588,14 @@ class DiverRepository {
         await _db.customStatement('DELETE FROM equipment WHERE diver_id = ?', [
           id,
         ]);
+        // After the gear, so only surviving gear's schedules keep a kind.
+        await retireDiverServiceKinds(
+          _db,
+          _syncRepository,
+          id,
+          survivorId: targetId,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await _db.customStatement(
           'DELETE FROM equipment_sets WHERE diver_id = ?',
           [id],
