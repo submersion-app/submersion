@@ -12797,6 +12797,39 @@
       }
     }
   },
+  "tags_manage_deleteMessage_sites": "\"{tagName}\" will be removed from {count, plural, =1{1 site} other{{count} sites}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_sites": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_divesAndSites": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_divesAndSites": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives or sites. This cannot be undone.",
+  "@tags_manage_deleteMessage_unused": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      }
+    }
+  },
   "tags_manage_bulkDeleteTitle": "Delete {count} Tags?",
   "@tags_manage_bulkDeleteTitle": {
     "placeholders": {
@@ -12813,6 +12846,26 @@
       }
     }
   },
+  "tags_manage_bulkDeleteMessage_sites": "These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_sites": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_divesAndSites": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_divesAndSites": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives or sites. This cannot be undone.",
   "tags_manage_mergeTitle": "Merge {count} Tags",
   "@tags_manage_mergeTitle": {
     "placeholders": {
@@ -12831,6 +12884,26 @@
       }
     }
   },
+  "tags_manage_mergeAffected_sites": "This will affect {count, plural, =1{1 site} other{{count} sites}} total.",
+  "@tags_manage_mergeAffected_sites": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_divesAndSites": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total.",
+  "@tags_manage_mergeAffected_divesAndSites": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_unused": "These tags are not used on any dives or sites.",
   "tags_manage_mergeAction": "Merge",
   "tags_title_manageTags": "Manage Tags",
   "tank_al100_description": "Aluminum 100 cu ft",

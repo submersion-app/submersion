@@ -21025,6 +21025,43 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_sites(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos',
+      one: '1 punto',
+    );
+    return '\"$tagName\" se eliminará de $_temp0. Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount inmersiones',
+      one: '1 inmersión',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount puntos',
+      one: '1 punto',
+    );
+    return '\"$tagName\" se eliminará de $_temp0 y $_temp1. Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_unused(String tagName) {
+    return '\"$tagName\" no se usa en ninguna inmersión ni en ningún punto. Esta acción no se puede deshacer.';
+  }
+
+  @override
   String tags_manage_bulkDeleteTitle(int count) {
     return 'Eliminar $count Etiquetas?';
   }
@@ -21040,6 +21077,41 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return 'Estas etiquetas se eliminaran de $_temp0 en total. Esta accion no se puede deshacer.';
   }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sites(int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount puntos',
+      one: '1 punto',
+    );
+    return 'Estas etiquetas se eliminarán de $_temp0 en total. Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount inmersiones',
+      one: '1 inmersión',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount puntos',
+      one: '1 punto',
+    );
+    return 'Estas etiquetas se eliminarán de $_temp0 y $_temp1 en total. Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get tags_manage_bulkDeleteMessage_unused =>
+      'Estas etiquetas no se usan en ninguna inmersión ni en ningún punto. Esta acción no se puede deshacer.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21063,6 +21135,38 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return 'Esto afectara a $_temp0 en total.';
   }
+
+  @override
+  String tags_manage_mergeAffected_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos',
+      one: '1 punto',
+    );
+    return 'Esto afectará a $_temp0 en total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount inmersiones',
+      one: '1 inmersión',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount puntos',
+      one: '1 punto',
+    );
+    return 'Esto afectará a $_temp0 y $_temp1 en total.';
+  }
+
+  @override
+  String get tags_manage_mergeAffected_unused =>
+      'Estas etiquetas no se usan en ninguna inmersión ni en ningún punto.';
 
   @override
   String get tags_manage_mergeAction => 'Fusionar';

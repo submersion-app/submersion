@@ -21012,6 +21012,43 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_sites(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siti',
+      one: '1 sito',
+    );
+    return '\"$tagName\" verrà rimosso da $_temp0. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    return '\"$tagName\" verrà rimosso da $_temp0 e $_temp1. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_unused(String tagName) {
+    return '\"$tagName\" non è usato in nessuna immersione né in nessun sito. Questa azione non può essere annullata.';
+  }
+
+  @override
   String tags_manage_bulkDeleteTitle(int count) {
     return 'Eliminare $count tag?';
   }
@@ -21027,6 +21064,41 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return 'Questi tag verranno rimossi da $_temp0 in totale. Questa azione non puo essere annullata.';
   }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sites(int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    return 'Questi tag verranno rimossi da $_temp0 in totale. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    return 'Questi tag verranno rimossi da $_temp0 e $_temp1 in totale. Questa azione non può essere annullata.';
+  }
+
+  @override
+  String get tags_manage_bulkDeleteMessage_unused =>
+      'Questi tag non sono usati in nessuna immersione né in nessun sito. Questa azione non può essere annullata.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21050,6 +21122,38 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return 'Questo influenzera $_temp0 in totale.';
   }
+
+  @override
+  String tags_manage_mergeAffected_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siti',
+      one: '1 sito',
+    );
+    return 'Questo influenzerà $_temp0 in totale.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount immersioni',
+      one: '1 immersione',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount siti',
+      one: '1 sito',
+    );
+    return 'Questo influenzerà $_temp0 e $_temp1 in totale.';
+  }
+
+  @override
+  String get tags_manage_mergeAffected_unused =>
+      'Questi tag non sono usati in nessuna immersione né in nessun sito.';
 
   @override
   String get tags_manage_mergeAction => 'Unisci';

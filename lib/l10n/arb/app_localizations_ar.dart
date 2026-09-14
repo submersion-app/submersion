@@ -20623,6 +20623,43 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_sites(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_unused(String tagName) {
+    return '\"$tagName\" غير مستخدم في أي غوصة أو موقع. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
   String tags_manage_bulkDeleteTitle(int count) {
     return 'حذف $count وسم؟';
   }
@@ -20638,6 +20675,41 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'سيتم إزالة هذه الوسوم من $_temp0 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
   }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sites(int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get tags_manage_bulkDeleteMessage_unused =>
+      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -20661,6 +20733,38 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'سيؤثر هذا على $_temp0 إجمالاً.';
   }
+
+  @override
+  String tags_manage_mergeAffected_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيؤثر هذا على $_temp0 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 إجمالاً.';
+  }
+
+  @override
+  String get tags_manage_mergeAffected_unused =>
+      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع.';
 
   @override
   String get tags_manage_mergeAction => 'دمج';

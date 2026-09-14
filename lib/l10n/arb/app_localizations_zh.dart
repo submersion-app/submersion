@@ -19898,6 +19898,43 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_sites(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水点',
+      one: '1 个潜水点',
+    );
+    return '「$tagName」将从 $_temp0 中移除。此操作无法撤销。';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount 次潜水',
+      one: '1 次潜水',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount 个潜水点',
+      one: '1 个潜水点',
+    );
+    return '「$tagName」将从 $_temp0和 $_temp1 中移除。此操作无法撤销。';
+  }
+
+  @override
+  String tags_manage_deleteMessage_unused(String tagName) {
+    return '「$tagName」未用于任何潜水或潜水点。此操作无法撤销。';
+  }
+
+  @override
   String tags_manage_bulkDeleteTitle(int count) {
     return '删除 $count 个标签？';
   }
@@ -19913,6 +19950,40 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '这些标签将从总共 $_temp0 中移除。此操作无法撤销。';
   }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sites(int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount 个潜水点',
+      one: '1 个潜水点',
+    );
+    return '这些标签将从总共 $_temp0 中移除。此操作无法撤销。';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount 次潜水',
+      one: '1 次潜水',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount 个潜水点',
+      one: '1 个潜水点',
+    );
+    return '这些标签将从总共 $_temp0和 $_temp1 中移除。此操作无法撤销。';
+  }
+
+  @override
+  String get tags_manage_bulkDeleteMessage_unused => '这些标签未用于任何潜水或潜水点。此操作无法撤销。';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -19936,6 +20007,37 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '这将影响总共 $_temp0。';
   }
+
+  @override
+  String tags_manage_mergeAffected_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水点',
+      one: '1 个潜水点',
+    );
+    return '这将影响总共 $_temp0。';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount 次潜水',
+      one: '1 次潜水',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount 个潜水点',
+      one: '1 个潜水点',
+    );
+    return '这将影响总共 $_temp0和 $_temp1。';
+  }
+
+  @override
+  String get tags_manage_mergeAffected_unused => '这些标签未用于任何潜水或潜水点。';
 
   @override
   String get tags_manage_mergeAction => '合并';

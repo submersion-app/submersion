@@ -20470,6 +20470,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_sites(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0 ומ-$_temp1. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_unused(String tagName) {
+    return '\"$tagName\" אינה בשימוש באף צלילה או אתר. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
   String tags_manage_bulkDeleteTitle(int count) {
     return 'למחוק $count תגיות?';
   }
@@ -20485,6 +20522,41 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return 'תגיות אלו יוסרו מ-$_temp0 בסך הכל. לא ניתן לבטל פעולה זו.';
   }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sites(int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 ומ-$_temp1 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String get tags_manage_bulkDeleteMessage_unused =>
+      'תגיות אלו אינן בשימוש באף צלילה או אתר. לא ניתן לבטל פעולה זו.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -20508,6 +20580,38 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return 'פעולה זו תשפיע על $_temp0 בסך הכל.';
   }
+
+  @override
+  String tags_manage_mergeAffected_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 בסך הכל.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 ועל $_temp1 בסך הכל.';
+  }
+
+  @override
+  String get tags_manage_mergeAffected_unused =>
+      'תגיות אלו אינן בשימוש באף צלילה או אתר.';
 
   @override
   String get tags_manage_mergeAction => 'מיזוג';
