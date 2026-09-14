@@ -38294,7 +38294,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Ihre Daten wurden nicht verändert. Öffnen Sie sie mit dem Build, der sie geschrieben hat, oder mit einem neueren.';
+      'Ihre Daten wurden nicht verändert. Öffnen Sie sie mit dem Build, der sie geschrieben hat, oder mit einem neueren Build.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>

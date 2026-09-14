@@ -11602,7 +11602,7 @@
   "startup_backupFailed_technicalDetails": "Detalles técnicos",
   "common_action_retry": "Reintentar",
   "startup_versionMismatch_title": "Tus datos son más recientes que esta app",
-  "startup_versionMismatch_body": "Tu cuaderno de buceo se guardó con el esquema v{databaseVersion} desde una versión más reciente de Submersion. Esta versión abre archivos hasta el esquema v{appVersion}.",
+  "startup_versionMismatch_body": "Tu cuaderno de buceo se guardó con el esquema v{databaseVersion} por una versión más reciente de Submersion. Esta versión abre archivos hasta el esquema v{appVersion}.",
   "startup_versionMismatch_causes_lead": "Esto suele ocurrir cuando:",
   "startup_versionMismatch_cause_beta": "Una compilación beta actualizó el archivo.",
   "startup_versionMismatch_cause_restored": "Se restauró una copia de seguridad de una compilación más reciente.",

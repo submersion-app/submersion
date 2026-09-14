@@ -11607,7 +11607,7 @@
   "startup_versionMismatch_cause_beta": "Ein Beta-Build hat die Datei aktualisiert.",
   "startup_versionMismatch_cause_restored": "Eine Sicherung aus einem neueren Build wurde wiederhergestellt.",
   "startup_versionMismatch_cause_shared": "Die Datei wird mit einem Gerät in einem anderen Update-Kanal geteilt.",
-  "startup_versionMismatch_instructions": "Ihre Daten wurden nicht verändert. Öffnen Sie sie mit dem Build, der sie geschrieben hat, oder mit einem neueren.",
+  "startup_versionMismatch_instructions": "Ihre Daten wurden nicht verändert. Öffnen Sie sie mit dem Build, der sie geschrieben hat, oder mit einem neueren Build.",
   "startup_versionMismatch_storeInstructions": "Diese App stammt aus einem App Store und ist älter als die Version, die Ihre Daten gespeichert hat. Ihre Daten wurden nicht verändert. Aktualisieren Sie Submersion, sobald die neue Version im Store erscheint, und öffnen Sie sie dann erneut.",
   "startup_versionMismatch_download": "Nach neuerer stabiler Version suchen",
   "startup_versionMismatch_betaAction": "Beta-Build herunterladen",

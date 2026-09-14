@@ -38399,7 +38399,7 @@ class AppLocalizationsEs extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Tu cuaderno de buceo se guardó con el esquema v$databaseVersion desde una versión más reciente de Submersion. Esta versión abre archivos hasta el esquema v$appVersion.';
+    return 'Tu cuaderno de buceo se guardó con el esquema v$databaseVersion por una versión más reciente de Submersion. Esta versión abre archivos hasta el esquema v$appVersion.';
   }
 
   @override
