@@ -8,7 +8,9 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -174,6 +176,30 @@ void main() {
       expect(bundle.groups[ImportEntityType.sites]!.duplicateIndices, {1});
       verify(siteRepo.getAllSites(diverId: 'diver-2')).called(1);
       verifyNever(siteRepo.getAllSites(diverId: null));
+    });
+  });
+
+  group('a profile the import never reached (#1893 review)', () {
+    const match = DiveMatchResult(
+      diveId: 'existing',
+      score: 0.9,
+      timeDifferenceMs: 0,
+    );
+
+    test('keeps no photo target through its duplicates', () {
+      final reached = UniversalAdapter.reachedDiveReview(
+        actions: const {1: DuplicateAction.skip, 2: DuplicateAction.skip},
+        matches: const {1: match, 2: match},
+        unreached: const {2},
+      );
+      final targets = UniversalAdapter.photoTargetDiveIds(
+        diveIdByIndex: const {0: 'new-0'},
+        matchResults: reached.matches,
+        duplicateActions: reached.actions,
+      );
+      // Dive 1's profile ran, so its skipped duplicate still sends photos to
+      // the dive it matched; dive 2's profile never ran, so it sends none.
+      expect(targets, {0: 'new-0', 1: 'existing'});
     });
   });
 

@@ -781,6 +781,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       UddfEntityImportResult result,
       List<DiverImportOutcome> outcomes,
       String? error,
+      Set<int> unreachedDives,
     })
   >
   _importSlices({
@@ -801,9 +802,22 @@ class UniversalAdapter implements ImportSourceAdapter {
     final nameById = {for (final p in profiles) p.id: p.name};
     var total = const UddfEntityImportResult();
     final outcomes = <DiverImportOutcome>[];
+    // The dives of slice [from] and every slice after it: what a stop at
+    // that slice leaves unimported.
+    Set<int> diveIndicesFrom(int from) => {
+      for (final s in slices.skip(from))
+        ...?s.globalIndices[ui.ImportEntityType.dives],
+    };
 
-    for (final slice in slices) {
-      if (cancelToken?.isCancelled ?? false) break;
+    for (final (index, slice) in slices.indexed) {
+      if (cancelToken?.isCancelled ?? false) {
+        return (
+          result: total,
+          outcomes: outcomes,
+          error: null,
+          unreachedDives: diveIndicesFrom(index),
+        );
+      }
       final review = DiverSliceReview.of(
         slice,
         bundle,
@@ -866,10 +880,16 @@ class UniversalAdapter implements ImportSourceAdapter {
           error:
               'Imported ${outcomes.map((o) => o.name).join(', ')}, '
               'then stopped before $name: $e',
+          unreachedDives: diveIndicesFrom(index),
         );
       }
     }
-    return (result: total, outcomes: outcomes, error: null);
+    return (
+      result: total,
+      outcomes: outcomes,
+      error: null,
+      unreachedDives: const <int>{},
+    );
   }
 
   /// Whether a slice's review imports anything at all.
@@ -955,6 +975,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     final UddfEntityImportResult result;
     var outcomes = const <DiverImportOutcome>[];
     String? stoppedEarly;
+    var unreachedDives = const <int>{};
     if (slices.length == 1 && slices.single.targetKey == null) {
       result = await _runImporter(
         importer: importer,
@@ -985,14 +1006,21 @@ class UniversalAdapter implements ImportSourceAdapter {
       result = run.result;
       outcomes = run.outcomes;
       stoppedEarly = run.error;
+      unreachedDives = run.unreachedDives;
     }
 
     // Fold consolidate-flagged dives (imported as standalone above) into their
     // matched existing dive. These indices come only from an explicit user
     // choice in the review step, and each has a match result (the UI offers
     // Consolidate only on matches).
-    final diveActions =
-        duplicateActions[wizard.ImportEntityType.dives] ?? const {};
+    final reached = reachedDiveReview(
+      actions: duplicateActions[wizard.ImportEntityType.dives] ?? const {},
+      matches:
+          bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
+          const {},
+      unreached: unreachedDives,
+    );
+    final diveActions = reached.actions;
     final consolidateIndices = <int>{
       for (final entry in diveActions.entries)
         if (entry.value == DuplicateAction.consolidate) entry.key,
@@ -1001,13 +1029,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     var consolidated = 0;
     var removedDiveIds = const <String>{};
     if (consolidateIndices.isNotEmpty) {
-      final matchResults =
-          bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
-          const <int, DiveMatchResult>{};
       final summary = await performConsolidations(
         indices: consolidateIndices,
         diveIdByIndex: result.diveIdByIndex,
-        duplicateResult: ImportDuplicateResult(diveMatches: matchResults),
+        duplicateResult: ImportDuplicateResult(diveMatches: reached.matches),
         consolidationService: _ref.read(diveConsolidationServiceProvider),
         diveRepository: repos.diveRepository,
       );
@@ -1026,9 +1051,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     // skipped or consolidated duplicate.
     final photoDiveIds = photoTargetDiveIds(
       diveIdByIndex: result.diveIdByIndex,
-      matchResults:
-          bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
-          const {},
+      matchResults: reached.matches,
       duplicateActions: diveActions,
     );
 
@@ -1513,6 +1536,33 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// folded into the match and then removed. The linker's path dedupe
   /// keeps a repeat import from doubling any of them up.
   @visibleForTesting
+  /// The dive review decisions and duplicate matches of the profiles an
+  /// import actually reached (issue #1893). When a later profile's slice
+  /// fails or the user cancels, its dives were never imported; left in, a
+  /// skipped or consolidated duplicate there would still send its photos to
+  /// the existing dive it matched.
+  @visibleForTesting
+  static ({
+    Map<int, DuplicateAction> actions,
+    Map<int, DiveMatchResult> matches,
+  })
+  reachedDiveReview({
+    required Map<int, DuplicateAction> actions,
+    required Map<int, DiveMatchResult> matches,
+    required Set<int> unreached,
+  }) {
+    return (
+      actions: {
+        for (final entry in actions.entries)
+          if (!unreached.contains(entry.key)) entry.key: entry.value,
+      },
+      matches: {
+        for (final entry in matches.entries)
+          if (!unreached.contains(entry.key)) entry.key: entry.value,
+      },
+    );
+  }
+
   static Map<int, String> photoTargetDiveIds({
     required Map<int, String> diveIdByIndex,
     required Map<int, DiveMatchResult> matchResults,
