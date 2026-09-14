@@ -11734,6 +11734,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_serviceOverdue => '维护已逾期！';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return '显示带有 $name 的装备';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => '尺寸';
 
   @override
@@ -11996,6 +12001,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_emptyState_noStatusMatch => '没有此状态的装备';
 
   @override
+  String get equipment_list_emptyState_noTagMatch => '没有带这些标签的装备';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch => '此类别中没有装备';
 
   @override
@@ -12040,6 +12048,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => '状态';
+
+  @override
+  String get equipment_filter_section_tags => '标签';
 
   @override
   String get equipment_filter_section_category => '类别';
@@ -29366,6 +29377,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentField_notes => '备注';
 
   @override
+  String get enum_equipmentField_tags => '标签';
+
+  @override
   String get enum_equipmentField_itemName_short => '名称';
 
   @override
@@ -29412,6 +29426,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => '备注';
+
+  @override
+  String get enum_equipmentField_tags_short => '标签';
 
   @override
   String get enum_diveCenterField_centerName => '名称';

@@ -12196,6 +12196,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'Service is achterstallig!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'Uitrusting met $name tonen';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'Maat';
 
   @override
@@ -12477,6 +12482,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen uitrusting met deze status';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'Geen uitrusting met deze tags';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'Geen uitrusting in deze categorie';
 
@@ -12523,6 +12532,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_section_tags => 'Tags';
 
   @override
   String get equipment_filter_section_category => 'Categorie';
@@ -30723,6 +30735,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentField_notes => 'Notities';
 
   @override
+  String get enum_equipmentField_tags => 'Tags';
+
+  @override
   String get enum_equipmentField_itemName_short => 'Naam';
 
   @override
@@ -30769,6 +30784,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'Notities';
+
+  @override
+  String get enum_equipmentField_tags_short => 'Tags';
 
   @override
   String get enum_diveCenterField_centerName => 'Naam';

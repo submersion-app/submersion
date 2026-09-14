@@ -20488,6 +20488,12 @@ abstract class AppLocalizations {
   /// **'Service is overdue!'**
   String get equipment_detail_serviceOverdue;
 
+  /// Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag
+  ///
+  /// In en, this message translates to:
+  /// **'Show equipment with {name}'**
+  String equipment_detail_showEquipmentWith(String name);
+
   /// No description provided for @equipment_detail_sizeLabel.
   ///
   /// In en, this message translates to:
@@ -20980,6 +20986,12 @@ abstract class AppLocalizations {
   /// **'No equipment with this status'**
   String get equipment_list_emptyState_noStatusMatch;
 
+  /// No description provided for @equipment_list_emptyState_noTagMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment with these tags'**
+  String get equipment_list_emptyState_noTagMatch;
+
   /// Empty-state body shown when a selected category chip narrowed the (already non-empty) status-filtered list down to zero items
   ///
   /// In en, this message translates to:
@@ -21063,6 +21075,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get equipment_filter_section_status;
+
+  /// No description provided for @equipment_filter_section_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_filter_section_tags;
 
   /// No description provided for @equipment_filter_section_category.
   ///
@@ -50296,6 +50314,12 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get enum_equipmentField_notes;
 
+  /// No description provided for @enum_equipmentField_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_equipmentField_tags;
+
   /// No description provided for @enum_equipmentField_itemName_short.
   ///
   /// In en, this message translates to:
@@ -50391,6 +50415,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get enum_equipmentField_notes_short;
+
+  /// No description provided for @enum_equipmentField_tags_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_equipmentField_tags_short;
 
   /// No description provided for @enum_diveCenterField_centerName.
   ///

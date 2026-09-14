@@ -12081,6 +12081,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'الصيانة متأخرة!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'عرض المعدات التي تحمل $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'المقاس';
 
   @override
@@ -12355,6 +12360,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد معدات بهذه الحالة';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'لا توجد معدات بهذه الوسوم';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'لا توجد معدات في هذه الفئة';
 
@@ -12401,6 +12410,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'الحالة';
+
+  @override
+  String get equipment_filter_section_tags => 'الوسوم';
 
   @override
   String get equipment_filter_section_category => 'الفئة';
@@ -30441,6 +30453,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentField_notes => 'ملاحظات';
 
   @override
+  String get enum_equipmentField_tags => 'الوسوم';
+
+  @override
   String get enum_equipmentField_itemName_short => 'الاسم';
 
   @override
@@ -30487,6 +30502,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'ملاحظات';
+
+  @override
+  String get enum_equipmentField_tags_short => 'الوسوم';
 
   @override
   String get enum_diveCenterField_centerName => 'الاسم';

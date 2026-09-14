@@ -801,15 +801,19 @@ class EquipmentRepository {
     }
   }
 
-  /// Search equipment by name, brand, model, or serial number
+  /// Search equipment by name, brand, model, serial number or tag name
+  /// (issue #1942). Each item comes back once, however many of its tags
+  /// match.
   Future<List<EquipmentItem>> searchEquipment(
     String query, {
     String? diverId,
   }) async {
     try {
       final searchTerm = '%${query.toLowerCase()}%';
-      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      // Qualified: tags has a diver_id and a name column too.
+      final diverFilter = diverId != null ? 'AND e.diver_id = ?' : '';
       final variables = [
+        Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
@@ -818,13 +822,16 @@ class EquipmentRepository {
       ];
 
       final results = await _db.customSelect('''
-        SELECT * FROM equipment
-        WHERE (LOWER(name) LIKE ?
-           OR LOWER(brand) LIKE ?
-           OR LOWER(model) LIKE ?
-           OR LOWER(serial_number) LIKE ?)
+        SELECT DISTINCT e.* FROM equipment e
+        LEFT JOIN equipment_tags et ON et.equipment_id = e.id
+        LEFT JOIN tags t ON t.id = et.tag_id
+        WHERE (LOWER(e.name) LIKE ?
+           OR LOWER(e.brand) LIKE ?
+           OR LOWER(e.model) LIKE ?
+           OR LOWER(e.serial_number) LIKE ?
+           OR LOWER(t.name) LIKE ?)
         $diverFilter
-        ORDER BY is_active DESC, type ASC, name ASC
+        ORDER BY e.is_active DESC, e.type ASC, e.name ASC
       ''', variables: variables).get();
 
       final items = results.map((row) {
