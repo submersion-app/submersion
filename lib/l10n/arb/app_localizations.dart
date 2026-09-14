@@ -19780,6 +19780,12 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get equipment_bulkTags_undo;
 
+  /// No description provided for @equipment_bulkTags_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the tag change.'**
+  String get equipment_bulkTags_undoFailed;
+
   /// No description provided for @equipment_deleteDialog_cancel.
   ///
   /// In en, this message translates to:

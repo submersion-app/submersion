@@ -11757,6 +11757,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Ongedaan maken';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'Kan de tagwijziging niet ongedaan maken.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annuleren';
 
   @override

@@ -11653,6 +11653,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_bulkTags_undo => 'تراجع';
 
   @override
+  String get equipment_bulkTags_undoFailed => 'تعذر التراجع عن تغيير الوسوم.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'إلغاء';
 
   @override

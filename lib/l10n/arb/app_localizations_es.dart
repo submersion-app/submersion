@@ -11842,6 +11842,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Deshacer';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'No se pudo deshacer el cambio de etiquetas.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Cancelar';
 
   @override

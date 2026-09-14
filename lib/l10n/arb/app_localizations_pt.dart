@@ -11843,6 +11843,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Desfazer';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'Não foi possível desfazer a alteração das etiquetas.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Cancelar';
 
   @override

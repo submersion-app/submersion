@@ -11581,6 +11581,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_bulkTags_undo => 'ביטול';
 
   @override
+  String get equipment_bulkTags_undoFailed => 'לא ניתן לבטל את שינוי התגיות.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'ביטול';
 
   @override

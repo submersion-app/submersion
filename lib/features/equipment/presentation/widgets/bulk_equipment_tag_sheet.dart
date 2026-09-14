@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/equipment/presentation/providers/bulk_equipment_tag_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -66,11 +65,25 @@ Future<BulkActionOutcome> showBulkEquipmentTagSheet(
         showCloseIcon: true,
         action: SnackBarAction(
           label: l10n.equipment_bulkTags_undo,
-          onPressed: () => logFailure(
-            service.undo(prior),
-            BulkEquipmentTagSheet,
-            'undo a bulk equipment tag edit',
-          ),
+          // A failed restore says so: the banner that offered Undo is
+          // already gone, so silence would read as success.
+          onPressed: () async {
+            try {
+              await service.undo(prior);
+            } catch (e, stackTrace) {
+              LoggerService.forClass(BulkEquipmentTagSheet).error(
+                'Failed to undo a bulk equipment tag edit',
+                error: e,
+                stackTrace: stackTrace,
+              );
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(l10n.equipment_bulkTags_undoFailed),
+                  backgroundColor: errorColor,
+                ),
+              );
+            }
+          },
         ),
       ),
     );

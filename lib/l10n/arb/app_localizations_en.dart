@@ -11663,6 +11663,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Undo';
 
   @override
+  String get equipment_bulkTags_undoFailed => 'Couldn\'t undo the tag change.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Cancel';
 
   @override

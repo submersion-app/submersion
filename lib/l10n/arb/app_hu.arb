@@ -3747,6 +3747,7 @@
   "equipment_bulkTags_tagsLabel": "Címkék",
   "equipment_bulkTags_title": "{count, plural, =1{1 elem címkéinek szerkesztése} other{{count} elem címkéinek szerkesztése}}",
   "equipment_bulkTags_undo": "Visszavonás",
+  "equipment_bulkTags_undoFailed": "A címkék módosítását nem sikerült visszavonni.",
   "equipment_deleteDialog_cancel": "Megse",
   "equipment_deleteDialog_confirm": "Torles",
   "equipment_deleteDialog_content": "Biztosan torli ezt a felszerelest? Ez a muvelet nem vonhato vissza.",

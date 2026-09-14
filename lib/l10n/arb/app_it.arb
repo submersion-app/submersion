@@ -3747,6 +3747,7 @@
   "equipment_bulkTags_tagsLabel": "Tag",
   "equipment_bulkTags_title": "{count, plural, =1{Modifica tag di 1 elemento} other{Modifica tag di {count} elementi}}",
   "equipment_bulkTags_undo": "Annulla",
+  "equipment_bulkTags_undoFailed": "Impossibile annullare la modifica dei tag.",
   "equipment_deleteDialog_cancel": "Annulla",
   "equipment_deleteDialog_confirm": "Elimina",
   "equipment_deleteDialog_content": "Sei sicuro di voler eliminare questa attrezzatura? Questa azione non puo essere annullata.",

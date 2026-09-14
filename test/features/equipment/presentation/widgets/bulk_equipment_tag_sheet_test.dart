@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
+import 'package:submersion/features/equipment/data/services/bulk_equipment_tag_service.dart';
+import 'package:submersion/features/equipment/presentation/providers/bulk_equipment_tag_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/bulk_equipment_tag_sheet.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -10,6 +12,15 @@ import 'package:submersion/shared/selection/bulk_action.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
+
+/// A real service whose restore fails, as it would with the database gone.
+class _FailingUndoService extends BulkEquipmentTagService {
+  _FailingUndoService(super.repository);
+
+  @override
+  Future<void> undo(Map<String, List<String>> prior) =>
+      Future.error(StateError('database unavailable'));
+}
 
 /// The equipment bulk tag sheet end to end on a real database (issue #1942).
 void main() {
@@ -50,13 +61,16 @@ void main() {
 
   /// Hosted in the shell shape, because the sheet opens dialogs and a sheet
   /// from a dialog (#1366).
-  Future<void> openSheet(WidgetTester tester) async {
+  Future<void> openSheet(
+    WidgetTester tester, {
+    List<Object> extraOverrides = const [],
+  }) async {
     outcome = null;
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testAppInShell(
         locale: const Locale('en'),
-        overrides: overrides,
+        overrides: [...overrides, ...extraOverrides].cast(),
         child: Consumer(
           builder: (context, ref, _) => TextButton(
             onPressed: () async {
@@ -143,6 +157,28 @@ void main() {
 
     expect(await tagIdsOf('e1'), {'t1', 't2', 't4'});
     expect(await tagIdsOf('e2'), {'t1'});
+  });
+
+  testWidgets('an Undo that fails says so', (tester) async {
+    await openSheet(
+      tester,
+      extraOverrides: [
+        bulkEquipmentTagServiceProvider.overrideWithValue(
+          _FailingUndoService(repository),
+        ),
+      ],
+    );
+    await tapToggle(tester, 't1'); // on all -> remove from all
+    await tester.tap(find.byKey(const ValueKey('bulkEquipmentTags_apply')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('bulkEquipmentTags_confirm')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+
+    expect(find.text("Couldn't undo the tag change."), findsOneWidget);
+    expect(await tagIdsOf('e1'), {'t2', 't4'}, reason: 'nothing restored');
   });
 
   testWidgets('cancelling the sheet changes nothing and reports cancelled', (

@@ -11889,6 +11889,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Annuler';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'Impossible d\'annuler la modification des étiquettes.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annuler';
 
   @override

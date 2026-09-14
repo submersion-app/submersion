@@ -3851,6 +3851,7 @@
   "equipment_bulkTags_tagsLabel": "Tags",
   "equipment_bulkTags_title": "{count, plural, =1{Tags von 1 Teil bearbeiten} other{Tags von {count} Teilen bearbeiten}}",
   "equipment_bulkTags_undo": "Rückgängig",
+  "equipment_bulkTags_undoFailed": "Die Tag-Änderung konnte nicht rückgängig gemacht werden.",
   "equipment_deleteDialog_cancel": "Abbrechen",
   "equipment_deleteDialog_confirm": "Löschen",
   "equipment_deleteDialog_content": "Sind Sie sicher, dass Sie diese Ausrüstung löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",

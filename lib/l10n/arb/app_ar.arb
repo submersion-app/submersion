@@ -3851,6 +3851,7 @@
   "equipment_bulkTags_tagsLabel": "الوسوم",
   "equipment_bulkTags_title": "{count, plural, one{تعديل الوسوم على عنصر واحد} two{تعديل الوسوم على عنصرين} few{تعديل الوسوم على {count} عناصر} many{تعديل الوسوم على {count} عنصرًا} other{تعديل الوسوم على {count} عنصر}}",
   "equipment_bulkTags_undo": "تراجع",
+  "equipment_bulkTags_undoFailed": "تعذر التراجع عن تغيير الوسوم.",
   "equipment_deleteDialog_cancel": "إلغاء",
   "equipment_deleteDialog_confirm": "حذف",
   "equipment_deleteDialog_content": "هل أنت متأكد من حذف هذه المعدات؟ لا يمكن التراجع عن هذا الإجراء.",

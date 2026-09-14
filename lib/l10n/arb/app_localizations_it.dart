@@ -11842,6 +11842,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Annulla';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'Impossibile annullare la modifica dei tag.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annulla';
 
   @override
