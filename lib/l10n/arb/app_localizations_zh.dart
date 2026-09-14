@@ -38199,9 +38199,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_gearArrangementSubtitle => '潜水记录中装备的分组和排序方式';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override

@@ -2075,13 +2075,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                               ),
                       ),
                     ),
-                    if (dive.profile.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.alt_route),
-                        tooltip: context.l10n.diveLog_detail_tooltip_whatIf,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => showWhatIfSheet(context, dive),
-                      ),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,

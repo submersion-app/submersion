@@ -12153,7 +12153,6 @@
   "equipment_arrange_saveFailed": "No se pudo guardar la organización",
   "settings_appearance_gearArrangement": "Organización del equipo",
   "settings_appearance_gearArrangementSubtitle": "Cómo se agrupa y ordena el equipo en una inmersión",
-  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",

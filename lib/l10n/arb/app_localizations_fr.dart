@@ -40690,9 +40690,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Comment l\'équipement est groupé et trié sur une plongée';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override

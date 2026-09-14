@@ -65606,12 +65606,6 @@ abstract class AppLocalizations {
   /// **'How equipment is grouped and sorted on a dive'**
   String get settings_appearance_gearArrangementSubtitle;
 
-  /// No description provided for @diveLog_detail_tooltip_whatIf.
-  ///
-  /// In en, this message translates to:
-  /// **'Replan this dive'**
-  String get diveLog_detail_tooltip_whatIf;
-
   /// No description provided for @diveLog_detail_menu_whatIf.
   ///
   /// In en, this message translates to:

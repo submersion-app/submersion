@@ -40502,9 +40502,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wie Ausrüstung bei einem Tauchgang gruppiert und sortiert wird';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override

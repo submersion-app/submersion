@@ -40584,9 +40584,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Come l\'attrezzatura viene raggruppata e ordinata in un\'immersione';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override

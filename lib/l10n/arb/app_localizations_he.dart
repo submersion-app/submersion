@@ -39770,9 +39770,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'כיצד הציוד מקובץ וממוין בצלילה';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
