@@ -15,6 +15,7 @@ import 'package:submersion/features/media_store/domain/media_upload_quality.dart
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_transfer_summary_row.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
@@ -365,7 +366,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
         l10n.settings_mediaStorage_connect_gdrive_hint,
         'Google Drive',
         const Key('media-gdrive-connect'),
-        () => ref.read(mediaStoreServiceProvider).connectGoogleDrive(),
+        _connectGoogleDrive,
       ),
       _ => (
         l10n.settings_mediaStorage_connect_icloud_hint,
@@ -385,6 +386,29 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     ];
   }
 
+  /// [MediaStoreService.connectGoogleDrive] only checks for an already
+  /// signed-in Google session (`attemptSilentAuth`, never a login prompt) --
+  /// correct for the runtime resolver, which must never surprise the user
+  /// with a browser popup, but wrong for a button the user just pressed to
+  /// connect. Without a session it fails outright with "not connected or
+  /// unavailable", and nothing ever asked the user to sign in. Drive the
+  /// interactive flow here first, same as Cloud Sync's connect button, then
+  /// let the store connect proceed.
+  Future<MediaStoreConnectResult> _connectGoogleDrive() async {
+    final provider = ref.read(
+      cloudStorageProviderForProvider(CloudProviderType.googledrive),
+    );
+    if (!await provider.isAuthenticated()) {
+      if (!mounted) throw const CloudAuthCancelled();
+      await authenticateWithBrowserWait(
+        context,
+        provider,
+        CloudProviderType.googledrive,
+      );
+    }
+    return ref.read(mediaStoreServiceProvider).connectGoogleDrive();
+  }
+
   Future<void> _connectManagedFlow(
     Future<MediaStoreConnectResult> Function() call,
   ) async {
@@ -396,6 +420,9 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       if (!mounted) return;
       _showSnack(l10n.settings_mediaStorage_saved);
       await Navigator.maybePop(context);
+    } on CloudAuthCancelled {
+      // The user backed out of the Google sign-in deliberately -- not an
+      // error, so no red snackbar.
     } on MediaStoreException catch (e) {
       _showSnack(mediaStoreErrorMessage(l10n, e), isError: true);
     } finally {
