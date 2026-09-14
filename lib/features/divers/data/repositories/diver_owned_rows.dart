@@ -228,53 +228,6 @@ Future<void> deleteDiverTripChildren(
   }
 }
 
-/// Clears the links surviving dive plans hold to [diverId]'s dives and
-/// private sites, stamping and marking each plan so the change reaches
-/// peers. Run it inside the caller's transaction, after shared sites have
-/// moved to a surviving diver and after [deleteDiverOwnedRows] (the diver's
-/// own plans are gone by then and must not be published), and before the
-/// dives are deleted.
-///
-/// `dive_plans.source_dive_id`, `linked_dive_id` and `site_id` have no
-/// ON DELETE action, and plans are not owned by a diver in practice, so a
-/// plan built from one of the diver's dives, linked to one, or set at one of
-/// the diver's sites would otherwise fail the deletion of that dive or site
-/// and roll the whole diver deletion back.
-Future<void> clearPlanLinksToDiverRows(
-  AppDatabase db,
-  SyncRepository syncRepository,
-  String diverId, {
-  required int now,
-}) async {
-  // stats-scope-exempt: deletion cascade cleanup.
-  const diverDives = 'SELECT id FROM dives WHERE diver_id = ?';
-  const diverSites = 'SELECT id FROM dive_sites WHERE diver_id = ?';
-  final planIds = <String>{};
-  for (final (column, targets) in const [
-    ('source_dive_id', diverDives),
-    ('linked_dive_id', diverDives),
-    ('site_id', diverSites),
-  ]) {
-    final where = '$column IN ($targets)';
-    final ids = await _idsOf(db, 'SELECT id FROM dive_plans WHERE $where', [
-      diverId,
-    ]);
-    if (ids.isEmpty) continue;
-    await db.customStatement(
-      'UPDATE dive_plans SET $column = NULL, updated_at = ? WHERE $where',
-      [now, diverId],
-    );
-    planIds.addAll(ids);
-  }
-  for (final id in planIds) {
-    await syncRepository.markRecordPending(
-      entityType: 'divePlans',
-      recordId: id,
-      localUpdatedAt: now,
-    );
-  }
-}
-
 /// Clears the dive center of other divers' dives logged at one of
 /// [diverId]'s centers, stamping and marking each dive so the change reaches
 /// peers. Run it inside the caller's transaction, after the diver's own
