@@ -129,6 +129,32 @@ void main() {
     expect(links.map((m) => m.platformAssetId), ['iphone-1']);
   });
 
+  test('keeps a row with no capture time, whose synced id still dedupes it '
+      'on the device that linked it', () async {
+    await insertDive('d1');
+    final saved = await repo.createMedia(gallery('iphone-1', diveId: 'd1'));
+    await (db.update(db.media)..where((t) => t.id.equals(saved.id))).write(
+      const MediaCompanion(takenAt: Value(null)),
+    );
+
+    final links = await repo.getGalleryLinksForDive('d1');
+
+    expect(links.map((m) => m.platformAssetId), ['iphone-1']);
+  });
+
+  test(
+    'a broken schema surfaces the failure instead of an empty list',
+    () async {
+      // An empty list would read as "nothing linked here" and let the importer
+      // re-link every photo: the duplicate this lookup exists to prevent.
+      // Dropping the table is the cheapest genuine query failure.
+      await db.customStatement('DROP TABLE media');
+
+      await expectLater(repo.getGalleryLinksForDive('d1'), throwsA(anything));
+      await expectLater(repo.getGalleryLinksForSite('s1'), throwsA(anything));
+    },
+  );
+
   test('returns the gallery rows attached to a site', () async {
     await insertSite('s1');
     await insertSite('s2');
