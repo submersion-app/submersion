@@ -36,6 +36,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
@@ -232,6 +236,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         : const <String, ServiceClockStatus>{};
 
     final filter = ref.watch(equipmentFilterProvider);
+    // Tags ride beside the items, not on them (issue #1942): one batch read
+    // for the whole list feeds the tag filter and the detailed tiles' chips.
+    final tagsByEquipment =
+        ref.watch(tagsByEquipmentProvider).value ?? const <String, List<Tag>>{};
+    final tagIdsByEquipment = {
+      for (final entry in tagsByEquipment.entries)
+        entry.key: [for (final t in entry.value) t.id],
+    };
 
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
     if (filter.serviceDueOnly) {
@@ -248,7 +260,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
-          filter.apply(equipment),
+          filter.apply(equipment, tagIdsByEquipment),
           sort,
           serviceUrgency: serviceUrgency,
         ),
@@ -284,7 +296,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // re-sorting the whole inventory there made bulk selection cost a full
     // sort per tap.
     final visibleGroups = arrangeEquipment(
-      filter.apply(equipmentAsync.value ?? const <EquipmentItem>[]),
+      filter.apply(
+        equipmentAsync.value ?? const <EquipmentItem>[],
+        tagIdsByEquipment,
+      ),
       arrangement,
       typeLabel: (t) => t.localizedName(context.l10n),
       compareItems: compareItems,
@@ -308,7 +323,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 ref,
                 hadItemsBeforeTypeFilter: equipment.isNotEmpty,
               )
-            : _buildEquipmentList(context, ref, visibleGroups, arrangement),
+            : _buildEquipmentList(
+                context,
+                ref,
+                visibleGroups,
+                arrangement,
+                tagsByEquipment: tagsByEquipment,
+              ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(context, error),
       );
@@ -637,6 +658,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         final index =
             ref.watch(equipmentComponentsIndexProvider).value ??
             ComponentsIndex.empty;
+        final tagsByEquipment =
+            ref.watch(tagsByEquipmentProvider).value ??
+            const <String, List<Tag>>{};
 
         return EntityTableView<EquipmentItem, EquipmentField>(
           entities: equipment,
@@ -647,6 +671,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             },
             componentCounts: {
               for (final e in index.byParent.entries) e.key: e.value.length,
+            },
+            tagNames: {
+              for (final e in tagsByEquipment.entries)
+                e.key: [for (final t in e.value) t.name],
             },
           ),
           config: config,
@@ -792,6 +820,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     EquipmentFilterState filter,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final tagNames = {
+      for (final t in ref.watch(tagsProvider).value ?? const <Tag>[])
+        t.id: t.name,
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -845,6 +877,15 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                       ],
                     ),
               ),
+            for (final tagId in filter.tagIds)
+              _buildActiveFilterChip(
+                tagNames[tagId] ?? tagId,
+                () => ref.read(equipmentFilterProvider.notifier).state = filter
+                    .copyWith(
+                      tagIds: filter.tagIds.where((id) => id != tagId).toSet(),
+                    ),
+                icon: Icons.sell_outlined,
+              ),
           ],
         ),
       ),
@@ -871,8 +912,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     WidgetRef ref,
     List<EquipmentGroup> groups,
-    EquipmentArrangement arrangement,
-  ) {
+    EquipmentArrangement arrangement, {
+    required Map<String, List<Tag>> tagsByEquipment,
+  }) {
     // One flat run of rows for the lazy builder: a heading before each group
     // when the arrangement groups, then that group's gear.
     final rows = <_EquipmentListRow>[
@@ -940,6 +982,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               isSelectionMode: _isSelectionMode,
               isChecked: isChecked,
               onCheckChanged: onCheckChanged,
+              // Chips only in the detailed mode; compact stays one line.
+              tags: viewMode == ListViewMode.detailed
+                  ? tagsByEquipment[item.id] ?? const []
+                  : const [],
             ),
             ListViewMode.dense || ListViewMode.table => DenseEquipmentListTile(
               item: item,
@@ -966,12 +1012,18 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // the status-filtered source was already empty, the status (or the lack
     // of any gear) is the real cause and the wording should say so.
     final blameCategory = filter.type != null && hadItemsBeforeTypeFilter;
+    // A tag filter (issue #1942) narrows the same way; a tag chip on a
+    // retired item can land here, since the default view hides retired gear.
+    final blameTags =
+        !blameCategory && filter.tagIds.isNotEmpty && hadItemsBeforeTypeFilter;
 
     String filterText;
     if (blameCategory) {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
         filter.type!.localizedName(context.l10n),
       );
+    } else if (blameTags) {
+      filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else if (filter.serviceDueOnly) {
       filterText = context.l10n.equipment_list_emptyState_filterText_serviceDue;
     } else if (filter.status == null) {
@@ -1000,6 +1052,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           Text(
             blameCategory
                 ? context.l10n.equipment_list_emptyState_noTypeMatch
+                : blameTags
+                ? context.l10n.equipment_list_emptyState_noTagMatch
                 : filter.serviceDueOnly
                 ? context.l10n.equipment_list_emptyState_serviceDueUpToDate
                 : filter.status != null
@@ -1060,6 +1114,11 @@ class EquipmentListTile extends ConsumerWidget {
   final bool isChecked;
   final ValueChanged<bool>? onCheckChanged;
 
+  /// The item's tags, handed in by the list (issue #1942), which reads every
+  /// item's tags in one batch; the tile reads no provider for them. Up to
+  /// three show, then a "+N" chip.
+  final List<Tag> tags;
+
   const EquipmentListTile({
     super.key,
     required this.item,
@@ -1068,6 +1127,7 @@ class EquipmentListTile extends ConsumerWidget {
     this.isSelectionMode = false,
     this.isChecked = false,
     this.onCheckChanged,
+    this.tags = const [],
   });
 
   @override
@@ -1097,6 +1157,7 @@ class EquipmentListTile extends ConsumerWidget {
         index != null &&
         (index.isAssembly(item.id) || index.parentIdsOf(item.id).isNotEmpty);
     final hasFullName = item.fullName != item.name;
+    final hasTags = tags.isNotEmpty;
     final accent = resolveFeatureAccent(
       context,
       ref,
@@ -1132,13 +1193,18 @@ class EquipmentListTile extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: hasFullName || hasChips
+        subtitle: hasFullName || hasChips || hasTags
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (hasFullName) Text(item.fullName),
                   if (hasChips) AssemblyChips(itemId: item.id),
+                  if (hasTags)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: TagChips(tags: tags, maxTags: 3),
+                    ),
                 ],
               )
             : null,

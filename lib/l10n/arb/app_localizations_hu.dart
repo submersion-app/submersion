@@ -12259,6 +12259,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'A szerviz lejartt!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'Felszerelés ezzel: $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'Meret';
 
   @override
@@ -12541,6 +12546,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs ilyen allapotu felszereles';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'Nincs felszerelés ezekkel a címkékkel';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'Nincs felszerelés ebben a kategóriában';
 
@@ -12587,6 +12596,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Allapot';
+
+  @override
+  String get equipment_filter_section_tags => 'Címkék';
 
   @override
   String get equipment_filter_section_category => 'Kategória';
@@ -30829,6 +30841,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentField_notes => 'Jegyzetek';
 
   @override
+  String get enum_equipmentField_tags => 'Címkék';
+
+  @override
   String get enum_equipmentField_itemName_short => 'Név';
 
   @override
@@ -30875,6 +30890,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'Jegyz.';
+
+  @override
+  String get enum_equipmentField_tags_short => 'Címkék';
 
   @override
   String get enum_diveCenterField_centerName => 'Név';

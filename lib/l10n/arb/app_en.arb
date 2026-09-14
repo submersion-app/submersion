@@ -7082,6 +7082,15 @@
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
   "equipment_detail_serviceOverdue": "Service is overdue!",
+  "equipment_detail_showEquipmentWith": "Show equipment with {name}",
+  "@equipment_detail_showEquipmentWith": {
+    "description": "Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_sizeLabel": "Size",
   "equipment_detail_thicknessLabel": "Thickness",
   "equipment_detail_statusLabel": "Status",
@@ -7164,6 +7173,7 @@
   "equipment_list_emptyState_filterText_type": "{type} equipment",
   "equipment_list_emptyState_noEquipment": "No {filterText}",
   "equipment_list_emptyState_noStatusMatch": "No equipment with this status",
+  "equipment_list_emptyState_noTagMatch": "No equipment with these tags",
   "equipment_list_emptyState_noTypeMatch": "No equipment in this category",
   "equipment_list_emptyState_serviceDueUpToDate": "All your equipment is up to date on service!",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
@@ -7189,6 +7199,7 @@
   "equipment_filter_apply": "Apply Filters",
   "equipment_filter_cancel": "Cancel",
   "equipment_filter_section_status": "Status",
+  "equipment_filter_section_tags": "Tags",
   "equipment_filter_section_category": "Category",
   "equipment_list_retryButton": "Retry",
   "equipment_list_searchTooltip": "Search Equipment",
@@ -19757,6 +19768,7 @@
   "enum_equipmentField_daysUntilService": "Days Until Service",
   "enum_equipmentField_serviceIntervalDays": "Service Interval",
   "enum_equipmentField_notes": "Notes",
+  "enum_equipmentField_tags": "Tags",
   "enum_equipmentField_itemName_short": "Name",
   "enum_equipmentField_fullName_short": "Full Name",
   "enum_equipmentField_type_short": "Type",
@@ -19773,6 +19785,7 @@
   "enum_equipmentField_daysUntilService_short": "Days Left",
   "enum_equipmentField_serviceIntervalDays_short": "Interval",
   "enum_equipmentField_notes_short": "Notes",
+  "enum_equipmentField_tags_short": "Tags",
   "enum_diveCenterField_centerName": "Name",
   "enum_diveCenterField_city": "City",
   "enum_diveCenterField_country": "Country",

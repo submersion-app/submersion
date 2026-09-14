@@ -12019,6 +12019,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'הטיפול באיחור!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'הצג ציוד עם $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'מידה';
 
   @override
@@ -12291,6 +12296,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_emptyState_noStatusMatch => 'אין ציוד עם סטטוס זה';
 
   @override
+  String get equipment_list_emptyState_noTagMatch => 'אין ציוד עם תגיות אלה';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch => 'אין ציוד בקטגוריה זו';
 
   @override
@@ -12336,6 +12344,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'סטטוס';
+
+  @override
+  String get equipment_filter_section_tags => 'תגיות';
 
   @override
   String get equipment_filter_section_category => 'קטגוריה';
@@ -30208,6 +30219,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentField_notes => 'הערות';
 
   @override
+  String get enum_equipmentField_tags => 'תגיות';
+
+  @override
   String get enum_equipmentField_itemName_short => 'שם';
 
   @override
@@ -30254,6 +30268,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'הערות';
+
+  @override
+  String get enum_equipmentField_tags_short => 'תגיות';
 
   @override
   String get enum_diveCenterField_centerName => 'שם';

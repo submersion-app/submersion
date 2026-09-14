@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/domain/services/battery_cycles.dar
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -355,6 +356,11 @@ final equipmentSearchProvider =
       }
       final repository = ref.watch(equipmentRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Tag names match too (issue #1942): a rename or a new link must
+      // refresh the results.
+      ref.invalidateSelfWhen(
+        ref.read(equipmentTagRepositoryProvider).watchChanges(),
+      );
       return repository.searchEquipment(query, diverId: validatedDiverId);
     });
 

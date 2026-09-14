@@ -12103,6 +12103,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'Service is overdue!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'Show equipment with $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'Size';
 
   @override
@@ -12379,6 +12384,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No equipment with this status';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'No equipment with these tags';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'No equipment in this category';
 
@@ -12425,6 +12434,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_section_tags => 'Tags';
 
   @override
   String get equipment_filter_section_category => 'Category';
@@ -30455,6 +30467,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentField_notes => 'Notes';
 
   @override
+  String get enum_equipmentField_tags => 'Tags';
+
+  @override
   String get enum_equipmentField_itemName_short => 'Name';
 
   @override
@@ -30501,6 +30516,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'Notes';
+
+  @override
+  String get enum_equipmentField_tags_short => 'Tags';
 
   @override
   String get enum_diveCenterField_centerName => 'Name';
