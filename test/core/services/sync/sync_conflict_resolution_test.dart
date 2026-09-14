@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -291,6 +292,55 @@ void main() {
           reason: 'the dangling reference to the deleted dive must be cleared',
         );
         expect(await buildService().getConflicts(), isEmpty);
+      },
+    );
+
+    test(
+      'keepRemote on a deletion conflict relays the deleter\'s clock and time',
+      () async {
+        await seedDive('d-relay', 10);
+        final deleterClock = const Hlc(5000, 0, 'peer').toString();
+        await raiseConflict('dives', 'd-relay', {
+          '_deleted': true,
+          'deletedAt': 5000,
+          'hlc': deleterClock,
+          'recordId': 'd-relay',
+        });
+
+        await buildService().resolveConflict(
+          'dives',
+          'd-relay',
+          ConflictResolution.keepRemote,
+        );
+
+        // Relayed onward, the tombstone still says when the peer deleted the
+        // dive, not when this device resolved the conflict.
+        final logged = (await SyncRepository().getAllDeletions()).single;
+        expect(logged.originHlc, deleterClock);
+        expect(logged.deletedAt, 5000);
+      },
+    );
+
+    test(
+      'keepRemote on a deletion conflict with no deletedAt stamps it now',
+      () async {
+        await seedDive('d-undated', 10);
+        await raiseConflict('dives', 'd-undated', {
+          '_deleted': true,
+          'recordId': 'd-undated',
+        });
+
+        final before = DateTime.now().millisecondsSinceEpoch;
+        await buildService().resolveConflict(
+          'dives',
+          'd-undated',
+          ConflictResolution.keepRemote,
+        );
+        final after = DateTime.now().millisecondsSinceEpoch;
+
+        final logged = (await SyncRepository().getAllDeletions()).single;
+        expect(logged.deletedAt, inInclusiveRange(before, after));
+        expect(logged.originHlc, isNull);
       },
     );
 
