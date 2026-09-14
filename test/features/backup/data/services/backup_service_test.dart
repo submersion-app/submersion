@@ -663,6 +663,73 @@ void main() {
         final history = preferences.getHistory();
         expect(history, hasLength(1));
       });
+
+      test(
+        'continues pruning past a local file the platform refuses to '
+        'delete, and keeps that record for a retry next time',
+        () async {
+          // A read-only containing directory makes File.delete() throw
+          // PathAccessException on the file inside it (unlink needs write
+          // access to the directory, not the file) -- the same failure shape
+          // as a macOS sandbox permission denial on a custom backup folder.
+          final tempDir = await Directory.systemTemp.createTemp(
+            'backup_prune_test_',
+          );
+          addTearDown(() async {
+            await Process.run('chmod', ['755', tempDir.path]);
+            await tempDir.delete(recursive: true);
+          });
+          final lockedPath = '${tempDir.path}/locked_backup.db';
+          await File(lockedPath).writeAsString('fake backup data');
+          await Process.run('chmod', ['555', tempDir.path]);
+
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'locked',
+              filename: 'locked_backup.db',
+              timestamp: DateTime(2025, 6, 1),
+              sizeBytes: 1000,
+              location: BackupLocation.local,
+              diveCount: 5,
+              siteCount: 2,
+              localPath: lockedPath,
+            ),
+          );
+          for (var i = 0; i < 3; i++) {
+            await preferences.addRecord(
+              BackupRecord(
+                id: 'r$i',
+                filename: 'backup_$i.db',
+                timestamp: DateTime(2025, 6, i + 2),
+                sizeBytes: 1000,
+                location: BackupLocation.local,
+                diveCount: 5,
+                siteCount: 2,
+              ),
+            );
+          }
+
+          final service = BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          );
+
+          // Keep 1: everything but the newest is eligible, including the
+          // locked one. Must not throw.
+          await service.pruneOldBackups(1);
+
+          final history = preferences.getHistory();
+          // The newest survives (kept); the locked record survives too
+          // (its delete failed, so it was never removed) -- everything
+          // else prunes normally.
+          expect(history.map((r) => r.id), containsAll(['r2', 'locked']));
+          expect(history.map((r) => r.id), isNot(contains('r0')));
+          expect(history.map((r) => r.id), isNot(contains('r1')));
+        },
+        skip: Platform.isWindows
+            ? 'chmod-based permission denial is not portable to Windows'
+            : null,
+      );
     });
 
     group('deleteBackup', () {
