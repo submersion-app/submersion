@@ -18,6 +18,7 @@ class TagScopeTable {
     required this.parentColumn,
     required this.syncEntity,
     this.restampedParentTable,
+    this.sweepsOrphanLinks = false,
   });
 
   /// The `tags` flag column saying the tag is offered in this scope.
@@ -39,6 +40,11 @@ class TagScopeTable {
   /// doubles as the parent's sync entity type, which holds for `dives`.
   /// Narrowing a scope never re-stamps a parent.
   final String? restampedParentTable;
+
+  /// Whether the duplicate-tag repair also deletes this junction's links
+  /// whose tag no longer exists. Site links always were (#1849); dive links
+  /// in that state are left untouched (v149).
+  final bool sweepsOrphanLinks;
 }
 
 /// Dive tags. A tag merge has always re-stamped the dives it relinks.
@@ -56,15 +62,18 @@ const siteTagScopeTable = TagScopeTable(
   junctionTable: 'site_tags',
   parentColumn: 'site_id',
   syncEntity: 'siteTags',
+  sweepsOrphanLinks: true,
 );
 
 /// Equipment tags (v219, issue #1942). A link never re-stamps its item: the
-/// links are clockless children of the equipment row (#1769).
+/// links are clockless children of the equipment row (#1769). Like site
+/// links, links to a tag that no longer exists are swept by the repair.
 const equipmentTagScopeTable = TagScopeTable(
   scopeColumn: 'applies_to_equipment',
   junctionTable: 'equipment_tags',
   parentColumn: 'equipment_id',
   syncEntity: 'equipmentTags',
+  sweepsOrphanLinks: true,
 );
 
 /// Every scope, in display order.

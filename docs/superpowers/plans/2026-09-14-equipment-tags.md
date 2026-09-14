@@ -78,14 +78,15 @@ Findings from reading the code while planning. They explain choices the tasks ma
      stands, and one dive carries both a losing tag and its survivor. The old
      plain `UPDATE` then threw inside `beforeOpen`. The new code collapses the
      links instead. This is a strict fix.
-   - The site orphan sweep (`DELETE FROM site_tags WHERE tag_id NOT IN tags`)
-     becomes "delete links still pointing at a losing tag", run before the
-     losers are deleted. That sweep's own comment says it existed only for the
-     rows the `OR IGNORE` skipped. A blanket orphan sweep over `dive_tags`
-     would break the v149 rule pinned by
-     `migration_v149_tag_uniqueness_test.dart:226` ("a junction row whose tag
-     is already gone survives untouched"). A site link whose tag was never a
-     loser is now left alone, as dive links always were.
+   - Every junction also deletes the links still pointing at a losing tag,
+     before the losers are deleted. The site orphan sweep
+     (`DELETE FROM site_tags WHERE tag_id NOT IN tags`) is kept, as a
+     registry flag, `TagScopeTable.sweepsOrphanLinks`, true for sites and
+     (from Task 3) equipment, never dives:
+     a blanket orphan sweep over `dive_tags` would break the v149 rule pinned
+     by `migration_v149_tag_uniqueness_test.dart:226` ("a junction row whose
+     tag is already gone survives untouched"). (Review of #1963: the first
+     draft dropped the site sweep, which left orphaned site links in place.)
 4. **The stats-scope census stops seeing three queries.**
    `test/core/database/dive_stats_scope_census_test.dart` matches the literal
    `FROM dive_tags`. The registry generates `FROM ${...}`, so `getTagUsage`,

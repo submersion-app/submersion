@@ -147,6 +147,14 @@ String _mergeScopesIntoSurvivorSql(List<String> columns) {
   return 'UPDATE tags SET ${assignments.join(', ')}';
 }
 
+/// Links in [junction] whose tag no longer exists, for a junction whose
+/// registry entry sweeps them ([TagScopeTable.sweepsOrphanLinks]). Runs after
+/// the losing tags are gone, so it also catches any their deletion stranded
+/// with foreign keys off.
+String _deleteOrphanLinksSql(TagScopeTable junction) =>
+    'DELETE FROM ${junction.junctionTable} '
+    'WHERE tag_id NOT IN (SELECT id FROM tags)';
+
 const String _deleteLosingTagsSql = '''
   DELETE FROM tags WHERE id NOT IN (
     SELECT MIN(id) FROM tags GROUP BY COALESCE(diver_id, ''), lower(trim(name))
@@ -185,8 +193,8 @@ Future<Set<String>> _columnsOf(DatabaseConnectionUser db, String table) async {
 /// leaves no ties: normalize the names the grouping keys on, give each
 /// survivor the union of its group's scopes, repoint every junction in the
 /// tag scope registry at the surviving tag, drop the links that repoint
-/// skipped, drop the losing tags, then collapse the duplicate links the
-/// repoint created.
+/// skipped, drop the losing tags, sweep orphaned links where the registry
+/// asks for it, then collapse the duplicate links the repoint created.
 ///
 /// Idempotent: every statement is a no-op on already-clean data. It runs
 /// from the v149 rung, before v217 created `site_tags` and the scope
@@ -214,6 +222,11 @@ Future<void> collapseDuplicateTags(DatabaseConnectionUser db) async {
     await db.customStatement(_deleteLinksOnLosingTagsSql(junction));
   }
   await db.customStatement(_deleteLosingTagsSql);
+  for (final junction in junctions) {
+    if (junction.sweepsOrphanLinks) {
+      await db.customStatement(_deleteOrphanLinksSql(junction));
+    }
+  }
   for (final junction in junctions) {
     await db.customStatement(_collapseDuplicateLinksSql(junction));
   }
