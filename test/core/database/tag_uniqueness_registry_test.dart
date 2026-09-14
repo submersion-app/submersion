@@ -110,6 +110,38 @@ void main() {
     ]);
   });
 
+  test(
+    'an orphaned site link is swept while an orphaned dive link is kept',
+    () async {
+      // The repair has always swept site_tags rows whose tag is gone (#1849),
+      // while dive_tags rows in that state survive untouched (v149).
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await db.customStatement(
+        'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+        "VALUES ('d1', 0, 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO dive_sites (id, name, created_at, updated_at) '
+        "VALUES ('s1', 'Site', 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO dive_tags (id, dive_id, tag_id, created_at) '
+        "VALUES ('dt', 'd1', 'gone', 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO site_tags (id, site_id, tag_id, created_at) '
+        "VALUES ('st', 's1', 'gone', 0)",
+      );
+
+      await collapseDuplicateTags(db);
+
+      expect(await pairs(db, 'dive_tags', 'dive_id'), ['d1|gone']);
+      expect(await pairs(db, 'site_tags', 'site_id'), isEmpty);
+    },
+  );
+
   test('links on a losing tag move in every registry junction', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
