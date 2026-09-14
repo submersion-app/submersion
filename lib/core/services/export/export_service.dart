@@ -490,6 +490,8 @@ class ExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported item's tag ids (issue #1942).
+    Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -521,6 +523,7 @@ class ExportService {
     customSiteTypes: customSiteTypes,
     siteTypeIdsBySite: siteTypeIdsBySite,
     siteTagIdsBySite: siteTagIdsBySite,
+    equipmentTagIdsByItem: equipmentTagIdsByItem,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
     diveProfileEvents: diveProfileEvents,
@@ -554,6 +557,8 @@ class ExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported item's tag ids (issue #1942).
+    Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -585,6 +590,7 @@ class ExportService {
     customSiteTypes: customSiteTypes,
     siteTypeIdsBySite: siteTypeIdsBySite,
     siteTagIdsBySite: siteTagIdsBySite,
+    equipmentTagIdsByItem: equipmentTagIdsByItem,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
     diveProfileEvents: diveProfileEvents,
