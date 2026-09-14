@@ -216,11 +216,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_title =>
-      'Apply when this set\'s computer is imported';
+      'التطبيق عند استيراد كمبيوتر هذه المجموعة';
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
-      'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
+      'إذا كانت هذه المجموعة تتضمن كمبيوتر غوص، تتم إضافة المجموعة كاملة تلقائيًا إلى الغطسة التي يتم تنزيلها أو استيرادها منه';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';

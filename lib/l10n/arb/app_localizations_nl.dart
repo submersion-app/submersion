@@ -216,11 +216,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_title =>
-      'Apply when this set\'s computer is imported';
+      'Toepassen wanneer de computer van deze set wordt geïmporteerd';
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
-      'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
+      'Als deze set een duikcomputer bevat, wordt de hele set automatisch toegevoegd aan een duik die van deze computer is gedownload of geïmporteerd';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';

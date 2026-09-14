@@ -215,11 +215,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_title =>
-      'Apply when this set\'s computer is imported';
+      'החל בעת ייבוא המחשב של סט זה';
 
   @override
   String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
-      'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
+      'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';

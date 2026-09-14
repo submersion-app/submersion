@@ -205,6 +205,8 @@
   "equipment_components_title": "Componentes",
   "equipment_setEdit_defaultSwitch_title": "Conjunto padrão",
   "equipment_setEdit_defaultSwitch_subtitle": "Aplicado automaticamente a novos mergulhos que ainda não têm equipamento",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Aplicar quando o computador deste conjunto for importado",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "Se este conjunto incluir um computador de mergulho, adiciona automaticamente todo o conjunto a uma imersão descarregada ou importada dele",
   "equipment_setEdit_geofencesTitle": "Geocercas",
   "equipment_setEdit_geofencesSubtitle": "Sugerir automaticamente este conjunto para mergulhos perto destes locais",
   "equipment_setEdit_addGeofence": "Adicionar geocerca",

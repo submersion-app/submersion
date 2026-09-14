@@ -100,11 +100,12 @@ void main() {
     // Name the set.
     await tester.enterText(find.byType(TextFormField).first, 'Cold Water');
 
-    // Toggle the Default switch on.
-    await tester.tap(find.byType(SwitchListTile));
+    // Toggle the Default switch on (the first of the two set-level
+    // switches; the second is the computer-auto-apply opt-in, issue #1020).
+    await tester.tap(find.byType(SwitchListTile).first);
     await tester.pump();
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile).first).value,
       isTrue,
     );
 
@@ -133,7 +134,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).first, 'Cold Water');
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SwitchListTile).first);
     await tester.pump();
     await addGeofenceViaSheet(tester);
 
@@ -188,6 +189,14 @@ void main() {
     // Open the editor: the set provider caches all three members.
     await tester.pumpWidget(await buildPage(setId: 's1', realEquipment: true));
     await tester.pumpAndSettle();
+    // The equipment list sits below the fold of a lazily-built ListView
+    // (more so now, with the computer-auto-apply switch added, issue #1020),
+    // so scroll it into view before asserting on it.
+    await tester.scrollUntilVisible(
+      find.text('e2'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('e2'), findsOneWidget);
 
     // The diver deletes the BCD from the equipment tab -- through the same
