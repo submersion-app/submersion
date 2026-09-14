@@ -90,6 +90,9 @@ Widget buildScanStepTestWidget({
       discoveryNotifierProvider.overrideWith((ref) => TestDiscoveryNotifier()),
     ],
     child: MaterialApp(
+      // Pinned so finders on English literals do not depend on the host
+      // locale of whoever runs the tests.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: ScanStepWidget(onDeviceSelected: (_) {})),
