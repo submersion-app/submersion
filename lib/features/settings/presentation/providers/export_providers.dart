@@ -154,6 +154,21 @@ class ExportNotifier extends StateNotifier<ExportState> {
     ).namesByParent({for (final e in equipment) e.id: e});
   }
 
+  /// Each exported item's tag names, by name, for the Tags column of the
+  /// equipment CSV (issue #1942). One query for every item.
+  Future<Map<String, List<String>>> _equipmentTagNamesFor(
+    List<EquipmentItem> equipment,
+  ) async {
+    final byItem = await _ref
+        .read(equipmentTagRepositoryProvider)
+        .getTagsByEquipment();
+    return {
+      for (final item in equipment)
+        if (byItem[item.id] case final tags? when tags.isNotEmpty)
+          item.id: [for (final tag in tags) tag.name],
+    };
+  }
+
   /// The diver's dive types by id, so the CSV, Excel and PDF exports name each
   /// type as the diver did rather than rebuilding a name from its id (#1834).
   Future<Map<String, DiveTypeEntity>> _diveTypesById() =>
@@ -257,6 +272,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.exportEquipmentToCsv(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        tagNames: await _equipmentTagNamesFor(equipment),
         units: _csvUnits(unitMode),
       );
       state = state.copyWith(
@@ -1178,6 +1194,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveEquipmentCsvToFile(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        tagNames: await _equipmentTagNamesFor(equipment),
         dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
         units: _csvUnits(unitMode),
       );
