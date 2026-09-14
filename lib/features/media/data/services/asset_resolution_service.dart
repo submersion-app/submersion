@@ -456,19 +456,27 @@ class AssetResolutionService {
   }) {
     final matches = candidates
         .where(
-          (c) => matchesTimestampAndDimensions(item, c, tolerance: tolerance),
+          (c) => _matchesTimestampAndDimensions(item, c, tolerance: tolerance),
         )
         .toList();
 
     return matches.length == 1 ? matches.first.id : null;
   }
 
+  /// The capture seconds (whole seconds since the epoch) a gallery asset of
+  /// [item] could carry on this device: one per reading of its stored time,
+  /// see [_galleryReadings]. An asset matches [item]'s capture second exactly
+  /// when its `createDateTime` falls in one of these.
+  static Set<int> captureSecondsOf(MediaItem item) => {
+    for (final r in _galleryReadings(item.takenAt))
+      _truncateToSecond(r).millisecondsSinceEpoch ~/ 1000,
+  };
+
   /// Whether [candidate] has [item]'s dimensions and was captured within
   /// [tolerance] of either reading of its stored time (see
-  /// [_galleryReadings]). The per-candidate test behind
-  /// [matchByTimestampAndDimensions], exposed for callers that need every
-  /// match rather than a unique one.
-  static bool matchesTimestampAndDimensions(
+  /// [_galleryReadings]): the per-candidate test behind
+  /// [matchByTimestampAndDimensions].
+  static bool _matchesTimestampAndDimensions(
     MediaItem item,
     AssetInfo candidate, {
     Duration tolerance = const Duration(seconds: 2),

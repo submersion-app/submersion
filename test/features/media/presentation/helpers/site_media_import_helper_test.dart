@@ -30,7 +30,7 @@ void main() {
       enrichmentService: MockEnrichmentService(),
     );
     when(
-      repository.getMediaForSite(any),
+      repository.getGalleryLinksForSite(any),
     ).thenAnswer((_) async => <MediaItem>[]);
     when(
       repository.getLinkedLocalPathsForSite(any),
@@ -120,7 +120,9 @@ void main() {
   testWidgets('reports false and surfaces the error when the import throws', (
     tester,
   ) async {
-    when(repository.getMediaForSite(any)).thenThrow(Exception('db is gone'));
+    when(
+      repository.getGalleryLinksForSite(any),
+    ).thenThrow(Exception('db is gone'));
 
     final imported = await runLink(tester, selected: [_asset('a1')]);
 

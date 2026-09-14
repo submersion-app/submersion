@@ -4905,7 +4905,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     try {
       final mediaRepo = ref.read(mediaRepositoryProvider);
-      final linked = await mediaRepo.getMediaForDive(dive.id);
+      final linked = await mediaRepo.getGalleryLinksForDive(dive.id);
 
       final photoPickerService = ref.read(photoPickerServiceProvider);
       final assets = await TripMediaScanner.scanGalleryForDive(

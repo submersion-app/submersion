@@ -190,9 +190,15 @@ void main() {
       expect(_ids(result), ['mac-1']);
     });
 
-    test('does not count a row that resolved to some other asset', () async {
+    test('counts a row resolved to an asset this scan did not return, since '
+        'that cached id cannot be verified here', () async {
+      // The resolver trusts its cache without re-proving it, so a stale entry
+      // (the library reassigned the photo's local id) resolves to an id that
+      // is gone. The photo's real asset is a candidate at the row's exact
+      // second and size; if the cached id were live it would be a candidate
+      // too.
       final dedupe = LinkedGalleryAssets(
-        resolve: _FakeResolver({'m1': _resolvedTo('elsewhere')}).call,
+        resolve: _FakeResolver({'m1': _resolvedTo('stale')}).call,
       );
 
       final result = await dedupe.withoutLinked(
@@ -200,6 +206,39 @@ void main() {
         linked: [_row('m1')],
       );
 
+      expect(result, isEmpty);
+    });
+
+    test(
+      'does not count a row the gallery could not be consulted for',
+      () async {
+        final dedupe = LinkedGalleryAssets(
+          resolve: _FakeResolver({
+            'm1': const ResolutionResult(status: ResolutionStatus.accessDenied),
+          }).call,
+        );
+
+        final result = await dedupe.withoutLinked(
+          candidates: [_asset('mac-1')],
+          linked: [_row('m1')],
+        );
+
+        expect(_ids(result), ['mac-1']);
+      },
+    );
+
+    test('with no resolver, only synced ids count', () async {
+      const dedupe = LinkedGalleryAssets();
+
+      final result = await dedupe.withoutLinked(
+        candidates: [_asset('a'), _asset('mac-1')],
+        linked: [
+          _row('m1', platformAssetId: 'a'),
+          _row('m2'),
+        ],
+      );
+
+      // m2 shares mac-1's second and size, but nothing resolved it.
       expect(_ids(result), ['mac-1']);
     });
 
@@ -224,21 +263,20 @@ void main() {
       expect(_ids(result), ['mac-1']);
     });
 
-    test(
-      'treats a row whose resolution throws as unresolved, not fatal',
-      () async {
-        final resolver = _FakeResolver()..throwingFor.addAll({'m1', 'm2'});
-        final dedupe = LinkedGalleryAssets(resolve: resolver.call);
+    test('a row whose resolution throws claims nothing and does not abort '
+        'the others', () async {
+      final resolver = _FakeResolver({'m2': _resolvedTo('mac-2')})
+        ..throwingFor.add('m1');
+      final dedupe = LinkedGalleryAssets(resolve: resolver.call);
 
-        final result = await dedupe.withoutLinked(
-          candidates: [_asset('mac-1'), _asset('mac-2', second: 30)],
-          linked: [_row('m1'), _row('m2', second: 50)],
-        );
+      final result = await dedupe.withoutLinked(
+        candidates: [_asset('mac-1'), _asset('mac-2', second: 30)],
+        linked: [_row('m1'), _row('m2', second: 30)],
+      );
 
-        // m1 still claims its same-second candidate; m2 matches nothing.
-        expect(_ids(result), ['mac-2']);
-      },
-    );
+      // Nothing was learned about m1, so its same-second frame stays offered.
+      expect(_ids(result), ['mac-1']);
+    });
   });
 
   group('LinkedGalleryAssets.idsOnThisDevice', () {

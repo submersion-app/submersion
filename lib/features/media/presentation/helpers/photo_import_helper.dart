@@ -40,7 +40,7 @@ class PhotoImportHelper {
     final mediaRepo = ref.read(mediaRepositoryProvider);
     final alreadyLinkedIds = await ref
         .read(linkedGalleryAssetsProvider)
-        .idsOnThisDevice(await mediaRepo.getMediaForDive(dive.id));
+        .idsOnThisDevice(await mediaRepo.getGalleryLinksForDive(dive.id));
 
     // Check context is still valid after async gap
     if (!context.mounted) return false;

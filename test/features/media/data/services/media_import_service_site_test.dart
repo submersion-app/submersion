@@ -45,7 +45,7 @@ void main() {
       onMediaCreated: createdIds.add,
     );
     when(
-      mockMediaRepository.getMediaForSite(any),
+      mockMediaRepository.getGalleryLinksForSite(any),
     ).thenAnswer((_) async => <MediaItem>[]);
     when(
       mockMediaRepository.getLinkedLocalPathsForSite(any),
@@ -81,7 +81,7 @@ void main() {
 
   test('importPhotosForSite skips assets already linked to the site', () async {
     when(
-      mockMediaRepository.getMediaForSite('site-1'),
+      mockMediaRepository.getGalleryLinksForSite('site-1'),
     ).thenAnswer((_) async => [_siteRow('a1')]);
 
     final result = await service.importPhotosForSite(
@@ -108,7 +108,7 @@ void main() {
       ),
     );
     when(
-      mockMediaRepository.getMediaForSite('site-1'),
+      mockMediaRepository.getGalleryLinksForSite('site-1'),
     ).thenAnswer((_) async => [_siteRow('iphone-1')]);
 
     final result = await crossDevice.importPhotosForSite(

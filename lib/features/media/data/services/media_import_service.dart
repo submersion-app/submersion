@@ -177,7 +177,7 @@ class MediaImportService {
         ? const <String>{}
         : await _unlinkedGalleryIds(
             gallery,
-            await _mediaRepository.getMediaForDive(dive.id),
+            await _mediaRepository.getGalleryLinksForDive(dive.id),
           );
     final existingPaths = anyPaths
         ? await _mediaRepository.getLinkedLocalPathsForDive(dive.id)
@@ -262,7 +262,7 @@ class MediaImportService {
         ? const <String>{}
         : await _unlinkedGalleryIds(
             gallery,
-            await _mediaRepository.getMediaForSite(siteId),
+            await _mediaRepository.getGalleryLinksForSite(siteId),
           );
     final existingPaths = anyPaths
         ? await _mediaRepository.getLinkedLocalPathsForSite(siteId)

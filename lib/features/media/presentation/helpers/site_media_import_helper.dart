@@ -28,7 +28,7 @@ class SiteMediaImportHelper {
     final mediaRepo = ref.read(mediaRepositoryProvider);
     final alreadyLinkedIds = await ref
         .read(linkedGalleryAssetsProvider)
-        .idsOnThisDevice(await mediaRepo.getMediaForSite(siteId));
+        .idsOnThisDevice(await mediaRepo.getGalleryLinksForSite(siteId));
     if (!context.mounted) return false;
 
     // Sites have no dive window: open the picker over all time. buffer is

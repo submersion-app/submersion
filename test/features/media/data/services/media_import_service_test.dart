@@ -138,7 +138,7 @@ void main() {
 
         // asset-1 and asset-3 are already linked
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows({'asset-1', 'asset-3'}));
 
         // Only asset-2 should be imported
@@ -181,7 +181,7 @@ void main() {
           ),
         );
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows({'iphone-1'}));
 
         final result = await crossDevice.importPhotosForDive(
@@ -198,7 +198,7 @@ void main() {
         final assets = [_testAsset('asset-1'), _testAsset('asset-2')];
 
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
 
         when(mockMediaRepository.createMedia(any)).thenAnswer((
@@ -238,7 +238,7 @@ void main() {
 
           // asset-2 is already linked
           when(
-            mockMediaRepository.getMediaForDive('dive-1'),
+            mockMediaRepository.getGalleryLinksForDive('dive-1'),
           ).thenAnswer((_) async => _linkedRows({'asset-2'}));
 
           when(mockMediaRepository.createMedia(any)).thenAnswer((
@@ -274,7 +274,7 @@ void main() {
 
           // Both already linked
           when(
-            mockMediaRepository.getMediaForDive('dive-1'),
+            mockMediaRepository.getGalleryLinksForDive('dive-1'),
           ).thenAnswer((_) async => _linkedRows({'asset-1', 'asset-2'}));
 
           final result = await service.importPhotosForDive(
@@ -295,7 +295,7 @@ void main() {
 
       test('handles empty selectedAssets list', () async {
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
 
         final result = await service.importPhotosForDive(
@@ -321,7 +321,7 @@ void main() {
 
         // asset-1 is a duplicate
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows({'asset-1'}));
 
         when(mockMediaRepository.createMedia(any)).thenAnswer((
@@ -368,7 +368,7 @@ void main() {
         final assets = [_testAsset('42_998877', filePath: path)];
 
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
 
         MediaItem? persisted;
@@ -404,7 +404,7 @@ void main() {
         final assets = [_testAsset('42_998877', filePath: path)];
 
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
         // Nulling platformAssetId means the asset-id filter can no longer see
         // desktop rows, so dedupe has to run off the path instead. Keying on
@@ -429,7 +429,7 @@ void main() {
       // path to compare, and a desktop selection never has a gallery id.
       test('skips the path lookup when no asset carries a path', () async {
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
         when(mockMediaRepository.createMedia(any)).thenAnswer(
           (_) async =>
@@ -442,7 +442,7 @@ void main() {
         );
 
         verifyNever(mockMediaRepository.getLinkedLocalPathsForDive(any));
-        verify(mockMediaRepository.getMediaForDive('dive-1')).called(1);
+        verify(mockMediaRepository.getGalleryLinksForDive('dive-1')).called(1);
       });
 
       test(
@@ -464,7 +464,7 @@ void main() {
             dive: testDive,
           );
 
-          verifyNever(mockMediaRepository.getMediaForDive(any));
+          verifyNever(mockMediaRepository.getGalleryLinksForDive(any));
           verify(
             mockMediaRepository.getLinkedLocalPathsForDive('dive-1'),
           ).called(1);
@@ -473,7 +473,7 @@ void main() {
 
       test('queries both lookups for a mixed selection', () async {
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
         when(
           mockMediaRepository.getLinkedLocalPathsForDive('dive-1'),
@@ -491,7 +491,7 @@ void main() {
           dive: testDive,
         );
 
-        verify(mockMediaRepository.getMediaForDive('dive-1')).called(1);
+        verify(mockMediaRepository.getGalleryLinksForDive('dive-1')).called(1);
         verify(
           mockMediaRepository.getLinkedLocalPathsForDive('dive-1'),
         ).called(1);
@@ -501,7 +501,7 @@ void main() {
         final assets = [_testAsset('1_2', filePath: '/photos/a.jpg')];
 
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
         when(
           mockMediaRepository.getLinkedLocalPathsForDive('dive-1'),
@@ -524,7 +524,7 @@ void main() {
         final assets = [_testAsset('asset-1')];
 
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
 
         MediaItem? persisted;
@@ -563,7 +563,7 @@ void main() {
       // shifted by that offset.
       Future<MediaItem?> persistOne(AssetInfo asset) async {
         when(
-          mockMediaRepository.getMediaForDive('dive-1'),
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
         ).thenAnswer((_) async => _linkedRows(<String>{}));
 
         MediaItem? persisted;

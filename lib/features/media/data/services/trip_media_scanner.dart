@@ -183,7 +183,8 @@ class TripMediaScanner {
   /// [dives] - List of dives in the trip to match photos against.
   /// [tripStartDate] - Start of the trip (inclusive).
   /// [tripEndDate] - End of the trip (inclusive).
-  /// [existingAssetIds] - Set of asset IDs already linked, to filter out.
+  /// [linked] - The trip's already-linked media rows; the assets they stand
+  /// for on this device (per [linkedGalleryAssets]) are filtered out.
   /// [photoPickerService] - Service for accessing the photo gallery.
   ///
   /// Matching is delegated to [DivePhotoMatcher], which applies a 30-minute
@@ -195,7 +196,8 @@ class TripMediaScanner {
     required List<Dive> dives,
     required DateTime tripStartDate,
     required DateTime tripEndDate,
-    required Set<String> existingAssetIds,
+    required List<MediaItem> linked,
+    required LinkedGalleryAssets linkedGalleryAssets,
     required PhotoPickerService photoPickerService,
     Future<MediaSourceMetadata?> Function(AssetInfo asset)?
     assetMetadataResolver,
@@ -228,9 +230,13 @@ class TripMediaScanner {
 
     // Build lookup and ExtractedFile list for the matcher.
     final assetById = {for (final a in assets) a.id: a};
-    final newAssets = assets
-        .where((a) => !existingAssetIds.contains(a.id))
-        .toList();
+    // Candidate-aware, like [scanGalleryForDive]: a row linked on another
+    // device carries that device's asset id (#885), and burst frames only
+    // resolve by count against the assets actually returned.
+    final newAssets = await linkedGalleryAssets.withoutLinked(
+      candidates: assets,
+      linked: linked,
+    );
 
     // Build DiveBounds from each dive (normalised to wall-clock-as-UTC).
     final bounds = dives.map((dive) {

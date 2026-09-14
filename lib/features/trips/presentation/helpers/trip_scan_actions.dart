@@ -70,19 +70,14 @@ Future<void> scanGalleryForTripPhotos(
     }
 
     final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
-    // Synced asset ids come from whichever device linked each photo, so
-    // also count what every row resolves to here (#885); otherwise a
-    // photo linked on another device is offered again as new.
-    final existingIds = await ref
-        .read(linkedGalleryAssetsProvider)
-        .idsOnThisDevice(mediaByDive.values.expand((items) => items));
 
     final photoPickerService = ref.read(photoPickerServiceProvider);
     final result = await TripMediaScanner.scanGalleryForTrip(
       dives: dives,
       tripStartDate: trip.startDate,
       tripEndDate: trip.endDate,
-      existingAssetIds: existingIds,
+      linked: [for (final items in mediaByDive.values) ...items],
+      linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
       photoPickerService: photoPickerService,
     );
 

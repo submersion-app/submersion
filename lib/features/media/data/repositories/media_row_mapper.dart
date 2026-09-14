@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
@@ -80,6 +82,46 @@ domain.MediaItem mediaItemFromRow(
     enrichment: enrichmentRow != null
         ? mediaEnrichmentFromRow(enrichmentRow)
         : null,
+  );
+}
+
+/// The columns [galleryLinkFromRow] reads.
+List<Expression<Object>> galleryLinkColumns($MediaTable m) => [
+  m.id,
+  m.diveId,
+  m.siteId,
+  m.platformAssetId,
+  m.originalFilename,
+  m.fileType,
+  m.takenAt,
+  m.width,
+  m.height,
+  m.createdAt,
+  m.updatedAt,
+];
+
+/// A media row reduced to what gallery matching reads: identity, capture
+/// time, size and filename, hydrated by the same rules as
+/// [mediaItemFromRow]. Every other field keeps its default. The point is
+/// what is NOT read: `image_data` holds whole signature images and gallery
+/// dedupe runs before every import and picker open.
+domain.MediaItem galleryLinkFromRow(TypedResult row, $MediaTable m) {
+  final id = row.read(m.id)!;
+  final takenAt = row.read(m.takenAt);
+  return domain.MediaItem(
+    id: id,
+    diveId: row.read(m.diveId),
+    siteId: row.read(m.siteId),
+    platformAssetId: row.read(m.platformAssetId),
+    originalFilename: row.read(m.originalFilename),
+    mediaType: parseMediaType(row.read(m.fileType)!),
+    takenAt: takenAt != null
+        ? DateTime.fromMillisecondsSinceEpoch(takenAt, isUtc: true)
+        : _defaultTakenAt(id),
+    width: row.read(m.width),
+    height: row.read(m.height),
+    createdAt: DateTime.fromMillisecondsSinceEpoch(row.read(m.createdAt)!),
+    updatedAt: DateTime.fromMillisecondsSinceEpoch(row.read(m.updatedAt)!),
   );
 }
 

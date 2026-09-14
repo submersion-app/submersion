@@ -1187,6 +1187,36 @@ class MediaRepository {
     }
   }
 
+  /// Gallery rows linked to [diveId], carrying only what gallery dedupe
+  /// reads (see [galleryLinkFromRow]): no image data, no enrichment.
+  Future<List<domain.MediaItem>> getGalleryLinksForDive(String diveId) =>
+      _getGalleryLinks(_db.media.diveId.equals(diveId), 'dive: $diveId');
+
+  /// Site counterpart of [getGalleryLinksForDive].
+  Future<List<domain.MediaItem>> getGalleryLinksForSite(String siteId) =>
+      _getGalleryLinks(_db.media.siteId.equals(siteId), 'site: $siteId');
+
+  Future<List<domain.MediaItem>> _getGalleryLinks(
+    Expression<bool> scope,
+    String scopeLabel,
+  ) async {
+    try {
+      final m = _db.media;
+      final query = _db.selectOnly(m)
+        ..addColumns(galleryLinkColumns(m))
+        ..where(scope & m.platformAssetId.isNotNull());
+      final rows = await query.get();
+      return [for (final row in rows) galleryLinkFromRow(row, m)];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get gallery links for $scopeLabel',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get the set of local file paths already linked to a specific dive.
   ///
   /// The desktop dedupe key: Windows / Linux imports are `localFile` rows
