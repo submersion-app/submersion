@@ -20860,6 +20860,12 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get equipment_edit_statusLabel;
 
+  /// No description provided for @equipment_edit_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_edit_tagsLabel;
+
   /// No description provided for @equipment_edit_parentLabel.
   ///
   /// In en, this message translates to:

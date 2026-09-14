@@ -16,6 +16,8 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_list_
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -103,6 +105,9 @@ Future<List<Override>> _buildOverrides({
     equipmentByStatusProvider.overrideWith((ref, status) => <EquipmentItem>[]),
     activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
     equipmentListNotifierProvider.overrideWith((ref) => _MockEquipNotifier()),
+    // The add form's Tags field (issue #1942) watches the tag list, whose
+    // repository needs a database this harness does not open.
+    tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(),
@@ -114,6 +119,15 @@ Future<List<Override>> _buildOverrides({
       ),
     ),
   ];
+}
+
+/// No tags, and no database behind them.
+class _EmptyTagList extends StateNotifier<AsyncValue<List<Tag>>>
+    implements TagListNotifier {
+  _EmptyTagList() : super(const AsyncValue.data([]));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 // ---------------------------------------------------------------------------
@@ -648,7 +662,10 @@ void main() {
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
         ProviderScope(
-          overrides: overrides,
+          overrides: [
+            ...overrides,
+            tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
+          ],
           child: const MaterialApp(
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -694,7 +711,10 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: overrides,
+          overrides: [
+            ...overrides,
+            tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
+          ],
           child: const MaterialApp(
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -749,7 +769,10 @@ void main() {
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
         ProviderScope(
-          overrides: overrides,
+          overrides: [
+            ...overrides,
+            tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
+          ],
           child: const MaterialApp(
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,

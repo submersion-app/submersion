@@ -12285,6 +12285,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_statusLabel => 'الحالة';
 
   @override
+  String get equipment_edit_tagsLabel => 'الوسوم';
+
+  @override
   String get equipment_edit_parentLabel => 'مركّب في';
 
   @override

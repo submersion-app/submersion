@@ -12466,6 +12466,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Allapot';
 
   @override
+  String get equipment_edit_tagsLabel => 'Címkék';
+
+  @override
   String get equipment_edit_parentLabel => 'Beszerelve ebbe';
 
   @override

@@ -12540,6 +12540,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Statut';
 
   @override
+  String get equipment_edit_tagsLabel => 'Étiquettes';
+
+  @override
   String get equipment_edit_parentLabel => 'Installé dans';
 
   @override

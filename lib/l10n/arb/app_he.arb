@@ -3999,6 +3999,7 @@
   "equipment_edit_snackbar_error": "שגיאה בשמירת ציוד: {error}",
   "equipment_edit_snackbar_updated": "הציוד עודכן",
   "equipment_edit_statusLabel": "סטטוס",
+  "equipment_edit_tagsLabel": "תגיות",
   "equipment_edit_parentLabel": "מותקן ב",
   "equipment_edit_parentNone": "לא מותקן בשום פריט",
   "equipment_edit_thicknessDesignationHint": "למשל, 5, 5/4, 7/5/3",

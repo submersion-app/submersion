@@ -12498,6 +12498,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Stato';
 
   @override
+  String get equipment_edit_tagsLabel => 'Tag';
+
+  @override
   String get equipment_edit_parentLabel => 'Installato in';
 
   @override

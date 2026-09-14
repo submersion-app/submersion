@@ -12405,6 +12405,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_tagsLabel => 'Tags';
+
+  @override
   String get equipment_edit_parentLabel => 'Geplaatst in';
 
   @override
