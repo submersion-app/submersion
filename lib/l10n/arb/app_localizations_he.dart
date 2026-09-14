@@ -26355,10 +26355,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_about_bathymetryCredit =>
-      'נתוני עומק: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)';
-
-  @override
   String get dive3d_metric_depth => 'עומק';
 
   @override

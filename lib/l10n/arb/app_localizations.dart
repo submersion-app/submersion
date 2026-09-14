@@ -43752,12 +43752,6 @@ abstract class AppLocalizations {
   /// **'Distance ({unitSymbol})'**
   String dive3d_seascape_axis_distance(String unitSymbol);
 
-  /// No description provided for @settings_about_bathymetryCredit.
-  ///
-  /// In en, this message translates to:
-  /// **'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)'**
-  String get settings_about_bathymetryCredit;
-
   /// No description provided for @dive3d_metric_depth.
   ///
   /// In en, this message translates to:

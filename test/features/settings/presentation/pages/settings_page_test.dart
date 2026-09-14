@@ -1097,6 +1097,29 @@ void main() {
       expect(find.text('Copy diagnostics'), findsOneWidget);
     });
 
+    testWidgets('places Diagnostics below Updates', (tester) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      // The section is one scroll view, so every header is laid out and
+      // their offsets compare without scrolling.
+      final updatesTop = tester.getTopLeft(find.text('Updates')).dy;
+      final diagnosticsTop = tester.getTopLeft(find.text('Diagnostics')).dy;
+      expect(diagnosticsTop, greaterThan(updatesTop));
+    });
+
+    testWidgets('leaves the bathymetry credit to the licenses page', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(find.textContaining('Bathymetry data'), findsNothing);
+      expect(find.text('Open Source Licenses'), findsOneWidget);
+    });
+
     testWidgets('shows the channel selector on stable', (tester) async {
       await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
       await tester.pumpAndSettle();
@@ -1294,28 +1317,6 @@ void main() {
 
       expect(find.textContaining('(Beta)'), findsOneWidget);
     });
-
-    testWidgets(
-      'bathymetry credit lists swissBATHY3D alongside GMRT, EMODnet and ETOPO',
-      (tester) async {
-        await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
-        await tester.pumpAndSettle();
-        await tester.pump(const Duration(seconds: 6));
-
-        await tester.scrollUntilVisible(
-          find.textContaining('swissBATHY3D'),
-          100,
-        );
-        final creditFinder = find.textContaining('swissBATHY3D');
-        expect(creditFinder, findsOneWidget);
-        final creditText = tester.widget<Text>(creditFinder).data!;
-        expect(creditText, contains('GMRT'));
-        expect(creditText, contains('EMODnet'));
-        expect(creditText, contains('ETOPO'));
-        expect(creditText, contains('swissBATHY3D'));
-        expect(creditText, contains('swisstopo'));
-      },
-    );
   });
 
   group('AppearanceSectionContent navigation', () {
