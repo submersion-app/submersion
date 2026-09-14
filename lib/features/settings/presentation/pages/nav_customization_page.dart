@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_order_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -29,10 +30,38 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
         ? NavOrderScope.desktop
         : NavOrderScope.phone;
 
+    final showLabelsAsync = ref.watch(navShowLabelsProvider);
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_navCustomization_title)),
       body: Column(
         children: [
+          showLabelsAsync.when(
+            data: (showLabels) => SwitchListTile(
+              key: const ValueKey('navShowLabelsSwitch'),
+              title: Text(l10n.settings_navCustomization_showLabels_title),
+              subtitle: Text(
+                l10n.settings_navCustomization_showLabels_subtitle,
+              ),
+              value: showLabels,
+              onChanged: (value) async {
+                try {
+                  await ref
+                      .read(appSettingsRepositoryProvider)
+                      .setNavShowLabels(value);
+                  ref.invalidate(navShowLabelsProvider);
+                } catch (_) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.common_error_tryAgain)),
+                  );
+                }
+              },
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+          ),
+          const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: SegmentedButton<NavOrderScope>(

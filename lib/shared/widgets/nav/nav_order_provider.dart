@@ -1,7 +1,10 @@
+import 'package:flutter/widgets.dart' show Size;
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Canonical list of every nav destination, including the `more` sentinel.
 final navDestinationsProvider = Provider<List<NavDestination>>((ref) {
@@ -10,6 +13,26 @@ final navDestinationsProvider = Provider<List<NavDestination>>((ref) {
 
 /// Ids of destinations the user can reorder on either surface.
 final movableNavIdsProvider = Provider<List<String>>((ref) => movableNavIds);
+
+/// Computes the current phone primary slot count from the live view size and
+/// the label-visibility setting (#1424).
+///
+/// Shared by every widget that needs a `navPrimaryDestinationsProvider` /
+/// `navOverflowDestinationsProvider` family key, so the bottom bar, the More
+/// sheet, and the Appearance page preview tile all agree on the same slot
+/// count within a build.
+int currentPhonePrimarySlotCount(WidgetRef ref, Size viewSize) {
+  final showLabels = ref.watch(navShowLabelsProvider).value ?? true;
+  final availableCount = ref.watch(movableNavIdsProvider).length;
+  final baseWidth = viewSize.width < viewSize.height
+      ? viewSize.width
+      : viewSize.height;
+  return phonePrimarySlotCount(
+    baseWidth: baseWidth,
+    showLabels: showLabels,
+    availableCount: availableCount,
+  );
+}
 
 /// The phone nav order: bottom-bar slots first, then the More menu, in order.
 final navPhoneOrderNotifierProvider =
@@ -47,28 +70,37 @@ final navRailOrderProvider = Provider<List<String>>((ref) {
   return ref.watch(navRailOrderNotifierProvider);
 });
 
-/// The 5-entry phone primary list: [dashboard, slot2, slot3, slot4, more].
-final navPrimaryDestinationsProvider = Provider<List<NavDestination>>((ref) {
-  final byId = _destinationsById(ref);
-  final middle = ref
-      .watch(navPhoneOrderProvider)
-      .take(kPhonePrimarySlotCount)
-      .map((id) => byId[id])
-      .whereType<NavDestination>()
-      .toList(growable: false);
-  return [byId['dashboard']!, ...middle, byId['more']!];
-});
+/// The phone primary list: [dashboard, ...slotCount middle items, more].
+///
+/// Parameterized by [slotCount] rather than reading a fixed constant, since
+/// how many middle slots fit is computed from the live screen width and
+/// label-visibility setting (#1424, see `phonePrimarySlotCount`).
+final navPrimaryDestinationsProvider =
+    Provider.family<List<NavDestination>, int>((ref, slotCount) {
+      final byId = _destinationsById(ref);
+      final middle = ref
+          .watch(navPhoneOrderProvider)
+          .take(slotCount)
+          .map((id) => byId[id])
+          .whereType<NavDestination>()
+          .toList(growable: false);
+      return [byId['dashboard']!, ...middle, byId['more']!];
+    });
 
 /// Phone overflow ("More") destinations, in the order the user chose.
-final navOverflowDestinationsProvider = Provider<List<NavDestination>>((ref) {
-  final byId = _destinationsById(ref);
-  return ref
-      .watch(navPhoneOrderProvider)
-      .skip(kPhonePrimarySlotCount)
-      .map((id) => byId[id])
-      .whereType<NavDestination>()
-      .toList(growable: false);
-});
+///
+/// [slotCount] must match the value passed to [navPrimaryDestinationsProvider]
+/// for the same build, so every movable id appears in exactly one of the two.
+final navOverflowDestinationsProvider =
+    Provider.family<List<NavDestination>, int>((ref, slotCount) {
+      final byId = _destinationsById(ref);
+      return ref
+          .watch(navPhoneOrderProvider)
+          .skip(slotCount)
+          .map((id) => byId[id])
+          .whereType<NavDestination>()
+          .toList(growable: false);
+    });
 
 /// Wide-screen rail destinations: pinned Home, then the user's rail order.
 ///

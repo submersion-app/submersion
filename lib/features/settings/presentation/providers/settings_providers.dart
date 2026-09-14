@@ -1077,6 +1077,15 @@ final shareByDefaultProvider = FutureProvider<bool>((ref) async {
   return repo.getShareByDefault();
 });
 
+/// Whether nav destinations show their text label next to the icon, on the
+/// phone bottom bar and the extended desktop rail (#1424). Global (not
+/// per-diver), matching the nav-order settings this pairs with.
+final navShowLabelsProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(appSettingsRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchSettingsChanges());
+  return repo.getNavShowLabels();
+});
+
 /// Settings notifier that persists to database per-diver
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final DiverSettingsRepository _repository;

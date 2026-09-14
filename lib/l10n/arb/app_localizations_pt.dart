@@ -17211,6 +17211,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
 
   @override
+  String get settings_navCustomization_showLabels_title => 'Show labels';
+
+  @override
+  String get settings_navCustomization_showLabels_subtitle =>
+      'Show text labels next to icons in the bottom bar and the expanded sidebar';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Arraste os itens para reordenar a barra lateral. O Início fica sempre no topo.';
 

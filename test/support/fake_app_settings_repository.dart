@@ -91,6 +91,16 @@ class FakeAppSettingsRepository implements AppSettingsRepository {
     navRailIds = List<String>.from(ids);
   }
 
+  @override
+  Future<bool> getNavShowLabels() async {
+    final raw = await getRawSetting('nav_show_labels');
+    return raw != 'false';
+  }
+
+  @override
+  Future<void> setNavShowLabels(bool value) =>
+      setRawSetting('nav_show_labels', value ? 'true' : 'false');
+
   /// Last value stored through [setBlenderPreferences], if any.
   BlenderPreferences? blenderPreferences;
 

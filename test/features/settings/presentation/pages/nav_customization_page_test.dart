@@ -157,7 +157,12 @@ void main() {
 
       // The divider row only exists on the phone surface, so its presence is
       // the tell that the page opened on the phone scope.
-      expect(find.text('Items below appear in the More menu'), findsOneWidget);
+      expect(
+        find.text(
+          'More menu below - wider phones may show more of the items above here too',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('opens on Desktop when the window is rail-width', (
@@ -167,7 +172,12 @@ void main() {
 
       // The divider only exists on the phone surface.
       expect(find.byKey(const ValueKey('nav-divider')), findsNothing);
-      expect(find.text('Items below appear in the More menu'), findsNothing);
+      expect(
+        find.text(
+          'More menu below - wider phones may show more of the items above here too',
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('shows pinned Home and More rows on the phone scope', (
@@ -375,6 +385,73 @@ void main() {
       // Rolled back: the default order is still on screen.
       expect(_firstRowId(tester), 'dives');
     });
+
+    group('show-labels switch (#1424)', () {
+      testWidgets('defaults to on', (tester) async {
+        await pumpPage(tester);
+
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navShowLabelsSwitch')),
+        );
+        expect(tile.value, isTrue);
+      });
+
+      testWidgets('reflects a stored off value', (tester) async {
+        final repo = FakeAppSettingsRepository();
+        await repo.setNavShowLabels(false);
+        await pumpPage(tester, repo: repo);
+
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navShowLabelsSwitch')),
+        );
+        expect(tile.value, isFalse);
+      });
+
+      testWidgets('tapping it persists the new value', (tester) async {
+        final repo = await pumpPage(tester);
+
+        await tester.tap(find.byKey(const ValueKey('navShowLabelsSwitch')));
+        await tester.pumpAndSettle();
+
+        expect(await repo.getNavShowLabels(), isFalse);
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navShowLabelsSwitch')),
+        );
+        expect(tile.value, isFalse);
+      });
+
+      testWidgets('a failed save reports the error and keeps the old value', (
+        tester,
+      ) async {
+        final repo = _ShowLabelsWriteFailsRepo();
+        await pumpPage(tester, repo: repo);
+
+        await tester.tap(find.byKey(const ValueKey('navShowLabelsSwitch')));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Something went wrong. Please try again.'),
+          findsOneWidget,
+        );
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navShowLabelsSwitch')),
+        );
+        expect(tile.value, isTrue);
+      });
+
+      testWidgets('a failed read hides the switch but the rest of the page '
+          'still renders', (tester) async {
+        final repo = FakeAppSettingsRepository()
+          ..throwOnRead = StateError('read failed');
+        await pumpPage(tester, repo: repo);
+
+        // The switch's AsyncValue.when has no data to build a tile from, and
+        // this shows the error branch renders nothing rather than crashing.
+        expect(find.byKey(const ValueKey('navShowLabelsSwitch')), findsNothing);
+        // The rest of the page is unaffected by the failed read.
+        expect(find.byKey(const ValueKey('navScopeSegments')), findsOneWidget);
+      });
+    });
   });
 }
 
@@ -396,5 +473,12 @@ class _WriteFailsRepo extends FakeAppSettingsRepository {
 
   @override
   Future<void> setNavRailIds(List<String> ids) async =>
+      throw StateError('write failed');
+}
+
+/// Fake whose show-labels write always fails, so the switch's error path runs.
+class _ShowLabelsWriteFailsRepo extends FakeAppSettingsRepository {
+  @override
+  Future<void> setNavShowLabels(bool value) async =>
       throw StateError('write failed');
 }

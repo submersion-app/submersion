@@ -13,6 +13,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
+import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Fraction of the screen height the phone overflow ("More") sheet may fill.
 ///
@@ -29,8 +30,12 @@ class MainScaffold extends ConsumerStatefulWidget {
 }
 
 class _MainScaffoldState extends ConsumerState<MainScaffold> {
-  /// When true, the user has manually collapsed the rail (overrides auto-extend)
-  bool _isCollapsed = false;
+  /// Manual override for the rail's expanded/collapsed state, set by tapping
+  /// the collapse arrow. `null` means "no manual override yet, follow
+  /// [navShowLabelsProvider]'s default"; a non-null value means the user
+  /// overrode it for this session (#1424), same as before this setting
+  /// existed -- it is not persisted, so it resets on restart.
+  bool? _isCollapsedOverride;
 
   /// Builds a per-destination accent color lookup for the navigation surfaces.
   ///
@@ -52,12 +57,15 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     return (id) => accents?.of(id);
   }
 
-  /// [railDestinations] is only read when [isWideScreen] is true, so phone
-  /// builds may pass an empty list rather than subscribing to the rail order.
+  /// [railDestinations] is only read when [isWideScreen] is true and
+  /// [primaryDestinations] only when it is false, so the caller may pass an
+  /// empty list for the surface it is not rendering rather than subscribing
+  /// to that surface's order.
   int _calculateSelectedIndex(
     BuildContext context, {
     required bool isWideScreen,
     required List<NavDestination> railDestinations,
+    required List<NavDestination> primaryDestinations,
   }) {
     final location = GoRouterState.of(context).uri.path;
 
@@ -69,13 +77,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       return 0;
     }
 
-    // Mobile: iterate the dynamic primary list (length 5: [dashboard, 3 middle, more]).
-    final primary = ref.watch(navPrimaryDestinationsProvider);
-    for (var i = 0; i < primary.length - 1; i++) {
-      final route = primary[i].route;
+    // Mobile: [dashboard, ...middle slots, more]; the slot count is dynamic
+    // (#1424), so the More sentinel is always the last entry, not a fixed
+    // index.
+    for (var i = 0; i < primaryDestinations.length - 1; i++) {
+      final route = primaryDestinations[i].route;
       if (route.isNotEmpty && location.startsWith(route)) return i;
     }
-    return primary.length - 1; // fall through to More (index 4)
+    return primaryDestinations.length - 1; // fall through to More
   }
 
   /// Handles a tap on the rail or the bottom bar.
@@ -90,6 +99,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   Future<void> _onDestinationSelected(
     int index, {
     required List<NavDestination> destinations,
+    List<NavDestination> overflow = const [],
   }) async {
     if (index < 0 || index >= destinations.length) return;
     final destination = destinations[index];
@@ -106,15 +116,18 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     // The bottom bar's last entry is the `more` sentinel, which opens the
     // overflow sheet rather than routing. The rail never contains it.
     if (destination.id == 'more') {
-      _showMoreMenu(context);
+      _showMoreMenu(context, overflow);
       return;
     }
     if (destination.route.isEmpty) return;
     context.go(destination.route);
   }
 
-  void _showMoreMenu(BuildContext context) {
-    final overflow = ref.read(navOverflowDestinationsProvider);
+  /// [overflow] is captured by the caller in the same build that rendered the
+  /// tapped bottom bar, matching [destinations] in [_onDestinationSelected]:
+  /// reading the provider fresh here could resolve against a slot count that
+  /// changed (e.g. a rotation) while the sheet was opening.
+  void _showMoreMenu(BuildContext context, List<NavDestination> overflow) {
     final navAccent = _navAccentLookup(context, watch: false);
     showModalBottomSheet(
       context: context,
@@ -215,10 +228,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   }
 
   Widget _buildScaffold(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final viewSize = MediaQuery.sizeOf(context);
+    final screenWidth = viewSize.width;
     final isWideScreen = screenWidth >= 800;
     final isDesktopExtended = screenWidth >= 1200;
     final navAccent = _navAccentLookup(context);
+    final showLabels = ref.watch(navShowLabelsProvider).value ?? true;
     // Watched only on wide screens: building this provider kicks off a
     // settings read for the rail order, and a phone never renders a rail.
     // Riverpod rebuilds subscriptions each build, so a resize into rail
@@ -226,16 +241,33 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final railDestinations = isWideScreen
         ? ref.watch(navRailDestinationsProvider)
         : const <NavDestination>[];
+    // Only computed on narrow screens, mirroring railDestinations above: a
+    // rail never renders the primary/overflow split, so a wide build has no
+    // reason to subscribe to the phone order or the slot-count inputs.
+    final primarySlotCount = isWideScreen
+        ? kMinPhonePrimarySlotCount
+        : currentPhonePrimarySlotCount(ref, viewSize);
+    final primaryDestinations = isWideScreen
+        ? const <NavDestination>[]
+        : ref.watch(navPrimaryDestinationsProvider(primarySlotCount));
+    final overflowDestinations = isWideScreen
+        ? const <NavDestination>[]
+        : ref.watch(navOverflowDestinationsProvider(primarySlotCount));
     final selectedIndex = _calculateSelectedIndex(
       context,
       isWideScreen: isWideScreen,
       railDestinations: railDestinations,
+      primaryDestinations: primaryDestinations,
     );
 
     if (isWideScreen) {
       // Desktop/Tablet layout with NavigationRail
-      // Only allow collapse toggle when screen is wide enough for extended mode
-      final showExtended = isDesktopExtended && !_isCollapsed;
+      // Only allow collapse toggle when screen is wide enough for extended mode.
+      // With no manual override yet, the label-visibility setting decides
+      // whether the rail starts extended (#1424); the arrow below can always
+      // override that for the rest of this session.
+      final isCollapsed = _isCollapsedOverride ?? !showLabels;
+      final showExtended = isDesktopExtended && !isCollapsed;
 
       return Scaffold(
         body: GlobalDropTarget(
@@ -258,16 +290,16 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                             leading: isDesktopExtended
                                 ? IconButton(
                                     icon: Icon(
-                                      _isCollapsed
+                                      isCollapsed
                                           ? Icons.keyboard_double_arrow_right
                                           : Icons.keyboard_double_arrow_left,
                                     ),
-                                    tooltip: _isCollapsed
+                                    tooltip: isCollapsed
                                         ? context.l10n.nav_tooltip_expandMenu
                                         : context.l10n.nav_tooltip_collapseMenu,
                                     onPressed: () {
                                       setState(() {
-                                        _isCollapsed = !_isCollapsed;
+                                        _isCollapsedOverride = !isCollapsed;
                                       });
                                     },
                                   )
@@ -326,17 +358,34 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildMobileNavBar(context, selectedIndex),
+      bottomNavigationBar: _buildMobileNavBar(
+        context,
+        selectedIndex,
+        primary: primaryDestinations,
+        overflow: overflowDestinations,
+        showLabels: showLabels,
+      ),
     );
   }
 
-  Widget _buildMobileNavBar(BuildContext context, int selectedIndex) {
-    final primary = ref.watch(navPrimaryDestinationsProvider);
+  Widget _buildMobileNavBar(
+    BuildContext context,
+    int selectedIndex, {
+    required List<NavDestination> primary,
+    required List<NavDestination> overflow,
+    required bool showLabels,
+  }) {
     final navAccent = _navAccentLookup(context);
     return NavigationBar(
       selectedIndex: selectedIndex,
-      onDestinationSelected: (index) =>
-          _onDestinationSelected(index, destinations: primary),
+      labelBehavior: showLabels
+          ? NavigationDestinationLabelBehavior.alwaysShow
+          : NavigationDestinationLabelBehavior.alwaysHide,
+      onDestinationSelected: (index) => _onDestinationSelected(
+        index,
+        destinations: primary,
+        overflow: overflow,
+      ),
       destinations: [
         for (final destination in primary)
           NavigationDestination(

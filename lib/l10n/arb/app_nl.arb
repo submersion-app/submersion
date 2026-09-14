@@ -5196,6 +5196,8 @@
   "settings_navCustomization_descriptionDesktop": "Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.",
   "settings_navCustomization_scopePhone": "Telefoon",
   "settings_navCustomization_scopeDesktop": "Desktop",
+  "settings_navCustomization_showLabels_title": "Show labels",
+  "settings_navCustomization_showLabels_subtitle": "Show text labels next to icons in the bottom bar and the expanded sidebar",
   "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
   "settings_navCustomization_resetButton": "Reset to defaults",
   "settings_navCustomization_pinnedTooltip": "Always shown",

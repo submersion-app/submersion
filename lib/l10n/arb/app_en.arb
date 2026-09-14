@@ -10420,9 +10420,17 @@
   "@settings_navCustomization_title": {
     "description": "Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail."
   },
-  "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
+  "settings_navCustomization_description": "Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen width.",
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
+  },
+  "settings_navCustomization_showLabels_title": "Show labels",
+  "@settings_navCustomization_showLabels_title": {
+    "description": "Switch title: whether nav destinations show a text label next to the icon, on the phone bottom bar and the expanded desktop sidebar (#1424)."
+  },
+  "settings_navCustomization_showLabels_subtitle": "Show text labels next to icons in the bottom bar and the expanded sidebar",
+  "@settings_navCustomization_showLabels_subtitle": {
+    "description": "Subtitle under the show-labels switch."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {
@@ -10436,7 +10444,7 @@
   "@settings_navCustomization_scopeDesktop": {
     "description": "Segmented-button label for editing the desktop navigation rail order."
   },
-  "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
+  "settings_navCustomization_dividerLabel": "More menu below - wider phones may show more of the items above here too",
   "@settings_navCustomization_dividerLabel": {
     "description": "Non-interactive divider row between primary and overflow destinations."
   },

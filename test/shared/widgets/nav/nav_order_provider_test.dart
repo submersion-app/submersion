@@ -164,10 +164,30 @@ void main() {
 
         expect(
           container
-              .read(navPrimaryDestinationsProvider)
+              .read(navPrimaryDestinationsProvider(3))
               .map((d) => d.id)
               .toList(),
           ['dashboard', 'equipment', 'buddies', 'statistics', 'more'],
+        );
+      },
+    );
+
+    test(
+      'navPrimaryDestinationsProvider grows with a larger slot count',
+      () async {
+        final repo = FakeAppSettingsRepository()
+          ..navPrimaryIds = ['equipment', 'buddies', 'statistics', 'dives'];
+        final container = _container(repo);
+        addTearDown(container.dispose);
+
+        await _loaded(container, navPhoneOrderNotifierProvider);
+
+        expect(
+          container
+              .read(navPrimaryDestinationsProvider(4))
+              .map((d) => d.id)
+              .toList(),
+          ['dashboard', 'equipment', 'buddies', 'statistics', 'dives', 'more'],
         );
       },
     );
@@ -186,7 +206,7 @@ void main() {
         await _loaded(container, navPhoneOrderNotifierProvider);
 
         final overflow = container
-            .read(navOverflowDestinationsProvider)
+            .read(navOverflowDestinationsProvider(3))
             .map((d) => d.id)
             .toList();
 
