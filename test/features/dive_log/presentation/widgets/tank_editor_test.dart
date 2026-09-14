@@ -340,11 +340,11 @@ void main() {
                 (ref) => Future.value(builtInPresets),
               ),
             ].cast(),
-            child: MaterialApp(
-              locale: const Locale('en'),
+            child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: const Scaffold(
+              home: Scaffold(
                 body: SingleChildScrollView(
                   child: _RebuildingTankHost(initial: initialTank),
                 ),
