@@ -4104,6 +4104,7 @@
   "equipment_edit_snackbar_error": "خطأ في حفظ المعدات: {error}",
   "equipment_edit_snackbar_updated": "تم تحديث المعدات",
   "equipment_edit_statusLabel": "الحالة",
+  "equipment_edit_tagsLabel": "الوسوم",
   "equipment_edit_parentLabel": "مركّب في",
   "equipment_edit_parentNone": "غير مركّب في أي شيء",
   "equipment_edit_thicknessDesignationHint": "مثلاً 5، 5/4، 7/5/3",

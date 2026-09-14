@@ -450,6 +450,48 @@ class EquipmentRepository {
     }
   }
 
+  /// Creates [equipment] and gives it exactly [tagIds] (issue #1942), in one
+  /// transaction: a tag write that fails leaves no item behind, and the
+  /// best-effort service clocks [createEquipment] seeds roll back with it.
+  ///
+  /// The tag links are clockless children of the item: only the junction
+  /// rows are marked pending, never the row again (#1769).
+  Future<EquipmentItem> createEquipmentWithTags(
+    EquipmentItem equipment,
+    List<String> tagIds,
+  ) async {
+    final created = await transaction(() async {
+      final item = await createEquipment(equipment);
+      await EquipmentTagRepository().replaceTags(
+        item.id,
+        tagIds,
+        notify: false,
+      );
+      return item;
+    });
+    SyncEventBus.notifyLocalChange();
+    return created;
+  }
+
+  /// Rewrites [equipment]'s row and makes its tags exactly [tagIds]
+  /// (issue #1942), in one transaction. The edit page is the only caller:
+  /// it holds the whole entity and the tags the diver saw. [updateEquipment]
+  /// itself never touches tags, because partially built entities reach it.
+  Future<void> updateEquipmentWithTags(
+    EquipmentItem equipment,
+    List<String> tagIds,
+  ) async {
+    await transaction(() async {
+      await updateEquipment(equipment);
+      await EquipmentTagRepository().replaceTags(
+        equipment.id,
+        tagIds,
+        notify: false,
+      );
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Splits a dying item's attachments (issue #1517): rows only this item
   /// referenced die with it, rows a dive or site still needs survive with
   /// equipment_id cleared and an HLC stamp -- which a silent FK SET NULL

@@ -12221,6 +12221,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_statusLabel => 'סטטוס';
 
   @override
+  String get equipment_edit_tagsLabel => 'תגיות';
+
+  @override
   String get equipment_edit_parentLabel => 'מותקן ב';
 
   @override

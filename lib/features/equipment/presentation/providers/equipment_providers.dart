@@ -425,7 +425,12 @@ class EquipmentListNotifier
     _ref.invalidate(equipmentByStatusProvider(null));
   }
 
-  Future<EquipmentItem> addEquipment(EquipmentItem equipment) async {
+  /// [tagIds], when given, become the new item's tags in the same
+  /// transaction as its row (issue #1942).
+  Future<EquipmentItem> addEquipment(
+    EquipmentItem equipment, {
+    List<String>? tagIds,
+  }) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
@@ -433,13 +438,24 @@ class EquipmentListNotifier
     final equipmentWithDiver = validatedId != null
         ? equipment.copyWith(diverId: validatedId)
         : equipment;
-    final newEquipment = await _repository.createEquipment(equipmentWithDiver);
+    final newEquipment = tagIds == null
+        ? await _repository.createEquipment(equipmentWithDiver)
+        : await _repository.createEquipmentWithTags(equipmentWithDiver, tagIds);
     await refresh();
     return newEquipment;
   }
 
-  Future<void> updateEquipment(EquipmentItem equipment) async {
-    await _repository.updateEquipment(equipment);
+  /// [tagIds], when given, replace the item's tags in the same transaction
+  /// as its row (issue #1942). Null leaves the tags as they are.
+  Future<void> updateEquipment(
+    EquipmentItem equipment, {
+    List<String>? tagIds,
+  }) async {
+    if (tagIds == null) {
+      await _repository.updateEquipment(equipment);
+    } else {
+      await _repository.updateEquipmentWithTags(equipment, tagIds);
+    }
     await refresh();
   }
 

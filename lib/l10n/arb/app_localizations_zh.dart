@@ -11933,6 +11933,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_statusLabel => '状态';
 
   @override
+  String get equipment_edit_tagsLabel => '标签';
+
+  @override
   String get equipment_edit_parentLabel => '安装于';
 
   @override
