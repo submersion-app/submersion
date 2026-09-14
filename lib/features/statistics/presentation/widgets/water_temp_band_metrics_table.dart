@@ -13,9 +13,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// #1873), one row per band under the band chart.
 ///
 /// Rows are laid out with shared flex weights rather than a [Table] so each
-/// can be read to a screen reader as one sentence. An average no dive in the
-/// band has shows "--", never 0, and every average carries the number of
-/// dives it is based on, since SAC needs tank data not every dive has.
+/// can be read to a screen reader as one sentence. When no dive in a band has
+/// a value, its average shows "--" rather than 0. Every average carries the
+/// number of dives it is based on, since SAC needs tank data that not every
+/// dive has.
 class WaterTempBandMetricsTable extends ConsumerWidget {
   const WaterTempBandMetricsTable({super.key, required this.bands});
 
