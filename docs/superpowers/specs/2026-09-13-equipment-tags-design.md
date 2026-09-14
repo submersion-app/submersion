@@ -415,8 +415,11 @@ locale. Arabic uses the full plural set for new strings.
   or missing cells add nothing. #1848's `TagExtractor` is not reused: it
   splits on commas (the equipment CSV list delimiter is `'; '` with
   escaping), mints random ids, matches names exactly and sets no scope. A
-  small `EquipmentCsvTags` builds the same output shape, with each new tag
-  marked `appliesToDives: false` so it arrives as an equipment-only tag.
+  small `EquipmentCsvTags` builds the same output shape. Each tag map it
+  emits sets the import scope keys (`importTagScopeKeys`) to dives false,
+  sites false and equipment true, so `importedTagScopes` reads it as
+  `{TagScope.equipment}` and it arrives as an equipment-only tag. These are
+  keys on the imported map, not fields of `Tag`.
 - The metric CSV golden file is regenerated. The Excel equipment sheet gets
   no Tags column.
 

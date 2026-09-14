@@ -19,6 +19,11 @@ void main() {
     expect(diveTagScopeTable.parentColumn, 'dive_id');
     expect(diveTagScopeTable.syncEntity, 'diveTags');
     expect(diveTagScopeTable.restampedParentTable, 'dives');
+    expect(
+      diveTagScopeTable.sweepsOrphanLinks,
+      isFalse,
+      reason: 'an orphaned dive link survives the repair (v149)',
+    );
 
     expect(TagScope.sites.table, same(siteTagScopeTable));
     expect(siteTagScopeTable.scopeColumn, 'applies_to_sites');
@@ -29,6 +34,11 @@ void main() {
       siteTagScopeTable.restampedParentTable,
       isNull,
       reason: 'site links are clockless children (#1769)',
+    );
+    expect(
+      siteTagScopeTable.sweepsOrphanLinks,
+      isTrue,
+      reason: 'the repair has always swept orphaned site links (#1849)',
     );
   });
 
@@ -43,6 +53,11 @@ void main() {
       equipmentTagScopeTable.restampedParentTable,
       isNull,
       reason: 'equipment links are clockless children (#1769)',
+    );
+    expect(
+      equipmentTagScopeTable.sweepsOrphanLinks,
+      isTrue,
+      reason: 'equipment links follow their site twin',
     );
   });
 
