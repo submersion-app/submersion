@@ -109,8 +109,14 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
 
 /// Mock TagRepository used only for [tagRepositoryProvider] overrides.
 class _MockTagRepository extends TagRepository {
+  _MockTagRepository({this.mergedUsage = (dives: 0, sites: 0)});
+
+  /// What a bulk delete's preview reports for the selection.
+  final ({int dives, int sites}) mergedUsage;
+
   @override
-  Future<int> getMergedDiveCount(List<String> tagIds) async => 0;
+  Future<({int dives, int sites})> getMergedUsage(List<String> tagIds) async =>
+      mergedUsage;
 
   @override
   Future<int> getTagUsageCount(String tagId) async => 0;
@@ -1171,6 +1177,74 @@ void main() {
       notifier.gate.complete();
       await tester.pumpAndSettle();
       expect(notifier.deleted, isEmpty);
+    });
+  });
+
+  group('delete confirmations name sites as well as dives (#1902)', () {
+    // Since #1849 a tag can be used only on sites, and deleting it drops it
+    // from every site (site_tags cascades), but the confirmations counted
+    // only dives and so promised a sites-only tag would lose nothing.
+
+    final sitesOnlyStat = TagStatistic(
+      tag: Tag(
+        id: 'tag3',
+        diverId: 'diver1',
+        name: 'To try',
+        colorHex: '#F97316',
+        appliesToDives: false,
+        appliesToSites: true,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+      diveCount: 0,
+      siteCount: 3,
+    );
+
+    testWidgets('a sites-only tag names its sites', (tester) async {
+      await tester.pumpWidget(
+        _buildTestWidget(stats: [..._testStats, sitesOnlyStat]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag3')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('tag_edit_delete')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '"To try" will be removed from 3 sites. This cannot be undone.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a bulk delete names both dives and sites', (tester) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          stats: [..._testStats, sitesOnlyStat],
+          repository: _MockTagRepository(mergedUsage: (dives: 12, sites: 3)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night Dive'));
+      await tester.tap(find.text('To try'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'These tags will be removed from 12 dives and 3 sites total. '
+          'This cannot be undone.',
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

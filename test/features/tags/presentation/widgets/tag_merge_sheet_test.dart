@@ -107,7 +107,9 @@ void main() {
     mockRepository = MockTagRepository();
     mockNotifier = MockTagListNotifier();
 
-    when(mockRepository.getMergedDiveCount(any)).thenAnswer((_) async => 14);
+    when(
+      mockRepository.getMergedUsage(any),
+    ).thenAnswer((_) async => (dives: 14, sites: 0));
   });
 
   Widget buildTestWidget({List<TagStatistic>? stats}) {
@@ -185,8 +187,49 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      // The mock returns 14 for getMergedDiveCount
-      expect(find.textContaining('14 dives'), findsOneWidget);
+      // The mock reports 14 dives and no sites.
+      expect(find.text('This will affect 14 dives total.'), findsOneWidget);
+    });
+
+    testWidgets('the preview names sites too (#1902)', (tester) async {
+      // mergeTags relinks site_tags as well as dive_tags, so a preview that
+      // counted only dives understated what a merge of site tags rewrites.
+      when(
+        mockRepository.getMergedUsage(any),
+      ).thenAnswer((_) async => (dives: 3, sites: 2));
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('This will affect 3 dives and 2 sites total.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a sites-only tag row shows its sites (#1902)', (tester) async {
+      final stats = [
+        ...testStats,
+        TagStatistic(
+          tag: Tag(
+            id: 'tag4',
+            diverId: 'diver1',
+            name: 'To try',
+            colorHex: '#F97316',
+            appliesToDives: false,
+            appliesToSites: true,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+          diveCount: 0,
+          siteCount: 4,
+        ),
+      ];
+      await tester.pumpWidget(buildTestWidget(stats: stats));
+      await tester.pumpAndSettle();
+
+      // The same wording as the Manage Tags list.
+      expect(find.text('0 dives, 4 sites'), findsOneWidget);
     });
   });
 }

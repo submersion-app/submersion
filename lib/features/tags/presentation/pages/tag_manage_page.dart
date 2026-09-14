@@ -9,6 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -240,11 +241,11 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            [
-              context.l10n.tags_manage_diveCount(stat.diveCount),
-              if (stat.siteCount > 0)
-                context.l10n.tags_manage_siteCount(stat.siteCount),
-            ].join(', '),
+            tagUsageCounts(
+              context.l10n,
+              dives: stat.diveCount,
+              sites: stat.siteCount,
+            ),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -670,9 +671,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       await ref.read(tagListNotifierProvider.notifier).deleteTag(tagId);
       return BulkActionOutcome.completed;
     } else {
-      final totalDives = await repository.getMergedDiveCount(
-        _selectedIds.toList(),
-      );
+      // A union across the selection, sites included (#1902): an item
+      // carrying two of the tags loses both but counts once.
+      final usage = await repository.getMergedUsage(_selectedIds.toList());
 
       if (!context.mounted) return BulkActionOutcome.cancelled;
       final confirmed = await showDialog<bool>(
@@ -681,7 +682,13 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           title: Text(
             ctx.l10n.tags_manage_bulkDeleteTitle(_selectedIds.length),
           ),
-          content: Text(ctx.l10n.tags_manage_bulkDeleteMessage(totalDives)),
+          content: Text(
+            tagsBulkDeleteMessage(
+              ctx.l10n,
+              dives: usage.dives,
+              sites: usage.sites,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -704,7 +711,8 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     }
   }
 
-  /// Asks before deleting one tag, naming it and the dives it will leave.
+  /// Asks before deleting one tag, naming it and the dives and sites it will
+  /// leave (#1902).
   ///
   /// Shared by the selection bar and the edit dialog so the two delete paths
   /// cannot drift apart.
@@ -717,7 +725,12 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.tags_manage_deleteTitle),
         content: Text(
-          ctx.l10n.tags_manage_deleteMessage(stat.tag.name, stat.diveCount),
+          tagDeleteMessage(
+            ctx.l10n,
+            stat.tag.name,
+            dives: stat.diveCount,
+            sites: stat.siteCount,
+          ),
         ),
         actions: [
           TextButton(

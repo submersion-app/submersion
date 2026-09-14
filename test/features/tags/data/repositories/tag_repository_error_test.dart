@@ -63,7 +63,7 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
-        repository.getMergedDiveCount(['test-id']),
+        repository.getMergedUsage(['test-id']),
         throwsA(anything),
       );
       await expectLater(repository.searchTags('test'), throwsA(anything));
