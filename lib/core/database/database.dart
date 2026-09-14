@@ -5691,6 +5691,13 @@ class AppDatabase extends _$AppDatabase {
       'CREATE INDEX IF NOT EXISTS idx_dive_profile_series_dive_primary '
       'ON dive_profile_series (dive_id, is_primary)',
     );
+    // Backs findComputerDivesContainingTime's same-computer lookup (the
+    // Dunkerque re-download check), which otherwise scans every series row
+    // for the affected computer on each incoming dive during import.
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_dive_profile_series_computer '
+      'ON dive_profile_series (computer_id)',
+    );
   }
 
   /// v183: drops the row-per-sample profile table.

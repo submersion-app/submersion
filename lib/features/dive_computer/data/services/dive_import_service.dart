@@ -75,15 +75,20 @@ class DuplicateResult {
   /// Depth difference in meters (if matched)
   final double? depthDifferenceMeters;
 
-  /// True when [matchingDiveId] was matched via an exact hit against one of
-  /// the matched dive's EXISTING `dive_data_sources` keys (fingerprint or
-  /// source UUID) rather than fuzzy time/depth/duration matching.
+  /// True when [matchingDiveId] is confidently the SAME data the diver
+  /// already has, rather than fuzzy time/depth/duration matching: either an
+  /// exact hit against one of the matched dive's EXISTING
+  /// `dive_data_sources` keys (fingerprint or source UUID), or a contained-
+  /// segment match (see [DiveImportService._detectContainedSegment]) —
+  /// timestamp containment plus depth-curve agreement showing the download
+  /// is a native re-recording of part of a dive already stored.
   ///
-  /// Set by [DiveImportService.detectDuplicate]'s fingerprint pass, which
-  /// KNOWS the match came from a source-key hit. Propagated through
+  /// Set by [DiveImportService.detectDuplicate]'s fingerprint and
+  /// contained-segment passes. Propagated through
   /// `DiveMatchResult.matchedExistingSource` so the import wizard can
   /// default such matches to skip instead of consolidate — the downloaded
-  /// dive is a re-download of data the matched dive already has.
+  /// dive is a re-download of data the matched dive already has, and
+  /// "Combiner" would just refuse a same-computer pair anyway.
   final bool matchedExistingSource;
 
   const DuplicateResult({
@@ -613,28 +618,33 @@ class DiveImportService {
   }) async {
     if (_diveRepository == null || dive.profile.length < 2) return null;
 
-    final candidateIds = await _repository.findComputerDivesContainingTime(
+    final candidates = await _repository.findComputerDivesContainingTime(
       computerId: computerId,
       time: dive.startTime,
       diverId: diverId,
     );
-    if (candidateIds.isEmpty) return null;
+    if (candidates.isEmpty) return null;
 
     final incomingSamples = [
       for (final s in dive.profile)
         (offsetSeconds: s.timeSeconds, depth: s.depth),
     ];
 
-    for (final candidateId in candidateIds) {
-      final existing = await _diveRepository.getDiveForAnalysis(candidateId);
-      if (existing == null || existing.profile.length < 2) continue;
+    for (final candidate in candidates) {
+      // The specific series the containment query matched, not the dive's
+      // merged, all-sources profile: a consolidated or edited dive can hold
+      // more than one series, and the merged view can mix in samples from a
+      // different computer, or drop this exact one if a later edit
+      // superseded it.
+      final series = await _repository.getProfileSeriesById(candidate.seriesId);
+      if (series == null || series.samples.length < 2) continue;
 
       final existingSamples = [
-        for (final p in existing.profile)
-          (offsetSeconds: p.timestamp, depth: p.depth),
+        for (final s in series.samples)
+          (offsetSeconds: s.timestamp, depth: s.depth),
       ];
       final incomingOffsetSeconds = dive.startTime
-          .difference(existing.effectiveEntryTime)
+          .difference(candidate.effectiveStart)
           .inSeconds;
 
       final overlap = compareProfileOverlap(
@@ -645,12 +655,12 @@ class DiveImportService {
       if (overlap == null || !overlap.isStrongMatch) continue;
 
       _log.info(
-        'Contained-segment match: $candidateId already spans this download '
-        '(coverage ${overlap.coverage.toStringAsFixed(2)}, mean error '
-        '${overlap.meanAbsDepthErrorMeters.toStringAsFixed(2)}m)',
+        'Contained-segment match: ${candidate.diveId} already spans this '
+        'download (coverage ${overlap.coverage.toStringAsFixed(2)}, mean '
+        'error ${overlap.meanAbsDepthErrorMeters.toStringAsFixed(2)}m)',
       );
       return DuplicateResult(
-        matchingDiveId: candidateId,
+        matchingDiveId: candidate.diveId,
         confidence: DuplicateConfidence.exact,
         score: 1.0,
         timeDifferenceSeconds: incomingOffsetSeconds,
