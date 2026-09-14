@@ -47,8 +47,9 @@ Future<void> _bootstrap() async {
   // The bundled ocean and sea table is CC-BY, so its credit has to reach
   // the license page whether or not anything ever geocodes a coordinate.
   SeaAreaService.registerLicense();
-  // Likewise the CC BY bathymetry sources behind the seascape.
-  BathymetryAttribution.registerLicense();
+  // Likewise the CC BY bathymetry sources behind the seascape. The entry
+  // itself is tested in bathymetry_attribution_test.dart.
+  BathymetryAttribution.registerLicense(); // coverage:ignore-line
 
   // Windows cannot expose its system trust store to Dart's bundled BoringSSL,
   // so every default-context HttpClient (S3 sync, map tiles, NetworkImage,
