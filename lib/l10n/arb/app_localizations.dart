@@ -34470,7 +34470,7 @@ abstract class AppLocalizations {
   /// No description provided for @tags_manage_scopeRequired.
   ///
   /// In en, this message translates to:
-  /// **'Choose dives, sites, or both'**
+  /// **'Choose at least one: dives, sites or equipment'**
   String get tags_manage_scopeRequired;
 
   /// No description provided for @tags_manage_scope_dives.
@@ -34555,10 +34555,47 @@ abstract class AppLocalizations {
     int siteCount,
   );
 
+  /// No description provided for @tags_manage_deleteMessage_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {count, plural, =1{1 equipment item} other{{count} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_equipment(String tagName, int count);
+
+  /// No description provided for @tags_manage_deleteMessage_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_deleteMessage_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_deleteMessage_all.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_deleteMessage_unused.
   ///
   /// In en, this message translates to:
-  /// **'\"{tagName}\" is not used on any dives or sites. This cannot be undone.'**
+  /// **'\"{tagName}\" is not used on any dives, sites or equipment. This cannot be undone.'**
   String tags_manage_deleteMessage_unused(String tagName);
 
   /// No description provided for @tags_manage_bulkDeleteTitle.
@@ -34588,10 +34625,44 @@ abstract class AppLocalizations {
     int siteCount,
   );
 
+  /// No description provided for @tags_manage_bulkDeleteMessage_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount);
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_all.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_bulkDeleteMessage_unused.
   ///
   /// In en, this message translates to:
-  /// **'These tags are not used on any dives or sites. This cannot be undone.'**
+  /// **'These tags are not used on any dives, sites or equipment. This cannot be undone.'**
   String get tags_manage_bulkDeleteMessage_unused;
 
   /// No description provided for @tags_manage_mergeTitle.
@@ -34630,10 +34701,44 @@ abstract class AppLocalizations {
   /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total.'**
   String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount);
 
+  /// No description provided for @tags_manage_mergeAffected_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {count, plural, =1{1 equipment item} other{{count} equipment items}} total.'**
+  String tags_manage_mergeAffected_equipment(int count);
+
+  /// No description provided for @tags_manage_mergeAffected_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_mergeAffected_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_mergeAffected_all.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_mergeAffected_unused.
   ///
   /// In en, this message translates to:
-  /// **'These tags are not used on any dives or sites.'**
+  /// **'These tags are not used on any dives, sites or equipment.'**
   String get tags_manage_mergeAffected_unused;
 
   /// No description provided for @tags_manage_mergeAction.

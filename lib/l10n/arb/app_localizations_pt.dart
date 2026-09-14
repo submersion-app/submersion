@@ -21103,7 +21103,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Remover a etiqueta dos itens existentes?';
 
   @override
-  String get tags_manage_scopeRequired => 'Escolha mergulhos, pontos ou ambos';
+  String get tags_manage_scopeRequired =>
+      'Escolha pelo menos um: mergulhos, pontos ou equipamentos';
 
   @override
   String get tags_manage_scope_dives => 'Mergulhos';
@@ -21198,8 +21199,89 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0, $_temp1 e $_temp2. Esta ação não pode ser desfeita.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" não é usada em nenhum mergulho nem em nenhum ponto. Esta ação não pode ser desfeita.';
+    return '\"$tagName\" não é usada em nenhum mergulho, nenhum ponto nem nenhum equipamento. Esta ação não pode ser desfeita.';
   }
 
   @override
@@ -21251,8 +21333,86 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0, $_temp1 e $_temp2 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'Estas etiquetas não são usadas em nenhum mergulho nem em nenhum ponto. Esta ação não pode ser desfeita.';
+      'Estas etiquetas não são usadas em nenhum mergulho, nenhum ponto nem nenhum equipamento. Esta ação não pode ser desfeita.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21306,8 +21466,86 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0 no total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0 e $_temp1 no total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0 e $_temp1 no total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0, $_temp1 e $_temp2 no total.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'Estas etiquetas não são usadas em nenhum mergulho nem em nenhum ponto.';
+      'Estas etiquetas não são usadas em nenhum mergulho, nenhum ponto nem nenhum equipamento.';
 
   @override
   String get tags_manage_mergeAction => 'Mesclar';
