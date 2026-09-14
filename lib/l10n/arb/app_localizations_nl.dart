@@ -11672,6 +11672,88 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_appBar_title => 'Uitrusting';
 
   @override
+  String get equipment_bulkTags_action => 'Tags bewerken';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'toevoegen aan alle $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags van $count items bijgewerkt',
+      one: 'Tags van 1 item bijgewerkt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Toevoegen aan alle $count uitrustingsstukken',
+      one: 'Toevoegen aan 1 uitrustingsstuk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Verwijderen van alle $count uitrustingsstukken',
+      one: 'Verwijderen van 1 uitrustingsstuk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Wijzigingen toepassen?';
+
+  @override
+  String get equipment_bulkTags_empty => 'Nog geen uitrustingstags';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Kan tags niet bijwerken: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'op alle $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'op $count van $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'verwijderen van alle';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Tags';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags van $count items bewerken',
+      one: 'Tags van 1 item bewerken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Ongedaan maken';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annuleren';
 
   @override

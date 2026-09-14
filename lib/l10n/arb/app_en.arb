@@ -6742,6 +6742,79 @@
   "enum_weightType_mixed": "Mixed/Combined",
   "enum_weightType_trimWeights": "Trim Weights",
   "equipment_appBar_title": "Equipment",
+  "equipment_bulkTags_action": "Edit tags",
+  "equipment_bulkTags_adding": "adding to all {total}",
+  "@equipment_bulkTags_adding": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_applied": "{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}",
+  "@equipment_bulkTags_applied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
+  "@equipment_bulkTags_confirmAdding": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmRemoving": "{count, plural, =1{Removing from 1 equipment item} other{Removing from all {count} equipment items}}",
+  "@equipment_bulkTags_confirmRemoving": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmTitle": "Apply changes?",
+  "equipment_bulkTags_empty": "No equipment tags yet",
+  "equipment_bulkTags_failed": "Could not update tags: {error}",
+  "@equipment_bulkTags_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_bulkTags_onAll": "on all {count}",
+  "@equipment_bulkTags_onAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_onSome": "on {count} of {total}",
+  "@equipment_bulkTags_onSome": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_removing": "removing from all",
+  "equipment_bulkTags_tagsLabel": "Tags",
+  "equipment_bulkTags_title": "{count, plural, =1{Edit tags on 1 item} other{Edit tags on {count} items}}",
+  "@equipment_bulkTags_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_undo": "Undo",
   "equipment_deleteDialog_cancel": "Cancel",
   "equipment_deleteDialog_confirm": "Delete",
   "equipment_deleteDialog_content": "Are you sure you want to delete this equipment? This action cannot be undone.",

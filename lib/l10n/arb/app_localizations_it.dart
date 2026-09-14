@@ -11756,6 +11756,89 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_appBar_title => 'Attrezzatura';
 
   @override
+  String get equipment_bulkTags_action => 'Modifica tag';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'aggiunta a tutte le $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tag aggiornati su $count elementi',
+      one: 'Tag aggiornati su 1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiunta a tutte le $count attrezzature',
+      one: 'Aggiunta a 1 attrezzatura',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimozione da tutte le $count attrezzature',
+      one: 'Rimozione da 1 attrezzatura',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Applicare le modifiche?';
+
+  @override
+  String get equipment_bulkTags_empty =>
+      'Ancora nessun tag per l\'attrezzatura';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Impossibile aggiornare i tag: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'su tutte le $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'su $count di $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'rimozione da tutte';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Tag';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Modifica tag di $count elementi',
+      one: 'Modifica tag di 1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Annulla';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annulla';
 
   @override

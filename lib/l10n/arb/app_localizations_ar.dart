@@ -11556,6 +11556,100 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_appBar_title => 'المعدات';
 
   @override
+  String get equipment_bulkTags_action => 'تعديل الوسوم';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'إضافة إلى كل الـ $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث الوسوم على $count عنصر',
+      many: 'تم تحديث الوسوم على $count عنصرًا',
+      few: 'تم تحديث الوسوم على $count عناصر',
+      two: 'تم تحديث الوسوم على عنصرين',
+      one: 'تم تحديث الوسوم على عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة إلى كل الـ $count قطعة معدات',
+      many: 'إضافة إلى كل الـ $count قطعة معدات',
+      few: 'إضافة إلى كل الـ $count قطع معدات',
+      two: 'إضافة إلى قطعتي معدات',
+      one: 'إضافة إلى قطعة معدات واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة من كل الـ $count قطعة معدات',
+      many: 'إزالة من كل الـ $count قطعة معدات',
+      few: 'إزالة من كل الـ $count قطع معدات',
+      two: 'إزالة من قطعتي معدات',
+      one: 'إزالة من قطعة معدات واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'تطبيق التغييرات؟';
+
+  @override
+  String get equipment_bulkTags_empty => 'لا توجد وسوم معدات بعد';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'تعذر تحديث الوسوم: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'في كل الـ $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'في $count من $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'إزالة من الكل';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'الوسوم';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعديل الوسوم على $count عنصر',
+      many: 'تعديل الوسوم على $count عنصرًا',
+      few: 'تعديل الوسوم على $count عناصر',
+      two: 'تعديل الوسوم على عنصرين',
+      one: 'تعديل الوسوم على عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'تراجع';
+
+  @override
   String get equipment_deleteDialog_cancel => 'إلغاء';
 
   @override

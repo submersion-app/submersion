@@ -11803,6 +11803,89 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_appBar_title => 'Équipement';
 
   @override
+  String get equipment_bulkTags_action => 'Modifier les étiquettes';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'ajout à tous les $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Étiquettes mises à jour sur $count éléments',
+      one: 'Étiquettes mises à jour sur 1 élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajout à tous les $count équipements',
+      one: 'Ajout à 1 équipement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retrait de tous les $count équipements',
+      one: 'Retrait de 1 équipement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Appliquer les modifications ?';
+
+  @override
+  String get equipment_bulkTags_empty =>
+      'Aucune étiquette d\'équipement pour l\'instant';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Impossible de mettre à jour les étiquettes : $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'sur tous les $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'sur $count sur $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'retrait de tous';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Étiquettes';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Modifier les étiquettes de $count éléments',
+      one: 'Modifier les étiquettes de 1 élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Annuler';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annuler';
 
   @override

@@ -19690,6 +19690,90 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get equipment_appBar_title;
 
+  /// No description provided for @equipment_bulkTags_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tags'**
+  String get equipment_bulkTags_action;
+
+  /// No description provided for @equipment_bulkTags_adding.
+  ///
+  /// In en, this message translates to:
+  /// **'adding to all {total}'**
+  String equipment_bulkTags_adding(int total);
+
+  /// No description provided for @equipment_bulkTags_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}'**
+  String equipment_bulkTags_applied(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}'**
+  String equipment_bulkTags_confirmAdding(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removing from 1 equipment item} other{Removing from all {count} equipment items}}'**
+  String equipment_bulkTags_confirmRemoving(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply changes?'**
+  String get equipment_bulkTags_confirmTitle;
+
+  /// No description provided for @equipment_bulkTags_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment tags yet'**
+  String get equipment_bulkTags_empty;
+
+  /// No description provided for @equipment_bulkTags_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update tags: {error}'**
+  String equipment_bulkTags_failed(String error);
+
+  /// No description provided for @equipment_bulkTags_onAll.
+  ///
+  /// In en, this message translates to:
+  /// **'on all {count}'**
+  String equipment_bulkTags_onAll(int count);
+
+  /// No description provided for @equipment_bulkTags_onSome.
+  ///
+  /// In en, this message translates to:
+  /// **'on {count} of {total}'**
+  String equipment_bulkTags_onSome(int count, int total);
+
+  /// No description provided for @equipment_bulkTags_removing.
+  ///
+  /// In en, this message translates to:
+  /// **'removing from all'**
+  String get equipment_bulkTags_removing;
+
+  /// No description provided for @equipment_bulkTags_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_bulkTags_tagsLabel;
+
+  /// No description provided for @equipment_bulkTags_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Edit tags on 1 item} other{Edit tags on {count} items}}'**
+  String equipment_bulkTags_title(int count);
+
+  /// No description provided for @equipment_bulkTags_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get equipment_bulkTags_undo;
+
   /// No description provided for @equipment_deleteDialog_cancel.
   ///
   /// In en, this message translates to:

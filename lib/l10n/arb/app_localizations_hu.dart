@@ -11733,6 +11733,88 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_appBar_title => 'Felszereles';
 
   @override
+  String get equipment_bulkTags_action => 'Címkék szerkesztése';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'hozzáadás mind a $total felszereléshez';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem címkéi frissítve',
+      one: '1 elem címkéi frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hozzáadás mind a $count felszereléshez',
+      one: 'Hozzáadás 1 felszereléshez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítás mind a $count felszerelésről',
+      one: 'Eltávolítás 1 felszerelésről',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Alkalmazza a módosításokat?';
+
+  @override
+  String get equipment_bulkTags_empty => 'Még nincsenek felszereléscímkék';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Nem sikerült frissíteni a címkéket: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'mind a $count felszerelésen';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return '$count/$total felszerelésen';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'eltávolítás az összesről';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Címkék';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem címkéinek szerkesztése',
+      one: '1 elem címkéinek szerkesztése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Visszavonás';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Megse';
 
   @override

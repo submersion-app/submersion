@@ -11496,6 +11496,88 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_appBar_title => 'ציוד';
 
   @override
+  String get equipment_bulkTags_action => 'עריכת תגיות';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'מוסיף לכל $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'התגיות של $count פריטים עודכנו',
+      one: 'התגיות של פריט אחד עודכנו',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מוסיף לכל $count פריטי הציוד',
+      one: 'מוסיף לפריט ציוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מסיר מכל $count פריטי הציוד',
+      one: 'מסיר מפריט ציוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'להחיל שינויים?';
+
+  @override
+  String get equipment_bulkTags_empty => 'אין עדיין תגיות ציוד';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'לא ניתן לעדכן את התגיות: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'בכל $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'ב-$count מתוך $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'מסיר מהכול';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'תגיות';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עריכת תגיות של $count פריטים',
+      one: 'עריכת תגיות של פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'ביטול';
+
+  @override
   String get equipment_deleteDialog_cancel => 'ביטול';
 
   @override

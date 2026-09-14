@@ -45,6 +45,7 @@ import 'package:submersion/features/equipment/presentation/widgets/dense_equipme
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/bulk_equipment_tag_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -452,6 +453,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// Retire and reactivate are enabled only on a uniform selection -- every
   /// checked item active, or none of them -- so the action never has to guess
   /// what a mixed selection means.
+  ///
+  /// Edit tags works on any selection (issue #1942). It comes last, so the
+  /// pane's single inline slot stays with Retire and it lands in the
+  /// overflow there, while the app bar shows all three.
   List<BulkAction> _bulkActions(List<EquipmentItem> equipment) {
     bool everyChecked(Set<String> ids, bool Function(EquipmentItem) test) {
       final checked = equipment.where((e) => ids.contains(e.id));
@@ -472,6 +477,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         label: context.l10n.equipment_menu_reactivate,
         isEnabled: (ids) => everyChecked(ids, (e) => !e.isActive),
         onInvoke: () => _applyRetirement(retire: false),
+      ),
+      BulkAction(
+        id: 'editTags',
+        icon: Icons.sell,
+        label: context.l10n.equipment_bulkTags_action,
+        onInvoke: () => showBulkEquipmentTagSheet(
+          context,
+          ref,
+          equipmentIds: _selectedIds.toList(),
+        ),
       ),
     ];
   }
