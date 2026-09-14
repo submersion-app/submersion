@@ -131,6 +131,22 @@ Future<void> _switchToUsbTab(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Pumps the scan step and opens the USB tab. The default view is tall
+/// enough for every group in [_testUsbDevices] to be built, because
+/// ListView.builder skips rows below the viewport and its cache extent.
+Future<void> _pumpUsbTab(
+  WidgetTester tester, {
+  Map<String, List<DeviceModel>>? usbDevices,
+  Size viewSize = const Size(800, 1200),
+}) async {
+  tester.view.physicalSize = viewSize;
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(_buildTestWidget(usbDevices: usbDevices));
+  await tester.pumpAndSettle();
+  await _switchToUsbTab(tester);
+}
+
 Finder _findSearchField() {
   // The search field has a search prefix icon, whereas the DropdownMenu's TextField does not.
   return find.byWidgetPredicate(
@@ -163,9 +179,7 @@ void main() {
     testWidgets('shows a persistent search text field and brand dropdown', (
       tester,
     ) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       expect(
         _findSearchField(),
@@ -181,9 +195,7 @@ void main() {
     });
 
     testWidgets('search filters devices by manufacturer name', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       // All manufacturers visible initially.
       expect(_findListItem('Shearwater'), findsOneWidget);
@@ -201,9 +213,7 @@ void main() {
     });
 
     testWidgets('search filters devices by model name', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       await tester.enterText(_findSearchField(), 'Perdix');
       await tester.pumpAndSettle();
@@ -217,9 +227,7 @@ void main() {
     });
 
     testWidgets('search is case-insensitive', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       await tester.enterText(_findSearchField(), 'mares');
       await tester.pumpAndSettle();
@@ -230,9 +238,7 @@ void main() {
     });
 
     testWidgets('clearing search text restores all devices', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       await tester.enterText(_findSearchField(), 'Suunto');
       await tester.pumpAndSettle();
@@ -250,9 +256,7 @@ void main() {
     });
 
     testWidgets('search with no matches shows empty state', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       await tester.enterText(_findSearchField(), 'NonExistentBrand');
       await tester.pumpAndSettle();
@@ -275,9 +279,7 @@ void main() {
     testWidgets('brand dropdown filters devices by manufacturer', (
       tester,
     ) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       await _selectManufacturer(tester, 'Suunto');
 
@@ -290,9 +292,7 @@ void main() {
     testWidgets('selecting "All computers" clears the brand filter', (
       tester,
     ) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       await _selectManufacturer(tester, 'Suunto');
       expect(_findListItem('Shearwater'), findsNothing);
@@ -310,10 +310,41 @@ void main() {
       expect(_findListItem('Mares'), findsOneWidget);
     });
 
+    testWidgets('stacks the brand filter under a full-width search field', (
+      tester,
+    ) async {
+      // A side-by-side row let the dropdown take its widest entry's width
+      // and starved the search field, overflowing under large text. Stacked,
+      // each control spans the content width regardless of labels or scale.
+      const screenWidth = 412.0;
+      await _pumpUsbTab(
+        tester,
+        viewSize: const Size(screenWidth, 800),
+        usbDevices: {
+          // The widest USB vendor name libdivecomputer ships.
+          'Heinrichs Weikamp': [
+            const DeviceModel(
+              id: 'hw_ostc3',
+              manufacturer: 'Heinrichs Weikamp',
+              model: 'OSTC 3',
+              connectionTypes: [DeviceConnectionType.usb],
+            ),
+          ],
+          ..._testUsbDevices,
+        },
+      );
+
+      const contentWidth = screenWidth - 2 * 16;
+      final search = tester.getRect(_findSearchField());
+      final dropdown = tester.getRect(find.byType(DropdownMenu<String?>));
+
+      expect(search.width, contentWidth);
+      expect(dropdown.width, contentWidth);
+      expect(dropdown.top, greaterThanOrEqualTo(search.bottom));
+    });
+
     testWidgets('search matches partial text', (tester) async {
-      await tester.pumpWidget(_buildTestWidget());
-      await tester.pumpAndSettle();
-      await _switchToUsbTab(tester);
+      await _pumpUsbTab(tester);
 
       await tester.enterText(_findSearchField(), 'Per');
       await tester.pumpAndSettle();

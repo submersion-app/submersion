@@ -378,29 +378,38 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
               ),
             ),
 
-            // Search and Brand Filter
+            // Search and brand filter, stacked so each gets the full width.
+            // Side by side, the dropdown sizes to its widest brand name and
+            // starves the search field, overflowing under large text.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText:
-                            context.l10n.diveComputer_discovery_usbSearchHint,
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        isDense: true,
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText:
+                          context.l10n.diveComputer_discovery_usbSearchHint,
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      onChanged: (value) =>
-                          setState(() => _searchQuery = value),
+                      isDense: true,
                     ),
+                    onChanged: (value) => setState(() => _searchQuery = value),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(height: 12),
                   DropdownMenu<String?>(
+                    expandedInsets: EdgeInsets.zero,
+                    // Match the search field above so the stacked pair reads
+                    // as one control group.
+                    inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     initialSelection: _selectedManufacturer,
                     label: Text(
                       context.l10n.diveComputer_detail_labelManufacturer,
