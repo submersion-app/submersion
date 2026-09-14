@@ -13,6 +13,17 @@ class SourceDiver extends Equatable {
   /// Payload map key that carries a record's [key].
   static const mapKey = 'sourceDiverKey';
 
+  /// Prefix of a [key] that is unique only within one file, such as one
+  /// built from a Core Data primary key. PayloadMerger qualifies these with
+  /// the file's id, so two files' divers never merge on a coincidence.
+  static const fileLocalPrefix = 'local:';
+
+  /// [key] qualified by [fileId] when it is file-local, else unchanged.
+  static String qualifyForFile(String key, String fileId) =>
+      key.startsWith(fileLocalPrefix)
+      ? '$fileLocalPrefix$fileId:${key.substring(fileLocalPrefix.length)}'
+      : key;
+
   /// Stable id within one import: `macdive:<ZUUID>` for MacDive.sqlite,
   /// `name:<name>` for MacDive XML, or [unownedKey].
   final String key;
@@ -47,9 +58,9 @@ class SourceDiver extends Equatable {
 
   bool get hasRecords => diveCount > 0 || certificationCount > 0;
 
-  SourceDiver copyWith({int? diveCount, int? certificationCount}) {
+  SourceDiver copyWith({String? key, int? diveCount, int? certificationCount}) {
     return SourceDiver(
-      key: key,
+      key: key ?? this.key,
       name: name,
       diveCount: diveCount ?? this.diveCount,
       certificationCount: certificationCount ?? this.certificationCount,

@@ -228,6 +228,44 @@ void main() {
       );
     });
 
+    test('a diver without a uuid gets a key local to this file', () async {
+      final logbook = _multiDiverLogbook();
+      final payload = await MacDiveDiveMapper.toPayload(
+        MacDiveRawLogbook(
+          dives: logbook.dives,
+          diversByPk: {
+            ...logbook.diversByPk,
+            2: const MacDiveRawDiver(
+              pk: 2,
+              uuid: '',
+              firstName: 'Bo',
+              lastName: 'Ray',
+            ),
+          },
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: logbook.certifications,
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        ),
+      );
+      // A Core Data primary key is only unique within one file, so the merger
+      // qualifies this key with the file before combining a batch's divers.
+      expect(payload.sourceDivers[1].key, 'local:macdive-pk2');
+      expect(payload.sourceDivers[1].name, 'Bo Ray');
+    });
+
     test('a single-diver library needs no diver mapping', () async {
       final payload = await MacDiveDiveMapper.toPayload(
         _multiDiverLogbook(singleDiver: true),

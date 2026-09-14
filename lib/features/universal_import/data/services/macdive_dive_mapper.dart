@@ -638,11 +638,14 @@ class MacDiveDiveMapper {
   /// Distinct diver names that actually have dives attached, in first-seen
   /// order. Dives with no diver link contribute nothing.
   /// The `sourceDiverKey` of a record whose `ZRELATIONSHIPDIVER` is
-  /// [diverFk]. A missing or dangling link is the unowned row (#1893).
+  /// [diverFk]. A missing or dangling link is the unowned row (#1893). A
+  /// diver with no uuid falls back to its primary key, which only this file
+  /// guarantees, so that key is marked file-local for the batch merger.
   static String _sourceDiverKey(MacDiveRawLogbook logbook, int? diverFk) {
     final diver = logbook.diversByPk[diverFk];
     if (diver == null) return SourceDiver.unownedKey;
-    return 'macdive:${diver.uuid.isNotEmpty ? diver.uuid : 'pk${diver.pk}'}';
+    if (diver.uuid.isNotEmpty) return 'macdive:${diver.uuid}';
+    return '${SourceDiver.fileLocalPrefix}macdive-pk${diver.pk}';
   }
 
   /// One [SourceDiver] per MacDive diver with dives or certifications, then

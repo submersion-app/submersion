@@ -975,6 +975,46 @@ void main() {
     });
   });
 
+  group('file-local diver keys (#1893 review)', () {
+    test('stay apart across files and follow onto their records', () {
+      FilePayload file(String id) => FilePayload(
+        fileId: id,
+        fileName: '$id.sqlite',
+        payload: const ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {'sourceUuid': 'd', SourceDiver.mapKey: 'local:macdive-pk1'},
+            ],
+            ImportEntityType.certifications: [
+              {'name': 'Rescue', SourceDiver.mapKey: 'local:macdive-pk1'},
+            ],
+          },
+          sourceDivers: [
+            SourceDiver(key: 'local:macdive-pk1', name: 'Ann', diveCount: 1),
+          ],
+        ),
+      );
+      final merged = const PayloadMerger().merge([file('f0'), file('f1')]);
+
+      expect(merged.sourceDivers.map((d) => d.key), [
+        'local:f0:macdive-pk1',
+        'local:f1:macdive-pk1',
+      ]);
+      expect(
+        merged
+            .entitiesOf(ImportEntityType.dives)
+            .map((d) => d[SourceDiver.mapKey]),
+        ['local:f0:macdive-pk1', 'local:f1:macdive-pk1'],
+      );
+      expect(
+        merged
+            .entitiesOf(ImportEntityType.certifications)
+            .map((c) => c[SourceDiver.mapKey]),
+        ['local:f0:macdive-pk1', 'local:f1:macdive-pk1'],
+      );
+    });
+  });
+
   group('source divers (#1893)', () {
     test('sums one diver across files and leaves the dive key alone', () {
       final merged = const PayloadMerger().merge([

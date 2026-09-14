@@ -128,7 +128,10 @@ class PayloadMerger {
 
     for (final input in inputs) {
       warnings.addAll(input.payload.warnings);
-      for (final diver in input.payload.sourceDivers) {
+      for (final original in input.payload.sourceDivers) {
+        final diver = original.copyWith(
+          key: SourceDiver.qualifyForFile(original.key, input.fileId),
+        );
         final seen = sourceDivers[diver.key];
         sourceDivers[diver.key] = seen == null
             ? diver
@@ -292,6 +295,12 @@ class PayloadMerger {
         _componentRefFields,
         (ref) => '$fileId:$ref',
       );
+    }
+
+    // A diver key only this file guarantees is qualified by the file, on the
+    // record as on the diver it names (#1893).
+    if (item[SourceDiver.mapKey] case final String diverKey) {
+      item[SourceDiver.mapKey] = SourceDiver.qualifyForFile(diverKey, fileId);
     }
 
     if (type == ImportEntityType.serviceRecords) {
