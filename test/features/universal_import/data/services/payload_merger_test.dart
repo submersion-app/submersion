@@ -935,6 +935,46 @@ void main() {
     });
   });
 
+  group('certifications of different divers (#1893 review)', () {
+    FilePayload file(String id, String diverKey) => FilePayload(
+      fileId: id,
+      fileName: '$id.sqlite',
+      payload: ImportPayload(
+        entities: {
+          ImportEntityType.certifications: [
+            {
+              'name': 'Rescue',
+              'agency': 'PADI',
+              'uddfId': 'c1',
+              SourceDiver.mapKey: diverKey,
+            },
+          ],
+        },
+      ),
+    );
+
+    test('two divers holding the same card keep a card each', () {
+      final merged = const PayloadMerger().merge([
+        file('f0', 'macdive:ann'),
+        file('f1', 'macdive:bo'),
+      ]);
+      expect(
+        merged
+            .entitiesOf(ImportEntityType.certifications)
+            .map((c) => c[SourceDiver.mapKey]),
+        ['macdive:ann', 'macdive:bo'],
+      );
+    });
+
+    test('one diver in two files still folds to one card', () {
+      final merged = const PayloadMerger().merge([
+        file('f0', 'macdive:ann'),
+        file('f1', 'macdive:ann'),
+      ]);
+      expect(merged.entitiesOf(ImportEntityType.certifications), hasLength(1));
+    });
+  });
+
   group('source divers (#1893)', () {
     test('sums one diver across files and leaves the dive key alone', () {
       final merged = const PayloadMerger().merge([
@@ -975,6 +1015,7 @@ void main() {
       ]);
 
       final ann = merged.sourceDivers.single;
+      expect(ann.key, 'macdive:a');
       expect(ann.diveCount, 5);
       expect(ann.certificationCount, 1);
       expect(ann.email, 'ann@example.com');

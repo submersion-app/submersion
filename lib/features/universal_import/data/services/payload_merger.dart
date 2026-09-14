@@ -454,7 +454,10 @@ class PayloadMerger {
         final agencyStr = agency is String
             ? agency.toLowerCase()
             : agency?.toString().toLowerCase() ?? '';
-        return '$name|$agencyStr';
+        // A card belongs to one diver (#1893): two divers holding the same
+        // card keep one each, while one diver's card in two files folds.
+        final diver = item[SourceDiver.mapKey];
+        return diver is String ? '$name|$agencyStr|$diver' : '$name|$agencyStr';
       case ImportEntityType.dives:
       // Service records are events, not named entities: two services on the
       // same item are both real and must never fold together.
