@@ -1,6 +1,7 @@
 import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -249,6 +250,11 @@ void main() {
     });
 
     test('formatAttributeNumberForEditing trims converted precision', () {
+      // Pinned: the regex below only matches a dot decimal separator.
+      final previousLocale = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      Intl.defaultLocale = 'en_US';
+
       final def = EquipmentAttributeCatalog.defFor(
         EquipmentAttrKeys.buoyancyKg,
       );
@@ -264,13 +270,23 @@ void main() {
       expect(formatAttributeNumberForEditing(def.dimension, units, 3.0), '3');
     });
 
-    test('formatAttributeNumberForEditing keeps a mass value to the gram '
+    test('formatAttributeNumberForEditing rounds mass to two decimal places '
         '(issue: dry weight rounded to one decimal loses precision)', () {
+      // Pinned: the assertions below check exact ASCII-decimal strings,
+      // which only holds under a dot-decimal locale (#1091's fix reads
+      // Intl.defaultLocale, a mutable process global other tests set).
+      final previousLocale = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      Intl.defaultLocale = 'en_US';
+
       final def = EquipmentAttributeCatalog.defFor(
         EquipmentAttrKeys.dryWeightKg,
       );
       // At one decimal place, 0.35 kg (350 g) rounds down to "0.3", losing
-      // the tens-of-grams digit rather than just formatting noise.
+      // the tens-of-grams digit rather than just formatting noise. Two
+      // decimals is still only 10 g resolution -- 0.351 kg rounds the same
+      // way one decimal rounds 0.35 -- but that is the precision the fix
+      // actually targets, not gram-exact.
       expect(
         formatAttributeNumberForEditing(def!.dimension, units, 0.35),
         '0.35',
