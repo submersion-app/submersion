@@ -67,6 +67,9 @@ class PayloadMerger {
   /// Site map fields holding a list of entity references (issue #1765).
   static final _siteListRefFields = siteListRefTypes.keys.toList();
 
+  /// Equipment map fields holding a list of entity references (issue #1942).
+  static final _equipmentListRefFields = equipmentListRefTypes.keys.toList();
+
   /// Service record fields naming their equipment item. Equipment ids are
   /// namespaced and folded, so these have to follow or the importer, which
   /// attaches a record only through its equipment's id, drops the record.
@@ -295,6 +298,17 @@ class PayloadMerger {
         _componentRefFields,
         (ref) => '$fileId:$ref',
       );
+      // An item's tag references point at namespaced tag ids, like a
+      // site's (issue #1942).
+      for (final field in _equipmentListRefFields) {
+        final refs = item[field];
+        if (refs is List) {
+          item[field] = [
+            for (final ref in refs)
+              if (ref is String && ref.isNotEmpty) '$fileId:$ref' else ref,
+          ];
+        }
+      }
     }
 
     // A diver key only this file guarantees is qualified by the file, on the
@@ -530,6 +544,16 @@ class PayloadMerger {
 
     for (final item in entities[ImportEntityType.equipment] ?? const []) {
       _rewriteNested(item, 'components', _componentRefFields, resolve);
+      // An item's tag references follow a folded tag (issue #1942).
+      for (final field in _equipmentListRefFields) {
+        final refs = item[field];
+        if (refs is List) {
+          item[field] = [
+            for (final ref in refs)
+              if (ref is String) resolve(ref) else ref,
+          ];
+        }
+      }
     }
 
     for (final set in entities[ImportEntityType.equipmentSets] ?? const []) {
