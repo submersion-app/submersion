@@ -11842,6 +11842,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Annulla';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'Impossibile annullare la modifica dei tag.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annulla';
 
   @override
@@ -21184,7 +21188,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Scegli almeno uno tra immersioni, siti o attrezzatura';
+      'Scegli almeno uno: immersioni, siti o attrezzatura';
 
   @override
   String get tags_manage_scope_dives => 'Immersioni';

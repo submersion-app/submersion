@@ -77,13 +77,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   List<Tag> _selectedTags = [];
   Set<String> _originalTagIds = {};
 
-  /// Set once the diver edits the tags, so a load that lands late does not
-  /// replace a pick made before it.
-  bool _tagsTouched = false;
-
-  /// Set when the stored tags could not be read; the field is disabled so a
-  /// save cannot drop them.
-  bool _tagsLoadFailed = false;
+  /// Set once an edit's stored tags are read. Until then (and for good, if
+  /// the read fails) the Tags field is disabled and a save leaves the stored
+  /// tags alone: a pick made against the still-empty field would otherwise
+  /// replace them all.
+  bool _tagsLoaded = false;
 
   static final _log = LoggerService.forClass(EquipmentEditPage);
 
@@ -183,9 +181,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _loadTags(equipment.id);
   }
 
-  /// Loads the item's tags into the Tags field (issue #1942). The stored set
-  /// always becomes the baseline a save compares against, but it fills the
-  /// field only if the diver has not edited it yet.
+  /// Loads the item's tags into the Tags field (issue #1942) and the
+  /// baseline a save compares against, then enables the field.
   Future<void> _loadTags(String equipmentId) async {
     // Called from build: yield before the first provider read, which
     // riverpod rejects while the tree is building (as media_item_view does).
@@ -196,7 +193,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       if (!mounted) return;
       setState(() {
         _originalTagIds = {for (final t in tags) t.id};
-        if (!_tagsTouched) _selectedTags = tags;
+        _selectedTags = tags;
+        _tagsLoaded = true;
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -204,7 +202,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         error: e,
         stackTrace: stackTrace,
       );
-      if (mounted) setState(() => _tagsLoadFailed = true);
     }
   }
 
@@ -513,10 +510,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Tags (issue #1942), directly after Notes.
           EquipmentTagsField(
             selectedTags: _selectedTags,
-            enabled: !_tagsLoadFailed,
+            enabled: !widget.isEditing || _tagsLoaded,
             onTagsChanged: (tags) => setState(() {
               _selectedTags = tags;
-              _tagsTouched = true;
               _hasChanges = true;
             }),
           ),
@@ -1072,7 +1068,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       // them when it has any.
       final tagIds = [for (final t in _selectedTags) t.id];
       final tagsChanged = widget.isEditing
-          ? !_tagsLoadFailed && !setEquals(tagIds.toSet(), _originalTagIds)
+          ? _tagsLoaded && !setEquals(tagIds.toSet(), _originalTagIds)
           : tagIds.isNotEmpty;
 
       if (widget.isEditing) {

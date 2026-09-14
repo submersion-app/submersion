@@ -3996,6 +3996,7 @@
   "equipment_bulkTags_tagsLabel": "标签",
   "equipment_bulkTags_title": "{count, plural, =1{编辑 1 件物品的标签} other{编辑 {count} 件物品的标签}}",
   "equipment_bulkTags_undo": "撤消",
+  "equipment_bulkTags_undoFailed": "无法撤消标签更改。",
   "equipment_deleteDialog_cancel": "取消",
   "equipment_deleteDialog_confirm": "删除",
   "equipment_deleteDialog_content": "确定要删除此装备吗？此操作无法撤销。",

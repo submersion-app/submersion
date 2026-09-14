@@ -11663,6 +11663,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Undo';
 
   @override
+  String get equipment_bulkTags_undoFailed => 'Couldn\'t undo the tag change.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Cancel';
 
   @override
@@ -20821,7 +20824,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Choose at least one: dives, sites or equipment';
+      'Choose at least one: dives, sites, or equipment';
 
   @override
   String get tags_manage_scope_dives => 'Dives';

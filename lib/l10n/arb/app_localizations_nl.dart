@@ -11757,6 +11757,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Ongedaan maken';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'Kan de tagwijziging niet ongedaan maken.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Annuleren';
 
   @override
@@ -21007,7 +21011,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Kies ten minste één: duiken, duikstekken of uitrusting';
+      'Kies er minstens één: duiken, duikstekken of uitrusting';
 
   @override
   String get tags_manage_scope_dives => 'Duiken';

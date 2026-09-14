@@ -11818,6 +11818,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Visszavonás';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'A címkék módosítását nem sikerült visszavonni.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Megse';
 
   @override

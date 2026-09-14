@@ -11318,6 +11318,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_bulkTags_undo => '撤消';
 
   @override
+  String get equipment_bulkTags_undoFailed => '无法撤消标签更改。';
+
+  @override
   String get equipment_deleteDialog_cancel => '取消';
 
   @override

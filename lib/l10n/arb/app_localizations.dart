@@ -19780,6 +19780,12 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get equipment_bulkTags_undo;
 
+  /// No description provided for @equipment_bulkTags_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the tag change.'**
+  String get equipment_bulkTags_undoFailed;
+
   /// No description provided for @equipment_deleteDialog_cancel.
   ///
   /// In en, this message translates to:
@@ -34560,7 +34566,7 @@ abstract class AppLocalizations {
   /// No description provided for @tags_manage_scopeRequired.
   ///
   /// In en, this message translates to:
-  /// **'Choose at least one: dives, sites or equipment'**
+  /// **'Choose at least one: dives, sites, or equipment'**
   String get tags_manage_scopeRequired;
 
   /// No description provided for @tags_manage_scope_dives.

@@ -3747,6 +3747,7 @@
   "equipment_bulkTags_tagsLabel": "תגיות",
   "equipment_bulkTags_title": "{count, plural, =1{עריכת תגיות של פריט אחד} other{עריכת תגיות של {count} פריטים}}",
   "equipment_bulkTags_undo": "ביטול",
+  "equipment_bulkTags_undoFailed": "לא ניתן לבטל את שינוי התגיות.",
   "equipment_deleteDialog_cancel": "ביטול",
   "equipment_deleteDialog_confirm": "מחק",
   "equipment_deleteDialog_content": "האם אתה בטוח שברצונך למחוק ציוד זה? פעולה זו אינה ניתנת לביטול.",

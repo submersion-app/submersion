@@ -3851,6 +3851,7 @@
   "equipment_bulkTags_tagsLabel": "Etiquetas",
   "equipment_bulkTags_title": "{count, plural, =1{Editar etiquetas de 1 elemento} other{Editar etiquetas de {count} elementos}}",
   "equipment_bulkTags_undo": "Deshacer",
+  "equipment_bulkTags_undoFailed": "No se pudo deshacer el cambio de etiquetas.",
   "equipment_deleteDialog_cancel": "Cancelar",
   "equipment_deleteDialog_confirm": "Eliminar",
   "equipment_deleteDialog_content": "Estas seguro de que deseas eliminar este equipo? Esta accion no se puede deshacer.",

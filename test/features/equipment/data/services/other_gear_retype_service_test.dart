@@ -18,7 +18,7 @@ class _FailingRepository extends EquipmentRepository {
   final String failingName;
 
   @override
-  Future<void> updateEquipment(EquipmentItem equipment) {
+  Future<void> updateEquipment(EquipmentItem equipment, {bool notify = true}) {
     if (equipment.name == failingName) throw StateError('write failed');
     return super.updateEquipment(equipment);
   }

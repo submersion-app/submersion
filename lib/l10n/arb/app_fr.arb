@@ -3747,6 +3747,7 @@
   "equipment_bulkTags_tagsLabel": "Étiquettes",
   "equipment_bulkTags_title": "{count, plural, =1{Modifier les étiquettes de 1 élément} other{Modifier les étiquettes de {count} éléments}}",
   "equipment_bulkTags_undo": "Annuler",
+  "equipment_bulkTags_undoFailed": "Impossible d'annuler la modification des étiquettes.",
   "equipment_deleteDialog_cancel": "Annuler",
   "equipment_deleteDialog_confirm": "Supprimer",
   "equipment_deleteDialog_content": "Es-tu sûr de vouloir supprimer cet équipement ? Cette action est irréversible.",

@@ -258,8 +258,12 @@ class EquipmentRepository {
     }
   }
 
-  /// Create new equipment
-  Future<EquipmentItem> createEquipment(EquipmentItem equipment) async {
+  /// Create new equipment. With [notify] false the caller notifies sync once
+  /// its own transaction commits, as [createEquipmentWithTags] does.
+  Future<EquipmentItem> createEquipment(
+    EquipmentItem equipment, {
+    bool notify = true,
+  }) async {
     try {
       _log.info('Creating equipment: ${equipment.name}');
       final id = equipment.id.isEmpty ? _uuid.v4() : equipment.id;
@@ -307,7 +311,7 @@ class EquipmentRepository {
         recordId: id,
         localUpdatedAt: now,
       );
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
 
       // Seed service clocks for kinds flagged auto-attach (hydro/VIP for
       // tanks, reg service for regulators, ...). Best-effort: the equipment
@@ -322,6 +326,7 @@ class EquipmentRepository {
           equipmentId: id,
           type: equipment.type,
           diverId: equipment.diverId,
+          notify: notify,
         );
       } catch (e, stackTrace) {
         _log.error(
@@ -332,7 +337,7 @@ class EquipmentRepository {
         );
       }
       try {
-        await _attachLegacyIntervalClock(id, equipment);
+        await _attachLegacyIntervalClock(id, equipment, notify: notify);
       } catch (e, stackTrace) {
         _log.error(
           'Mirroring the legacy service interval onto the ledger failed for '
@@ -369,8 +374,9 @@ class EquipmentRepository {
   /// that arrives by migration or sync converge on one clock, not two.
   Future<void> _attachLegacyIntervalClock(
     String id,
-    EquipmentItem equipment,
-  ) async {
+    EquipmentItem equipment, {
+    required bool notify,
+  }) async {
     final intervalDays = equipment.serviceIntervalDays;
     if (intervalDays == null) return;
     final scheduleId = 'legacy-svc-$id';
@@ -388,6 +394,7 @@ class EquipmentRepository {
         createdAt: now,
         updatedAt: now,
       ),
+      notify: notify,
     );
   }
 
@@ -397,8 +404,11 @@ class EquipmentRepository {
   Future<T> transaction<T>(Future<T> Function() action) =>
       _db.transaction(action);
 
-  /// Update equipment
-  Future<void> updateEquipment(EquipmentItem equipment) async {
+  /// Update equipment. [notify] as for [createEquipment].
+  Future<void> updateEquipment(
+    EquipmentItem equipment, {
+    bool notify = true,
+  }) async {
     try {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -438,7 +448,7 @@ class EquipmentRepository {
         recordId: equipment.id,
         localUpdatedAt: now,
       );
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
       _log.error(
@@ -455,13 +465,14 @@ class EquipmentRepository {
   /// best-effort service clocks [createEquipment] seeds roll back with it.
   ///
   /// The tag links are clockless children of the item: only the junction
-  /// rows are marked pending, never the row again (#1769).
+  /// rows are marked pending, never the row again (#1769). Sync hears of the
+  /// save once, after it commits.
   Future<EquipmentItem> createEquipmentWithTags(
     EquipmentItem equipment,
     List<String> tagIds,
   ) async {
     final created = await transaction(() async {
-      final item = await createEquipment(equipment);
+      final item = await createEquipment(equipment, notify: false);
       await EquipmentTagRepository().replaceTags(
         item.id,
         tagIds,
@@ -482,7 +493,7 @@ class EquipmentRepository {
     List<String> tagIds,
   ) async {
     await transaction(() async {
-      await updateEquipment(equipment);
+      await updateEquipment(equipment, notify: false);
       await EquipmentTagRepository().replaceTags(
         equipment.id,
         tagIds,

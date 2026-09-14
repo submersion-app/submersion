@@ -83,7 +83,7 @@ void main() {
     await tester.tap(useForEquipment);
     await tester.pumpAndSettle();
 
-    const required = 'Choose at least one: dives, sites or equipment';
+    const required = 'Choose at least one: dives, sites, or equipment';
     expect(find.text(required), findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
     await tester.pumpAndSettle();

@@ -174,5 +174,23 @@ void main() {
 
       expect(find.text('No equipment with these tags'), findsOneWidget);
     });
+
+    testWidgets('a tag that empties a stocked category is what gets blamed', (
+      tester,
+    ) async {
+      // There is a regulator, but it carries no Travel kit tag.
+      await pumpList(
+        tester,
+        await overrides(
+          filter: const EquipmentFilterState(
+            type: EquipmentType.regulator,
+            tagIds: {'t1'},
+          ),
+        ),
+      );
+
+      expect(find.text('No equipment with these tags'), findsOneWidget);
+      expect(find.text('No equipment in this category'), findsNothing);
+    });
   });
 }

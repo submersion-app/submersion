@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -102,6 +103,71 @@ void main() {
       expect(await tagIdsOf(item.id), ['t1']);
     },
   );
+
+  /// Counts sync notifications while [action] runs. Auto-sync must hear of
+  /// a save once, after it commits: never mid-transaction, and never for a
+  /// save that rolled back.
+  Future<int> notificationsDuring(Future<void> Function() action) async {
+    var count = 0;
+    final subscription = SyncEventBus.changes.listen((_) => count++);
+    try {
+      await action();
+    } catch (_) {
+      // The rollback cases throw by design; only the count matters here.
+    }
+    await Future<void>.delayed(Duration.zero);
+    await subscription.cancel();
+    return count;
+  }
+
+  test('saving an item with its tags notifies sync once', () async {
+    late EquipmentItem item;
+    expect(
+      await notificationsDuring(() async {
+        item = await equipment.createEquipmentWithTags(
+          const EquipmentItem(id: '', name: 'Wing', type: EquipmentType.bcd),
+          ['t1'],
+        );
+      }),
+      1,
+      reason: 'create',
+    );
+    expect(
+      await notificationsDuring(
+        () => equipment.updateEquipmentWithTags(
+          item.copyWith(name: 'Wing renamed'),
+          ['t2'],
+        ),
+      ),
+      1,
+      reason: 'update',
+    );
+  });
+
+  test('a save whose tag write rolls back never notifies sync', () async {
+    final item = await equipment.createEquipmentWithTags(
+      const EquipmentItem(id: '', name: 'Wing', type: EquipmentType.bcd),
+      ['t1'],
+    );
+
+    expect(
+      await notificationsDuring(
+        () => equipment.createEquipmentWithTags(
+          const EquipmentItem(id: '', name: 'Doomed', type: EquipmentType.bcd),
+          ['t1', 'missing'],
+        ),
+      ),
+      0,
+      reason: 'create',
+    );
+    expect(
+      await notificationsDuring(
+        () => equipment.updateEquipmentWithTags(item, ['t2', 'missing']),
+      ),
+      0,
+      reason: 'update',
+    );
+  });
 
   test('updateEquipment with a partial entity leaves the tags alone', () async {
     final item = await equipment.createEquipmentWithTags(

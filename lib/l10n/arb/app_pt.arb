@@ -3851,6 +3851,7 @@
   "equipment_bulkTags_tagsLabel": "Etiquetas",
   "equipment_bulkTags_title": "{count, plural, =1{Editar etiquetas de 1 item} other{Editar etiquetas de {count} itens}}",
   "equipment_bulkTags_undo": "Desfazer",
+  "equipment_bulkTags_undoFailed": "Não foi possível desfazer a alteração das etiquetas.",
   "equipment_deleteDialog_cancel": "Cancelar",
   "equipment_deleteDialog_confirm": "Excluir",
   "equipment_deleteDialog_content": "Tem certeza de que deseja excluir este equipamento? Esta acao nao pode ser desfeita.",

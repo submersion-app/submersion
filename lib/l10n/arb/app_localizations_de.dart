@@ -11840,6 +11840,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_bulkTags_undo => 'Rückgängig';
 
   @override
+  String get equipment_bulkTags_undoFailed =>
+      'Die Tag-Änderung konnte nicht rückgängig gemacht werden.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Abbrechen';
 
   @override
