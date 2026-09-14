@@ -20996,12 +20996,12 @@ class AppLocalizationsEn extends AppLocalizations {
       other: '$equipmentCount equipment items',
       one: '1 equipment item',
     );
-    return '\"$tagName\" will be removed from $_temp0, $_temp1 and $_temp2. This cannot be undone.';
+    return '\"$tagName\" will be removed from $_temp0, $_temp1, and $_temp2. This cannot be undone.';
   }
 
   @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" is not used on any dives, sites or equipment. This cannot be undone.';
+    return '\"$tagName\" is not used on any dives, sites, or equipment. This cannot be undone.';
   }
 
   @override
@@ -21127,12 +21127,12 @@ class AppLocalizationsEn extends AppLocalizations {
       other: '$equipmentCount equipment items',
       one: '1 equipment item',
     );
-    return 'These tags will be removed from $_temp0, $_temp1 and $_temp2 total. This cannot be undone.';
+    return 'These tags will be removed from $_temp0, $_temp1, and $_temp2 total. This cannot be undone.';
   }
 
   @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'These tags are not used on any dives, sites or equipment. This cannot be undone.';
+      'These tags are not used on any dives, sites, or equipment. This cannot be undone.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21260,12 +21260,12 @@ class AppLocalizationsEn extends AppLocalizations {
       other: '$equipmentCount equipment items',
       one: '1 equipment item',
     );
-    return 'This will affect $_temp0, $_temp1 and $_temp2 total.';
+    return 'This will affect $_temp0, $_temp1, and $_temp2 total.';
   }
 
   @override
   String get tags_manage_mergeAffected_unused =>
-      'These tags are not used on any dives, sites or equipment.';
+      'These tags are not used on any dives, sites, or equipment.';
 
   @override
   String get tags_manage_mergeAction => 'Merge';

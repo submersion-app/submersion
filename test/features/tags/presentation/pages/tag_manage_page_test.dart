@@ -1390,7 +1390,7 @@ void main() {
 
       expect(
         find.text(
-          'These tags will be removed from 12 dives, 3 sites and 2 equipment '
+          'These tags will be removed from 12 dives, 3 sites, and 2 equipment '
           'items total. This cannot be undone.',
         ),
         findsOneWidget,

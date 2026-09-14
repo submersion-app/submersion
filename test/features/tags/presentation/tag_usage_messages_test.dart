@@ -87,23 +87,23 @@ const List<_Case> _cases = [
     name: 'dives, sites and equipment',
     usage: {_d: 12, _s: 3, _e: 5},
     delete:
-        '"Reef" will be removed from 12 dives, 3 sites and 5 equipment '
+        '"Reef" will be removed from 12 dives, 3 sites, and 5 equipment '
         'items. This cannot be undone.',
     bulk:
-        'These tags will be removed from 12 dives, 3 sites and 5 '
+        'These tags will be removed from 12 dives, 3 sites, and 5 '
         'equipment items total. This cannot be undone.',
-    merge: 'This will affect 12 dives, 3 sites and 5 equipment items total.',
+    merge: 'This will affect 12 dives, 3 sites, and 5 equipment items total.',
   ),
   (
     name: 'nothing',
     usage: {_d: 0, _s: 0, _e: 0},
     delete:
-        '"Reef" is not used on any dives, sites or equipment. '
+        '"Reef" is not used on any dives, sites, or equipment. '
         'This cannot be undone.',
     bulk:
-        'These tags are not used on any dives, sites or equipment. '
+        'These tags are not used on any dives, sites, or equipment. '
         'This cannot be undone.',
-    merge: 'These tags are not used on any dives, sites or equipment.',
+    merge: 'These tags are not used on any dives, sites, or equipment.',
   ),
 ];
 
@@ -151,7 +151,7 @@ void main() {
   test('a scope missing from the usage map counts as zero', () {
     expect(
       tagDeleteMessage(l10n, 'Reef', const {}),
-      '"Reef" is not used on any dives, sites or equipment. '
+      '"Reef" is not used on any dives, sites, or equipment. '
       'This cannot be undone.',
     );
     expect(
