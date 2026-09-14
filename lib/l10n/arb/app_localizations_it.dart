@@ -12667,6 +12667,93 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_menu_retireEquipment => 'Ritira attrezzatura';
 
   @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Cambia il tipo di $count elementi',
+      one: 'Cambia il tipo di 1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return 'Diventa $type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return 'Diventa $type, $thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll => 'Deseleziona tutto';
+
+  @override
+  String get equipment_retypeOther_empty =>
+      'Nessuna attrezzatura segnata come Altro ha un nome che ne indichi il tipo';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return 'Impossibile caricare l\'attrezzatura: $error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Impossibile cambiare il tipo di $count elementi',
+      one: 'Impossibile cambiare il tipo di 1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      'Questi elementi sono segnati come Altro, ma il loro nome dice cosa sono. Deseleziona quelli errati.';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tipo cambiato per $count elementi',
+      one: 'Tipo cambiato per 1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => 'Seleziona tutto';
+
+  @override
+  String get equipment_retypeOther_subtitle =>
+      'Assegna all\'attrezzatura importata il tipo indicato dal nome';
+
+  @override
+  String get equipment_retypeOther_title =>
+      'Correggi l\'attrezzatura segnata come Altro';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Impossibile ripristinare $count elementi',
+      one: 'Impossibile ripristinare 1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => 'Cambio di tipo annullato';
+
+  @override
   String get equipment_search_backTooltip => 'Indietro';
 
   @override

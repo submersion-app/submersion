@@ -12473,6 +12473,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_menu_retireEquipment => 'Retire Equipment';
 
   @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retype $count items',
+      one: 'Retype 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return 'Becomes $type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return 'Becomes $type, $thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll => 'Deselect all';
+
+  @override
+  String get equipment_retypeOther_empty =>
+      'No gear marked Other has a name that says what it is';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return 'Could not load equipment: $error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items could not be retyped',
+      one: '1 item could not be retyped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      'These items are marked Other, but their names say what they are. Untick any that are wrong.';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retyped $count items',
+      one: 'Retyped 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => 'Select all';
+
+  @override
+  String get equipment_retypeOther_subtitle =>
+      'Give imported gear the type its name states';
+
+  @override
+  String get equipment_retypeOther_title => 'Retype gear marked Other';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items could not be put back',
+      one: '1 item could not be put back',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => 'Retype undone';
+
+  @override
   String get equipment_search_backTooltip => 'Back';
 
   @override

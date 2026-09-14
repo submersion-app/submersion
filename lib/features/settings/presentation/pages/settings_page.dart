@@ -2942,6 +2942,14 @@ class _DataSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.category),
+                  title: Text(context.l10n.equipment_retypeOther_title),
+                  subtitle: Text(context.l10n.equipment_retypeOther_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/retype-other-gear'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.rule),
                   title: Text(context.l10n.dataQuality_settings_title),
                   subtitle: Text(context.l10n.dataQuality_settings_subtitle),

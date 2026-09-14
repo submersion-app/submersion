@@ -12452,6 +12452,92 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_menu_retireEquipment => 'إيقاف المعدات';
 
   @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغيير نوع $count عنصر',
+      one: 'تغيير نوع عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return 'النوع الجديد: $type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return 'النوع الجديد: $type، $thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll => 'إلغاء تحديد الكل';
+
+  @override
+  String get equipment_retypeOther_empty =>
+      'لا توجد معدات مصنفة كأخرى يذكر اسمها نوعها';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return 'تعذر تحميل المعدات: $error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذر تغيير نوع $count عنصر',
+      one: 'تعذر تغيير نوع عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      'هذه العناصر مصنفة كأخرى، لكن أسماءها تبين ما هي. ألغِ تحديد العناصر الخاطئة.';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تغيير نوع $count عنصر',
+      one: 'تم تغيير نوع عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => 'تحديد الكل';
+
+  @override
+  String get equipment_retypeOther_subtitle =>
+      'منح المعدات المستوردة النوع الذي يذكره اسمها';
+
+  @override
+  String get equipment_retypeOther_title => 'تصحيح المعدات المصنفة كأخرى';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذرت استعادة $count عنصر',
+      one: 'تعذرت استعادة عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => 'تم التراجع عن تغيير النوع';
+
+  @override
   String get equipment_search_backTooltip => 'رجوع';
 
   @override

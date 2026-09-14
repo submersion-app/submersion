@@ -12091,6 +12091,86 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_menu_retireEquipment => '停用装备';
 
   @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '更改 $count 件物品的类型',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return '改为$type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return '改为$type，$thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll => '取消全选';
+
+  @override
+  String get equipment_retypeOther_empty => '没有名称能表明类型的“其他”装备';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return '无法加载装备：$error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 件物品无法更改类型',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      '这些物品被标为“其他”，但名称已表明其类型。请取消勾选不正确的项目。';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更改 $count 件物品的类型',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => '全选';
+
+  @override
+  String get equipment_retypeOther_subtitle => '按名称为导入的装备设置类型';
+
+  @override
+  String get equipment_retypeOther_title => '更正标为“其他”的装备';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 件物品无法恢复',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => '已撤销类型更改';
+
+  @override
   String get equipment_search_backTooltip => '返回';
 
   @override

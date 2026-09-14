@@ -7201,6 +7201,72 @@
   "equipment_menu_markAsServiced": "Mark as Serviced",
   "equipment_menu_reactivate": "Reactivate",
   "equipment_menu_retireEquipment": "Retire Equipment",
+  "equipment_retypeOther_apply": "{count, plural, =1{Retype 1 item} other{Retype {count} items}}",
+  "@equipment_retypeOther_apply": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_becomes": "Becomes {type}",
+  "@equipment_retypeOther_becomes": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_becomesWithThickness": "Becomes {type}, {thickness}",
+  "@equipment_retypeOther_becomesWithThickness": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "thickness": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_deselectAll": "Deselect all",
+  "equipment_retypeOther_empty": "No gear marked Other has a name that says what it is",
+  "equipment_retypeOther_errorLoading": "Could not load equipment: {error}",
+  "@equipment_retypeOther_errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_failedSnackbar": "{count, plural, =1{1 item could not be retyped} other{{count} items could not be retyped}}",
+  "@equipment_retypeOther_failedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_intro": "These items are marked Other, but their names say what they are. Untick any that are wrong.",
+  "equipment_retypeOther_retypedSnackbar": "{count, plural, =1{Retyped 1 item} other{Retyped {count} items}}",
+  "@equipment_retypeOther_retypedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_selectAll": "Select all",
+  "equipment_retypeOther_subtitle": "Give imported gear the type its name states",
+  "equipment_retypeOther_title": "Retype gear marked Other",
+  "equipment_retypeOther_undoFailed": "{count, plural, =1{1 item could not be put back} other{{count} items could not be put back}}",
+  "@equipment_retypeOther_undoFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_undone": "Retype undone",
   "equipment_search_backTooltip": "Back",
   "equipment_search_clearTooltip": "Clear Search",
   "equipment_search_fieldLabel": "Search equipment...",

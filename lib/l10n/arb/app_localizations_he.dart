@@ -12384,6 +12384,92 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_menu_retireEquipment => 'הוצא משימוש';
 
   @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שינוי הסוג של $count פריטים',
+      one: 'שינוי הסוג של פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return 'סוג חדש: $type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return 'סוג חדש: $type, $thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll => 'בטל בחירת הכל';
+
+  @override
+  String get equipment_retypeOther_empty =>
+      'אין ציוד המסומן כאחר ששמו מציין את סוגו';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return 'לא ניתן לטעון את הציוד: $error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן לשנות את הסוג של $count פריטים',
+      one: 'לא ניתן לשנות את הסוג של פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      'פריטים אלה מסומנים כאחר, אך השם שלהם מציין מה הם. בטלו את הסימון של הפריטים השגויים.';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסוג של $count פריטים שונה',
+      one: 'הסוג של פריט אחד שונה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => 'בחר הכל';
+
+  @override
+  String get equipment_retypeOther_subtitle =>
+      'מתן הסוג ששמו מציין לציוד מיובא';
+
+  @override
+  String get equipment_retypeOther_title => 'תיקון ציוד שסומן כאחר';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן לשחזר $count פריטים',
+      one: 'לא ניתן לשחזר פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => 'שינוי הסוג בוטל';
+
+  @override
   String get equipment_search_backTooltip => 'חזרה';
 
   @override

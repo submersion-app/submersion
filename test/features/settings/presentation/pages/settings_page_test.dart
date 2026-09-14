@@ -824,6 +824,25 @@ void main() {
       expect(find.text('Backup, restore & storage'), findsOneWidget);
     });
 
+    testWidgets('Data Tools offers Retype gear marked Other (#1886)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsSectionDetailPage(sectionId: 'data')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Retype gear marked Other'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        find.text('Give imported gear the type its name states'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('should display Diver Profile section', (tester) async {
       await tester.pumpWidget(buildTestWidget(const SettingsPage()));
 

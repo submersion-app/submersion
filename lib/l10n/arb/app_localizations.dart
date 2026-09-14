@@ -21142,6 +21142,93 @@ abstract class AppLocalizations {
   /// **'Retire Equipment'**
   String get equipment_menu_retireEquipment;
 
+  /// No description provided for @equipment_retypeOther_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Retype 1 item} other{Retype {count} items}}'**
+  String equipment_retypeOther_apply(int count);
+
+  /// No description provided for @equipment_retypeOther_becomes.
+  ///
+  /// In en, this message translates to:
+  /// **'Becomes {type}'**
+  String equipment_retypeOther_becomes(String type);
+
+  /// No description provided for @equipment_retypeOther_becomesWithThickness.
+  ///
+  /// In en, this message translates to:
+  /// **'Becomes {type}, {thickness}'**
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  );
+
+  /// No description provided for @equipment_retypeOther_deselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get equipment_retypeOther_deselectAll;
+
+  /// No description provided for @equipment_retypeOther_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear marked Other has a name that says what it is'**
+  String get equipment_retypeOther_empty;
+
+  /// No description provided for @equipment_retypeOther_errorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load equipment: {error}'**
+  String equipment_retypeOther_errorLoading(String error);
+
+  /// No description provided for @equipment_retypeOther_failedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item could not be retyped} other{{count} items could not be retyped}}'**
+  String equipment_retypeOther_failedSnackbar(int count);
+
+  /// No description provided for @equipment_retypeOther_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'These items are marked Other, but their names say what they are. Untick any that are wrong.'**
+  String get equipment_retypeOther_intro;
+
+  /// No description provided for @equipment_retypeOther_retypedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Retyped 1 item} other{Retyped {count} items}}'**
+  String equipment_retypeOther_retypedSnackbar(int count);
+
+  /// No description provided for @equipment_retypeOther_selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get equipment_retypeOther_selectAll;
+
+  /// No description provided for @equipment_retypeOther_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Give imported gear the type its name states'**
+  String get equipment_retypeOther_subtitle;
+
+  /// No description provided for @equipment_retypeOther_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Retype gear marked Other'**
+  String get equipment_retypeOther_title;
+
+  /// No description provided for @equipment_retypeOther_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item could not be put back} other{{count} items could not be put back}}'**
+  String equipment_retypeOther_undoFailed(int count);
+
+  /// No description provided for @equipment_retypeOther_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Retype undone'**
+  String get equipment_retypeOther_undone;
+
   /// No description provided for @equipment_search_backTooltip.
   ///
   /// In en, this message translates to:

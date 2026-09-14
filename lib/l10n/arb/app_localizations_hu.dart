@@ -12635,6 +12635,93 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_menu_retireEquipment => 'Felszereles kivonas';
 
   @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem típusának módosítása',
+      one: '1 elem típusának módosítása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return 'Új típus: $type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return 'Új típus: $type, $thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll =>
+      'Összes kijelölés megszüntetése';
+
+  @override
+  String get equipment_retypeOther_empty =>
+      'Nincs olyan Egyéb típusú felszerelés, amelynek a neve megadja a típusát';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return 'Nem sikerült betölteni a felszerelést: $error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem típusát nem sikerült módosítani',
+      one: '1 elem típusát nem sikerült módosítani',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      'Ezek az elemek Egyéb típusúak, de a nevük elárulja, mik. Töröld a jelölést a hibás javaslatokról.';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem típusa módosítva',
+      one: '1 elem típusa módosítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => 'Összes kijelölése';
+
+  @override
+  String get equipment_retypeOther_subtitle =>
+      'Az importált felszerelés megkapja a nevében szereplő típust';
+
+  @override
+  String get equipment_retypeOther_title => 'Egyéb típusú felszerelés javítása';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elemet nem sikerült visszaállítani',
+      one: '1 elemet nem sikerült visszaállítani',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => 'Típusmódosítás visszavonva';
+
+  @override
   String get equipment_search_backTooltip => 'Vissza';
 
   @override

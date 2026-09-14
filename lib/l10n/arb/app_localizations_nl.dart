@@ -12575,6 +12575,93 @@ class AppLocalizationsNl extends AppLocalizations {
       'Uitrusting buiten gebruik stellen';
 
   @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Type van $count items wijzigen',
+      one: 'Type van 1 item wijzigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return 'Wordt $type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return 'Wordt $type, $thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll => 'Alles deselecteren';
+
+  @override
+  String get equipment_retypeOther_empty =>
+      'Geen uitrusting gemarkeerd als Overig heeft een naam die het type noemt';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return 'Uitrusting kon niet worden geladen: $error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Type van $count items kon niet worden gewijzigd',
+      one: 'Type van 1 item kon niet worden gewijzigd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      'Deze items zijn gemarkeerd als Overig, maar hun naam zegt wat ze zijn. Vink de items uit die niet kloppen.';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Type van $count items gewijzigd',
+      one: 'Type van 1 item gewijzigd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => 'Alles selecteren';
+
+  @override
+  String get equipment_retypeOther_subtitle =>
+      'Geïmporteerde uitrusting het type geven dat de naam noemt';
+
+  @override
+  String get equipment_retypeOther_title =>
+      'Uitrusting gemarkeerd als Overig corrigeren';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items konden niet worden teruggezet',
+      one: '1 item kon niet worden teruggezet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => 'Typewijziging ongedaan gemaakt';
+
+  @override
   String get equipment_search_backTooltip => 'Terug';
 
   @override
