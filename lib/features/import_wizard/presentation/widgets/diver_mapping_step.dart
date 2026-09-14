@@ -20,8 +20,9 @@ class DiverMappingStep extends ConsumerWidget {
     final parsed = state.parsedPayload;
     if (parsed == null) return const SizedBox.shrink();
 
-    final profiles =
-        ref.watch(allDiversProvider).valueOrNull ?? const <Diver>[];
+    // `.value` keeps the last list while the provider reloads, so the
+    // choices never blink away under an open dropdown.
+    final profiles = ref.watch(allDiversProvider).value ?? const <Diver>[];
     final rows = orderedDiverRows(parsed.sourceDivers);
     final diverCount = rows.where((r) => !r.isUnowned).length;
     final notifier = ref.read(universalImportNotifierProvider.notifier);
