@@ -67,6 +67,11 @@ class PayloadMerger {
   /// Site map fields holding a list of entity references (issue #1765).
   static final _siteListRefFields = siteListRefTypes.keys.toList();
 
+  /// Site list fields every file's record adds to when a site folds: its
+  /// tags and its site types. Its suggested types are not among them; as
+  /// within one file, the first suggestion stands.
+  static final _siteUnionFields = [..._siteListRefFields, 'siteTypeRefs'];
+
   /// Service record fields naming their equipment item. Equipment ids are
   /// namespaced and folded, so these have to follow or the importer, which
   /// attaches a record only through its equipment's id, drops the record.
@@ -347,6 +352,7 @@ class PayloadMerger {
       if (id != null) {
         final first = firstById[id];
         if (first != null) {
+          _unionRefLists(type, first, item);
           _enrich(first, item);
           continue;
         }
@@ -390,6 +396,7 @@ class PayloadMerger {
         if (key != null) (survivors[key] ??= []).add(_Survivor(item, sourceId));
         continue;
       }
+      _unionRefLists(type, survivor.item, item);
       _enrich(survivor.item, item);
       if (sourceId != null) survivor.sourceIds.add(sourceId);
       // A dive names its types by id (the slug), not by uddfId (#1834).
@@ -402,6 +409,30 @@ class PayloadMerger {
       if (foldedId is String && survivorId is String) {
         aliases[foldedId] = survivorId;
       }
+    }
+  }
+
+  /// Unions [item]'s reference lists into [survivor]'s, for the fields
+  /// where each file's record carries links of its own: a site's tags and
+  /// site types (issue #1765). [_enrich] only fills a missing field, so
+  /// without this the folded record's links would be lost. Repeats that
+  /// later resolve to one id are dropped by [_rewriteAliases].
+  static void _unionRefLists(
+    ImportEntityType type,
+    Map<String, dynamic> survivor,
+    Map<String, dynamic> item,
+  ) {
+    final fields = switch (type) {
+      ImportEntityType.sites => _siteUnionFields,
+      _ => const <String>[],
+    };
+    for (final field in fields) {
+      final incoming = item[field];
+      if (incoming is! List) continue;
+      final existing = survivor[field];
+      survivor[field] = [
+        ...{if (existing is List) ...existing, ...incoming},
+      ];
     }
   }
 
@@ -552,13 +583,16 @@ class PayloadMerger {
     }
 
     // A site's tag references follow a folded tag like a dive's (#1765).
+    // Two references that fold into one tag become one.
     for (final site in entities[ImportEntityType.sites] ?? const []) {
       for (final field in _siteListRefFields) {
         final refs = site[field];
         if (refs is List) {
           site[field] = [
-            for (final ref in refs)
-              if (ref is String) resolve(ref) else ref,
+            ...{
+              for (final ref in refs)
+                if (ref is String) resolve(ref) else ref,
+            },
           ];
         }
       }
