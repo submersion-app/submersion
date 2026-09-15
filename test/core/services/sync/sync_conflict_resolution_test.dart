@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
@@ -243,6 +246,101 @@ void main() {
           1,
           reason: 'the accepted deletion must be logged so it propagates',
         );
+      },
+    );
+
+    test(
+      'keepRemote on a deletion conflict detaches a plan that references it',
+      () async {
+        await seedDive('d-planned', 10);
+        // dive_plans.source_dive_id references dives with no ON DELETE
+        // action, so under foreign_keys = ON a bare delete of the dive fails.
+        await DivePlanRepository().savePlan(
+          DivePlan(
+            id: 'plan-src',
+            name: 'Repeat of d-planned',
+            gfLow: 40,
+            gfHigh: 80,
+            mode: PlanMode.oc,
+            sourceDiveId: 'd-planned',
+            createdAt: DateTime(2026, 9, 1),
+            updatedAt: DateTime(2026, 9, 1),
+          ),
+        );
+        await raiseConflict('dives', 'd-planned', {
+          '_deleted': true,
+          'deletedAt': 5000,
+          'recordId': 'd-planned',
+        });
+
+        await buildService().resolveConflict(
+          'dives',
+          'd-planned',
+          ConflictResolution.keepRemote,
+        );
+
+        expect(
+          await DiveRepository().getDiveById('d-planned'),
+          isNull,
+          reason: 'keepRemote on a deletion conflict must delete locally',
+        );
+        final plan = await DivePlanRepository().getPlan('plan-src');
+        expect(plan, isNotNull, reason: 'the plan itself must survive');
+        expect(
+          plan!.sourceDiveId,
+          isNull,
+          reason: 'the dangling reference to the deleted dive must be cleared',
+        );
+        expect(await buildService().getConflicts(), isEmpty);
+      },
+    );
+
+    test(
+      'keepRemote on a deletion conflict relays the deleter\'s clock and time',
+      () async {
+        await seedDive('d-relay', 10);
+        final deleterClock = const Hlc(5000, 0, 'peer').toString();
+        await raiseConflict('dives', 'd-relay', {
+          '_deleted': true,
+          'deletedAt': 5000,
+          'hlc': deleterClock,
+          'recordId': 'd-relay',
+        });
+
+        await buildService().resolveConflict(
+          'dives',
+          'd-relay',
+          ConflictResolution.keepRemote,
+        );
+
+        // Relayed onward, the tombstone still says when the peer deleted the
+        // dive, not when this device resolved the conflict.
+        final logged = (await SyncRepository().getAllDeletions()).single;
+        expect(logged.originHlc, deleterClock);
+        expect(logged.deletedAt, 5000);
+      },
+    );
+
+    test(
+      'keepRemote on a deletion conflict with no deletedAt stamps it now',
+      () async {
+        await seedDive('d-undated', 10);
+        await raiseConflict('dives', 'd-undated', {
+          '_deleted': true,
+          'recordId': 'd-undated',
+        });
+
+        final before = DateTime.now().millisecondsSinceEpoch;
+        await buildService().resolveConflict(
+          'dives',
+          'd-undated',
+          ConflictResolution.keepRemote,
+        );
+        final after = DateTime.now().millisecondsSinceEpoch;
+
+        final logged = (await SyncRepository().getAllDeletions()).single;
+        expect(logged.deletedAt, inInclusiveRange(before, after));
+        expect(logged.originHlc, isNull);
       },
     );
 
