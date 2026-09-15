@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
@@ -448,6 +449,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   ) async {
     if (action == 'delete') {
       final divers = await ref.read(allDiversProvider.future);
+      final usage = await readSiteDeleteUsage(ref, [site.id]);
       if (!context.mounted) return;
       final diverCount = divers.length;
       final isSharedDelete = site.isShared && diverCount >= 2;
@@ -461,9 +463,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 : ctx.l10n.diveSites_detail_deleteDialog_title,
           ),
           content: Text(
-            isSharedDelete
-                ? ctx.l10n.sites_deleteShared_body(site.name)
-                : ctx.l10n.diveSites_detail_deleteDialog_content,
+            withSiteDeleteUsage(
+              ctx.l10n,
+              isSharedDelete
+                  ? ctx.l10n.sites_deleteShared_body(site.name)
+                  : ctx.l10n.diveSites_detail_deleteDialog_content,
+              usage,
+            ),
           ),
           actions: [
             TextButton(

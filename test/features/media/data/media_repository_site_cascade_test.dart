@@ -197,6 +197,29 @@ void main() {
       expect(await mediaTombstones(), containsAll([m1.id, m2.id]));
     });
 
+    test('a site delete that fails deletes and unlinks no media', () async {
+      await insertSite('s1');
+      await insertDive('d1');
+      final siteOnly = await mediaRepository.createMedia(
+        item('map.pdf', siteId: 's1', mediaType: MediaType.document),
+      );
+      final diveLinked = await mediaRepository.createMedia(
+        item('b.jpg', siteId: 's1', diveId: 'd1'),
+      );
+      // Stands in for any failure of the site delete itself (issue #1952).
+      await db.customStatement(
+        'CREATE TEMP TRIGGER fail_site_delete BEFORE DELETE ON dive_sites '
+        "BEGIN SELECT RAISE(ABORT, 'site delete failed'); END",
+      );
+
+      await expectLater(siteRepository.deleteSite('s1'), throwsA(anything));
+
+      expect((await mediaRepository.getMediaById(siteOnly.id))!.siteId, 's1');
+      expect((await mediaRepository.getMediaById(diveLinked.id))!.siteId, 's1');
+      expect(await mediaTombstones(), isEmpty);
+      expect(await queue.allForTesting(), isEmpty);
+    });
+
     test('cascadeMedia false leaves media untouched', () async {
       await insertSite('s1');
       final m = await mediaRepository.createMedia(item('a.jpg', siteId: 's1'));

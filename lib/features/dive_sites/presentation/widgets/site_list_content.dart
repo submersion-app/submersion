@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
@@ -92,7 +93,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
-  List<DiveSite>? _deletedSites;
+  ({List<DiveSite> sites, SiteLinks links})? _deletedSites;
   MergeSnapshot? _mergeSnapshot;
 
   @override
@@ -310,11 +311,19 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
   Future<BulkActionOutcome> _confirmAndDelete() async {
     final count = _selectedIds.length;
+    final usage = await readSiteDeleteUsage(ref, _selectedIds.toList());
+    if (!mounted) return BulkActionOutcome.cancelled;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.diveSites_list_bulkDelete_title),
-        content: Text(context.l10n.diveSites_list_bulkDelete_content(count)),
+        content: Text(
+          withSiteDeleteUsage(
+            context.l10n,
+            context.l10n.diveSites_list_bulkDelete_content(count),
+            usage,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -336,11 +345,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       final idsToDelete = _selectedIds.toList();
       _exitSelectionMode();
 
-      final deletedSites = await ref
+      final deleted = await ref
           .read(siteListNotifierProvider.notifier)
           .bulkDeleteSites(idsToDelete);
 
-      _deletedSites = deletedSites;
+      _deletedSites = deleted;
 
       if (mounted) {
         scaffoldMessenger.clearSnackBars();
@@ -348,7 +357,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           SnackBar(
             content: Text(
               context.l10n.diveSites_list_bulkDelete_snackbar(
-                deletedSites.length,
+                deleted.sites.length,
               ),
             ),
             duration: const Duration(seconds: 5),
@@ -356,10 +365,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             action: SnackBarAction(
               label: context.l10n.diveSites_list_bulkDelete_undo,
               onPressed: () async {
-                if (_deletedSites != null && _deletedSites!.isNotEmpty) {
+                final toRestore = _deletedSites;
+                if (toRestore != null && toRestore.sites.isNotEmpty) {
                   await ref
                       .read(siteListNotifierProvider.notifier)
-                      .restoreSites(_deletedSites!);
+                      .restoreSites(toRestore.sites, links: toRestore.links);
                   _deletedSites = null;
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
