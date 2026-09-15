@@ -4323,6 +4323,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincsenek rögzített merülések';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés búvárközpont nélkül marad.',
+      one: '1 merülés búvárközpont nélkül marad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return 'Biztosan törölni szeretnéd: \"$name\"?';
   }
@@ -8910,6 +8921,28 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Merülőhelyek ezzel: $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés helyszín nélkül marad.',
+      one: '1 merülés helyszín nélkül marad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentett terv helyszín nélkül marad.',
+      one: '1 mentett terv helyszín nélkül marad.',
+    );
+    return '$_temp0';
   }
 
   @override

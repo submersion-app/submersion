@@ -4342,6 +4342,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Noch keine Tauchgänge protokolliert';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge bleiben ohne Tauchcenter.',
+      one: '1 Tauchgang bleibt ohne Tauchcenter.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return 'Möchten Sie \"$name\" wirklich löschen?';
   }
@@ -8918,6 +8929,28 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Tauchplätze mit $name anzeigen';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge bleiben ohne Tauchplatz.',
+      one: '1 Tauchgang bleibt ohne Tauchplatz.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gespeicherte Pläne bleiben ohne Tauchplatz.',
+      one: '1 gespeicherter Plan bleibt ohne Tauchplatz.',
+    );
+    return '$_temp0';
   }
 
   @override

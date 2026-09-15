@@ -2734,6 +2734,7 @@
   "diveCenters_detail_divesLogged": "{count, plural, =1{1 dive logged} other{{count} dives logged}}",
   "diveCenters_detail_divesWithCenter": "Dives with this Center",
   "diveCenters_detail_noDivesLogged": "No dives logged yet",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 dive will be left without a dive center.} other{{count} dives will be left without a dive center.}}",
   "diveCenters_dialog_deleteMessage": "Are you sure you want to delete \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "Delete Dive Center",
   "diveCenters_dialog_discard": "Discard",
@@ -2863,6 +2864,13 @@
     }
   },
   "@diveCenters_detail_divesLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveCenters_dialog_deleteDivesKept": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -5315,6 +5323,22 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{1 dive will be left without a site.} other{{count} dives will be left without a site.}}",
+  "@diveSites_deleteDialog_divesKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{1 saved plan will be left without a site.} other{{count} saved plans will be left without a site.}}",
+  "@diveSites_deleteDialog_plansKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },

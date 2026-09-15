@@ -4252,6 +4252,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_detail_noDivesLogged => 'No dives logged yet';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives will be left without a dive center.',
+      one: '1 dive will be left without a dive center.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return 'Are you sure you want to delete \"$name\"?';
   }
@@ -8773,6 +8784,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Show sites with $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives will be left without a site.',
+      one: '1 dive will be left without a site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved plans will be left without a site.',
+      one: '1 saved plan will be left without a site.',
+    );
+    return '$_temp0';
   }
 
   @override

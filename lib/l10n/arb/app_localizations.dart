@@ -7100,6 +7100,12 @@ abstract class AppLocalizations {
   /// **'No dives logged yet'**
   String get diveCenters_detail_noDivesLogged;
 
+  /// No description provided for @diveCenters_dialog_deleteDivesKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive will be left without a dive center.} other{{count} dives will be left without a dive center.}}'**
+  String diveCenters_dialog_deleteDivesKept(int count);
+
   /// No description provided for @diveCenters_dialog_deleteMessage.
   ///
   /// In en, this message translates to:
@@ -14709,6 +14715,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show sites with {name}'**
   String diveSites_detail_showSitesWith(String name);
+
+  /// No description provided for @diveSites_deleteDialog_divesKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive will be left without a site.} other{{count} dives will be left without a site.}}'**
+  String diveSites_deleteDialog_divesKept(int count);
+
+  /// No description provided for @diveSites_deleteDialog_plansKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 saved plan will be left without a site.} other{{count} saved plans will be left without a site.}}'**
+  String diveSites_deleteDialog_plansKept(int count);
 
   /// No description provided for @diveSites_detail_access_accessNotes.
   ///
