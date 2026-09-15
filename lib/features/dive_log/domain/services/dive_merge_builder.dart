@@ -359,6 +359,7 @@ class DiveMergeBuilder {
       gradientFactorHigh: _firstNonNull(sorted, (d) => d.gradientFactorHigh),
       decoAlgorithm: _firstNonNull(sorted, (d) => d.decoAlgorithm),
       decoConservatism: _firstNonNull(sorted, (d) => d.decoConservatism),
+      computerTissue: _firstNonNull(sorted, (d) => d.computerTissue),
       diveComputerModel: _firstNonNull(sorted, (d) => d.diveComputerModel),
       diveComputerSerial: _firstNonNull(sorted, (d) => d.diveComputerSerial),
       diveComputerFirmware: _firstNonNull(

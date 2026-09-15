@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -681,6 +682,14 @@ class UddfImportService {
         final heartRateText = _getElementText(waypoint, 'heartrate');
         if (heartRateText != null) {
           point['heartRate'] = UddfImportParsers.parseUddfInt(heartRateText);
+        }
+
+        // Computer-reported GF99 (whole percent), set only when present.
+        final gf99 = parseUddfGradientFactorPercent(
+          _getElementText(waypoint, 'gradientfactor'),
+        );
+        if (gf99 != null) {
+          point['gf99'] = gf99;
         }
 
         if (point.containsKey('timestamp') && point.containsKey('depth')) {

@@ -8128,6 +8128,62 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tissue_title => 'עומס רקמות';
 
   @override
+  String get diveLog_computerTissue_title => 'מחשב צלילה';
+
+  @override
+  String get diveLog_computerTissue_algorithm => 'אלגוריתם';
+
+  @override
+  String diveLog_computerTissue_compartments(Object count) {
+    return '$count מדורים';
+  }
+
+  @override
+  String diveLog_computerTissue_compartmentsWithAlgorithm(
+    Object count,
+    Object algorithm,
+  ) {
+    return '$count מדורי $algorithm';
+  }
+
+  @override
+  String diveLog_computerTissue_compartment(Object number) {
+    return 'C$number';
+  }
+
+  @override
+  String get diveLog_computerTissue_endLoading => 'טעינה בסוף הצלילה';
+
+  @override
+  String get diveLog_computerTissue_endTensions => 'מתחי רקמות בסוף הצלילה';
+
+  @override
+  String get diveLog_computerTissue_columnStart => 'התחלה';
+
+  @override
+  String get diveLog_computerTissue_columnEnd => 'סיום';
+
+  @override
+  String get diveLog_computerTissue_rowN2Load => 'עומס N₂';
+
+  @override
+  String get diveLog_computerTissue_rowCns => 'CNS';
+
+  @override
+  String get diveLog_computerTissue_rowOtu => 'OTU';
+
+  @override
+  String get diveLog_computerTissue_rgbmNitrogen => 'מקדם N₂ של RGBM';
+
+  @override
+  String get diveLog_computerTissue_rgbmHelium => 'מקדם He של RGBM';
+
+  @override
+  String diveLog_computerTissue_calculated(Object value) {
+    return 'מחושב $value';
+  }
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(ממוצע, מחושב)';
 
   @override

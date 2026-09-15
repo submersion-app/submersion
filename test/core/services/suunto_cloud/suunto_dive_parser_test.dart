@@ -926,4 +926,79 @@ void main() {
       expect(result.dive.entryLongitude, isNull);
     });
   });
+
+  group('computer tissue', () {
+    Map<String, dynamic> headerWithDiving(Map<String, dynamic> diving) => {
+      ..._header(),
+      'Diving': {..._header()['Diving'] as Map<String, dynamic>, ...diving},
+    };
+
+    test('builds a tissue snapshot from a DeviceLog EON Core header', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithDiving({
+          'Algorithm': 'Suunto Fused2 RGBM',
+          'StartTissue': {
+            'Nitrogen': [
+              79000, 79000, 79000, 79000, 79000, 79000, 79008, 79123, //
+              79457, 80568, 81755, 82776, 83604, 84269, 85254,
+            ],
+            'Helium': List<int>.filled(15, 0),
+          },
+          'EndTissue': {
+            'Nitrogen': [
+              89665, 97105, 116432, 135968, 142849, 131069, 113059, 103999, //
+              98930, 94002, 91918, 90918, 90376, 90058, 89736,
+            ],
+            'Helium': List<int>.filled(15, 0),
+            'CNS': 0.132,
+            'OTU': 35.57,
+            'RgbmNitrogen': 0.98,
+            'RgbmHelium': 0.985,
+          },
+        }),
+        samples: const [],
+      );
+
+      final snapshot = result.computerTissue;
+      expect(snapshot, isNotNull);
+      expect(snapshot!.algorithm, 'Suunto Fused2 RGBM');
+      expect(snapshot.start!.n2Bar, hasLength(15));
+      expect(snapshot.start!.n2Bar!.first, 0.79);
+      expect(snapshot.end!.n2Bar![4], 1.42849);
+      expect(snapshot.end!.cnsPercent, closeTo(13.2, 1e-9));
+      expect(snapshot.end!.otu, 35.57);
+      expect(snapshot.end!.rgbmNitrogen, 0.98);
+      // The import pipeline only ever sees the DownloadedDive, so the
+      // snapshot has to ride on it too.
+      expect(result.dive.computerTissue, snapshot);
+    });
+
+    test('reads the HelO2 Pressure-list encoding', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithDiving({
+          'Algorithm': 'Suunto Technical RGBM',
+          'StartTissue': {
+            'Nitrogen': {'Pressure': List<int>.filled(9, 79000)},
+          },
+          'EndTissue': {'OLF': 0.05, 'CNS': 0.04, 'OTU': 12.0},
+        }),
+        samples: const [],
+      );
+
+      expect(result.computerTissue!.start!.n2Bar, hasLength(9));
+      expect(result.computerTissue!.end!.cnsPercent, closeTo(4.0, 1e-9));
+    });
+
+    test('leaves the snapshot null for a header without tissue data', () {
+      final result = SuuntoDiveParser.parse(header: _header(), samples: []);
+      expect(result.computerTissue, isNull);
+      expect(result.dive.computerTissue, isNull);
+    });
+
+    test('leaves the snapshot null for a header without Diving', () {
+      final header = _header()..remove('Diving');
+      final result = SuuntoDiveParser.parse(header: header, samples: []);
+      expect(result.computerTissue, isNull);
+    });
+  });
 }

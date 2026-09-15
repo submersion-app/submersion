@@ -54,6 +54,7 @@ class ImportedDiveConverter {
       profile: profile,
       importSource: sourceName,
       importId: importedDive.sourceId,
+      computerTissue: importedDive.computerTissue,
     );
 
     // Calculate bottom time from profile if available
@@ -77,6 +78,8 @@ class ImportedDiveConverter {
         temperature: sample.temperature,
         heartRate: sample.heartRate,
         heartRateSource: sample.heartRate != null ? sourceName : null,
+        gf99: sample.gf99,
+        n2Load: sample.n2Load,
       );
     }).toList();
   }

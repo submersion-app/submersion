@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/computer_tissue_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
@@ -60,6 +62,14 @@ class CompactTissueLoadingCard extends ConsumerStatefulWidget {
   /// keeping this widget free of any dive_3d navigation dependency.
   final VoidCallback? onOpen3dView;
 
+  /// Tissue state the dive computer itself reported, shown in its own
+  /// section under the calculated detail when present.
+  final ComputerTissueSnapshot? computerTissue;
+
+  /// End-of-dive calculated CNS%, the secondary line under the computer's
+  /// CNS in [computerTissue]. Unused without a snapshot.
+  final double? calculatedCnsPercent;
+
   const CompactTissueLoadingCard({
     super.key,
     required this.status,
@@ -69,6 +79,8 @@ class CompactTissueLoadingCard extends ConsumerStatefulWidget {
     this.onHeatMapHover,
     this.expandVisualization = false,
     this.onOpen3dView,
+    this.computerTissue,
+    this.calculatedCnsPercent,
   });
 
   @override
@@ -169,6 +181,12 @@ class _CompactTissueLoadingCardState
               const SizedBox(height: 6),
             ],
 
+            // What the dive computer itself reported, when the import had it
+            if (widget.computerTissue != null) ...[
+              _buildComputerTissueSection(),
+              const SizedBox(height: 6),
+            ],
+
             // Tissue pressure bar chart (with per-bar hover)
             _buildTissuePressureDiagram(context, colorScheme),
             const SizedBox(height: 6),
@@ -179,6 +197,23 @@ class _CompactTissueLoadingCardState
           ],
         ),
       ),
+    );
+  }
+
+  /// The computer's values lead; the app's end-of-dive numbers follow as the
+  /// secondary line where both exist. Compares against the final status, not
+  /// the hovered one, because the snapshot is end-of-dive.
+  Widget _buildComputerTissueSection() {
+    final statuses = widget.decoStatuses;
+    final endStatus = statuses != null && statuses.isNotEmpty
+        ? statuses.last
+        : widget.status;
+    final hasCalculated = endStatus.compartments.isNotEmpty;
+    return ComputerTissueSection(
+      snapshot: widget.computerTissue,
+      calculatedGf99Percent: hasCalculated ? endStatus.gf99 : null,
+      calculatedSurfaceGfPercent: hasCalculated ? endStatus.surfGf : null,
+      calculatedCnsPercent: widget.calculatedCnsPercent,
     );
   }
 

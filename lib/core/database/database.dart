@@ -812,6 +812,12 @@ class Dives extends Table {
       text().nullable()(); // "buhlmann", "vpm", "rgbm", "dciem"
   IntColumn get decoConservatism =>
       integer().nullable()(); // Personal adjustment (0=neutral)
+  // Tissue state the dive computer itself reported (v219): the JSON of
+  // ComputerTissueSnapshot.toJson, or null when the source carried none.
+  // Drift replaces this getter with a generated field at runtime.
+  // coverage:ignore-start
+  TextColumn get computerTissueJson => text().nullable()();
+  // coverage:ignore-end
   // Dive computer that logged this dive (for display/export, separate from computerId relation)
   TextColumn get diveComputerModel => text().nullable()();
   TextColumn get diveComputerSerial => text().nullable()();
@@ -4181,7 +4187,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 218;
+  static const int currentSchemaVersion = 219;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4787,6 +4793,10 @@ class AppDatabase extends _$AppDatabase {
     // types and tags) shipped first, and a rung at or below the shipped
     // version never runs its onUpgrade step, so this one sits above both.
     218,
+    // v219: dives.computer_tissue_json, the tissue state a dive computer
+    // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
+    // UDDF tissue data). Additive nullable column, no backfill.
+    219,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6256,6 +6266,20 @@ class AppDatabase extends _$AppDatabase {
     if (!names.contains('site_detail_layout')) {
       await customStatement(
         'ALTER TABLE diver_settings ADD COLUMN site_detail_layout TEXT',
+      );
+    }
+  }
+
+  /// v219: dives.computer_tissue_json. Idempotent, so it is safe to call
+  /// from both onUpgrade and the beforeOpen backstop, and a no-op when the
+  /// table does not exist yet.
+  Future<void> _assertComputerTissueColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dives')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('computer_tissue_json')) {
+      await customStatement(
+        'ALTER TABLE dives ADD COLUMN computer_tissue_json TEXT',
       );
     }
   }
@@ -12186,6 +12210,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertSiteDetailColumns();
         }
         if (from < 218) await reportProgress();
+        // v219: dives.computer_tissue_json. Column-only rung, no backfill:
+        // null reads as "the computer reported no tissue state".
+        if (from < 219) {
+          await _assertComputerTissueColumn();
+        }
+        if (from < 219) await reportProgress();
       },
       beforeOpen: (details) async {
         // v217 backstop: the tag scope flags.
@@ -12549,6 +12579,11 @@ class AppDatabase extends _$AppDatabase {
         // arrives by restore or sync-adopt without them would throw on the
         // first read.
         await _assertSiteDetailColumns();
+
+        // v219 backstop: re-assert dives.computer_tissue_json. Every dive
+        // read selects the whole row, so a database that arrives by restore
+        // or sync-adopt without it would throw on the first read.
+        await _assertComputerTissueColumn();
         // v182 backstop: re-assert the packed profile series tables, then
         // pack any dive that still has legacy rows and no series row. A
         // schema-version collision with a parallel branch skips the rung on

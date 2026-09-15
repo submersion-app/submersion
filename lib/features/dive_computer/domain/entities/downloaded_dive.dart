@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 
 /// Phases of the download process.
 enum DownloadPhase {
@@ -139,6 +140,11 @@ class DownloadedDive {
   /// Personal deco conservatism adjustment
   final int? decoConservatism;
 
+  /// Dive-level tissue state the computer itself reported (start/end
+  /// compartment loadings, CNS, OTU), when the source carries one. Never
+  /// computed by the app; persisted verbatim on the dive.
+  final ComputerTissueSnapshot? computerTissue;
+
   /// Dive events from the computer
   final List<DownloadedEvent> events;
 
@@ -171,6 +177,7 @@ class DownloadedDive {
     this.gfLow,
     this.gfHigh,
     this.decoConservatism,
+    this.computerTissue,
     this.diveMode = DiveMode.oc,
     this.events = const [],
     this.rawData,

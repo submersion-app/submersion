@@ -4,11 +4,36 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 
+/// One GF99 reading from `dive_log_records`, in seconds from the start of
+/// the dive and whole percent as the computer logged it.
+class ShearwaterGf99Sample {
+  final int timeSeconds;
+  final int gf99;
+
+  const ShearwaterGf99Sample({required this.timeSeconds, required this.gf99});
+
+  @override
+  bool operator ==(Object other) =>
+      other is ShearwaterGf99Sample &&
+      other.timeSeconds == timeSeconds &&
+      other.gf99 == gf99;
+
+  @override
+  int get hashCode => Object.hash(timeSeconds, gf99);
+
+  @override
+  String toString() => 'ShearwaterGf99Sample($timeSeconds s, $gf99%)';
+}
+
 /// Raw dive data read directly from a Shearwater Cloud SQLite database.
 ///
 /// Fields map 1:1 to columns from the dive_details and log_data tables.
 /// Binary log data is decompressed; JSON string columns are pre-parsed.
 /// Empty strings from the database are normalized to null.
+///
+/// The computer-tissue fields ([gf99Samples], [startGFS], [gfMin], [gfMax],
+/// [decoModel], [startCNS], [endCNS]) come from the optional `dive_logs` and
+/// `dive_log_records` tables; older exports lack them and read as empty/null.
 class ShearwaterRawDive {
   final String diveId;
   final String? diveDate;
@@ -47,6 +72,25 @@ class ShearwaterRawDive {
   final Map<String, dynamic>? headerJson;
   final Map<String, dynamic>? footerJson;
 
+  /// Per-sample GF99 from `dive_log_records`, ordered by time.
+  final List<ShearwaterGf99Sample> gf99Samples;
+
+  /// Surface GF at the start of the dive (`dive_logs.startGFS`), percent.
+  final double? startGFS;
+
+  /// Gradient factors (`dive_logs.gfMin` / `gfMax`), percent.
+  final int? gfMin;
+  final int? gfMax;
+
+  /// Deco model as Shearwater spells it ('GF', 'VPM-B', 'VPM-B/GFS',
+  /// 'DCIEM'); null when absent or unrecognised.
+  final String? decoModel;
+
+  /// CNS at the start and end of the dive (`dive_logs.startCNS` / `endCNS`),
+  /// percent.
+  final double? startCNS;
+  final double? endCNS;
+
   const ShearwaterRawDive({
     required this.diveId,
     this.diveDate,
@@ -84,6 +128,13 @@ class ShearwaterRawDive {
     this.calculatedValues,
     this.headerJson,
     this.footerJson,
+    this.gf99Samples = const [],
+    this.startGFS,
+    this.gfMin,
+    this.gfMax,
+    this.decoModel,
+    this.startCNS,
+    this.endCNS,
   });
 }
 
@@ -114,6 +165,34 @@ FROM dive_details dd
 LEFT JOIN log_data ld ON dd.DiveId = ld.log_id
 ORDER BY dd.DiveDate
 ''';
+
+  // The header table keys on the same id as dive_details.DiveId, and the
+  // sample table refers to it through diveLogId (Shearwater Cloud's own
+  // index, dive_log_records_diveLogId). Both tables are optional.
+  static const _diveLogsTable = 'dive_logs';
+  static const _diveLogRecordsTable = 'dive_log_records';
+  static const _diveLogColumns = [
+    'startGFS',
+    'gfMin',
+    'gfMax',
+    'decoModel',
+    'startCNS',
+    'endCNS',
+  ];
+  static const _gf99RecordColumns = ['diveLogId', 'currentTime', 'gf99'];
+  static const _gf99Query = '''
+SELECT currentTime, gf99 FROM dive_log_records
+WHERE diveLogId = ? AND currentTime IS NOT NULL AND gf99 IS NOT NULL
+ORDER BY currentTime
+''';
+
+  /// Shearwater's deco model codes, as `dive_logs.decoModel` stores them.
+  static const _decoModelNames = {
+    0: 'GF',
+    1: 'VPM-B',
+    2: 'VPM-B/GFS',
+    3: 'DCIEM',
+  };
 
   /// Synchronous companion to [isShearwaterCloudDb] for callers that
   /// have already probed the SQLite table set (e.g. the format detector
@@ -179,8 +258,26 @@ ORDER BY dd.DiveDate
       await tempFile.writeAsBytes(bytes);
       final db = sqlite3.open(tempPath, mode: OpenMode.readOnly);
       try {
+        final tables = _listTables(db);
+        final diveLogColumns = tables.contains(_diveLogsTable)
+            ? _listColumns(db, _diveLogsTable)
+            : const <String>{};
+        final hasGf99Records =
+            tables.contains(_diveLogRecordsTable) &&
+            _gf99RecordColumns.every(
+              _listColumns(db, _diveLogRecordsTable).contains,
+            );
         final rows = db.select(_query);
-        return rows.map(_rowToRawDive).toList();
+        return rows.map((row) {
+          final diveId = row['DiveId'].toString();
+          return _rowToRawDive(
+            row,
+            header: _readDiveLogHeader(db, diveId, diveLogColumns),
+            gf99Samples: hasGf99Records
+                ? _readGf99Samples(db, diveId)
+                : const [],
+          );
+        }).toList();
       } finally {
         db.close();
       }
@@ -209,7 +306,88 @@ ORDER BY dd.DiveDate
     return rows.map<String>((r) => r['name'] as String).toSet();
   }
 
-  static ShearwaterRawDive _rowToRawDive(Row row) {
+  /// Column names of [table]. PRAGMA takes no bind parameters; [table] is
+  /// always one of this class's constants, never user input.
+  static Set<String> _listColumns(Database db, String table) {
+    final rows = db.select('PRAGMA table_info($table)');
+    return rows.map<String>((r) => r['name'] as String).toSet();
+  }
+
+  /// The dive's `dive_logs` row, restricted to the tissue columns the export
+  /// actually has. Null when the table, all of those columns, or the row is
+  /// missing.
+  static Row? _readDiveLogHeader(
+    Database db,
+    String diveId,
+    Set<String> availableColumns,
+  ) {
+    final columns = _diveLogColumns.where(availableColumns.contains).toList();
+    if (columns.isEmpty) return null;
+    final rows = db.select(
+      'SELECT ${columns.join(', ')} FROM dive_logs WHERE diveId = ? LIMIT 1',
+      [diveId],
+    );
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  /// The dive's GF99 series from `dive_log_records`, ordered by time.
+  static List<ShearwaterGf99Sample> _readGf99Samples(
+    Database db,
+    String diveId,
+  ) {
+    final rows = db.select(_gf99Query, [diveId]);
+    final times = <int>[];
+    final values = <int>[];
+    for (final row in rows) {
+      final time = _int(row['currentTime']);
+      final gf99 = _int(row['gf99']);
+      if (time == null || gf99 == null) continue;
+      times.add(time);
+      values.add(gf99);
+    }
+    if (times.isEmpty) return const [];
+    final divisor = _currentTimeDivisor(times);
+    return List.unmodifiable([
+      for (var i = 0; i < times.length; i++)
+        ShearwaterGf99Sample(
+          timeSeconds: (times[i] / divisor).round(),
+          gf99: values[i],
+        ),
+    ]);
+  }
+
+  /// Shearwater Cloud writes `currentTime` in milliseconds (Shearwater
+  /// Desktop wrote seconds). Rather than trust one or the other, read the
+  /// spacing of the rows: the computers log every 10 s (a few every 5 s or
+  /// 2 s), so a median gap of 1000 or more can only be milliseconds.
+  static int _currentTimeDivisor(List<int> sortedTimes) {
+    final deltas = <int>[];
+    for (var i = 1; i < sortedTimes.length; i++) {
+      final delta = sortedTimes[i] - sortedTimes[i - 1];
+      if (delta > 0) deltas.add(delta);
+    }
+    if (deltas.isEmpty) return 1000;
+    deltas.sort();
+    return deltas[deltas.length ~/ 2] >= 1000 ? 1000 : 1;
+  }
+
+  /// Spells `dive_logs.decoModel`: an integer code in every export seen so
+  /// far, passed through when an export already stores a name.
+  @visibleForTesting
+  static String? decoModelName(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return _decoModelNames[value];
+    final text = value.toString().trim();
+    if (text.isEmpty) return null;
+    final code = int.tryParse(text);
+    return code == null ? text : _decoModelNames[code];
+  }
+
+  static ShearwaterRawDive _rowToRawDive(
+    Row row, {
+    Row? header,
+    List<ShearwaterGf99Sample> gf99Samples = const [],
+  }) {
     return ShearwaterRawDive(
       diveId: row['DiveId'].toString(),
       diveDate: _str(row['DiveDate']),
@@ -249,7 +427,20 @@ ORDER BY dd.DiveDate
       calculatedValues: _decodeJsonString(
         row['calculated_values_from_samples'],
       ),
+      gf99Samples: gf99Samples,
+      startGFS: _double(_headerValue(header, 'startGFS')),
+      gfMin: _int(_headerValue(header, 'gfMin')),
+      gfMax: _int(_headerValue(header, 'gfMax')),
+      decoModel: decoModelName(_headerValue(header, 'decoModel')),
+      startCNS: _double(_headerValue(header, 'startCNS')),
+      endCNS: _double(_headerValue(header, 'endCNS')),
     );
+  }
+
+  /// A `dive_logs` value, or null when the row or the column is missing.
+  static dynamic _headerValue(Row? header, String column) {
+    if (header == null || !header.keys.contains(column)) return null;
+    return header[column];
   }
 
   /// Normalizes a value to a non-empty String or null.

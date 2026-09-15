@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
@@ -106,6 +107,9 @@ class Dive extends Equatable {
   // Decompression algorithm and conservatism
   final String? decoAlgorithm; // "buhlmann", "vpm", "rgbm", "dciem"
   final int? decoConservatism; // Personal adjustment (0=neutral)
+  // Tissue state the dive computer itself reported, as imported. Never
+  // computed by the app; null when the source carried none.
+  final ComputerTissueSnapshot? computerTissue;
   // Dive computer that logged this dive
   final String? diveComputerModel;
   final String? diveComputerSerial;
@@ -247,6 +251,7 @@ class Dive extends Equatable {
     this.gradientFactorHigh,
     this.decoAlgorithm,
     this.decoConservatism,
+    this.computerTissue,
     this.diveComputerModel,
     this.diveComputerSerial,
     this.diveComputerFirmware,
@@ -652,6 +657,7 @@ class Dive extends Equatable {
     int? gradientFactorHigh,
     String? decoAlgorithm,
     int? decoConservatism,
+    ComputerTissueSnapshot? computerTissue,
     String? diveComputerModel,
     String? diveComputerSerial,
     String? diveComputerFirmware,
@@ -749,6 +755,7 @@ class Dive extends Equatable {
       gradientFactorHigh: gradientFactorHigh ?? this.gradientFactorHigh,
       decoAlgorithm: decoAlgorithm ?? this.decoAlgorithm,
       decoConservatism: decoConservatism ?? this.decoConservatism,
+      computerTissue: computerTissue ?? this.computerTissue,
       diveComputerModel: diveComputerModel ?? this.diveComputerModel,
       diveComputerSerial: diveComputerSerial ?? this.diveComputerSerial,
       diveComputerFirmware: diveComputerFirmware ?? this.diveComputerFirmware,
@@ -849,6 +856,7 @@ class Dive extends Equatable {
     gradientFactorHigh,
     decoAlgorithm,
     decoConservatism,
+    computerTissue,
     diveComputerModel,
     diveComputerSerial,
     diveComputerFirmware,
@@ -935,6 +943,10 @@ class DiveProfilePoint extends Equatable {
   final int? rbt; // Remaining Bottom Time in seconds
   final int? decoType; // 0=NDL, 1=safety stop, 2=deco stop, 3=deep stop
   final int? tts; // Time To Surface in seconds
+  // Computer-reported tissue loading, both whole percents; null when the
+  // source carried none. Never computed by the app.
+  final int? gf99; // Computer-reported GF99, percent
+  final int? n2Load; // Computer-reported aggregate N2 tissue loading, percent
 
   const DiveProfilePoint({
     required this.timestamp,
@@ -964,6 +976,8 @@ class DiveProfilePoint extends Equatable {
     this.rbt,
     this.decoType,
     this.tts,
+    this.gf99,
+    this.n2Load,
   });
 
   DiveProfilePoint copyWith({
@@ -994,6 +1008,8 @@ class DiveProfilePoint extends Equatable {
     int? rbt,
     int? decoType,
     int? tts,
+    int? gf99,
+    int? n2Load,
   }) {
     return DiveProfilePoint(
       timestamp: timestamp ?? this.timestamp,
@@ -1023,6 +1039,8 @@ class DiveProfilePoint extends Equatable {
       rbt: rbt ?? this.rbt,
       decoType: decoType ?? this.decoType,
       tts: tts ?? this.tts,
+      gf99: gf99 ?? this.gf99,
+      n2Load: n2Load ?? this.n2Load,
     );
   }
 
@@ -1055,6 +1073,8 @@ class DiveProfilePoint extends Equatable {
     rbt,
     decoType,
     tts,
+    gf99,
+    n2Load,
   ];
 }
 

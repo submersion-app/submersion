@@ -357,6 +357,13 @@ class UddfExportBuilders {
                     if (point.ppO2 != null) {
                       builder.element('ppo2', nest: point.ppO2.toString());
                     }
+                    // Computer-reported GF99 (UDDF 3.2 waypoint child).
+                    if (point.gf99 != null) {
+                      builder.element(
+                        'gradientfactor',
+                        nest: point.gf99.toString(),
+                      );
+                    }
                   },
                 );
               }

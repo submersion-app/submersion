@@ -12200,5 +12200,21 @@
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "felhasználva: {reading}",
   "plannerCanvas_gas_endReading": "vég: {reading}",
+  "diveLog_computerTissue_title": "Búvárkomputer",
+  "diveLog_computerTissue_algorithm": "Algoritmus",
+  "diveLog_computerTissue_compartments": "{count} rekesz",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} {algorithm} rekesz",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "Telítettség a merülés végén",
+  "diveLog_computerTissue_endTensions": "Szöveti feszültségek a merülés végén",
+  "diveLog_computerTissue_columnStart": "Kezdet",
+  "diveLog_computerTissue_columnEnd": "Vég",
+  "diveLog_computerTissue_rowN2Load": "N₂-terhelés",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "RGBM N₂-tényező",
+  "diveLog_computerTissue_rgbmHelium": "RGBM He-tényező",
+  "diveLog_computerTissue_calculated": "számított {value}",
   "numberInput_invalidValue": "Adjon meg érvényes számot"
+
 }

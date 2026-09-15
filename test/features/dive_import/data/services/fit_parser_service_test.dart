@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fit_tool/fit_tool.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 
 /// Builds a minimal FIT file representing a dive activity.
 ///
@@ -680,5 +682,36 @@ void main() {
 
       expect(results, isEmpty);
     });
+  });
+
+  group('computer tissue', () {
+    const service = FitParserService();
+
+    test('is null when the FIT file records no N2 loading', () async {
+      final dive = await service.parseFitFile(buildRichDiveFitFile());
+      expect(dive, isNotNull);
+      expect(dive!.computerTissue, isNull);
+      expect(dive.profile.any((s) => s.n2Load != null), isFalse);
+    });
+
+    test(
+      'reads the Descent N2 loading into the snapshot and samples',
+      () async {
+        final bytes = File(
+          'test/dives/005_oc-trimix-two-deco-gases.fit',
+        ).readAsBytesSync();
+        final dive = (await service.parseFitFile(bytes))!;
+
+        final tissue = dive.computerTissue;
+        expect(tissue, isA<ComputerTissueSnapshot>());
+        expect(tissue!.algorithm, 'zhl_16c');
+        expect(tissue.start?.n2LoadPercent, 0);
+        expect(tissue.start?.cnsPercent, dive.cnsStart);
+        expect(tissue.end?.n2LoadPercent, 86);
+        expect(tissue.end?.cnsPercent, dive.cnsEnd);
+        expect(dive.profile.first.n2Load, isNull);
+        expect(dive.profile.last.n2Load, 86);
+      },
+    );
   });
 }

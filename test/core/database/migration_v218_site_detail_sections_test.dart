@@ -7,9 +7,8 @@ const _columns = ['site_detail_sections', 'site_detail_layout'];
 
 void main() {
   test('v218 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 218);
+    // v219 owns the exact assertion now.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(218));
     expect(AppDatabase.migrationVersions, contains(218));
   });
 
@@ -78,7 +77,7 @@ void main() {
     final names = cols.map((c) => c.read<String>('name')).toSet();
     expect(names, containsAll(_columns));
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 218);
+    expect(version.read<int>('user_version'), AppDatabase.currentSchemaVersion);
   });
 
   test('the assert is a no-op when the table is absent', () async {

@@ -56,6 +56,7 @@ Use the `Fixed` column as a working checkbox:
 | Rebreather dive fields (`setpointLow/High/Deco`, `SCR` config, diluent gas, loop O2, scrubber, loop volume) | [ ] | High | Yes | Yes | No |
 | Tank role / material metadata | [ ] | High | Yes | Yes | No[^1] |
 | Dive-level `cns` / `otu` | [x] | Medium | Yes | Yes | Yes |
+| Sample `n2Load` / dive-level computer tissue snapshot (`computerTissue`: algorithm, start/end N2 and CNS) | [x] | Medium | Yes | N/A | N/A |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Yes | No | Partial |
 | Profile events / markers | [ ] | Medium | Yes | Yes | Partial |
 | Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | Yes | No | Yes |

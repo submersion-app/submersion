@@ -37,8 +37,10 @@ void main() {
         cnsActual: MetricDataSource.calculated,
         decoStopActual: MetricDataSource.calculated,
         gtrActual: MetricDataSource.computer,
+        gf99Actual: MetricDataSource.computer,
       );
       expect(info.ndlActual, MetricDataSource.computer);
+      expect(info.gf99Actual, MetricDataSource.computer);
       expect(info.gtrActual, MetricDataSource.computer);
       expect(info.ceilingActual, MetricDataSource.calculated);
       expect(info.ttsActual, MetricDataSource.computer);
@@ -54,9 +56,11 @@ void main() {
         cnsActual: MetricDataSource.calculated,
         decoStopActual: MetricDataSource.calculated,
         gtrActual: MetricDataSource.calculated,
+        gf99Actual: MetricDataSource.calculated,
       );
       expect(info.ndlActual, MetricDataSource.calculated);
       expect(info.gtrActual, MetricDataSource.calculated);
+      expect(info.gf99Actual, MetricDataSource.calculated);
     });
   });
 

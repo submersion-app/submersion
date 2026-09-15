@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -70,7 +71,7 @@ void main() {
       expect(row.hasDecoType, isTrue);
       expect(row.hasDecoStop, isTrue);
       expect(row.hasPositiveCeiling, isTrue);
-      expect(row.codecVersion, 1);
+      expect(row.codecVersion, ProfileSeriesCodec.version);
       expect(row.createdAt, now);
       expect(row.updatedAt, now);
 
