@@ -25,7 +25,7 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 
 export 'package:submersion/features/dive_sites/data/repositories/site_links.dart'
-    show SiteLinks;
+    show SiteLinks, SiteUsage;
 
 // Re-exported so the many existing `site_repository_impl.dart` importers of
 // SiteWithDiveCount keep compiling after the class moved to the domain layer.
@@ -510,7 +510,10 @@ class SiteRepository {
   /// and every step is individually idempotent/tombstoned. Site merge
   /// relinks media to the survivor inside its own transaction BEFORE
   /// deleting duplicates, so it never needs this cascade.
-  Future<void> _deleteSiteRows(
+  ///
+  /// Returns the links it cleared, read in the same transaction, so an undo
+  /// covers exactly the rows the delete touched.
+  Future<SiteLinks> _deleteSiteRows(
     List<String> ids, {
     required bool cascadeMedia,
   }) async {
@@ -518,7 +521,8 @@ class SiteRepository {
         ? await _mediaRepository.partitionMediaForSiteDeletion(ids)
         : null;
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
+    final links = await _db.transaction(() async {
+      final cleared = await readLinksToSites(_db, ids, clearedAt: now);
       await clearDiveSiteLinks(_db, _syncRepository, ids, now: now);
       await clearPlanLinksToSites(_db, _syncRepository, ids, now: now);
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
@@ -528,8 +532,9 @@ class SiteRepository {
           recordId: id,
         );
       }
+      return cleared;
     });
-    if (split == null) return;
+    if (split == null) return links;
     // The sites are gone by now, so a failure here cannot undo the delete
     // and must not be reported as one. What it leaves behind is recoverable:
     // site-only media stay as unlinked rows the orphan sweep collects, and
@@ -548,6 +553,7 @@ class SiteRepository {
         stackTrace: stackTrace,
       );
     }
+    return links;
   }
 
   /// Delete a site.
@@ -572,12 +578,14 @@ class SiteRepository {
     }
   }
 
-  /// The dives and plans a delete of [siteIds] would leave without a site.
-  Future<SiteLinks> getSiteLinks(List<String> siteIds) =>
-      readLinksToSites(_db, siteIds);
+  /// How many dives and plans a delete of [siteIds] would leave without a
+  /// site, for its confirmation.
+  Future<SiteUsage> getSiteUsage(List<String> siteIds) =>
+      countLinksToSites(_db, siteIds);
 
-  /// Undo for a delete: points the dives and plans of [links] back at their
-  /// re-created sites, leaving any given another site since.
+  /// Undo for a bulk delete: points the dives and plans of [links] (what
+  /// [bulkDeleteSites] returned) back at their re-created sites, leaving any
+  /// row edited since.
   Future<void> restoreSiteLinks(SiteLinks links) async {
     await restoreLinksToSites(
       _db,
@@ -605,17 +613,19 @@ class SiteRepository {
     }
   }
 
-  /// Bulk delete multiple sites
-  Future<void> bulkDeleteSites(
+  /// Bulk delete multiple sites. Returns the dive and plan links the delete
+  /// cleared, for [restoreSiteLinks] to undo.
+  Future<SiteLinks> bulkDeleteSites(
     List<String> ids, {
     bool cascadeMedia = true,
   }) async {
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return const SiteLinks();
     try {
       _log.info('Bulk deleting ${ids.length} sites');
-      await _deleteSiteRows(ids, cascadeMedia: cascadeMedia);
+      final links = await _deleteSiteRows(ids, cascadeMedia: cascadeMedia);
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} sites');
+      return links;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to bulk delete sites',

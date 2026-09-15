@@ -283,7 +283,7 @@ void main() {
   });
 
   group('site links', () {
-    test('getSiteLinks names every dive and plan at the sites, excluded and '
+    test('getSiteUsage counts every dive and plan at the sites, excluded and '
         'planned dives included, and nothing at other sites', () async {
       await seedSite('site-a');
       await seedSite('site-b');
@@ -298,10 +298,30 @@ void main() {
       await seedPlan('plan-b', siteId: 'site-b');
       await seedPlan('plan-c', siteId: 'site-c');
 
-      final links = await repository.getSiteLinks(['site-a', 'site-b']);
+      final usage = await repository.getSiteUsage(['site-a', 'site-b']);
 
-      expect(links.diveSiteIds, {'dive-a': 'site-a', 'dive-hidden': 'site-b'});
+      expect(usage.dives, 2);
+      expect(usage.plans, 1);
+      expect((await repository.getSiteUsage([])).dives, 0);
+    });
+
+    test('bulkDeleteSites returns the links it cleared, with the time it '
+        'stamped them', () async {
+      await seedSite('site-a');
+      await seedSite('site-b');
+      await seedSite('site-c');
+      await seedDive('dive-a', siteId: 'site-a');
+      await seedDive('dive-c', siteId: 'site-c');
+      await seedPlan('plan-b', siteId: 'site-b');
+
+      final links = await repository.bulkDeleteSites(['site-a', 'site-b']);
+
+      expect(links.diveSiteIds, {'dive-a': 'site-a'});
       expect(links.planSiteIds, {'plan-b': 'site-b'});
+      expect(
+        links.clearedAt,
+        (await rowOf('dives', 'dive-a')).read<int>('updated_at'),
+      );
     });
 
     test('restoreSiteLinks points the dives and plans a bulk delete cleared '
@@ -310,12 +330,9 @@ void main() {
       await seedSite('site-b');
       await seedDive('dive-a', siteId: 'site-a');
       await seedPlan('plan-b', siteId: 'site-b');
-      final links = await repository.getSiteLinks(['site-a', 'site-b']);
-      await repository.bulkDeleteSites(['site-a', 'site-b']);
+      final links = await repository.bulkDeleteSites(['site-a', 'site-b']);
       await seedSite('site-a');
       await seedSite('site-b');
-      await db.customStatement('UPDATE dives SET updated_at = ?', [stale]);
-      await db.customStatement('UPDATE dive_plans SET updated_at = ?', [stale]);
       await clearPendingMarks();
 
       await repository.restoreSiteLinks(links);
@@ -335,8 +352,7 @@ void main() {
       await seedSite('site-other');
       await seedDive('dive-moved', siteId: 'site-a');
       await seedDive('dive-gone', siteId: 'site-a');
-      final links = await repository.getSiteLinks(['site-a']);
-      await repository.deleteSite('site-a');
+      final links = await repository.bulkDeleteSites(['site-a']);
       await seedSite('site-a');
       await db.customStatement(
         "UPDATE dives SET site_id = 'site-other', updated_at = ? "
@@ -355,6 +371,36 @@ void main() {
         siteId: 'site-other',
       );
       expect(await pendingCountFor('dives', 'dive-gone'), 0);
+    });
+
+    test('restoreSiteLinks leaves a dive or plan edited since the delete, '
+        'even one still without a site', () async {
+      await seedSite('site-a');
+      await seedDive('dive-a', siteId: 'site-a');
+      await seedPlan('plan-a', siteId: 'site-a');
+      final links = await repository.bulkDeleteSites(['site-a']);
+      await seedSite('site-a');
+      // Saved again after the delete, with no site: a newer choice the
+      // undo must not overwrite.
+      for (final table in ['dives', 'dive_plans']) {
+        await db.customStatement(
+          'UPDATE $table SET updated_at = updated_at + 1',
+        );
+      }
+      await clearPendingMarks();
+
+      await repository.restoreSiteLinks(links);
+
+      expect(
+        (await rowOf('dives', 'dive-a')).readNullable<String>('site_id'),
+        isNull,
+      );
+      expect(
+        (await rowOf('dive_plans', 'plan-a')).readNullable<String>('site_id'),
+        isNull,
+      );
+      expect(await pendingCountFor('dives', 'dive-a'), 0);
+      expect(await pendingCountFor('divePlans', 'plan-a'), 0);
     });
   });
 

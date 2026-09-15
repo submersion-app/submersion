@@ -274,8 +274,8 @@ class _GatedSiteRepository extends SiteRepository {
   final gate = Completer<void>();
 
   @override
-  Future<SiteLinks> getSiteLinks(List<String> siteIds) async {
+  Future<SiteUsage> getSiteUsage(List<String> siteIds) async {
     await gate.future;
-    return super.getSiteLinks(siteIds);
+    return super.getSiteUsage(siteIds);
   }
 }

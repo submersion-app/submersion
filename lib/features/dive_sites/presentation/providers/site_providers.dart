@@ -570,10 +570,9 @@ class SiteListNotifier
   Future<({List<domain.DiveSite> sites, SiteLinks links})> bulkDeleteSites(
     List<String> ids,
   ) async {
-    // Read both before deleting, while the links still stand.
     final sitesToDelete = await _repository.getSitesByIds(ids);
-    final links = await _repository.getSiteLinks(ids);
-    await _repository.bulkDeleteSites(ids);
+    // The delete reports the links it cleared, read in its own transaction.
+    final links = await _repository.bulkDeleteSites(ids);
     await _loadSites();
     _invalidateSiteProviders(ids);
     return (sites: sitesToDelete, links: links);
