@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -218,4 +220,62 @@ void main() {
     expect(await diveSiteId('dive-1'), 'used');
     expect(await diveSiteId('dive-2'), 'used');
   });
+  testWidgets('SiteListContent bulk delete removes the sites its dialog '
+      'described, even when the selection changes while it counts', (
+    tester,
+  ) async {
+    setPhoneSize(tester);
+    await seedSites();
+    final gated = _GatedSiteRepository();
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          siteRepositoryProvider.overrideWithValue(gated),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('en'),
+          home: Scaffold(body: SiteListContent(showAppBar: false)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Used Site'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('selection_delete')));
+    await tester.pumpAndSettle();
+    // The count is still being read: check a second site meanwhile.
+    await tester.tap(find.text('Unused Site'));
+    await tester.pumpAndSettle();
+    gated.gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('delete 1 site?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(await siteRepository.getSiteById('used'), isNull);
+    expect(await siteRepository.getSiteById('unused'), isNotNull);
+  });
+}
+
+/// Holds the delete's usage read until [gate] completes, so a test can
+/// change the selection while the confirmation is still being prepared.
+class _GatedSiteRepository extends SiteRepository {
+  final gate = Completer<void>();
+
+  @override
+  Future<SiteLinks> getSiteLinks(List<String> siteIds) async {
+    await gate.future;
+    return super.getSiteLinks(siteIds);
+  }
 }

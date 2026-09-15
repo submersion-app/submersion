@@ -220,6 +220,29 @@ void main() {
       expect(await queue.allForTesting(), isEmpty);
     });
 
+    test('a media cleanup that fails after the site delete committed does '
+        'not report the delete as failed', () async {
+      await insertSite('s1');
+      await insertDive('d1');
+      await mediaRepository.createMedia(
+        item('b.jpg', siteId: 's1', diveId: 'd1'),
+      );
+      // The cleanup runs after the commit, so a failure there cannot undo
+      // the delete; reporting it as a failed delete would be wrong.
+      final failing = _FailingUnlinkMediaRepository();
+      final repository = SiteRepository(
+        mediaRepository: failing,
+        mediaDeletionCoordinator: MediaDeletionCoordinator(
+          mediaRepository: failing,
+          queue: () => queue,
+        ),
+      );
+
+      await expectLater(repository.deleteSite('s1'), completes);
+
+      expect(await db.select(db.diveSites).get(), isEmpty);
+    });
+
     test('cascadeMedia false leaves media untouched', () async {
       await insertSite('s1');
       final m = await mediaRepository.createMedia(item('a.jpg', siteId: 's1'));
@@ -230,4 +253,12 @@ void main() {
       expect(await mediaRepository.getMediaById(m.id), isNotNull);
     });
   });
+}
+
+/// Fails the post-commit unlink, standing in for any media cleanup failure.
+class _FailingUnlinkMediaRepository extends MediaRepository {
+  @override
+  Future<void> unlinkMediaFromDeletedSites(List<String> mediaIds) async {
+    throw StateError('unlink failed');
+  }
 }

@@ -310,8 +310,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   }
 
   Future<BulkActionOutcome> _confirmAndDelete() async {
-    final count = _selectedIds.length;
-    final usage = await readSiteDeleteUsage(ref, _selectedIds.toList());
+    // One snapshot for the dialog and the delete: the selection can change
+    // while the usage is read, and the delete must remove exactly the sites
+    // the dialog described.
+    final idsToDelete = _selectedIds.toList();
+    final count = idsToDelete.length;
+    final usage = await readSiteDeleteUsage(ref, idsToDelete);
     if (!mounted) return BulkActionOutcome.cancelled;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -342,7 +346,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
     if (confirmed == true && mounted) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final idsToDelete = _selectedIds.toList();
       _exitSelectionMode();
 
       final deleted = await ref

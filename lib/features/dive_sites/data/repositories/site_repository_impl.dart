@@ -530,11 +530,23 @@ class SiteRepository {
       }
     });
     if (split == null) return;
-    if (split.doomed.isNotEmpty) {
-      await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
-    }
-    if (split.unlinkIds.isNotEmpty) {
-      await _mediaRepository.unlinkMediaFromDeletedSites(split.unlinkIds);
+    // The sites are gone by now, so a failure here cannot undo the delete
+    // and must not be reported as one. What it leaves behind is recoverable:
+    // site-only media stay as unlinked rows the orphan sweep collects, and
+    // peers null media.site_id themselves when they apply the tombstone.
+    try {
+      if (split.doomed.isNotEmpty) {
+        await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
+      }
+      if (split.unlinkIds.isNotEmpty) {
+        await _mediaRepository.unlinkMediaFromDeletedSites(split.unlinkIds);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Deleted sites $ids, but could not clean up their media',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -659,14 +671,6 @@ class SiteRepository {
           if (dive.siteId != null) dive.id: dive.siteId!,
       };
 
-      final affectedPlans = await (_db.select(
-        _db.divePlans,
-      )..where((t) => t.siteId.isIn(duplicateIds))).get();
-      final planOriginalSiteIds = {
-        for (final plan in affectedPlans)
-          if (plan.siteId != null) plan.id: plan.siteId!,
-      };
-
       final affectedMedia = await (_db.select(
         _db.media,
       )..where((t) => t.siteId.isIn(duplicateIds))).get();
@@ -710,7 +714,10 @@ class SiteRepository {
       final typeIdsBySite = await _classification.getTypeIdsBySite(orderedIds);
       final tagIdsBySite = await _classification.getTagIdsBySite(orderedIds);
 
-      await _db.transaction(() async {
+      // Returns the plans it moved, read inside the transaction so a plan
+      // set at a duplicate meanwhile is moved too rather than failing the
+      // duplicate's delete.
+      final planOriginalSiteIds = await _db.transaction(() async {
         await _updateSiteRow(survivorSite, now);
         await _syncRepository.markRecordPending(
           entityType: 'diveSites',
@@ -719,7 +726,7 @@ class SiteRepository {
         );
 
         await _relinkDives(duplicateIds, survivorId, now);
-        await _relinkPlans(planOriginalSiteIds.keys, survivorId, now);
+        final movedPlans = await _relinkPlans(duplicateIds, survivorId, now);
         await _relinkMedia(duplicateIds, survivorId, now);
         await _relinkSiteFeatures(duplicateIds, survivorId, now);
         await _mergeExpectedSpecies(
@@ -740,6 +747,7 @@ class SiteRepository {
             recordId: duplicateId,
           );
         }
+        return movedPlans;
       });
 
       SyncEventBus.notifyLocalChange();
@@ -1212,28 +1220,36 @@ class SiteRepository {
     }
   }
 
-  /// Moves the dive plans [planIds] (those set at a merged-away duplicate)
-  /// to the survivor. `dive_plans.site_id` has no ON DELETE action, so a
-  /// plan left pointing at a duplicate would fail the duplicate's delete.
-  Future<void> _relinkPlans(
-    Iterable<String> planIds,
+  /// Moves the dive plans set at [duplicateIds] to the survivor, returning
+  /// each moved plan's original site for undo. `dive_plans.site_id` has no
+  /// ON DELETE action, so a plan left pointing at a duplicate would fail the
+  /// duplicate's delete.
+  Future<Map<String, String>> _relinkPlans(
+    List<String> duplicateIds,
     String survivorId,
     int now,
   ) async {
-    final ids = planIds.toList();
-    if (ids.isEmpty) return;
+    if (duplicateIds.isEmpty) return const {};
 
-    await (_db.update(_db.divePlans)..where((t) => t.id.isIn(ids))).write(
+    final affected = await (_db.select(
+      _db.divePlans,
+    )..where((t) => t.siteId.isIn(duplicateIds))).get();
+    if (affected.isEmpty) return const {};
+
+    await (_db.update(
+      _db.divePlans,
+    )..where((t) => t.siteId.isIn(duplicateIds))).write(
       DivePlansCompanion(siteId: Value(survivorId), updatedAt: Value(now)),
     );
 
-    for (final id in ids) {
+    for (final plan in affected) {
       await _syncRepository.markRecordPending(
         entityType: 'divePlans',
-        recordId: id,
+        recordId: plan.id,
         localUpdatedAt: now,
       );
     }
+    return {for (final plan in affected) plan.id: plan.siteId!};
   }
 
   /// Diver-placed annotations follow their site: a simple re-point with
