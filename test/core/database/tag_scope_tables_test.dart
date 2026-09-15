@@ -42,6 +42,25 @@ void main() {
     );
   });
 
+  test('equipment keeps its column, table and clockless links (v219)', () {
+    expect(TagScope.equipment.table, same(equipmentTagScopeTable));
+    expect(tagScopeTables.last, same(equipmentTagScopeTable));
+    expect(equipmentTagScopeTable.scopeColumn, 'applies_to_equipment');
+    expect(equipmentTagScopeTable.junctionTable, 'equipment_tags');
+    expect(equipmentTagScopeTable.parentColumn, 'equipment_id');
+    expect(equipmentTagScopeTable.syncEntity, 'equipmentTags');
+    expect(
+      equipmentTagScopeTable.restampedParentTable,
+      isNull,
+      reason: 'equipment links are clockless children (#1769)',
+    );
+    expect(
+      equipmentTagScopeTable.sweepsOrphanLinks,
+      isTrue,
+      reason: 'equipment links follow their site twin',
+    );
+  });
+
   test('no two scopes share a column, a junction or a sync entity', () {
     final columns = tagScopeTables.map((t) => t.scopeColumn).toList();
     final junctions = tagScopeTables.map((t) => t.junctionTable).toList();

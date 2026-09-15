@@ -21066,6 +21066,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Esta etiqueta está en $count equipos. Desactivar «Usar en equipos» la quita de esos equipos.',
+      one:
+          'Esta etiqueta está en 1 equipo. Desactivar «Usar en equipos» la quita de ese equipo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21083,10 +21096,14 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Quitar la etiqueta de los elementos existentes?';
 
   @override
-  String get tags_manage_scopeRequired => 'Elige inmersiones, puntos o ambos';
+  String get tags_manage_scopeRequired =>
+      'Elige al menos uno: inmersiones, puntos o equipo';
 
   @override
   String get tags_manage_scope_dives => 'Inmersiones';
+
+  @override
+  String get tags_manage_scope_equipment => 'Equipo';
 
   @override
   String get tags_manage_scope_sites => 'Puntos';
@@ -21104,7 +21121,22 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos',
+      one: '1 equipo',
+      zero: '0 equipos',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Usar en inmersiones';
+
+  @override
+  String get tags_manage_useForEquipment => 'Usar en equipos';
 
   @override
   String get tags_manage_useForSites => 'Usar en puntos';

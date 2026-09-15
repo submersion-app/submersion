@@ -327,6 +327,7 @@ class SyncData {
   final List<Map<String, dynamic>> siteTypes;
   final List<Map<String, dynamic>> siteSiteTypes;
   final List<Map<String, dynamic>> siteTags;
+  final List<Map<String, dynamic>> equipmentTags;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
@@ -416,6 +417,7 @@ class SyncData {
     this.siteTypes = const [],
     this.siteSiteTypes = const [],
     this.siteTags = const [],
+    this.equipmentTags = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
@@ -504,6 +506,7 @@ class SyncData {
     'siteTypes': siteTypes,
     'siteSiteTypes': siteSiteTypes,
     'siteTags': siteTags,
+    'equipmentTags': equipmentTags,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
@@ -597,6 +600,7 @@ class SyncData {
       siteTypes: _parseList(json['siteTypes']),
       siteSiteTypes: _parseList(json['siteSiteTypes']),
       siteTags: _parseList(json['siteTags']),
+      equipmentTags: _parseList(json['equipmentTags']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
@@ -1070,6 +1074,7 @@ class SyncDataSerializer {
     ),
     (key: 'siteSiteTypes', table: _db.siteSiteTypes, blob: false, full: null),
     (key: 'siteTags', table: _db.siteTags, blob: false, full: null),
+    (key: 'equipmentTags', table: _db.equipmentTags, blob: false, full: null),
     (key: 'mediaSpecies', table: _db.mediaSpecies, blob: false, full: null),
     (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
@@ -1445,6 +1450,7 @@ class SyncDataSerializer {
     'diveDiveTypes',
     'siteSiteTypes',
     'siteTags',
+    'equipmentTags',
     'weightPresetEntries',
     'tideRecords',
     'sightings',
@@ -1499,6 +1505,7 @@ class SyncDataSerializer {
     'diveTags': 'dive_tags',
     'siteSiteTypes': 'site_site_types',
     'siteTags': 'site_tags',
+    'equipmentTags': 'equipment_tags',
     'diveDiveTypes': 'dive_dive_types',
     'weightPresetEntries': 'weight_preset_entries',
     'tideRecords': 'tide_records',
@@ -1991,6 +1998,14 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      equipmentTags: await _safeExport(
+        'equipmentTags',
+        () async => _withPendingChildren(
+          'equipmentTags',
+          await _exportEquipmentTags(hlcSince),
+          pendingChildren,
+        ),
+      ),
       siteTypes: await _safeExport(
         'siteTypes',
         () => _exportSiteTypes(hlcSince),
@@ -2442,6 +2457,11 @@ class SyncDataSerializer {
       case 'siteTags':
         final row = await (_db.select(
           _db.siteTags,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'equipmentTags':
+        final row = await (_db.select(
+          _db.equipmentTags,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'diveRoles':
@@ -3178,6 +3198,21 @@ class SyncDataSerializer {
         );
   }
 
+  /// Applies one incoming `equipment_tags` row (v219, issue #1942), the
+  /// equipment twin of [_applySiteTagRecord]: the (equipment, tag) unique
+  /// index makes a peer's copy of a pair this device holds under another id
+  /// a no-op instead of a throw.
+  Future<void> _applyEquipmentTagRecord(EquipmentTag record) async {
+    await _db
+        .into(_db.equipmentTags)
+        .insert(
+          record,
+          onConflict: DoNothing<$EquipmentTagsTable, EquipmentTag>(
+            target: const [],
+          ),
+        );
+  }
+
   /// Applies one incoming record.
   ///
   /// HLC-bearing entities (`entityHasUpdatedAt == true`) apply via
@@ -3563,6 +3598,11 @@ class SyncDataSerializer {
         return;
       case 'siteTags':
         await _applySiteTagRecord(SiteTag.fromJson(_withTagAlias(data)));
+        return;
+      case 'equipmentTags':
+        await _applyEquipmentTagRecord(
+          EquipmentTag.fromJson(_withTagAlias(data)),
+        );
         return;
       case 'diveRoles':
         await _db
@@ -4523,6 +4563,19 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'equipmentTags':
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.equipmentTags,
+            records
+                .map((r) => EquipmentTag.fromJson(_withTagAlias(r)))
+                .toList(),
+            onConflict: DoNothing<$EquipmentTagsTable, EquipmentTag>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
       case 'diveRoles':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -4990,6 +5043,8 @@ class SyncDataSerializer {
         return plain(_db.siteSiteTypes, _db.siteSiteTypes.id);
       case 'siteTags':
         return plain(_db.siteTags, _db.siteTags.id);
+      case 'equipmentTags':
+        return plain(_db.equipmentTags, _db.equipmentTags.id);
       case 'diveRoles':
         return plain(_db.diveRoles, _db.diveRoles.id);
       case 'tankPresets':
@@ -5363,6 +5418,8 @@ class SyncDataSerializer {
         return _db.siteSiteTypes;
       case 'siteTags':
         return _db.siteTags;
+      case 'equipmentTags':
+        return _db.equipmentTags;
       case 'diveRoles':
         return _db.diveRoles;
       case 'tankPresets':
@@ -5770,6 +5827,11 @@ class SyncDataSerializer {
       case 'siteTags':
         await (_db.delete(
           _db.siteTags,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentTags':
+        await (_db.delete(
+          _db.equipmentTags,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveRoles':
@@ -6955,6 +7017,30 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.siteTags).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Equipment tag links (v219, issue #1942), gated on the parent item's
+  /// clock like [_exportSiteTags]. A changed link travels on its own pending
+  /// mark, never by re-stamping the item.
+  Future<List<Map<String, dynamic>>> _exportEquipmentTags(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedItems = await (_db.select(
+        _db.equipment,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final itemIds = modifiedItems.map((e) => e.id).toSet();
+      if (itemIds.isEmpty) return [];
+
+      return _childRowsOf(
+        itemIds,
+        (chunk) => (_db.select(
+          _db.equipmentTags,
+        )..where((t) => t.equipmentId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.equipmentTags).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

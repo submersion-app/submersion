@@ -20693,6 +20693,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'This tag is on $count equipment items. Turning off \"Use for equipment\" removes it from those items.',
+      one:
+          'This tag is on 1 equipment item. Turning off \"Use for equipment\" removes it from that item.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20710,10 +20723,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remove tag from existing items?';
 
   @override
-  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+  String get tags_manage_scopeRequired =>
+      'Choose at least one: dives, sites, or equipment';
 
   @override
   String get tags_manage_scope_dives => 'Dives';
+
+  @override
+  String get tags_manage_scope_equipment => 'Equipment';
 
   @override
   String get tags_manage_scope_sites => 'Sites';
@@ -20731,7 +20748,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipment items',
+      one: '1 equipment item',
+      zero: '0 equipment items',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Use for dives';
+
+  @override
+  String get tags_manage_useForEquipment => 'Use for equipment';
 
   @override
   String get tags_manage_useForSites => 'Use for sites';

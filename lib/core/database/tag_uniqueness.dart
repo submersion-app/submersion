@@ -56,6 +56,28 @@ const String kCreateDiveTagsUniqueIndexSql =
     'CREATE UNIQUE INDEX IF NOT EXISTS $kDiveTagsUniqueIndexName '
     'ON dive_tags(dive_id, tag_id)';
 
+/// Unique index over the `equipment_tags` junction (v219, issue #1942), one
+/// row per (item, tag). Like `site_tags`, the table has the index from the
+/// day it exists, so the collapse below only runs on a database that lost it.
+const String kEquipmentTagsUniqueIndexName =
+    'idx_equipment_tags_equipment_tag_unique';
+
+const String kCreateEquipmentTagsUniqueIndexSql =
+    'CREATE UNIQUE INDEX IF NOT EXISTS $kEquipmentTagsUniqueIndexName '
+    'ON equipment_tags(equipment_id, tag_id)';
+
+/// Keeps the oldest row of each (item, tag) pair, `id` breaking ties, so
+/// every device lands on the same survivor.
+const String _collapseDuplicateEquipmentTagPairsSql = '''
+  DELETE FROM equipment_tags WHERE rowid IN (
+    SELECT rowid FROM (
+      SELECT rowid, ROW_NUMBER() OVER (
+        PARTITION BY equipment_id, tag_id ORDER BY created_at ASC, id ASC
+      ) AS rn FROM equipment_tags
+    ) WHERE rn > 1
+  )
+''';
+
 /// Strips surrounding whitespace from stored tag names.
 ///
 /// The index keys on `lower(trim(name))`, so a stored " Wreck" and a stored
@@ -269,6 +291,26 @@ Future<void> assertTagUniqueness(DatabaseConnectionUser db) async {
   await collapseDuplicateTags(db);
   await db.customStatement(kCreateTagsUniqueIndexSql);
   await db.customStatement(kCreateDiveTagsUniqueIndexSql);
+}
+
+/// Asserts the `equipment_tags` unique index exists, collapsing duplicate
+/// pairs first so creating it cannot abort. One `sqlite_master` lookup when
+/// the index is present. Self-guarding on the table existing, so partial
+/// migration-test fixtures pass through.
+///
+/// Called from `onCreate` (`createAll()` never builds raw-SQL indexes), the
+/// v219 rung and `beforeOpen`, through `_assertEquipmentTagSchema`.
+Future<void> assertEquipmentTagUniqueness(DatabaseConnectionUser db) async {
+  if (!await _tableExists(db, 'equipment_tags')) return;
+  final present = await db
+      .customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = ?",
+        variables: const [Variable<String>(kEquipmentTagsUniqueIndexName)],
+      )
+      .get();
+  if (present.isNotEmpty) return;
+  await db.customStatement(_collapseDuplicateEquipmentTagPairsSql);
+  await db.customStatement(kCreateEquipmentTagsUniqueIndexSql);
 }
 
 /// Collapses whitespace and case so two spellings of the same DDL compare

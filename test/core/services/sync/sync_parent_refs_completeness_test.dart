@@ -95,6 +95,7 @@ void main() {
     'site_types': 'siteTypes',
     'site_site_types': 'siteSiteTypes',
     'site_tags': 'siteTags',
+    'equipment_tags': 'equipmentTags',
     'dive_safety_reviews': 'diveSafetyReviews',
     'dive_safety_findings': 'diveSafetyFindings',
     'dive_plans': 'divePlans',

@@ -173,6 +173,87 @@ void main() {
       });
     });
 
+    group('from equipment (issue #1942)', () {
+      TagStatistic gearStat(
+        String id,
+        String name, {
+        required int items,
+        int dives = 0,
+        bool forDives = false,
+      }) => TagStatistic(
+        tag: Tag(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          scopes: {if (forDives) TagScope.dives, TagScope.equipment},
+        ),
+        counts: {TagScope.dives: dives, TagScope.equipment: items},
+      );
+
+      // Dive-first order, as tagStatisticsProvider returns it.
+      final mixed = [
+        ...testStats,
+        gearStat('both', 'Favourite', items: 1, dives: 5, forDives: true),
+        gearStat('travel', 'Travel kit', items: 7),
+        gearStat('rental', 'Rental', items: 2),
+      ];
+
+      testWidgets('lists only equipment tags, most used on equipment first', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.equipment),
+        );
+        await tester.pumpAndSettle();
+
+        expect(renderedTagNames(tester), ['Travel kit', 'Rental', 'Favourite']);
+      });
+
+      testWidgets('shows how many equipment items use each tag', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.equipment),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('7 equipment items'), findsOneWidget);
+        expect(find.text('1 equipment item'), findsOneWidget);
+        expect(find.textContaining('dives'), findsNothing);
+      });
+
+      testWidgets('confirms the picks in the same equipment order', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.equipment),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Favourite'));
+        await tester.tap(find.text('Travel kit'));
+        await tester.pump();
+        await tester.tap(find.text('Add 2 tags'));
+        await tester.pump();
+
+        expect(picked!.map((t) => t.id), ['travel', 'both']);
+      });
+
+      testWidgets('a dive never lists an equipment-only tag', (tester) async {
+        await tester.pumpWidget(buildTestWidget(stats: mixed));
+        await tester.pumpAndSettle();
+
+        expect(renderedTagNames(tester), [
+          'Wreck',
+          'Night',
+          'Deco',
+          'Training',
+          'Favourite',
+        ]);
+      });
+    });
+
     testWidgets('hides tags already attached to the dive', (tester) async {
       await tester.pumpWidget(
         buildTestWidget(selectedTagIds: {'tag2', 'tag4'}),

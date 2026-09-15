@@ -1518,6 +1518,12 @@ class SyncService {
             hasUpdatedAt: false,
           ),
           (type: 'siteTags', records: data.siteTags, hasUpdatedAt: false),
+          // After both parents (equipment and tags), issue #1942.
+          (
+            type: 'equipmentTags',
+            records: data.equipmentTags,
+            hasUpdatedAt: false,
+          ),
           (
             type: 'mediaSpecies',
             records: data.mediaSpecies,
@@ -2354,6 +2360,7 @@ class SyncService {
     'siteSpecies': false,
     'siteSiteTypes': false,
     'siteTags': false,
+    'equipmentTags': false,
     'mediaSpecies': false,
     'siteFeatures': true,
     'csvPresets': true,
@@ -2540,6 +2547,11 @@ class SyncService {
     'siteSiteTypes': [(field: 'siteId', parent: 'diveSites', nullable: false)],
     'siteTags': [
       (field: 'siteId', parent: 'diveSites', nullable: false),
+      (field: 'tagId', parent: 'tags', nullable: false),
+    ],
+    // v219: an equipment item's tags (issue #1942), the siteTags twin.
+    'equipmentTags': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
     'mediaSpecies': [
