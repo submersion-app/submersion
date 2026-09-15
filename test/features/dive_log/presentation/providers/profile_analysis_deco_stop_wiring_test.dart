@@ -72,8 +72,8 @@ void main() {
   }
 
   test(
-    'legend decoStopSource=computer reaches overlayComputerDecoData through '
-    'profileAnalysisProvider, independently of the default calculated source',
+    'legend decoStopSource reaches overlayComputerDecoData through '
+    'profileAnalysisProvider, in both directions off the computer default',
     () async {
       const diveId = 'wiring-dive';
       await seedDiveWithComputerCeiling(diveId);
@@ -85,31 +85,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Default legend state (calculated): the DC ceiling must not leak into
-      // decoStopCurve, and the published source info must say so.
-      final calculated = await container.read(
-        profileAnalysisProvider(diveId).future,
-      );
-      expect(calculated, isNotNull);
-      expect(
-        calculated!.decoStopCurve,
-        isNot(contains(4.5)),
-        reason:
-            'calculated (default) decoStopSource must not carry the raw DC '
-            'ceiling through -- if it does, decoStopSource is not wired',
-      );
-      expect(
-        container.read(metricSourceInfoProvider)?.decoStopActual,
-        MetricDataSource.calculated,
-      );
-
-      // Flip the legend's deco stop source to computer and re-read. The
-      // FutureProvider watches profileLegendProvider.select((s) =>
-      // s.decoStopSource), so this must trigger a recompute.
-      container
-          .read(profileLegendProvider.notifier)
-          .setDecoStopSource(MetricDataSource.computer);
-
+      // Default legend state (computer, since v219): the raw DC ceiling must
+      // reach decoStopCurve verbatim, and the published source info says so.
       final overlaid = await container.read(
         profileAnalysisProvider(diveId).future,
       );
@@ -118,12 +95,36 @@ void main() {
         overlaid!.decoStopCurve,
         [0.0, 4.5, 4.5, 0.0],
         reason:
-            'legend decoStopSource=computer must reach overlayComputerDecoData '
-            'and surface the raw DC ceiling values verbatim (unquantized)',
+            'the default decoStopSource=computer must reach '
+            'overlayComputerDecoData and surface the raw DC ceiling values '
+            'verbatim (unquantized)',
       );
       expect(
         container.read(metricSourceInfoProvider)?.decoStopActual,
         MetricDataSource.computer,
+      );
+
+      // Flip the legend's deco stop source to calculated and re-read. The
+      // FutureProvider watches profileLegendProvider.select((s) =>
+      // s.decoStopSource), so this must trigger a recompute.
+      container
+          .read(profileLegendProvider.notifier)
+          .setDecoStopSource(MetricDataSource.calculated);
+
+      final calculated = await container.read(
+        profileAnalysisProvider(diveId).future,
+      );
+      expect(calculated, isNotNull);
+      expect(
+        calculated!.decoStopCurve,
+        isNot(contains(4.5)),
+        reason:
+            'calculated decoStopSource must not carry the raw DC ceiling '
+            'through -- if it does, decoStopSource is not wired',
+      );
+      expect(
+        container.read(metricSourceInfoProvider)?.decoStopActual,
+        MetricDataSource.calculated,
       );
     },
   );

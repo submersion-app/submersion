@@ -2056,14 +2056,20 @@ class DiverSettings extends Table {
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
   BoolColumn get useDiveComputerCnsData =>
       boolean().withDefault(const Constant(false))();
-  IntColumn get defaultNdlSource => integer().withDefault(const Constant(1))();
+  // v219: these six default to computer (0), so a dive computer's own
+  // readings lead wherever it recorded them and the calculated curve stands
+  // in only where it did not. Existing libraries keep whatever they stored;
+  // only a fresh CREATE TABLE picks up this default.
+  // coverage:ignore-start
+  IntColumn get defaultNdlSource => integer().withDefault(const Constant(0))();
   IntColumn get defaultCeilingSource =>
-      integer().withDefault(const Constant(1))();
-  IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
-  IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
+      integer().withDefault(const Constant(0))();
+  IntColumn get defaultTtsSource => integer().withDefault(const Constant(0))();
+  IntColumn get defaultCnsSource => integer().withDefault(const Constant(0))();
   // Gas time remaining on the profile chart (v177). Source is a
   // MetricDataSource index: 0 = computer, 1 = calculated. Reserve is bar.
-  IntColumn get defaultGtrSource => integer().withDefault(const Constant(1))();
+  IntColumn get defaultGtrSource => integer().withDefault(const Constant(0))();
+  // coverage:ignore-end
   RealColumn get gtrReservePressure =>
       real().withDefault(const Constant(50.0))();
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
@@ -2073,8 +2079,10 @@ class DiverSettings extends Table {
   // index: 0 = computer, 1 = calculated.
   BoolColumn get showDecoStopsOnProfile =>
       boolean().withDefault(const Constant(true))();
+  // coverage:ignore-start
   IntColumn get defaultDecoStopSource =>
-      integer().withDefault(const Constant(1))();
+      integer().withDefault(const Constant(0))();
+  // coverage:ignore-end
   // Post-dive safety review (safety features phase 1, v123)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -4181,7 +4189,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 218;
+  static const int currentSchemaVersion = 219;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4787,6 +4795,13 @@ class AppDatabase extends _$AppDatabase {
     // types and tags) shipped first, and a rung at or below the shipped
     // version never runs its onUpgrade step, so this one sits above both.
     218,
+    // v219: the per-metric data-source column defaults flip from calculated
+    // to computer for fresh installs only. Existing libraries keep their
+    // stored preferences; there is no row rewrite. Renumbered from 214, 216
+    // and 218: main shipped the planner rungs (214, 215), site types and
+    // tags (217) and the site detail sections (218) while this branch was
+    // open.
+    219,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -12186,6 +12201,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertSiteDetailColumns();
         }
         if (from < 218) await reportProgress();
+        // v219: the per-metric data-source column defaults flip from
+        // calculated to computer for fresh installs only. Existing
+        // libraries keep their stored preferences; there is no row rewrite.
+        // The bump exists so CREATE TABLE and a later schema cannot share
+        // 218 with two different defaults.
+        if (from < 219) await reportProgress();
       },
       beforeOpen: (details) async {
         // v217 backstop: the tag scope flags.
