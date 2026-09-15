@@ -4247,6 +4247,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_detail_noDivesLogged => 'لا توجد غطسات مسجلة بعد';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستبقى $count غطسة بدون مركز غوص.',
+      one: 'ستبقى غطسة واحدة بدون مركز غوص.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return 'هل أنت متأكد من حذف \"$name\"؟';
   }
@@ -8755,6 +8766,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'عرض المواقع التي تحمل $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستبقى $count غطسة بدون موقع.',
+      one: 'ستبقى غطسة واحدة بدون موقع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستبقى $count خطة محفوظة بدون موقع.',
+      one: 'ستبقى خطة محفوظة واحدة بدون موقع.',
+    );
+    return '$_temp0';
   }
 
   @override

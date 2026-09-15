@@ -4301,6 +4301,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_detail_noDivesLogged => 'Nog geen duiken gelogd';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken blijven zonder duikcentrum.',
+      one: '1 duik blijft zonder duikcentrum.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return 'Weet je zeker dat je \"$name\" wilt verwijderen?';
   }
@@ -8857,6 +8868,28 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Duikstekken met $name tonen';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken blijven zonder stek.',
+      one: '1 duik blijft zonder stek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count opgeslagen plannen blijven zonder stek.',
+      one: '1 opgeslagen plan blijft zonder stek.',
+    );
+    return '$_temp0';
   }
 
   @override

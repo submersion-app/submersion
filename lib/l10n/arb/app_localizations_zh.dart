@@ -4107,6 +4107,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_detail_noDivesLogged => '尚未记录潜水';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水将不再关联潜水中心。',
+      one: '1 次潜水将不再关联潜水中心。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return '确定要删除 \"$name\"?';
   }
@@ -8499,6 +8510,28 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return '显示带有 $name 的潜水点';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水将不再关联潜水点。',
+      one: '1 次潜水将不再关联潜水点。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个已保存的计划将不再关联潜水点。',
+      one: '1 个已保存的计划将不再关联潜水点。',
+    );
+    return '$_temp0';
   }
 
   @override
