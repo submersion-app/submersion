@@ -13,12 +13,15 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// The Transfer CSV export builds its units from the chosen mode (#1813).
 void main() {
@@ -44,6 +47,7 @@ void main() {
           ],
         ),
         equipmentComponentRepositoryProvider.overrideWithValue(_NoComponents()),
+        equipmentTagRepositoryProvider.overrideWithValue(_OneTag()),
         settingsProvider.overrideWith((ref) => _ImperialSettings()),
         exportServiceProvider.overrideWithValue(export),
       ],
@@ -78,6 +82,26 @@ void main() {
     }
   });
 
+  test(
+    "the equipment CSV gets each exported item's tag names (#1942)",
+    () async {
+      final export = _FakeExportService();
+      final notifier = (await loaded(
+        export,
+      )).read(exportNotifierProvider.notifier);
+      for (final run in <Future<void> Function()>[
+        () => notifier.exportEquipmentToCsv(),
+        () => notifier.saveEquipmentCsvToFile(),
+      ]) {
+        export.tagNames = null;
+        await run();
+        expect(export.tagNames, {
+          'e1': ['Travel'],
+        });
+      }
+    },
+  );
+
   test('My units builds the export units from the diver settings', () async {
     final export = _FakeExportService();
     await make(export)
@@ -110,6 +134,7 @@ class _FixedDivesRepository implements DiveRepository {
 
 class _FakeExportService implements ExportService {
   CsvExportUnits? units;
+  Map<String, List<String>>? tagNames;
 
   @override
   Future<String> exportDivesToCsv(
@@ -155,9 +180,11 @@ class _FakeExportService implements ExportService {
   Future<String> exportEquipmentToCsv(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    Map<String, List<String>> tagNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     this.units = units;
+    this.tagNames = tagNames;
     return '/tmp/e.csv';
   }
 
@@ -165,10 +192,12 @@ class _FakeExportService implements ExportService {
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    Map<String, List<String>> tagNames = const {},
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     this.units = units;
+    this.tagNames = tagNames;
     return '/tmp/e.csv';
   }
 
@@ -187,4 +216,23 @@ class _ImperialSettings extends StateNotifier<AppSettings>
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// Tags for the exported item and for one that is not exported.
+class _OneTag extends Fake implements EquipmentTagRepository {
+  @override
+  Future<Map<String, List<Tag>>> getTagsByEquipment() async {
+    final now = DateTime.utc(2026);
+    final travel = Tag(
+      id: 't1',
+      name: 'Travel',
+      createdAt: now,
+      updatedAt: now,
+      scopes: const {TagScope.equipment},
+    );
+    return {
+      'e1': [travel],
+      'gone': [travel],
+    };
+  }
 }

@@ -9,10 +9,11 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// Writes the equipment CSV. [write]'s `componentNames` maps an assembly's
-/// id to its parts' names in template order (issue #1487); items absent
-/// from it get an empty cell. Free-text cells go through [sanitizeCsvField]
-/// so a spreadsheet never evaluates them as formulas; the importer reverses
-/// it.
+/// id to its parts' names in template order (issue #1487), and `tagNames`
+/// maps an item's id to its tag names (issue #1942); items absent from
+/// either get an empty cell. Both lists use the list codec. Free-text cells
+/// go through [sanitizeCsvField] so a spreadsheet never evaluates them as
+/// formulas; the importer reverses it.
 class CsvEquipmentWriter {
   CsvEquipmentWriter(this.units);
 
@@ -35,6 +36,7 @@ class CsvEquipmentWriter {
   String write(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    Map<String, List<String>> tagNames = const {},
   }) {
     final rows = <List<dynamic>>[
       [
@@ -52,6 +54,7 @@ class CsvEquipmentWriter {
         units.header(CsvColumns.dryWeight),
         'Attributes',
         'Components',
+        'Tags',
         'Active',
         'Notes',
       ],
@@ -86,6 +89,9 @@ class CsvEquipmentWriter {
           componentNames[item.id] == null
               ? null
               : joinCsvList(componentNames[item.id]!),
+        ),
+        sanitizeCsvField(
+          tagNames[item.id] == null ? null : joinCsvList(tagNames[item.id]!),
         ),
         item.isActive ? 'Yes' : 'No',
         sanitizeCsvField(item.notes.replaceAll('\n', ' ')),
