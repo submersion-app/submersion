@@ -7,7 +7,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
 /// Filter state for the equipment list, shared by the phone, master-detail and
 /// table layouts and edited through the filter panel.
 ///
-/// Three axes:
+/// Four axes:
 ///
 /// - Status decides which provider the list reads: the default active-gear
 ///   view, the computed service-due list, or one [EquipmentStatus]. Those are
@@ -16,6 +16,9 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
 ///   AND semantics.
 /// - Attribute conditions (#1805) narrow the selected category by its choice
 ///   fields, client-side, ANDed. They belong to the category.
+/// - Tags (issue #1942) narrow client-side too: an item matches when it
+///   carries any selected tag. Tags are not on the entity, so [apply] takes
+///   the list's batch map of tag ids per item.
 @immutable
 class EquipmentFilterState {
   /// The status to show, or null for the default view. The default hides
@@ -33,11 +36,15 @@ class EquipmentFilterState {
   /// clearing the category through [copyWith] drops them.
   final List<EquipmentAttrCondition> attrConditions;
 
+  /// Tag ids, any-of (issue #1942). Empty means no tag narrowing.
+  final Set<String> tagIds;
+
   const EquipmentFilterState({
     this.status,
     this.serviceDueOnly = false,
     this.type,
     this.attrConditions = const [],
+    this.tagIds = const {},
   }) : assert(
          !(serviceDueOnly && status != null),
          'The status axis is a single choice: service due or a status, never '
@@ -47,26 +54,53 @@ class EquipmentFilterState {
   /// Whether the panel is narrowing anything, i.e. whether the top-bar icon
   /// should carry its badge.
   bool get hasActiveFilters =>
-      hasStatusFilter || type != null || attrConditions.isNotEmpty;
+      hasStatusFilter ||
+      type != null ||
+      attrConditions.isNotEmpty ||
+      tagIds.isNotEmpty;
 
   /// Whether the status axis is anything other than the default view.
   bool get hasStatusFilter => status != null || serviceDueOnly;
 
-  /// Narrow [equipment] to the selected category and its conditions.
+  /// Narrow [equipment] to the selected category, its conditions and the
+  /// selected tags. [tagIdsByEquipment] is each item's tag ids, keyed by
+  /// item id (an item with no entry has no tags).
   ///
   /// The status axis is applied upstream by provider selection, so this is the
   /// only filtering the list itself has to do.
-  List<EquipmentItem> apply(List<EquipmentItem> equipment) {
+  List<EquipmentItem> apply(
+    List<EquipmentItem> equipment,
+    Map<String, Iterable<String>> tagIdsByEquipment,
+  ) {
     final selected = type;
-    if (selected == null && attrConditions.isEmpty) return equipment;
+    if (selected == null && attrConditions.isEmpty && tagIds.isEmpty) {
+      return equipment;
+    }
     return equipment
         .where(
           (e) =>
               (selected == null || e.type == selected) &&
-              attrConditions.every((c) => c.matches(e)),
+              attrConditions.every((c) => c.matches(e)) &&
+              (tagIds.isEmpty ||
+                  (tagIdsByEquipment[e.id] ?? const <String>[]).any(
+                    tagIds.contains,
+                  )),
         )
         .toList();
   }
+
+  /// Whether the tag selection is what emptied [equipment]: some item passes
+  /// the category and its conditions, but none of those carries a selected
+  /// tag. The empty state blames the axis that did the emptying.
+  bool tagsEmptied(
+    List<EquipmentItem> equipment,
+    Map<String, Iterable<String>> tagIdsByEquipment,
+  ) =>
+      tagIds.isNotEmpty &&
+      apply(equipment, tagIdsByEquipment).isEmpty &&
+      copyWith(
+        clearTagIds: true,
+      ).apply(equipment, tagIdsByEquipment).isNotEmpty;
 
   /// Copy with per-axis clearing. Clearing the status axis resets both of its
   /// values, since they are one choice to the diver. A new or cleared
@@ -77,9 +111,11 @@ class EquipmentFilterState {
     bool? serviceDueOnly,
     EquipmentType? type,
     List<EquipmentAttrCondition>? attrConditions,
+    Set<String>? tagIds,
     bool clearStatus = false,
     bool clearType = false,
     bool clearAttrConditions = false,
+    bool clearTagIds = false,
   }) {
     final nextType = clearType ? null : (type ?? this.type);
     final categoryChanged = nextType != this.type;
@@ -93,6 +129,8 @@ class EquipmentFilterState {
           ? const []
           : (attrConditions ??
                 (categoryChanged ? const [] : this.attrConditions)),
+      // Tags do not belong to the category, so a new one keeps them.
+      tagIds: clearTagIds ? const {} : (tagIds ?? this.tagIds),
     );
   }
 
@@ -103,14 +141,20 @@ class EquipmentFilterState {
           other.status == status &&
           other.serviceDueOnly == serviceDueOnly &&
           other.type == type &&
-          listEquals(other.attrConditions, attrConditions);
+          listEquals(other.attrConditions, attrConditions) &&
+          setEquals(other.tagIds, tagIds);
 
   @override
-  int get hashCode =>
-      Object.hash(status, serviceDueOnly, type, Object.hashAll(attrConditions));
+  int get hashCode => Object.hash(
+    status,
+    serviceDueOnly,
+    type,
+    Object.hashAll(attrConditions),
+    Object.hashAllUnordered(tagIds),
+  );
 
   @override
   String toString() =>
       'EquipmentFilterState(status: $status, serviceDueOnly: $serviceDueOnly, '
-      'type: $type, attrConditions: $attrConditions)';
+      'type: $type, attrConditions: $attrConditions, tagIds: $tagIds)';
 }

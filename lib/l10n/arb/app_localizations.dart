@@ -19696,6 +19696,96 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get equipment_appBar_title;
 
+  /// No description provided for @equipment_bulkTags_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tags'**
+  String get equipment_bulkTags_action;
+
+  /// No description provided for @equipment_bulkTags_adding.
+  ///
+  /// In en, this message translates to:
+  /// **'adding to all {total}'**
+  String equipment_bulkTags_adding(int total);
+
+  /// No description provided for @equipment_bulkTags_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}'**
+  String equipment_bulkTags_applied(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}'**
+  String equipment_bulkTags_confirmAdding(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removing from 1 equipment item} other{Removing from all {count} equipment items}}'**
+  String equipment_bulkTags_confirmRemoving(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply changes?'**
+  String get equipment_bulkTags_confirmTitle;
+
+  /// No description provided for @equipment_bulkTags_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment tags yet'**
+  String get equipment_bulkTags_empty;
+
+  /// No description provided for @equipment_bulkTags_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update tags: {error}'**
+  String equipment_bulkTags_failed(String error);
+
+  /// No description provided for @equipment_bulkTags_onAll.
+  ///
+  /// In en, this message translates to:
+  /// **'on all {count}'**
+  String equipment_bulkTags_onAll(int count);
+
+  /// No description provided for @equipment_bulkTags_onSome.
+  ///
+  /// In en, this message translates to:
+  /// **'on {count} of {total}'**
+  String equipment_bulkTags_onSome(int count, int total);
+
+  /// No description provided for @equipment_bulkTags_removing.
+  ///
+  /// In en, this message translates to:
+  /// **'removing from all'**
+  String get equipment_bulkTags_removing;
+
+  /// No description provided for @equipment_bulkTags_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_bulkTags_tagsLabel;
+
+  /// No description provided for @equipment_bulkTags_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Edit tags on 1 item} other{Edit tags on {count} items}}'**
+  String equipment_bulkTags_title(int count);
+
+  /// No description provided for @equipment_bulkTags_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get equipment_bulkTags_undo;
+
+  /// No description provided for @equipment_bulkTags_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the tag change.'**
+  String get equipment_bulkTags_undoFailed;
+
   /// No description provided for @equipment_deleteDialog_cancel.
   ///
   /// In en, this message translates to:
@@ -20494,6 +20584,12 @@ abstract class AppLocalizations {
   /// **'Service is overdue!'**
   String get equipment_detail_serviceOverdue;
 
+  /// Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag
+  ///
+  /// In en, this message translates to:
+  /// **'Show equipment with {name}'**
+  String equipment_detail_showEquipmentWith(String name);
+
   /// No description provided for @equipment_detail_sizeLabel.
   ///
   /// In en, this message translates to:
@@ -20866,6 +20962,12 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get equipment_edit_statusLabel;
 
+  /// No description provided for @equipment_edit_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_edit_tagsLabel;
+
   /// No description provided for @equipment_edit_parentLabel.
   ///
   /// In en, this message translates to:
@@ -20980,6 +21082,12 @@ abstract class AppLocalizations {
   /// **'No equipment with this status'**
   String get equipment_list_emptyState_noStatusMatch;
 
+  /// No description provided for @equipment_list_emptyState_noTagMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment with these tags'**
+  String get equipment_list_emptyState_noTagMatch;
+
   /// Empty-state body shown when a selected category chip narrowed the (already non-empty) status-filtered list down to zero items
   ///
   /// In en, this message translates to:
@@ -21063,6 +21171,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get equipment_filter_section_status;
+
+  /// No description provided for @equipment_filter_section_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_filter_section_tags;
 
   /// No description provided for @equipment_filter_section_category.
   ///
@@ -34537,10 +34651,47 @@ abstract class AppLocalizations {
     int siteCount,
   );
 
+  /// No description provided for @tags_manage_deleteMessage_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {count, plural, =1{1 equipment item} other{{count} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_equipment(String tagName, int count);
+
+  /// No description provided for @tags_manage_deleteMessage_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_deleteMessage_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_deleteMessage_all.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_deleteMessage_unused.
   ///
   /// In en, this message translates to:
-  /// **'\"{tagName}\" is not used on any dives or sites. This cannot be undone.'**
+  /// **'\"{tagName}\" is not used on any dives, sites, or equipment. This cannot be undone.'**
   String tags_manage_deleteMessage_unused(String tagName);
 
   /// No description provided for @tags_manage_bulkDeleteTitle.
@@ -34570,10 +34721,44 @@ abstract class AppLocalizations {
     int siteCount,
   );
 
+  /// No description provided for @tags_manage_bulkDeleteMessage_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount);
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_all.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_bulkDeleteMessage_unused.
   ///
   /// In en, this message translates to:
-  /// **'These tags are not used on any dives or sites. This cannot be undone.'**
+  /// **'These tags are not used on any dives, sites, or equipment. This cannot be undone.'**
   String get tags_manage_bulkDeleteMessage_unused;
 
   /// No description provided for @tags_manage_mergeTitle.
@@ -34612,10 +34797,44 @@ abstract class AppLocalizations {
   /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total.'**
   String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount);
 
+  /// No description provided for @tags_manage_mergeAffected_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {count, plural, =1{1 equipment item} other{{count} equipment items}} total.'**
+  String tags_manage_mergeAffected_equipment(int count);
+
+  /// No description provided for @tags_manage_mergeAffected_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_mergeAffected_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_mergeAffected_all.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_mergeAffected_unused.
   ///
   /// In en, this message translates to:
-  /// **'These tags are not used on any dives or sites.'**
+  /// **'These tags are not used on any dives, sites, or equipment.'**
   String get tags_manage_mergeAffected_unused;
 
   /// No description provided for @tags_manage_mergeAction.
@@ -50290,6 +50509,12 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get enum_equipmentField_notes;
 
+  /// No description provided for @enum_equipmentField_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_equipmentField_tags;
+
   /// No description provided for @enum_equipmentField_itemName_short.
   ///
   /// In en, this message translates to:
@@ -50385,6 +50610,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get enum_equipmentField_notes_short;
+
+  /// No description provided for @enum_equipmentField_tags_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_equipmentField_tags_short;
 
   /// No description provided for @enum_diveCenterField_centerName.
   ///

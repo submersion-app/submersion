@@ -11760,6 +11760,93 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_appBar_title => 'Equipamento';
 
   @override
+  String get equipment_bulkTags_action => 'Editar etiquetas';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'adicionando a todos os $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Etiquetas atualizadas em $count itens',
+      one: 'Etiquetas atualizadas em 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Adicionando a todos os $count equipamentos',
+      one: 'Adicionando a 1 equipamento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removendo de todos os $count equipamentos',
+      one: 'Removendo de 1 equipamento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Aplicar alterações?';
+
+  @override
+  String get equipment_bulkTags_empty =>
+      'Ainda não há etiquetas de equipamento';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Não foi possível atualizar as etiquetas: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'em todos os $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'em $count de $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'removendo de todos';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Etiquetas';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Editar etiquetas de $count itens',
+      one: 'Editar etiquetas de 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Desfazer';
+
+  @override
+  String get equipment_bulkTags_undoFailed =>
+      'Não foi possível desfazer a alteração das etiquetas.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Cancelar';
 
   @override
@@ -12286,6 +12373,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'Manutencao em atraso!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'Mostrar equipamentos com $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'Tamanho';
 
   @override
@@ -12496,6 +12588,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_tagsLabel => 'Etiquetas';
+
+  @override
   String get equipment_edit_parentLabel => 'Instalado em';
 
   @override
@@ -12565,6 +12660,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum equipamento com este status';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'Nenhum equipamento com estas etiquetas';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'Nenhum equipamento nesta categoria';
 
@@ -12611,6 +12710,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_section_tags => 'Etiquetas';
 
   @override
   String get equipment_filter_section_category => 'Categoria';
@@ -21187,8 +21289,89 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return '\"$tagName\" será removida de $_temp0, $_temp1 e $_temp2. Esta ação não pode ser desfeita.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" não é usada em nenhum mergulho nem em nenhum ponto. Esta ação não pode ser desfeita.';
+    return '\"$tagName\" não é usada em nenhum mergulho, nenhum ponto nem nenhum equipamento. Esta ação não pode ser desfeita.';
   }
 
   @override
@@ -21240,8 +21423,86 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0, $_temp1 e $_temp2 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'Estas etiquetas não são usadas em nenhum mergulho nem em nenhum ponto. Esta ação não pode ser desfeita.';
+      'Estas etiquetas não são usadas em nenhum mergulho, nenhum ponto nem nenhum equipamento. Esta ação não pode ser desfeita.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21295,8 +21556,86 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0 no total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0 e $_temp1 no total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0 e $_temp1 no total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount pontos',
+      one: '1 ponto',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount equipamentos',
+      one: '1 equipamento',
+    );
+    return 'Isso afetará $_temp0, $_temp1 e $_temp2 no total.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'Estas etiquetas não são usadas em nenhum mergulho nem em nenhum ponto.';
+      'Estas etiquetas não são usadas em nenhum mergulho, nenhum ponto nem nenhum equipamento.';
 
   @override
   String get tags_manage_mergeAction => 'Mesclar';
@@ -30934,6 +31273,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentField_notes => 'Notas';
 
   @override
+  String get enum_equipmentField_tags => 'Etiquetas';
+
+  @override
   String get enum_equipmentField_itemName_short => 'Nome';
 
   @override
@@ -30980,6 +31322,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'Notas';
+
+  @override
+  String get enum_equipmentField_tags_short => 'Etiquetas';
 
   @override
   String get enum_diveCenterField_centerName => 'Nome';
