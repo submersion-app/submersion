@@ -34,17 +34,20 @@ class HeroDiverAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final diver = ref.watch(dashboardDiverProvider).valueOrNull;
-    // Reserve the slot while the diver loads (or when none exists) so the
+    // `value`, not the project's `valueOrNull` polyfill: switching diver
+    // re-runs the provider through its watched id, and the polyfill returns
+    // null for that reload, which would blank the avatar for a frame or two.
+    // `value` keeps the previous diver until the new one has loaded.
+    final diver = ref.watch(dashboardDiverProvider).value;
+    // Reserve the slot on first load (or when no diver exists) so the
     // greeting does not jump right when the avatar lands.
     if (diver == null) {
       return const SizedBox(width: tapSize, height: tapSize);
     }
 
-    // allDiversProvider self-invalidates on divers-table writes, so adding a
-    // second profile reveals the badge without a restart. Same source the
-    // Settings page uses to gate its multi-diver sections.
-    final diverCount = ref.watch(allDiversProvider).valueOrNull?.length ?? 0;
+    // Counted in SQL and self-invalidating on divers-table writes, so adding
+    // a second profile reveals the badge without a restart.
+    final diverCount = ref.watch(diverCountProvider).value ?? 0;
     final showBadge = diverCount > 1;
 
     final label = context.l10n.settings_profileHub_switchDiver;

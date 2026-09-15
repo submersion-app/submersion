@@ -44,7 +44,7 @@ const _newDiverStub = 'new diver page stub';
 void main() {
   late MockCurrentDiverIdNotifier currentDiver;
 
-  Widget buildHost() {
+  Widget buildHost({List<Diver>? divers}) {
     currentDiver = MockCurrentDiverIdNotifier();
     currentDiver.setCurrentDiver('a');
 
@@ -73,10 +73,9 @@ void main() {
       overrides: [
         currentDiverIdProvider.overrideWith((ref) => currentDiver),
         diverListNotifierProvider.overrideWith(
-          (ref) => _StubDiverListNotifier([
-            _diver('a', 'Alice Ng'),
-            _diver('b', 'Bob Ray'),
-          ]),
+          (ref) => _StubDiverListNotifier(
+            divers ?? [_diver('a', 'Alice Ng'), _diver('b', 'Bob Ray')],
+          ),
         ),
       ],
       child: MaterialApp.router(
@@ -88,8 +87,8 @@ void main() {
     );
   }
 
-  Future<void> openSheet(WidgetTester tester) async {
-    await tester.pumpWidget(buildHost());
+  Future<void> openSheet(WidgetTester tester, {List<Diver>? divers}) async {
+    await tester.pumpWidget(buildHost(divers: divers));
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
   }
@@ -134,6 +133,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Switch Diver'), findsNothing);
+    expect(find.text(_newDiverStub), findsOneWidget);
+  });
+
+  testWidgets('still offers Add New Diver when only one profile exists', (
+    tester,
+  ) async {
+    await openSheet(tester, divers: [_diver('a', 'Alice Ng')]);
+
+    expect(find.text('Alice Ng'), findsOneWidget);
+    expect(find.text('Add New Diver'), findsOneWidget);
+
+    await tester.tap(find.text('Add New Diver'));
+    await tester.pumpAndSettle();
+
     expect(find.text(_newDiverStub), findsOneWidget);
   });
 }

@@ -55,6 +55,7 @@ void main() {
     WidgetTester tester, {
     required Future<Diver?> Function() diver,
     List<Diver>? divers,
+    Future<Diver?> Function(String? id)? diverForId,
   }) async {
     final allDivers = divers ?? [_eric];
     tester.view.physicalSize = const Size(500, 900);
@@ -76,8 +77,12 @@ void main() {
               totalSites: 0,
             ),
           ),
-          currentDiverProvider.overrideWith((ref) => diver()),
-          allDiversProvider.overrideWith((ref) async => allDivers),
+          currentDiverProvider.overrideWith(
+            (ref) => diverForId == null
+                ? diver()
+                : diverForId(ref.watch(currentDiverIdProvider)),
+          ),
+          diverCountProvider.overrideWith((ref) async => allDivers.length),
           diverListNotifierProvider.overrideWith(
             (ref) => _StubDiverListNotifier(allDivers),
           ),
@@ -138,6 +143,39 @@ void main() {
       await pumpHeader(tester, diver: () async => _eric, divers: [_eric, _sam]);
 
       expect(find.byIcon(Icons.swap_horiz), findsOneWidget);
+    });
+
+    testWidgets('keeps the current avatar while the next diver loads', (
+      tester,
+    ) async {
+      final samLoads = Completer<Diver?>();
+      await pumpHeader(
+        tester,
+        diver: () async => _eric,
+        divers: [_eric, _sam],
+        diverForId: (id) => id == '2' ? samLoads.future : Future.value(_eric),
+      );
+      expect(find.text('EG'), findsOneWidget);
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HeroHeader)),
+      );
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('2');
+      await tester.pump();
+      await tester.pump();
+
+      // Reload in flight: the old avatar stays, the slot never goes blank.
+      expect(find.text('EG'), findsOneWidget);
+      expect(find.byTooltip('Switch Diver'), findsOneWidget);
+
+      samLoads.complete(_sam);
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.text('SL'), findsOneWidget);
+      expect(find.text('EG'), findsNothing);
     });
 
     testWidgets('greeting does not shift when the diver finishes loading', (
