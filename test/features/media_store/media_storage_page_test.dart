@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart'
+    show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart'
+    show CloudStorageException;
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
@@ -22,6 +26,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../helpers/fake_cloud_storage_provider.dart';
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../support/fake_app_settings_repository.dart';
 import '../../support/fake_keychain_storage.dart';
@@ -46,6 +51,11 @@ class _RecordingService extends MediaStoreService {
   Object? throwOnConnect;
   Object? throwOnTest;
   Object? throwOnDropbox;
+
+  /// Appended to on every connectGoogleDrive() call, so a test can assert
+  /// ordering against another recorder (e.g. the auth provider) instead of
+  /// just an eventual end state.
+  List<String>? callOrder;
 
   static const _result = MediaStoreConnectResult(
     storeId: 'store-x',
@@ -72,6 +82,7 @@ class _RecordingService extends MediaStoreService {
   @override
   Future<MediaStoreConnectResult> connectGoogleDrive() async {
     gdriveCalls++;
+    callOrder?.add('connect');
     return _result;
   }
 
@@ -90,6 +101,36 @@ class _RecordingService extends MediaStoreService {
   @override
   Future<void> disconnect() async {
     disconnectCalls++;
+  }
+}
+
+/// Records when interactive auth actually ran (appending to the same list
+/// [_RecordingService.callOrder] appends to), so a test can assert ordering
+/// -- auth before connect -- rather than only an eventual end state.
+class _OrderTrackingCloudStorageProvider extends FakeCloudStorageProvider {
+  _OrderTrackingCloudStorageProvider(this.callOrder);
+
+  final List<String> callOrder;
+
+  @override
+  Future<void> authenticate() async {
+    callOrder.add('authenticate');
+    await super.authenticate();
+  }
+}
+
+/// authenticate() that always fails with a real (non-cancel) sign-in error,
+/// to drive the page's CloudStorageException branch.
+class _FailingAuthCloudStorageProvider extends FakeCloudStorageProvider {
+  _FailingAuthCloudStorageProvider() : super() {
+    authenticated = false;
+  }
+
+  @override
+  Future<void> authenticate() async {
+    throw const CloudStorageException(
+      'Google Sign-In did not produce an authorized client',
+    );
   }
 }
 
@@ -122,11 +163,15 @@ class _FakeBackfillService extends MediaBackfillService {
 void main() {
   late _RecordingService service;
   late _FakeBackfillService backfill;
+  late FakeCloudStorageProvider gdriveProvider;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     service = _RecordingService();
     backfill = _FakeBackfillService();
+    // Authenticated by default: the connect button's happy path (existing
+    // tests) never needs the interactive flow.
+    gdriveProvider = FakeCloudStorageProvider();
   });
 
   Widget app({
@@ -139,6 +184,11 @@ void main() {
     bool googleDriveAvailable = true,
     String? statusHint,
     MediaTransferSummary summary = const MediaTransferSummary(),
+    // Overrides the default (pre-authenticated) fake for tests exercising
+    // the interactive-auth branch. A separate parameter, not extraOverrides:
+    // both would override cloudStorageProviderForProvider in the same
+    // container, which Riverpod refuses.
+    FakeCloudStorageProvider? gdriveProviderOverride,
     // Riverpod 3 does not export the Override type; mirror the
     // weight_planner_page_test precedent.
     List<dynamic> extraOverrides = const [],
@@ -156,6 +206,9 @@ void main() {
       googleDriveAvailableProvider.overrideWith(
         (ref) async => googleDriveAvailable,
       ),
+      cloudStorageProviderForProvider(
+        CloudProviderType.googledrive,
+      ).overrideWithValue(gdriveProviderOverride ?? gdriveProvider),
       // Last, so callers can genuinely override any of the defaults above.
       // (Plain spread: dynamic elements implicitly cast, and Riverpod 3
       // does not export the Override type to name in a cast<T>().)
@@ -1051,6 +1104,71 @@ void main() {
       await tester.pump();
     });
     expect(service.icloudCalls, 1);
+  });
+
+  testWidgets('connecting Google Drive with no existing session runs the '
+      'interactive sign-in before the store connect', (tester) async {
+    // No prior session anywhere in the app: unlike the S3/iCloud paths, this
+    // is the exact shape of the bug the button used to hit silently --
+    // connectGoogleDrive() alone only ever checks for one (regression for
+    // the "not connected or unavailable" dead end with no sign-in prompt).
+    //
+    // Both recorders append to the same list, so passing both assertions
+    // requires actual auth-before-connect ordering, not just an eventual
+    // end state an out-of-order implementation could also reach.
+    final callOrder = <String>[];
+    service.callOrder = callOrder;
+    final orderedProvider = _OrderTrackingCloudStorageProvider(callOrder)
+      ..authenticated = false;
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(app(gdriveProviderOverride: orderedProvider));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    await tester.tap(find.text('Google Drive'));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('media-gdrive-connect')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-gdrive-connect')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(orderedProvider.authenticated, isTrue);
+    expect(service.gdriveCalls, 1);
+    expect(callOrder, ['authenticate', 'connect']);
+  });
+
+  testWidgets('a Google sign-in failure (not a cancel) shows the error '
+      'snackbar instead of escaping unhandled', (tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        app(gdriveProviderOverride: _FailingAuthCloudStorageProvider()),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    await tester.tap(find.text('Google Drive'));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('media-gdrive-connect')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-gdrive-connect')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(service.gdriveCalls, 0);
+    expect(
+      find.text('Google Sign-In did not produce an authorized client'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the advanced section exposes region, prefix and path style', (
