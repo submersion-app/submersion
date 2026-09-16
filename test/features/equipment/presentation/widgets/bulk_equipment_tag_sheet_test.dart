@@ -22,6 +22,18 @@ class _FailingUndoService extends BulkEquipmentTagService {
       Future.error(StateError('database unavailable'));
 }
 
+/// A real service whose apply fails, as it would with the database gone.
+class _FailingApplyService extends BulkEquipmentTagService {
+  _FailingApplyService(super.repository);
+
+  @override
+  Future<Map<String, List<String>>> apply({
+    required List<String> equipmentIds,
+    required Set<String> addTagIds,
+    required Set<String> removeTagIds,
+  }) => Future.error(StateError('database unavailable'));
+}
+
 /// The equipment bulk tag sheet end to end on a real database (issue #1942).
 void main() {
   late AppDatabase db;
@@ -157,6 +169,33 @@ void main() {
 
     expect(await tagIdsOf('e1'), {'t1', 't2', 't4'});
     expect(await tagIdsOf('e2'), {'t1'});
+  });
+
+  testWidgets('an apply that fails says so and changes nothing', (
+    tester,
+  ) async {
+    await openSheet(
+      tester,
+      extraOverrides: [
+        bulkEquipmentTagServiceProvider.overrideWithValue(
+          _FailingApplyService(repository),
+        ),
+      ],
+    );
+    await tapToggle(tester, 't3');
+    await tester.tap(find.byKey(const ValueKey('bulkEquipmentTags_apply')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('bulkEquipmentTags_confirm')));
+    await tester.pumpAndSettle();
+
+    expect(outcome, BulkActionOutcome.failed);
+    expect(
+      find.textContaining('Could not update tags:'),
+      findsOneWidget,
+      reason: 'the error names what failed',
+    );
+    expect(await tagIdsOf('e1'), {'t1', 't2', 't4'});
+    expect(find.text('Undo'), findsNothing);
   });
 
   testWidgets('an Undo that fails says so', (tester) async {
