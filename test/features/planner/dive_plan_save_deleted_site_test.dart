@@ -98,4 +98,19 @@ void main() {
     expect(stored.siteId, isNull);
     expect((await repository.getPlan('plan-1'))!.siteId, isNull);
   });
+
+  test(
+    'savePlan returns the persisted updatedAt, not the submitted one',
+    () async {
+      // The row is stamped with the save's own clock, so a returned plan still
+      // carrying the submitted timestamp would not be "the plan as stored" and
+      // a caller comparing it against the row would silently disagree.
+      final stored = await repository.savePlan(planAt(null));
+      final loaded = await repository.getPlan('plan-1');
+
+      expect(stored.updatedAt, loaded!.updatedAt);
+      expect(stored.updatedAt, isNot(DateTime(2026, 1, 1)));
+      expect(stored.createdAt, loaded.createdAt);
+    },
+  );
 }
