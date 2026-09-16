@@ -25,6 +25,22 @@ List<DownloadedTank> resolveParsedTanks(
   bool trimAtSurfacing = true,
 }) => _resolveCylinders(parsed, trimAtSurfacing: trimAtSurfacing).tanks;
 
+/// The gas mix of the first cylinder tagged [TankRole.diluent] among
+/// [tanks], or null when none carries that role.
+///
+/// Shared by the download mapper and the reparse service so a dive's
+/// dive-level diluent field (issue #1879) is always derived the same way a
+/// diluent cylinder was already identified, rather than re-deriving it from
+/// raw tank usage a second time.
+({double o2, double he})? resolveDiluentGas(List<DownloadedTank> tanks) {
+  for (final tank in tanks) {
+    if (tank.role == TankRole.diluent.name) {
+      return (o2: tank.o2Percent, he: tank.hePercent);
+    }
+  }
+  return null;
+}
+
 /// Derive the dive's gas switches from per-sample gas-mix transitions, keyed by
 /// the cylinder index assigned by [resolveParsedTanks].
 ///
