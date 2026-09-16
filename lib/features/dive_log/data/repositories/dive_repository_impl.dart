@@ -7447,6 +7447,18 @@ class DiveRepository {
     }
   }
 
+  /// Whether a primary dive_data_sources row exists for [diveId]. A dive
+  /// with one holds downloaded data and cannot be marked planned (issue
+  /// #2002).
+  Future<bool> hasPrimaryDataSource(String diveId) async {
+    final row =
+        await (_db.select(_db.diveDataSources)
+              ..where((t) => t.diveId.equals(diveId) & t.isPrimary.equals(true))
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
   /// Create a primary [DiveDataSource] by back-filling metadata from the
   /// existing [Dives] row.  No-ops if a primary reading already exists.
   Future<void> backfillPrimaryDataSource(String diveId) async {
