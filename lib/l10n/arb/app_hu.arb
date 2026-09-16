@@ -8626,6 +8626,8 @@
   "diveLog_mirror_undone": "Tükrözött merülések eltávolítva",
   "diveLog_mirror_failed": "Nem sikerült naplózni: {names}",
   "diveLog_detail_menu_logForBuddy": "Naplózás egy búvártárs profiljába",
+  "diveLog_detail_loggedWith": "Naplózva vele",
+  "diveLog_detail_loggedWithPlanned": "a búvárkomputerére vár",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 kvázibaleset kapcsolódik ehhez a merüléshez} other{{count} kvázibaleset kapcsolódik ehhez a merüléshez}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

@@ -8626,6 +8626,8 @@
   "diveLog_mirror_undone": "Immersioni speculari rimosse",
   "diveLog_mirror_failed": "Impossibile registrare per {names}",
   "diveLog_detail_menu_logForBuddy": "Registra nel profilo di un compagno",
+  "diveLog_detail_loggedWith": "Registrata con",
+  "diveLog_detail_loggedWithPlanned": "in attesa del loro computer subacqueo",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 quasi incidente collegato a questa immersione} other{{count} quasi incidenti collegati a questa immersione}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

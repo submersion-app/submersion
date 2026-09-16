@@ -28495,6 +28495,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Für das Profil eines Tauchpartners protokollieren';
 
   @override
+  String get diveLog_detail_loggedWith => 'Protokolliert mit';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'wartet auf ihren Tauchcomputer';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

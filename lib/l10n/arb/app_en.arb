@@ -18258,6 +18258,8 @@
     }
   },
   "diveLog_detail_menu_logForBuddy": "Log for a buddy's profile",
+  "diveLog_detail_loggedWith": "Logged with",
+  "diveLog_detail_loggedWithPlanned": "awaiting their dive computer",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

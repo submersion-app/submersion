@@ -8626,6 +8626,8 @@
   "diveLog_mirror_undone": "已移除镜像的潜水",
   "diveLog_mirror_failed": "无法为 {names} 记录",
   "diveLog_detail_menu_logForBuddy": "记录到潜伴的个人资料",
+  "diveLog_detail_loggedWith": "一同记录",
+  "diveLog_detail_loggedWithPlanned": "等待其潜水电脑",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 起未遂事件与此次潜水关联} other{{count} 起未遂事件与此次潜水关联}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

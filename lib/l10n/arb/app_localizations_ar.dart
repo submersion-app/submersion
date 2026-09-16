@@ -28061,6 +28061,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_menu_logForBuddy => 'التسجيل في ملف رفيق';
 
   @override
+  String get diveLog_detail_loggedWith => 'مسجلة مع';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'في انتظار كمبيوتر الغوص الخاص بهم';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

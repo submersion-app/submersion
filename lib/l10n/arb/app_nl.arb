@@ -8626,6 +8626,8 @@
   "diveLog_mirror_undone": "Gespiegelde duiken verwijderd",
   "diveLog_mirror_failed": "Loggen voor {names} is mislukt",
   "diveLog_detail_menu_logForBuddy": "Loggen in het profiel van een buddy",
+  "diveLog_detail_loggedWith": "Gelogd met",
+  "diveLog_detail_loggedWithPlanned": "wacht op hun duikcomputer",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 bijna-ongeval gekoppeld aan deze duik} other{{count} bijna-ongevallen gekoppeld aan deze duik}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

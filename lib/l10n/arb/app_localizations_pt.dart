@@ -28544,6 +28544,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Registrar no perfil de um companheiro';
 
   @override
+  String get diveLog_detail_loggedWith => 'Registrado com';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'aguardando o computador de mergulho deles';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

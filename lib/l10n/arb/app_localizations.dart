@@ -46524,6 +46524,18 @@ abstract class AppLocalizations {
   /// **'Log for a buddy\'s profile'**
   String get diveLog_detail_menu_logForBuddy;
 
+  /// No description provided for @diveLog_detail_loggedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged with'**
+  String get diveLog_detail_loggedWith;
+
+  /// No description provided for @diveLog_detail_loggedWithPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'awaiting their dive computer'**
+  String get diveLog_detail_loggedWithPlanned;
+
   /// No description provided for @diveLog_detail_linkedIncidents.
   ///
   /// In en, this message translates to:

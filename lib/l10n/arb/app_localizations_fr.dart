@@ -28643,6 +28643,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Enregistrer dans le profil d\'un binôme';
 
   @override
+  String get diveLog_detail_loggedWith => 'Enregistrée avec';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'en attente de leur ordinateur de plongée';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

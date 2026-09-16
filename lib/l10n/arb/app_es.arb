@@ -8626,6 +8626,8 @@
   "diveLog_mirror_undone": "Inmersiones reflejadas eliminadas",
   "diveLog_mirror_failed": "No se pudo registrar para {names}",
   "diveLog_detail_menu_logForBuddy": "Registrar en el perfil de un compañero",
+  "diveLog_detail_loggedWith": "Registrada con",
+  "diveLog_detail_loggedWithPlanned": "a la espera de su ordenador de buceo",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 casi incidente vinculado a esta inmersión} other{{count} casi incidentes vinculados a esta inmersión}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

@@ -27058,6 +27058,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_menu_logForBuddy => '记录到潜伴的个人资料';
 
   @override
+  String get diveLog_detail_loggedWith => '一同记录';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => '等待其潜水电脑';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -8626,6 +8626,8 @@
   "diveLog_mirror_undone": "Mergulhos espelhados removidos",
   "diveLog_mirror_failed": "Não foi possível registrar para {names}",
   "diveLog_detail_menu_logForBuddy": "Registrar no perfil de um companheiro",
+  "diveLog_detail_loggedWith": "Registrado com",
+  "diveLog_detail_loggedWithPlanned": "aguardando o computador de mergulho deles",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 quase acidente vinculado a este mergulho} other{{count} quase acidentes vinculados a este mergulho}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

@@ -28340,6 +28340,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Loggen in het profiel van een buddy';
 
   @override
+  String get diveLog_detail_loggedWith => 'Gelogd met';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'wacht op hun duikcomputer';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

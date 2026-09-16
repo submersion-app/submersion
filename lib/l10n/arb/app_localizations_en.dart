@@ -28087,6 +28087,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_menu_logForBuddy => 'Log for a buddy\'s profile';
 
   @override
+  String get diveLog_detail_loggedWith => 'Logged with';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'awaiting their dive computer';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -28444,6 +28444,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Naplózás egy búvártárs profiljába';
 
   @override
+  String get diveLog_detail_loggedWith => 'Naplózva vele';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'a búvárkomputerére vár';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
