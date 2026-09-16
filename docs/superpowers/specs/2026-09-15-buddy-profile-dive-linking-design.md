@@ -62,7 +62,7 @@ accident rather than by design.
 
 ## Data model
 
-Schema version 219, one migration rung, no data backfill.
+Schema version 220 (written as 219 while the spec was drafted; equipment tags took 219 first), one migration rung, no data backfill.
 
 ### `buddies.linked_diver_id`
 

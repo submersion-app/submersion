@@ -12,6 +12,8 @@
 
 **Issue:** #2002
 
+**Executed note:** the rung was renumbered from 219 to **220** during Task 19, because equipment tags (#1942) shipped 219 while this branch was open. Read every "219" below as 220; the rung test is `migration_v220_buddy_profile_dive_links_test.dart`.
+
 ## Global Constraints
 
 - Never write an em-dash or an en-dash used as punctuation, and never use ` -- ` or ` - ` as prose punctuation, anywhere: code, comments, docs, commit messages, PR text. Rewrite with commas, colons, semicolons or parentheses.
