@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -124,5 +126,54 @@ void main() {
       ),
     );
     expect(find.byKey(const Key('import_summary_filled_row')), findsNothing);
+  });
+
+  testWidgets('offers Undo fills when outcomes are present', (tester) async {
+    await pumpWith(
+      tester,
+      const UnifiedImportResult(
+        importedCounts: {ImportEntityType.dives: 0},
+        consolidatedCount: 0,
+        filledCount: 1,
+        fillOutcomes: [
+          PlannedDiveFillOutcome(
+            diveId: 'p1',
+            snapshot: DiveMergeSnapshot(
+              mergedDiveId: 'p1',
+              diveRows: [],
+              tankRows: [],
+              weightRows: [],
+              customFieldRows: [],
+              equipmentRows: [],
+              diveTypeRows: [],
+              tagRows: [],
+              buddyRows: [],
+              sightingRows: [],
+              eventRows: [],
+              gasSwitchRows: [],
+              dataSourceRows: [],
+              tideRows: [],
+              mediaDiveIds: {},
+            ),
+            assignedDiveNumber: 7,
+          ),
+        ],
+        skippedCount: 0,
+      ),
+    );
+    expect(find.byKey(const Key('import_summary_undo_fills')), findsOneWidget);
+    expect(find.text('Undo fills'), findsOneWidget);
+  });
+
+  testWidgets('no Undo fills without outcomes', (tester) async {
+    await pumpWith(
+      tester,
+      const UnifiedImportResult(
+        importedCounts: {ImportEntityType.dives: 2},
+        consolidatedCount: 0,
+        skippedCount: 0,
+      ),
+    );
+    expect(find.byKey(const Key('import_summary_undo_fills')), findsNothing);
   });
 }

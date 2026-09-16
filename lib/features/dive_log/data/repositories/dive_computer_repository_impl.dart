@@ -1307,6 +1307,10 @@ class DiveComputerRepository {
     // the dive header and never as a sample, so it cannot be recovered from
     // the profile points.
     double? minTemperature,
+    // Attach to this dive instead of matching by time (issue #2002). A
+    // planned dive being filled may share its minute with a sibling in
+    // another profile, so the time match could land on the wrong row.
+    String? targetDiveId,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -1315,10 +1319,11 @@ class DiveComputerRepository {
       // Try to find an existing dive (skip matching when forceNew is true)
       final matchedDiveId = forceNew
           ? null
-          : await findMatchingDive(
-              profileStartTime: profileStartTime,
-              durationSeconds: durationSeconds,
-            );
+          : (targetDiveId ??
+                await findMatchingDive(
+                  profileStartTime: profileStartTime,
+                  durationSeconds: durationSeconds,
+                ));
 
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;

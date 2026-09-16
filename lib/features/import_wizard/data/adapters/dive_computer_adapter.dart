@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
 import 'package:submersion/features/dive_computer/domain/services/planned_dive_matcher.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
@@ -108,10 +109,19 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     String? displayName,
     WidgetRef? ref,
     bool forceFullDownload = false,
+    PlannedDiveFillService? fillService,
   }) : _importService = importService,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _consolidationService = consolidationService,
+       _fillService =
+           fillService ??
+           PlannedDiveFillService(
+             dives: diveRepository,
+             computers: computerRepository,
+             importService: importService,
+             consolidation: consolidationService,
+           ),
        _diverId = diverId,
        _knownComputer = knownComputer,
        _ref = ref,
@@ -123,6 +133,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   final DiveComputerRepository _computerRepository;
   final DiveRepository _diveRepository;
   final DiveConsolidationService _consolidationService;
+
+  /// Fills planned dives from downloads (issue #2002).
+  final PlannedDiveFillService _fillService;
   final String _diverId;
   final DiveComputer? _knownComputer;
   final WidgetRef? _ref;
@@ -536,6 +549,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final indicesToImport = <int>{};
     final indicesToConsolidate = <int>{};
     final indicesToReplaceSource = <int>{};
+    final indicesToFillPlanned = <int>{};
     var skipped = 0;
 
     for (final index in baseSelections) {
@@ -546,6 +560,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         indicesToConsolidate.add(index);
       } else if (action == DuplicateAction.replaceSource) {
         indicesToReplaceSource.add(index);
+      } else if (action == DuplicateAction.fillPlanned) {
+        indicesToFillPlanned.add(index);
       } else {
         indicesToImport.add(index);
       }
@@ -560,6 +576,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       } else if (entry.value == DuplicateAction.replaceSource &&
           !baseSelections.contains(entry.key)) {
         indicesToReplaceSource.add(entry.key);
+      } else if (entry.value == DuplicateAction.fillPlanned &&
+          !baseSelections.contains(entry.key)) {
+        indicesToFillPlanned.add(entry.key);
       } else if (entry.value == DuplicateAction.skip &&
           !baseSelections.contains(entry.key)) {
         skipped++;
@@ -573,6 +592,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           ...indicesToImport,
           ...indicesToConsolidate,
           ...indicesToReplaceSource,
+          ...indicesToFillPlanned,
         }.toList()..sort((a, b) {
           final aTime = _downloadedDives[a].startTime;
           final bTime = _downloadedDives[b].startTime;
@@ -582,6 +602,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var imported = 0;
     var consolidated = 0;
     var updated = 0;
+    var filled = 0;
+    final fillOutcomes = <PlannedDiveFillOutcome>[];
     final processedDives = <DownloadedDive>[];
     // Dives this run actually wrote (new, consolidated, kept standalone or
     // source-replaced); skipped duplicates never count toward a notice.
@@ -596,7 +618,44 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
       final dive = _downloadedDives[index];
 
-      if (indicesToConsolidate.contains(index)) {
+      // Fill a planned dive (issue #2002). The target rides on the match
+      // result; a row whose target was cleared after selection, or whose
+      // fill fails, imports as new instead so the download is never lost.
+      String? plannedId;
+      if (indicesToFillPlanned.contains(index)) {
+        plannedId = bundle
+            .groups[ImportEntityType.dives]
+            ?.matchResults?[index]
+            ?.plannedDiveId;
+        if (plannedId != null) {
+          try {
+            final outcome = await _fillService.fill(
+              plannedDiveId: plannedId,
+              dive: dive,
+              computerId: comp.id,
+              descriptorVendor: _descriptorVendor,
+              descriptorProduct: _descriptorProduct,
+              descriptorModel: _descriptorModel,
+              libdivecomputerVersion: _libdivecomputerVersion,
+            );
+            fillOutcomes.add(outcome);
+            filled++;
+            importedDiveIds.add(plannedId);
+            writtenDives.add(dive);
+          } catch (e, st) {
+            _log.error(
+              'Fill of planned dive $plannedId failed; importing as new',
+              error: e,
+              stackTrace: st,
+            );
+            plannedId = null;
+          }
+        }
+      }
+
+      if (indicesToFillPlanned.contains(index) && plannedId != null) {
+        // Filled above.
+      } else if (indicesToConsolidate.contains(index)) {
         // Consolidate: add as secondary computer reading on matched dive.
         final diveGroup = bundle.groups[ImportEntityType.dives];
         final matchResult = diveGroup?.matchResults?[index];
@@ -704,6 +763,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
       updatedCount: updated,
+      filledCount: filled,
+      fillOutcomes: fillOutcomes,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
       notices: [

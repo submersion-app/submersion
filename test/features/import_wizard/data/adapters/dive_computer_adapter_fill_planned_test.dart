@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
+import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -151,6 +154,108 @@ void main() {
     });
   });
 
+  group('performImport with fillPlanned', () {
+    late _FakeFillService fillService;
+
+    ImportBundle bundleWithPlannedRow() => const ImportBundle(
+      source: ImportSourceInfo(
+        type: ImportSourceType.diveComputer,
+        displayName: 'Perdix',
+      ),
+      groups: {
+        ImportEntityType.dives: EntityGroup(
+          items: [EntityItem(title: 'Dive 0', subtitle: '')],
+          duplicateIndices: {0},
+          matchResults: {
+            0: DiveMatchResult(
+              diveId: 'p1',
+              score: 1,
+              timeDifferenceMs: 0,
+              plannedDiveId: 'p1',
+            ),
+          },
+        ),
+      },
+    );
+
+    setUp(() {
+      fillService = _FakeFillService();
+      adapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
+        diverId: diverId,
+        knownComputer: computer,
+        fillService: fillService,
+      );
+      adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 14))]);
+    });
+
+    test(
+      'routes a fillPlanned row through the fill service and counts it',
+      () async {
+        final result = await adapter.performImport(
+          bundleWithPlannedRow(),
+          {
+            ImportEntityType.dives: {0},
+          },
+          {
+            ImportEntityType.dives: {0: DuplicateAction.fillPlanned},
+          },
+        );
+
+        expect(fillService.calls, ['p1']);
+        expect(result.filledCount, 1);
+        expect(result.fillOutcomes.single.diveId, 'p1');
+        expect(result.importedCounts[ImportEntityType.dives], 0);
+        expect(result.importedDiveIds, ['p1']);
+        verifyNever(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+            retainSourceDiveNumber: anyNamed('retainSourceDiveNumber'),
+          ),
+        );
+      },
+    );
+
+    test('a failed fill imports the download as new instead', () async {
+      fillService.fail = true;
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          retainSourceDiveNumber: anyNamed('retainSourceDiveNumber'),
+        ),
+      ).thenAnswer((_) async => 'new-dive');
+
+      final result = await adapter.performImport(
+        bundleWithPlannedRow(),
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.fillPlanned},
+        },
+      );
+
+      expect(result.filledCount, 0);
+      expect(result.importedCounts[ImportEntityType.dives], 1);
+      expect(result.importedDiveIds, ['new-dive']);
+    });
+  });
+
   test('copyWith moves or clears the planned target', () {
     const base = DiveMatchResult(
       diveId: 'p1',
@@ -166,4 +271,50 @@ void main() {
     expect(cleared.isPlannedFill, isFalse);
     expect(cleared.diveId, '');
   });
+}
+
+/// Records fill calls and answers with a canned outcome; the adapter only
+/// needs the outcome to count and carry it.
+class _FakeFillService implements PlannedDiveFillService {
+  final calls = <String>[];
+  bool fail = false;
+
+  @override
+  Future<PlannedDiveFillOutcome> fill({
+    required String plannedDiveId,
+    required DownloadedDive dive,
+    required String computerId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
+  }) async {
+    calls.add(plannedDiveId);
+    if (fail) throw StateError('fill failed');
+    return PlannedDiveFillOutcome(
+      diveId: plannedDiveId,
+      snapshot: const DiveMergeSnapshot(
+        mergedDiveId: 'p1',
+        diveRows: [],
+        tankRows: [],
+        weightRows: [],
+        customFieldRows: [],
+        equipmentRows: [],
+        diveTypeRows: [],
+        tagRows: [],
+        buddyRows: [],
+        sightingRows: [],
+        eventRows: [],
+        gasSwitchRows: [],
+        dataSourceRows: [],
+        tideRows: [],
+        mediaDiveIds: {},
+      ),
+      assignedDiveNumber: 7,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError(invocation.memberName.toString());
 }
