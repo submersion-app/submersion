@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.",
   "diveLog_detail_menu_markLogged": "وضع علامة مسجلة",
   "diveLog_planned_markedLogged": "تم وضع علامة مسجلة",
+  "diveLog_mirror_dialogTitle": "هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟",
+  "diveLog_mirror_dialogBody": "لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.",
+  "diveLog_mirror_log": "تسجيل",
+  "diveLog_mirror_notNow": "ليس الآن",
+  "diveLog_mirror_snackbar": "تم التسجيل لـ {names}",
+  "diveLog_mirror_undone": "تمت إزالة الغوصات المنسوخة",
+  "diveLog_mirror_failed": "تعذر التسجيل لـ {names}",
+  "diveLog_detail_menu_logForBuddy": "التسجيل في ملف رفيق",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{حادث وشيك واحد مرتبط بهذه الغطسة} other{{count} حوادث وشيكة مرتبطة بهذه الغطسة}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

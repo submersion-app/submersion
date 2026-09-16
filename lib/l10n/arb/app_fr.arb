@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "En attente des données de l'ordinateur. Marquez-la comme enregistrée si vous avez plongé sans ordinateur.",
   "diveLog_detail_menu_markLogged": "Marquer comme enregistrée",
   "diveLog_planned_markedLogged": "Marquée comme enregistrée",
+  "diveLog_mirror_dialogTitle": "Enregistrer aussi cette plongée dans un autre profil ?",
+  "diveLog_mirror_dialogBody": "Ces binômes ont un profil sur cet appareil. La plongée est ajoutée à leur carnet comme plongée planifiée jusqu'à ce que les données de leur propre ordinateur la complètent.",
+  "diveLog_mirror_log": "Enregistrer",
+  "diveLog_mirror_notNow": "Plus tard",
+  "diveLog_mirror_snackbar": "Enregistrée pour {names}",
+  "diveLog_mirror_undone": "Plongées miroir supprimées",
+  "diveLog_mirror_failed": "Impossible d'enregistrer pour {names}",
+  "diveLog_detail_menu_logForBuddy": "Enregistrer dans le profil d'un binôme",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 presque-accident lié à cette plongée} other{{count} presque-accidents liés à cette plongée}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

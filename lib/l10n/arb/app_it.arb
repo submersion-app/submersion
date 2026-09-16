@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.",
   "diveLog_detail_menu_markLogged": "Segna come registrata",
   "diveLog_planned_markedLogged": "Segnata come registrata",
+  "diveLog_mirror_dialogTitle": "Registrare questa immersione anche in un altro profilo?",
+  "diveLog_mirror_dialogBody": "Questi compagni hanno un profilo su questo dispositivo. L'immersione viene aggiunta ai loro registri come immersione pianificata finché i dati del loro computer non la completano.",
+  "diveLog_mirror_log": "Registra",
+  "diveLog_mirror_notNow": "Non ora",
+  "diveLog_mirror_snackbar": "Registrata per {names}",
+  "diveLog_mirror_undone": "Immersioni speculari rimosse",
+  "diveLog_mirror_failed": "Impossibile registrare per {names}",
+  "diveLog_detail_menu_logForBuddy": "Registra nel profilo di un compagno",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 quasi incidente collegato a questa immersione} other{{count} quasi incidenti collegati a questa immersione}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

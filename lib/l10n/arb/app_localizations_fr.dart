@@ -28612,6 +28612,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marquée comme enregistrée';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'Enregistrer aussi cette plongée dans un autre profil ?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Ces binômes ont un profil sur cet appareil. La plongée est ajoutée à leur carnet comme plongée planifiée jusqu\'à ce que les données de leur propre ordinateur la complètent.';
+
+  @override
+  String get diveLog_mirror_log => 'Enregistrer';
+
+  @override
+  String get diveLog_mirror_notNow => 'Plus tard';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Enregistrée pour $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Plongées miroir supprimées';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Impossible d\'enregistrer pour $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Enregistrer dans le profil d\'un binôme';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

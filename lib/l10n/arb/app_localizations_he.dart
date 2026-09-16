@@ -27827,6 +27827,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'סומנה כנרשמה';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'לרשום את הצלילה הזו גם בפרופיל אחר?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.';
+
+  @override
+  String get diveLog_mirror_log => 'רישום';
+
+  @override
+  String get diveLog_mirror_notNow => 'לא עכשיו';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'נרשמה עבור $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'צלילות משוכפלות הוסרו';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'לא ניתן היה לרשום עבור $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'רישום בפרופיל של חבר צוללים';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

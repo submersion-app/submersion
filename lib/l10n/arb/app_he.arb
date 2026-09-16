@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.",
   "diveLog_detail_menu_markLogged": "סימון כנרשמה",
   "diveLog_planned_markedLogged": "סומנה כנרשמה",
+  "diveLog_mirror_dialogTitle": "לרשום את הצלילה הזו גם בפרופיל אחר?",
+  "diveLog_mirror_dialogBody": "לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.",
+  "diveLog_mirror_log": "רישום",
+  "diveLog_mirror_notNow": "לא עכשיו",
+  "diveLog_mirror_snackbar": "נרשמה עבור {names}",
+  "diveLog_mirror_undone": "צלילות משוכפלות הוסרו",
+  "diveLog_mirror_failed": "לא ניתן היה לרשום עבור {names}",
+  "diveLog_detail_menu_logForBuddy": "רישום בפרופיל של חבר צוללים",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{כמעט-תאונה אחת מקושרת לצלילה זו} other{{count} כמעט-תאונות מקושרות לצלילה זו}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

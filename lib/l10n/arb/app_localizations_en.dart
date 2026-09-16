@@ -28057,6 +28057,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marked as logged';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'Also log this dive in another profile?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'These buddies have profiles on this device. The dive is added to their logs as a planned dive until their own dive computer data fills it.';
+
+  @override
+  String get diveLog_mirror_log => 'Log';
+
+  @override
+  String get diveLog_mirror_notNow => 'Not now';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Logged for $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Mirrored dives removed';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Could not log for $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'Log for a buddy\'s profile';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

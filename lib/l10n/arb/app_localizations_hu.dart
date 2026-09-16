@@ -28413,6 +28413,37 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Naplózottnak jelölve';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'Ezt a merülést egy másik profilban is naplózod?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Ezeknek a búvártársaknak van profiljuk ezen az eszközön. A merülés tervezett merülésként kerül a naplójukba, amíg a saját búvárkomputerük adatai ki nem töltik.';
+
+  @override
+  String get diveLog_mirror_log => 'Naplózás';
+
+  @override
+  String get diveLog_mirror_notNow => 'Most nem';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Naplózva: $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Tükrözött merülések eltávolítva';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Nem sikerült naplózni: $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Naplózás egy búvártárs profiljába';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

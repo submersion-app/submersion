@@ -27029,6 +27029,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_planned_markedLogged => '已标记为已记录';
 
   @override
+  String get diveLog_mirror_dialogTitle => '也在其他个人资料中记录此次潜水？';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      '这些潜伴在此设备上有个人资料。此次潜水将作为计划的潜水添加到他们的日志中，直到他们自己的潜水电脑数据填充为止。';
+
+  @override
+  String get diveLog_mirror_log => '记录';
+
+  @override
+  String get diveLog_mirror_notNow => '暂不';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return '已为 $names 记录';
+  }
+
+  @override
+  String get diveLog_mirror_undone => '已移除镜像的潜水';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return '无法为 $names 记录';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => '记录到潜伴的个人资料';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

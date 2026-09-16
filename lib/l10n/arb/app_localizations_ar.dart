@@ -28031,6 +28031,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'تم وضع علامة مسجلة';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.';
+
+  @override
+  String get diveLog_mirror_log => 'تسجيل';
+
+  @override
+  String get diveLog_mirror_notNow => 'ليس الآن';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'تم التسجيل لـ $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'تمت إزالة الغوصات المنسوخة';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'تعذر التسجيل لـ $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'التسجيل في ملف رفيق';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

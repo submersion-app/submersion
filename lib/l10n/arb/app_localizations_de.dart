@@ -28464,6 +28464,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Als protokolliert markiert';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'Diesen Tauchgang auch in einem anderen Profil protokollieren?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Diese Tauchpartner haben Profile auf diesem Gerät. Der Tauchgang wird ihren Logbüchern als geplanter Tauchgang hinzugefügt, bis ihre eigenen Tauchcomputerdaten ihn ausfüllen.';
+
+  @override
+  String get diveLog_mirror_log => 'Protokollieren';
+
+  @override
+  String get diveLog_mirror_notNow => 'Später';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Protokolliert für $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Gespiegelte Tauchgänge entfernt';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Konnte nicht protokolliert werden für $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Für das Profil eines Tauchpartners protokollieren';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

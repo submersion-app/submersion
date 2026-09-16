@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "Aguardando os dados do computador. Marque como registrado se mergulhou sem computador.",
   "diveLog_detail_menu_markLogged": "Marcar como registrado",
   "diveLog_planned_markedLogged": "Marcado como registrado",
+  "diveLog_mirror_dialogTitle": "Registrar este mergulho também em outro perfil?",
+  "diveLog_mirror_dialogBody": "Estes companheiros têm perfis neste dispositivo. O mergulho é adicionado aos registros deles como mergulho planejado até que os dados do próprio computador o preencham.",
+  "diveLog_mirror_log": "Registrar",
+  "diveLog_mirror_notNow": "Agora não",
+  "diveLog_mirror_snackbar": "Registrado para {names}",
+  "diveLog_mirror_undone": "Mergulhos espelhados removidos",
+  "diveLog_mirror_failed": "Não foi possível registrar para {names}",
+  "diveLog_detail_menu_logForBuddy": "Registrar no perfil de um companheiro",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 quase acidente vinculado a este mergulho} other{{count} quase acidentes vinculados a este mergulho}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

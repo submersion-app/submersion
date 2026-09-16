@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.",
   "diveLog_detail_menu_markLogged": "Markeren als gelogd",
   "diveLog_planned_markedLogged": "Gemarkeerd als gelogd",
+  "diveLog_mirror_dialogTitle": "Deze duik ook in een ander profiel loggen?",
+  "diveLog_mirror_dialogBody": "Deze buddy's hebben een profiel op dit apparaat. De duik wordt als geplande duik aan hun logboek toegevoegd tot hun eigen duikcomputergegevens hem invullen.",
+  "diveLog_mirror_log": "Loggen",
+  "diveLog_mirror_notNow": "Niet nu",
+  "diveLog_mirror_snackbar": "Gelogd voor {names}",
+  "diveLog_mirror_undone": "Gespiegelde duiken verwijderd",
+  "diveLog_mirror_failed": "Loggen voor {names} is mislukt",
+  "diveLog_detail_menu_logForBuddy": "Loggen in het profiel van een buddy",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 bijna-ongeval gekoppeld aan deze duik} other{{count} bijna-ongevallen gekoppeld aan deze duik}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

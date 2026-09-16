@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.",
   "diveLog_detail_menu_markLogged": "Naplózottnak jelölés",
   "diveLog_planned_markedLogged": "Naplózottnak jelölve",
+  "diveLog_mirror_dialogTitle": "Ezt a merülést egy másik profilban is naplózod?",
+  "diveLog_mirror_dialogBody": "Ezeknek a búvártársaknak van profiljuk ezen az eszközön. A merülés tervezett merülésként kerül a naplójukba, amíg a saját búvárkomputerük adatai ki nem töltik.",
+  "diveLog_mirror_log": "Naplózás",
+  "diveLog_mirror_notNow": "Most nem",
+  "diveLog_mirror_snackbar": "Naplózva: {names}",
+  "diveLog_mirror_undone": "Tükrözött merülések eltávolítva",
+  "diveLog_mirror_failed": "Nem sikerült naplózni: {names}",
+  "diveLog_detail_menu_logForBuddy": "Naplózás egy búvártárs profiljába",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 kvázibaleset kapcsolódik ehhez a merüléshez} other{{count} kvázibaleset kapcsolódik ehhez a merüléshez}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

@@ -18236,6 +18236,28 @@
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
   "diveLog_detail_menu_markLogged": "Mark as logged",
   "diveLog_planned_markedLogged": "Marked as logged",
+  "diveLog_mirror_dialogTitle": "Also log this dive in another profile?",
+  "diveLog_mirror_dialogBody": "These buddies have profiles on this device. The dive is added to their logs as a planned dive until their own dive computer data fills it.",
+  "diveLog_mirror_log": "Log",
+  "diveLog_mirror_notNow": "Not now",
+  "diveLog_mirror_snackbar": "Logged for {names}",
+  "@diveLog_mirror_snackbar": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_mirror_undone": "Mirrored dives removed",
+  "diveLog_mirror_failed": "Could not log for {names}",
+  "@diveLog_mirror_failed": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_menu_logForBuddy": "Log for a buddy's profile",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

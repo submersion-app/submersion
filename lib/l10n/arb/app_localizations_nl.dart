@@ -28309,6 +28309,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Gemarkeerd als gelogd';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'Deze duik ook in een ander profiel loggen?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Deze buddy\'s hebben een profiel op dit apparaat. De duik wordt als geplande duik aan hun logboek toegevoegd tot hun eigen duikcomputergegevens hem invullen.';
+
+  @override
+  String get diveLog_mirror_log => 'Loggen';
+
+  @override
+  String get diveLog_mirror_notNow => 'Niet nu';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Gelogd voor $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Gespiegelde duiken verwijderd';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Loggen voor $names is mislukt';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Loggen in het profiel van een buddy';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

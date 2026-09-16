@@ -28537,6 +28537,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marcada como registrada';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      '¿Registrar también esta inmersión en otro perfil?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Estos compañeros tienen perfiles en este dispositivo. La inmersión se añade a sus registros como inmersión planificada hasta que los datos de su propio ordenador la completen.';
+
+  @override
+  String get diveLog_mirror_log => 'Registrar';
+
+  @override
+  String get diveLog_mirror_notNow => 'Ahora no';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Registrada para $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Inmersiones reflejadas eliminadas';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'No se pudo registrar para $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Registrar en el perfil de un compañero';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

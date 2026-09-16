@@ -28519,6 +28519,37 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Segnata come registrata';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'Registrare questa immersione anche in un altro profilo?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Questi compagni hanno un profilo su questo dispositivo. L\'immersione viene aggiunta ai loro registri come immersione pianificata finché i dati del loro computer non la completano.';
+
+  @override
+  String get diveLog_mirror_log => 'Registra';
+
+  @override
+  String get diveLog_mirror_notNow => 'Non ora';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Registrata per $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Immersioni speculari rimosse';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Impossibile registrare per $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Registra nel profilo di un compagno';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

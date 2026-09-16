@@ -46476,6 +46476,54 @@ abstract class AppLocalizations {
   /// **'Marked as logged'**
   String get diveLog_planned_markedLogged;
 
+  /// No description provided for @diveLog_mirror_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Also log this dive in another profile?'**
+  String get diveLog_mirror_dialogTitle;
+
+  /// No description provided for @diveLog_mirror_dialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These buddies have profiles on this device. The dive is added to their logs as a planned dive until their own dive computer data fills it.'**
+  String get diveLog_mirror_dialogBody;
+
+  /// No description provided for @diveLog_mirror_log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get diveLog_mirror_log;
+
+  /// No description provided for @diveLog_mirror_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get diveLog_mirror_notNow;
+
+  /// No description provided for @diveLog_mirror_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged for {names}'**
+  String diveLog_mirror_snackbar(String names);
+
+  /// No description provided for @diveLog_mirror_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirrored dives removed'**
+  String get diveLog_mirror_undone;
+
+  /// No description provided for @diveLog_mirror_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not log for {names}'**
+  String diveLog_mirror_failed(String names);
+
+  /// No description provided for @diveLog_detail_menu_logForBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Log for a buddy\'s profile'**
+  String get diveLog_detail_menu_logForBuddy;
+
   /// No description provided for @diveLog_detail_linkedIncidents.
   ///
   /// In en, this message translates to:

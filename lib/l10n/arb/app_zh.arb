@@ -8618,6 +8618,14 @@
   "diveLog_planned_bannerBody": "等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。",
   "diveLog_detail_menu_markLogged": "标记为已记录",
   "diveLog_planned_markedLogged": "已标记为已记录",
+  "diveLog_mirror_dialogTitle": "也在其他个人资料中记录此次潜水？",
+  "diveLog_mirror_dialogBody": "这些潜伴在此设备上有个人资料。此次潜水将作为计划的潜水添加到他们的日志中，直到他们自己的潜水电脑数据填充为止。",
+  "diveLog_mirror_log": "记录",
+  "diveLog_mirror_notNow": "暂不",
+  "diveLog_mirror_snackbar": "已为 {names} 记录",
+  "diveLog_mirror_undone": "已移除镜像的潜水",
+  "diveLog_mirror_failed": "无法为 {names} 记录",
+  "diveLog_detail_menu_logForBuddy": "记录到潜伴的个人资料",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 起未遂事件与此次潜水关联} other{{count} 起未遂事件与此次潜水关联}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

@@ -28513,6 +28513,37 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marcado como registrado';
 
   @override
+  String get diveLog_mirror_dialogTitle =>
+      'Registrar este mergulho também em outro perfil?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Estes companheiros têm perfis neste dispositivo. O mergulho é adicionado aos registros deles como mergulho planejado até que os dados do próprio computador o preencham.';
+
+  @override
+  String get diveLog_mirror_log => 'Registrar';
+
+  @override
+  String get diveLog_mirror_notNow => 'Agora não';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Registrado para $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Mergulhos espelhados removidos';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Não foi possível registrar para $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Registrar no perfil de um companheiro';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
