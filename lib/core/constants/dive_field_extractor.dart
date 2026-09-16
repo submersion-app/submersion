@@ -60,11 +60,11 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.swellHeight:
         return dive.swellHeight;
       case DiveField.entryMethod:
-        return dive.entryMethod?.displayName;
+        return dive.effectiveEntryMethod?.displayName;
       case DiveField.exitMethod:
         return dive.exitMethod?.displayName;
       case DiveField.waterType:
-        return dive.waterType?.displayName;
+        return dive.effectiveWaterType?.displayName;
       case DiveField.altitude:
         return dive.altitude;
       case DiveField.surfacePressure:

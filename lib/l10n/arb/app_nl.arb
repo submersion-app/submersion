@@ -1486,6 +1486,7 @@
   "diveCenters_detail_noDivesLogged": "Nog geen duiken gelogd",
   "diveCenters_dialog_deleteMessage": "Weet je zeker dat je \"{name}\" wilt verwijderen?",
   "diveCenters_dialog_deleteTitle": "Duikcentrum verwijderen",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 duik blijft zonder duikcentrum.} other{{count} duiken blijven zonder duikcentrum.}}",
   "diveCenters_dialog_discard": "Verwerpen",
   "diveCenters_dialog_discardMessage": "Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je deze wilt verwerpen?",
   "diveCenters_dialog_discardTitle": "Wijzigingen verwerpen?",
@@ -3034,6 +3035,8 @@
   "diveSites_detail_deleteDialog_confirm": "Verwijderen",
   "diveSites_detail_deleteDialog_content": "Weet je zeker dat je deze stek wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
   "diveSites_detail_deleteDialog_title": "Stek verwijderen",
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{1 duik blijft zonder stek.} other{{count} duiken blijven zonder stek.}}",
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{1 opgeslagen plan blijft zonder stek.} other{{count} opgeslagen plannen blijven zonder stek.}}",
   "diveSites_detail_deleteMenu_label": "Verwijderen",
   "diveSites_detail_deleteSnackbar": "Stek verwijderd",
   "diveSites_detail_depth_maximum": "Maximum",
@@ -12190,7 +12193,6 @@
   "equipment_arrange_saveFailed": "Kan de ordening niet opslaan",
   "settings_appearance_gearArrangement": "Ordening van uitrusting",
   "settings_appearance_gearArrangementSubtitle": "Hoe uitrusting bij een duik wordt gegroepeerd en gesorteerd",
-  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
@@ -12237,5 +12239,6 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "verbruikt: {reading}",
-  "plannerCanvas_gas_endReading": "einde: {reading}"
+  "plannerCanvas_gas_endReading": "einde: {reading}",
+  "numberInput_invalidValue": "Voer een geldig getal in"
 }

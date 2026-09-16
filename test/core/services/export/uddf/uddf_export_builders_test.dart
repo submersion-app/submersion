@@ -1,11 +1,86 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xml/xml.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 void main() {
   group('UddfExportBuilders.buildDiveElement', () {
+    group('water type and entry method fallback (#793)', () {
+      XmlDocument render(Dive dive) {
+        final builder = XmlBuilder();
+        builder.element(
+          'root',
+          nest: () {
+            UddfExportBuilders.buildDiveElement(
+              builder,
+              dive,
+              null, // buddies
+              const [], // diveBuddyList
+              const [], // diveTags
+              const [], // profileEvents
+              const [], // diveWeights
+              null, // trips
+              const [], // gasSwitches
+            );
+          },
+        );
+        return builder.buildDocument();
+      }
+
+      test('falls back to the site\'s water type and entry method', () {
+        final dive = Dive(
+          id: 'dive-fallback',
+          dateTime: DateTime(2026, 3, 28, 10, 0),
+          site: const DiveSite(
+            id: 'site-1',
+            name: 'Blue Hole',
+            waterType: WaterType.fresh,
+            entryMethod: EntryMethod.shore,
+          ),
+        );
+
+        final doc = render(dive);
+
+        expect(
+          doc.findAllElements('watertype').single.innerText,
+          WaterType.fresh.name,
+        );
+        expect(
+          doc.findAllElements('entrytype').single.innerText,
+          EntryMethod.shore.name,
+        );
+      });
+
+      test('a dive\'s own values are authoritative over the site\'s', () {
+        final dive = Dive(
+          id: 'dive-own-values',
+          dateTime: DateTime(2026, 3, 28, 10, 0),
+          waterType: WaterType.brackish,
+          entryMethod: EntryMethod.boat,
+          site: const DiveSite(
+            id: 'site-1',
+            name: 'Blue Hole',
+            waterType: WaterType.fresh,
+            entryMethod: EntryMethod.shore,
+          ),
+        );
+
+        final doc = render(dive);
+
+        expect(
+          doc.findAllElements('watertype').single.innerText,
+          WaterType.brackish.name,
+        );
+        expect(
+          doc.findAllElements('entrytype').single.innerText,
+          EntryMethod.boat.name,
+        );
+      });
+    });
+
     test('writes no samples when the dive has no profile', () {
       // Dive with bottomTime and maxDepth but NO profile data. These used to
       // produce an invented descent, bottom and ascent, which a restore then

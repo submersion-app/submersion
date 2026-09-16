@@ -216,6 +216,30 @@ void main() {
       expect(DiveField.waterType.extractFromDive(testDive), 'Salt Water');
     });
 
+    test(
+      'waterType falls back to the site\'s water type when unset on the dive',
+      () {
+        final dive = Dive(
+          id: 'dive-fallback-water',
+          dateTime: now,
+          site: testSite.copyWith(waterType: WaterType.fresh),
+        );
+        expect(DiveField.waterType.extractFromDive(dive), 'Fresh Water');
+      },
+    );
+
+    test(
+      'entryMethod falls back to the site\'s entry method when unset on the dive',
+      () {
+        final dive = Dive(
+          id: 'dive-fallback-entry',
+          dateTime: now,
+          site: testSite.copyWith(entryMethod: EntryMethod.shore),
+        );
+        expect(DiveField.entryMethod.extractFromDive(dive), 'Shore Entry');
+      },
+    );
+
     test('altitude returns altitude', () {
       expect(DiveField.altitude.extractFromDive(testDive), 0.0);
     });

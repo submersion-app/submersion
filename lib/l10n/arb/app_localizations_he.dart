@@ -4221,6 +4221,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_detail_noDivesLogged => 'עדיין לא נרשמו צלילות';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות יישארו ללא מרכז צלילה.',
+      one: 'צלילה אחת תישאר ללא מרכז צלילה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return 'האם אתה בטוח שברצונך למחוק את \"$name\"?';
   }
@@ -8708,6 +8719,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'הצג אתרים עם $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות יישארו ללא אתר.',
+      one: 'צלילה אחת תישאר ללא אתר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תוכניות שמורות יישארו ללא אתר.',
+      one: 'תוכנית שמורה אחת תישאר ללא אתר.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40144,9 +40177,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'כיצד הציוד מקובץ וממוין בצלילה';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -40217,4 +40247,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'הזן מספר תקין';
 }

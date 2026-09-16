@@ -745,6 +745,23 @@ void main() {
       );
     });
 
+    testWidgets('replan lives in the overflow menu, not the profile header', (
+      tester,
+    ) async {
+      final dive = makeDiveWithTanksAndProfile();
+      await _pumpDetailPage(tester, dive);
+
+      // The header row stays focused on the chart itself; replanning is a
+      // whole-dive action, so it is offered only from the overflow menu.
+      expect(find.byIcon(Icons.alt_route), findsNothing);
+      expect(find.byTooltip('Replan this dive'), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Replan this dive'), findsOneWidget);
+    });
+
     testWidgets('renders without crash when dive has tanks and a profile', (
       tester,
     ) async {
