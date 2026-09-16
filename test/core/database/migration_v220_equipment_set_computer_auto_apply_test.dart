@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v219 is the current schema version and is in the ladder', () {
+  test('v220 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 219);
-    expect(AppDatabase.migrationVersions, contains(219));
+    expect(AppDatabase.currentSchemaVersion, 220);
+    expect(AppDatabase.migrationVersions, contains(220));
   });
 
   test('the column is additive, so the sync floor does not move', () {
@@ -28,7 +28,7 @@ void main() {
   });
 
   test(
-    'a database stranded before v219 gains the column via beforeOpen',
+    'a database stranded before v220 gains the column via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
@@ -54,11 +54,11 @@ void main() {
   );
 
   test(
-    'a v218 database upgrades and gains the column, defaulting to off',
+    'a v219 database upgrades and gains the column, defaulting to off',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 218');
+          rawDb.execute('PRAGMA user_version = 219');
           rawDb.execute('''
           CREATE TABLE equipment_sets (
             id TEXT NOT NULL PRIMARY KEY,
