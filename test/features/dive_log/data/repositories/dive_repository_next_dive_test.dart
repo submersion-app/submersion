@@ -60,7 +60,7 @@ void main() {
       diverId: 'alice',
       notBefore: DateTime.utc(2026, 5, 1, 10),
     );
-    expect(next?.id, 'n2');
+    expect(next, 'n2');
   });
 
   test('notBefore is inclusive of an exact match', () async {
@@ -77,7 +77,7 @@ void main() {
       diverId: 'alice',
       notBefore: DateTime.utc(2026, 5, 1, 11),
     );
-    expect(next?.id, 'exact');
+    expect(next, 'exact');
   });
 
   test(
@@ -99,9 +99,34 @@ void main() {
         diverId: 'alice',
         notBefore: DateTime.utc(2026, 5, 1, 9),
       );
-      expect(next?.id, 'entry-shifted');
+      expect(next, 'entry-shifted');
     },
   );
+
+  test('excludes planned (not yet executed) dives', () async {
+    await diver('alice');
+    await repository.createDive(
+      domain.Dive(
+        id: 'planned',
+        diverId: 'alice',
+        dateTime: DateTime.utc(2026, 5, 1, 10),
+        isPlanned: true,
+      ),
+    );
+    await repository.createDive(
+      domain.Dive(
+        id: 'actual',
+        diverId: 'alice',
+        dateTime: DateTime.utc(2026, 5, 1, 12),
+      ),
+    );
+
+    final next = await repository.getNextDive(
+      diverId: 'alice',
+      notBefore: DateTime.utc(2026, 5, 1, 9),
+    );
+    expect(next, 'actual');
+  });
 
   test('never crosses diver boundaries', () async {
     await diver('bob');

@@ -5259,38 +5259,48 @@ class DiveRepository {
     return _mapDiveTimesRow(rows.first);
   }
 
-  /// The chronologically earliest dive of [diverId] whose effective start
-  /// (entryTime, falling back to the legacy diveDateTime) is at or after
-  /// [notBefore]. Mirrors [getPreviousDive]'s predicate and ordering in
-  /// reverse, with an explicit diver filter -- unlike [getPreviousDive],
-  /// which is used for the surface-interval lookback and does not need one.
-  /// Used by ChecklistDiveLinker to find a checklist run's next dive.
-  Future<domain.Dive?> getNextDive({
+  /// The id of the chronologically earliest EXECUTED dive of [diverId]
+  /// (excludes planner rows with `isPlanned = true`, which have no crew,
+  /// gear or checklist tied to them yet and must never steal a checklist
+  /// link meant for the real dive) whose effective start (entryTime,
+  /// falling back to the legacy diveDateTime) is at or after [notBefore].
+  /// Mirrors [getPreviousDive]'s predicate and ordering in reverse, with an
+  /// explicit diver filter -- unlike [getPreviousDive], which is used for
+  /// the surface-interval lookback and does not need one.
+  ///
+  /// Returns only the id, not a hydrated [domain.Dive]: the sole caller,
+  /// [ChecklistDiveLinker], only compares identity, and that linker runs
+  /// this lookup once per checklist session on every dive import, so
+  /// hydrating tanks/profile/equipment (see [_mapRowToDive]) for every
+  /// candidate would be wasted work on every import.
+  Future<String?> getNextDive({
     required String? diverId,
     required DateTime notBefore,
   }) async {
     try {
       final cutoffMs = notBefore.millisecondsSinceEpoch;
-      final query = _db.select(_db.dives)
+      final query = _db.selectOnly(_db.dives)
+        ..addColumns([_db.dives.id])
         ..where(
-          (t) =>
-              t.entryTime.isBiggerOrEqualValue(cutoffMs) |
-              (t.entryTime.isNull() &
-                  t.diveDateTime.isBiggerOrEqualValue(cutoffMs)),
+          _db.dives.isPlanned.equals(false) &
+              (_db.dives.entryTime.isBiggerOrEqualValue(cutoffMs) |
+                  (_db.dives.entryTime.isNull() &
+                      _db.dives.diveDateTime.isBiggerOrEqualValue(cutoffMs))),
         )
         ..orderBy([
-          (t) => OrderingTerm.asc(coalesce([t.entryTime, t.diveDateTime])),
+          OrderingTerm.asc(
+            coalesce([_db.dives.entryTime, _db.dives.diveDateTime]),
+          ),
         ])
         ..limit(1);
       if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
+        query.where(_db.dives.diverId.equals(diverId));
       } else {
-        query.where((t) => t.diverId.isNull());
+        query.where(_db.dives.diverId.isNull());
       }
 
-      final rows = await query.get();
-      if (rows.isEmpty) return null;
-      return await _mapRowToDive(rows.first);
+      final row = await query.getSingleOrNull();
+      return row?.read(_db.dives.id);
     } catch (e, stackTrace) {
       _log.error('Failed to get next dive', error: e, stackTrace: stackTrace);
       return null;

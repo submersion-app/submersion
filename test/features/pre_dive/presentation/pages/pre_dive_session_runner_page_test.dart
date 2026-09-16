@@ -388,6 +388,79 @@ void main() {
   );
 
   testWidgets(
+    'marking a Done item with dueSoon/ok clocks freezes all of them, not '
+    'only overdue ones',
+    (tester) async {
+      final dueSoonStatus = ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 'sched2',
+          equipmentId: 'g1',
+          serviceKindId: 'scrubber',
+          createdAt: now,
+          updatedAt: now,
+        ),
+        kind: ServiceKind(
+          id: 'scrubber',
+          name: 'Scrubber',
+          applicableTypes: const [],
+          createdAt: now,
+          updatedAt: now,
+        ),
+        anchor: now,
+        hoursSinceAnchor: 4,
+        hoursRemaining: 8,
+        severity: ServiceClockSeverity.dueSoon,
+        now: DateTime(2026, 1, 1),
+      );
+      final okStatus = ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 'sched3',
+          equipmentId: 'g1',
+          serviceKindId: 'co2',
+          createdAt: now,
+          updatedAt: now,
+        ),
+        kind: ServiceKind(
+          id: 'co2',
+          name: 'CO2 sensor',
+          applicableTypes: const [],
+          createdAt: now,
+          updatedAt: now,
+        ),
+        anchor: now,
+        dueDate: DateTime(2027, 1, 1),
+        severity: ServiceClockSeverity.ok,
+        now: DateTime(2026, 1, 1),
+      );
+      final repo = await pumpRunner(
+        tester,
+        s: session(),
+        items: [item(0, equipmentId: 'g1')],
+        extraOverrides: [
+          serviceClockStatusesProvider(
+            'g1',
+          ).overrideWith((ref) async => [dueSoonStatus, okStatus]),
+        ],
+      );
+
+      await tester.tap(find.text('Item 0'));
+      await tester.pumpAndSettle();
+
+      final call = repo.calls.single;
+      expect(call.state, PreDiveItemState.done);
+      expect(call.overdueServices, hasLength(2));
+      expect(
+        call.overdueServices!.map((e) => e.kindName),
+        containsAll(['Scrubber', 'CO2 sensor']),
+      );
+      expect(
+        call.overdueServices!.map((e) => e.severity),
+        containsAll([ServiceClockSeverity.dueSoon, ServiceClockSeverity.ok]),
+      );
+    },
+  );
+
+  testWidgets(
     'resolving an item with no linked equipment writes a null snapshot, not '
     'an empty one',
     (tester) async {

@@ -235,7 +235,13 @@ class SessionItemTile extends ConsumerWidget {
             '${entry.kindName}: '
             '${formatServiceTriggerText(context, units: UnitFormatter(ref.watch(settingsProvider)), now: serviceAsOf, dueDate: entry.dueDate, divesSinceAnchor: entry.divesSinceAnchor, divesRemaining: entry.divesRemaining, hoursSinceAnchor: entry.hoursSinceAnchor, hoursRemaining: entry.hoursRemaining, usageByUnit: entry.usageByUnit)}',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: serviceSeverityDotColor(context, entry.severity),
+              // serviceSeverityDotColor returns surfaceContainerHighest for
+              // an OK entry -- right for a small dot meant to stay quiet,
+              // but near-invisible as full-line text on a light theme.
+              // Ordinary body text reads fine for "everything's fine".
+              color: entry.severity == ServiceClockSeverity.ok
+                  ? theme.colorScheme.onSurfaceVariant
+                  : serviceSeverityDotColor(context, entry.severity),
             ),
           ),
       ],

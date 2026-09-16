@@ -71,11 +71,11 @@ class ChecklistDiveLinker {
         // getNextDive lookup entirely for it.
         if (diveStart.difference(anchor) < -forwardGrace) continue;
 
-        final next = await _dives.getNextDive(
+        final nextDiveId = await _dives.getNextDive(
           diverId: diverId,
           notBefore: anchor.subtract(forwardGrace),
         );
-        if (next == null || next.id != diveId) continue;
+        if (nextDiveId != diveId) continue;
         if (s.diveId == diveId) continue; // already correctly linked
 
         await _sessions.linkToDive(s.id, diveId);
