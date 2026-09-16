@@ -833,8 +833,12 @@ class ReparseService {
                 ? Value(tank.volumeLiters)
                 : const Value.absent(),
             workingPressure: const Value.absent(),
-            startPressure: Value(tank.startPressure),
-            endPressure: Value(tank.endPressure),
+            // Same rule as volume: a dive computer with no air integration
+            // resolves a tank (its configured gas mix) but never reports a
+            // pressure, so the diver's own manually-entered start/end
+            // pressure would otherwise be nulled out by every re-parse.
+            startPressure: Value.absentIfNull(tank.startPressure),
+            endPressure: Value.absentIfNull(tank.endPressure),
             o2Percent: Value(tank.o2Percent),
             hePercent: Value(tank.hePercent),
             // The transmitter serial is computer-owned and written
