@@ -785,11 +785,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       return;
     }
     final plan = divePlanFromState(state, existing: _loaded);
-    await repository.savePlan(plan, summary: summary);
-    _loaded = plan;
-    if (mounted) {
-      state = state.copyWith(isDirty: false);
-    }
+    final stored = await repository.savePlan(plan, summary: summary);
+    _loaded = stored;
+    if (!mounted) return;
+    // The repository drops a site that no longer exists rather than failing
+    // the save (issue #1985), so adopt what it stored: otherwise the planner
+    // keeps offering a site the database no longer holds. Guarded on the id
+    // still being the one that was sent, because the diver can pick another
+    // site during the save's async gap and that newer choice wins.
+    final siteWentAway = stored.siteId == null && state.siteId == plan.siteId;
+    state = state.copyWith(isDirty: false, clearSiteId: siteWentAway);
   }
 
   /// Mark the plan as saved without persisting (legacy path; prefer [save]).
