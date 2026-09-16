@@ -149,6 +149,32 @@ void main() {
       expect(find.widgetWithText(Chip, 'Travel kit'), findsOneWidget);
     });
 
+    testWidgets('a read that fails leaves the field locked and the stored '
+        'tags untouched', (tester) async {
+      await pumpEditor(
+        tester,
+        item.id,
+        extraOverrides: [
+          tagsForEquipmentProvider(
+            item.id,
+          ).overrideWith((ref) => Future<List<Tag>>.error(StateError('gone'))),
+        ],
+      );
+
+      expect(tagField, findsNothing, reason: 'the field stays disabled');
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        [
+          for (final t in await tagRepository.getTagsForEquipment(item.id))
+            t.id,
+        ],
+        ['t1'],
+      );
+    });
+
     testWidgets('a save leaves the stored tags alone', (tester) async {
       await pumpLoading(tester);
 
