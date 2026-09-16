@@ -475,7 +475,88 @@ void main() {
       },
     );
 
+    testWidgets(
+      'selecting Oxygen Supply role updates the last-known-good O2, not '
+      'just the displayed text (issue #726 follow-up, code review)',
+      (tester) async {
+        // The role switch must feed _lastValidO2/_lastValidHe, not only the
+        // text controllers: retyping the O2 field afterward falls back to
+        // _lastValidO2 on an unparseable (non-blank) value (#1900's
+        // fallback), and that must be the 100% the role switch just set,
+        // not the tank's original nitrox mix.
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
 
+        final builtInPresets = TankPresets.all
+            .map((p) => TankPresetEntity.fromBuiltIn(p))
+            .toList();
+
+        const tank = DiveTank(
+          id: 'tank-oxygen-2',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+        );
+
+        DiveTank? updatedTank;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              tankPresetListNotifierProvider.overrideWith(
+                (ref) => _MockTankPresetListNotifier(builtInPresets),
+              ),
+              tankPresetsProvider.overrideWith(
+                (ref) => Future.value(builtInPresets),
+              ),
+            ].cast(),
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: TankEditor(
+                    tank: tank,
+                    tankNumber: 1,
+                    onChanged: (t) => updatedTank = t,
+                    onRemove: () {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(DropdownButtonFormField<TankRole>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('O₂ Supply').last);
+        await tester.pumpAndSettle();
+
+        final o2Field = find.ancestor(
+          of: find.text('O2'),
+          matching: find.byType(TextFormField),
+        );
+        expect(o2Field, findsOneWidget);
+        await tester.enterText(o2Field, '');
+        await tester.pump();
+        await tester.enterText(o2Field, 'xyz');
+        await tester.pump();
+
+        expect(find.text('Enter a valid number'), findsOneWidget);
+        expect(
+          updatedTank!.gasMix.o2,
+          100.0,
+          reason:
+              'must fall back to the 100% the role switch just set, not '
+              'the tank\'s original 32%',
+        );
+      },
+    );
 
     testWidgets('applyPreset shows volumeCuft in imperial mode', (
       tester,
