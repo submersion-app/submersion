@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/lv95_transform.dart';
 import 'package:submersion/features/bathymetry/data/sources/esri_ascii_parser.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cache_repository.dart';
@@ -13,6 +14,8 @@ import 'package:submersion/features/bathymetry/data/sources/swiss_stac_client.da
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_source.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+const _log = LoggerService('SwissBathy3dSource');
 
 /// Regional tier: swisstopo swissBATHY3D lake-bed elevation model, via the
 /// STAC API on data.geo.admin.ch (OGD, "Freie Nutzung, Quellenangabe ist
@@ -207,7 +210,7 @@ class SwissBathy3dSource implements BathymetrySource {
     // for a cold cache spanning dozens of tiles, this keeps a single page
     // view from either taking minutes (one at a time) or hammering the OGD
     // server with dozens of simultaneous requests.
-    var hadTransientTileFailure = false;
+    final failedTileKeys = <String>[];
     final results = await _runBounded(tileCoords, maxConcurrentTileRequests, (
       coord,
     ) async {
@@ -227,7 +230,7 @@ class SwissBathy3dSource implements BathymetrySource {
           tileLake,
           sharedZipBytes,
         );
-      } on BathymetryFetchException {
+      } on BathymetryFetchException catch (e) {
         // Individually harmless -- the failed tile's own cache stays
         // untouched (see _fetchTile), so a retry only re-downloads that
         // one tile, and every OTHER tile's successful download is already
@@ -240,21 +243,27 @@ class SwissBathy3dSource implements BathymetrySource {
         // dozens of transiently-failed ones would otherwise pass every
         // floor and get cached by the outer repository as a complete,
         // definitive 'ok' answer, permanently starving the failed tiles of
-        // ever being retried (Copilot review). hadTransientTileFailure
-        // flags that below instead.
-        hadTransientTileFailure = true;
+        // ever being retried (Copilot review). failedTileKeys flags that
+        // below instead -- and, unlike a bare boolean, also captures WHICH
+        // tile(s) and the underlying [e] (network error, HTTP status, or
+        // timeout) that fetch()'s own caller would otherwise never see:
+        // BathymetryFetchException's message alone used to reach no log at
+        // all once it got here.
+        _log.warning('tile ${coord.tileE}_${coord.tileN} failed', error: e);
+        failedTileKeys.add('${coord.tileE}_${coord.tileN}');
         return null;
       }
     });
     final tiles = [for (final tile in results) ?tile];
 
-    if (hadTransientTileFailure) {
+    if (failedTileKeys.isNotEmpty) {
       // Whatever DID succeed is already sitting in the per-tile cache, so
       // this costs a retry of only the tiles that actually failed, not a
       // re-download of the whole span -- see the catch block above.
       throw BathymetryFetchException(
-        'one or more tiles in span failed transiently '
-        'E[$tileEMin..$tileEMax] N[$tileNMin..$tileNMax]',
+        '${failedTileKeys.length} of ${tileCoords.length} tiles in span '
+        'failed transiently E[$tileEMin..$tileEMax] N[$tileNMin..$tileNMax]: '
+        '${failedTileKeys.join(', ')}',
       );
     }
 

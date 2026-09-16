@@ -3,6 +3,10 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/services/logger_service.dart';
+
+const _log = LoggerService('SwissStacClient');
+
 /// One selected STAC asset for a swissBATHY3D tile: a ZIP containing the
 /// grid file.
 class SwissBathyAsset {
@@ -137,15 +141,26 @@ class SwissStacClient {
     const maxPages = 10;
     for (var page = 0; page < maxPages && url != null; page++) {
       final http.Response resp;
+      final stopwatch = Stopwatch()..start();
       try {
         resp = await _client.get(url).timeout(_itemsTimeout);
       } catch (e) {
+        _log.warning(
+          'items request failed after ${stopwatch.elapsedMilliseconds}ms: $url',
+          error: e,
+        );
         throw SwissStacException('STAC items request failed: $e');
       }
       if (resp.statusCode == 404) {
+        _log.warning('items request 404: $url');
         throw SwissStacCollectionNotFoundException(collectionId);
       }
       if (resp.statusCode != 200) {
+        _log.warning(
+          'items request HTTP ${resp.statusCode} after '
+          '${stopwatch.elapsedMilliseconds}ms: $url | body: '
+          '${_truncate(resp.body)}',
+        );
         throw SwissStacException('STAC items HTTP ${resp.statusCode}');
       }
       final Object? decoded;
@@ -287,14 +302,28 @@ class SwissStacClient {
   /// Downloads the asset ZIP at [href].
   Future<Uint8List> downloadBytes(String href) async {
     final http.Response resp;
+    final stopwatch = Stopwatch()..start();
     try {
       resp = await _client.get(Uri.parse(href)).timeout(_downloadTimeout);
     } catch (e) {
+      _log.warning(
+        'asset download failed after ${stopwatch.elapsedMilliseconds}ms: $href',
+        error: e,
+      );
       throw SwissStacException('Asset download failed: $e');
     }
     if (resp.statusCode != 200) {
+      _log.warning(
+        'asset download HTTP ${resp.statusCode} after '
+        '${stopwatch.elapsedMilliseconds}ms: $href',
+      );
       throw SwissStacException('Asset download HTTP ${resp.statusCode}');
     }
     return resp.bodyBytes;
   }
+
+  /// First 200 characters of [body], for a log line that must never embed an
+  /// unbounded server response.
+  static String _truncate(String body) =>
+      body.length <= 200 ? body : '${body.substring(0, 200)}...';
 }
