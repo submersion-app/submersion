@@ -8514,6 +8514,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => '压力';
 
   @override
+  String get diveSites_detail_appBar => '潜水点详情';
+
+  @override
   String get diveSites_detail_coordinatesCopied => '坐标已复制到剪贴板';
 
   @override
@@ -8567,6 +8570,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_detail_error_title => '错误';
+
+  @override
+  String get diveSites_detail_hero_stat_dives => '潜水次数';
+
+  @override
+  String get diveSites_detail_hero_stat_maxDepth => '最大深度';
+
+  @override
+  String get diveSites_detail_hero_viewMap => '查看地图';
 
   @override
   String get diveSites_detail_loading_title => '加载中...';

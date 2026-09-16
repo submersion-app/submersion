@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -103,8 +104,13 @@ void main() {
   /// Without this the lower rows sit past the bottom of the test surface and
   /// tap() logs a hit-test warning and does nothing - which would quietly
   /// turn every "links nowhere" assertion into a false pass.
+  // Scoped to the section list: the hero card above it repeats the
+  // longest-dive label and value in its own stat row.
   Future<void> tapRow(WidgetTester tester, String label) async {
-    final finder = find.text(label);
+    final finder = find.descendant(
+      of: find.byType(SiteDetailSectionList),
+      matching: find.text(label),
+    );
     await tester.ensureVisible(finder);
     await tester.pumpAndSettle();
     await tester.tap(finder);

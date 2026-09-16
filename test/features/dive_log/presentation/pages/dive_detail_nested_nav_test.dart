@@ -53,9 +53,10 @@ void main() {
 
       // Should find SiteDetailPage (or its content)
       expect(find.byType(SiteDetailPage), findsOneWidget);
-      // The embedded header names the site. The Basic Info card that used to
-      // repeat the name below it is gone, so exactly one copy is on screen.
-      expect(find.text('Test Site'), findsOneWidget);
+      // The embedded header names the site and the hero card restates it,
+      // as the dive page's own header and hero do. The Basic Info card that
+      // used to repeat it below them is gone, so exactly two copies show.
+      expect(find.text('Test Site'), findsNWidgets(2));
     });
 
     testWidgets(

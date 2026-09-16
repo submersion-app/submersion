@@ -8933,6 +8933,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => 'Druck';
 
   @override
+  String get diveSites_detail_appBar => 'Tauchplatz-Details';
+
+  @override
   String get diveSites_detail_coordinatesCopied =>
       'Koordinaten in die Zwischenablage kopiert';
 
@@ -8989,6 +8992,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_detail_error_title => 'Fehler';
+
+  @override
+  String get diveSites_detail_hero_stat_dives => 'Tauchgänge';
+
+  @override
+  String get diveSites_detail_hero_stat_maxDepth => 'Maximale Tiefe';
+
+  @override
+  String get diveSites_detail_hero_viewMap => 'Karte anzeigen';
 
   @override
   String get diveSites_detail_loading_title => 'Wird geladen...';

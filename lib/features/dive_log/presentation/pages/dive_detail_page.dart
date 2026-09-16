@@ -60,6 +60,7 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/detail_header_stat.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
@@ -1733,35 +1734,33 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                context,
-                Icons.arrow_downward,
-                units.formatDepth(activeSource?.maxDepth ?? dive.maxDepth),
-                context.l10n.diveLog_detail_stat_maxDepth,
+              DetailHeaderStat(
+                icon: Icons.arrow_downward,
+                value: units.formatDepth(
+                  activeSource?.maxDepth ?? dive.maxDepth,
+                ),
+                label: context.l10n.diveLog_detail_stat_maxDepth,
               ),
-              _buildStatItem(
-                context,
-                Icons.timelapse,
-                _formatRuntimeForSource(dive, activeSource),
-                context.l10n.diveLog_detail_stat_runtime,
+              DetailHeaderStat(
+                icon: Icons.timelapse,
+                value: _formatRuntimeForSource(dive, activeSource),
+                label: context.l10n.diveLog_detail_stat_runtime,
               ),
-              _buildStatItem(
-                context,
-                Icons.timer,
-                activeSource?.duration != null
+              DetailHeaderStat(
+                icon: Icons.timer,
+                value: activeSource?.duration != null
                     ? '${activeSource!.duration! ~/ 60} min'
                     : dive.bottomTime != null
                     ? '${dive.bottomTime!.inMinutes} min'
                     : '--',
-                context.l10n.diveLog_detail_stat_bottomTime,
+                label: context.l10n.diveLog_detail_stat_bottomTime,
               ),
-              _buildStatItem(
-                context,
-                Icons.thermostat,
-                units.formatTemperature(
+              DetailHeaderStat(
+                icon: Icons.thermostat,
+                value: units.formatTemperature(
                   activeSource?.waterTemp ?? dive.waterTemp,
                 ),
-                context.l10n.diveLog_detail_stat_waterTemp,
+                label: context.l10n.diveLog_detail_stat_waterTemp,
               ),
             ],
           ),
@@ -1905,29 +1904,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       return '${calculated.inMinutes} min';
     }
     return '--';
-  }
-
-  Widget _buildStatItem(
-    BuildContext context,
-    IconData icon,
-    String value,
-    String label,
-  ) {
-    return Column(
-      children: [
-        ExcludeSemantics(
-          child: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        ),
-        const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.titleMedium),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
   }
 
   /// Localized fallback labels for [resolveSourceName], the shared

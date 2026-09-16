@@ -15,6 +15,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
@@ -801,13 +802,18 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // Intermediate difficulty label should be rendered somewhere.
+      // Inside the section list: the hero card carries a difficulty badge
+      // too, so an unscoped finder would match twice.
+      final chip = find.descendant(
+        of: find.byType(SiteDetailSectionList),
+        matching: find.text('Intermediate'),
+      );
       await tester.scrollUntilVisible(
-        find.text('Intermediate'),
+        chip,
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Intermediate'), findsOneWidget);
+      expect(chip, findsOneWidget);
     });
 
     testWidgets('hides hazards section when hazards are empty', (tester) async {
@@ -1316,15 +1322,21 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
 
+      // Scoped to the section list where the hero card's stat row repeats a
+      // label or value.
+      Finder inSections(String text) => find.descendant(
+        of: find.byType(SiteDetailSectionList),
+        matching: find.text(text),
+      );
       expect(find.text('Dive Statistics'), findsOneWidget);
       expect(find.text('Deepest Dive'), findsOneWidget);
       expect(find.text('Shallowest Dive'), findsOneWidget);
-      expect(find.text('Longest Dive'), findsOneWidget);
+      expect(inSections('Longest Dive'), findsOneWidget);
       expect(find.text('Average Duration'), findsOneWidget);
       expect(find.text('First Dive'), findsOneWidget);
-      expect(find.text('Last Dive'), findsOneWidget);
+      expect(inSections('Last Dive'), findsOneWidget);
       // 5400s => 1h 30m; 1800s (average) => 30min.
-      expect(find.text('1h 30m'), findsOneWidget);
+      expect(inSections('1h 30m'), findsOneWidget);
       expect(find.text('30min'), findsOneWidget);
     });
 

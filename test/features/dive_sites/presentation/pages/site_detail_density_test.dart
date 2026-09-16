@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/responsive_sec
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_hero_card.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -191,17 +192,27 @@ void main() {
   });
 
   group('the page no longer repeats itself', () {
-    testWidgets('the site name is not restated in a card below the header', (
+    testWidgets('only the hero card restates the site name below the header', (
       tester,
     ) async {
       await pumpPage(tester, surface: const Size(600, 1400));
 
+      // The hero carries the name, as the dive hero does under its own
+      // embedded header. No other card may: the Basic Info card that used to
+      // repeat it is gone.
+      expect(
+        find.descendant(
+          of: find.byType(SiteDetailHeroCard),
+          matching: find.text('Blue Hole'),
+        ),
+        findsOneWidget,
+      );
       expect(
         find.descendant(
           of: find.byType(Card),
           matching: find.text('Blue Hole'),
         ),
-        findsNothing,
+        findsOneWidget,
       );
     });
   });

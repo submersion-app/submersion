@@ -8927,6 +8927,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => 'Nyomas';
 
   @override
+  String get diveSites_detail_appBar => 'Merülőhely részletei';
+
+  @override
   String get diveSites_detail_coordinatesCopied =>
       'Koordinatak masolva a vagolapra';
 
@@ -8982,6 +8985,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_detail_error_title => 'Hiba';
+
+  @override
+  String get diveSites_detail_hero_stat_dives => 'Merülések';
+
+  @override
+  String get diveSites_detail_hero_stat_maxDepth => 'Max. mélység';
+
+  @override
+  String get diveSites_detail_hero_viewMap => 'Térkép megtekintése';
 
   @override
   String get diveSites_detail_loading_title => 'Betoltes...';

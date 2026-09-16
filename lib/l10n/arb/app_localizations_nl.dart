@@ -8872,6 +8872,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => 'Druk';
 
   @override
+  String get diveSites_detail_appBar => 'Duikstekdetails';
+
+  @override
   String get diveSites_detail_coordinatesCopied =>
       'Coordinaten gekopieerd naar klembord';
 
@@ -8927,6 +8930,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_detail_error_title => 'Fout';
+
+  @override
+  String get diveSites_detail_hero_stat_dives => 'Duiken';
+
+  @override
+  String get diveSites_detail_hero_stat_maxDepth => 'Max. diepte';
+
+  @override
+  String get diveSites_detail_hero_viewMap => 'Kaart bekijken';
 
   @override
   String get diveSites_detail_loading_title => 'Laden...';

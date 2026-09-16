@@ -173,14 +173,20 @@ void main() {
       onStatsLoad: () => statsLoads++,
     );
 
-    // Dives at this Site and Depth Range both read the dive statistics, but
-    // folded they are never built, so nothing asks for them.
-    expect(statsLoads, 0);
+    // The hero card reads the dive statistics for its stat row: one load.
+    // Dives at this Site and Depth Range read them too, but folded they are
+    // never built, so nothing else asks for them and none of their content
+    // exists.
+    expect(statsLoads, 1);
+    expect(find.text('Deepest Dive'), findsNothing);
 
     await tester.tap(find.text('Depth Range'));
     await tester.pumpAndSettle();
 
-    expect(statsLoads, greaterThan(0));
+    // Unfolded, the card is built and shares the value the hero already
+    // holds rather than fetching it again.
+    expect(find.text('Deepest Dive'), findsOneWidget);
+    expect(statsLoads, 1);
   });
 
   testWidgets('unfolding a card shows it and remembers it', (tester) async {

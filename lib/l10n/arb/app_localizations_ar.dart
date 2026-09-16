@@ -8770,6 +8770,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => 'الضغط';
 
   @override
+  String get diveSites_detail_appBar => 'تفاصيل الموقع';
+
+  @override
   String get diveSites_detail_coordinatesCopied =>
       'تم نسخ الإحداثيات إلى الحافظة';
 
@@ -8825,6 +8828,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_detail_error_title => 'خطأ';
+
+  @override
+  String get diveSites_detail_hero_stat_dives => 'الغطسات';
+
+  @override
+  String get diveSites_detail_hero_stat_maxDepth => 'أقصى عمق';
+
+  @override
+  String get diveSites_detail_hero_viewMap => 'عرض الخريطة';
 
   @override
   String get diveSites_detail_loading_title => 'جارٍ التحميل...';

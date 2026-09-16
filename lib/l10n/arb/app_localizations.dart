@@ -14734,6 +14734,12 @@ abstract class AppLocalizations {
   /// **'Pressure'**
   String get diveSites_detail_altitude_pressure;
 
+  /// No description provided for @diveSites_detail_appBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Details'**
+  String get diveSites_detail_appBar;
+
   /// No description provided for @diveSites_detail_coordinatesCopied.
   ///
   /// In en, this message translates to:
@@ -14835,6 +14841,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error'**
   String get diveSites_detail_error_title;
+
+  /// No description provided for @diveSites_detail_hero_stat_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get diveSites_detail_hero_stat_dives;
+
+  /// No description provided for @diveSites_detail_hero_stat_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Depth'**
+  String get diveSites_detail_hero_stat_maxDepth;
+
+  /// No description provided for @diveSites_detail_hero_viewMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View Map'**
+  String get diveSites_detail_hero_viewMap;
 
   /// No description provided for @diveSites_detail_loading_title.
   ///

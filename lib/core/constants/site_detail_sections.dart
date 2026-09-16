@@ -9,8 +9,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// Identifies each configurable card on the Site Details page.
 ///
 /// Declaration order is the default display order: the order the page had
-/// before it became configurable. Every card is configurable; the site name
-/// lives in the app bar, so no part of the body is fixed.
+/// before it became configurable. Every card here is configurable. The hero
+/// card above them (`SiteDetailHeroCard`) is the one fixed part of the body:
+/// it is not a section, so it can be neither hidden nor reordered.
 ///
 /// The two pairs in `kSiteDetailSectionPairs` are declared adjacently, in
 /// left-then-right order, so the default order already reads the way the

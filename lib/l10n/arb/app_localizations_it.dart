@@ -8940,6 +8940,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => 'Pressione';
 
   @override
+  String get diveSites_detail_appBar => 'Dettagli sito';
+
+  @override
   String get diveSites_detail_coordinatesCopied =>
       'Coordinate copiate negli appunti';
 
@@ -8995,6 +8998,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_error_title => 'Errore';
+
+  @override
+  String get diveSites_detail_hero_stat_dives => 'Immersioni';
+
+  @override
+  String get diveSites_detail_hero_stat_maxDepth => 'Profondità max';
+
+  @override
+  String get diveSites_detail_hero_viewMap => 'Vedi mappa';
 
   @override
   String get diveSites_detail_loading_title => 'Caricamento...';

@@ -8723,6 +8723,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_altitude_pressure => 'לחץ';
 
   @override
+  String get diveSites_detail_appBar => 'פרטי האתר';
+
+  @override
   String get diveSites_detail_coordinatesCopied => 'הקואורדינטות הועתקו ללוח';
 
   @override
@@ -8777,6 +8780,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_detail_error_title => 'שגיאה';
+
+  @override
+  String get diveSites_detail_hero_stat_dives => 'צלילות';
+
+  @override
+  String get diveSites_detail_hero_stat_maxDepth => 'עומק מרבי';
+
+  @override
+  String get diveSites_detail_hero_viewMap => 'הצג מפה';
 
   @override
   String get diveSites_detail_loading_title => 'טוען...';

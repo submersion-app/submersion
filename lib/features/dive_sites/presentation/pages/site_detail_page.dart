@@ -28,7 +28,9 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/dive_sites/presentation/site_stats_duration_format.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_hero_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
@@ -189,14 +191,29 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
-      padding: EdgeInsets.all(layout.foldsSections ? 8 : 16),
-      child: SiteDetailSectionList(
-        sections: sections,
-        layout: layout,
-        cards: _sectionCards(context, site, sections),
-        onFoldChanged: (id, expanded) => ref
-            .read(settingsProvider.notifier)
-            .setSiteDetailSectionExpanded(id, expanded),
+      padding: EdgeInsets.all(layout.pagePadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Fixed: the hero card is the only part of the page the section
+          // settings do not govern. It scrolls with the content.
+          SiteDetailHeroCard(
+            site: site,
+            onOpenMap: site.hasCoordinates
+                ? () => _showFullscreenMap(context, ref, site)
+                : null,
+          ),
+          SizedBox(height: layout.headerGap),
+          // Configurable sections in the diver's order and layout.
+          SiteDetailSectionList(
+            sections: sections,
+            layout: layout,
+            cards: _sectionCards(context, site, sections),
+            onFoldChanged: (id, expanded) => ref
+                .read(settingsProvider.notifier)
+                .setSiteDetailSectionExpanded(id, expanded),
+          ),
+        ],
       ),
     );
 
@@ -209,9 +226,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       );
     }
 
+    // A generic title, as on the dive page: the site's name belongs to the
+    // hero card at the top of the body, and repeating it here would stack
+    // the same words twice at the top of the screen.
     return Scaffold(
       appBar: AppBar(
-        title: Text(site.name),
+        title: Text(context.l10n.diveSites_detail_appBar),
         actions: [
           if (site.hasCoordinates)
             IconButton(
@@ -1229,7 +1249,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             context,
             Icons.timer,
             context.l10n.diveSites_detail_stats_longestDive,
-            _formatStatsDuration(notAvailable, stats.longestDiveSeconds),
+            formatSiteStatsDuration(notAvailable, stats.longestDiveSeconds),
             isEmpty: stats.longestDiveSeconds == null,
             diveId: stats.longestDiveId,
           ),
@@ -1238,7 +1258,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             context,
             Icons.hourglass_bottom,
             context.l10n.diveSites_detail_stats_avgDuration,
-            _formatStatsDuration(
+            formatSiteStatsDuration(
               notAvailable,
               stats.averageDurationSeconds?.round(),
             ),
@@ -1269,18 +1289,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       loading: () => shell(const []),
       error: (_, _) => shell(const []),
     );
-  }
-
-  /// "Xh Ym" for durations >= 1 hour, "Xmin" otherwise, or [notAvailable]
-  /// when [seconds] is null (issue #1018/#1038: a dive with neither runtime
-  /// nor bottom time contributes nothing to the duration aggregate).
-  String _formatStatsDuration(String notAvailable, int? seconds) {
-    if (seconds == null || seconds <= 0) return notAvailable;
-    final totalMinutes = seconds ~/ 60;
-    final hours = totalMinutes ~/ 60;
-    final minutes = totalMinutes % 60;
-    if (hours > 0) return '${hours}h ${minutes}m';
-    return '${minutes}min';
   }
 
   Widget _buildAltitudeSection(

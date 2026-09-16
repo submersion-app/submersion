@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_hero_card.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -76,12 +77,20 @@ void main() {
 
       // We should be on SiteDetailPage, NOT redirected to /sites (which isn't even defined here, so it would error if it tried)
       expect(find.byType(SiteDetailPage), findsOneWidget);
-      // The name lives in the page chrome only. The Basic Info card that used
-      // to repeat it below the app bar is gone, so a Card bearing the site
+      // The app bar carries a generic title, as the dive page's does; the
+      // site's name belongs to the hero card. No other card restates it: the
+      // Basic Info card that used to is gone, so a second Card bearing the
       // name would be that duplication coming back.
       expect(
         find.descendant(
           of: find.byType(AppBar),
+          matching: find.text('Site Details'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(SiteDetailHeroCard),
           matching: find.text('Blue Hole'),
         ),
         findsOneWidget,
@@ -91,7 +100,7 @@ void main() {
           of: find.byType(Card),
           matching: find.text('Blue Hole'),
         ),
-        findsNothing,
+        findsOneWidget,
       );
     });
   });
