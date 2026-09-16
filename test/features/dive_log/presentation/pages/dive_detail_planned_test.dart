@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 

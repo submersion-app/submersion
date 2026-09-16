@@ -60,7 +60,6 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';

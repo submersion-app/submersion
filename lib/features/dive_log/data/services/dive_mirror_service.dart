@@ -275,10 +275,7 @@ class DiveMirrorService {
     if (sourceTags.isEmpty) return const [];
     final visible = await _tags.getAllTags(diverId: targetDiverId);
     final byName = {for (final t in visible) _fold(t.name): t};
-    return [
-      for (final tag in sourceTags)
-        if (byName[_fold(tag.name)] case final match?) match,
-    ];
+    return [for (final tag in sourceTags) ?byName[_fold(tag.name)]];
   }
 
   /// Built-in roles are shared by id; a custom role is matched by name in

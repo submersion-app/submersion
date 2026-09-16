@@ -767,6 +767,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
       DuplicateAction.importAsNew => Colors.green,
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.replaceSource => Colors.blue.shade700,
+      DuplicateAction.fillPlanned => colorScheme.tertiary,
       DuplicateAction.skip => colorScheme.error,
     };
 
@@ -1202,6 +1203,10 @@ class _SimpleActionBadge extends StatelessWidget {
       DuplicateAction.replaceSource => (
         context.l10n.universalImport_entityAction_replaceBadge,
         Colors.blue.shade700,
+      ),
+      DuplicateAction.fillPlanned => (
+        context.l10n.universalImport_label_fillPlanned,
+        theme.colorScheme.tertiary,
       ),
       DuplicateAction.skip => (
         context.l10n.universalImport_entityAction_skipBadge,

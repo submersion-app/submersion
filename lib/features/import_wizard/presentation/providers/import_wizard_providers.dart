@@ -316,6 +316,17 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
               continue;
             }
 
+            // A same-day planned dive of the target profile (issue #2002):
+            // default to filling it. The row stays selected and needs no
+            // decision; the card offers Change and Import as new.
+            if (match.isPlannedFill) {
+              duplicateActions.putIfAbsent(type, () => {})[index] =
+                  DuplicateAction.fillPlanned;
+              selections[type] = {...selections[type]!, index};
+              pendingForType = pendingForType.difference({index});
+              continue;
+            }
+
             final matchedComputerId = match.matchedComputerId;
             // Auto-consolidate only for dive-computer downloads
             // (currentComputerId non-null): a file-based import cannot
@@ -743,6 +754,8 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       '${_adapter.runtimeType} for entity type $type',
     );
     if (!_adapter.duplicateActionsFor(type).contains(action)) return;
+    // One planned dive per row, chosen per row: never applied in bulk.
+    if (action == DuplicateAction.fillPlanned) return;
 
     final pending = state.pendingFor(type);
     if (pending.isEmpty) return;

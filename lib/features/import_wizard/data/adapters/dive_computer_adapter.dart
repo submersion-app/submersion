@@ -340,6 +340,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     DuplicateAction.importAsNew,
     DuplicateAction.consolidate,
     DuplicateAction.replaceSource,
+    DuplicateAction.fillPlanned,
   };
 
   /// A dive computer download only ever produces dives, so there is no

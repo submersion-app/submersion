@@ -90,6 +90,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
       DuplicateAction.replaceSource => Colors.blue.shade700,
+      DuplicateAction.fillPlanned => colorScheme.tertiary,
       null => colorScheme.tertiary,
     };
 
@@ -149,6 +150,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       onActionChanged: widget.onActionChanged,
       availableActions: widget.availableActions,
       isPending: widget.isPending,
+      showFillPlanned: widget.matchResult.isPlannedFill,
     );
   }
 }
@@ -325,6 +327,10 @@ class _ActionBadge extends StatelessWidget {
       DuplicateAction.replaceSource => (
         l10n.universalImport_entityAction_replaceBadge,
         Colors.blue.shade700,
+      ),
+      DuplicateAction.fillPlanned => (
+        l10n.universalImport_label_fillPlanned,
+        theme.colorScheme.tertiary,
       ),
     };
 

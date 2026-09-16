@@ -19,6 +19,9 @@ class UnifiedImportResult {
   /// data (replaceSource duplicate action).
   final int updatedCount;
 
+  /// Planned dives filled from a download and promoted (issue #2002).
+  final int filledCount;
+
   /// Number of items that were skipped (e.g. detected duplicates the user
   /// chose not to import).
   final int skippedCount;
@@ -51,6 +54,7 @@ class UnifiedImportResult {
     required this.importedCounts,
     required this.consolidatedCount,
     this.updatedCount = 0,
+    this.filledCount = 0,
     required this.skippedCount,
     this.importedDiveIds = const [],
     this.errorMessage,

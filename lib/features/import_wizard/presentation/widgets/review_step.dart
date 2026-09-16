@@ -415,6 +415,7 @@ String _actionLabel(
   DuplicateAction.consolidate => context.l10n.universalImport_label_consolidate,
   DuplicateAction.replaceSource =>
     context.l10n.universalImport_label_replaceSource,
+  DuplicateAction.fillPlanned => context.l10n.universalImport_label_fillPlanned,
 };
 
 void _showActionSnackbar(BuildContext context, String message) {
@@ -559,11 +560,15 @@ class _AggregateCounts {
   final int skipping;
   final int replacing;
 
+  /// Duplicates with [DuplicateAction.fillPlanned] (issue #2002).
+  final int filling;
+
   const _AggregateCounts({
     required this.importing,
     required this.consolidating,
     required this.skipping,
     required this.replacing,
+    this.filling = 0,
   });
 
   /// Compute counts from [ImportWizardState].
@@ -589,6 +594,7 @@ class _AggregateCounts {
     var consolidating = 0;
     var skipping = 0;
     var replacing = 0;
+    var filling = 0;
 
     for (final entry in bundle.groups.entries) {
       final type = entry.key;
@@ -621,6 +627,8 @@ class _AggregateCounts {
             skipping++;
           case DuplicateAction.replaceSource:
             replacing++;
+          case DuplicateAction.fillPlanned:
+            filling++;
         }
       }
     }
@@ -630,6 +638,7 @@ class _AggregateCounts {
       consolidating: consolidating,
       skipping: skipping,
       replacing: replacing,
+      filling: filling,
     );
   }
 

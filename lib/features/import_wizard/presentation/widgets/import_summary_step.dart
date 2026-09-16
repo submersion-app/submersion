@@ -58,6 +58,7 @@ class ImportSummaryStep extends ConsumerWidget {
       importedCounts: result.importedCounts,
       consolidatedCount: result.consolidatedCount,
       updatedCount: result.updatedCount,
+      filledCount: result.filledCount,
       skippedCount: result.skippedCount,
       attachedPhotoCount: result.attachedPhotoCount,
       unmatchedPhotoCount: result.unmatchedPhotoCount,
@@ -80,6 +81,7 @@ class _SuccessView extends StatelessWidget {
   final Map<ImportEntityType, int> importedCounts;
   final int consolidatedCount;
   final int updatedCount;
+  final int filledCount;
   final int skippedCount;
   final int attachedPhotoCount;
   final int unmatchedPhotoCount;
@@ -95,6 +97,7 @@ class _SuccessView extends StatelessWidget {
     required this.importedCounts,
     required this.consolidatedCount,
     this.updatedCount = 0,
+    this.filledCount = 0,
     required this.skippedCount,
     this.attachedPhotoCount = 0,
     this.unmatchedPhotoCount = 0,
@@ -115,7 +118,10 @@ class _SuccessView extends StatelessWidget {
       (sum, v) => sum + v,
     );
     final hasActivity =
-        totalImported > 0 || consolidatedCount > 0 || updatedCount > 0;
+        totalImported > 0 ||
+        consolidatedCount > 0 ||
+        updatedCount > 0 ||
+        filledCount > 0;
     final l10n = context.l10n;
     // "Import notes" explain dives that imported. Dives that did not (rows
     // whose date could not be read, dives a parser could not read) get their
@@ -131,7 +137,7 @@ class _SuccessView extends StatelessWidget {
     final Color iconColor;
     final Color iconBg;
     if (hasActivity) {
-      if (totalImported > 0) {
+      if (totalImported > 0 || filledCount > 0) {
         title = l10n.universalImport_title_successImported;
       } else if (updatedCount > 0) {
         title = l10n.universalImport_title_successUpdated;
@@ -185,6 +191,13 @@ class _SuccessView extends StatelessWidget {
                   label: _labelForType(l10n, entry.key),
                   count: entry.value,
                 ),
+            if (filledCount > 0)
+              _CountRow(
+                icon: Icons.event_available_outlined,
+                label: l10n.universalImport_label_filledPlanned,
+                count: filledCount,
+                key: const Key('import_summary_filled_row'),
+              ),
             if (updatedCount > 0)
               _CountRow(
                 icon: Icons.sync,
