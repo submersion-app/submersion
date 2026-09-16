@@ -5518,6 +5518,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_overline_tanks => '气瓶';
 
   @override
+  String get diveLog_edit_planned_switch => '计划的潜水';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle => '等待潜水电脑数据。记录前没有潜水编号。';
+
+  @override
   String get diveLog_edit_profile_draw => '绘制潜水曲线';
 
   @override
@@ -6359,6 +6365,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => '手动记录潜水';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => '计划一次潜水';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      '现在填写详情，稍后添加潜水电脑数据';
 
   @override
   String get diveLog_listPage_fab_addDive => '添加潜水';

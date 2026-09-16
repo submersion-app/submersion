@@ -5795,6 +5795,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Palackok';
 
   @override
+  String get diveLog_edit_planned_switch => 'Tervezett merülés';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Búvárkomputer-adatokra vár. Nincs merülésszám, amíg nincs naplózva.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Profil rajzolása';
 
   @override
@@ -6688,6 +6695,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Merules manualis rogzitese';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Merülés tervezése';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Töltsd ki a részleteket most, a búvárkomputer adatait add hozzá később';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Merules hozzaadasa';

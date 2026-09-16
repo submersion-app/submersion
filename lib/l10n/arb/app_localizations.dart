@@ -9471,6 +9471,18 @@ abstract class AppLocalizations {
   /// **'Tanks'**
   String get diveLog_edit_overline_tanks;
 
+  /// No description provided for @diveLog_edit_planned_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive'**
+  String get diveLog_edit_planned_switch;
+
+  /// No description provided for @diveLog_edit_planned_switchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting dive computer data. No dive number until it is logged.'**
+  String get diveLog_edit_planned_switchSubtitle;
+
   /// Dive profile row placeholder when no profile exists; tapping opens the draw editor
   ///
   /// In en, this message translates to:
@@ -10946,6 +10958,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log Dive Manually'**
   String get diveLog_listPage_bottomSheet_logManually;
+
+  /// No description provided for @diveLog_listPage_bottomSheet_planDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan a dive'**
+  String get diveLog_listPage_bottomSheet_planDive;
+
+  /// No description provided for @diveLog_listPage_bottomSheet_planDiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the details now, add the dive computer data later'**
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle;
 
   /// No description provided for @diveLog_listPage_fab_addDive.
   ///

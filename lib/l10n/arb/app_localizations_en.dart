@@ -5708,6 +5708,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Tanks';
 
   @override
+  String get diveLog_edit_planned_switch => 'Planned dive';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Awaiting dive computer data. No dive number until it is logged.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Draw a profile';
 
   @override
@@ -6583,6 +6590,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'Log Dive Manually';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Plan a dive';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Fill in the details now, add the dive computer data later';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Add Dive';

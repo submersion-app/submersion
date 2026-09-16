@@ -3315,6 +3315,8 @@
   "@diveLog_edit_overline_tanks": {
     "description": "Sub-header overline above the tank rows in the Gas & Gear edit section"
   },
+  "diveLog_edit_planned_switch": "Planned dive",
+  "diveLog_edit_planned_switchSubtitle": "Awaiting dive computer data. No dive number until it is logged.",
   "diveLog_edit_profile_draw": "Draw a profile",
   "@diveLog_edit_profile_draw": {
     "description": "Dive profile row placeholder when no profile exists; tapping opens the draw editor"
@@ -3674,6 +3676,8 @@
   "ocrImport_scanPage_engineMissing": "Text recognition is not available. Install Tesseract to scan paper logs (for example: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "The dive was saved, but attaching the scanned page failed",
   "diveLog_listPage_bottomSheet_logManually": "Log Dive Manually",
+  "diveLog_listPage_bottomSheet_planDive": "Plan a dive",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "Fill in the details now, add the dive computer data later",
   "diveLog_listPage_fab_addDive": "Add Dive",
   "diveLog_listPage_fab_logDive": "Log Dive",
   "diveLog_listPage_menuAdvancedSearch": "Advanced Search",

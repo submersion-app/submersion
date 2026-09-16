@@ -5807,6 +5807,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Bombole';
 
   @override
+  String get diveLog_edit_planned_switch => 'Immersione pianificata';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'In attesa dei dati del computer. Nessun numero di immersione finché non viene registrata.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Disegna un profilo';
 
   @override
@@ -6702,6 +6709,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registra immersione manualmente';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive =>
+      'Pianifica un\'immersione';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Inserisci i dettagli ora, aggiungi i dati del computer più tardi';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Aggiungi immersione';

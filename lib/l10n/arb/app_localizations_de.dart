@@ -5812,6 +5812,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Flaschen';
 
   @override
+  String get diveLog_edit_planned_switch => 'Geplanter Tauchgang';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Wartet auf Tauchcomputerdaten. Keine Tauchgangsnummer, bis er protokolliert ist.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Profil zeichnen';
 
   @override
@@ -6700,6 +6707,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Tauchgang manuell erfassen';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Tauchgang planen';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Details jetzt eintragen, Tauchcomputerdaten später ergänzen';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Tauchgang hinzufugen';

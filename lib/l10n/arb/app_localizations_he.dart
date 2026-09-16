@@ -5670,6 +5670,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'מיכלים';
 
   @override
+  String get diveLog_edit_planned_switch => 'צלילה מתוכננת';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'ממתין לנתוני מחשב הצלילה. אין מספר צלילה עד שהיא נרשמת.';
+
+  @override
   String get diveLog_edit_profile_draw => 'שרטוט פרופיל';
 
   @override
@@ -6533,6 +6540,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'רישום צלילה ידנית';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'תכנון צלילה';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'מלאו את הפרטים עכשיו והוסיפו את נתוני מחשב הצלילה מאוחר יותר';
 
   @override
   String get diveLog_listPage_fab_addDive => 'הוספת צלילה';

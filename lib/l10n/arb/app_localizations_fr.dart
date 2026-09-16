@@ -5828,6 +5828,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Blocs';
 
   @override
+  String get diveLog_edit_planned_switch => 'Plongée planifiée';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'En attente des données de l\'ordinateur. Pas de numéro de plongée tant qu\'elle n\'est pas enregistrée.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Dessiner un profil';
 
   @override
@@ -6732,6 +6739,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Enregistrer manuellement';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Planifier une plongée';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Renseignez les détails maintenant, ajoutez les données de l\'ordinateur plus tard';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Ajouter une plongée';

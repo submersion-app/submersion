@@ -5812,6 +5812,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Cilindros';
 
   @override
+  String get diveLog_edit_planned_switch => 'Mergulho planejado';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Aguardando os dados do computador. Sem número de mergulho até ser registrado.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Desenhar um perfil';
 
   @override
@@ -6706,6 +6713,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registrar mergulho manualmente';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Planejar um mergulho';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Preencha os detalhes agora e adicione os dados do computador depois';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Adicionar mergulho';

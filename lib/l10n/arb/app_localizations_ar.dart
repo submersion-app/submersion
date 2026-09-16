@@ -5699,6 +5699,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'الأسطوانات';
 
   @override
+  String get diveLog_edit_planned_switch => 'غوصة مخططة';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.';
+
+  @override
   String get diveLog_edit_profile_draw => 'رسم ملف الغوص';
 
   @override
@@ -6566,6 +6573,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'تسجيل غوصة يدويا';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'التخطيط لغوصة';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'أدخل التفاصيل الآن وأضف بيانات كمبيوتر الغوص لاحقا';
 
   @override
   String get diveLog_listPage_fab_addDive => 'اضافة غوصة';
