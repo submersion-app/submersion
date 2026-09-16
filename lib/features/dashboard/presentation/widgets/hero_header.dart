@@ -43,8 +43,8 @@ class HeroHeader extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Empty with one profile; brings its own gap otherwise.
               const HeroDiverAvatar(),
-              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

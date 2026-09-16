@@ -57,7 +57,8 @@ void main() {
     List<Diver>? divers,
     Future<Diver?> Function(String? id)? diverForId,
   }) async {
-    final allDivers = divers ?? [_eric];
+    // Two profiles by default: that is the case the avatar exists for.
+    final allDivers = divers ?? [_eric, _sam];
     tester.view.physicalSize = const Size(500, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -128,21 +129,33 @@ void main() {
       expect(find.text('Eric Griffin'), findsOneWidget);
     });
 
-    testWidgets('hides the swap badge while only one profile exists', (
+    testWidgets('shows nothing while only one profile exists', (tester) async {
+      await pumpHeader(tester, diver: () async => _eric, divers: [_eric]);
+
+      expect(find.text('EG'), findsNothing);
+      expect(find.byTooltip('Switch Diver'), findsNothing);
+      expect(find.byIcon(Icons.swap_horiz), findsNothing);
+    });
+
+    testWidgets('single-profile greeting keeps the pre-avatar 18px inset', (
+      tester,
+    ) async {
+      await pumpHeader(tester, diver: () async => _eric, divers: [_eric]);
+
+      final headerLeft = tester.getTopLeft(find.byType(HeroHeader)).dx;
+      expect(tester.getTopLeft(greeting()).dx - headerLeft, 18);
+    });
+
+    testWidgets('shows the avatar with its swap badge for two profiles', (
       tester,
     ) async {
       await pumpHeader(tester, diver: () async => _eric);
 
       expect(find.text('EG'), findsOneWidget);
-      expect(find.byIcon(Icons.swap_horiz), findsNothing);
-    });
-
-    testWidgets('shows the swap badge once a second profile exists', (
-      tester,
-    ) async {
-      await pumpHeader(tester, diver: () async => _eric, divers: [_eric, _sam]);
-
       expect(find.byIcon(Icons.swap_horiz), findsOneWidget);
+      // 18px inset, 44px tap target, 8px gap.
+      final headerLeft = tester.getTopLeft(find.byType(HeroHeader)).dx;
+      expect(tester.getTopLeft(greeting()).dx - headerLeft, 70);
     });
 
     testWidgets('keeps the current avatar while the next diver loads', (
