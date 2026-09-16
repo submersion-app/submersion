@@ -5149,6 +5149,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // not listed. The census test in dive_edit_save_field_census_test.dart
         // fails when a new field is added to the writer without a carry here.
         isPlanned: _existingDive?.isPlanned ?? false,
+        outingId: _existingDive?.outingId,
         diveComputerModel: _existingDive?.diveComputerModel,
         diveComputerSerial: _existingDive?.diveComputerSerial,
         diveComputerFirmware: _existingDive?.diveComputerFirmware,

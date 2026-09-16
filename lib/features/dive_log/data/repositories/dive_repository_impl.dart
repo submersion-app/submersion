@@ -1529,6 +1529,7 @@ class DiveRepository {
                 ),
                 // Dive planner (v1.5)
                 isPlanned: Value(dive.isPlanned),
+                outingId: Value(dive.outingId),
                 // Training course (v1.5)
                 courseId: Value(dive.courseId),
                 // Import source tracking
@@ -1823,6 +1824,7 @@ class DiveRepository {
             scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
             // Dive planner (v1.5)
             isPlanned: Value(dive.isPlanned),
+            outingId: Value(dive.outingId),
             // Training course (v1.5)
             courseId: Value(dive.courseId),
             // Import source tracking
@@ -2704,6 +2706,31 @@ class DiveRepository {
   // ============================================================================
   // Query Operations
   // ============================================================================
+
+  /// Every dive in an outing: the siblings mirrored from one save (issue
+  /// #2002) plus the source dive itself. Ordered newest first like the
+  /// other per-parent lists. Crosses profiles on purpose: the caller shows
+  /// each sibling with its owner's name.
+  // stats-scope-exempt: navigation between sibling dives, not a statistic.
+  Future<List<domain.Dive>> getDivesByOutingId(String outingId) async {
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.outingId.equals(outingId))
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+          (t) => OrderingTerm.desc(t.diveNumber),
+        ]);
+      final rows = await query.get();
+      return await Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives for outing: $outingId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
 
   /// Get dives for a specific site
   Future<List<domain.Dive>> getDivesForSite(String siteId) async {
@@ -3960,6 +3987,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      outingId: row.outingId,
       // Training course (v1.5)
       courseId: row.courseId,
       // Import source tracking
@@ -4381,6 +4409,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      outingId: row.outingId,
       // Training course (v1.5)
       courseId: row.courseId,
       // Import source tracking
