@@ -180,6 +180,7 @@ class BuddyRepository {
             BuddiesCompanion(
               id: Value(id),
               diverId: Value(buddy.diverId),
+              linkedDiverId: Value(buddy.linkedDiverId),
               name: Value(buddy.name),
               email: Value(buddy.email),
               phone: Value(buddy.phone),
@@ -309,6 +310,7 @@ class BuddyRepository {
       )..where((t) => t.id.equals(buddy.id))).write(
         BuddiesCompanion(
           diverId: Value(buddy.diverId),
+          linkedDiverId: Value(buddy.linkedDiverId),
           name: Value(buddy.name),
           email: Value(buddy.email),
           phone: Value(buddy.phone),
@@ -1203,6 +1205,7 @@ class BuddyRepository {
     return domain.Buddy(
       id: row.id,
       diverId: row.diverId,
+      linkedDiverId: row.linkedDiverId,
       name: row.name,
       email: row.email,
       phone: row.phone,
