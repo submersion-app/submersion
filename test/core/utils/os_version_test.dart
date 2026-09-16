@@ -44,13 +44,16 @@ void main() {
     });
 
     test('leaves a genuine Windows 10 build alone', () {
-      // 22000 is the first Windows 11 build; 21996 and below are Windows 10.
+      // Windows 10 shipped up to build 19045, and 22000 opens the Windows 11
+      // line, so every build below 22000 is left as the Windows 10 it says.
       const raw = '"Windows 10 Pro" 10.0 (Build 19045)';
 
       expect(normalizeOsVersion(platform: 'windows', version: raw), raw);
     });
 
-    test('leaves the last Windows 10 build alone', () {
+    test('leaves the build just below the threshold alone', () {
+      // Pins the off-by-one: 21999 is the highest build the helper still
+      // treats as Windows 10, paired with the 22000 case above.
       const raw = '"Windows 10 Enterprise" 10.0 (Build 21999)';
 
       expect(normalizeOsVersion(platform: 'windows', version: raw), raw);
