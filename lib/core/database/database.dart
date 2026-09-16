@@ -8201,14 +8201,6 @@ class AppDatabase extends _$AppDatabase {
     await customStatement('ALTER TABLE dive_types ADD COLUMN short_name TEXT');
   }
 
-  /// Idempotent DDL for the v174 dive_types.show_in_detail_header and
-  /// dive_types.show_in_list_view columns: per-type toggles for which
-  /// badge rows a diver's types appear in (issue #1269 follow-up). Both
-  /// default to shown (1) so existing dives keep their current badges.
-  /// Called from the v174 onUpgrade step and the beforeOpen backstop,
-  /// matching the _assertDiveTypeShortNameColumn pattern so a schema-version
-  /// collision cannot strand a database without them. Self-guarding when the
-  /// table is absent (minimal migration-test fixtures).
   /// Idempotent DDL for the tag scope flags: dives and sites (v217, issue
   /// #1765), equipment (v219, issue #1942). Existing tags are dive tags; none
   /// applies to sites or equipment until the diver says so.
@@ -8278,6 +8270,14 @@ class AppDatabase extends _$AppDatabase {
     await assertEquipmentTagUniqueness(this);
   }
 
+  /// Idempotent DDL for the v174 dive_types.show_in_detail_header and
+  /// dive_types.show_in_list_view columns: per-type toggles for which
+  /// badge rows a diver's types appear in (issue #1269 follow-up). Both
+  /// default to shown (1) so existing dives keep their current badges.
+  /// Called from the v174 onUpgrade step and the beforeOpen backstop,
+  /// matching the _assertDiveTypeShortNameColumn pattern so a schema-version
+  /// collision cannot strand a database without them. Self-guarding when the
+  /// table is absent (minimal migration-test fixtures).
   Future<void> _assertDiveTypeVisibilityColumns() async {
     final cols = await customSelect("PRAGMA table_info('dive_types')").get();
     if (cols.isEmpty) return;
