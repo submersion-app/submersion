@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -14,12 +15,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _host(Locale locale) {
+Widget _host(Locale locale, {AppSettings settings = const AppSettings()}) {
   return ProviderScope(
     overrides: [
-      settingsProvider.overrideWith(
-        (ref) => _TestSettingsNotifier(const AppSettings()),
-      ),
+      settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
     ],
     child: MaterialApp(
       locale: locale,
@@ -50,4 +49,50 @@ void main() {
       );
     },
   );
+
+  testWidgets('the result card semantics label announces the depth in the '
+      "diver's configured unit", (tester) async {
+    // The depth in the screen-reader label goes through UnitFormatter, so an
+    // imperial diver hears feet. Only the ppO2 figure stays in bar: partial
+    // pressure is a fixed diving convention, stated in bar app-wide (see the
+    // planner's ppO2 warnings and the decompression settings), not a
+    // diver-configurable unit.
+    await tester.pumpWidget(
+      _host(
+        const Locale('en'),
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.bySemanticsLabel(
+        RegExp(r'Maximum Operating Depth: [\d.]+ ft at [\d.]+ bar ppO2'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel(RegExp(r'Maximum Operating Depth: [\d.]+ m ')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the metric diver hears metres in the same label', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        const Locale('en'),
+        settings: const AppSettings(depthUnit: DepthUnit.meters),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.bySemanticsLabel(
+        RegExp(r'Maximum Operating Depth: [\d.]+ m at [\d.]+ bar ppO2'),
+      ),
+      findsOneWidget,
+    );
+  });
 }
