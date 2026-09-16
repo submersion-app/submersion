@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -24,13 +25,16 @@ class TagRepository {
   Stream<void> watchTagsChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.tags));
 
-  /// Emits when a site gains or loses a tag, which moves the site counts
-  /// in [getTagStatistics] (issue #1765).
-  Stream<void> watchSiteTagsChanges() =>
-      _db.tableUpdates(TableUpdateQuery.onTable(_db.siteTags));
+  /// Emits when any tag link changes, on every junction in the tag scope
+  /// registry, since each moves a count in [getTagStatistics] (#1765, #1942).
+  Stream<void> watchTagLinkChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([
+      for (final junction in tagScopeTables) _table(junction.junctionTable),
+    ]),
+  );
 
   /// Get all tags, ordered by name. [scope] limits the list to tags offered
-  /// on dives or on sites (issue #1765); null returns every tag.
+  /// in that scope (issues #1765, #1942); null returns every tag.
   Future<List<domain.Tag>> getAllTags({
     String? diverId,
     domain.TagScope? scope,
@@ -42,13 +46,12 @@ class TagRepository {
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
       }
-      switch (scope) {
-        case domain.TagScope.dives:
-          query.where((t) => t.appliesToDives.equals(true));
-        case domain.TagScope.sites:
-          query.where((t) => t.appliesToSites.equals(true));
-        case null:
-          break;
+      if (scope != null) {
+        final column = scope.table.scopeColumn;
+        query.where(
+          (t) =>
+              (t.columnsByName[column]! as GeneratedColumn<bool>).equals(true),
+        );
       }
 
       final rows = await query.get();
@@ -171,16 +174,17 @@ class TagRepository {
       final created = await _db
           .into(_db.tags)
           .insertReturningOrNull(
-            TagsCompanion(
-              id: Value(id),
-              diverId: Value(tag.diverId),
-              name: Value(name),
-              color: Value(tag.colorHex),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-              appliesToDives: Value(tag.appliesToDives),
-              appliesToSites: Value(tag.appliesToSites),
-            ),
+            RawValuesInsertable<Tag>({
+              ...TagsCompanion(
+                id: Value(id),
+                diverId: Value(tag.diverId),
+                name: Value(name),
+                color: Value(tag.colorHex),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ).toColumns(false),
+              ...tagScopeColumns(tag.scopes),
+            }),
             onConflict: DoNothing<$TagsTable, Tag>(target: const []),
           );
       if (created == null) {
@@ -250,8 +254,8 @@ class TagRepository {
   /// one tag by that name, and every dive on either side keeps it. This is the
   /// same outcome the tag merge sheet produces, so it reuses [mergeTags].
   ///
-  /// Scope (issue #1765): turning off dives or sites for a tag also removes
-  /// it from every dive or site that carries it, each link tombstoned, so a
+  /// Scope (issues #1765, #1942): turning off a scope for a tag also removes
+  /// it from every item of that scope carrying it, each link tombstoned, so a
   /// link always implies its scope. The UI confirms before doing that.
   Future<void> updateTag(domain.Tag tag) async {
     try {
@@ -279,24 +283,26 @@ class TagRepository {
       await _db.transaction(() async {
         final stored = await getTagById(tag.id);
         await (_db.update(_db.tags)..where((t) => t.id.equals(tag.id))).write(
-          TagsCompanion(
-            name: Value(name),
-            color: Value(tag.colorHex),
-            updatedAt: Value(now),
-            appliesToDives: Value(tag.appliesToDives),
-            appliesToSites: Value(tag.appliesToSites),
-          ),
+          RawValuesInsertable<Tag>({
+            ...TagsCompanion(
+              name: Value(name),
+              color: Value(tag.colorHex),
+              updatedAt: Value(now),
+            ).toColumns(false),
+            ...tagScopeColumns(tag.scopes),
+          }),
         );
         await _syncRepository.markRecordPending(
           entityType: 'tags',
           recordId: tag.id,
           localUpdatedAt: now,
         );
-        if (stored != null && stored.appliesToSites && !tag.appliesToSites) {
-          await _unlinkEverySite(tag.id);
-        }
-        if (stored != null && stored.appliesToDives && !tag.appliesToDives) {
-          await _unlinkEveryDive(tag.id);
+        if (stored != null) {
+          for (final scope in domain.TagScope.values) {
+            if (stored.appliesTo(scope) && !tag.appliesTo(scope)) {
+              await _unlinkAll(scope.table, tag.id);
+            }
+          }
         }
       });
       SyncEventBus.notifyLocalChange();
@@ -312,23 +318,23 @@ class TagRepository {
   }
 
   // ============================================================================
-  // Scope (issue #1765)
+  // Scope (issues #1765, #1942)
   // ============================================================================
 
   void _requireScope(domain.Tag tag) {
-    if (!tag.appliesToDives && !tag.appliesToSites) {
-      throw ArgumentError('A tag must apply to dives, sites, or both');
+    if (tag.scopes.isEmpty) {
+      throw ArgumentError(
+        'A tag must apply to at least one of: '
+        '${domain.TagScope.values.map((s) => s.name).join(', ')}',
+      );
     }
   }
 
   /// [tag] widened to also cover every scope [wanted] has.
   Future<domain.Tag> _widenTo(domain.Tag tag, domain.Tag wanted) async {
     var result = tag;
-    if (wanted.appliesToDives) {
-      result = await _widen(result, domain.TagScope.dives);
-    }
-    if (wanted.appliesToSites) {
-      result = await _widen(result, domain.TagScope.sites);
+    for (final scope in domain.TagScope.values) {
+      if (wanted.appliesTo(scope)) result = await _widen(result, scope);
     }
     return result;
   }
@@ -336,17 +342,13 @@ class TagRepository {
   /// Adds [scope] to [tag] if it lacks it, returning the stored result.
   Future<domain.Tag> _widen(domain.Tag tag, domain.TagScope scope) async {
     if (tag.appliesTo(scope)) return tag;
-    final widened = tag.copyWith(
-      appliesToDives: tag.appliesToDives || scope == domain.TagScope.dives,
-      appliesToSites: tag.appliesToSites || scope == domain.TagScope.sites,
-    );
+    final widened = tag.copyWith(scopes: {...tag.scopes, scope});
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.tags)..where((t) => t.id.equals(tag.id))).write(
-      TagsCompanion(
-        appliesToDives: Value(widened.appliesToDives),
-        appliesToSites: Value(widened.appliesToSites),
-        updatedAt: Value(now),
-      ),
+      RawValuesInsertable<Tag>({
+        ...tagScopeColumns(widened.scopes),
+        ...TagsCompanion(updatedAt: Value(now)).toColumns(false),
+      }),
     );
     await _syncRepository.markRecordPending(
       entityType: 'tags',
@@ -358,49 +360,69 @@ class TagRepository {
     return widened;
   }
 
-  /// Removes [tagId] from every site, tombstoning each link. Sites are not
-  /// re-stamped: the links are clockless children (#1769).
-  Future<void> _unlinkEverySite(String tagId) async {
-    final links = await (_db.select(
-      _db.siteTags,
-    )..where((t) => t.tagId.equals(tagId))).get();
+  /// The Drift table called [name], so a registry-driven write tells Drift
+  /// what it touched and stream queries over that table refresh.
+  TableInfo<Table, dynamic> _table(String name) =>
+      _db.allTables.firstWhere((t) => t.actualTableName == name);
+
+  /// Every link of [tagId] in [junction], as (link id, linked item id).
+  Future<List<({String id, String parentId})>> _linksOf(
+    TagScopeTable junction,
+    String tagId,
+  ) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id, ${junction.parentColumn} AS parent_id '
+          'FROM ${junction.junctionTable} WHERE tag_id = ?',
+          variables: [Variable.withString(tagId)],
+        )
+        .get();
+    return [
+      for (final row in rows)
+        (id: row.read<String>('id'), parentId: row.read<String>('parent_id')),
+    ];
+  }
+
+  /// Removes [tagId] from every item in [junction], tombstoning each link.
+  /// No parent is re-stamped, dives included: narrowing never did, and site
+  /// links are clockless children (#1769).
+  Future<void> _unlinkAll(TagScopeTable junction, String tagId) async {
+    final links = await _linksOf(junction, tagId);
+    if (links.isEmpty) return;
+    await _db.customUpdate(
+      'DELETE FROM ${junction.junctionTable} WHERE tag_id = ?',
+      variables: [Variable.withString(tagId)],
+      updates: {_table(junction.junctionTable)},
+      updateKind: UpdateKind.delete,
+    );
     for (final link in links) {
-      await (_db.delete(_db.siteTags)..where((t) => t.id.equals(link.id))).go();
       await _syncRepository.logDeletion(
-        entityType: 'siteTags',
+        entityType: junction.syncEntity,
         recordId: link.id,
       );
     }
   }
 
-  /// Removes [tagId] from every dive, tombstoning each link.
-  Future<void> _unlinkEveryDive(String tagId) async {
-    final links = await (_db.select(
-      _db.diveTags,
-    )..where((t) => t.tagId.equals(tagId))).get();
-    for (final link in links) {
-      await (_db.delete(_db.diveTags)..where((t) => t.id.equals(link.id))).go();
-      await _syncRepository.logDeletion(
-        entityType: 'diveTags',
-        recordId: link.id,
-      );
-    }
-  }
-
-  /// How many dives and sites carry [tagId]; the scope editor confirms with
-  /// these before narrowing a tag.
-  Future<({int dives, int sites})> getTagUsage(String tagId) async {
+  /// How many items of each scope carry [tagId]; the scope editor confirms
+  /// with these before narrowing a tag. Every registry scope has an entry.
+  Future<Map<domain.TagScope, int>> getTagUsage(String tagId) async {
+    final counts = [
+      for (final scope in domain.TagScope.values)
+        '(SELECT COUNT(*) FROM ${scope.table.junctionTable} '
+            'WHERE tag_id = ?1) AS ${scope.name}',
+    ];
     final row = await _db
         .customSelect(
           // stats-scope-exempt: usage indicator for the scope editor. Must see
           // every dive carrying the tag, excluded ones included.
-          'SELECT '
-          '(SELECT COUNT(*) FROM dive_tags WHERE tag_id = ?) AS dives, '
-          '(SELECT COUNT(*) FROM site_tags WHERE tag_id = ?) AS sites',
-          variables: [Variable.withString(tagId), Variable.withString(tagId)],
+          'SELECT ${counts.join(', ')}',
+          variables: [Variable.withString(tagId)],
         )
         .getSingle();
-    return (dives: row.read<int>('dives'), sites: row.read<int>('sites'));
+    return {
+      for (final scope in domain.TagScope.values)
+        scope: row.read<int>(scope.name),
+    };
   }
 
   /// Delete a tag
@@ -646,35 +668,41 @@ class TagRepository {
   // Statistics
   // ============================================================================
 
-  /// Get tag statistics (usage counts)
+  /// Get tag statistics (usage counts per scope)
   Future<List<TagStatistic>> getTagStatistics({String? diverId}) async {
     try {
       final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
       final variables = diverId != null
           ? [Variable.withString(diverId)]
           : <Variable<Object>>[];
+      const scopes = domain.TagScope.values;
+      final countColumns = [
+        for (final scope in scopes)
+          '(SELECT COUNT(*) FROM ${scope.table.junctionTable} j '
+              'WHERE j.tag_id = t.id) AS ${scope.name}_count',
+      ];
+      // Registry order, so the dive count comes first: the dive tag picker
+      // lists "tags you use most" in exactly this order, and each later
+      // scope's count only breaks ties (#1765, #1942).
+      final order = [for (final scope in scopes) '${scope.name}_count DESC'];
 
-      // Dive count first: the dive tag picker lists "tags you use most" in
-      // exactly this order. Site counts (issue #1765) only break ties.
       // stats-scope-exempt: usage counts for managing tags, not a
       // statistic. A planned or stats-excluded dive still carries the tag.
       final result = await _db.customSelect('''
-        SELECT t.*,
-          (SELECT COUNT(*) FROM dive_tags dt WHERE dt.tag_id = t.id)
-            AS dive_count,
-          (SELECT COUNT(*) FROM site_tags st WHERE st.tag_id = t.id)
-            AS site_count
+        SELECT t.*, ${countColumns.join(', ')}
         FROM tags t
         $diverFilter
-        ORDER BY dive_count DESC, site_count DESC, t.name
+        ORDER BY ${order.join(', ')}, t.name
       ''', variables: variables).get();
 
       return result
           .map(
             (row) => TagStatistic(
               tag: mapTagRow(_db.tags.map(row.data)),
-              diveCount: row.data['dive_count'] as int,
-              siteCount: row.data['site_count'] as int,
+              counts: {
+                for (final scope in scopes)
+                  scope: row.read<int>('${scope.name}_count'),
+              },
             ),
           )
           .toList();
@@ -711,32 +739,39 @@ class TagRepository {
     }
   }
 
-  /// How many distinct dives and sites carry any of [tagIds] (union, not
-  /// sum): a dive or site carrying two of them counts once. Previews what a
-  /// bulk delete or a merge rewrites, which since #1849 includes sites
-  /// (#1902).
-  Future<({int dives, int sites})> getMergedUsage(List<String> tagIds) async {
-    if (tagIds.isEmpty) return (dives: 0, sites: 0);
+  /// How many distinct items of each scope carry any of [tagIds] (union, not
+  /// sum): an item carrying two of them counts once. Previews what a bulk
+  /// delete or a merge rewrites (#1902). Every registry scope has an entry.
+  Future<Map<domain.TagScope, int>> getMergedUsage(List<String> tagIds) async {
+    if (tagIds.isEmpty) {
+      return {for (final scope in domain.TagScope.values) scope: 0};
+    }
     try {
       final rows = tagIds.map((_) => '(?)').join(', ');
+      final counts = [
+        for (final scope in domain.TagScope.values)
+          '(SELECT COUNT(DISTINCT ${scope.table.parentColumn}) '
+              'FROM ${scope.table.junctionTable} '
+              'WHERE tag_id IN (SELECT tag_id FROM selected)) '
+              'AS ${scope.name}',
+      ];
       final row = await _db
           .customSelect(
             // stats-scope-exempt: delete and merge preview. Tells the diver
-            // how many dives and sites the change rewrites, which is every
-            // one of them. The ids bind once, in the CTE, and both counts
-            // read from it: binding them per count would halve the selection
+            // how many items the change rewrites, which is every one of
+            // them. The ids bind once, in the CTE, and every count reads
+            // from it: binding them per count would divide the selection
             // SQLite's bound-variable limit allows. Chunking would not do,
             // since a union count cannot be summed across chunks.
             'WITH selected(tag_id) AS (VALUES $rows) '
-            'SELECT '
-            '(SELECT COUNT(DISTINCT dive_id) FROM dive_tags '
-            'WHERE tag_id IN (SELECT tag_id FROM selected)) AS dives, '
-            '(SELECT COUNT(DISTINCT site_id) FROM site_tags '
-            'WHERE tag_id IN (SELECT tag_id FROM selected)) AS sites',
+            'SELECT ${counts.join(', ')}',
             variables: tagIds.map((id) => Variable.withString(id)).toList(),
           )
           .getSingle();
-      return (dives: row.read<int>('dives'), sites: row.read<int>('sites'));
+      return {
+        for (final scope in domain.TagScope.values)
+          scope: row.read<int>(scope.name),
+      };
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get merged tag usage',
@@ -780,8 +815,9 @@ class TagRepository {
   ///
   /// [sourceTagIds] are the tags to merge away (will be deleted).
   /// [survivingTagId] is the tag that remains, updated with [name] and [colorHex].
-  /// All dive associations from source tags move to the surviving tag.
-  /// Duplicate associations (dive already has surviving tag) are removed.
+  /// Every link of a source tag, in every junction of the tag scope registry,
+  /// moves to the surviving tag. A link whose item already has the surviving
+  /// tag is removed.
   Future<void> mergeTags({
     required List<String> sourceTagIds,
     required String survivingTagId,
@@ -801,42 +837,34 @@ class TagRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await _db.transaction(() async {
-        // Pre-fetch all diveIds that already have the surviving tag
-        final existingSurvivingDiveIds =
-            (await (_db.select(
-                  _db.diveTags,
-                )..where((t) => t.tagId.equals(survivingTagId))).get())
-                .map((dt) => dt.diveId)
-                .toSet();
+        // Items that already carry the surviving tag, per junction.
+        final covered = <TagScopeTable, Set<String>>{};
+        for (final junction in tagScopeTables) {
+          covered[junction] = {
+            for (final link in await _linksOf(junction, survivingTagId))
+              link.parentId,
+          };
+        }
 
-        // Sites that already carry the surviving tag (issue #1765)
-        final existingSurvivingSiteIds =
-            (await (_db.select(
-                  _db.siteTags,
-                )..where((t) => t.tagId.equals(survivingTagId))).get())
-                .map((st) => st.siteId)
-                .toSet();
-
-        // The survivor keeps every use the merged tags had (issue #1765).
+        // The survivor keeps every use the merged tags had (issue #1765). A
+        // merge of rows that carry no scope at all stays a dive tag.
         final mergedRows = await (_db.select(
           _db.tags,
         )..where((t) => t.id.isIn([survivingTagId, ...sourceTagIds]))).get();
-        final anyDives = mergedRows.any((r) => r.appliesToDives);
-        final anySites = mergedRows.any((r) => r.appliesToSites);
-
-        // Collect all affected diveIds to batch-update updatedAt once
-        final affectedDiveIds = <String>{};
-        // Update surviving tag name, color and scope
+        final union = {for (final row in mergedRows) ...tagScopesOf(row)};
         await (_db.update(
           _db.tags,
         )..where((t) => t.id.equals(survivingTagId))).write(
-          TagsCompanion(
-            name: Value(name),
-            color: Value(colorHex),
-            updatedAt: Value(now),
-            appliesToDives: Value(anyDives || !anySites),
-            appliesToSites: Value(anySites),
-          ),
+          RawValuesInsertable<Tag>({
+            ...TagsCompanion(
+              name: Value(name),
+              color: Value(colorHex),
+              updatedAt: Value(now),
+            ).toColumns(false),
+            ...tagScopeColumns(
+              union.isEmpty ? const {domain.TagScope.dives} : union,
+            ),
+          }),
         );
         await _syncRepository.markRecordPending(
           entityType: 'tags',
@@ -844,80 +872,53 @@ class TagRepository {
           localUpdatedAt: now,
         );
 
+        // Parents to re-stamp once at the end, by table: a dive link
+        // re-stamps its dive; site links are clockless children (#1769).
+        final restamp = <String, Set<String>>{};
         for (final sourceId in sourceTagIds) {
-          // Get all dive associations for this source tag
-          final sourceDiveTags = await (_db.select(
-            _db.diveTags,
-          )..where((t) => t.tagId.equals(sourceId))).get();
-
-          for (final diveTag in sourceDiveTags) {
-            if (!existingSurvivingDiveIds.contains(diveTag.diveId)) {
-              // Move association to surviving tag
-              final newId = _uuid.v4();
-              await _db
-                  .into(_db.diveTags)
-                  .insert(
-                    DiveTagsCompanion(
-                      id: Value(newId),
-                      diveId: Value(diveTag.diveId),
-                      tagId: Value(survivingTagId),
-                      createdAt: Value(now),
-                    ),
-                  );
-              await _syncRepository.markRecordPending(
-                entityType: 'diveTags',
-                recordId: newId,
-                localUpdatedAt: now,
+          for (final junction in tagScopeTables) {
+            final updates = {_table(junction.junctionTable)};
+            final carried = covered[junction]!;
+            for (final link in await _linksOf(junction, sourceId)) {
+              if (carried.add(link.parentId)) {
+                // Move the link to the surviving tag.
+                final newId = _uuid.v4();
+                await _db.customInsert(
+                  'INSERT INTO ${junction.junctionTable} '
+                  '(id, ${junction.parentColumn}, tag_id, created_at) '
+                  'VALUES (?, ?, ?, ?)',
+                  variables: [
+                    Variable.withString(newId),
+                    Variable.withString(link.parentId),
+                    Variable.withString(survivingTagId),
+                    Variable.withInt(now),
+                  ],
+                  updates: updates,
+                );
+                await _syncRepository.markRecordPending(
+                  entityType: junction.syncEntity,
+                  recordId: newId,
+                  localUpdatedAt: now,
+                );
+              }
+              // Deleted explicitly (not by CASCADE) so sync tracks each one.
+              await _db.customUpdate(
+                'DELETE FROM ${junction.junctionTable} WHERE id = ?',
+                variables: [Variable.withString(link.id)],
+                updates: updates,
+                updateKind: UpdateKind.delete,
               );
-              // Track so subsequent source tags see this dive as covered
-              existingSurvivingDiveIds.add(diveTag.diveId);
-            }
-
-            // Delete explicitly (not relying on CASCADE) so sync tracks
-            // each deletion
-            await (_db.delete(
-              _db.diveTags,
-            )..where((t) => t.id.equals(diveTag.id))).go();
-            await _syncRepository.logDeletion(
-              entityType: 'diveTags',
-              recordId: diveTag.id,
-            );
-
-            affectedDiveIds.add(diveTag.diveId);
-          }
-
-          // Site associations follow the same way (issue #1765). Sites are
-          // not re-stamped: the links are clockless children (#1769).
-          final sourceSiteTags = await (_db.select(
-            _db.siteTags,
-          )..where((t) => t.tagId.equals(sourceId))).get();
-          for (final siteTag in sourceSiteTags) {
-            if (!existingSurvivingSiteIds.contains(siteTag.siteId)) {
-              final newId = _uuid.v4();
-              await _db
-                  .into(_db.siteTags)
-                  .insert(
-                    SiteTagsCompanion(
-                      id: Value(newId),
-                      siteId: Value(siteTag.siteId),
-                      tagId: Value(survivingTagId),
-                      createdAt: Value(now),
-                    ),
-                  );
-              await _syncRepository.markRecordPending(
-                entityType: 'siteTags',
-                recordId: newId,
-                localUpdatedAt: now,
+              await _syncRepository.logDeletion(
+                entityType: junction.syncEntity,
+                recordId: link.id,
               );
-              existingSurvivingSiteIds.add(siteTag.siteId);
+              final parentTable = junction.restampedParentTable;
+              if (parentTable != null) {
+                restamp
+                    .putIfAbsent(parentTable, () => <String>{})
+                    .add(link.parentId);
+              }
             }
-            await (_db.delete(
-              _db.siteTags,
-            )..where((t) => t.id.equals(siteTag.id))).go();
-            await _syncRepository.logDeletion(
-              entityType: 'siteTags',
-              recordId: siteTag.id,
-            );
           }
 
           // Delete the source tag (inlined to avoid SyncEventBus inside txn)
@@ -930,15 +931,22 @@ class TagRepository {
           );
         }
 
-        // Batch-update updatedAt for all affected dives
-        for (final diveId in affectedDiveIds) {
-          await (_db.update(_db.dives)..where((t) => t.id.equals(diveId)))
-              .write(DivesCompanion(updatedAt: Value(now)));
-          await _syncRepository.markRecordPending(
-            entityType: 'dives',
-            recordId: diveId,
-            localUpdatedAt: now,
-          );
+        for (final entry in restamp.entries) {
+          for (final parentId in entry.value) {
+            await _db.customUpdate(
+              'UPDATE ${entry.key} SET updated_at = ? WHERE id = ?',
+              variables: [Variable.withInt(now), Variable.withString(parentId)],
+              updates: {_table(entry.key)},
+              updateKind: UpdateKind.update,
+            );
+            // The table name doubles as its sync entity type (see
+            // TagScopeTable.restampedParentTable).
+            await _syncRepository.markRecordPending(
+              entityType: entry.key,
+              recordId: parentId,
+              localUpdatedAt: now,
+            );
+          }
         }
       });
 
@@ -960,14 +968,13 @@ class TagRepository {
 /// Tag usage statistics
 class TagStatistic {
   final domain.Tag tag;
-  final int diveCount;
 
-  /// Sites carrying the tag (issue #1765).
-  final int siteCount;
+  /// Items carrying the tag, per scope (issues #1765, #1942). The repository
+  /// fills every scope; a hand-built statistic may leave some out.
+  final Map<domain.TagScope, int> counts;
 
-  TagStatistic({
-    required this.tag,
-    required this.diveCount,
-    this.siteCount = 0,
-  });
+  TagStatistic({required this.tag, this.counts = const {}});
+
+  /// How many items of [scope] carry the tag; 0 when [counts] lacks it.
+  int count(domain.TagScope scope) => counts[scope] ?? 0;
 }

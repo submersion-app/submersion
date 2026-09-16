@@ -2546,6 +2546,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'Add certification';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'More options';
+
+  @override
   String get certifications_wallet_tooltip_share => 'Share certification';
 
   @override
@@ -4290,6 +4293,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_detail_noDivesLogged => 'No dives logged yet';
+
+  @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives will be left without a dive center.',
+      one: '1 dive will be left without a dive center.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveCenters_dialog_deleteMessage(Object name) {
@@ -8827,6 +8841,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Show sites with $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives will be left without a site.',
+      one: '1 dive will be left without a site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved plans will be left without a site.',
+      one: '1 saved plan will be left without a site.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -20747,6 +20783,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'This tag is on $count equipment items. Turning off \"Use for equipment\" removes it from those items.',
+      one:
+          'This tag is on 1 equipment item. Turning off \"Use for equipment\" removes it from that item.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20764,10 +20813,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remove tag from existing items?';
 
   @override
-  String get tags_manage_scopeRequired => 'Choose dives, sites, or both';
+  String get tags_manage_scopeRequired =>
+      'Choose at least one: dives, sites, or equipment';
 
   @override
   String get tags_manage_scope_dives => 'Dives';
+
+  @override
+  String get tags_manage_scope_equipment => 'Equipment';
 
   @override
   String get tags_manage_scope_sites => 'Sites';
@@ -20785,7 +20838,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipment items',
+      one: '1 equipment item',
+      zero: '0 equipment items',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Use for dives';
+
+  @override
+  String get tags_manage_useForEquipment => 'Use for equipment';
 
   @override
   String get tags_manage_useForSites => 'Use for sites';
@@ -37943,20 +38011,32 @@ class AppLocalizationsEn extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Your dive data was saved by a newer version of Submersion (schema v$databaseVersion). This version only supports up to schema v$appVersion.';
+    return 'Your dive log was saved at schema v$databaseVersion by a newer version of Submersion. This version opens files up to schema v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.';
+  String get startup_versionMismatch_causes_lead =>
+      'This usually happens when:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'A beta build upgraded the file.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'A backup from a newer build was restored.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'The file is shared with a device on another update channel.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.';
+      'Your data has not been changed. Open it with the build that wrote it, or with a later one.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'This app was installed from an app store and is older than the version that created your data. Your data is safe and has not been modified. Update Submersion when the new version appears in the store, then reopen it.';
+      'This app came from an app store and is older than the version that saved your data. Your data has not been changed. Update Submersion when the new version appears in the store, then open it again.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -37971,7 +38051,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'If those buttons do not open a browser, visit:';
+      'If the buttons do not open a browser:';
 
   @override
   String get universalImport_compare_downloaded => 'Downloaded';
@@ -39682,12 +39762,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Restore your pre-upgrade backup';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.';
+      'Dives logged after the upgrade exist only in the newer file. It is kept as a pinned backup, so installing the newer version again brings them back.';
 
   @override
   String get startup_interruptedRestore_title => 'A restore did not finish';
@@ -40106,9 +40182,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'How equipment is grouped and sorted on a dive';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -40179,4 +40252,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Enter a valid number';
 }

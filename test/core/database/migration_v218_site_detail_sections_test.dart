@@ -7,8 +7,8 @@ const _columns = ['site_detail_sections', 'site_detail_layout'];
 
 void main() {
   test('v218 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v219 (buddy profile dive links) landed on top; the newest
-    // rung owns the exact assertion.
+    // Relaxed once v219 (equipment tags) landed on top; the newest rung owns
+    // the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(218));
     expect(AppDatabase.migrationVersions, contains(218));
   });

@@ -15,6 +15,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -216,12 +217,18 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
     return PopupMenuButton<String>(
       onSelected: (value) async {
         if (value == 'delete') {
+          final usage = await readDiveCenterDeleteUsage(ref, [center.id]);
+          if (!context.mounted) return;
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
               title: Text(context.l10n.diveCenters_dialog_deleteTitle),
               content: Text(
-                context.l10n.diveCenters_dialog_deleteMessage(center.name),
+                withDiveCenterDeleteUsage(
+                  context.l10n,
+                  context.l10n.diveCenters_dialog_deleteMessage(center.name),
+                  usage,
+                ),
               ),
               actions: [
                 TextButton(

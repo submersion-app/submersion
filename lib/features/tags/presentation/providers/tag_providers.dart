@@ -41,7 +41,7 @@ final tagStatisticsProvider = FutureProvider<List<TagStatistic>>((ref) async {
   );
   ref.invalidateSelfWhen(repository.watchTagsChanges());
   ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
-  ref.invalidateSelfWhen(repository.watchSiteTagsChanges());
+  ref.invalidateSelfWhen(repository.watchTagLinkChanges());
   return repository.getTagStatistics(diverId: validatedDiverId);
 });
 

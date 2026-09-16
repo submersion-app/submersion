@@ -461,7 +461,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.textContaining('Your data is safe and has not been modified'),
+        find.textContaining('Your data has not been changed'),
         findsOneWidget,
       );
     });
@@ -515,11 +515,12 @@ void main() {
       // A newer-on-disk database means no pre-migration backup ran on this
       // launch (PreMigrationBackupService returns early when stored >= target),
       // and the database may have arrived from another device entirely. The
-      // copy must not promise a backup this device might never have taken.
-      expect(
-        find.textContaining('If a backup was taken before the upgrade'),
-        findsOneWidget,
-      );
+      // copy must not promise a backup this device might never have taken:
+      // with no validated candidate there is no restore card and no pointer
+      // to a Backups folder that may hold nothing usable.
+      expect(find.text('Restore this backup'), findsNothing);
+      expect(find.textContaining('Backups folder'), findsNothing);
+      expect(find.textContaining('has not been changed'), findsOneWidget);
     });
 
     testWidgets('shows the release URL as a manual fallback', (tester) async {
@@ -1169,7 +1170,7 @@ void main() {
 
       expect(find.textContaining('schema v100'), findsOneWidget);
       expect(find.textContaining('schema v50'), findsOneWidget);
-      expect(find.textContaining('Your data is safe'), findsOneWidget);
+      expect(find.textContaining('has not been changed'), findsOneWidget);
     });
 
     testWidgets('an interrupted restore is offered before the database is '

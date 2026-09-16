@@ -2522,6 +2522,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'הוסף הסמכה';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'אפשרויות נוספות';
+
+  @override
   String get certifications_wallet_tooltip_share => 'שתף הסמכה';
 
   @override
@@ -4259,6 +4262,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_detail_noDivesLogged => 'עדיין לא נרשמו צלילות';
+
+  @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות יישארו ללא מרכז צלילה.',
+      one: 'צלילה אחת תישאר ללא מרכז צלילה.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveCenters_dialog_deleteMessage(Object name) {
@@ -8762,6 +8776,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'הצג אתרים עם $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות יישארו ללא אתר.',
+      one: 'צלילה אחת תישאר ללא אתר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תוכניות שמורות יישארו ללא אתר.',
+      one: 'תוכנית שמורה אחת תישאר ללא אתר.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -20566,6 +20602,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'התגית הזו מופיעה ב-$count פריטי ציוד. כיבוי \"שימוש לציוד\" יסיר אותה מפריטים אלה.',
+      one:
+          'התגית הזו מופיעה בפריט ציוד אחד. כיבוי \"שימוש לציוד\" יסיר אותה מפריט זה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20582,10 +20631,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_narrowDialog_title => 'להסיר את התגית מפריטים קיימים?';
 
   @override
-  String get tags_manage_scopeRequired => 'בחר צלילות, אתרים או את שניהם';
+  String get tags_manage_scopeRequired =>
+      'בחר לפחות אחד: צלילות, אתרים או ציוד';
 
   @override
   String get tags_manage_scope_dives => 'צלילות';
+
+  @override
+  String get tags_manage_scope_equipment => 'ציוד';
 
   @override
   String get tags_manage_scope_sites => 'אתרים';
@@ -20603,7 +20656,22 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+      zero: '0 פריטי ציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'שימוש לצלילות';
+
+  @override
+  String get tags_manage_useForEquipment => 'שימוש לציוד';
 
   @override
   String get tags_manage_useForSites => 'שימוש לאתרים';
@@ -37756,20 +37824,30 @@ class AppLocalizationsHe extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'נתוני הצלילה שלכם נשמרו בגרסה חדשה יותר של Submersion (סכמה v$databaseVersion). גרסה זו תומכת רק עד סכמה v$appVersion.';
+    return 'יומן הצלילה שלכם נשמר בסכמה v$databaseVersion על ידי גרסה חדשה יותר של Submersion. גרסה זו פותחת קבצים עד סכמה v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'בדרך כלל המשמעות היא שגרסת בטא שדרגה את הנתונים שלכם, ששוחזר גיבוי מגרסה חדשה יותר, או שהקובץ משותף עם מכשיר בערוץ עדכונים אחר. ייתכן שגרסה יציבה חדשה יותר עדיין אינה קיימת.';
+  String get startup_versionMismatch_causes_lead => 'בדרך כלל זה קורה כאשר:';
+
+  @override
+  String get startup_versionMismatch_cause_beta => 'גרסת בטא שדרגה את הקובץ.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'שוחזר גיבוי מגרסה חדשה יותר.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'הקובץ משותף עם מכשיר בערוץ עדכונים אחר.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'הנתונים שלכם בטוחים ולא שונו. פתחו אותם עם הגרסה שכתבה אותם, או עם כל גרסה מאוחרת יותר. אם נוצר גיבוי לפני השדרוג, הוא נמצא בתיקיית Backups וניתן לשחזר אותו לאחר שתריצו גרסה שמסוגלת לפתוח את הקובץ.';
+      'הנתונים שלכם לא שונו. פתחו אותם עם הגרסה שכתבה אותם, או עם גרסה מאוחרת יותר.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'אפליקציה זו הותקנה מחנות אפליקציות והיא ישנה יותר מהגרסה שיצרה את הנתונים שלך. הנתונים שלך בטוחים ולא שונו. עדכן את Submersion כשהגרסה החדשה תופיע בחנות, ואז פתח את האפליקציה מחדש.';
+      'אפליקציה זו הגיעה מחנות אפליקציות והיא ישנה יותר מהגרסה ששמרה את הנתונים שלך. הנתונים שלך לא שונו. עדכן את Submersion כשהגרסה החדשה תופיע בחנות, ואז פתח אותה מחדש.';
 
   @override
   String get startup_versionMismatch_download => 'חיפוש גרסה יציבה חדשה יותר';
@@ -37783,7 +37861,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'אם הכפתורים אינם פותחים דפדפן, בקרו בכתובת:';
+      'אם הכפתורים אינם פותחים דפדפן:';
 
   @override
   String get universalImport_compare_downloaded => 'הורד';
@@ -39489,12 +39567,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'שחזור הגיבוי שלפני העדכון';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'במכשיר הזה שמור עותק בטיחות של יומן הצלילה שנלקח לפני העדכון, והגרסה הזו יכולה לפתוח אותו.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'כל מה שתיעדת אחרי העדכון קיים רק בקובץ החדש יותר. הקובץ הזה נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותו.';
+      'צלילות שתועדו אחרי העדכון קיימות רק בקובץ החדש יותר. הוא נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותן.';
 
   @override
   String get startup_interruptedRestore_title => 'שחזור לא הושלם';
@@ -39905,9 +39979,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'כיצד הציוד מקובץ וממוין בצלילה';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -39978,4 +40049,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'הזן מספר תקין';
 }

@@ -44,8 +44,7 @@ void main() {
     name: 'To try',
     createdAt: now,
     updatedAt: now,
-    appliesToDives: false,
-    appliesToSites: true,
+    scopes: const {TagScope.sites},
   );
 
   void expectSiteRefs(XmlDocument doc) {

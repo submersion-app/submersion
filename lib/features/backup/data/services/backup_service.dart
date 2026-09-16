@@ -1088,7 +1088,23 @@ class BackupService {
     );
 
     for (final record in toDelete) {
-      await deleteBackup(record);
+      try {
+        await deleteBackup(record);
+      } catch (e, st) {
+        // Best-effort: pruning is a side effect of the operation that
+        // triggered it (a fresh backup, or the safety snapshot restoreFromFile
+        // takes before swapping the database in). A single old backup this
+        // platform refuses to delete -- outside the sandbox, on a locked
+        // network share, whatever the cause -- must not abort that operation.
+        // Left in history, it is retried on every future prune rather than
+        // silently forgotten.
+        _log.warning(
+          'Failed to prune old backup ${record.filename}; will retry next '
+          'time',
+          error: e,
+          stackTrace: st,
+        );
+      }
     }
   }
 

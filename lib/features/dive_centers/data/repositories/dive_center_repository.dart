@@ -9,6 +9,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
+import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 
 class DiveCenterRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -214,15 +215,23 @@ class DiveCenterRepository {
     }
   }
 
-  /// Delete a dive center
+  /// Delete a dive center. The dives logged with it survive with the center
+  /// cleared: `dives.dive_center_id` has no ON DELETE action, so a dive still
+  /// pointing at the center would fail the delete (issue #1952). One
+  /// transaction, so a failed delete leaves the dives linked.
   Future<void> deleteDiveCenter(String id) async {
     try {
       _log.info('Deleting dive center: $id');
-      await (_db.delete(_db.diveCenters)..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(
-        entityType: 'diveCenters',
-        recordId: id,
-      );
+      await _db.transaction(() async {
+        await clearDiveCenterLinks(_db, _syncRepository, [
+          id,
+        ], now: DateTime.now().millisecondsSinceEpoch);
+        await (_db.delete(_db.diveCenters)..where((t) => t.id.equals(id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'diveCenters',
+          recordId: id,
+        );
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive center: $id');
     } catch (e, stackTrace) {
@@ -233,6 +242,18 @@ class DiveCenterRepository {
       );
       rethrow;
     }
+  }
+
+  /// How many dives a delete of [centerIds] would leave without a center.
+  /// stats-scope-exempt: the delete clears every dive, excluded and planned
+  /// ones included, so the confirmation counts them all.
+  Future<int> getLinkedDiveCount(List<String> centerIds) async {
+    if (centerIds.isEmpty) return 0;
+    final count = _db.dives.id.count();
+    final query = _db.selectOnly(_db.dives)
+      ..addColumns([count])
+      ..where(_db.dives.diveCenterId.isIn(centerIds));
+    return await query.map((row) => row.read(count)).getSingle() ?? 0;
   }
 
   /// Get dive count for a dive center

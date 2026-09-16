@@ -214,36 +214,48 @@ class _BluetoothScanTab extends ConsumerWidget {
     );
   }
 
+  /// The empty state fills the space left by the scanning indicator and the
+  /// error banner. It is a scroll view so a short tab (a phone in landscape,
+  /// a small desktop window) scrolls instead of overflowing; with room to
+  /// spare the sliver stretches to the viewport and the content stays
+  /// centred.
   Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme) {
     final theme = Theme.of(context);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.bluetooth_searching,
-              size: 64,
-              color: colorScheme.primary.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              context.l10n.diveComputer_scan_lookingForDevicesTitle,
-              style: theme.textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              context.l10n.diveComputer_scan_emptyStateInstructions,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.bluetooth_searching,
+                    size: 64,
+                    color: colorScheme.primary.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    context.l10n.diveComputer_scan_lookingForDevicesTitle,
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    context.l10n.diveComputer_scan_emptyStateInstructions,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 

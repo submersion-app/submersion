@@ -2581,6 +2581,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'Tanusitvany hozzaadasa';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'További lehetőségek';
+
+  @override
   String get certifications_wallet_tooltip_share => 'Tanusitvany megosztasa';
 
   @override
@@ -4361,6 +4364,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveCenters_detail_noDivesLogged =>
       'Még nincsenek rögzített merülések';
+
+  @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés búvárközpont nélkül marad.',
+      one: '1 merülés búvárközpont nélkül marad.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveCenters_dialog_deleteMessage(Object name) {
@@ -8964,6 +8978,28 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Merülőhelyek ezzel: $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés helyszín nélkül marad.',
+      one: '1 merülés helyszín nélkül marad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentett terv helyszín nélkül marad.',
+      one: '1 mentett terv helyszín nélkül marad.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -21051,6 +21087,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ez a címke $count felszerelésen szerepel. A „Felszereléshez” kikapcsolása eltávolítja ezekről a felszerelésekről.',
+      one:
+          'Ez a címke 1 felszerelésen szerepel. A „Felszereléshez” kikapcsolása eltávolítja erről a felszerelésről.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21069,10 +21118,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Válasszon merüléseket, merülőhelyeket vagy mindkettőt';
+      'Válasszon legalább egyet: merülések, merülőhelyek vagy felszerelés';
 
   @override
   String get tags_manage_scope_dives => 'Merülések';
+
+  @override
+  String get tags_manage_scope_equipment => 'Felszerelés';
 
   @override
   String get tags_manage_scope_sites => 'Merülőhelyek';
@@ -21090,7 +21142,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés',
+      one: '1 felszerelés',
+      zero: '0 felszerelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Merülésekhez';
+
+  @override
+  String get tags_manage_useForEquipment => 'Felszereléshez';
 
   @override
   String get tags_manage_useForSites => 'Merülőhelyekhez';
@@ -38352,20 +38419,32 @@ class AppLocalizationsHu extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'A merülési adatait a Submersion egy újabb verziója mentette (séma v$databaseVersion). Ez a verzió legfeljebb a v$appVersion sémát támogatja.';
+    return 'A merülőnaplóját a Submersion egy újabb verziója mentette v$databaseVersion sémával. Ez a verzió legfeljebb a v$appVersion sémájú fájlokat nyitja meg.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'Ez általában azt jelenti, hogy egy béta verzió frissítette az adatait, hogy egy újabb verzióból készült biztonsági mentés lett visszaállítva, vagy hogy a fájl egy másik frissítési csatornán lévő eszközzel van megosztva. Lehet, hogy még nem létezik újabb stabil verzió.';
+  String get startup_versionMismatch_causes_lead =>
+      'Ez általában akkor fordul elő, ha:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'Egy béta verzió frissítette a fájlt.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'Egy újabb verzióból készült biztonsági mentés lett visszaállítva.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'A fájl egy másik frissítési csatornán lévő eszközzel van megosztva.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Az adatai biztonságban vannak, és nem módosultak. Nyissa meg őket azzal a verzióval, amely írta őket, vagy bármely későbbi verzióval. Ha a frissítés előtt készült biztonsági mentés, az a Backups mappában található, és visszaállítható, amint olyan verziót futtat, amely meg tudja nyitni a fájlt.';
+      'Az adatai nem módosultak. Nyissa meg őket azzal a verzióval, amely írta őket, vagy egy későbbivel.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'Ezt az alkalmazást alkalmazásboltból telepítetted, és régebbi, mint az adataidat létrehozó verzió. Az adataid biztonságban vannak, nem módosultak. Frissítsd a Submersiont, amint az új verzió megjelenik a boltban, majd nyisd meg újra.';
+      'Ez az alkalmazás alkalmazásboltból származik, és régebbi, mint az adataidat mentő verzió. Az adataid nem módosultak. Frissítsd a Submersiont, amint az új verzió megjelenik a boltban, majd nyisd meg újra.';
 
   @override
   String get startup_versionMismatch_download => 'Újabb stabil verzió keresése';
@@ -38379,7 +38458,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Ha ezek a gombok nem nyitnak meg böngészőt, keresse fel:';
+      'Ha a gombok nem nyitnak meg böngészőt:';
 
   @override
   String get universalImport_compare_downloaded => 'Letöltött';
@@ -40135,12 +40214,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'A frissítés előtti biztonsági mentés visszaállítása';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'A frissítés előtt készült biztonsági másolat a merülőnaplódról ezen az eszközön van, és ez a verzió meg tudja nyitni.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Minden, amit a frissítés után rögzítettél, csak az újabb fájlban létezik. Azt a fájlt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod.';
+      'A frissítés után rögzített merülések csak az újabb fájlban léteznek. Azt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod őket.';
 
   @override
   String get startup_interruptedRestore_title =>
@@ -40566,9 +40641,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hogyan csoportosuljon és rendeződjön a felszerelés egy merülésnél';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -40639,4 +40711,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Adjon meg érvényes számot';
 }

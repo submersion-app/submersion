@@ -77,7 +77,7 @@ void main() {
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
       ),
-      diveCount: 12,
+      counts: const {TagScope.dives: 12},
     ),
     TagStatistic(
       tag: Tag(
@@ -88,7 +88,7 @@ void main() {
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
       ),
-      diveCount: 3,
+      counts: const {TagScope.dives: 3},
     ),
     TagStatistic(
       tag: Tag(
@@ -99,7 +99,7 @@ void main() {
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
       ),
-      diveCount: 1,
+      counts: const {TagScope.dives: 1},
     ),
   ];
 
@@ -109,7 +109,7 @@ void main() {
 
     when(
       mockRepository.getMergedUsage(any),
-    ).thenAnswer((_) async => (dives: 14, sites: 0));
+    ).thenAnswer((_) async => const {TagScope.dives: 14, TagScope.sites: 0});
   });
 
   Widget buildTestWidget({List<TagStatistic>? stats}) {
@@ -200,7 +200,7 @@ void main() {
       // counted only dives understated what a merge of site tags rewrites.
       when(
         mockRepository.getMergedUsage(any),
-      ).thenAnswer((_) async => (dives: 3, sites: 2));
+      ).thenAnswer((_) async => const {TagScope.dives: 3, TagScope.sites: 2});
 
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
@@ -220,13 +220,11 @@ void main() {
             diverId: 'diver1',
             name: 'To try',
             colorHex: '#F97316',
-            appliesToDives: false,
-            appliesToSites: true,
+            scopes: const {TagScope.sites},
             createdAt: DateTime(2024),
             updatedAt: DateTime(2024),
           ),
-          diveCount: 0,
-          siteCount: 4,
+          counts: const {TagScope.dives: 0, TagScope.sites: 4},
         ),
       ];
       await tester.pumpWidget(buildTestWidget(stats: stats));

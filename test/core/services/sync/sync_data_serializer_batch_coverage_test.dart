@@ -148,6 +148,7 @@ void main() {
           (type: 'siteTypes', table: db.siteTypes.actualTableName),
           (type: 'siteSiteTypes', table: db.siteSiteTypes.actualTableName),
           (type: 'siteTags', table: db.siteTags.actualTableName),
+          (type: 'equipmentTags', table: db.equipmentTags.actualTableName),
           (type: 'tankPresets', table: db.tankPresets.actualTableName),
           (type: 'diveComputers', table: db.diveComputers.actualTableName),
           (type: 'tideRecords', table: db.tideRecords.actualTableName),

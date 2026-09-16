@@ -61,7 +61,9 @@ void main() {
             (ref) async => 'diver-1',
           ),
           tagStatisticsProvider.overrideWith(
-            (ref) async => [TagStatistic(tag: wreck, diveCount: 42)],
+            (ref) async => [
+              TagStatistic(tag: wreck, counts: const {TagScope.dives: 42}),
+            ],
           ),
         ].cast(),
         child: const MaterialApp(

@@ -114,6 +114,7 @@ void main() {
       'siteTypes',
       'siteSiteTypes',
       'siteTags',
+      'equipmentTags',
       'tankPresets',
       'diveComputers',
       'tankPressureProfiles',
@@ -333,5 +334,16 @@ void main() {
         expect(await serializer.fetchRecord(t.type, 'row-1'), isNull);
       });
     }
+  });
+
+  group('SyncDataSerializer.deleteRecord for equipment tags', () {
+    test('deletes an equipment_tags row by id', () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await seedMinimalRow('equipment_tags', 'row-1');
+      expect(await serializer.fetchRecord('equipmentTags', 'row-1'), isNotNull);
+
+      await serializer.deleteRecord('equipmentTags', 'row-1');
+      expect(await serializer.fetchRecord('equipmentTags', 'row-1'), isNull);
+    });
   });
 }

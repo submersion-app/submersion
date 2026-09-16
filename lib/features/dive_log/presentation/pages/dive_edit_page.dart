@@ -89,8 +89,9 @@ import 'package:submersion/features/weight_presets/presentation/providers/weight
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/weight_preset_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_change_summary.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_bulk_membership_labels.dart';
+import 'package:submersion/shared/bulk_edit/bulk_change_summary.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autofill.dart';
@@ -1427,6 +1428,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildBulkCollectionsSection(UnitFormatter units) {
     final l10n = context.l10n;
+    final total = widget.bulkDiveIds!.length;
+    final labels = diveBulkMembershipLabels(l10n);
     const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
     return FormSection(
       label: context.l10n.diveLog_bulkEdit_groupCollections,
@@ -1435,7 +1438,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       children: [
         BulkMembershipEditor(
           title: l10n.diveLog_edit_section_tags,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _tagMembers,
           counts: _tagCounts,
           onAdd: _bulkAddTags,
@@ -1443,7 +1447,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_label_diveTypes,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _diveTypeMembers,
           counts: _diveTypeCounts,
           onAdd: _bulkAddDiveTypes,
@@ -1451,7 +1456,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_section_equipment,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _equipmentMembers,
           counts: _equipmentCounts,
           onAdd: _bulkAddEquipment,
@@ -1467,7 +1473,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _buddyMembers,
           counts: _buddyCounts,
           onAdd: _bulkAddBuddies,
@@ -2022,7 +2029,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     if (changes.isNotEmpty)
                       BulkChangeSummary(
                         sections: changes,
-                        totalDives: ids.length,
+                        addingHeading: l10n.diveLog_bulkEdit_confirmAdding(
+                          ids.length,
+                        ),
+                        removingHeading: l10n.diveLog_bulkEdit_confirmRemoving(
+                          ids.length,
+                        ),
                       ),
                     if (skipped > 0)
                       Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped)),

@@ -362,8 +362,11 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                         ),
                       ),
                     ],
-                    if (dive.waterType != null)
-                      _buildPadiField('Water', dive.waterType!.displayName),
+                    if (dive.effectiveWaterType != null)
+                      _buildPadiField(
+                        'Water',
+                        dive.effectiveWaterType!.displayName,
+                      ),
                   ],
                 ),
                 // Notes (compact)

@@ -254,6 +254,17 @@ final _isolatedTempDir = Directory.systemTemp.createTempSync(
   'backup_svc_test_',
 );
 
+/// Whether [dir] lets this process add an entry, which is the same
+/// directory-write permission `unlink` needs to remove one.
+Future<bool> _acceptsNewEntries(Directory dir) async {
+  try {
+    await File('${dir.path}/probe').create();
+    return true;
+  } on FileSystemException {
+    return false;
+  }
+}
+
 void main() {
   tearDownAll(() {
     if (_isolatedTempDir.existsSync()) {
@@ -663,6 +674,83 @@ void main() {
         final history = preferences.getHistory();
         expect(history, hasLength(1));
       });
+
+      test(
+        'continues pruning past a local file the platform refuses to '
+        'delete, and keeps that record for a retry next time',
+        () async {
+          // A read-only containing directory makes File.delete() throw
+          // PathAccessException on the file inside it (unlink needs write
+          // access to the directory, not the file) -- the same failure shape
+          // as a macOS sandbox permission denial on a custom backup folder.
+          final tempDir = await Directory.systemTemp.createTemp(
+            'backup_prune_test_',
+          );
+          addTearDown(() async {
+            await Process.run('chmod', ['755', tempDir.path]);
+            await tempDir.delete(recursive: true);
+          });
+          final lockedPath = '${tempDir.path}/locked_backup.db';
+          await File(lockedPath).writeAsString('fake backup data');
+          await Process.run('chmod', ['555', tempDir.path]);
+          // Root (and any run where chmod was unavailable or ignored)
+          // bypasses the mode bits, so the locked file would delete cleanly
+          // and the assertions below would fail without exercising the
+          // regression. Probe the directory the same way unlink will
+          // (creating an entry needs the same write access as removing
+          // one) and skip when the denial is not in effect.
+          if (await _acceptsNewEntries(tempDir)) {
+            markTestSkipped('running with permissions that bypass chmod');
+            return;
+          }
+
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'locked',
+              filename: 'locked_backup.db',
+              timestamp: DateTime(2025, 6, 1),
+              sizeBytes: 1000,
+              location: BackupLocation.local,
+              diveCount: 5,
+              siteCount: 2,
+              localPath: lockedPath,
+            ),
+          );
+          for (var i = 0; i < 3; i++) {
+            await preferences.addRecord(
+              BackupRecord(
+                id: 'r$i',
+                filename: 'backup_$i.db',
+                timestamp: DateTime(2025, 6, i + 2),
+                sizeBytes: 1000,
+                location: BackupLocation.local,
+                diveCount: 5,
+                siteCount: 2,
+              ),
+            );
+          }
+
+          final service = BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          );
+
+          // Keep 1: everything but the newest is eligible, including the
+          // locked one. Must not throw.
+          await service.pruneOldBackups(1);
+
+          final history = preferences.getHistory();
+          // The newest survives (kept); the locked record survives too
+          // (its delete failed, so it was never removed) -- everything
+          // else prunes normally.
+          expect(history.map((r) => r.id), containsAll(['r2', 'locked']));
+          expect(history.map((r) => r.id), isNot(contains('r0')));
+          expect(history.map((r) => r.id), isNot(contains('r1')));
+        },
+        skip: Platform.isWindows
+            ? 'chmod-based permission denial is not portable to Windows'
+            : null,
+      );
     });
 
     group('deleteBackup', () {

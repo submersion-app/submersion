@@ -104,11 +104,61 @@ void main() {
 
       final tags = await classification.getTagsForSite(restored.id);
       expect(tags.single.name, 'To try');
-      expect(tags.single.appliesToSites, isTrue);
-      expect(tags.single.appliesToDives, isFalse);
+      expect(tags.single.appliesTo(TagScope.sites), isTrue);
+      expect(tags.single.appliesTo(TagScope.dives), isFalse);
       expect(tags.single.colorHex, '#EF4444', reason: 'tag color on import');
     },
   );
+
+  test('an imported tag widens the local tag of the same name, never '
+      'narrows it', () async {
+    final diverId = await createTestDiver();
+    final night = await TagRepository().getOrCreateTag(
+      'Night',
+      diverId: diverId,
+    );
+    final toTry = await TagRepository().getOrCreateTag(
+      'To try',
+      diverId: diverId,
+      scope: TagScope.sites,
+    );
+
+    const data = UddfImportResult(
+      tags: [
+        // A site tag named like a local dive-only tag.
+        {
+          'uddfId': 'tag_night',
+          'name': 'night',
+          'appliesToDives': false,
+          'appliesToSites': true,
+        },
+        // A dive tag named like a local site-only tag.
+        {
+          'uddfId': 'tag_try',
+          'name': 'To try',
+          'appliesToDives': true,
+          'appliesToSites': false,
+        },
+      ],
+    );
+    await UddfEntityImporter().import(
+      data: data,
+      selections: UddfImportSelections.selectAll(data),
+      repositories: buildRepositories(),
+      diverId: diverId,
+    );
+
+    final tags = await TagRepository().getAllTags(diverId: diverId);
+    expect(tags, hasLength(2), reason: 'reused by name, never duplicated');
+    expect((await TagRepository().getTagById(night.id))!.scopes, {
+      TagScope.dives,
+      TagScope.sites,
+    });
+    expect((await TagRepository().getTagById(toTry.id))!.scopes, {
+      TagScope.dives,
+      TagScope.sites,
+    });
+  });
 
   test('re-importing onto an existing site unions, never removes', () async {
     final diverId = await createTestDiver();
