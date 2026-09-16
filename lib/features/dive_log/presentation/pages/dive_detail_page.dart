@@ -90,6 +90,7 @@ import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/logged_with_tiles.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
@@ -4808,6 +4809,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   )
                 else
                   ...buddies.map((bwr) => _buildBuddyTile(context, bwr)),
+                // Other profiles' logs of this outing (issue #2002).
+                LoggedWithTiles(diveId: diveId),
               ],
             ),
           ),
