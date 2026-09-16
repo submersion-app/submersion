@@ -1240,7 +1240,7 @@ void main() {
               name: 'To try',
               createdAt: now,
               updatedAt: now,
-              appliesToSites: true,
+              scopes: const {TagScope.dives, TagScope.sites},
             ),
           ],
         );

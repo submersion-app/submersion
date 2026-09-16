@@ -2559,6 +2559,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'Ajouter une certification';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'Plus d\'options';
+
+  @override
   String get certifications_wallet_tooltip_share => 'Partager la certification';
 
   @override
@@ -4343,6 +4346,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveCenters_detail_noDivesLogged =>
       'Aucune plongée enregistrée pour le moment';
+
+  @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées resteront sans centre de plongée.',
+      one: '1 plongée restera sans centre de plongée.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveCenters_dialog_deleteMessage(Object name) {
@@ -8964,6 +8978,28 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Afficher les sites avec $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées resteront sans site.',
+      one: '1 plongée restera sans site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plans enregistrés resteront sans site.',
+      one: '1 plan enregistré restera sans site.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -21147,6 +21183,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Cette étiquette est sur $count équipements. Désactiver « Utiliser pour l\'équipement » la retire de ces équipements.',
+      one:
+          'Cette étiquette est sur 1 équipement. Désactiver « Utiliser pour l\'équipement » la retire de cet équipement.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21165,10 +21214,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Choisissez les plongées, les sites ou les deux';
+      'Choisissez au moins une option : plongées, sites ou équipement';
 
   @override
   String get tags_manage_scope_dives => 'Plongées';
+
+  @override
+  String get tags_manage_scope_equipment => 'Équipement';
 
   @override
   String get tags_manage_scope_sites => 'Sites';
@@ -21186,7 +21238,22 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count équipements',
+      one: '1 équipement',
+      zero: '0 équipement',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Utiliser pour les plongées';
+
+  @override
+  String get tags_manage_useForEquipment => 'Utiliser pour l\'équipement';
 
   @override
   String get tags_manage_useForSites => 'Utiliser pour les sites';
@@ -38470,20 +38537,32 @@ class AppLocalizationsFr extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Vos données de plongée ont été enregistrées par une version plus récente de Submersion (schéma v$databaseVersion). Cette version ne prend en charge le schéma que jusqu’à v$appVersion.';
+    return 'Votre carnet de plongée a été enregistré au schéma v$databaseVersion par une version plus récente de Submersion. Cette version ouvre les fichiers jusqu’au schéma v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'Cela signifie généralement qu’une version bêta a mis à niveau vos données, qu’une sauvegarde issue d’une version plus récente a été restaurée, ou que le fichier est partagé avec un appareil sur un autre canal de mise à jour. Une version stable plus récente n’existe peut-être pas encore.';
+  String get startup_versionMismatch_causes_lead =>
+      'Cela arrive généralement quand :';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'Une version bêta a mis à niveau le fichier.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'Une sauvegarde issue d’une version plus récente a été restaurée.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'Le fichier est partagé avec un appareil sur un autre canal de mise à jour.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Vos données sont intactes et n’ont pas été modifiées. Rouvrez-les avec la version qui les a écrites, ou avec toute version ultérieure. Si une sauvegarde a été effectuée avant la mise à niveau, elle se trouve dans votre dossier Backups et peut être restaurée dès que vous utilisez une version capable d’ouvrir le fichier.';
+      'Vos données n’ont pas été modifiées. Ouvrez-les avec la version qui les a écrites, ou avec une version ultérieure.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'Cette application a été installée depuis une boutique d\'applications et est plus ancienne que la version qui a créé vos données. Vos données sont en sécurité et n\'ont pas été modifiées. Mettez à jour Submersion dès que la nouvelle version apparaît dans la boutique, puis rouvrez l\'application.';
+      'Cette application vient d\'une boutique d\'applications et est plus ancienne que la version qui a enregistré vos données. Vos données n\'ont pas été modifiées. Mettez à jour Submersion dès que la nouvelle version apparaît dans la boutique, puis rouvrez-la.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -38498,7 +38577,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Si ces boutons n’ouvrent pas de navigateur, rendez-vous sur :';
+      'Si les boutons n’ouvrent pas de navigateur :';
 
   @override
   String get universalImport_compare_downloaded => 'Téléchargée';
@@ -40260,12 +40339,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Restaurer la sauvegarde d\'avant la mise à jour';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'Une copie de sécurité de votre carnet de plongée, prise avant la mise à jour, se trouve sur cet appareil et cette version peut l\'ouvrir.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Tout ce que vous avez enregistré après la mise à jour n\'existe que dans le fichier le plus récent. Ce fichier est conservé comme sauvegarde épinglée : réinstallez la version plus récente pour le retrouver.';
+      'Les plongées enregistrées après la mise à jour n\'existent que dans le fichier le plus récent. Il est conservé comme sauvegarde épinglée : réinstallez la version plus récente pour les retrouver.';
 
   @override
   String get startup_interruptedRestore_title =>
@@ -40691,9 +40766,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Comment l\'équipement est groupé et trié sur une plongée';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -40764,4 +40836,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Saisissez un nombre valide';
 }

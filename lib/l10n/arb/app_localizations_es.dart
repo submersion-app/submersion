@@ -2551,6 +2551,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'Agregar certificacion';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'Más opciones';
+
+  @override
   String get certifications_wallet_tooltip_share => 'Compartir certificacion';
 
   @override
@@ -4331,6 +4334,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveCenters_detail_noDivesLogged =>
       'Aún no hay inmersiones registradas';
+
+  @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones quedarán sin centro de buceo.',
+      one: '1 inmersión quedará sin centro de buceo.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveCenters_dialog_deleteMessage(Object name) {
@@ -8920,6 +8934,28 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Mostrar puntos con $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones quedarán sin sitio.',
+      one: '1 inmersión quedará sin sitio.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planes guardados quedarán sin sitio.',
+      one: '1 plan guardado quedará sin sitio.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -21075,6 +21111,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Esta etiqueta está en $count equipos. Desactivar «Usar en equipos» la quita de esos equipos.',
+      one:
+          'Esta etiqueta está en 1 equipo. Desactivar «Usar en equipos» la quita de ese equipo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21092,10 +21141,14 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Quitar la etiqueta de los elementos existentes?';
 
   @override
-  String get tags_manage_scopeRequired => 'Elige inmersiones, puntos o ambos';
+  String get tags_manage_scopeRequired =>
+      'Elige al menos uno: inmersiones, puntos o equipo';
 
   @override
   String get tags_manage_scope_dives => 'Inmersiones';
+
+  @override
+  String get tags_manage_scope_equipment => 'Equipo';
 
   @override
   String get tags_manage_scope_sites => 'Puntos';
@@ -21113,7 +21166,22 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos',
+      one: '1 equipo',
+      zero: '0 equipos',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Usar en inmersiones';
+
+  @override
+  String get tags_manage_useForEquipment => 'Usar en equipos';
 
   @override
   String get tags_manage_useForSites => 'Usar en puntos';
@@ -38407,20 +38475,32 @@ class AppLocalizationsEs extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Tus datos de buceo se guardaron con una versión más reciente de Submersion (esquema v$databaseVersion). Esta versión solo admite esquemas hasta v$appVersion.';
+    return 'Tu cuaderno de buceo se guardó con el esquema v$databaseVersion por una versión más reciente de Submersion. Esta versión abre archivos hasta el esquema v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'Esto suele significar que una compilación beta actualizó tus datos, que se restauró una copia de seguridad de una compilación más reciente o que el archivo se comparte con un dispositivo en otro canal de actualización. Puede que todavía no exista una versión estable más reciente.';
+  String get startup_versionMismatch_causes_lead =>
+      'Esto suele ocurrir cuando:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'Una compilación beta actualizó el archivo.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'Se restauró una copia de seguridad de una compilación más reciente.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'El archivo se comparte con un dispositivo en otro canal de actualización.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Tus datos están a salvo y no se han modificado. Ábrelos con la compilación que los escribió, o con cualquier compilación posterior. Si se hizo una copia de seguridad antes de la actualización, está en tu carpeta Backups y se puede restaurar cuando uses una compilación que abra el archivo.';
+      'Tus datos no se han modificado. Ábrelos con la compilación que los escribió, o con una posterior.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'Esta app se instaló desde una tienda de aplicaciones y es más antigua que la versión que creó tus datos. Tus datos están a salvo y no se han modificado. Actualiza Submersion cuando la nueva versión aparezca en la tienda y vuelve a abrirla.';
+      'Esta app viene de una tienda de aplicaciones y es más antigua que la versión que guardó tus datos. Tus datos no se han modificado. Actualiza Submersion cuando la nueva versión aparezca en la tienda y vuelve a abrirla.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -38436,7 +38516,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Si esos botones no abren un navegador, visita:';
+      'Si los botones no abren un navegador:';
 
   @override
   String get universalImport_compare_downloaded => 'Descargada';
@@ -40197,12 +40277,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Restaurar la copia anterior a la actualización';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'En este dispositivo hay una copia de seguridad de tu cuaderno de buceo tomada antes de la actualización, y esta versión puede abrirla.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Todo lo que registraste después de la actualización solo existe en el archivo más reciente. Ese archivo se conserva como copia fijada, así que volver a instalar la versión más reciente lo recupera.';
+      'Las inmersiones registradas después de la actualización solo existen en el archivo más reciente. Se conserva como copia fijada, así que volver a instalar la versión más reciente las recupera.';
 
   @override
   String get startup_interruptedRestore_title => 'Una restauración no terminó';
@@ -40629,9 +40705,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cómo se agrupa y ordena el equipo en una inmersión';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -40702,4 +40775,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Ingresa un número válido';
 }

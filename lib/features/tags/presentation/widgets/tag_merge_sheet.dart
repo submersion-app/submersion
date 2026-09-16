@@ -23,14 +23,16 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
   late String _selectedColor;
   late String _selectedNameFromTag;
 
-  /// The dives and sites the merge rewrites, counted as a union; null until
+  /// The items the merge rewrites per scope, counted as a union; null until
   /// loaded.
-  ({int dives, int sites})? _affected;
+  Map<TagScope, int>? _affected;
   bool _isMerging = false;
 
   List<TagStatistic> get _sortedStats {
     final sorted = [...widget.selectedStats];
-    sorted.sort((a, b) => b.diveCount.compareTo(a.diveCount));
+    sorted.sort(
+      (a, b) => b.count(TagScope.dives).compareTo(a.count(TagScope.dives)),
+    );
     return sorted;
   }
 
@@ -52,8 +54,8 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
     );
   }
 
-  /// mergeTags relinks site_tags as well as dive_tags, so the preview counts
-  /// both (#1902).
+  /// mergeTags relinks every junction of the tag scope registry, so the
+  /// preview counts each scope (#1902, #1942).
   Future<void> _loadAffected() async {
     final repository = ref.read(tagRepositoryProvider);
     final tagIds = widget.selectedStats.map((s) => s.tag.id).toList();
@@ -170,11 +172,7 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
                         value: stat.tag.id,
                         title: Text(stat.tag.name),
                         subtitle: Text(
-                          tagUsageCounts(
-                            context.l10n,
-                            dives: stat.diveCount,
-                            sites: stat.siteCount,
-                          ),
+                          tagUsageCounts(context.l10n, stat.counts),
                         ),
                         secondary: CircleAvatar(
                           radius: 12,
@@ -208,11 +206,7 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  tagsMergeAffectedMessage(
-                    context.l10n,
-                    dives: affected.dives,
-                    sites: affected.sites,
-                  ),
+                  tagsMergeAffectedMessage(context.l10n, affected),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

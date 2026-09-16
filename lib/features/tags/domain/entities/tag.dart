@@ -1,10 +1,24 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-/// Where a tag is offered (issue #1765). A tag applies to at least one.
-enum TagScope { dives, sites }
+import 'package:submersion/core/database/tag_scope_tables.dart';
 
-/// Tag entity for organizing dives and dive sites
+/// Where a tag is offered (issues #1765, #1942). A tag applies to at least
+/// one. Member order follows [tagScopeTables], which is the display order.
+enum TagScope {
+  dives,
+  sites,
+  equipment;
+
+  /// Where this scope stores its flag and its links.
+  TagScopeTable get table => switch (this) {
+    TagScope.dives => diveTagScopeTable,
+    TagScope.sites => siteTagScopeTable,
+    TagScope.equipment => equipmentTagScopeTable,
+  };
+}
+
+/// Tag entity for organizing dives, dive sites and equipment
 class Tag extends Equatable {
   final String id;
   final String? diverId;
@@ -13,11 +27,9 @@ class Tag extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// Whether the tag is offered on dives (issue #1765).
-  final bool appliesToDives;
-
-  /// Whether the tag is offered on dive sites (issue #1765).
-  final bool appliesToSites;
+  /// Where the tag is offered (issues #1765, #1942). Never empty once stored:
+  /// TagRepository rejects a tag with no scope. Treat as read-only.
+  final Set<TagScope> scopes;
 
   const Tag({
     required this.id,
@@ -26,8 +38,7 @@ class Tag extends Equatable {
     this.colorHex,
     required this.createdAt,
     required this.updatedAt,
-    this.appliesToDives = true,
-    this.appliesToSites = false,
+    this.scopes = const {TagScope.dives},
   });
 
   /// Get the color as a Flutter Color object
@@ -44,10 +55,7 @@ class Tag extends Equatable {
   }
 
   /// Whether the tag is offered where [scope] is.
-  bool appliesTo(TagScope scope) => switch (scope) {
-    TagScope.dives => appliesToDives,
-    TagScope.sites => appliesToSites,
-  };
+  bool appliesTo(TagScope scope) => scopes.contains(scope);
 
   /// Create a new tag with a default color, offered in [scope] only.
   factory Tag.create({
@@ -65,8 +73,7 @@ class Tag extends Equatable {
       colorHex: colorHex,
       createdAt: now,
       updatedAt: now,
-      appliesToDives: scope == TagScope.dives,
-      appliesToSites: scope == TagScope.sites,
+      scopes: {scope},
     );
   }
 
@@ -77,8 +84,7 @@ class Tag extends Equatable {
     String? colorHex,
     DateTime? createdAt,
     DateTime? updatedAt,
-    bool? appliesToDives,
-    bool? appliesToSites,
+    Set<TagScope>? scopes,
   }) {
     return Tag(
       id: id ?? this.id,
@@ -87,8 +93,7 @@ class Tag extends Equatable {
       colorHex: colorHex ?? this.colorHex,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      appliesToDives: appliesToDives ?? this.appliesToDives,
-      appliesToSites: appliesToSites ?? this.appliesToSites,
+      scopes: scopes ?? this.scopes,
     );
   }
 
@@ -100,8 +105,7 @@ class Tag extends Equatable {
     colorHex,
     createdAt,
     updatedAt,
-    appliesToDives,
-    appliesToSites,
+    scopes,
   ];
 }
 

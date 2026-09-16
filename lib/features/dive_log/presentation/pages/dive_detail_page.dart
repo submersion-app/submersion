@@ -1828,54 +1828,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ),
               // Content
               content,
-              // View Site button
-              if (site != null)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  // Decorative label only: no gesture recognizer of its own.
-                  // It is a DESCENDANT of the card's InkWell, so the hit path
-                  // still reaches that ancestor and the whole card stays one
-                  // tap target. Giving this badge its own onTap would carve a
-                  // competing recognizer out of the card (see the badge tap
-                  // test).
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_forward,
-                          size: 14,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          context.l10n.diveLog_detail_viewSite,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -2051,13 +2003,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                               ),
                       ),
                     ),
-                    if (dive.profile.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.alt_route),
-                        tooltip: context.l10n.diveLog_detail_tooltip_whatIf,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => showWhatIfSheet(context, dive),
-                      ),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,

@@ -2396,6 +2396,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_wallet_tooltip_add => '添加证书';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => '更多选项';
+
+  @override
   String get certifications_wallet_tooltip_share => '分享证书';
 
   @override
@@ -4102,6 +4105,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_detail_noDivesLogged => '尚未记录潜水';
+
+  @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水将不再关联潜水中心。',
+      one: '1 次潜水将不再关联潜水中心。',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveCenters_dialog_deleteMessage(Object name) {
@@ -8496,6 +8510,28 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return '显示带有 $name 的潜水点';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水将不再关联潜水点。',
+      one: '1 次潜水将不再关联潜水点。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个已保存的计划将不再关联潜水点。',
+      one: '1 个已保存的计划将不再关联潜水点。',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -19944,6 +19980,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此标签用于 $count 件装备。关闭“用于装备”将从这些装备中移除它。',
+      one: '此标签用于 1 件装备。关闭“用于装备”将从该装备中移除它。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -19958,10 +20005,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_narrowDialog_title => '从现有项目中移除此标签？';
 
   @override
-  String get tags_manage_scopeRequired => '请选择潜水、潜水点或两者';
+  String get tags_manage_scopeRequired => '请至少选择一项：潜水、潜水点或装备';
 
   @override
   String get tags_manage_scope_dives => '潜水';
+
+  @override
+  String get tags_manage_scope_equipment => '装备';
 
   @override
   String get tags_manage_scope_sites => '潜水点';
@@ -19979,7 +20029,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备',
+      one: '1 件装备',
+      zero: '0 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => '用于潜水';
+
+  @override
+  String get tags_manage_useForEquipment => '用于装备';
 
   @override
   String get tags_manage_useForSites => '用于潜水点';
@@ -36147,20 +36212,28 @@ class AppLocalizationsZh extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return '您的潜水数据是由较新版本的 Submersion 保存的（架构 v$databaseVersion）。此版本最高仅支持架构 v$appVersion。';
+    return '您的潜水日志由较新版本的 Submersion 以架构 v$databaseVersion 保存。此版本可打开架构不高于 v$appVersion 的文件。';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      '这通常意味着测试版构建升级了您的数据、从更新的构建恢复了备份，或者该文件与其他更新通道上的设备共享。更新的稳定版可能尚未发布。';
+  String get startup_versionMismatch_causes_lead => '这通常发生在以下情况：';
+
+  @override
+  String get startup_versionMismatch_cause_beta => '测试版构建升级了该文件。';
+
+  @override
+  String get startup_versionMismatch_cause_restored => '从更新的构建恢复了备份。';
+
+  @override
+  String get startup_versionMismatch_cause_shared => '该文件与其他更新通道上的设备共享。';
 
   @override
   String get startup_versionMismatch_instructions =>
-      '您的数据是安全的，未被修改。请使用写入这些数据的构建版本，或任何更高版本重新打开。如果升级前已创建备份，它位于您的 Backups 文件夹中，待您运行可以打开该文件的版本后即可恢复。';
+      '您的数据未被修改。请使用写入它的构建版本或更高版本打开。';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      '此应用安装自应用商店，版本低于创建您数据的版本。您的数据是安全的，未被修改。当新版本在商店上架后，请更新 Submersion 并重新打开。';
+      '此应用来自应用商店，版本低于保存您数据的版本。您的数据未被修改。当新版本在商店上架后，请更新 Submersion 并重新打开。';
 
   @override
   String get startup_versionMismatch_download => '查找更新的稳定版';
@@ -36173,7 +36246,7 @@ class AppLocalizationsZh extends AppLocalizations {
       '测试版构建为预发布版本。仅当测试版构建写入了您的数据时才选择此项。';
 
   @override
-  String get startup_versionMismatch_manualLink => '如果这些按钮未打开浏览器，请访问：';
+  String get startup_versionMismatch_manualLink => '如果按钮未打开浏览器：';
 
   @override
   String get universalImport_compare_downloaded => '已下载';
@@ -37798,12 +37871,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_versionMismatch_restore_title => '恢复升级前的备份';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      '本设备上存有升级前的潜水日志安全副本，当前版本可以打开它。';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      '升级之后记录的内容只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。';
+      '升级之后记录的潜水只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。';
 
   @override
   String get startup_interruptedRestore_title => '有一次恢复未完成';
@@ -38204,9 +38273,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_gearArrangementSubtitle => '潜水记录中装备的分组和排序方式';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -38277,4 +38343,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => '请输入有效的数字';
 }

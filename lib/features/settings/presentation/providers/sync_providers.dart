@@ -260,6 +260,17 @@ final googleDriveAvailableProvider = FutureProvider<bool>((ref) {
   return cloudProviderInstanceFor(CloudProviderType.googledrive).isAvailable();
 });
 
+/// The raw [CloudStorageProvider] singleton for [type], overridable in
+/// widget tests. A connect flow that must check or trigger interactive auth
+/// outside the Cloud Sync page (Media Storage's Google Drive connect, e.g.)
+/// reads the provider through here rather than calling
+/// [cloudProviderInstanceFor] directly, so it never touches the real
+/// platform channel under `flutter test`.
+final cloudStorageProviderForProvider =
+    Provider.family<CloudStorageProvider, CloudProviderType>(
+      (ref, type) => cloudProviderInstanceFor(type),
+    );
+
 /// Signed-in Google account email for the provider tile subtitle, or null
 /// when Google Drive is not the selected provider, is not authenticated, or
 /// no account is known.

@@ -2462,8 +2462,13 @@ class Tags extends Table {
       boolean().withDefault(const Constant(true))();
 
   /// Whether the tag is offered on dive sites (v217, issue #1765). A tag
-  /// always applies to at least one of the two; TagRepository enforces it.
+  /// always applies to at least one scope; TagRepository enforces it.
   BoolColumn get appliesToSites =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Whether the tag is offered on equipment (v219, issue #1942). No tag
+  /// that existed before v219 is an equipment tag.
+  BoolColumn get appliesToEquipment =>
       boolean().withDefault(const Constant(false))();
 
   @override
@@ -2593,6 +2598,26 @@ class SiteTags extends Table {
   TextColumn get id => text()();
   TextColumn get siteId =>
       text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
+/// Junction table for an equipment item's tags (many-to-many, v219, issue
+/// #1942), the twin of [SiteTags]. Surrogate uuid primary key, so a
+/// re-inserted pair never collides with its predecessor's tombstone (#347);
+/// the (equipment_id, tag_id) unique index lives in tag_uniqueness.dart.
+class EquipmentTags extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
   TextColumn get tagId =>
       text().references(Tags, #id, onDelete: KeyAction.cascade)();
   IntColumn get createdAt => integer()();
@@ -4121,6 +4146,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteTypes,
     SiteSiteTypes,
     SiteTags,
+    // Equipment tags (v219, issue #1942)
+    EquipmentTags,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -4181,7 +4208,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 218;
+  static const int currentSchemaVersion = 219;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4787,6 +4814,11 @@ class AppDatabase extends _$AppDatabase {
     // types and tags) shipped first, and a rung at or below the shipped
     // version never runs its onUpgrade step, so this one sits above both.
     218,
+    // v219: equipment tags (issue #1942). tags.applies_to_equipment (off for
+    // every existing tag) and the equipment_tags junction with its
+    // (equipment_id, tag_id) unique index. Additive only, so the
+    // compatibility floor stays.
+    219,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5226,6 +5258,7 @@ class AppDatabase extends _$AppDatabase {
       'site_species',
       'site_site_types',
       'site_tags',
+      'equipment_tags',
       'dive_profile_events',
       'dive_safety_reviews',
       'dive_safety_findings',
@@ -8168,16 +8201,9 @@ class AppDatabase extends _$AppDatabase {
     await customStatement('ALTER TABLE dive_types ADD COLUMN short_name TEXT');
   }
 
-  /// Idempotent DDL for the v174 dive_types.show_in_detail_header and
-  /// dive_types.show_in_list_view columns: per-type toggles for which
-  /// badge rows a diver's types appear in (issue #1269 follow-up). Both
-  /// default to shown (1) so existing dives keep their current badges.
-  /// Called from the v174 onUpgrade step and the beforeOpen backstop,
-  /// matching the _assertDiveTypeShortNameColumn pattern so a schema-version
-  /// collision cannot strand a database without them. Self-guarding when the
-  /// table is absent (minimal migration-test fixtures).
-  /// Idempotent DDL for the tag scope flags (v217, issue #1765). Existing
-  /// tags are dive tags; none applies to sites until the diver says so.
+  /// Idempotent DDL for the tag scope flags: dives and sites (v217, issue
+  /// #1765), equipment (v219, issue #1942). Existing tags are dive tags; none
+  /// applies to sites or equipment until the diver says so.
   Future<void> _assertTagScopeColumns() async {
     final cols = await customSelect("PRAGMA table_info('tags')").get();
     if (cols.isEmpty) return;
@@ -8192,6 +8218,12 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE tags ADD COLUMN applies_to_sites '
         'INTEGER NOT NULL DEFAULT 0 CHECK (applies_to_sites IN (0, 1))',
+      );
+    }
+    if (!names.contains('applies_to_equipment')) {
+      await customStatement(
+        'ALTER TABLE tags ADD COLUMN applies_to_equipment '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (applies_to_equipment IN (0, 1))',
       );
     }
   }
@@ -8219,6 +8251,33 @@ class AppDatabase extends _$AppDatabase {
     await assertSiteClassificationUniqueness(this);
   }
 
+  /// Idempotent creation of the v219 equipment tag schema (issue #1942): the
+  /// `equipment_tags` junction and its (equipment, tag) unique index. Called
+  /// from the v219 rung and the beforeOpen backstop.
+  ///
+  /// Skipped on a partial migration-test fixture that lacks either parent
+  /// table, so a fixture written for an older rung does not gain a junction
+  /// whose foreign keys point nowhere.
+  Future<void> _assertEquipmentTagSchema() async {
+    for (final parent in const ['equipment', 'tags']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(equipmentTags);
+    await assertEquipmentTagUniqueness(this);
+  }
+
+  /// Idempotent DDL for the v174 dive_types.show_in_detail_header and
+  /// dive_types.show_in_list_view columns: per-type toggles for which
+  /// badge rows a diver's types appear in (issue #1269 follow-up). Both
+  /// default to shown (1) so existing dives keep their current badges.
+  /// Called from the v174 onUpgrade step and the beforeOpen backstop,
+  /// matching the _assertDiveTypeShortNameColumn pattern so a schema-version
+  /// collision cannot strand a database without them. Self-guarding when the
+  /// table is absent (minimal migration-test fixtures).
   Future<void> _assertDiveTypeVisibilityColumns() async {
     final cols = await customSelect("PRAGMA table_info('dive_types')").get();
     if (cols.isEmpty) return;
@@ -8553,6 +8612,10 @@ class AppDatabase extends _$AppDatabase {
         // indexes or seeds.
         await customStatement(kSeedBuiltInSiteTypesSql);
         await assertSiteClassificationUniqueness(this);
+
+        // Equipment tag junction unique index (v219, issue #1942), for the
+        // same reason: createAll() never builds raw-SQL indexes.
+        await assertEquipmentTagUniqueness(this);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -12186,9 +12249,16 @@ class AppDatabase extends _$AppDatabase {
           await _assertSiteDetailColumns();
         }
         if (from < 218) await reportProgress();
+        // v219: equipment tags (issue #1942). Column-and-table rung, no
+        // backfill: existing tags stay off equipment.
+        if (from < 219) {
+          await _assertTagScopeColumns();
+          await _assertEquipmentTagSchema();
+        }
+        if (from < 219) await reportProgress();
       },
       beforeOpen: (details) async {
-        // v217 backstop: the tag scope flags.
+        // v217 and v219 backstop: the tag scope flags.
         await _assertTagScopeColumns();
 
         // v211 backstop: re-assert diver_settings.auto_tag_imports.
@@ -12302,6 +12372,10 @@ class AppDatabase extends _$AppDatabase {
         // v217 backstop: site classification tables, seed and indexes
         // (parallel-branch version-collision self-heal; all idempotent).
         await _assertSiteClassificationSchema();
+
+        // v219 backstop: the equipment tag junction and its index
+        // (parallel-branch version-collision self-heal; all idempotent).
+        await _assertEquipmentTagSchema();
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it

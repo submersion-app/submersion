@@ -2534,6 +2534,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'Certificering toevoegen';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'Meer opties';
+
+  @override
   String get certifications_wallet_tooltip_share => 'Certificering delen';
 
   @override
@@ -4296,6 +4299,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_detail_noDivesLogged => 'Nog geen duiken gelogd';
+
+  @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken blijven zonder duikcentrum.',
+      one: '1 duik blijft zonder duikcentrum.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String diveCenters_dialog_deleteMessage(Object name) {
@@ -8854,6 +8868,28 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Duikstekken met $name tonen';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken blijven zonder stek.',
+      one: '1 duik blijft zonder stek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count opgeslagen plannen blijven zonder stek.',
+      one: '1 opgeslagen plan blijft zonder stek.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -20888,6 +20924,19 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Deze tag staat op $count uitrustingsstukken. Als je \"Gebruiken voor uitrusting\" uitzet, wordt hij van die uitrustingsstukken verwijderd.',
+      one:
+          'Deze tag staat op 1 uitrustingsstuk. Als je \"Gebruiken voor uitrusting\" uitzet, wordt hij van dat uitrustingsstuk verwijderd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20905,10 +20954,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tag van bestaande items verwijderen?';
 
   @override
-  String get tags_manage_scopeRequired => 'Kies duiken, duikstekken of beide';
+  String get tags_manage_scopeRequired =>
+      'Kies er minstens één: duiken, duikstekken of uitrusting';
 
   @override
   String get tags_manage_scope_dives => 'Duiken';
+
+  @override
+  String get tags_manage_scope_equipment => 'Uitrusting';
 
   @override
   String get tags_manage_scope_sites => 'Duikstekken';
@@ -20926,7 +20979,22 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uitrustingsstukken',
+      one: '1 uitrustingsstuk',
+      zero: '0 uitrustingsstukken',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'Gebruiken voor duiken';
+
+  @override
+  String get tags_manage_useForEquipment => 'Gebruiken voor uitrusting';
 
   @override
   String get tags_manage_useForSites => 'Gebruiken voor duikstekken';
@@ -38111,20 +38179,32 @@ class AppLocalizationsNl extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'Je duikgegevens zijn opgeslagen door een nieuwere versie van Submersion (schema v$databaseVersion). Deze versie ondersteunt schema’s alleen tot v$appVersion.';
+    return 'Je duiklogboek is opgeslagen met schema v$databaseVersion door een nieuwere versie van Submersion. Deze versie opent bestanden tot schema v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'Dit betekent meestal dat een bètaversie je gegevens heeft bijgewerkt, dat er een back-up uit een nieuwere versie is teruggezet, of dat het bestand wordt gedeeld met een apparaat op een ander updatekanaal. Een nieuwere stabiele versie bestaat mogelijk nog niet.';
+  String get startup_versionMismatch_causes_lead =>
+      'Dit gebeurt meestal wanneer:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'Een bètaversie heeft het bestand bijgewerkt.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'Er is een back-up uit een nieuwere versie teruggezet.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'Het bestand wordt gedeeld met een apparaat op een ander updatekanaal.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'Je gegevens zijn veilig en zijn niet gewijzigd. Open ze met de versie die ze heeft geschreven, of met een latere versie. Als er vóór de upgrade een back-up is gemaakt, staat die in je map Backups en kan die worden teruggezet zodra je een versie gebruikt die het bestand kan openen.';
+      'Je gegevens zijn niet gewijzigd. Open ze met de versie die ze heeft geschreven, of met een latere.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'Deze app is geïnstalleerd vanuit een appstore en is ouder dan de versie die uw gegevens heeft gemaakt. Uw gegevens zijn veilig en niet gewijzigd. Werk Submersion bij zodra de nieuwe versie in de store verschijnt en open de app daarna opnieuw.';
+      'Deze app komt uit een appstore en is ouder dan de versie die uw gegevens heeft opgeslagen. Uw gegevens zijn niet gewijzigd. Werk Submersion bij zodra de nieuwe versie in de store verschijnt en open de app daarna opnieuw.';
 
   @override
   String get startup_versionMismatch_download =>
@@ -38139,7 +38219,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Als die knoppen geen browser openen, ga naar:';
+      'Als de knoppen geen browser openen:';
 
   @override
   String get universalImport_compare_downloaded => 'Gedownload';
@@ -39886,12 +39966,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Back-up van voor de upgrade terugzetten';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'Er staat een veiligheidskopie van je duiklogboek van voor de upgrade op dit apparaat, en deze versie kan die openen.';
-
-  @override
   String get startup_versionMismatch_restore_warning =>
-      'Alles wat je na de upgrade hebt gelogd, bestaat alleen in het nieuwere bestand. Dat bestand wordt bewaard als vastgezette back-up, dus je krijgt het terug door de nieuwere versie opnieuw te installeren.';
+      'Duiken die na de upgrade zijn gelogd, bestaan alleen in het nieuwere bestand. Dat wordt bewaard als vastgezette back-up, dus je krijgt ze terug door de nieuwere versie opnieuw te installeren.';
 
   @override
   String get startup_interruptedRestore_title =>
@@ -40313,9 +40389,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoe uitrusting bij een duik wordt gegroepeerd en gesorteerd';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -40386,4 +40459,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Voer een geldig getal in';
 }

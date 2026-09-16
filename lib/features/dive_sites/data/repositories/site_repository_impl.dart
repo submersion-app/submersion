@@ -10,8 +10,10 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_links.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
@@ -20,6 +22,10 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_mer
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
+
+export 'package:submersion/features/dive_sites/data/repositories/site_links.dart'
+    show SiteLinks, SiteUsage;
 
 // Re-exported so the many existing `site_repository_impl.dart` importers of
 // SiteWithDiveCount keep compiling after the class moved to the domain layer.
@@ -484,26 +490,70 @@ class SiteRepository {
     }
   }
 
-  /// Cascade a dying site's media: site-only rows die with the site
-  /// (rows + tombstones + blob-delete intents via the coordinator's
-  /// enqueue-before-delete path); dive-linked and library-level rows
-  /// survive with siteId nulled and HLC-stamped. Mirrors
-  /// DiveRepository._cascadeMediaForDiveDeletion; without it the silent
-  /// FK SET NULL on media.site_id writes no HLC stamp and peers diverge.
+  /// Deletes the site rows and, when [cascadeMedia], their media: site-only
+  /// rows die with the site (rows + tombstones + blob-delete intents via the
+  /// coordinator's enqueue-before-delete path); dive-linked and
+  /// library-level rows survive with siteId nulled and HLC-stamped. Mirrors
+  /// DiveRepository._cascadeMediaForDiveDeletion; without it the silent FK
+  /// SET NULL on media.site_id writes no HLC stamp and peers diverge.
   ///
-  /// Deliberately NOT wrapped in a transaction with the site delete: the
-  /// coordinator's queue writes live in another database, and every step
-  /// is individually idempotent/tombstoned. Site merge relinks media to
-  /// the survivor inside its own transaction BEFORE deleting duplicates,
-  /// so this sees no doomed media for merged-away sites.
-  Future<void> _cascadeMediaForSiteDeletion(List<String> ids) async {
-    final split = await _mediaRepository.partitionMediaForSiteDeletion(ids);
-    if (split.doomed.isNotEmpty) {
-      await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
+  /// The dives logged and plans set at the sites survive with the site
+  /// cleared, stamped and marked pending: `dives.site_id` and
+  /// `dive_plans.site_id` have no ON DELETE action, so a row still pointing
+  /// at a site would fail its delete (issue #1952). The clearing shares the
+  /// delete's transaction, so a failed delete leaves them linked.
+  ///
+  /// The media split is read before that transaction, while media.site_id
+  /// still names the sites, and applied only after it commits, so a failed
+  /// delete deletes and unlinks no media. Deliberately not inside the
+  /// transaction: the coordinator's queue writes live in another database,
+  /// and every step is individually idempotent/tombstoned. Site merge
+  /// relinks media to the survivor inside its own transaction BEFORE
+  /// deleting duplicates, so it never needs this cascade.
+  ///
+  /// Returns the links it cleared, read in the same transaction, so an undo
+  /// covers exactly the rows the delete touched.
+  Future<SiteLinks> _deleteSiteRows(
+    List<String> ids, {
+    required bool cascadeMedia,
+  }) async {
+    final split = cascadeMedia
+        ? await _mediaRepository.partitionMediaForSiteDeletion(ids)
+        : null;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final links = await _db.transaction(() async {
+      final cleared = await readLinksToSites(_db, ids, clearedAt: now);
+      await clearDiveSiteLinks(_db, _syncRepository, ids, now: now);
+      await clearPlanLinksToSites(_db, _syncRepository, ids, now: now);
+      await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
+      for (final id in ids) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveSites',
+          recordId: id,
+        );
+      }
+      return cleared;
+    });
+    if (split == null) return links;
+    // The sites are gone by now, so a failure here cannot undo the delete
+    // and must not be reported as one. What it leaves behind is recoverable:
+    // site-only media stay as unlinked rows the orphan sweep collects, and
+    // peers null media.site_id themselves when they apply the tombstone.
+    try {
+      if (split.doomed.isNotEmpty) {
+        await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
+      }
+      if (split.unlinkIds.isNotEmpty) {
+        await _mediaRepository.unlinkMediaFromDeletedSites(split.unlinkIds);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Deleted sites $ids, but could not clean up their media',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
-    if (split.unlinkIds.isNotEmpty) {
-      await _mediaRepository.unlinkMediaFromDeletedSites(split.unlinkIds);
-    }
+    return links;
   }
 
   /// Delete a site.
@@ -515,9 +565,7 @@ class SiteRepository {
   Future<void> deleteSite(String id, {bool cascadeMedia = true}) async {
     try {
       _log.info('Deleting site: $id');
-      if (cascadeMedia) await _cascadeMediaForSiteDeletion([id]);
-      await (_db.delete(_db.diveSites)..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(entityType: 'diveSites', recordId: id);
+      await _deleteSiteRows([id], cascadeMedia: cascadeMedia);
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted site: $id');
     } catch (e, stackTrace) {
@@ -528,6 +576,24 @@ class SiteRepository {
       );
       rethrow;
     }
+  }
+
+  /// How many dives and plans a delete of [siteIds] would leave without a
+  /// site, for its confirmation.
+  Future<SiteUsage> getSiteUsage(List<String> siteIds) =>
+      countLinksToSites(_db, siteIds);
+
+  /// Undo for a bulk delete: points the dives and plans of [links] (what
+  /// [bulkDeleteSites] returned) back at their re-created sites, leaving any
+  /// row edited since.
+  Future<void> restoreSiteLinks(SiteLinks links) async {
+    await restoreLinksToSites(
+      _db,
+      _syncRepository,
+      links,
+      now: DateTime.now().millisecondsSinceEpoch,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Get multiple sites by IDs
@@ -547,24 +613,19 @@ class SiteRepository {
     }
   }
 
-  /// Bulk delete multiple sites
-  Future<void> bulkDeleteSites(
+  /// Bulk delete multiple sites. Returns the dive and plan links the delete
+  /// cleared, for [restoreSiteLinks] to undo.
+  Future<SiteLinks> bulkDeleteSites(
     List<String> ids, {
     bool cascadeMedia = true,
   }) async {
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return const SiteLinks();
     try {
       _log.info('Bulk deleting ${ids.length} sites');
-      if (cascadeMedia) await _cascadeMediaForSiteDeletion(ids);
-      await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
-      for (final id in ids) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveSites',
-          recordId: id,
-        );
-      }
+      final links = await _deleteSiteRows(ids, cascadeMedia: cascadeMedia);
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} sites');
+      return links;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to bulk delete sites',
@@ -663,7 +724,10 @@ class SiteRepository {
       final typeIdsBySite = await _classification.getTypeIdsBySite(orderedIds);
       final tagIdsBySite = await _classification.getTagIdsBySite(orderedIds);
 
-      await _db.transaction(() async {
+      // Returns the plans it moved, read inside the transaction so a plan
+      // set at a duplicate meanwhile is moved too rather than failing the
+      // duplicate's delete.
+      final planOriginalSiteIds = await _db.transaction(() async {
         await _updateSiteRow(survivorSite, now);
         await _syncRepository.markRecordPending(
           entityType: 'diveSites',
@@ -672,6 +736,7 @@ class SiteRepository {
         );
 
         await _relinkDives(duplicateIds, survivorId, now);
+        final movedPlans = await _relinkPlans(duplicateIds, survivorId, now);
         await _relinkMedia(duplicateIds, survivorId, now);
         await _relinkSiteFeatures(duplicateIds, survivorId, now);
         await _mergeExpectedSpecies(
@@ -692,6 +757,7 @@ class SiteRepository {
             recordId: duplicateId,
           );
         }
+        return movedPlans;
       });
 
       SyncEventBus.notifyLocalChange();
@@ -721,6 +787,7 @@ class SiteRepository {
         diveOriginalSiteIds: diveOriginalSiteIds,
         mediaOriginalSiteIds: mediaOriginalSiteIds,
         featureOriginalSiteIds: featureOriginalSiteIds,
+        planOriginalSiteIds: planOriginalSiteIds,
         deletedSpeciesEntries: deletedSpecies,
         modifiedSpeciesEntries: modifiedSpecies,
         deletedSiteTimestamps: {
@@ -865,6 +932,23 @@ class SiteRepository {
           );
           await _syncRepository.markRecordPending(
             entityType: 'siteFeatures',
+            recordId: entry.key,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 4c. Re-point dive plans back to their original sites
+        for (final entry in snapshot.planOriginalSiteIds.entries) {
+          await (_db.update(
+            _db.divePlans,
+          )..where((t) => t.id.equals(entry.key))).write(
+            DivePlansCompanion(
+              siteId: Value(entry.value),
+              updatedAt: Value(now),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'divePlans',
             recordId: entry.key,
             localUpdatedAt: now,
           );
@@ -1146,6 +1230,38 @@ class SiteRepository {
     }
   }
 
+  /// Moves the dive plans set at [duplicateIds] to the survivor, returning
+  /// each moved plan's original site for undo. `dive_plans.site_id` has no
+  /// ON DELETE action, so a plan left pointing at a duplicate would fail the
+  /// duplicate's delete.
+  Future<Map<String, String>> _relinkPlans(
+    List<String> duplicateIds,
+    String survivorId,
+    int now,
+  ) async {
+    if (duplicateIds.isEmpty) return const {};
+
+    final affected = await (_db.select(
+      _db.divePlans,
+    )..where((t) => t.siteId.isIn(duplicateIds))).get();
+    if (affected.isEmpty) return const {};
+
+    await (_db.update(
+      _db.divePlans,
+    )..where((t) => t.siteId.isIn(duplicateIds))).write(
+      DivePlansCompanion(siteId: Value(survivorId), updatedAt: Value(now)),
+    );
+
+    for (final plan in affected) {
+      await _syncRepository.markRecordPending(
+        entityType: 'divePlans',
+        recordId: plan.id,
+        localUpdatedAt: now,
+      );
+    }
+    return {for (final plan in affected) plan.id: plan.siteId!};
+  }
+
   /// Diver-placed annotations follow their site: a simple re-point with
   /// no dedupe key (two moorings at one site are legitimate, and any
   /// genuine duplicates are visible on the map and hand-fixable).
@@ -1287,6 +1403,9 @@ class MergeSnapshot {
 
   /// Site feature id -> the site it belonged to before the merge.
   final Map<String, String> featureOriginalSiteIds;
+
+  /// Dive plan id -> the site it was set at before the merge.
+  final Map<String, String> planOriginalSiteIds;
   final List<SiteSpeciesSnapshot> deletedSpeciesEntries;
   final List<SiteSpeciesSnapshot> modifiedSpeciesEntries;
 
@@ -1309,6 +1428,7 @@ class MergeSnapshot {
     required this.diveOriginalSiteIds,
     required this.mediaOriginalSiteIds,
     this.featureOriginalSiteIds = const {},
+    this.planOriginalSiteIds = const {},
     required this.deletedSpeciesEntries,
     required this.modifiedSpeciesEntries,
     this.deletedSiteTimestamps = const {},

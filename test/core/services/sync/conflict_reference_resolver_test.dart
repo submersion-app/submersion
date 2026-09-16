@@ -80,6 +80,32 @@ void main() {
     expect(dive.timestamp, DateTime(2026, 3, 28, 10, 0));
   });
 
+  test('resolves both foreign keys of an equipmentTags junction row', () async {
+    // No resolver code of its own: equipmentId and tagId are already mapped
+    // targets (issue #1942).
+    await serializer.upsertRecord('equipment', {
+      'id': 'eq-1',
+      'name': 'Wing',
+      'type': 'bcd',
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    await seedTag('tag-1', 'Travel kit');
+
+    final refs = await resolver.resolve('equipmentTags', {
+      'id': 'junction-1',
+      'equipmentId': 'eq-1',
+      'tagId': 'tag-1',
+      'createdAt': 1000,
+    });
+
+    expect(refs, hasLength(2));
+    expect(refFor(refs, 'tagId').name, 'Travel kit');
+    final item = refFor(refs, 'equipmentId');
+    expect(item.targetType, 'equipment');
+    expect(item.name, 'Wing');
+  });
+
   test('marks a reference whose row is absent locally as missing', () async {
     await seedDive('dive-1');
 
