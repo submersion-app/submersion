@@ -154,6 +154,34 @@ void main() {
       },
     );
 
+    test('a batch carrying two ids for one pair keeps the lower', () async {
+      // One payload CAN hold two links that mean the same pair: a peer's rows
+      // for two same-name tags both rewrite to the surviving tag id through
+      // _withTagAlias. Resolving those by arrival order would leave a device
+      // with no local copy on a different survivor from one that had a rival
+      // row, and nothing republishes to heal it (PR #2004 review).
+      //
+      // The ids arrive HIGH first, so first-row-wins is not the answer.
+      on(dbA);
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await TagRepository().createTag(wreck());
+
+      await SyncDataSerializer().upsertRecords('diveTags', [
+        {'id': 'zzz', 'diveId': 'd1', 'tagId': 'tag-1', 'createdAt': 2},
+        {'id': 'aaa', 'diveId': 'd1', 'tagId': 'tag-1', 'createdAt': 1},
+      ]);
+
+      expect(
+        await idsIn('dive_tags'),
+        ['aaa'],
+        reason:
+            'the survivor must be the lowest id, the same answer a device '
+            'holding one of them already would reach',
+      );
+    });
+
     test('a dive tag deleted on one device is gone on the other', () async {
       await seedSharedLibrary();
 

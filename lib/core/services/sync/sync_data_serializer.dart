@@ -3196,6 +3196,35 @@ class SyncDataSerializer {
     });
   }
 
+  /// [rows] reduced to one entry per natural pair, the LOWEST id winning.
+  ///
+  /// One payload can carry two rows that mean the same pair: [_withTagAlias]
+  /// rewrites a link's tag id to the survivor of a tag fold, so a peer's links
+  /// for two same-name tags on one item both land on the surviving tag, and
+  /// rows predating the unique indexes can hold a true duplicate. `insertAll`
+  /// with DO NOTHING keeps whichever came FIRST, which is arrival order rather
+  /// than the deterministic rule [_reconcileJunctionIds] applies to a local
+  /// rival. A device with no local copy would then settle on a different
+  /// survivor from one that already held a rival row, and neither republishes
+  /// to heal the split (PR #2004 review).
+  ///
+  /// The map is keyed by the pair itself (records compare structurally) and
+  /// iterates in first-insertion order, so the surviving rows keep the order
+  /// their pairs first appeared in.
+  List<T> _lowestIdPerPair<T>(List<T> rows, JunctionPair Function(T) pairOf) {
+    if (rows.length < 2) return rows;
+    final lowest = <(String, String), T>{};
+    for (final row in rows) {
+      final pair = pairOf(row);
+      final key = (pair.parent, pair.child);
+      final held = lowest[key];
+      if (held == null || pair.id.compareTo(pairOf(held).id) < 0) {
+        lowest[key] = row;
+      }
+    }
+    return lowest.values.toList();
+  }
+
   /// The tags NOT offered in [junction]'s scope, so a link naming one can be
   /// refused as it arrives.
   ///
@@ -4604,10 +4633,13 @@ class SyncDataSerializer {
         return;
       case 'diveTags':
         final diveTagsOffScope = await _tagsOutsideScope(diveTagScopeTable);
-        final diveTagRows = records
-            .map((record) => DiveTag.fromJson(_withTagAlias(record)))
-            .where((row) => !diveTagsOffScope.contains(row.tagId))
-            .toList();
+        final diveTagRows = _lowestIdPerPair(
+          records
+              .map((record) => DiveTag.fromJson(_withTagAlias(record)))
+              .where((row) => !diveTagsOffScope.contains(row.tagId))
+              .toList(),
+          (row) => (parent: row.diveId, child: row.tagId, id: row.id),
+        );
         await _reconcileJunctionIds(
           diveTagScopeTable.junctionTable,
           parentColumn: diveTagScopeTable.parentColumn,
@@ -4628,9 +4660,10 @@ class SyncDataSerializer {
       case 'diveDiveTypes':
         // DoNothing, not insertAllOnConflictUpdate: see
         // [_applyDiveDiveTypeRecord].
-        final diveTypeRows = records
-            .map((r) => DiveDiveType.fromJson(r))
-            .toList();
+        final diveTypeRows = _lowestIdPerPair(
+          records.map((r) => DiveDiveType.fromJson(r)).toList(),
+          (row) => (parent: row.diveId, child: row.diveTypeId, id: row.id),
+        );
         await _reconcileJunctionIds(
           'dive_dive_types',
           parentColumn: 'dive_id',
@@ -4672,9 +4705,10 @@ class SyncDataSerializer {
         return;
       case 'siteSiteTypes':
         // DoNothing: see [_applySiteSiteTypeRecord].
-        final siteTypeRows = records
-            .map((r) => SiteSiteType.fromJson(r))
-            .toList();
+        final siteTypeRows = _lowestIdPerPair(
+          records.map((r) => SiteSiteType.fromJson(r)).toList(),
+          (row) => (parent: row.siteId, child: row.siteTypeId, id: row.id),
+        );
         await _reconcileJunctionIds(
           'site_site_types',
           parentColumn: 'site_id',
@@ -4696,10 +4730,13 @@ class SyncDataSerializer {
         return;
       case 'siteTags':
         final siteTagsOffScope = await _tagsOutsideScope(siteTagScopeTable);
-        final siteTagRows = records
-            .map((record) => SiteTag.fromJson(_withTagAlias(record)))
-            .where((row) => !siteTagsOffScope.contains(row.tagId))
-            .toList();
+        final siteTagRows = _lowestIdPerPair(
+          records
+              .map((record) => SiteTag.fromJson(_withTagAlias(record)))
+              .where((row) => !siteTagsOffScope.contains(row.tagId))
+              .toList(),
+          (row) => (parent: row.siteId, child: row.tagId, id: row.id),
+        );
         await _reconcileJunctionIds(
           siteTagScopeTable.junctionTable,
           parentColumn: siteTagScopeTable.parentColumn,
