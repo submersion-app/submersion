@@ -1422,6 +1422,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'פרופיל מקושר';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'הפרופיל המקומי שהוא חבר צוללים זה';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'לא מקושר';
+
+  @override
   String get buddies_field_nameHint => 'הזן שם חבר צוללים';
 
   @override
@@ -1631,6 +1641,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'שימוש';
+
+  @override
+  String get buddies_linkedProfile_chip => 'פרופיל';
+
+  @override
+  String get buddies_linkedProfile_link => 'קישור';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'לא עכשיו';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'פתיחת חבר צוללים';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'קישור לפרופיל';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'לא ניתן לקשר חבר צוללים לפרופיל של עצמו.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName כבר מקושר לפרופיל זה.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return 'ל$name יש פרופיל כאן. לקשר אליו את חבר הצוללים הזה?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'חברי צוללים אלה מקושרים לפרופילים שונים. יש למזג את הפרופילים תחילה.';
 
   @override
   String get buddies_message_added => 'חבר צוללים נוסף בהצלחה';

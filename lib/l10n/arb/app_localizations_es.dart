@@ -1457,6 +1457,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_field_emailHint => 'correo@ejemplo.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Perfil vinculado';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'El perfil local que es este compañero';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Sin vincular';
+
+  @override
   String get buddies_field_nameHint => 'Ingresa el nombre del compañero';
 
   @override
@@ -1667,6 +1677,39 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Usar';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Perfil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Vincular';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Ahora no';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Abrir compañero';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Vincular a un perfil';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Un compañero no puede vincularse a su propio perfil.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName ya está vinculado a este perfil.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name tiene un perfil aquí. ¿Vincular este compañero con él?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Estos compañeros están vinculados a perfiles distintos. Fusiona primero los perfiles.';
 
   @override
   String get buddies_message_added => 'Compañero agregado exitosamente';

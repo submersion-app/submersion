@@ -1461,6 +1461,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_field_emailHint => 'email@exemple.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Profil lié';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Le profil local qu\'est ce binôme';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Non lié';
+
+  @override
   String get buddies_field_nameHint => 'Entrer le nom du binôme';
 
   @override
@@ -1671,6 +1681,39 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Utiliser';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Lier';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Plus tard';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Ouvrir le binôme';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Lier à un profil';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Un binôme ne peut pas être lié à son propre profil.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName est déjà lié à ce profil.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name a un profil ici. Lier ce binôme à ce profil ?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Ces binômes sont liés à des profils différents. Fusionnez d\'abord les profils.';
 
   @override
   String get buddies_message_added => 'Binôme ajouté avec succès';

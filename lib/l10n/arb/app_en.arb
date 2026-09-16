@@ -899,6 +899,9 @@
   "buddies_field_certificationLevel": "Certification Level",
   "buddies_field_email": "Email",
   "buddies_field_emailHint": "email@example.com",
+  "buddies_field_linkedProfile": "Linked profile",
+  "buddies_field_linkedProfileHint": "The local profile this buddy is",
+  "buddies_field_linkedProfileNone": "Not linked",
   "buddies_field_nameHint": "Enter buddy name",
   "buddies_field_nameRequired": "Name *",
   "buddies_field_notes": "Notes",
@@ -1054,6 +1057,29 @@
   },
   "buddies_linkText_undone": "Buddy links removed",
   "buddies_linkText_useSuggestion": "Use",
+  "buddies_linkedProfile_chip": "Profile",
+  "buddies_linkedProfile_link": "Link",
+  "buddies_linkedProfile_notNow": "Not now",
+  "buddies_linkedProfile_openBuddy": "Open buddy",
+  "buddies_linkedProfile_pickerTitle": "Link to a profile",
+  "buddies_linkedProfile_refusedSelf": "A buddy cannot be linked to its own profile.",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} is already linked to this profile.",
+  "@buddies_linkedProfile_refusedTaken": {
+    "placeholders": {
+      "buddyName": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkedProfile_suggestion": "{name} has a profile here. Link this buddy to it?",
+  "@buddies_linkedProfile_suggestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_merge_refusedDifferentLinks": "These buddies are linked to different profiles. Merge the profiles first.",
   "buddies_message_added": "Buddy added successfully",
   "buddies_message_contactImportUnavailable": "Contact import is not available on this platform",
   "buddies_message_contactLoadFailed": "Failed to load contacts",

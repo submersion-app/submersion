@@ -1364,6 +1364,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => '关联的个人资料';
+
+  @override
+  String get buddies_field_linkedProfileHint => '此潜伴对应的本地个人资料';
+
+  @override
+  String get buddies_field_linkedProfileNone => '未关联';
+
+  @override
   String get buddies_field_nameHint => '输入潜伴姓名';
 
   @override
@@ -1563,6 +1572,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => '使用';
+
+  @override
+  String get buddies_linkedProfile_chip => '个人资料';
+
+  @override
+  String get buddies_linkedProfile_link => '关联';
+
+  @override
+  String get buddies_linkedProfile_notNow => '暂不';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => '打开潜伴';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => '关联到个人资料';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf => '潜伴不能关联到自己的个人资料。';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName 已关联到此个人资料。';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name 在此有个人资料。将此潜伴关联到它吗？';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks => '这些潜伴关联到不同的个人资料。请先合并个人资料。';
 
   @override
   String get buddies_message_added => '潜伴添加成功';

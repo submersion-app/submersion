@@ -2401,6 +2401,24 @@ abstract class AppLocalizations {
   /// **'email@example.com'**
   String get buddies_field_emailHint;
 
+  /// No description provided for @buddies_field_linkedProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked profile'**
+  String get buddies_field_linkedProfile;
+
+  /// No description provided for @buddies_field_linkedProfileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The local profile this buddy is'**
+  String get buddies_field_linkedProfileHint;
+
+  /// No description provided for @buddies_field_linkedProfileNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get buddies_field_linkedProfileNone;
+
   /// No description provided for @buddies_field_nameHint.
   ///
   /// In en, this message translates to:
@@ -2646,6 +2664,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use'**
   String get buddies_linkText_useSuggestion;
+
+  /// No description provided for @buddies_linkedProfile_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get buddies_linkedProfile_chip;
+
+  /// No description provided for @buddies_linkedProfile_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get buddies_linkedProfile_link;
+
+  /// No description provided for @buddies_linkedProfile_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get buddies_linkedProfile_notNow;
+
+  /// No description provided for @buddies_linkedProfile_openBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Open buddy'**
+  String get buddies_linkedProfile_openBuddy;
+
+  /// No description provided for @buddies_linkedProfile_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a profile'**
+  String get buddies_linkedProfile_pickerTitle;
+
+  /// No description provided for @buddies_linkedProfile_refusedSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'A buddy cannot be linked to its own profile.'**
+  String get buddies_linkedProfile_refusedSelf;
+
+  /// No description provided for @buddies_linkedProfile_refusedTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'{buddyName} is already linked to this profile.'**
+  String buddies_linkedProfile_refusedTaken(String buddyName);
+
+  /// No description provided for @buddies_linkedProfile_suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has a profile here. Link this buddy to it?'**
+  String buddies_linkedProfile_suggestion(String name);
+
+  /// No description provided for @buddies_merge_refusedDifferentLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'These buddies are linked to different profiles. Merge the profiles first.'**
+  String get buddies_merge_refusedDifferentLinks;
 
   /// No description provided for @buddies_message_added.
   ///

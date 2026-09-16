@@ -1429,6 +1429,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Linked profile';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'The local profile this buddy is';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Not linked';
+
+  @override
   String get buddies_field_nameHint => 'Enter buddy name';
 
   @override
@@ -1638,6 +1648,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Use';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profile';
+
+  @override
+  String get buddies_linkedProfile_link => 'Link';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Not now';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Open buddy';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Link to a profile';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'A buddy cannot be linked to its own profile.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName is already linked to this profile.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name has a profile here. Link this buddy to it?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'These buddies are linked to different profiles. Merge the profiles first.';
 
   @override
   String get buddies_message_added => 'Buddy added successfully';

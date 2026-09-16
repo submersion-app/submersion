@@ -1455,6 +1455,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_field_emailHint => 'email@esempio.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Profilo collegato';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Il profilo locale che corrisponde a questo compagno';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Non collegato';
+
+  @override
   String get buddies_field_nameHint => 'Inserisci nome compagno';
 
   @override
@@ -1665,6 +1675,39 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Usa';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profilo';
+
+  @override
+  String get buddies_linkedProfile_link => 'Collega';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Non ora';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Apri compagno';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Collega a un profilo';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Un compagno non può essere collegato al proprio profilo.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName è già collegato a questo profilo.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name ha un profilo qui. Collegare questo compagno a esso?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Questi compagni sono collegati a profili diversi. Unisci prima i profili.';
 
   @override
   String get buddies_message_added => 'Compagno aggiunto con successo';

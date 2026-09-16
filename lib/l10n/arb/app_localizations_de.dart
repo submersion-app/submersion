@@ -1451,6 +1451,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_field_emailHint => 'email@beispiel.de';
 
   @override
+  String get buddies_field_linkedProfile => 'Verknüpftes Profil';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Das lokale Profil, das dieser Tauchpartner ist';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Nicht verknüpft';
+
+  @override
   String get buddies_field_nameHint => 'Tauchpartnername eingeben';
 
   @override
@@ -1663,6 +1673,39 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Übernehmen';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Verknüpfen';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Später';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Tauchpartner öffnen';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Mit einem Profil verknüpfen';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Ein Tauchpartner kann nicht mit dem eigenen Profil verknüpft werden.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName ist bereits mit diesem Profil verknüpft.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name hat hier ein Profil. Diesen Tauchpartner damit verknüpfen?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Diese Tauchpartner sind mit verschiedenen Profilen verknüpft. Führe zuerst die Profile zusammen.';
 
   @override
   String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';

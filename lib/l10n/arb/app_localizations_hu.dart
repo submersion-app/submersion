@@ -1448,6 +1448,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_field_emailHint => 'pelda@email.hu';
 
   @override
+  String get buddies_field_linkedProfile => 'Kapcsolt profil';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'A helyi profil, amely ez a búvártárs';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Nincs kapcsolva';
+
+  @override
   String get buddies_field_nameHint => 'Add meg a búvártárs nevét';
 
   @override
@@ -1661,6 +1671,39 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Használat';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Kapcsolás';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Most nem';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Búvártárs megnyitása';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Kapcsolás profilhoz';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Egy búvártárs nem kapcsolható a saját profiljához.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName már ehhez a profilhoz van kapcsolva.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name rendelkezik itt profillal. Kapcsoljuk hozzá ezt a búvártársat?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Ezek a búvártársak különböző profilokhoz vannak kapcsolva. Először egyesítsd a profilokat.';
 
   @override
   String get buddies_message_added => 'Búvártárs sikeresen hozzáadva';

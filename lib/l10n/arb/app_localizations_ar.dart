@@ -1437,6 +1437,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'الملف الشخصي المرتبط';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'الملف الشخصي المحلي الذي يمثل هذا الرفيق';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'غير مرتبط';
+
+  @override
   String get buddies_field_nameHint => 'أدخل اسم الرفيق';
 
   @override
@@ -1645,6 +1655,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'استخدام';
+
+  @override
+  String get buddies_linkedProfile_chip => 'ملف شخصي';
+
+  @override
+  String get buddies_linkedProfile_link => 'ربط';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'ليس الآن';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'فتح الرفيق';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'الربط بملف شخصي';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'لا يمكن ربط الرفيق بملفه الشخصي.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName مرتبط بالفعل بهذا الملف الشخصي.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return 'لدى $name ملف شخصي هنا. هل تريد ربط هذا الرفيق به؟';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.';
 
   @override
   String get buddies_message_added => 'تمت إضافة الرفيق بنجاح';

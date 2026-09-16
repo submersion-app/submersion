@@ -1443,6 +1443,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_field_emailHint => 'email@voorbeeld.nl';
 
   @override
+  String get buddies_field_linkedProfile => 'Gekoppeld profiel';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Het lokale profiel dat deze buddy is';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Niet gekoppeld';
+
+  @override
   String get buddies_field_nameHint => 'Voer buddy naam in';
 
   @override
@@ -1653,6 +1663,39 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Gebruiken';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profiel';
+
+  @override
+  String get buddies_linkedProfile_link => 'Koppelen';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Niet nu';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Buddy openen';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Koppelen aan een profiel';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Een buddy kan niet aan het eigen profiel worden gekoppeld.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName is al aan dit profiel gekoppeld.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name heeft hier een profiel. Deze buddy eraan koppelen?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Deze buddy\'s zijn aan verschillende profielen gekoppeld. Voeg eerst de profielen samen.';
 
   @override
   String get buddies_message_added => 'Buddy succesvol toegevoegd';
