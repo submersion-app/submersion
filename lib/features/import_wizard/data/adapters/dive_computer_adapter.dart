@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/domain/services/planned_dive_matcher.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -453,6 +454,37 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           durationDifferenceSeconds: null,
           matchedComputerId: matchedComputerId,
           matchedExistingSource: result.matchedExistingSource,
+        );
+      }
+    }
+
+    // Planned pass (issue #2002): downloads that matched nothing may fill a
+    // planned dive of the target profile on the same local day. Runs after
+    // the fingerprint, fuzzy and contained passes so a real duplicate never
+    // becomes a fill. An empty diver id means an unscoped library, where
+    // every planned dive is a candidate.
+    final planned = await _diveRepository.getPlannedDives(
+      diverId: _diverId.isEmpty ? null : _diverId,
+    );
+    if (planned.isNotEmpty) {
+      final unmatched = [
+        for (var i = 0; i < _downloadedDives.length; i++)
+          if (!duplicateIndices.contains(i)) i,
+      ];
+      final pairs = const PlannedDiveMatcher().pair(
+        incomingStarts: [
+          for (final i in unmatched) _downloadedDives[i].startTime,
+        ],
+        plannedDives: planned,
+      );
+      for (final entry in pairs.entries) {
+        final index = unmatched[entry.key];
+        duplicateIndices.add(index);
+        matchResults[index] = DiveMatchResult(
+          diveId: entry.value,
+          score: 1.0,
+          timeDifferenceMs: 0,
+          plannedDiveId: entry.value,
         );
       }
     }

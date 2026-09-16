@@ -126,6 +126,15 @@ class DiveMatchResult {
   /// dive to fold into).
   final int? inBatchIndex;
 
+  /// When non-null, [diveId] is an unfilled PLANNED dive of the target
+  /// profile on the same local day as the download (issue #2002). The
+  /// wizard defaults such a row to [DuplicateAction.fillPlanned]: the
+  /// planned dive keeps its human-entered facts and the download supplies
+  /// the measured ones. Never set together with [matchedExistingSource] or
+  /// [inBatchIndex]; the planned pass runs only for otherwise unmatched
+  /// downloads.
+  final String? plannedDiveId;
+
   const DiveMatchResult({
     required this.diveId,
     required this.score,
@@ -136,7 +145,36 @@ class DiveMatchResult {
     this.matchedComputerId,
     this.matchedExistingSource = false,
     this.inBatchIndex,
+    this.plannedDiveId,
   });
+
+  /// True when this row fills a planned dive rather than matching a logged
+  /// one.
+  bool get isPlannedFill => plannedDiveId != null;
+
+  /// Point the fill at another planned dive, or (with [clearPlannedDiveId])
+  /// at none. [diveId] follows the planned dive so the comparison card and
+  /// the wizard's existing-dive lookups need no extra plumbing.
+  DiveMatchResult copyWith({
+    String? plannedDiveId,
+    bool clearPlannedDiveId = false,
+  }) {
+    final nextPlanned = clearPlannedDiveId
+        ? null
+        : (plannedDiveId ?? this.plannedDiveId);
+    return DiveMatchResult(
+      diveId: clearPlannedDiveId ? '' : (nextPlanned ?? diveId),
+      score: score,
+      timeDifferenceMs: timeDifferenceMs,
+      depthDifferenceMeters: depthDifferenceMeters,
+      durationDifferenceSeconds: durationDifferenceSeconds,
+      siteName: siteName,
+      matchedComputerId: matchedComputerId,
+      matchedExistingSource: matchedExistingSource,
+      inBatchIndex: inBatchIndex,
+      plannedDiveId: nextPlanned,
+    );
+  }
 
   /// Returns true if this is a probable duplicate (score >= 0.7).
   bool get isProbable => score >= 0.7;
