@@ -2221,6 +2221,8 @@
   "diveLog_export_failed": "Exportalas sikertelen: {error}",
   "diveLog_export_pageAsImage": "Oldal kepkent",
   "diveLog_export_pageAsImageDescription": "Kepernyokep a teljes merulesi reszletekrol",
+  "diveLog_export_profileAsImage": "Profil kepkent",
+  "diveLog_export_profileAsImageDescription": "Kepernyokep a merulesi profil diagramrol",
   "diveLog_export_pdfDescription": "Nyomtathato merulesi naplo oldal",
   "diveLog_export_pdfLogbookEntry": "PDF naplo bejegyzes",
   "diveLog_export_success": "Merules sikeresen exportalva",

@@ -2325,6 +2325,8 @@
   "diveLog_export_failed": "Export mislukt: {error}",
   "diveLog_export_pageAsImage": "Pagina als afbeelding",
   "diveLog_export_pageAsImageDescription": "Schermafbeelding van volledige duikdetails",
+  "diveLog_export_profileAsImage": "Profiel als afbeelding",
+  "diveLog_export_profileAsImageDescription": "Schermafbeelding van de duikprofielgrafiek",
   "diveLog_export_pdfDescription": "Afdrukbare duiklogpagina",
   "diveLog_export_pdfLogbookEntry": "PDF Logboekvermelding",
   "diveLog_export_success": "Duik succesvol geëxporteerd",

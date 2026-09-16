@@ -10221,6 +10221,18 @@ abstract class AppLocalizations {
   /// **'PDF Logbook Entry'**
   String get diveLog_export_pdfLogbookEntry;
 
+  /// No description provided for @diveLog_export_profileAsImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile as Image'**
+  String get diveLog_export_profileAsImage;
+
+  /// No description provided for @diveLog_export_profileAsImageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot of the dive profile chart'**
+  String get diveLog_export_profileAsImageDescription;
+
   /// No description provided for @diveLog_export_success.
   ///
   /// In en, this message translates to:

@@ -6157,6 +6157,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_export_pdfLogbookEntry => 'רשומת יומן PDF';
 
   @override
+  String get diveLog_export_profileAsImage => 'פרופיל כתמונה';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'צילום מסך של גרף פרופיל הצלילה';
+
+  @override
   String get diveLog_export_success => 'הצלילה יוצאה בהצלחה';
 
   @override

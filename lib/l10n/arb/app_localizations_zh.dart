@@ -5991,6 +5991,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_export_pdfLogbookEntry => 'PDF 日志条目';
 
   @override
+  String get diveLog_export_profileAsImage => '轮廓为图片';
+
+  @override
+  String get diveLog_export_profileAsImageDescription => '潜水轮廓图的截图';
+
+  @override
   String get diveLog_export_success => '潜水导出成功';
 
   @override

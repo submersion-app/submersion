@@ -6206,6 +6206,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_export_pdfLogbookEntry => 'PDF Logbook Entry';
 
   @override
+  String get diveLog_export_profileAsImage => 'Profile as Image';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Screenshot of the dive profile chart';
+
+  @override
   String get diveLog_export_success => 'Dive exported successfully';
 
   @override

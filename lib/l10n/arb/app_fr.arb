@@ -2221,6 +2221,8 @@
   "diveLog_export_failed": "Échec de l'export : {error}",
   "diveLog_export_pageAsImage": "Page en image",
   "diveLog_export_pageAsImageDescription": "Capture d'écran de la page complète des détails",
+  "diveLog_export_profileAsImage": "Profil en image",
+  "diveLog_export_profileAsImageDescription": "Capture d'écran du graphique du profil de plongée",
   "diveLog_export_pdfDescription": "Page de carnet de plongée imprimable",
   "diveLog_export_pdfLogbookEntry": "Entrée de carnet PDF",
   "diveLog_export_success": "Plongée exportée avec succès",

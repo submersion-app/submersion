@@ -2325,6 +2325,8 @@
   "diveLog_export_failed": "Export fehlgeschlagen: {error}",
   "diveLog_export_pageAsImage": "Seite als Bild",
   "diveLog_export_pageAsImageDescription": "Screenshot der gesamten Tauchgang-Details",
+  "diveLog_export_profileAsImage": "Profil als Bild",
+  "diveLog_export_profileAsImageDescription": "Screenshot des Tauchprofil-Diagramms",
   "diveLog_export_pdfDescription": "Druckbare Tauchlogbuchseite",
   "diveLog_export_pdfLogbookEntry": "PDF-Logbucheintrag",
   "diveLog_export_success": "Tauchgang erfolgreich exportiert",

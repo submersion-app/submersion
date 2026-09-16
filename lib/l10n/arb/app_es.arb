@@ -2325,6 +2325,8 @@
   "diveLog_export_failed": "Error en la exportación: {error}",
   "diveLog_export_pageAsImage": "Página como imagen",
   "diveLog_export_pageAsImageDescription": "Captura de pantalla de todos los detalles de la inmersión",
+  "diveLog_export_profileAsImage": "Perfil como imagen",
+  "diveLog_export_profileAsImageDescription": "Captura de pantalla del gráfico del perfil de inmersión",
   "diveLog_export_pdfDescription": "Página de registro de buceo imprimible",
   "diveLog_export_pdfLogbookEntry": "Entrada de registro PDF",
   "diveLog_export_success": "Inmersión exportada correctamente",

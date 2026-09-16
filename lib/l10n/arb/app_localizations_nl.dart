@@ -6273,6 +6273,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_export_pdfLogbookEntry => 'PDF Logboekvermelding';
 
   @override
+  String get diveLog_export_profileAsImage => 'Profiel als afbeelding';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Schermafbeelding van de duikprofielgrafiek';
+
+  @override
   String get diveLog_export_success => 'Duik succesvol geëxporteerd';
 
   @override

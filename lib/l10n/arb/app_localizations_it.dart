@@ -6316,6 +6316,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_export_pdfLogbookEntry => 'Voce logbook PDF';
 
   @override
+  String get diveLog_export_profileAsImage => 'Profilo come immagine';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Screenshot del grafico del profilo di immersione';
+
+  @override
   String get diveLog_export_success => 'Immersione esportata con successo';
 
   @override

@@ -6189,6 +6189,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_export_pdfLogbookEntry => 'إدخال سجل PDF';
 
   @override
+  String get diveLog_export_profileAsImage => 'الملف كصورة';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'لقطة شاشة لمخطط ملف الغوصة';
+
+  @override
   String get diveLog_export_success => 'تم تصدير الغوصة بنجاح';
 
   @override

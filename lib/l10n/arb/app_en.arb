@@ -3543,6 +3543,8 @@
   "diveLog_export_pageAsImageDescription": "Screenshot of entire dive details",
   "diveLog_export_pdfDescription": "Printable dive log page",
   "diveLog_export_pdfLogbookEntry": "PDF Logbook Entry",
+  "diveLog_export_profileAsImage": "Profile as Image",
+  "diveLog_export_profileAsImageDescription": "Screenshot of the dive profile chart",
   "diveLog_export_success": "Dive exported successfully",
   "diveLog_export_titleDiveNumber": "Export Dive #{number}",
   "diveLog_export_uddf": "UDDF",

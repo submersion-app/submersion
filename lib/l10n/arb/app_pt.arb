@@ -2325,6 +2325,8 @@
   "diveLog_export_failed": "Exportacao falhou: {error}",
   "diveLog_export_pageAsImage": "Pagina como Imagem",
   "diveLog_export_pageAsImageDescription": "Captura de tela dos detalhes completos do mergulho",
+  "diveLog_export_profileAsImage": "Perfil como Imagem",
+  "diveLog_export_profileAsImageDescription": "Captura de tela do grafico do perfil de mergulho",
   "diveLog_export_pdfDescription": "Pagina impressa do log de mergulho",
   "diveLog_export_pdfLogbookEntry": "Entrada PDF do Logbook",
   "diveLog_export_success": "Mergulho exportado com sucesso",

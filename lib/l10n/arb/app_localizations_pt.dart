@@ -6321,6 +6321,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_export_pdfLogbookEntry => 'Entrada PDF do Logbook';
 
   @override
+  String get diveLog_export_profileAsImage => 'Perfil como Imagem';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Captura de tela do grafico do perfil de mergulho';
+
+  @override
   String get diveLog_export_success => 'Mergulho exportado com sucesso';
 
   @override
