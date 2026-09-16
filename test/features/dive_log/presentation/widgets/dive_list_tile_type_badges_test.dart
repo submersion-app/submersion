@@ -241,6 +241,61 @@ void main() {
       expect(find.text('Wreck'), findsNothing);
     });
 
+    // Issue: the OC/CCR mode badge used to crowd the title line. It now sits
+    // on the stat/type-badge row below the mini profile chart, as the
+    // right-most badge on that line.
+    testWidgets('puts the mode badge on the type badge row, right-most', (
+      tester,
+    ) async {
+      await tester.pumpWidget(tile(['wreck', 'night']));
+      await tester.pumpAndSettle();
+
+      final modeRect = tester.getRect(find.byType(DiveModeBadge));
+      final typeRowRect = tester.getRect(find.byType(DiveTypeBadgeRow));
+
+      expect(modeRect.center.dy, closeTo(typeRowRect.center.dy, 0.5));
+      expect(modeRect.left, greaterThanOrEqualTo(typeRowRect.right));
+    });
+
+    testWidgets('keeps the mode badge off the title line', (tester) async {
+      await tester.pumpWidget(tile(['wreck']));
+      await tester.pumpAndSettle();
+
+      final modeRect = tester.getRect(find.byType(DiveModeBadge));
+      final titleRect = tester.getRect(find.text('Blue Hole'));
+      expect(modeRect.top, greaterThan(titleRect.bottom));
+    });
+
+    testWidgets('right-aligns the mode badge when the dive has no types', (
+      tester,
+    ) async {
+      await tester.pumpWidget(tile([]));
+      await tester.pumpAndSettle();
+
+      final cardRect = tester.getRect(find.byType(Card));
+      final modeRect = tester.getRect(find.byType(DiveModeBadge));
+      final titleRect = tester.getRect(find.text('Blue Hole'));
+      expect(modeRect.center.dx, greaterThan(cardRect.center.dx));
+      expect(modeRect.top, greaterThan(titleRect.bottom));
+    });
+
+    testWidgets('fits a phone-width row with types and the mode badge', (
+      tester,
+    ) async {
+      // The mode badge moved onto this line, so the stat row, the type
+      // badges and the badge now compete for one phone-width line. The
+      // type badges must collapse rather than the row overflowing.
+      tester.view.physicalSize = const Size(353, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(tile(['wreck', 'night', 'drift', 'cave']));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(DiveModeBadge), findsOneWidget);
+    });
+
     testWidgets('does not overflow with several types and a long tag name', (
       tester,
     ) async {
