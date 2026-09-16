@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/edit_section
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/type_tags_section.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
@@ -1899,11 +1900,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   }
 
   Future<void> _confirmDelete() async {
+    final usage = await readSiteDeleteUsage(ref, [widget.siteId!]);
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.diveSites_detail_deleteDialog_title),
-        content: Text(context.l10n.diveSites_detail_deleteDialog_content),
+        content: Text(
+          withSiteDeleteUsage(
+            context.l10n,
+            context.l10n.diveSites_detail_deleteDialog_content,
+            usage,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

@@ -205,6 +205,7 @@ class _TankEditDialog extends StatefulWidget {
 }
 
 class _TankEditDialogState extends State<_TankEditDialog> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _volumeController;
   late TextEditingController _pressureController;
@@ -264,93 +265,104 @@ class _TankEditDialogState extends State<_TankEditDialog> {
             : context.l10n.divePlanner_action_editTank,
       ),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: context.l10n.divePlanner_field_name,
-                hintText: context.l10n.divePlanner_hint_tankName,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: context.l10n.divePlanner_field_name,
+                  hintText: context.l10n.divePlanner_hint_tankName,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _volumeController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.divePlanner_field_volume(
-                        widget.units.volumeSymbol,
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _volumeController,
+                      decoration: InputDecoration(
+                        labelText: context.l10n.divePlanner_field_volume(
+                          widget.units.volumeSymbol,
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: _pressureController,
+                      decoration: InputDecoration(
+                        labelText: context.l10n.divePlanner_field_startPressure(
+                          widget.units.pressureSymbol,
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _o2Controller,
+                      decoration: InputDecoration(
+                        labelText: context.l10n.divePlanner_field_o2Percent,
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) => _validateGasPercent(
+                        value,
+                        parseUserDecimal(_heController.text),
                       ),
                     ),
-                    keyboardType: TextInputType.number,
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _pressureController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.divePlanner_field_startPressure(
-                        widget.units.pressureSymbol,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _heController,
+                      decoration: InputDecoration(
+                        labelText: context.l10n.divePlanner_field_hePercent,
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) => _validateGasPercent(
+                        value,
+                        parseUserDecimal(_o2Controller.text),
                       ),
                     ),
-                    keyboardType: TextInputType.number,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _o2Controller,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.divePlanner_field_o2Percent,
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _heController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.divePlanner_field_hePercent,
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              value: _isTravelGas,
-              title: Text(context.l10n.divePlanner_field_travelGas),
-              onChanged: (value) {
-                setState(() => _isTravelGas = value ?? false);
-              },
-            ),
-            if (widget.mode != PlanMode.oc)
+                ],
+              ),
+              const SizedBox(height: 8),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
-                value: _isBailout,
-                title: Text(context.l10n.divePlanner_field_bailoutGas),
-                subtitle: Text(
-                  context.l10n.divePlanner_field_bailoutGasHint,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                value: _isTravelGas,
+                title: Text(context.l10n.divePlanner_field_travelGas),
                 onChanged: (value) {
-                  setState(() => _isBailout = value ?? false);
+                  setState(() => _isTravelGas = value ?? false);
                 },
               ),
-          ],
+              if (widget.mode != PlanMode.oc)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: _isBailout,
+                  title: Text(context.l10n.divePlanner_field_bailoutGas),
+                  subtitle: Text(
+                    context.l10n.divePlanner_field_bailoutGasHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  onChanged: (value) {
+                    setState(() => _isBailout = value ?? false);
+                  },
+                ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -366,7 +378,26 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     );
   }
 
+  /// Empty is fine ([_save] defaults it); anything else must parse to a
+  /// percentage in [0, 100] (#1900), and combined with [otherPercent] --
+  /// the sibling O2/He field's own current value -- must not exceed 100.
+  /// GasMix derives N2 as the remainder of the two, so an over-100 mix
+  /// feeds a negative N2 fraction straight into gas-planning math.
+  String? _validateGasPercent(String? value, double? otherPercent) {
+    if (value == null || value.trim().isEmpty) return null;
+    final parsed = parseUserDecimal(value);
+    if (parsed == null || parsed < 0 || parsed > 100) {
+      return context.l10n.numberInput_invalidValue;
+    }
+    if (otherPercent != null && parsed + otherPercent > 100) {
+      return context.l10n.gasCalculators_blender_templateInvalid;
+    }
+    return null;
+  }
+
   void _save() {
+    if (!_formKey.currentState!.validate()) return;
+
     final parsedVolume = parseUserDecimal(_volumeController.text);
     final parsedPressure = parseUserDecimal(_pressureController.text);
 

@@ -1486,6 +1486,7 @@
   "diveCenters_detail_noDivesLogged": "Még nincsenek rögzített merülések",
   "diveCenters_dialog_deleteMessage": "Biztosan törölni szeretnéd: \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "Búvárközpont törlése",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 merülés búvárközpont nélkül marad.} other{{count} merülés búvárközpont nélkül marad.}}",
   "diveCenters_dialog_discard": "Elvetés",
   "diveCenters_dialog_discardMessage": "Nem mentett módosításaid vannak. Biztosan elveted őket?",
   "diveCenters_dialog_discardTitle": "Módosítások elvetése?",
@@ -2930,6 +2931,8 @@
   "diveSites_detail_deleteDialog_confirm": "Torles",
   "diveSites_detail_deleteDialog_content": "Biztosan torli ezt a helyszint? Ez a muvelet nem vonhato vissza.",
   "diveSites_detail_deleteDialog_title": "Helyszin torlese",
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{1 merülés helyszín nélkül marad.} other{{count} merülés helyszín nélkül marad.}}",
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{1 mentett terv helyszín nélkül marad.} other{{count} mentett terv helyszín nélkül marad.}}",
   "diveSites_detail_deleteMenu_label": "Torles",
   "diveSites_detail_deleteSnackbar": "Helyszin torolve",
   "diveSites_detail_depth_maximum": "Maximum",
@@ -12190,7 +12193,6 @@
   "equipment_arrange_saveFailed": "A rendezés mentése nem sikerült",
   "settings_appearance_gearArrangement": "Felszerelés elrendezése",
   "settings_appearance_gearArrangementSubtitle": "Hogyan csoportosuljon és rendeződjön a felszerelés egy merülésnél",
-  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
@@ -12237,5 +12239,6 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "felhasználva: {reading}",
-  "plannerCanvas_gas_endReading": "vég: {reading}"
+  "plannerCanvas_gas_endReading": "vég: {reading}",
+  "numberInput_invalidValue": "Adjon meg érvényes számot"
 }

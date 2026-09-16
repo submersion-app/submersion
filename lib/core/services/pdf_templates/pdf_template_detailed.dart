@@ -402,10 +402,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field('Current', dive.currentStrength!.displayName),
       if (dive.currentDirection != null)
         _Field('Current Dir', dive.currentDirection!.displayName),
-      if (dive.waterType != null)
-        _Field('Water Type', dive.waterType!.displayName),
-      if (dive.entryMethod != null)
-        _Field('Entry', dive.entryMethod!.displayName),
+      if (dive.effectiveWaterType != null)
+        _Field('Water Type', dive.effectiveWaterType!.displayName),
+      if (dive.effectiveEntryMethod != null)
+        _Field('Entry', dive.effectiveEntryMethod!.displayName),
       if (dive.exitMethod != null) _Field('Exit', dive.exitMethod!.displayName),
       if (dive.altitude != null)
         _Field('Altitude', units.formatAltitude(dive.altitude)),

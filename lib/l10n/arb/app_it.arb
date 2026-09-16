@@ -1486,6 +1486,7 @@
   "diveCenters_detail_noDivesLogged": "Nessuna immersione registrata ancora",
   "diveCenters_dialog_deleteMessage": "Sei sicuro di voler eliminare \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "Eliminare Centro Immersioni",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 immersione resterà senza centro immersioni.} other{{count} immersioni resteranno senza centro immersioni.}}",
   "diveCenters_dialog_discard": "Scarta",
   "diveCenters_dialog_discardMessage": "Hai modifiche non salvate. Sei sicuro di volerle scartare?",
   "diveCenters_dialog_discardTitle": "Scartare Modifiche?",
@@ -2930,6 +2931,8 @@
   "diveSites_detail_deleteDialog_confirm": "Elimina",
   "diveSites_detail_deleteDialog_content": "Sei sicuro di voler eliminare questo sito? Questa azione non puo essere annullata.",
   "diveSites_detail_deleteDialog_title": "Elimina sito",
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{1 immersione resterà senza sito.} other{{count} immersioni resteranno senza sito.}}",
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{1 piano salvato resterà senza sito.} other{{count} piani salvati resteranno senza sito.}}",
   "diveSites_detail_deleteMenu_label": "Elimina",
   "diveSites_detail_deleteSnackbar": "Sito eliminato",
   "diveSites_detail_depth_maximum": "Massima",
@@ -12190,7 +12193,6 @@
   "equipment_arrange_saveFailed": "Impossibile salvare la disposizione",
   "settings_appearance_gearArrangement": "Disposizione dell'attrezzatura",
   "settings_appearance_gearArrangementSubtitle": "Come l'attrezzatura viene raggruppata e ordinata in un'immersione",
-  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
@@ -12237,5 +12239,6 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "usati: {reading}",
-  "plannerCanvas_gas_endReading": "fine: {reading}"
+  "plannerCanvas_gas_endReading": "fine: {reading}",
+  "numberInput_invalidValue": "Inserisci un numero valido"
 }

@@ -106,6 +106,125 @@ void main() {
     });
   });
 
+  group('PlanTankList gas percent validation (issue #1900)', () {
+    testWidgets('an unparseable O2% blocks save instead of silently '
+        'becoming air', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          // Pinned: this test asserts on exact English labels and the
+          // English error string below (test/helpers/test_app.dart:17-19).
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tanksBefore = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      ).read(divePlanNotifierProvider).tanks.length;
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      final o2Field = find.widgetWithText(TextFormField, 'O₂ %');
+      await tester.enterText(o2Field, 'abc');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      // The dialog stayed open (the tank list is unchanged) and shows the
+      // validator's error instead of silently saving 21% air.
+      expect(find.text('Enter a valid number'), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      expect(
+        container.read(divePlanNotifierProvider).tanks.length,
+        tanksBefore,
+      );
+    });
+
+    testWidgets('an O2+He sum over 100% blocks save (Copilot review)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tanksBefore = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      ).read(divePlanNotifierProvider).tanks.length;
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      final o2Field = find.widgetWithText(TextFormField, 'O₂ %');
+      final heField = find.widgetWithText(TextFormField, 'He %');
+      await tester.enterText(o2Field, '60');
+      await tester.enterText(heField, '60');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('O₂ + He cannot exceed 100%.'),
+        findsWidgets,
+        reason: 'GasMix derives N2 as the remainder of the two',
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      expect(
+        container.read(divePlanNotifierProvider).tanks.length,
+        tanksBefore,
+      );
+    });
+
+    testWidgets('a negative gas percentage blocks save (Copilot review)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tanksBefore = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      ).read(divePlanNotifierProvider).tanks.length;
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      final o2Field = find.widgetWithText(TextFormField, 'O₂ %');
+      await tester.enterText(o2Field, '-5');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter a valid number'), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      expect(
+        container.read(divePlanNotifierProvider).tanks.length,
+        tanksBefore,
+      );
+    });
+  });
+
   group('PlanTankList edit dialog displays converted values', () {
     testWidgets('shows existing pressure in psi and volume in cuft', (
       tester,

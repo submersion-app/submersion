@@ -1580,6 +1580,7 @@
   "diveCenters_detail_noDivesLogged": "尚未记录潜水",
   "diveCenters_dialog_deleteMessage": "确定要删除 \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "删除潜水中心",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 次潜水将不再关联潜水中心。} other{{count} 次潜水将不再关联潜水中心。}}",
   "diveCenters_dialog_discard": "丢弃",
   "diveCenters_dialog_discardMessage": "您有未保存的更改。确定要丢弃吗?",
   "diveCenters_dialog_discardTitle": "丢弃更改？",
@@ -3167,6 +3168,8 @@
   "diveSites_detail_deleteDialog_confirm": "删除",
   "diveSites_detail_deleteDialog_content": "确定要删除此潜水点吗？此操作无法撤销。",
   "diveSites_detail_deleteDialog_title": "删除潜水点",
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{1 次潜水将不再关联潜水点。} other{{count} 次潜水将不再关联潜水点。}}",
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{1 个已保存的计划将不再关联潜水点。} other{{count} 个已保存的计划将不再关联潜水点。}}",
   "diveSites_detail_deleteMenu_label": "删除",
   "diveSites_detail_deleteSnackbar": "潜水点已删除",
   "diveSites_detail_depth_maximum": "最大",
@@ -12190,7 +12193,6 @@
   "equipment_arrange_saveFailed": "无法保存排列方式",
   "settings_appearance_gearArrangement": "装备排列",
   "settings_appearance_gearArrangementSubtitle": "潜水记录中装备的分组和排序方式",
-  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
@@ -12237,5 +12239,6 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "已用: {reading}",
-  "plannerCanvas_gas_endReading": "结束: {reading}"
+  "plannerCanvas_gas_endReading": "结束: {reading}",
+  "numberInput_invalidValue": "请输入有效的数字"
 }

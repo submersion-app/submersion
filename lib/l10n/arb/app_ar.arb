@@ -1486,6 +1486,7 @@
   "diveCenters_detail_noDivesLogged": "لا توجد غطسات مسجلة بعد",
   "diveCenters_dialog_deleteMessage": "هل أنت متأكد من حذف \"{name}\"؟",
   "diveCenters_dialog_deleteTitle": "حذف مركز الغوص",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{ستبقى غطسة واحدة بدون مركز غوص.} other{ستبقى {count} غطسة بدون مركز غوص.}}",
   "diveCenters_dialog_discard": "تجاهل",
   "diveCenters_dialog_discardMessage": "لديك تغييرات غير محفوظة. هل تريد تجاهلها؟",
   "diveCenters_dialog_discardTitle": "تجاهل التغييرات؟",
@@ -3034,6 +3035,8 @@
   "diveSites_detail_deleteDialog_confirm": "حذف",
   "diveSites_detail_deleteDialog_content": "هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.",
   "diveSites_detail_deleteDialog_title": "حذف الموقع",
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{ستبقى غطسة واحدة بدون موقع.} other{ستبقى {count} غطسة بدون موقع.}}",
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{ستبقى خطة محفوظة واحدة بدون موقع.} other{ستبقى {count} خطة محفوظة بدون موقع.}}",
   "diveSites_detail_deleteMenu_label": "حذف",
   "diveSites_detail_deleteSnackbar": "تم حذف الموقع",
   "diveSites_detail_depth_maximum": "الأقصى",
@@ -12190,7 +12193,6 @@
   "equipment_arrange_saveFailed": "تعذر حفظ الترتيب",
   "settings_appearance_gearArrangement": "ترتيب المعدات",
   "settings_appearance_gearArrangementSubtitle": "كيفية تجميع المعدات وترتيبها في الغوصة",
-  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
@@ -12237,5 +12239,6 @@
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "مستخدم: {reading}",
-  "plannerCanvas_gas_endReading": "النهاية: {reading}"
+  "plannerCanvas_gas_endReading": "النهاية: {reading}",
+  "numberInput_invalidValue": "أدخل رقمًا صالحًا"
 }

@@ -179,7 +179,7 @@ void main() {
       expect(find.byType(DiveDetailPage), findsOneWidget);
       expect(find.text('Blue Hole'), findsWidgets);
 
-      // 2. Navigate to Site Detail by tapping "View Site"
+      // 2. Navigate to Site Detail by tapping the location card
       locationInkWell(tester).onTap!();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
