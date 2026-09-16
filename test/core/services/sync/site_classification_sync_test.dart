@@ -146,9 +146,11 @@ void main() {
   test(
     'a site tag row round-trips and dedupes like the dive junction',
     () async {
+      // applies_to_sites, or the incoming links are refused as links for a
+      // scope the tag does not cover (issue #2003).
       await db.customStatement(
-        "INSERT INTO tags (id, name, created_at, updated_at) "
-        "VALUES ('t1', 'To try', 1, 1)",
+        "INSERT INTO tags (id, name, created_at, updated_at, "
+        "applies_to_sites) VALUES ('t1', 'To try', 1, 1, 1)",
       );
       await serializer.upsertRecords('siteTags', [
         {'id': 'a', 'siteId': 's1', 'tagId': 't1', 'createdAt': 1, 'hlc': null},
