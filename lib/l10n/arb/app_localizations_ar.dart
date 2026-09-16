@@ -23029,6 +23029,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_skip => 'تخطي';
 
   @override
+  String get universalImport_label_fillPlanned => 'إكمال الغوصة المخططة';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'إرفاق هذا التنزيل بالغوصة التي خططت لها';
+
+  @override
+  String get universalImport_label_filledPlanned => 'الغوصات المخططة المكتملة';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'تكمل الغوصة المخططة: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'سيتم استبدال ملفها التقريبي.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'تغيير';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'اختر غوصة مخططة';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'الاستيراد كغوصة جديدة بدلا من ذلك';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'التراجع عن الإكمال';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'تمت استعادة الغوصات المخططة';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'موسوم كـ: $tag';
   }

@@ -23251,6 +23251,42 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_label_skip => 'Overslaan';
 
   @override
+  String get universalImport_label_fillPlanned => 'Geplande duik invullen';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Koppel deze download aan de duik die je hebt gepland';
+
+  @override
+  String get universalImport_label_filledPlanned => 'Ingevulde geplande duiken';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Vult geplande duik: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Het geschetste profiel wordt vervangen.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Wijzigen';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Kies een geplande duik';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'In plaats daarvan als nieuwe duik importeren';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Invullen ongedaan maken';
+
+  @override
+  String get universalImport_fillPlanned_undone => 'Geplande duiken hersteld';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Getagd als: $tag';
   }

@@ -37993,6 +37993,66 @@ abstract class AppLocalizations {
   /// **'Skip'**
   String get universalImport_label_skip;
 
+  /// No description provided for @universalImport_label_fillPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill planned dive'**
+  String get universalImport_label_fillPlanned;
+
+  /// No description provided for @universalImport_compare_fillPlannedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach this download to the dive you planned'**
+  String get universalImport_compare_fillPlannedSubtitle;
+
+  /// No description provided for @universalImport_label_filledPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled planned dives'**
+  String get universalImport_label_filledPlanned;
+
+  /// No description provided for @universalImport_fillPlanned_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Fills planned dive: {label}'**
+  String universalImport_fillPlanned_target(String label);
+
+  /// No description provided for @universalImport_fillPlanned_replacesProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Its sketched profile will be replaced.'**
+  String get universalImport_fillPlanned_replacesProfile;
+
+  /// No description provided for @universalImport_fillPlanned_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get universalImport_fillPlanned_change;
+
+  /// No description provided for @universalImport_fillPlanned_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a planned dive'**
+  String get universalImport_fillPlanned_pickerTitle;
+
+  /// No description provided for @universalImport_fillPlanned_importAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Import as a new dive instead'**
+  String get universalImport_fillPlanned_importAsNew;
+
+  /// No description provided for @universalImport_fillPlanned_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo fills'**
+  String get universalImport_fillPlanned_undo;
+
+  /// No description provided for @universalImport_fillPlanned_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives restored'**
+  String get universalImport_fillPlanned_undone;
+
   /// Text showing the batch tag applied to imported items
   ///
   /// In en, this message translates to:

@@ -23372,6 +23372,44 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_label_skip => 'Kihagyás';
 
   @override
+  String get universalImport_label_fillPlanned => 'Tervezett merülés kitöltése';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Ennek a letöltésnek a hozzárendelése a tervezett merüléshez';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Kitöltött tervezett merülések';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Kitölti a tervezett merülést: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'A felvázolt profil lecserélődik.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Módosítás';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Válassz tervezett merülést';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Inkább új merülésként importálás';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Kitöltések visszavonása';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Tervezett merülések visszaállítva';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Címkézve mint: $tag';
   }

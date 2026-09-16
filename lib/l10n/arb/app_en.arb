@@ -14202,6 +14202,23 @@
   "universalImport_label_selectCorrectSource": "Not right? Select the correct source:",
   "universalImport_label_selected": "{count} selected",
   "universalImport_label_skip": "Skip",
+  "universalImport_label_fillPlanned": "Fill planned dive",
+  "universalImport_compare_fillPlannedSubtitle": "Attach this download to the dive you planned",
+  "universalImport_label_filledPlanned": "Filled planned dives",
+  "universalImport_fillPlanned_target": "Fills planned dive: {label}",
+  "@universalImport_fillPlanned_target": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillPlanned_replacesProfile": "Its sketched profile will be replaced.",
+  "universalImport_fillPlanned_change": "Change",
+  "universalImport_fillPlanned_pickerTitle": "Choose a planned dive",
+  "universalImport_fillPlanned_importAsNew": "Import as a new dive instead",
+  "universalImport_fillPlanned_undo": "Undo fills",
+  "universalImport_fillPlanned_undone": "Planned dives restored",
   "universalImport_label_taggedAs": "Tagged as: {tag}",
   "universalImport_label_unknownDate": "Unknown date",
   "universalImport_label_unnamed": "Unnamed",

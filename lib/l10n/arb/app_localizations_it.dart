@@ -23435,6 +23435,45 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_label_skip => 'Salta';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Completa immersione pianificata';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Collega questo download all\'immersione che hai pianificato';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Immersioni pianificate completate';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Completa l\'immersione pianificata: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Il profilo abbozzato verrà sostituito.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Cambia';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Scegli un\'immersione pianificata';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importa invece come nuova immersione';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Annulla completamenti';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Immersioni pianificate ripristinate';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Taggato come: $tag';
   }

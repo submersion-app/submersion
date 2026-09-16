@@ -23437,6 +23437,45 @@ class AppLocalizationsPt extends AppLocalizations {
   String get universalImport_label_skip => 'Pular';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Preencher mergulho planejado';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Anexar este download ao mergulho que você planejou';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Mergulhos planejados preenchidos';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Preenche o mergulho planejado: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'O perfil esboçado será substituído.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Alterar';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Escolher um mergulho planejado';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importar como um novo mergulho em vez disso';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Desfazer preenchimentos';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Mergulhos planejados restaurados';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Marcado como: $tag';
   }

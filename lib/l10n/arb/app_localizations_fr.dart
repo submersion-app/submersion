@@ -23524,6 +23524,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get universalImport_label_skip => 'Ignorer';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Compléter la plongée planifiée';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Associer ce téléchargement à la plongée que vous avez planifiée';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Plongées planifiées complétées';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Complète la plongée planifiée : $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Son profil esquissé sera remplacé.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Modifier';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Choisir une plongée planifiée';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importer comme nouvelle plongée à la place';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Annuler les compléments';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Plongées planifiées restaurées';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Étiqueté comme : $tag';
   }

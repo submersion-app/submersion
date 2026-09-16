@@ -23048,6 +23048,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_label_skip => 'Skip';
 
   @override
+  String get universalImport_label_fillPlanned => 'Fill planned dive';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Attach this download to the dive you planned';
+
+  @override
+  String get universalImport_label_filledPlanned => 'Filled planned dives';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Fills planned dive: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Its sketched profile will be replaced.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Change';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'Choose a planned dive';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Import as a new dive instead';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Undo fills';
+
+  @override
+  String get universalImport_fillPlanned_undone => 'Planned dives restored';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Tagged as: $tag';
   }

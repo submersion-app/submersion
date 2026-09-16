@@ -22858,6 +22858,41 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_skip => 'דלג';
 
   @override
+  String get universalImport_label_fillPlanned => 'השלמת צלילה מתוכננת';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'שיוך ההורדה הזו לצלילה שתכננתם';
+
+  @override
+  String get universalImport_label_filledPlanned => 'צלילות מתוכננות שהושלמו';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'משלים צלילה מתוכננת: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'הפרופיל המשורטט שלה יוחלף.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'שינוי';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'בחירת צלילה מתוכננת';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'ייבוא כצלילה חדשה במקום';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'ביטול ההשלמות';
+
+  @override
+  String get universalImport_fillPlanned_undone => 'צלילות מתוכננות שוחזרו';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'מתויג כ: $tag';
   }

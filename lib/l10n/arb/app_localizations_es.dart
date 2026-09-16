@@ -23453,6 +23453,45 @@ class AppLocalizationsEs extends AppLocalizations {
   String get universalImport_label_skip => 'Omitir';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Completar inmersión planificada';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Adjuntar esta descarga a la inmersión que planificaste';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Inmersiones planificadas completadas';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Completa la inmersión planificada: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Su perfil esbozado será reemplazado.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Cambiar';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Elegir una inmersión planificada';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importar como inmersión nueva en su lugar';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Deshacer completados';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Inmersiones planificadas restauradas';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Etiquetado como: $tag';
   }

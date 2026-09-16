@@ -22190,6 +22190,38 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_skip => '跳过';
 
   @override
+  String get universalImport_label_fillPlanned => '填充计划的潜水';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle => '将此下载附加到您计划的潜水';
+
+  @override
+  String get universalImport_label_filledPlanned => '已填充的计划潜水';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return '填充计划的潜水：$label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile => '其草绘的剖面将被替换。';
+
+  @override
+  String get universalImport_fillPlanned_change => '更改';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => '选择一次计划的潜水';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew => '改为作为新潜水导入';
+
+  @override
+  String get universalImport_fillPlanned_undo => '撤销填充';
+
+  @override
+  String get universalImport_fillPlanned_undone => '已恢复计划的潜水';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return '标记为：$tag';
   }
