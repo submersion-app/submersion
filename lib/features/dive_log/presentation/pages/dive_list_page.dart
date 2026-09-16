@@ -14,6 +14,7 @@ import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
@@ -984,6 +985,12 @@ class DiveListTile extends ConsumerWidget {
                                   strutStyle: titleStyle?.preservingStrut,
                                 ),
                               ),
+                              // Planned dive awaiting its computer data
+                              // (issue #2002).
+                              if (summary?.isPlanned == true) ...[
+                                const SizedBox(width: 6),
+                                const PlannedDiveChip(),
+                              ],
                               if (isFavorite) ...[
                                 const SizedBox(width: 4),
                                 ExcludeSemantics(

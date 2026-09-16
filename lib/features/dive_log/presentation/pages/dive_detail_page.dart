@@ -60,6 +60,7 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
@@ -88,6 +89,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_su
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -1078,8 +1080,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             // renders one here; otherwise the banner would appear twice.
             // Collapses to nothing when there is no suggestion, so no
             // spacing of its own is needed.
-            if (!widget.embedded)
+            if (!widget.embedded) ...[
+              if (dive.isPlanned)
+                PlannedDiveBanner(onMarkLogged: () => _markAsLogged(dive)),
               SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
+            ],
             // Fixed: Header
             Consumer(
               builder: (context, ref, _) {
@@ -1204,6 +1209,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'logNearMiss':
                   context.push('/incidents/new?diveId=$diveId');
                   break;
+                case 'markLogged':
+                  _markAsLogged(dive);
+                  break;
                 case 'linkPreDive':
                   _linkPreDiveChecklist(context, dive);
                   break;
@@ -1247,6 +1255,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              if (dive.isPlanned)
+                PopupMenuItem(
+                  value: 'markLogged',
+                  child: ListTile(
+                    leading: const Icon(Icons.event_available_outlined),
+                    title: Text(context.l10n.diveLog_detail_menu_markLogged),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               _preDiveLinkMenuItem(context, linkedPreDive),
               if (hasRawData)
                 PopupMenuItem(
@@ -1433,6 +1450,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     case 'logNearMiss':
                       context.push('/incidents/new?diveId=$diveId');
                       break;
+                    case 'markLogged':
+                      _markAsLogged(dive);
+                      break;
                     case 'linkPreDive':
                       _linkPreDiveChecklist(context, dive);
                       break;
@@ -1481,6 +1501,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
+                  if (dive.isPlanned)
+                    PopupMenuItem(
+                      value: 'markLogged',
+                      child: ListTile(
+                        leading: const Icon(Icons.event_available_outlined),
+                        title: Text(
+                          context.l10n.diveLog_detail_menu_markLogged,
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
                   _preDiveLinkMenuItem(context, linkedPreDive),
                   if (hasRawData)
                     PopupMenuItem(
@@ -1529,11 +1560,31 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ],
           ),
         ),
+        if (dive.isPlanned)
+          PlannedDiveBanner(onMarkLogged: () => _markAsLogged(dive)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
         ),
       ],
+    );
+  }
+
+  /// Promote a planned dive by hand (issue #2002): clears the flag and takes
+  /// the next dive number through the one path that does both. Invalidates
+  /// through the container so the list refreshes even if this page is gone.
+  Future<void> _markAsLogged(Dive dive) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+    container.invalidate(diveProvider(dive.id));
+    container.invalidate(paginatedDiveListProvider);
+    container.invalidate(diveListNotifierProvider);
+    container.invalidate(divesProvider);
+    container.invalidate(diveStatisticsProvider);
+    container.invalidate(diveNumberingInfoProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.diveLog_planned_markedLogged)),
     );
   }
 

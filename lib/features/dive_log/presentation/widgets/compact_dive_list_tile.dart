@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -348,6 +349,10 @@ class CompactDiveListTile extends ConsumerWidget {
                           maxLines: 1,
                         ),
                       ),
+                      if (summary?.isPlanned == true) ...[
+                        const SizedBox(width: 6),
+                        const PlannedDiveChip(),
+                      ],
                       const SizedBox(width: 6),
                       DiveModeBadge(
                         mode: summary?.diveMode ?? DiveMode.oc,
