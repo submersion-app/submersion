@@ -329,10 +329,15 @@ int? _resolveTankGasIndex(
   // A CCR oxygen supply cylinder is never "breathed" in the OC sense rule 1
   // tracks, and libdivecomputer's Shearwater parser never links it to a gas
   // mix (rule 2), so falling through to rule 3 below would mislabel pure O2
-  // as whatever gas happens to be first (#726). Leave it gasless instead, so
-  // the caller can apply the correct 100% O2 default.
+  // as whatever gas happens to be first (#726). Some other computers DO
+  // report an explicit usage-tagged gas mix for it without index-linking the
+  // tank to it, though -- match that by its usage tag first, so it's
+  // consumed here rather than synthesized a second time as an unclaimed gas
+  // mix (caught in review on #1972). Only when no such entry exists is it
+  // left gasless, so the caller can apply the correct 100% O2 default.
   if (tank.usage == 1 /* DC_USAGE_OXYGEN */ ) {
-    return null;
+    final oxygenGasIndex = gasMixes.indexWhere((g) => g.usage == 1);
+    return oxygenGasIndex >= 0 ? oxygenGasIndex : null;
   }
   // 3. Last resort: the dive's primary (first) mix -- never a hardcoded air
   //    default, which would mislabel an EAN dive.
