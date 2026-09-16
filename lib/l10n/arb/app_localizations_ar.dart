@@ -16906,11 +16906,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
-      'Always hide labels';
+      'إخفاء التسميات دائمًا';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      'أيقونات فقط، حتى عند توفر مساحة للتسميات';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

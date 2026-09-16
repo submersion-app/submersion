@@ -16354,12 +16354,11 @@ class AppLocalizationsZh extends AppLocalizations {
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
 
   @override
-  String get settings_navCustomization_alwaysHideLabels_title =>
-      'Always hide labels';
+  String get settings_navCustomization_alwaysHideLabels_title => '始终隐藏标签';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      '仅显示图标,即使有空间显示标签';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

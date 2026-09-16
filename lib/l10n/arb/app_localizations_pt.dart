@@ -17212,11 +17212,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
-      'Always hide labels';
+      'Ocultar sempre os rótulos';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      'Apenas ícones, mesmo quando os rótulos caberiam';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

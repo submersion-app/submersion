@@ -17271,11 +17271,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
-      'Always hide labels';
+      'Toujours masquer les libellés';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      'Icônes uniquement, même si les libellés auraient de la place';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

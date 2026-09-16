@@ -28276,7 +28276,7 @@ abstract class AppLocalizations {
   /// Subtitle under the always-hide-labels switch.
   ///
   /// In en, this message translates to:
-  /// **'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them'**
+  /// **'Icons only, even where labels would normally fit'**
   String get settings_navCustomization_alwaysHideLabels_subtitle;
 
   /// Help text shown when arranging the wide-screen navigation rail.

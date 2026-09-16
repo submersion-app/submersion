@@ -10428,7 +10428,7 @@
   "@settings_navCustomization_alwaysHideLabels_title": {
     "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
   },
-  "settings_navCustomization_alwaysHideLabels_subtitle": "Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there's room to show them",
+  "settings_navCustomization_alwaysHideLabels_subtitle": "Icons only, even where labels would normally fit",
   "@settings_navCustomization_alwaysHideLabels_subtitle": {
     "description": "Subtitle under the always-hide-labels switch."
   },

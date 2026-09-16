@@ -17210,11 +17210,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
-      'Always hide labels';
+      'Ocultar siempre las etiquetas';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      'Solo iconos, incluso cuando las etiquetas cabrían';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

@@ -16795,11 +16795,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
-      'Always hide labels';
+      'הסתר תוויות תמיד';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      'סמלים בלבד, גם כשיש מקום לתוויות';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

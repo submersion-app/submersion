@@ -16940,7 +16940,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      'Icons only, even where labels would normally fit';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

@@ -17162,11 +17162,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
-      'Always hide labels';
+      'Címkék mindig elrejtve';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
-      'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them';
+      'Csak ikonok, még akkor is, ha elférne a címke';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
