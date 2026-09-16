@@ -56,15 +56,16 @@ class DivePlanRepository {
   /// must tombstone individually or other devices resurrect them).
   ///
   /// Returns the plan as it was stored, which is not always the plan passed
-  /// in: a [domain.DivePlan.siteId] that no longer names a row is dropped.
+  /// in: a [domain.DivePlan.siteId], [domain.DivePlan.sourceDiveId] or
+  /// [domain.DivePlan.linkedDiveId] that no longer names a row is dropped.
   /// Callers holding the plan in memory should adopt the returned value.
   Future<domain.DivePlan> savePlan(
     domain.DivePlan plan, {
     PlanSummaryData? summary,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    // The plan actually written, once the site has been resolved. Assigned
-    // inside the transaction and read after it commits.
+    // The plan actually written, once its references have been resolved.
+    // Assigned inside the transaction and read after it commits.
     var stored = plan;
     final removedTankIds = <String>[];
     final removedSegmentIds = <String>[];
@@ -91,17 +92,19 @@ class DivePlanRepository {
           for (final r in existingSegmentRows) r.id: r.createdAt,
         };
 
-        // The planner holds the site id in memory, so it goes stale when the
-        // site is deleted while a plan that names it is still being edited,
-        // re-saved by the plan-deleted snackbar's Undo, or duplicated.
-        // `dive_plans.site_id` references `dive_sites` with no ON DELETE
-        // action under `PRAGMA foreign_keys = ON`, so writing a dead id fails
-        // the whole save with SqliteException(787) and the diver loses the
-        // plan rather than just the site (issue #1985). Resolve it here, at
-        // the write, because that is the one point every caller passes
-        // through; a site deleted between this check and the insert is
-        // impossible while both run in the same transaction.
-        stored = await _withResolvedSite(plan);
+        // The planner holds the site and dive ids in memory, so they go
+        // stale when the row one names is deleted while a plan that names it
+        // is still being edited, re-saved by the plan-deleted snackbar's
+        // Undo, or duplicated. `dive_plans.site_id` references `dive_sites`
+        // and `source_dive_id` and `linked_dive_id` reference `dives`, all
+        // three with no ON DELETE action under `PRAGMA foreign_keys = ON`, so
+        // writing a dead id fails the whole save with SqliteException(787)
+        // and the diver loses the plan rather than just the reference
+        // (issues #1985 and #2006). Resolve them here, at the write, because
+        // that is the one point every caller passes through; a row deleted
+        // between this check and the insert is impossible while both run in
+        // the same transaction.
+        stored = await _withResolvedReferences(plan);
 
         await _db
             .into(_db.divePlans)
@@ -258,26 +261,72 @@ class DivePlanRepository {
     }
   }
 
-  /// Returns [plan] with a [domain.DivePlan.siteId] that no longer names a
-  /// `dive_sites` row cleared, and [plan] itself otherwise.
+  /// Returns [plan] with each of its outbound references that no longer names
+  /// a row cleared, and [plan] itself when they all still resolve.
   ///
-  /// The plan keeps everything else: a deleted site costs the plan its site,
-  /// never the save. Deleting a site already clears the column on plans that
-  /// are stored (issue #1952); this is the same outcome for a plan whose id
-  /// was still only in memory when the site went.
-  Future<domain.DivePlan> _withResolvedSite(domain.DivePlan plan) async {
-    final siteId = plan.siteId;
-    if (siteId == null) return plan;
-    final site = await (_db.select(
-      _db.diveSites,
-    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
-    if (site != null) return plan;
-    _log.warning(
-      'Plan ${plan.id} names dive site $siteId, which no longer exists; '
-      'saving the plan without a site',
+  /// The plan keeps everything else: a deleted site or dive costs the plan
+  /// that one reference, never the save. Deleting a site already clears
+  /// `site_id` on plans that are stored (issue #1952) and deleting a dive
+  /// already clears both dive links (issue #1948); this is the same outcome
+  /// for a plan whose id was still only in memory when the row went.
+  ///
+  /// The references are independent, so a plan can lose one and keep another.
+  Future<domain.DivePlan> _withResolvedReferences(domain.DivePlan plan) async {
+    final siteGone = await _isDangling(
+      plan.siteId,
+      _siteExists,
+      'dive site',
+      plan.id,
     );
-    return plan.copyWith(clearSiteId: true);
+    final sourceDiveGone = await _isDangling(
+      plan.sourceDiveId,
+      _diveExists,
+      'source dive',
+      plan.id,
+    );
+    final linkedDiveGone = await _isDangling(
+      plan.linkedDiveId,
+      _diveExists,
+      'linked dive',
+      plan.id,
+    );
+    if (!siteGone && !sourceDiveGone && !linkedDiveGone) return plan;
+    return plan.copyWith(
+      clearSiteId: siteGone,
+      clearSourceDiveId: sourceDiveGone,
+      clearLinkedDiveId: linkedDiveGone,
+    );
   }
+
+  /// Whether [id] is set but [exists] no longer finds it, logging the loss so
+  /// a reference the diver chose does not disappear silently. [label] and
+  /// [planId] only name the reference in that log line.
+  Future<bool> _isDangling(
+    String? id,
+    Future<bool> Function(String id) exists,
+    String label,
+    String planId,
+  ) async {
+    if (id == null) return false;
+    if (await exists(id)) return false;
+    _log.warning(
+      'Plan $planId names $label $id, which no longer exists; '
+      'saving the plan without it',
+    );
+    return true;
+  }
+
+  Future<bool> _siteExists(String id) async =>
+      await (_db.select(
+        _db.diveSites,
+      )..where((t) => t.id.equals(id))).getSingleOrNull() !=
+      null;
+
+  Future<bool> _diveExists(String id) async =>
+      await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(id))).getSingleOrNull() !=
+      null;
 
   Future<domain.DivePlan?> getPlan(String id) async {
     try {
@@ -450,8 +499,9 @@ class DivePlanRepository {
     final sourceRow = await (_db.select(
       _db.divePlans,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
-    // The stored copy, not `copy`: a source plan set at a since-deleted site
-    // is duplicated without one, and the caller must see that.
+    // The stored copy, not `copy`: a source plan set at a since-deleted site,
+    // or built from a since-deleted dive, is duplicated without that
+    // reference, and the caller must see that.
     return savePlan(
       copy,
       summary: sourceRow?.summaryMaxDepth != null
