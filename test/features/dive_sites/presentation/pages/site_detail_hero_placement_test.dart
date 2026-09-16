@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
+import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
+import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
@@ -9,6 +11,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_hero_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -23,6 +26,7 @@ void main() {
     WidgetTester tester, {
     required bool embedded,
     AppSettings settings = const AppSettings(),
+    DiveSite site = site,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 900);
@@ -39,6 +43,13 @@ void main() {
         overrides: [
           ...overrides,
           siteProvider(site.id).overrideWith((_) async => site),
+          // A site with coordinates draws the map card and the hero's
+          // backdrop; neither may reach the network for bathymetry or the
+          // seascape pipeline.
+          bathymetryGridProvider.overrideWith((ref, cell) async => null),
+          siteSeascapeProvider.overrideWith(
+            (ref, id) async => const SiteSeascapeNoData(),
+          ),
           siteDiveCountProvider(site.id).overrideWith((_) async => 2),
           siteDiveStatisticsProvider(site.id).overrideWith(
             (_) async => SiteDiveStatistics(
@@ -62,7 +73,13 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (site.hasCoordinates) {
+      // A map's tile fade never settles in a test; plain pumps instead.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+    } else {
+      await tester.pumpAndSettle();
+    }
   }
 
   void expectHeroFirstInBody(WidgetTester tester) {
@@ -104,5 +121,20 @@ void main() {
     // The hero's stat row renders in the list layout, where every section
     // below it starts folded to a header row.
     expect(find.text('30.0m'), findsOneWidget);
+  });
+
+  testWidgets('tapping the hero opens the fullscreen map', (tester) async {
+    const gpsSite = DiveSite(
+      id: 'site-1',
+      name: 'Blue Hole',
+      location: GeoPoint(17.3, -87.5),
+    );
+    await pumpPage(tester, embedded: true, site: gpsSite);
+
+    await tester.tap(find.text('View Map'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(SiteScapeView), findsOneWidget);
   });
 }
