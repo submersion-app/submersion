@@ -89,6 +89,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_su
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
@@ -1212,6 +1214,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'markLogged':
                   _markAsLogged(dive);
                   break;
+                case 'logForBuddy':
+                  _logForBuddy(dive);
+                  break;
                 case 'linkPreDive':
                   _linkPreDiveChecklist(context, dive);
                   break;
@@ -1261,6 +1266,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   child: ListTile(
                     leading: const Icon(Icons.event_available_outlined),
                     title: Text(context.l10n.diveLog_detail_menu_markLogged),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              if (_hasMirrorCandidates(ref, dive))
+                PopupMenuItem(
+                  value: 'logForBuddy',
+                  child: ListTile(
+                    leading: const Icon(Icons.people_outline),
+                    title: Text(context.l10n.diveLog_detail_menu_logForBuddy),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -1453,6 +1467,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     case 'markLogged':
                       _markAsLogged(dive);
                       break;
+                    case 'logForBuddy':
+                      _logForBuddy(dive);
+                      break;
                     case 'linkPreDive':
                       _linkPreDiveChecklist(context, dive);
                       break;
@@ -1508,6 +1525,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         leading: const Icon(Icons.event_available_outlined),
                         title: Text(
                           context.l10n.diveLog_detail_menu_markLogged,
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  if (_hasMirrorCandidates(ref, dive))
+                    PopupMenuItem(
+                      value: 'logForBuddy',
+                      child: ListTile(
+                        leading: const Icon(Icons.people_outline),
+                        title: Text(
+                          context.l10n.diveLog_detail_menu_logForBuddy,
                         ),
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -1568,6 +1596,36 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ],
     );
+  }
+
+  /// Whether any linked buddy on this dive still lacks a sibling (issue
+  /// #2002). Watched in the menu builders, so the item follows the ticks.
+  bool _hasMirrorCandidates(WidgetRef ref, Dive dive) {
+    if (dive.isPlanned) return false;
+    final candidates = ref.watch(mirrorCandidatesProvider(dive.id)).value;
+    return candidates != null && candidates.isNotEmpty;
+  }
+
+  /// Log this dive into a linked buddy's profile from the overflow menu.
+  Future<void> _logForBuddy(Dive dive) async {
+    final candidates = await ref.read(mirrorCandidatesProvider(dive.id).future);
+    if (!mounted || candidates.isEmpty) return;
+    final chosenIds = await showMirrorDiveDialog(
+      context,
+      candidates: candidates,
+    );
+    if (chosenIds == null || chosenIds.isEmpty || !mounted) return;
+    await runDiveMirror(
+      context: context,
+      container: ProviderScope.containerOf(context, listen: false),
+      sourceDiveId: dive.id,
+      chosen: [
+        for (final c in candidates)
+          if (chosenIds.contains(c.diver.id)) c,
+      ],
+    );
+    ref.invalidate(mirrorCandidatesProvider(dive.id));
+    ref.invalidate(siblingDivesProvider(dive.id));
   }
 
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes

@@ -64,7 +64,9 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -5394,6 +5396,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (savedDiveId != null) {
         scheduleQualityScan([savedDiveId]);
         scheduleSensorSummaryRefresh([savedDiveId]);
+      }
+
+      // Offer to log the dive for linked buddies (issue #2002). Runs before
+      // navigation so the dialog has this page's context; the runner uses
+      // the container so its snackbar and refresh outlive this State. A
+      // planned dive never prompts: a mirrored sibling is itself planned
+      // and must not cascade.
+      if (mounted && savedDiveId != null && !_isPlanned && !widget.isBulk) {
+        final candidates = await ref
+            .read(diveMirrorServiceProvider)
+            .candidates(savedDiveId);
+        if (candidates.isNotEmpty && mounted) {
+          final chosenIds = await showMirrorDiveDialog(
+            context,
+            candidates: candidates,
+          );
+          if (chosenIds != null && chosenIds.isNotEmpty && mounted) {
+            await runDiveMirror(
+              context: context,
+              container: ProviderScope.containerOf(context, listen: false),
+              sourceDiveId: savedDiveId,
+              chosen: [
+                for (final c in candidates)
+                  if (chosenIds.contains(c.diver.id)) c,
+              ],
+            );
+          }
+        }
       }
 
       if (mounted && savedDiveId != null) {
