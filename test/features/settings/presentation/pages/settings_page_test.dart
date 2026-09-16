@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -574,6 +575,32 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setSiteDetailSections(
+    List<SiteDetailSectionConfig> sections,
+  ) async => state = state.copyWith(siteDetailSections: sections);
+
+  @override
+  Future<void> resetSiteDetailSections() async =>
+      state = state.copyWith(clearSiteDetailSections: true);
+
+  @override
+  Future<void> setSiteDetailLayout(DiveDetailLayout layout) async =>
+      state = state.copyWith(siteDetailLayout: layout);
+
+  @override
+  Future<void> setSiteDetailSectionExpanded(
+    SiteDetailSectionId id,
+    bool expanded,
+  ) async {
+    state = state.copyWith(
+      siteDetailSections: [
+        for (final section in state.siteDetailSections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
+  }
+
+  @override
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
       state = state.copyWith(
         fullscreenReadoutCardX: x,
@@ -795,6 +822,25 @@ void main() {
       );
       expect(find.text('Data'), findsOneWidget);
       expect(find.text('Backup, restore & storage'), findsOneWidget);
+    });
+
+    testWidgets('Data Tools offers Retype gear marked Other (#1886)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsSectionDetailPage(sectionId: 'data')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Retype gear marked Other'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        find.text('Give imported gear the type its name states'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('should display Diver Profile section', (tester) async {
@@ -1038,6 +1084,42 @@ void main() {
       ];
     }
 
+    testWidgets('shows a Diagnostics card without debug mode (#1826)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Copy diagnostics'), 100);
+      expect(find.text('Diagnostics'), findsOneWidget);
+      expect(find.text('View log'), findsOneWidget);
+      expect(find.text('Copy diagnostics'), findsOneWidget);
+    });
+
+    testWidgets('places Diagnostics below Updates', (tester) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      // The section is one scroll view, so every header is laid out and
+      // their offsets compare without scrolling.
+      final updatesTop = tester.getTopLeft(find.text('Updates')).dy;
+      final diagnosticsTop = tester.getTopLeft(find.text('Diagnostics')).dy;
+      expect(diagnosticsTop, greaterThan(updatesTop));
+    });
+
+    testWidgets('leaves the bathymetry credit to the licenses page', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(find.textContaining('Bathymetry data'), findsNothing);
+      expect(find.text('Open Source Licenses'), findsOneWidget);
+    });
+
     testWidgets('shows the channel selector on stable', (tester) async {
       await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
       await tester.pumpAndSettle();
@@ -1235,28 +1317,6 @@ void main() {
 
       expect(find.textContaining('(Beta)'), findsOneWidget);
     });
-
-    testWidgets(
-      'bathymetry credit lists swissBATHY3D alongside GMRT, EMODnet and ETOPO',
-      (tester) async {
-        await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
-        await tester.pumpAndSettle();
-        await tester.pump(const Duration(seconds: 6));
-
-        await tester.scrollUntilVisible(
-          find.textContaining('swissBATHY3D'),
-          100,
-        );
-        final creditFinder = find.textContaining('swissBATHY3D');
-        expect(creditFinder, findsOneWidget);
-        final creditText = tester.widget<Text>(creditFinder).data!;
-        expect(creditText, contains('GMRT'));
-        expect(creditText, contains('EMODnet'));
-        expect(creditText, contains('ETOPO'));
-        expect(creditText, contains('swissBATHY3D'));
-        expect(creditText, contains('swisstopo'));
-      },
-    );
   });
 
   group('AppearanceSectionContent navigation', () {
@@ -1756,6 +1816,10 @@ void main() {
             builder: (context, state) => const Text('Service Types Stub'),
           ),
           GoRoute(
+            path: '/site-types',
+            builder: (context, state) => const Text('Site Types Stub'),
+          ),
+          GoRoute(
             path: '/settings/trimix-mixer',
             builder: (context, state) => const Text('Trimix Mixer Stub'),
           ),
@@ -1807,10 +1871,28 @@ void main() {
         findsOneWidget,
       );
 
+      await tester.ensureVisible(find.text('Service types'));
       await tester.tap(find.text('Service types'));
       await tester.pumpAndSettle();
 
       expect(find.text('Service Types Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders the site types tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Site Types'), findsOneWidget);
+      expect(find.text('Built-in and custom dive site types'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Site Types'));
+      await tester.tap(find.text('Site Types'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Site Types Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

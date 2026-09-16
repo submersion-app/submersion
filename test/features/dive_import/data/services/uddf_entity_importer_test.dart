@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     show ServiceRecord;
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -789,6 +790,94 @@ void main() {
       expect((captured[0] as EquipmentItem).type, EquipmentType.regulator);
       expect((captured[1] as EquipmentItem).type, EquipmentType.fins);
     });
+
+    group('imported suit thickness (#1824)', () {
+      Future<EquipmentItem> importOne(Map<String, dynamic> item) async {
+        when(mockEquipmentRepo.createEquipment(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as EquipmentItem,
+        );
+        await importer.import(
+          data: UddfImportResult(equipment: [item]),
+          selections: const UddfImportSelections(equipment: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+        return verify(
+              mockEquipmentRepo.createEquipment(captureAny),
+            ).captured.single
+            as EquipmentItem;
+      }
+
+      test('a wetsuit thickness becomes the curated thickness_mm', () async {
+        final item = await importOne({
+          'name': 'Bare 5/4',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': '5/4',
+        });
+
+        final attr = item.attributes.singleWhere(
+          (a) => a.key == EquipmentAttrKeys.thicknessMm,
+        );
+        expect(attr.isCustom, isFalse);
+        expect(attr.valueText, '5/4');
+        expect(attr.valueNum, 5.0);
+        expect(attr.equipmentId, item.id);
+      });
+
+      test('a type without a thickness in the catalog records none', () async {
+        final item = await importOne({
+          'name': '4mm neoprene drysuit',
+          'type': 'drysuit',
+          'uddfId': 'suit-1',
+          'thickness': '4mm',
+        });
+
+        expect(
+          item.attributes.where((a) => a.key == EquipmentAttrKeys.thicknessMm),
+          isEmpty,
+        );
+      });
+
+      test('the suit thickness wins over a thickness_mm in the attribute '
+          'list, as size does', () async {
+        final item = await importOne({
+          'name': 'Bare 7mm',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': '7mm',
+          'attributes': [
+            {
+              'key': EquipmentAttrKeys.thicknessMm,
+              'isCustom': false,
+              'valueText': '5',
+              'valueNum': 5.0,
+            },
+          ],
+        });
+
+        final rows = item.attributes.where(
+          (a) => a.key == EquipmentAttrKeys.thicknessMm,
+        );
+        expect(rows, hasLength(1));
+        expect(rows.single.valueNum, 7.0);
+      });
+
+      test('a designation the catalog rejects records none', () async {
+        final item = await importOne({
+          'name': 'Thin wetsuit',
+          'type': 'wetsuit',
+          'uddfId': 'suit-1',
+          'thickness': 'thin',
+        });
+
+        expect(
+          item.attributes.where((a) => a.key == EquipmentAttrKeys.thicknessMm),
+          isEmpty,
+        );
+      });
+    });
   });
 
   group('Import buddies', () {
@@ -1006,6 +1095,210 @@ void main() {
 
       // Error caught, count stays at 0
       expect(result.diveTypes, 0);
+    });
+
+    test('creates a type with no id under the slug of its name', () async {
+      when(mockDiveTypeRepo.createDiveType(any)).thenAnswer(
+        (invocation) async =>
+            invocation.positionalArguments[0] as DiveTypeEntity,
+      );
+
+      await importer.import(
+        data: const UddfImportResult(
+          customDiveTypes: [
+            {'name': 'Search Recovery'},
+          ],
+        ),
+        selections: const UddfImportSelections(diveTypes: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final created =
+          verify(mockDiveTypeRepo.createDiveType(captureAny)).captured.single
+              as DiveTypeEntity;
+      expect(created.id, 'search_recovery');
+    });
+
+    group('dive links (#1834)', () {
+      setUp(() {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+      });
+
+      List<String> importedDiveTypeIds() =>
+          (verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive)
+              .diveTypeIds;
+
+      test('preResolvedDiveTypeIds links the dive to the existing type the '
+          'reviewer matched by name', () async {
+        final data = UddfImportResult(
+          customDiveTypes: const [
+            {
+              'id': 'search_recovery',
+              'uddfId': 'search_recovery',
+              'name': 'Search & Recovery',
+            },
+          ],
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'diveTypeIds': ['search_recovery', 'night'],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+          preResolvedDiveTypeIds: const {
+            'search_recovery': 'search_recovery_1a2b3c4d',
+          },
+        );
+
+        verifyNever(mockDiveTypeRepo.createDiveType(any));
+        expect(importedDiveTypeIds(), ['search_recovery_1a2b3c4d', 'night']);
+      });
+
+      test('two source ids resolved to one type link it once', () async {
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'diveTypeIds': ['a', 'b'],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+          preResolvedDiveTypeIds: const {'a': 'existing', 'b': 'existing'},
+        );
+
+        expect(importedDiveTypeIds(), ['existing']);
+      });
+
+      group('an incoming id the library already uses', () {
+        UddfImportResult typedDive(String name) => UddfImportResult(
+          customDiveTypes: [
+            {
+              'id': 'search_recovery',
+              'uddfId': 'search_recovery',
+              'name': name,
+            },
+          ],
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'diveTypeIds': ['search_recovery'],
+            },
+          ],
+        );
+
+        void existingNamed(String name) {
+          when(mockDiveTypeRepo.getDiveTypeById('search_recovery')).thenAnswer(
+            (_) async => DiveTypeEntity(
+              id: 'search_recovery',
+              name: name,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+        }
+
+        setUp(() {
+          when(mockDiveTypeRepo.createDiveType(any)).thenAnswer(
+            (invocation) async =>
+                (invocation.positionalArguments[0] as DiveTypeEntity).copyWith(
+                  id: 'search_recovery_1a2b3c4d',
+                ),
+          );
+        });
+
+        Future<void> importTyped(String name) => importer.import(
+          data: typedDive(name),
+          selections: const UddfImportSelections(diveTypes: {0}, dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        test('by a differently named type gets a type of its own', () async {
+          existingNamed('Search Recovery');
+
+          await importTyped('Search & Recovery');
+
+          final created =
+              verify(
+                    mockDiveTypeRepo.createDiveType(captureAny),
+                  ).captured.single
+                  as DiveTypeEntity;
+          expect(created.name, 'Search & Recovery');
+          expect(importedDiveTypeIds(), ['search_recovery_1a2b3c4d']);
+        });
+
+        test('by the same type reuses it', () async {
+          existingNamed('Search Recovery');
+
+          await importTyped('search recovery');
+
+          verifyNever(mockDiveTypeRepo.createDiveType(any));
+          expect(importedDiveTypeIds(), ['search_recovery']);
+        });
+
+        test('under a name rebuilt from the id reuses it', () async {
+          // Exports before #1834 wrote every type as its id's display form,
+          // which says nothing about the type beyond its id.
+          existingNamed('Search & Recovery');
+
+          await importTyped('Search recovery');
+
+          verifyNever(mockDiveTypeRepo.createDiveType(any));
+          expect(importedDiveTypeIds(), ['search_recovery']);
+        });
+      });
+
+      test(
+        'links the dive to the id a created type was stored under',
+        () async {
+          // createDiveType suffixes an id that is already taken.
+          when(mockDiveTypeRepo.createDiveType(any)).thenAnswer(
+            (invocation) async =>
+                (invocation.positionalArguments[0] as DiveTypeEntity).copyWith(
+                  id: 'cave_1a2b3c4d',
+                ),
+          );
+          final data = UddfImportResult(
+            customDiveTypes: const [
+              {'id': 'cave', 'uddfId': 'cave', 'name': 'Cave'},
+            ],
+            dives: [
+              {
+                'dateTime': now,
+                'maxDepth': 25.0,
+                'diveTypeIds': ['cave'],
+              },
+            ],
+          );
+
+          await importer.import(
+            data: data,
+            selections: const UddfImportSelections(diveTypes: {0}, dives: {0}),
+            repositories: repos,
+            diverId: diverId,
+          );
+
+          expect(importedDiveTypeIds(), ['cave_1a2b3c4d']);
+        },
+      );
     });
   });
 
@@ -1890,6 +2183,49 @@ void main() {
 
       verifyNever(mockTagRepo.createTag(any));
       verify(mockTagRepo.addTagToDive(any, 'existing-tag-1')).called(1);
+    });
+
+    test('preResolvedEquipmentIds links a skipped duplicate gear item to the '
+        'existing record without creating a twin (#756)', () async {
+      const existing = EquipmentItem(
+        id: 'existing-eq-1',
+        name: 'Hog Wing',
+        type: EquipmentType.bcd,
+      );
+      when(
+        mockEquipmentRepo.getEquipmentById('existing-eq-1'),
+      ).thenAnswer((_) async => existing);
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        equipment: [
+          {'name': 'Hog Wing', 'type': 'bcd', 'uddfId': '|Hog Wing|'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'equipmentRefs': ['|Hog Wing|'],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        // The equipment index is NOT selected: the reviewer chose Skip (or
+        // Link to existing) for the flagged duplicate.
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'|Hog Wing|': 'existing-eq-1'},
+      );
+
+      verifyNever(mockEquipmentRepo.createEquipment(any));
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.gear.map((g) => g.item.id), ['existing-eq-1']);
     });
 
     test('creates inline buddies for unmatched names', () async {
@@ -4078,6 +4414,45 @@ void main() {
       );
 
       verifyNever(mockServiceRecordRepo.createRecord(any));
+    });
+
+    // A skipped duplicate is linked to the existing row so dives keep their
+    // gear, but its history is not re-imported: there is no service-record
+    // dedup, so every re-import of the file would copy it again.
+    test('skips a record whose equipment was linked to an existing '
+        'item', () async {
+      await importer.import(
+        data: dataWith([
+          {'equipmentRef': 'gear-1', 'serviceDate': DateTime(2025, 5, 12)},
+        ]),
+        selections: const UddfImportSelections(),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'gear-1': 'existing-eq-1'},
+      );
+
+      verifyNever(mockServiceRecordRepo.createRecord(any));
+    });
+
+    test('an item imported despite a seed still gets its service history '
+        '(#1824)', () async {
+      await importer.import(
+        data: dataWith([
+          {'equipmentRef': 'gear-1', 'serviceDate': DateTime(2025, 5, 12)},
+        ]),
+        selections: const UddfImportSelections(equipment: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedEquipmentIds: const {'gear-1': 'existing-gear-1'},
+      );
+
+      final record =
+          verify(mockServiceRecordRepo.createRecord(captureAny)).captured.single
+              as ServiceRecord;
+      final equipment =
+          verify(mockEquipmentRepo.createEquipment(captureAny)).captured.single
+              as EquipmentItem;
+      expect(record.equipmentId, equipment.id);
     });
 
     test('skips a record with no service date', () async {

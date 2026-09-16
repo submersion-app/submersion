@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
@@ -21,12 +22,17 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
   late final TextEditingController _nameController;
   late String _selectedColor;
   late String _selectedNameFromTag;
-  int? _totalAffectedDives;
+
+  /// The items the merge rewrites per scope, counted as a union; null until
+  /// loaded.
+  Map<TagScope, int>? _affected;
   bool _isMerging = false;
 
   List<TagStatistic> get _sortedStats {
     final sorted = [...widget.selectedStats];
-    sorted.sort((a, b) => b.diveCount.compareTo(a.diveCount));
+    sorted.sort(
+      (a, b) => b.count(TagScope.dives).compareTo(a.count(TagScope.dives)),
+    );
     return sorted;
   }
 
@@ -42,20 +48,22 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
     _selectedNameFromTag = mostUsed.tag.id;
 
     logFailure(
-      _loadAffectedDives(),
+      _loadAffected(),
       _TagMergeSheetState,
-      'load affected dives',
+      'load affected dives and sites',
     );
   }
 
-  Future<void> _loadAffectedDives() async {
+  /// mergeTags relinks every junction of the tag scope registry, so the
+  /// preview counts each scope (#1902, #1942).
+  Future<void> _loadAffected() async {
     final repository = ref.read(tagRepositoryProvider);
     final tagIds = widget.selectedStats.map((s) => s.tag.id).toList();
-    final count = await repository.getMergedDiveCount(tagIds);
+    final usage = await repository.getMergedUsage(tagIds);
 
     if (mounted) {
       setState(() {
-        _totalAffectedDives = count;
+        _affected = usage;
       });
     }
   }
@@ -164,7 +172,7 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
                         value: stat.tag.id,
                         title: Text(stat.tag.name),
                         subtitle: Text(
-                          context.l10n.tags_manage_diveCount(stat.diveCount),
+                          tagUsageCounts(context.l10n, stat.counts),
                         ),
                         secondary: CircleAvatar(
                           radius: 12,
@@ -193,14 +201,12 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
             ),
             const SizedBox(height: 16),
 
-            // Affected dives summary
-            if (_totalAffectedDives != null)
+            // Affected dives and sites summary
+            if (_affected case final affected?)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  context.l10n.tags_manage_mergeAffectedDives(
-                    _totalAffectedDives!,
-                  ),
+                  tagsMergeAffectedMessage(context.l10n, affected),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

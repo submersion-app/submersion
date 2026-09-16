@@ -436,6 +436,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       final result = await _importService.detectDuplicate(
         dive,
         diverId: _diverId,
+        computerId: computer?.id,
         sourceKeysCache: sourceKeysCache,
       );
 
@@ -676,7 +677,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         if (unmatched.isNotEmpty && writtenDives.isNotEmpty)
           ImportNotice(
             kind: ImportNoticeKind.unknownTransmitter,
-            affectedDives: _divesCarrying(unmatched, writtenDives),
+            count: _divesCarrying(unmatched, writtenDives),
           ),
         ?numberConflict,
       ],

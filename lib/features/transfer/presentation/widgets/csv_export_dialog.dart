@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/csv_unit_mode_selector.dart';
 
 /// The type of CSV data to export.
 enum CsvExportType {
@@ -46,19 +49,36 @@ enum CsvExportType {
         return Icons.fact_check;
     }
   }
+
+  /// Whether this export has unit-bearing columns. Gear check-ins do not.
+  bool get hasUnits => this != CsvExportType.observations;
 }
 
-/// Dialog for selecting which data type to export as CSV.
-class CsvExportDialog extends StatefulWidget {
-  const CsvExportDialog({super.key});
+/// What the CSV dialog returns: the data type and the unit mode.
+typedef CsvExportRequest = ({CsvExportType type, CsvUnitMode unitMode});
 
-  /// Show the dialog and return the selected type, or null if cancelled.
-  static Future<CsvExportType?> show(BuildContext context) {
-    return showModalBottomSheet<CsvExportType>(
+/// Dialog for selecting which data type to export as CSV, and in which
+/// units.
+class CsvExportDialog extends StatefulWidget {
+  const CsvExportDialog({
+    super.key,
+    this.initialUnitMode = CsvUnitMode.myUnits,
+  });
+
+  /// The remembered unit choice the dialog opens on.
+  final CsvUnitMode initialUnitMode;
+
+  /// Show the dialog and return the chosen type and units, or null if
+  /// cancelled.
+  static Future<CsvExportRequest?> show(
+    BuildContext context, {
+    CsvUnitMode initialUnitMode = CsvUnitMode.myUnits,
+  }) {
+    return showModalBottomSheet<CsvExportRequest>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const CsvExportDialog(),
+      builder: (context) => CsvExportDialog(initialUnitMode: initialUnitMode),
     );
   }
 
@@ -68,6 +88,7 @@ class CsvExportDialog extends StatefulWidget {
 
 class _CsvExportDialogState extends State<CsvExportDialog> {
   CsvExportType _selected = CsvExportType.dives;
+  late CsvUnitMode _unitMode = widget.initialUnitMode;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +151,13 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                     ...CsvExportType.values.map(
                       (type) => _buildTypeOption(type, theme),
                     ),
+                    if (_selected.hasUnits) ...[
+                      const SizedBox(height: 8),
+                      CsvUnitModeSelector(
+                        value: _unitMode,
+                        onChanged: (mode) => setState(() => _unitMode = mode),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -150,7 +178,9 @@ class _CsvExportDialogState extends State<CsvExportDialog> {
                   Expanded(
                     flex: 2,
                     child: FilledButton.icon(
-                      onPressed: () => Navigator.of(context).pop(_selected),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pop((type: _selected, unitMode: _unitMode)),
                       icon: const Icon(Icons.download),
                       label: Text(context.l10n.transfer_csvExport_exportButton),
                     ),

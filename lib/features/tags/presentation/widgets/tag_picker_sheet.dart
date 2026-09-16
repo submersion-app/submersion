@@ -1,9 +1,11 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Bottom sheet listing tags the diver has used before, so tagging stays
@@ -15,12 +17,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// Tags already on the dive are omitted entirely -- every row in the list is
 /// an addition, which is what lets the confirm button count ticks.
+///
+/// [scope] says what is being tagged (issues #1765, #1942): the sheet lists
+/// only tags offered in that scope, most used there first, each with its
+/// count in that scope.
 class TagPickerSheet extends ConsumerStatefulWidget {
   const TagPickerSheet({
     super.key,
     required this.scrollController,
     required this.selectedTagIds,
     required this.onTagsPicked,
+    this.scope = TagScope.dives,
   });
 
   /// Supplied by the enclosing [DraggableScrollableSheet] so dragging the
@@ -32,6 +39,9 @@ class TagPickerSheet extends ConsumerStatefulWidget {
 
   /// Called with the ticked tags, most-used first.
   final void Function(List<Tag> tags) onTagsPicked;
+
+  /// Whose tags these are: dive, site or equipment tags.
+  final TagScope scope;
 
   @override
   ConsumerState<TagPickerSheet> createState() => _TagPickerSheetState();
@@ -54,6 +64,25 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
     });
   }
 
+  /// The tags this sheet offers, "tags you use most" first.
+  ///
+  /// The provider already orders by dive count, then each later scope's
+  /// count, then name: exactly right for dives. A tag used only for sites
+  /// ("to try") has no place on a dive, nor a dive-only tag on a site (issue
+  /// #1765); from any other scope the order is by that scope's use instead.
+  /// The sort is stable, so ties keep the provider's order.
+  List<TagStatistic> _inScope(List<TagStatistic> stats) {
+    final scope = widget.scope;
+    final inScope = [
+      for (final stat in stats)
+        if (stat.tag.appliesTo(scope)) stat,
+    ];
+    if (scope != TagScope.dives) {
+      mergeSort(inScope, compare: (a, b) => b.count(scope) - a.count(scope));
+    }
+    return inScope;
+  }
+
   /// Picked tags in the provider's most-used-first order rather than the
   /// order they happened to be ticked in.
   List<Tag> _pickedFrom(List<TagStatistic> stats) => [
@@ -65,9 +94,7 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    // Already ordered `dive_count DESC, name`, which is exactly the
-    // "tags you use most" ordering this sheet wants.
-    final statsAsync = ref.watch(tagStatisticsProvider);
+    final statsAsync = ref.watch(tagStatisticsProvider).whenData(_inScope);
 
     return Column(
       children: [
@@ -167,11 +194,58 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
           controlAffinity: ListTileControlAffinity.trailing,
           secondary: CircleAvatar(radius: 12, backgroundColor: stat.tag.color),
           title: Text(stat.tag.name),
-          subtitle: Text(context.l10n.tags_manage_diveCount(stat.diveCount)),
+          subtitle: Text(
+            tagScopeCount(context.l10n, widget.scope, stat.count(widget.scope)),
+          ),
         );
       },
     );
   }
+}
+
+/// Opens the [TagPickerSheet] over [selected] and reports the merged list
+/// (existing plus newly picked) through [onPicked]. Shared by the dive and
+/// site edit pages, so tags are browsed the same way on both.
+///
+/// [host] is the context the sheet is pushed from, so it decides which
+/// navigator owns the picker; it defaults to [context]. A caller whose
+/// Browse action lives inside a dialog must pass that dialog's context:
+/// `showDialog` defaults to the root navigator while `showModalBottomSheet`
+/// defaults to the nearest one, which under the app's `ShellRoute` is the
+/// shell navigator sitting *below* the dialog. Pushed from the page, the
+/// picker would open behind the dialog with the dialog's barrier eating
+/// every tap (#1366).
+void showTagPickerSheet(
+  BuildContext context, {
+  required List<Tag> selected,
+  required ValueChanged<List<Tag>> onPicked,
+  TagScope scope = TagScope.dives,
+  BuildContext? host,
+}) {
+  showModalBottomSheet<void>(
+    context: host ?? context,
+    isScrollControlled: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (_, scrollController) => TagPickerSheet(
+        scrollController: scrollController,
+        selectedTagIds: selected.map((t) => t.id).toSet(),
+        scope: scope,
+        onTagsPicked: (tags) {
+          // The sheet already excludes selected tags, but guard anyway so a
+          // stale list can never produce a duplicate chip.
+          final additions = tags.where(
+            (tag) => !selected.any((t) => t.id == tag.id),
+          );
+          if (additions.isNotEmpty) onPicked([...selected, ...additions]);
+          Navigator.of(sheetContext).pop();
+        },
+      ),
+    ),
+  );
 }
 
 class _EmptyState extends StatelessWidget {

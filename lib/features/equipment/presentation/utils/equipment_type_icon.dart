@@ -47,6 +47,14 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return Icons.donut_large;
     case EquipmentType.harness:
       return Icons.link;
+    // Rig accessories (#1877). No icon font has any of the three, so they
+    // are drawn: each must read apart from the BCD they used to be filed as.
+    case EquipmentType.tankBand:
+      return SubmersionIcons.tankBand;
+    case EquipmentType.weightPocket:
+      return SubmersionIcons.weightPocket;
+    case EquipmentType.gearPocket:
+      return SubmersionIcons.gearPocket;
     // The two suits share a silhouette but not a glyph: the drysuit carries
     // the attached hood and boots that distinguish it in the water.
     case EquipmentType.wetsuit:

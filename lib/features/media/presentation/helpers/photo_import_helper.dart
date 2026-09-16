@@ -11,6 +11,7 @@ import 'package:submersion/features/media/domain/value_objects/media_attach_targ
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Helper for importing photos for a dive.
@@ -34,9 +35,12 @@ class PhotoImportHelper {
     final diveDuration = dive.effectiveRuntime ?? const Duration(hours: 1);
     final diveEnd = dive.exitTime ?? diveStart.add(diveDuration);
 
-    // Get already-linked asset IDs for this dive
+    // Gallery assets already linked to this dive, as this device knows them:
+    // a row linked on another device carries that device's asset id (#885).
     final mediaRepo = ref.read(mediaRepositoryProvider);
-    final alreadyLinkedIds = await mediaRepo.getLinkedAssetIdsForDive(dive.id);
+    final alreadyLinkedIds = await ref
+        .read(linkedGalleryAssetsProvider)
+        .idsOnThisDevice(await mediaRepo.getGalleryLinksForDive(dive.id));
 
     // Check context is still valid after async gap
     if (!context.mounted) return false;

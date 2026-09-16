@@ -454,20 +454,42 @@ class AssetResolutionService {
     List<AssetInfo> candidates, {
     Duration tolerance = const Duration(seconds: 2),
   }) {
-    if (item.width == null || item.height == null) return null;
-
-    final itemSeconds = _galleryReadings(
-      item.takenAt,
-    ).map(_truncateToSecond).toList();
-    final matches = candidates.where((c) {
-      if (c.width != item.width || c.height != item.height) return false;
-      final candidateSecond = _truncateToSecond(c.createDateTime);
-      return itemSeconds.any(
-        (s) => candidateSecond.difference(s).abs() <= tolerance,
-      );
-    }).toList();
+    final matches = candidates
+        .where(
+          (c) => _matchesTimestampAndDimensions(item, c, tolerance: tolerance),
+        )
+        .toList();
 
     return matches.length == 1 ? matches.first.id : null;
+  }
+
+  /// The capture seconds (whole seconds since the epoch) a gallery asset of
+  /// [item] could carry on this device: one per reading of its stored time,
+  /// see [_galleryReadings]. An asset matches [item]'s capture second exactly
+  /// when its `createDateTime` falls in one of these.
+  static Set<int> captureSecondsOf(MediaItem item) => {
+    for (final r in _galleryReadings(item.takenAt))
+      _truncateToSecond(r).millisecondsSinceEpoch ~/ 1000,
+  };
+
+  /// Whether [candidate] has [item]'s dimensions and was captured within
+  /// [tolerance] of either reading of its stored time (see
+  /// [_galleryReadings]): the per-candidate test behind
+  /// [matchByTimestampAndDimensions].
+  static bool _matchesTimestampAndDimensions(
+    MediaItem item,
+    AssetInfo candidate, {
+    Duration tolerance = const Duration(seconds: 2),
+  }) {
+    if (item.width == null || item.height == null) return false;
+    if (candidate.width != item.width || candidate.height != item.height) {
+      return false;
+    }
+    final candidateSecond = _truncateToSecond(candidate.createDateTime);
+    return _galleryReadings(item.takenAt).any(
+      (r) =>
+          candidateSecond.difference(_truncateToSecond(r)).abs() <= tolerance,
+    );
   }
 
   /// The readings of a stored [MediaItem.takenAt] that could line up with a

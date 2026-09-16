@@ -14,7 +14,7 @@ import '../../../../helpers/mock_providers.dart';
 
 void main() {
   // A dive whose site has coordinates, so DiveDetailPage renders the location
-  // card (and therefore the tappable "View Site" tile).
+  // card, which is itself the tap target that opens the site.
   const site = DiveSite(
     id: 'site-1',
     name: 'Blue Hole',
@@ -42,11 +42,11 @@ void main() {
     WidgetTester tester, {
     required bool embedded,
     required Size size,
-    // Drive a REAL pointer onto the badge instead of invoking the card's
-    // callback. The badge is a decorated Container stacked over the card's
-    // InkWell, and RenderDecoratedBox absorbs pointers across its whole
-    // shape, so only a real tap can prove the badge is not a dead zone.
-    bool tapBadge = false,
+    // Drive a REAL pointer onto the card's top-right corner instead of
+    // invoking the card's callback. Anything stacked there with a gesture
+    // recognizer of its own would win the arena and swallow the tap, so only
+    // a real tap can prove the corner still reaches the card.
+    bool tapCorner = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -105,8 +105,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    if (tapBadge) {
-      await tester.tap(find.text('View Site'));
+    if (tapCorner) {
+      final card = find.byWidget(locationInkWell(tester));
+      await tester.tapAt(tester.getTopRight(card) + const Offset(-30, 20));
     } else {
       locationInkWell(tester).onTap!();
     }
@@ -150,16 +151,16 @@ void main() {
     },
   );
 
-  testWidgets('tapping the badge itself still navigates, rather than landing '
-      'in a dead zone over the card', (tester) async {
+  testWidgets('a real tap on the top-right corner of the card navigates, '
+      'rather than landing in a dead zone', (tester) async {
     final location = await pumpAndTapViewSite(
       tester,
       embedded: true,
       size: const Size(400, 800),
-      tapBadge: true,
+      tapCorner: true,
     );
 
-    // The badge labels the card's tap target; it must not shadow it.
+    // Nothing over the map may carve its own tap target out of the card.
     expect(find.text('SITE_STUB_PAGE'), findsOneWidget);
     expect(location, '/sites/site-1');
   });

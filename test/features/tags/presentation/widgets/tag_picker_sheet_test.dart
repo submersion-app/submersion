@@ -19,7 +19,7 @@ TagStatistic _stat(String id, String name, int diveCount) => TagStatistic(
     createdAt: DateTime(2024),
     updatedAt: DateTime(2024),
   ),
-  diveCount: diveCount,
+  counts: {TagScope.dives: diveCount},
 );
 
 void main() {
@@ -40,6 +40,7 @@ void main() {
     Set<String> selectedTagIds = const {},
     Object? error,
     bool pending = false,
+    TagScope scope = TagScope.dives,
   }) {
     return ProviderScope(
       overrides: [
@@ -62,6 +63,7 @@ void main() {
             scrollController: ScrollController(),
             selectedTagIds: selectedTagIds,
             onTagsPicked: (tags) => picked = tags,
+            scope: scope,
           ),
         ),
       ),
@@ -88,6 +90,168 @@ void main() {
 
       expect(find.text('42 dives'), findsOneWidget);
       expect(find.text('31 dives'), findsOneWidget);
+    });
+
+    testWidgets('never lists a sites-only tag (issue #1765)', (tester) async {
+      final siteOnly = TagStatistic(
+        tag: Tag(
+          id: 'site-tag',
+          name: 'To try',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          scopes: const {TagScope.sites},
+        ),
+        counts: const {TagScope.dives: 0, TagScope.sites: 3},
+      );
+      await tester.pumpWidget(buildTestWidget(stats: [...testStats, siteOnly]));
+      await tester.pumpAndSettle();
+
+      expect(renderedTagNames(tester), ['Wreck', 'Night', 'Deco', 'Training']);
+    });
+
+    group('from a site (issue #1765)', () {
+      TagStatistic siteStat(
+        String id,
+        String name, {
+        required int sites,
+        int dives = 0,
+        bool forDives = false,
+      }) => TagStatistic(
+        tag: Tag(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          scopes: {if (forDives) TagScope.dives, TagScope.sites},
+        ),
+        counts: {TagScope.dives: dives, TagScope.sites: sites},
+      );
+
+      // Dive-first order, as tagStatisticsProvider returns it.
+      final mixed = [
+        ...testStats,
+        siteStat('both', 'Favourite', sites: 1, dives: 5, forDives: true),
+        siteStat('try', 'To try', sites: 7),
+        siteStat('avoid', 'Avoid', sites: 2),
+      ];
+
+      testWidgets('lists only site tags, most used on sites first', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.sites),
+        );
+        await tester.pumpAndSettle();
+
+        expect(renderedTagNames(tester), ['To try', 'Avoid', 'Favourite']);
+      });
+
+      testWidgets('shows how many sites use each tag', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.sites),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('7 sites'), findsOneWidget);
+        expect(find.text('1 site'), findsOneWidget);
+        expect(find.textContaining('dives'), findsNothing);
+      });
+
+      testWidgets('confirms the picks in the same site order', (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.sites),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Favourite'));
+        await tester.tap(find.text('To try'));
+        await tester.pump();
+        await tester.tap(find.text('Add 2 tags'));
+        await tester.pump();
+
+        expect(picked!.map((t) => t.id), ['try', 'both']);
+      });
+    });
+
+    group('from equipment (issue #1942)', () {
+      TagStatistic gearStat(
+        String id,
+        String name, {
+        required int items,
+        int dives = 0,
+        bool forDives = false,
+      }) => TagStatistic(
+        tag: Tag(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          scopes: {if (forDives) TagScope.dives, TagScope.equipment},
+        ),
+        counts: {TagScope.dives: dives, TagScope.equipment: items},
+      );
+
+      // Dive-first order, as tagStatisticsProvider returns it.
+      final mixed = [
+        ...testStats,
+        gearStat('both', 'Favourite', items: 1, dives: 5, forDives: true),
+        gearStat('travel', 'Travel kit', items: 7),
+        gearStat('rental', 'Rental', items: 2),
+      ];
+
+      testWidgets('lists only equipment tags, most used on equipment first', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.equipment),
+        );
+        await tester.pumpAndSettle();
+
+        expect(renderedTagNames(tester), ['Travel kit', 'Rental', 'Favourite']);
+      });
+
+      testWidgets('shows how many equipment items use each tag', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.equipment),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('7 equipment items'), findsOneWidget);
+        expect(find.text('1 equipment item'), findsOneWidget);
+        expect(find.textContaining('dives'), findsNothing);
+      });
+
+      testWidgets('confirms the picks in the same equipment order', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(stats: mixed, scope: TagScope.equipment),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Favourite'));
+        await tester.tap(find.text('Travel kit'));
+        await tester.pump();
+        await tester.tap(find.text('Add 2 tags'));
+        await tester.pump();
+
+        expect(picked!.map((t) => t.id), ['travel', 'both']);
+      });
+
+      testWidgets('a dive never lists an equipment-only tag', (tester) async {
+        await tester.pumpWidget(buildTestWidget(stats: mixed));
+        await tester.pumpAndSettle();
+
+        expect(renderedTagNames(tester), [
+          'Wreck',
+          'Night',
+          'Deco',
+          'Training',
+          'Favourite',
+        ]);
+      });
     });
 
     testWidgets('hides tags already attached to the dive', (tester) async {

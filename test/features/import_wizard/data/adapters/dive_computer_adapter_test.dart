@@ -312,6 +312,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -341,6 +342,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -373,6 +375,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -397,6 +400,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -425,6 +429,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -452,6 +457,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive1,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -466,6 +472,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive2,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer((_) async => DuplicateResult.noMatch());
@@ -495,6 +502,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer((_) async => DuplicateResult.noMatch());
@@ -600,7 +608,7 @@ void main() {
 
         final notice = result.notices.single;
         expect(notice.kind, ImportNoticeKind.diveNumberConflict);
-        expect(notice.affectedDives, 1);
+        expect(notice.count, 1);
       });
 
       test('a dive kept standalone keeps its computer number', () async {
@@ -749,7 +757,7 @@ void main() {
         expect(result.skippedCount, 1);
         expect(result.importedCounts[ImportEntityType.dives], 1);
         expect(result.notices, hasLength(1));
-        expect(result.notices.single.affectedDives, 1);
+        expect(result.notices.single.count, 1);
         // The accumulator was started fresh for this run.
         verify(mockImportService.resetUnmatchedTransmitterSerials()).called(1);
       },

@@ -21,6 +21,19 @@ class ShearwaterValueMapper {
   // Conditions mapping
   // ---------------------------------------------------------------------------
 
+  /// Shearwater's Environment as a built-in site type slug (issue #1765).
+  /// Ocean/Sea and Brackish describe the water, not the kind of place, so
+  /// they map to no type.
+  static String? mapSiteType(String? environment) {
+    return switch (environment) {
+      'Pool' => 'pool',
+      'Lake' => 'lake',
+      'Quarry' => 'quarry',
+      'River' => 'river',
+      _ => null,
+    };
+  }
+
   static WaterType? mapWaterType(String? environment) {
     if (environment == null || environment.isEmpty) return null;
     return switch (environment) {

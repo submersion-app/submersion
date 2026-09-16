@@ -30,8 +30,8 @@ void main() {
       enrichmentService: MockEnrichmentService(),
     );
     when(
-      repository.getLinkedAssetIdsForSite(any),
-    ).thenAnswer((_) async => <String>{});
+      repository.getGalleryLinksForSite(any),
+    ).thenAnswer((_) async => <MediaItem>[]);
     when(
       repository.getLinkedLocalPathsForSite(any),
     ).thenAnswer((_) async => <String>{});
@@ -121,7 +121,7 @@ void main() {
     tester,
   ) async {
     when(
-      repository.getLinkedAssetIdsForSite(any),
+      repository.getGalleryLinksForSite(any),
     ).thenThrow(Exception('db is gone'));
 
     final imported = await runLink(tester, selected: [_asset('a1')]);

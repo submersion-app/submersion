@@ -115,12 +115,14 @@ class CsvImportParser implements ImportParser {
 
   /// Target fields whose values only become linked records when the
   /// correlator extracts the matching entity type. Without it a mapped site
-  /// column is dropped and a mapped buddy column stays free text (#1830).
-  /// 'site' is the legacy alias the correlator normalizes to 'siteName'.
+  /// column is dropped, a mapped buddy column stays free text (#1830), and a
+  /// mapped tags column is dropped. 'site' is the legacy alias the
+  /// correlator normalizes to 'siteName'.
   static const _entityTypeForTargetField = {
     'siteName': ImportEntityType.sites,
     'site': ImportEntityType.sites,
     'buddy': ImportEntityType.buddies,
+    'tags': ImportEntityType.tags,
   };
 
   /// [entityTypes] plus every type a column in [mappings] needs, so a
@@ -221,10 +223,12 @@ class CsvImportParser implements ImportParser {
         warnings.add(
           ImportWarning(
             severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.columnsNotImported,
             message:
                 'Column "$header" was not imported: column "$claimedBy" '
                 'already fills $target',
             field: target,
+            names: [header],
           ),
         );
         continue;

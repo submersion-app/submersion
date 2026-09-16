@@ -102,9 +102,14 @@ class DiveMatchResult {
   /// never be auto-suggested for consolidation — that's a plain duplicate).
   final String? matchedComputerId;
 
-  /// True when [diveId] was matched via an exact hit against one of the
+  /// True when [diveId] is confidently the SAME data the diver already has,
+  /// not a fuzzy score match: either an exact hit against one of the
   /// matched dive's EXISTING `dive_data_sources` keys (fingerprint or
-  /// source UUID) — see `DiveRepository.getSourceKeysByDiveId`.
+  /// source UUID) — see `DiveRepository.getSourceKeysByDiveId` — or, for a
+  /// live dive-computer download, a contained-segment match (timestamp
+  /// containment plus depth-curve agreement showing the download natively
+  /// re-records part of a dive already stored; see
+  /// `DiveImportService._detectContainedSegment`).
   ///
   /// This means the downloaded dive's data is ALREADY present on [diveId]
   /// as a source (primary or previously-consolidated secondary); it is a

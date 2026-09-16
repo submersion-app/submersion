@@ -11,8 +11,11 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -97,6 +100,26 @@ class _RecordingPicker extends MockFilePickerPlatform {
       initialDirectory: initialDirectory,
     );
   }
+}
+
+/// Serves a fixed dive list as the diver's logbook. Profile loading still goes
+/// to the real repository over the test database, as it did when the export
+/// read the dives from divesProvider.
+class _FixedDivesRepository implements DiveRepository {
+  _FixedDivesRepository(this.dives);
+  final List<Dive> dives;
+  final _real = DiveRepository();
+
+  @override
+  Future<List<Dive>> getAllDives({String? diverId}) async => dives;
+
+  @override
+  Future<Map<String, List<DiveProfilePoint>>> getMergedProfilesForDives(
+    List<String> diveIds,
+  ) => _real.getMergedProfilesForDives(diveIds);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Both PDF logbook paths - share and save-to-file - must run through the same
@@ -194,10 +217,16 @@ void main() {
   ProviderContainer makeContainer({
     List<Dive>? divesOverride,
     AppSettings? settings,
+    List<DiveTypeEntity>? diveTypes,
   }) {
     final container = ProviderContainer(
       overrides: [
-        divesProvider.overrideWith((ref) async => divesOverride ?? dives),
+        // The logbook reads the dives fresh through the validated diver id
+        // (#1861), not through the cached divesProvider.
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => diver.id),
+        diveRepositoryProvider.overrideWithValue(
+          _FixedDivesRepository(divesOverride ?? dives),
+        ),
         currentDiverProvider.overrideWith((ref) async => diver),
         allCertificationsProvider.overrideWith((ref) async => certifications),
         // The PDF path reads the diver's date and time preferences (#964), and
@@ -205,6 +234,8 @@ void main() {
         settingsProvider.overrideWith(
           (ref) => _FixedSettings(settings ?? const AppSettings()),
         ),
+        if (diveTypes != null)
+          diveTypesProvider.overrideWith((ref) async => diveTypes),
       ],
     );
     addTearDown(container.dispose);
@@ -218,6 +249,32 @@ void main() {
       pdfVisibleText(await File(path).readAsBytes());
 
   group('exportDivesToPdf (share)', () {
+    test('prints a custom dive type under its own name (#1834)', () async {
+      final custom = DiveTypeEntity(
+        id: 'search_recovery_1a2b3c4d',
+        diverId: 'diver-1',
+        name: 'Search & Recovery',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      final container = makeContainer(
+        divesOverride: [
+          dives.first.copyWith(diveTypeIds: [custom.id]),
+        ],
+        diveTypes: [custom],
+      );
+
+      await notifierOf(container).exportDivesToPdf(
+        const PdfExportOptions(template: PdfTemplate.detailed),
+      );
+
+      final state = container.read(exportNotifierProvider);
+      expect(state.status, ExportStatus.success);
+      final text = await textAt(state.filePath!);
+      expect(text, contains('Search & Recovery'));
+      expect(text, isNot(contains('Search recovery 1a2b3c4d')));
+    });
+
     test(
       'honors the selected template and personalizes with the diver',
       () async {

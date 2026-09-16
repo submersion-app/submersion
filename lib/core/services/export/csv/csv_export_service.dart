@@ -5,20 +5,23 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
-import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_text.dart'
+    as csv_text;
+import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Handles all CSV export operations: share, generate content, and save to file.
 class CsvExportService {
   final _dateFormat = DateFormat('yyyy-MM-dd');
-  final _timeFormat = DateFormat('HH:mm');
 
   // ==================== CSV Injection Prevention ====================
 
@@ -34,37 +37,30 @@ class CsvExportService {
   ///
   /// References:
   /// - OWASP CSV Injection: https://owasp.org/www-community/attacks/CSV_Injection
-  String sanitizeCsvField(String? value) {
-    if (value == null || value.isEmpty) {
-      return '';
-    }
-
-    final firstChar = value[0];
-    if (firstChar == '=' ||
-        firstChar == '+' ||
-        firstChar == '-' ||
-        firstChar == '@' ||
-        firstChar == '\t' ||
-        firstChar == '\r' ||
-        firstChar == '|' ||
-        firstChar == "'") {
-      return "'$value";
-    }
-
-    return value;
-  }
+  String sanitizeCsvField(String? value) => csv_text.sanitizeCsvField(value);
 
   // ==================== Share via System Sheet ====================
 
   /// Export dives to CSV format and share via system sheet.
-  Future<String> exportDivesToCsv(List<Dive> dives) async {
-    final csvData = generateDivesCsvContent(dives);
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) async {
+    final csvData = generateDivesCsvContent(
+      dives,
+      units: units,
+      diveTypesById: diveTypesById,
+    );
     return saveAndShareFile(csvData, 'dives_export.csv', 'text/csv');
   }
 
   /// Export dive sites to CSV format and share via system sheet.
-  Future<String> exportSitesToCsv(List<DiveSite> sites) async {
-    final csvData = generateSitesCsvContent(sites);
+  Future<String> exportSitesToCsv(
+    List<DiveSite> sites, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final csvData = generateSitesCsvContent(sites, units: units);
     return saveAndShareFile(csvData, 'sites_export.csv', 'text/csv');
   }
 
@@ -72,10 +68,12 @@ class CsvExportService {
   Future<String> exportEquipmentToCsv(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     final csvData = generateEquipmentCsvContent(
       equipment,
       componentNames: componentNames,
+      units: units,
     );
     return saveAndShareFile(csvData, 'equipment_export.csv', 'text/csv');
   }
@@ -170,131 +168,22 @@ class CsvExportService {
 
   // ==================== Content Generation ====================
 
-  /// Generate CSV content for dives (without sharing).
-  String generateDivesCsvContent(List<Dive> dives) {
-    // Collect all distinct custom field keys across exported dives
-    final allCustomFieldKeys = <String>{};
-    for (final dive in dives) {
-      for (final field in dive.customFields) {
-        allCustomFieldKeys.add(field.key);
-      }
-    }
-    final sortedCustomKeys = allCustomFieldKeys.toList()..sort();
-
-    // The built-in Submersion import preset reads these same constants.
-    final headers = [
-      ...DiveCsvColumns.fixed,
-      ...sortedCustomKeys.map(
-        (key) => sanitizeCsvField('${DiveCsvColumns.customFieldPrefix}$key'),
-      ),
-    ];
-
-    final rows = <List<dynamic>>[headers];
-
-    for (final dive in dives) {
-      final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
-      rows.add([
-        dive.diveNumber ?? '',
-        dive.effectiveName?.replaceAll('\n', ' ') ?? '',
-        _dateFormat.format(dive.dateTime),
-        _timeFormat.format(dive.dateTime),
-        dive.site?.name ?? '',
-        dive.site?.locationString ?? '',
-        dive.maxDepth?.toStringAsFixed(1) ?? '',
-        dive.avgDepth?.toStringAsFixed(1) ?? '',
-        dive.bottomTime?.inMinutes ?? '',
-        dive.runtime?.inMinutes ?? '',
-        dive.waterTemp?.toStringAsFixed(0) ?? '',
-        dive.airTemp?.toStringAsFixed(0) ?? '',
-        dive.visibilityMeters?.toStringAsFixed(1) ?? '',
-        dive.visibility?.displayName ?? '',
-        dive.diveTypeNames.join(DiveCsvColumns.diveTypeSeparator),
-        dive.buddy ?? '',
-        dive.diveMaster ?? '',
-        dive.rating ?? '',
-        tank?.startPressure?.toStringAsFixed(1) ?? '',
-        tank?.endPressure?.toStringAsFixed(1) ?? '',
-        tank?.volume?.toStringAsFixed(0) ?? '',
-        tank?.gasMix.o2.toStringAsFixed(0) ?? '',
-        dive.diveComputerModel ?? '',
-        dive.diveComputerSerial ?? '',
-        dive.diveComputerFirmware ?? '',
-        dive.notes.replaceAll('\n', ' '),
-        dive.windSpeed?.toStringAsFixed(1) ?? '',
-        dive.windDirection?.displayName ?? '',
-        dive.cloudCover?.displayName ?? '',
-        dive.precipitation?.displayName ?? '',
-        dive.humidity?.toStringAsFixed(0) ?? '',
-        dive.weatherDescription ?? '',
-        dive.site?.city ?? '',
-        dive.site?.region ?? '',
-        dive.site?.country ?? '',
-        dive.site?.island ?? '',
-        tank?.gasMix.he.toStringAsFixed(0) ?? '',
-        _customFieldsJson(dive.customFields),
-        ...sortedCustomKeys.map((key) {
-          final field = dive.customFields
-              .where((f) => f.key == key)
-              .firstOrNull;
-          return sanitizeCsvField(field?.value ?? '');
-        }),
-      ]);
-    }
-
-    return const ListToCsvConverter().convert(rows);
-  }
-
-  /// The [DiveCsvColumns.customFields] cell: [fields] as a JSON list of
-  /// `{key, value}` objects in sort order, or empty when there are none.
-  String _customFieldsJson(List<DiveCustomField> fields) {
-    if (fields.isEmpty) return '';
-    final ordered = [...fields]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    return jsonEncode([
-      for (final field in ordered) {'key': field.key, 'value': field.value},
-    ]);
-  }
+  /// Generate CSV content for dives (without sharing). [units] defaults to
+  /// the historical metric format. [diveTypesById] holds the loaded
+  /// `dive_types` rows, so each type is written under the name the diver
+  /// gave it (#1834); an id with no row falls back to a name rebuilt from
+  /// the id.
+  String generateDivesCsvContent(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) => CsvDivesWriter(units, diveTypesById: diveTypesById).write(dives);
 
   /// Generate CSV content for sites (without sharing).
-  String generateSitesCsvContent(List<DiveSite> sites) {
-    final headers = [
-      'Name',
-      'Country',
-      'Region',
-      'Latitude',
-      'Longitude',
-      'Max Depth (m)',
-      'Water Type',
-      'Current',
-      'Entry Type',
-      'Rating',
-      'Description',
-      'Notes',
-    ];
-
-    final rows = <List<dynamic>>[headers];
-
-    for (final site in sites) {
-      rows.add([
-        site.name,
-        site.country ?? '',
-        site.region ?? '',
-        site.location?.latitude.toStringAsFixed(6) ?? '',
-        site.location?.longitude.toStringAsFixed(6) ?? '',
-        site.maxDepth?.toStringAsFixed(1) ?? '',
-        site.waterType?.displayName ?? '',
-        // Typical current has no backing column; the header position is kept
-        // so existing consumers of this CSV keep their column offsets.
-        '',
-        site.entryMethod?.displayName ?? '',
-        site.rating?.toStringAsFixed(1) ?? '',
-        site.description.replaceAll('\n', ' '),
-        site.notes.replaceAll('\n', ' '),
-      ]);
-    }
-
-    return const ListToCsvConverter().convert(rows);
-  }
+  String generateSitesCsvContent(
+    List<DiveSite> sites, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => CsvSitesWriter(units).write(sites);
 
   /// Generate CSV content for equipment (without sharing).
   /// [componentNames] maps an assembly's id to its parts' names in template
@@ -302,74 +191,10 @@ class CsvExportService {
   String generateEquipmentCsvContent(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
-  }) {
-    final headers = [
-      'Name',
-      'Type',
-      'Brand',
-      'Model',
-      'Serial Number',
-      'Size',
-      'Thickness',
-      'Purchase Date',
-      'Last Service',
-      'Next Service Due',
-      'Buoyancy (kg)',
-      'Dry Weight (kg)',
-      'Attributes',
-      'Components',
-      'Active',
-      'Notes',
-    ];
-
-    // Curated keys already covered by dedicated columns; excluded from the
-    // combined Attributes column to avoid duplication. Custom fields are never
-    // excluded even if their key collides with one of these, because the
-    // dedicated columns read curated attributes only -- so a custom "size"
-    // would otherwise be dropped from the export entirely.
-    const dedicatedAttrKeys = {
-      EquipmentAttrKeys.size,
-      EquipmentAttrKeys.thicknessMm,
-      EquipmentAttrKeys.buoyancyKg,
-      EquipmentAttrKeys.dryWeightKg,
-    };
-
-    final rows = <List<dynamic>>[headers];
-
-    for (final item in equipment) {
-      rows.add([
-        item.name,
-        item.type.displayName,
-        item.brand ?? '',
-        item.model ?? '',
-        item.serialNumber ?? '',
-        item.size ?? '',
-        item.thickness ?? '',
-        item.purchaseDate != null ? _dateFormat.format(item.purchaseDate!) : '',
-        item.lastServiceDate != null
-            ? _dateFormat.format(item.lastServiceDate!)
-            : '',
-        item.nextServiceDue != null
-            ? _dateFormat.format(item.nextServiceDue!)
-            : '',
-        item.buoyancyKg?.toString() ?? '',
-        item.weightKg?.toString() ?? '',
-        item.attributes
-            .where(
-              (a) =>
-                  a.hasValue &&
-                  (a.isCustom || !dedicatedAttrKeys.contains(a.key)),
-            )
-            .map((a) => '${a.key}=${a.valueText ?? a.valueNum}')
-            .join('; '),
-        componentNames[item.id]?.join('; ') ?? '',
-        item.isActive ? 'Yes' : 'No',
-        item.notes.replaceAll('\n', ' '),
-      ]);
-    }
-
-    return const ListToCsvConverter().convert(rows);
-  }
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => CsvEquipmentWriter(
+    units,
+  ).write(equipment, componentNames: componentNames);
 
   // ==================== Save to File ====================
 
@@ -377,8 +202,14 @@ class CsvExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
-    final csvContent = generateDivesCsvContent(dives);
+    final csvContent = generateDivesCsvContent(
+      dives,
+      units: units,
+      diveTypesById: diveTypesById,
+    );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 
@@ -398,8 +229,9 @@ class CsvExportService {
   Future<String?> saveSitesCsvToFile(
     List<DiveSite> sites, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
   }) async {
-    final csvContent = generateSitesCsvContent(sites);
+    final csvContent = generateSitesCsvContent(sites, units: units);
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'sites_export_$dateStr.csv';
 
@@ -420,10 +252,12 @@ class CsvExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     final csvContent = generateEquipmentCsvContent(
       equipment,
       componentNames: componentNames,
+      units: units,
     );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'equipment_export_$dateStr.csv';

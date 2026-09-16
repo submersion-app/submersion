@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/excel/blender_invoice_excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
@@ -38,6 +39,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -78,32 +80,54 @@ class ExportService {
 
   // ==================== CSV Export ====================
 
-  Future<String> exportDivesToCsv(List<Dive> dives) =>
-      _csv.exportDivesToCsv(dives);
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) =>
+      _csv.exportDivesToCsv(dives, units: units, diveTypesById: diveTypesById);
 
-  Future<String> exportSitesToCsv(List<DiveSite> sites) =>
-      _csv.exportSitesToCsv(sites);
+  Future<String> exportSitesToCsv(
+    List<DiveSite> sites, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.exportSitesToCsv(sites, units: units);
 
   Future<String> exportEquipmentToCsv(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
-  }) => _csv.exportEquipmentToCsv(equipment, componentNames: componentNames);
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.exportEquipmentToCsv(
+    equipment,
+    componentNames: componentNames,
+    units: units,
+  );
 
   Future<String> exportTripsToCsv(List<Trip> trips) =>
       _csv.exportTripsToCsv(trips);
 
-  String generateDivesCsvContent(List<Dive> dives) =>
-      _csv.generateDivesCsvContent(dives);
+  String generateDivesCsvContent(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) => _csv.generateDivesCsvContent(
+    dives,
+    units: units,
+    diveTypesById: diveTypesById,
+  );
 
-  String generateSitesCsvContent(List<DiveSite> sites) =>
-      _csv.generateSitesCsvContent(sites);
+  String generateSitesCsvContent(
+    List<DiveSite> sites, {
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.generateSitesCsvContent(sites, units: units);
 
   String generateEquipmentCsvContent(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
   }) => _csv.generateEquipmentCsvContent(
     equipment,
     componentNames: componentNames,
+    units: units,
   );
 
   // Each CSV save takes its picker title from the caller, which has the
@@ -111,21 +135,31 @@ class ExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
-  }) => _csv.saveDivesCsvToFile(dives, dialogTitle: dialogTitle);
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) => _csv.saveDivesCsvToFile(
+    dives,
+    dialogTitle: dialogTitle,
+    units: units,
+    diveTypesById: diveTypesById,
+  );
 
   Future<String?> saveSitesCsvToFile(
     List<DiveSite> sites, {
     required String dialogTitle,
-  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle);
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle, units: units);
 
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
   }) => _csv.saveEquipmentCsvToFile(
     equipment,
     componentNames: componentNames,
     dialogTitle: dialogTitle,
+    units: units,
   );
 
   Future<String> exportObservationsToCsv(List<ObservationExportRow> rows) =>
@@ -158,6 +192,7 @@ class ExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) => _pdf.generateDivePdfBytes(
     dives,
     dates: dates,
@@ -168,6 +203,7 @@ class ExportService {
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
+    diveTypesById: diveTypesById,
   );
 
   Future<String> exportDivesToPdf(
@@ -180,6 +216,7 @@ class ExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) => _pdf.exportDivesToPdf(
     dives,
     dates: dates,
@@ -190,6 +227,7 @@ class ExportService {
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
+    diveTypesById: diveTypesById,
   );
 
   Future<String?> saveDivesToPdfFile(
@@ -202,6 +240,7 @@ class ExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) => _pdf.saveDivesToPdfFile(
     dives,
     dates: dates,
@@ -212,6 +251,7 @@ class ExportService {
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
+    diveTypesById: diveTypesById,
   );
 
   Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) =>
@@ -269,6 +309,7 @@ class ExportService {
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) => _excel.exportToExcel(
     dives: dives,
     sites: sites,
@@ -282,6 +323,7 @@ class ExportService {
     preDiveItemsBySession: preDiveItemsBySession,
     componentNames: componentNames,
     observationRows: observationRows,
+    diveTypesById: diveTypesById,
   );
 
   Future<List<int>> generateExcelBytes({
@@ -297,6 +339,7 @@ class ExportService {
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) => _excel.generateExcelBytes(
     dives: dives,
     sites: sites,
@@ -310,6 +353,7 @@ class ExportService {
     preDiveItemsBySession: preDiveItemsBySession,
     componentNames: componentNames,
     observationRows: observationRows,
+    diveTypesById: diveTypesById,
   );
 
   Future<String?> saveExcelToFile({
@@ -325,6 +369,7 @@ class ExportService {
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) => _excel.saveExcelToFile(
     dives: dives,
     sites: sites,
@@ -338,6 +383,7 @@ class ExportService {
     preDiveItemsBySession: preDiveItemsBySession,
     componentNames: componentNames,
     observationRows: observationRows,
+    diveTypesById: diveTypesById,
   );
 
   // ==================== Maintenance Log Export ====================
@@ -441,6 +487,9 @@ class ExportService {
     List<Tag>? tags,
     Map<String, List<Tag>>? diveTags,
     List<DiveTypeEntity>? customDiveTypes,
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -469,6 +518,9 @@ class ExportService {
     tags: tags,
     diveTags: diveTags,
     customDiveTypes: customDiveTypes,
+    customSiteTypes: customSiteTypes,
+    siteTypeIdsBySite: siteTypeIdsBySite,
+    siteTagIdsBySite: siteTagIdsBySite,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
     diveProfileEvents: diveProfileEvents,
@@ -499,6 +551,9 @@ class ExportService {
     List<Tag>? tags,
     Map<String, List<Tag>>? diveTags,
     List<DiveTypeEntity>? customDiveTypes,
+    List<SiteTypeEntity>? customSiteTypes,
+    Map<String, List<String>> siteTypeIdsBySite = const {},
+    Map<String, List<String>> siteTagIdsBySite = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -527,6 +582,9 @@ class ExportService {
     tags: tags,
     diveTags: diveTags,
     customDiveTypes: customDiveTypes,
+    customSiteTypes: customSiteTypes,
+    siteTypeIdsBySite: siteTypeIdsBySite,
+    siteTagIdsBySite: siteTagIdsBySite,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
     diveProfileEvents: diveProfileEvents,

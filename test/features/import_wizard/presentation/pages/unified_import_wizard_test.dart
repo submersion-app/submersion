@@ -78,6 +78,22 @@ class _FakeAdapter implements ImportSourceAdapter {
   }) => throw UnimplementedError();
 }
 
+final _alwaysHidden = Provider<bool>((_) => true);
+
+/// Two steps, the second of which never applies (issue #1893).
+class _HiddenStepAdapter extends _FakeAdapter {
+  @override
+  List<WizardStepDef> get acquisitionSteps => [
+    ...super.acquisitionSteps,
+    WizardStepDef(
+      label: 'Not For This File',
+      builder: (_) => const Center(child: Text('Step 2')),
+      canAdvance: _canAdvanceFalse,
+      hiddenWhen: _alwaysHidden,
+    ),
+  ];
+}
+
 // ---------------------------------------------------------------------------
 // Test helpers
 // ---------------------------------------------------------------------------
@@ -115,6 +131,18 @@ void main() {
       await tester.pump();
 
       expect(adapter.resetCalled, isTrue);
+    });
+
+    testWidgets('leaves a step that does not apply out of the indicator', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildWizard(_HiddenStepAdapter()));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Pick File'), findsOneWidget);
+      expect(find.text('Not For This File'), findsNothing);
     });
 
     testWidgets('renders acquisition step content', (tester) async {

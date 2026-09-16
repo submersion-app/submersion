@@ -1187,24 +1187,29 @@ class MediaRepository {
     }
   }
 
-  /// Get the set of platformAssetIds already linked to a specific dive.
-  ///
-  /// Returns only non-null platformAssetIds for gallery photos.
-  /// Used to prevent duplicate linking.
-  Future<Set<String>> getLinkedAssetIdsForDive(String diveId) async {
+  /// Gallery rows linked to [diveId], carrying only what gallery dedupe
+  /// reads (see [galleryLinkFromRow]): no image data, no enrichment.
+  Future<List<domain.MediaItem>> getGalleryLinksForDive(String diveId) =>
+      _getGalleryLinks(_db.media.diveId.equals(diveId), 'dive: $diveId');
+
+  /// Site counterpart of [getGalleryLinksForDive].
+  Future<List<domain.MediaItem>> getGalleryLinksForSite(String siteId) =>
+      _getGalleryLinks(_db.media.siteId.equals(siteId), 'site: $siteId');
+
+  Future<List<domain.MediaItem>> _getGalleryLinks(
+    Expression<bool> scope,
+    String scopeLabel,
+  ) async {
     try {
-      final result = await _db
-          .customSelect(
-            'SELECT platform_asset_id FROM media WHERE dive_id = ? AND platform_asset_id IS NOT NULL',
-            variables: [Variable.withString(diveId)],
-          )
-          .get();
-      return result
-          .map((row) => row.data['platform_asset_id'] as String)
-          .toSet();
+      final m = _db.media;
+      final query = _db.selectOnly(m)
+        ..addColumns(galleryLinkColumns(m))
+        ..where(scope & m.platformAssetId.isNotNull());
+      final rows = await query.get();
+      return [for (final row in rows) galleryLinkFromRow(row, m)];
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get linked asset IDs for dive: $diveId',
+        'Failed to get gallery links for $scopeLabel',
         error: e,
         stackTrace: stackTrace,
       );
@@ -1214,12 +1219,12 @@ class MediaRepository {
 
   /// Get the set of local file paths already linked to a specific dive.
   ///
-  /// The desktop counterpart to [getLinkedAssetIdsForDive]: Windows / Linux
-  /// imports are `localFile` rows with a null `platform_asset_id`, so the
-  /// asset-id query cannot see them and duplicate detection has to key on the
-  /// path instead. The path is also the more stable key -- the desktop
-  /// picker's synthetic asset id embeds the file's mtime, so it changes
-  /// whenever the file is touched.
+  /// The desktop dedupe key: Windows / Linux imports are `localFile` rows
+  /// with a null `platform_asset_id`, so gallery dedupe (see
+  /// `LinkedGalleryAssets`) cannot see them and duplicate detection has to
+  /// key on the path instead. The path is also the more stable key -- the
+  /// desktop picker's synthetic asset id embeds the file's mtime, so it
+  /// changes whenever the file is touched.
   Future<Set<String>> getLinkedLocalPathsForDive(String diveId) async {
     try {
       final result = await _db
@@ -1233,30 +1238,6 @@ class MediaRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get linked local paths for dive: $diveId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Site counterpart of [getLinkedAssetIdsForDive]: gallery-import dedupe
-  /// for direct site attachments.
-  Future<Set<String>> getLinkedAssetIdsForSite(String siteId) async {
-    try {
-      final result = await _db
-          .customSelect(
-            'SELECT platform_asset_id FROM media '
-            'WHERE site_id = ? AND platform_asset_id IS NOT NULL',
-            variables: [Variable.withString(siteId)],
-          )
-          .get();
-      return result
-          .map((row) => row.data['platform_asset_id'] as String)
-          .toSet();
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get linked asset IDs for site: $siteId',
         error: e,
         stackTrace: stackTrace,
       );

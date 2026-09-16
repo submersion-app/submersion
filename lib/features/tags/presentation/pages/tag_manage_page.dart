@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
-import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart';
+import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
+import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -36,6 +40,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   Set<String> get _selectedIds => _selection.value.checkedIds;
 
   static const _uuid = Uuid();
+  static final _log = LoggerService.forClass(TagManagePage);
 
   @override
   void dispose() {
@@ -226,153 +231,393 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         child: CircleAvatar(radius: 16, backgroundColor: tag.color),
       ),
       title: Text(tag.name),
+      // Where the tag is offered (issues #1765, #1942).
+      subtitle: Text(
+        [
+          for (final scope in TagScope.values)
+            if (tag.appliesTo(scope)) tagScopeName(context.l10n, scope),
+        ].join(' · '),
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            context.l10n.tags_manage_diveCount(stat.diveCount),
+            tagUsageCounts(context.l10n, stat.counts),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          // Editing moved off the row tap when the row started opening the
-          // tag's dives (#1833). Hidden while selecting, where a row tap
-          // toggles the row and a second target inside it would be a trap.
+          // The one way to edit a tag. Hidden while selecting, where a row
+          // tap toggles the row and a second target inside it would be a
+          // trap.
           if (!_isSelectionMode)
             IconButton(
               key: ValueKey('tag_edit_${tag.id}'),
               icon: const Icon(Icons.edit_outlined),
               tooltip: context.l10n.tags_manage_editTitle,
-              onPressed: () => _showEditDialog(tag),
+              onPressed: () => _showEditDialog(stat),
             ),
         ],
       ),
       selected: isSelected,
-      onTap: _isSelectionMode
-          ? () => _toggleSelection(tag.id)
-          : () => openDivesWithTag(context, ref, tag.id),
-      // Without a handler a long press falls through to onTap, which is how
-      // it used to open the editor. Keep that, but not while selecting, where
-      // the fall-through toggles the row like a tap.
-      onLongPress: _isSelectionMode ? null : () => _showEditDialog(tag),
+      // Outside selection the row is inert, whatever the tag's scope: this is
+      // a settings page, and a tap here must not leave it. The edit button is
+      // the row's only action.
+      onTap: _isSelectionMode ? () => _toggleSelection(tag.id) : null,
     );
   }
 
   void _showCreateDialog() {
     final controller = TextEditingController();
     String selectedColor = TagColors.predefined.first;
+    Set<TagScope> scopes = const {TagScope.dives};
+    bool saving = false;
+    bool failed = false;
 
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(context.l10n.tags_manage_createTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.tags_manage_nameLabel,
-                  border: const OutlineInputBorder(),
-                ),
+        builder: (dialogContext, setDialogState) => PopScope(
+          // The barrier, Back and Escape all ask before popping. A save in
+          // flight says no, so a failure still has its dialog to report into.
+          canPop: !saving,
+          child: AlertDialog(
+            title: Text(context.l10n.tags_manage_createTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.tags_manage_nameLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(context.l10n.tags_manage_colorLabel),
+                  const SizedBox(height: 8),
+                  TagColorPicker(
+                    selectedColor: selectedColor,
+                    onColorSelected: (color) =>
+                        setDialogState(() => selectedColor = color),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._scopeEditor(
+                    scopes: scopes,
+                    // Applied to the dialog's current set, never replaced
+                    // in place, so a Save already under way keeps its own.
+                    onToggle: (scope, on) => setDialogState(
+                      () => scopes = on
+                          ? scopes.union({scope})
+                          : scopes.difference({scope}),
+                    ),
+                  ),
+                  if (failed) _saveErrorLine(),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(context.l10n.tags_manage_colorLabel),
-              const SizedBox(height: 8),
-              TagColorPicker(
-                selectedColor: selectedColor,
-                onColorSelected: (color) =>
-                    setDialogState(() => selectedColor = color),
+            ),
+            actions: [
+              TextButton(
+                onPressed: saving ? null : () => Navigator.pop(dialogContext),
+                child: Text(context.l10n.common_action_cancel),
+              ),
+              TextButton(
+                onPressed: saving
+                    ? null
+                    : () {
+                        // A second tap in the same frame still reaches this
+                        // callback: the disabled button is only built next frame.
+                        if (saving) return;
+                        final name = controller.text.trim();
+                        if (name.isEmpty || scopes.isEmpty) return;
+                        final newTag = Tag.create(
+                          id: _uuid.v4(),
+                          name: name,
+                          colorHex: selectedColor,
+                        ).copyWith(scopes: scopes);
+                        _saveFromDialog(
+                          dialogContext,
+                          setSaving: (v) => setDialogState(() => saving = v),
+                          setFailed: (v) => setDialogState(() => failed = v),
+                          save: () async {
+                            await ref
+                                .read(tagListNotifierProvider.notifier)
+                                .addTag(newTag);
+                            return true;
+                          },
+                        );
+                      },
+                child: Text(context.l10n.common_action_save),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(context.l10n.common_action_cancel),
-            ),
-            TextButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  final newTag = Tag.create(
-                    id: _uuid.v4(),
-                    name: name,
-                    colorHex: selectedColor,
-                  );
-                  ref.read(tagListNotifierProvider.notifier).addTag(newTag);
-                  Navigator.pop(dialogContext);
-                }
-              },
-              child: Text(context.l10n.common_action_save),
-            ),
-          ],
         ),
       ),
     );
   }
 
-  void _showEditDialog(Tag tag) {
+  void _showEditDialog(TagStatistic stat) {
+    final tag = stat.tag;
     final controller = TextEditingController(text: tag.name);
     String selectedColor = tag.colorHex ?? TagColors.predefined.first;
+    Set<TagScope> scopes = tag.scopes;
+    bool saving = false;
+    bool failed = false;
 
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(context.l10n.tags_manage_editTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.tags_manage_nameLabel,
-                  border: const OutlineInputBorder(),
-                ),
+        builder: (dialogContext, setDialogState) => PopScope(
+          // See _showCreateDialog: no dismissal while a save is in flight.
+          canPop: !saving,
+          child: AlertDialog(
+            title: Text(context.l10n.tags_manage_editTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.tags_manage_nameLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(context.l10n.tags_manage_colorLabel),
+                  const SizedBox(height: 8),
+                  TagColorPicker(
+                    selectedColor: selectedColor,
+                    onColorSelected: (color) =>
+                        setDialogState(() => selectedColor = color),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._scopeEditor(
+                    scopes: scopes,
+                    // Applied to the dialog's current set, never replaced
+                    // in place, so a Save already under way keeps its own.
+                    onToggle: (scope, on) => setDialogState(
+                      () => scopes = on
+                          ? scopes.union({scope})
+                          : scopes.difference({scope}),
+                    ),
+                  ),
+                  if (failed) _saveErrorLine(),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(context.l10n.tags_manage_colorLabel),
-              const SizedBox(height: 8),
-              TagColorPicker(
-                selectedColor: selectedColor,
-                onColorSelected: (color) =>
-                    setDialogState(() => selectedColor = color),
+            ),
+            // Delete sits apart on the leading edge, away from Save (#1889).
+            // Before this it was reachable only through selection mode.
+            actionsAlignment: MainAxisAlignment.spaceBetween,
+            actions: [
+              TextButton(
+                key: const ValueKey('tag_edit_delete'),
+                // Disabled with Cancel while a save is in flight. Otherwise
+                // onPressed cannot await, so the flow carries its own
+                // listener, as the selection bar's dispatch does.
+                onPressed: saving
+                    ? null
+                    : () => logFailure(
+                        _deleteFromEditor(dialogContext, stat),
+                        TagManagePage,
+                        'delete a tag from its edit dialog',
+                      ),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text(context.l10n.common_action_delete),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: saving
+                        ? null
+                        : () => Navigator.pop(dialogContext),
+                    child: Text(context.l10n.common_action_cancel),
+                  ),
+                  TextButton(
+                    onPressed: saving
+                        ? null
+                        : () {
+                            // See _showCreateDialog: guards a same-frame second tap.
+                            if (saving) return;
+                            // Taken now, so the write matches what the narrowing
+                            // confirmation described even if the controls change
+                            // while the usage read is in flight.
+                            final name = controller.text.trim();
+                            final color = selectedColor;
+                            // The editor replaces the set on every tick and
+                            // never modifies it, so this reference is safe.
+                            final chosen = scopes;
+                            if (name.isEmpty || chosen.isEmpty) return;
+                            _saveFromDialog(
+                              dialogContext,
+                              setSaving: (v) =>
+                                  setDialogState(() => saving = v),
+                              setFailed: (v) =>
+                                  setDialogState(() => failed = v),
+                              save: () async {
+                                final confirmed = await _confirmNarrowing(
+                                  tag,
+                                  scopes: chosen,
+                                );
+                                if (!confirmed) return false;
+                                await ref
+                                    .read(tagListNotifierProvider.notifier)
+                                    .updateTag(
+                                      tag.copyWith(
+                                        name: name,
+                                        colorHex: color,
+                                        updatedAt: DateTime.now(),
+                                        scopes: chosen,
+                                      ),
+                                    );
+                                // Site cards and the site filter read tags too.
+                                ref.invalidate(sitesWithCountsProvider);
+                                return true;
+                              },
+                            );
+                          },
+                    child: Text(context.l10n.common_action_save),
+                  ),
+                ],
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(context.l10n.common_action_cancel),
-            ),
-            TextButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  ref
-                      .read(tagListNotifierProvider.notifier)
-                      .updateTag(
-                        tag.copyWith(
-                          name: name,
-                          colorHex: selectedColor,
-                          updatedAt: DateTime.now(),
-                        ),
-                      );
-                  Navigator.pop(dialogContext);
-                }
-              },
-              child: Text(context.l10n.common_action_save),
-            ),
-          ],
         ),
       ),
     );
+  }
+
+  /// Deletes [stat]'s tag from its edit dialog, once the diver confirms.
+  ///
+  /// The confirmation stacks over the editor, so cancelling it returns there
+  /// with any unsaved edits intact.
+  Future<void> _deleteFromEditor(
+    BuildContext dialogContext,
+    TagStatistic stat,
+  ) async {
+    if (!await _confirmDeleteTag(dialogContext, stat)) return;
+    if (!dialogContext.mounted) return;
+    Navigator.pop(dialogContext);
+    await ref.read(tagListNotifierProvider.notifier).deleteTag(stat.tag.id);
+  }
+
+  /// Runs a tag dialog's [save], closing the dialog only once it lands.
+  ///
+  /// [save] returns false when it chose not to write (the diver declined the
+  /// narrowing confirmation), which leaves the dialog open without an error.
+  /// A failure is logged and flagged through [setFailed], and the dialog
+  /// stays open with its edits so the diver can retry (#1907). [setSaving]
+  /// disables the dialog's buttons meanwhile, so a second tap cannot start a
+  /// second write. A new attempt clears the previous failure.
+  ///
+  /// Every failure is caught here, so the Future a button drops cannot reach
+  /// the zone unattributed.
+  Future<void> _saveFromDialog(
+    BuildContext dialogContext, {
+    required ValueChanged<bool> setSaving,
+    required ValueChanged<bool> setFailed,
+    required Future<bool> Function() save,
+  }) async {
+    setFailed(false);
+    setSaving(true);
+    try {
+      if (await save() && dialogContext.mounted) {
+        Navigator.pop(dialogContext);
+      }
+    } catch (e, stackTrace) {
+      _log.error('Failed to save a tag', error: e, stackTrace: stackTrace);
+      if (dialogContext.mounted) setFailed(true);
+    } finally {
+      if (dialogContext.mounted) setSaving(false);
+    }
+  }
+
+  /// The failed-save line, shown in the dialog itself: a page SnackBar would
+  /// render under the dialog's barrier, dimmed and out of reach (#1907). A
+  /// live region, so a screen reader announces it.
+  Widget _saveErrorLine() => Padding(
+    padding: const EdgeInsets.only(top: 8),
+    child: Semantics(
+      liveRegion: true,
+      child: Text(
+        context.l10n.common_error_tryAgain,
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
+      ),
+    ),
+  );
+
+  /// One "Use for ..." checkbox per scope in the registry (issues #1765,
+  /// #1942), with an error line while none is ticked. [onToggle] reports one
+  /// scope ticked or unticked; the caller applies it to its current set, so
+  /// two taps before a rebuild each keep their change.
+  List<Widget> _scopeEditor({
+    required Set<TagScope> scopes,
+    required void Function(TagScope scope, bool on) onToggle,
+  }) {
+    final l10n = context.l10n;
+    return [
+      for (final scope in TagScope.values)
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(tagScopeUseForLabel(l10n, scope)),
+          value: scopes.contains(scope),
+          onChanged: (v) => onToggle(scope, v ?? false),
+        ),
+      if (scopes.isEmpty)
+        Text(
+          l10n.tags_manage_scopeRequired,
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+    ];
+  }
+
+  /// Turning off a scope removes the tag from every item of that scope
+  /// carrying it (the repository does that so a link always implies its
+  /// scope). Asks first when that would remove anything; true to go ahead.
+  Future<bool> _confirmNarrowing(
+    Tag tag, {
+    required Set<TagScope> scopes,
+  }) async {
+    final dropping = [
+      for (final scope in TagScope.values)
+        if (tag.appliesTo(scope) && !scopes.contains(scope)) scope,
+    ];
+    if (dropping.isEmpty) return true;
+
+    final l10n = context.l10n;
+    final usage = await ref.read(tagRepositoryProvider).getTagUsage(tag.id);
+    final messages = [
+      for (final scope in dropping)
+        if ((usage[scope] ?? 0) > 0)
+          tagScopeNarrowLine(l10n, scope, usage[scope]!),
+    ];
+    if (messages.isEmpty || !mounted) return true;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.tags_manage_narrowDialog_title),
+        content: Text(messages.join('\n\n')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(dialogContext.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(dialogContext.l10n.tags_manage_narrowDialog_confirm),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
   }
 
   // -- Selection mode --
@@ -412,36 +657,16 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     if (_selectedIds.length == 1) {
       final tagId = _selectedIds.first;
       final stat = stats.firstWhere((s) => s.tag.id == tagId);
-      final count = stat.diveCount;
 
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(ctx.l10n.tags_manage_deleteTitle),
-          content: Text(
-            ctx.l10n.tags_manage_deleteMessage(stat.tag.name, count),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(ctx.l10n.common_action_cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(ctx.l10n.common_action_delete),
-            ),
-          ],
-        ),
-      );
-
-      if (confirmed != true) return BulkActionOutcome.cancelled;
+      if (!await _confirmDeleteTag(context, stat)) {
+        return BulkActionOutcome.cancelled;
+      }
       await ref.read(tagListNotifierProvider.notifier).deleteTag(tagId);
       return BulkActionOutcome.completed;
     } else {
-      final totalDives = await repository.getMergedDiveCount(
-        _selectedIds.toList(),
-      );
+      // A union across the selection, sites included (#1902): an item
+      // carrying two of the tags loses both but counts once.
+      final usage = await repository.getMergedUsage(_selectedIds.toList());
 
       if (!context.mounted) return BulkActionOutcome.cancelled;
       final confirmed = await showDialog<bool>(
@@ -450,7 +675,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           title: Text(
             ctx.l10n.tags_manage_bulkDeleteTitle(_selectedIds.length),
           ),
-          content: Text(ctx.l10n.tags_manage_bulkDeleteMessage(totalDives)),
+          content: Text(tagsBulkDeleteMessage(ctx.l10n, usage)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -471,6 +696,36 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           .deleteTags(_selectedIds.toList());
       return BulkActionOutcome.completed;
     }
+  }
+
+  /// Asks before deleting one tag, naming it and the dives and sites it will
+  /// leave (#1902).
+  ///
+  /// Shared by the selection bar and the edit dialog so the two delete paths
+  /// cannot drift apart.
+  Future<bool> _confirmDeleteTag(
+    BuildContext context,
+    TagStatistic stat,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.tags_manage_deleteTitle),
+        content: Text(tagDeleteMessage(ctx.l10n, stat.tag.name, stat.counts)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ctx.l10n.common_action_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(ctx.l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 
   Future<BulkActionOutcome> _showMergeSheet(BuildContext context) async {

@@ -87,8 +87,9 @@ import 'package:submersion/features/weight_presets/presentation/providers/weight
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/weight_preset_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_change_summary.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_bulk_membership_labels.dart';
+import 'package:submersion/shared/bulk_edit/bulk_change_summary.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autofill.dart';
@@ -1390,6 +1391,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildBulkCollectionsSection(UnitFormatter units) {
     final l10n = context.l10n;
+    final total = widget.bulkDiveIds!.length;
+    final labels = diveBulkMembershipLabels(l10n);
     const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
     return FormSection(
       label: context.l10n.diveLog_bulkEdit_groupCollections,
@@ -1398,7 +1401,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       children: [
         BulkMembershipEditor(
           title: l10n.diveLog_edit_section_tags,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _tagMembers,
           counts: _tagCounts,
           onAdd: _bulkAddTags,
@@ -1406,7 +1410,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_label_diveTypes,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _diveTypeMembers,
           counts: _diveTypeCounts,
           onAdd: _bulkAddDiveTypes,
@@ -1414,7 +1419,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_section_equipment,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _equipmentMembers,
           counts: _equipmentCounts,
           onAdd: _bulkAddEquipment,
@@ -1430,7 +1436,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
-          totalDives: widget.bulkDiveIds!.length,
+          total: total,
+          labels: labels,
           items: _buddyMembers,
           counts: _buddyCounts,
           onAdd: _bulkAddBuddies,
@@ -1985,7 +1992,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     if (changes.isNotEmpty)
                       BulkChangeSummary(
                         sections: changes,
-                        totalDives: ids.length,
+                        addingHeading: l10n.diveLog_bulkEdit_confirmAdding(
+                          ids.length,
+                        ),
+                        removingHeading: l10n.diveLog_bulkEdit_confirmRemoving(
+                          ids.length,
+                        ),
                       ),
                     if (skipped > 0)
                       Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped)),
@@ -2697,46 +2709,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   /// Opens the previously-used-tag picker (#1171) over [selected], so tagging
-  /// stays consistent without having to recall earlier spellings. Reports the
-  /// merged list (existing plus newly picked) through [onPicked].
-  ///
-  /// [host] is the context the sheet is pushed from, so it decides which
-  /// navigator owns the picker. It defaults to the page, which is right when
-  /// Browse sits on the form itself. A caller whose Browse action lives inside
-  /// a dialog must pass that dialog's context instead: `showDialog` defaults
-  /// to the root navigator while `showModalBottomSheet` defaults to the
-  /// nearest one, which under the app's `ShellRoute` is the shell navigator
-  /// sitting *below* the dialog. Pushed from the page, the picker would open
-  /// behind the dialog with the dialog's barrier eating every tap (#1366).
+  /// stays consistent without having to recall earlier spellings. See
+  /// [showTagPickerSheet] for when to pass [host].
   void _showTagPickerFor({
     required List<Tag> selected,
     required ValueChanged<List<Tag>> onPicked,
     BuildContext? host,
-  }) {
-    showModalBottomSheet<void>(
-      context: host ?? context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, scrollController) => TagPickerSheet(
-          scrollController: scrollController,
-          selectedTagIds: selected.map((t) => t.id).toSet(),
-          onTagsPicked: (tags) {
-            // The sheet already excludes selected tags, but guard anyway so a
-            // stale list can never produce a duplicate chip.
-            final additions = tags.where(
-              (tag) => !selected.any((t) => t.id == tag.id),
-            );
-            if (additions.isNotEmpty) onPicked([...selected, ...additions]);
-            Navigator.of(sheetContext).pop();
-          },
-        ),
-      ),
-    );
-  }
+  }) => showTagPickerSheet(
+    context,
+    selected: selected,
+    onPicked: onPicked,
+    host: host,
+  );
 
   void _showTagPicker() => _showTagPickerFor(
     selected: _selectedTags,

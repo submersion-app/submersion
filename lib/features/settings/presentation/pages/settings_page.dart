@@ -48,6 +48,7 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
@@ -2445,6 +2446,16 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.category),
+                  title: Text(context.l10n.settings_manage_siteTypes),
+                  subtitle: Text(
+                    context.l10n.settings_manage_siteTypes_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/site-types'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.groups),
                   title: Text(context.l10n.settings_manage_diveRoles),
                   subtitle: Text(
@@ -2923,6 +2934,22 @@ class _DataSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.group_add),
+                  title: Text(context.l10n.buddies_linkText_page_title),
+                  subtitle: Text(context.l10n.buddies_linkText_page_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/link-buddy-names'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.category),
+                  title: Text(context.l10n.equipment_retypeOther_title),
+                  subtitle: Text(context.l10n.equipment_retypeOther_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/retype-other-gear'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.rule),
                   title: Text(context.l10n.dataQuality_settings_title),
                   subtitle: Text(context.l10n.dataQuality_settings_subtitle),
@@ -3325,16 +3352,8 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                   title: Text(context.l10n.settings_about_reportIssue),
                   onTap: () => launchReportIssue(context),
                 ),
-                const Divider(height: 1),
-                // CC-BY attribution for the seascape's bathymetry sources.
-                ListTile(
-                  leading: const Icon(Icons.water),
-                  title: Text(
-                    context.l10n.settings_about_bathymetryCredit,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  dense: true,
-                ),
+                // The CC BY bathymetry credit lives on the license page
+                // (BathymetryAttribution), not in this card.
               ],
             ),
           ),
@@ -3345,6 +3364,13 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
             const SizedBox(height: 8),
             _buildUpdatesCard(context),
           ],
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_diagnostics_header,
+          ),
+          const SizedBox(height: 8),
+          const DiagnosticsCard(),
           const SizedBox(height: 24),
           // App info card
           Center(

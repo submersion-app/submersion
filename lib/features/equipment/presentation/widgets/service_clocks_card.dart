@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -26,15 +27,6 @@ class ServiceClocksCard extends ConsumerWidget {
     required this.equipmentType,
     this.onLogService,
   });
-
-  Color _dotColor(BuildContext context, ServiceClockSeverity severity) {
-    final scheme = Theme.of(context).colorScheme;
-    return switch (severity) {
-      ServiceClockSeverity.overdue => scheme.error,
-      ServiceClockSeverity.dueSoon => scheme.tertiary,
-      ServiceClockSeverity.ok => scheme.surfaceContainerHighest,
-    };
-  }
 
   String _triggerText(
     BuildContext context,
@@ -130,7 +122,10 @@ class ServiceClocksCard extends ConsumerWidget {
                         leading: Icon(
                           Icons.circle,
                           size: 14,
-                          color: _dotColor(context, status.severity),
+                          color: serviceSeverityDotColor(
+                            context,
+                            status.severity,
+                          ),
                         ),
                         title: Text(status.kind.name),
                         subtitle: Column(

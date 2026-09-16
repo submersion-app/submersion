@@ -16,6 +16,7 @@ void main() {
     test('constructs with all parameters', () {
       const warning = ImportWarning(
         severity: ImportWarningSeverity.info,
+        code: ImportWarningCode.diagnostic,
         message: 'Test warning',
       );
       const payload = CorrelatedPayload(
@@ -84,6 +85,7 @@ void main() {
     test('toImportPayload converts to ImportPayload', () {
       const warning = ImportWarning(
         severity: ImportWarningSeverity.warning,
+        code: ImportWarningCode.diagnostic,
         message: 'Duplicate detected',
       );
       const payload = CorrelatedPayload(
@@ -133,6 +135,7 @@ void main() {
     test('props includes all fields', () {
       const warning = ImportWarning(
         severity: ImportWarningSeverity.info,
+        code: ImportWarningCode.diagnostic,
         message: 'test',
       );
       const payload = CorrelatedPayload(

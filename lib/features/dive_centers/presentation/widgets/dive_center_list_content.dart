@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/compact_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dense_dive_center_list_tile.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
@@ -361,11 +362,19 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     final ids = _selectedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
+    final usage = await readDiveCenterDeleteUsage(ref, ids);
+    if (!mounted) return BulkActionOutcome.cancelled;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
-        content: Text(ctx.l10n.common_bulkDelete_body),
+        content: Text(
+          withDiveCenterDeleteUsage(
+            ctx.l10n,
+            ctx.l10n.common_bulkDelete_body,
+            usage,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),

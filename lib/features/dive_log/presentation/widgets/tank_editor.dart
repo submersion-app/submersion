@@ -68,6 +68,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// picks one or a preset prefills it from the last pairing.
   String? _regulatorEquipmentId;
 
+  /// The last O2/He value each field actually parsed to, tracked separately
+  /// from [widget.tank]: `_notifyChange` fires on every keystroke, so a
+  /// diver clearing a field to retype it round-trips a blank-default 0.0
+  /// through the parent and back into `widget.tank.gasMix` before they
+  /// finish typing. Falling back to that value for a following invalid
+  /// keystroke would still turn a mistyped trimix into air; falling back to
+  /// these instead means the fallback is always something the diver
+  /// actually typed, not a transient intermediate state (#1900 review).
+  late double _lastValidO2;
+  late double _lastValidHe;
+
   @override
   void initState() {
     super.initState();
@@ -139,6 +150,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _heController = TextEditingController(
       text: formatDecimalForInput(widget.tank.gasMix.he),
     );
+    _lastValidO2 = widget.tank.gasMix.o2;
+    _lastValidHe = widget.tank.gasMix.he;
     _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
@@ -282,6 +295,30 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     builder: (_) => _PresetNameDialog(initialName: widget.tank.name),
   );
 
+  /// The gas mix implied by the O2/He fields right now.
+  ///
+  /// Blank text means "not set" and defaults to air, same as before. Text
+  /// that fails to parse (a diver typing "." where the locale expects ",",
+  /// say) is NOT the same as blank: falling back to the same 21/0 default
+  /// would silently turn a mistyped trimix into air. Falling back to
+  /// [_lastValidO2]/[_lastValidHe] instead means a typo shows the
+  /// validator's error without corrupting the stored gas the moment it
+  /// fires (#1900) -- deliberately NOT `widget.tank.gasMix`, which
+  /// `_notifyChange` overwrites on every keystroke including a blank
+  /// intermediate one, so clearing a field to retype it would otherwise
+  /// round-trip a stale 0.0 back in as the "last known good" value.
+  GasMix _currentGasMix() {
+    final o2Text = _o2Controller.text;
+    final heText = _heController.text;
+    final o2 =
+        parseUserDecimal(o2Text) ??
+        (o2Text.trim().isEmpty ? 21.0 : _lastValidO2);
+    final he =
+        parseUserDecimal(heText) ??
+        (heText.trim().isEmpty ? 0.0 : _lastValidHe);
+    return GasMix(o2: o2, he: he);
+  }
+
   void _notifyChange() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
@@ -304,10 +341,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         endPressure: endPressureDisplay != null
             ? units.pressureToBar(endPressureDisplay)
             : null,
-        gasMix: GasMix(
-          o2: parseUserDecimal(_o2Controller.text) ?? 21.0,
-          he: parseUserDecimal(_heController.text) ?? 0.0,
-        ),
+        gasMix: _currentGasMix(),
         role: _role,
         material: _material,
         order: widget.tank.order,
@@ -326,10 +360,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
-    final gasMix = GasMix(
-      o2: parseUserDecimal(_o2Controller.text) ?? 21.0,
-      he: parseUserDecimal(_heController.text) ?? 0.0,
-    );
+    final gasMix = _currentGasMix();
 
     return Card(
       child: Padding(
@@ -683,8 +714,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                onChanged: (_) {
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateGasPercent,
+                onChanged: (value) {
                   _mndDriven = false;
+                  final parsed = parseUserDecimal(value);
+                  if (parsed != null) _lastValidO2 = parsed;
                   setState(() {});
                   _notifyChange();
                 },
@@ -702,8 +737,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                onChanged: (_) {
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateGasPercent,
+                onChanged: (value) {
                   _mndDriven = false;
+                  final parsed = parseUserDecimal(value);
+                  if (parsed != null) _lastValidHe = parsed;
                   setState(() {});
                   _notifyChange();
                 },
@@ -718,12 +757,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   suffixText: '%',
                   isDense: true,
                 ),
-                child: Text(
-                  GasMix(
-                    o2: parseUserDecimal(_o2Controller.text) ?? 21.0,
-                    he: parseUserDecimal(_heController.text) ?? 0.0,
-                  ).n2.toStringAsFixed(0),
-                ),
+                child: Text(_currentGasMix().n2.toStringAsFixed(0)),
               ),
             ),
           ],
@@ -732,10 +766,20 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
+  /// Empty is "not set" (fine, `_currentGasMix` defaults it); anything else
+  /// must parse (#1900) -- a mistyped percentage otherwise silently becomes
+  /// whatever the tank's last saved mix was, with no sign anything was wrong.
+  String? _validateGasPercent(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    return parseUserDecimal(value) == null
+        ? context.l10n.numberInput_invalidValue
+        : null;
+  }
+
   Widget _buildGasChip(GasTemplate template) {
-    final currentO2 = parseUserDecimal(_o2Controller.text) ?? 21.0;
-    final currentHe = parseUserDecimal(_heController.text) ?? 0.0;
-    final isSelected = currentO2 == template.o2 && currentHe == template.he;
+    final currentMix = _currentGasMix();
+    final isSelected =
+        currentMix.o2 == template.o2 && currentMix.he == template.he;
 
     return FilterChip(
       label: Text(template.localizedDisplayName(context.l10n)),
@@ -822,9 +866,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   endLimit: settings.endLimit,
                   o2Narcotic: settings.o2Narcotic,
                 );
-                _heController.text = formatDecimalForInput(
-                  newHe.roundToDouble(),
-                );
+                _lastValidHe = newHe.roundToDouble();
+                _heController.text = formatDecimalForInput(_lastValidHe);
                 setState(() {});
                 _notifyChange();
               } else {
@@ -954,6 +997,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     setState(() {
       _o2Controller.text = formatDecimalForInput(template.o2);
       _heController.text = formatDecimalForInput(template.he);
+      _lastValidO2 = template.o2;
+      _lastValidHe = template.he;
     });
     _notifyChange();
   }

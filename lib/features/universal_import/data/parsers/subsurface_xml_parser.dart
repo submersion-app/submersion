@@ -11,6 +11,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_folder.dart';
+import 'package:submersion/features/universal_import/data/services/suit_classifier.dart';
 
 /// Parser for Subsurface XML (.ssrf) dive log files.
 ///
@@ -92,6 +93,7 @@ class SubsurfaceXmlParser implements ImportParser {
       final trips = <Map<String, dynamic>>[];
       final allTags = <String, Map<String, dynamic>>{};
       final allBuddies = <String, Map<String, dynamic>>{};
+      final allSuits = <String, Map<String, dynamic>>{};
       final allMedia = <Map<String, dynamic>>[];
 
       // Process trip-wrapped dives
@@ -108,20 +110,17 @@ class SubsurfaceXmlParser implements ImportParser {
               diveData['tripRef'] = tripId;
               _collectTags(diveElement, diveData, allTags);
               _collectBuddies(diveElement, diveData, allBuddies);
+              _collectSuit(diveElement, diveData, allSuits);
               // dives.length is this dive's index, because the pictures are
               // collected before the dive is appended.
               _collectPictures(diveElement, dives.length, allMedia, warnings);
               dives.add(diveData);
               tripDives.add(diveData);
+            } else {
+              warnings.add(_skippedDive('no date'));
             }
           } catch (e) {
-            warnings.add(
-              ImportWarning(
-                severity: ImportWarningSeverity.warning,
-                message: 'Skipped dive: $e',
-                entityType: ImportEntityType.dives,
-              ),
-            );
+            warnings.add(_skippedDive(e));
           }
         }
 
@@ -144,17 +143,14 @@ class SubsurfaceXmlParser implements ImportParser {
           if (diveData != null) {
             _collectTags(diveElement, diveData, allTags);
             _collectBuddies(diveElement, diveData, allBuddies);
+            _collectSuit(diveElement, diveData, allSuits);
             _collectPictures(diveElement, dives.length, allMedia, warnings);
             dives.add(diveData);
+          } else {
+            warnings.add(_skippedDive('no date'));
           }
         } catch (e) {
-          warnings.add(
-            ImportWarning(
-              severity: ImportWarningSeverity.warning,
-              message: 'Skipped dive: $e',
-              entityType: ImportEntityType.dives,
-            ),
-          );
+          warnings.add(_skippedDive(e));
         }
       }
 
@@ -167,6 +163,9 @@ class SubsurfaceXmlParser implements ImportParser {
       if (allBuddies.isNotEmpty) {
         entities[ImportEntityType.buddies] = allBuddies.values.toList();
       }
+      if (allSuits.isNotEmpty) {
+        entities[ImportEntityType.equipment] = allSuits.values.toList();
+      }
     }
 
     return ImportPayload(
@@ -176,6 +175,17 @@ class SubsurfaceXmlParser implements ImportParser {
     );
   }
 
+  /// A dive left out of the import, counted by the summary's "dives could not
+  /// be read" notice.
+  static ImportWarning _skippedDive(Object reason) => ImportWarning(
+    severity: ImportWarningSeverity.warning,
+    code: ImportWarningCode.divesSkipped,
+    message: 'Skipped dive: $reason',
+    entityType: ImportEntityType.dives,
+  );
+
+  /// Returns null when the dive has no date, since it cannot be placed in the
+  /// log without one.
   Map<String, dynamic>? _parseDive(
     XmlElement dive, {
     Map<String, String> siteAliases = const {},
@@ -455,6 +465,31 @@ class SubsurfaceXmlParser implements ImportParser {
     }
   }
 
+  /// Turns a dive's `<suit>` into gear the dive wore when the text says
+  /// which suit it is (issue #1824), so it can reach the Suit Thickness
+  /// statistic. An unclear suit adds nothing and stays in the notes only,
+  /// as before; the notes line is kept either way (see [_parseDive]).
+  void _collectSuit(
+    XmlElement diveElement,
+    Map<String, dynamic> diveData,
+    Map<String, Map<String, dynamic>> allSuits,
+  ) {
+    final name = diveElement.findElements('suit').firstOrNull?.innerText.trim();
+    if (name == null || name.isEmpty) return;
+    final suit = classifySuit(name);
+    if (suit == null) return;
+    allSuits.putIfAbsent(
+      name,
+      () => {
+        'name': name,
+        'uddfId': name,
+        'type': suit.type.name,
+        'thickness': ?suit.thickness,
+      },
+    );
+    diveData['equipmentRefs'] = [name];
+  }
+
   void _collectTags(
     XmlElement diveElement,
     Map<String, dynamic> diveData,
@@ -493,6 +528,7 @@ class SubsurfaceXmlParser implements ImportParser {
         warnings.add(
           const ImportWarning(
             severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.photosSkipped,
             message: 'Skipped a photo with no filename',
             entityType: ImportEntityType.media,
           ),

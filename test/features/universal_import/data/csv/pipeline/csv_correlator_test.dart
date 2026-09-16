@@ -285,6 +285,118 @@ void main() {
       expect(tags, isNotEmpty);
     });
 
+    group('tagRefs', () {
+      const tagTypes = {ImportEntityType.dives, ImportEntityType.tags};
+
+      test('links each dive to the ids of its tags', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'tags': 'reef, training'},
+          {'dateTime': DateTime(2024, 6, 16, 9, 0), 'tags': 'reef'},
+          {'dateTime': DateTime(2024, 6, 17, 9, 0)},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(entityTypes: tagTypes),
+        );
+
+        final tagIdByName = {
+          for (final tag in result.entitiesOf(ImportEntityType.tags))
+            tag['name'] as String: tag['id'] as String,
+        };
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives[0]['tagRefs'], [
+          tagIdByName['reef'],
+          tagIdByName['training'],
+        ]);
+        expect(dives[1]['tagRefs'], [tagIdByName['reef']]);
+        expect(dives[2].containsKey('tagRefs'), isFalse);
+      });
+
+      test('links a tag repeated within one dive once', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'tags': 'reef, reef'},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(entityTypes: tagTypes),
+        );
+
+        final tag = result.entitiesOf(ImportEntityType.tags).single;
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['tagRefs'], [tag['id']]);
+      });
+
+      test('are not attached when tags are not imported', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'tags': 'reef'},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('tagRefs'), isFalse);
+      });
+    });
+
+    group('suit', () {
+      test('is appended to the dive notes', () {
+        final rows = makeRows([
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'notes': 'Saw a turtle',
+            'suit': '7mm Wetsuit',
+          },
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['notes'], 'Saw a turtle\nSuit: 7mm Wetsuit');
+      });
+
+      test('becomes the notes of a dive with none', () {
+        final rows = makeRows([
+          {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': ' Drysuit '},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['notes'], 'Suit: Drysuit');
+      });
+
+      test('leaves the notes alone when blank', () {
+        final rows = makeRows([
+          {
+            'dateTime': DateTime(2024, 6, 15, 9, 0),
+            'notes': 'Saw a turtle',
+            'suit': '  ',
+          },
+          {'dateTime': DateTime(2024, 6, 16, 9, 0), 'suit': ''},
+        ]);
+
+        final result = correlator.correlate(
+          diveListRows: rows,
+          config: makeConfig(),
+        );
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives[0]['notes'], 'Saw a turtle');
+        expect(dives[1].containsKey('notes'), isFalse);
+      });
+    });
+
     test('extracts gear when in entityTypesToImport', () {
       final rows = makeRows([
         {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},
@@ -300,6 +412,62 @@ void main() {
       final gear = result.entitiesOf(ImportEntityType.equipment);
       expect(gear, isNotEmpty);
       expect(gear[0]['name'], equals('7mm Wetsuit'));
+    });
+
+    test('links each dive to the suit on its own row (#1824)', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},
+        {'dateTime': DateTime(2024, 6, 16, 9, 0), 'suit': 'Drysuit'},
+        {'dateTime': DateTime(2024, 6, 17, 9, 0), 'suit': '  7mm Wetsuit '},
+        {'dateTime': DateTime(2024, 6, 18, 9, 0)},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(
+          entityTypes: {ImportEntityType.dives, ImportEntityType.equipment},
+        ),
+      );
+
+      final gear = result.entitiesOf(ImportEntityType.equipment);
+      final refByName = {for (final g in gear) g['name']: g['uddfId']};
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['equipmentRefs'], [refByName['7mm Wetsuit']]);
+      expect(dives[1]['equipmentRefs'], [refByName['Drysuit']]);
+      expect(dives[2]['equipmentRefs'], [refByName['7mm Wetsuit']]);
+      expect(dives[3].containsKey('equipmentRefs'), isFalse);
+    });
+
+    test('an unclear suit is kept in the notes with no gear or link', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': 'Full suit'},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(
+          entityTypes: {ImportEntityType.dives, ImportEntityType.equipment},
+        ),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.equipment), isEmpty);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive.containsKey('equipmentRefs'), isFalse);
+      expect(dive['notes'], 'Suit: Full suit');
+    });
+
+    test('does not link suits when equipment is not imported', () {
+      final rows = makeRows([
+        {'dateTime': DateTime(2024, 6, 15, 9, 0), 'suit': '7mm Wetsuit'},
+      ]);
+
+      final result = correlator.correlate(
+        diveListRows: rows,
+        config: makeConfig(),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive.containsKey('equipmentRefs'), isFalse);
     });
 
     group('_attachBuddyRefs', () {

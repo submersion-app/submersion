@@ -909,6 +909,151 @@
   "buddies_label_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "buddies_label_level": "Level",
   "buddies_label_notSpecified": "Not specified",
+  "buddies_linkText_action": "Link to buddy records",
+  "buddies_linkText_addName": "Add a name",
+  "buddies_linkText_chipWithRole": "{name} · {role}",
+  "@buddies_linkText_chipWithRole": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_chooseExisting": "Choose existing buddy",
+  "buddies_linkText_editName": "Edit name",
+  "buddies_linkText_error": "Could not link buddies: {error}",
+  "@buddies_linkText_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_linkCount": "{count, plural, =1{Link 1} other{Link {count}}}",
+  "@buddies_linkText_linkCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_linkedSnackbar": "{count, plural, =1{Linked 1 buddy} other{Linked {count} buddies}}",
+  "@buddies_linkText_linkedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_nameLabel": "Name",
+  "buddies_linkText_newBuddyNote": "Converted from dive buddy text",
+  "@buddies_linkText_newBuddyNote": {
+    "description": "Notes stored on a buddy created from a dive's legacy buddy text"
+  },
+  "buddies_linkText_noBuddiesFound": "No buddies found",
+  "buddies_linkText_page_diveNumber": "#{number}",
+  "@buddies_linkText_page_diveNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_empty": "Every buddy name is linked to a buddy record",
+  "buddies_linkText_page_errorLoading": "Could not load dives: {error}",
+  "@buddies_linkText_page_errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_page_linkDives": "{count, plural, =1{Link 1 dive} other{Link {count} dives}}",
+  "@buddies_linkText_page_linkDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_linkedSnackbar": "{count, plural, =1{Linked buddies on 1 dive} other{Linked buddies on {count} dives}}",
+  "@buddies_linkText_page_linkedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_subtitle": "Turn buddy names on imported dives into buddy records",
+  "buddies_linkText_page_summaryDives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@buddies_linkText_page_summaryDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_summaryExisting": "{count, plural, =1{1 existing buddy} other{{count} existing buddies}}",
+  "@buddies_linkText_page_summaryExisting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_summaryNew": "{count, plural, =1{1 new buddy} other{{count} new buddies}}",
+  "@buddies_linkText_page_summaryNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_linkText_page_title": "Link buddy names",
+  "buddies_linkText_searchHint": "Search buddies",
+  "buddies_linkText_sheetTitle": "Link buddy records",
+  "buddies_linkText_sourceBuddy": "From \"{text}\"",
+  "@buddies_linkText_sourceBuddy": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_sourceDiveMaster": "Dive master \"{text}\"",
+  "@buddies_linkText_sourceDiveMaster": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_statusExisting": "Existing buddy",
+  "buddies_linkText_statusNew": "New buddy",
+  "buddies_linkText_suggestion": "Did you mean {name}?",
+  "@buddies_linkText_suggestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_tie": "{count, plural, =1{1 buddy named {name}} other{{count} buddies named {name}}}",
+  "@buddies_linkText_tie": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkText_undone": "Buddy links removed",
+  "buddies_linkText_useSuggestion": "Use",
   "buddies_message_added": "Buddy added successfully",
   "buddies_message_contactImportUnavailable": "Contact import is not available on this platform",
   "buddies_message_contactLoadFailed": "Failed to load contacts",
@@ -1282,6 +1427,7 @@
   "certifications_wallet_options_share": "Share",
   "certifications_wallet_options_viewDetails": "View Details",
   "certifications_wallet_tooltip_add": "Add certification",
+  "certifications_wallet_tooltip_moreOptions": "More options",
   "certifications_wallet_tooltip_share": "Share certification",
   "@certifications_detail_dialog_deleteContent": {
     "placeholders": {
@@ -2588,6 +2734,7 @@
   "diveCenters_detail_divesLogged": "{count, plural, =1{1 dive logged} other{{count} dives logged}}",
   "diveCenters_detail_divesWithCenter": "Dives with this Center",
   "diveCenters_detail_noDivesLogged": "No dives logged yet",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 dive will be left without a dive center.} other{{count} dives will be left without a dive center.}}",
   "diveCenters_dialog_deleteMessage": "Are you sure you want to delete \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "Delete Dive Center",
   "diveCenters_dialog_discard": "Discard",
@@ -2717,6 +2864,13 @@
     }
   },
   "@diveCenters_detail_divesLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveCenters_dialog_deleteDivesKept": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -3672,6 +3826,13 @@
   "@diveSites_edit_group_location": {
     "description": "Site form group: GPS and altitude"
   },
+  "diveSites_edit_group_typeTags": "Type & Tags",
+  "@diveSites_edit_group_typeTags": {
+    "description": "Site form group: the site's types (reef, wreck, lake...) and its tags"
+  },
+  "diveSites_edit_typeTags_manageTypes": "Manage types",
+  "diveSites_edit_typeTags_tagsLabel": "Tags",
+  "diveSites_edit_typeTags_typesLabel": "Site types",
   "diveSites_edit_invite_accessSafety": "Add access, parking, mooring or hazards",
   "@diveSites_edit_invite_accessSafety": {
     "description": "Empty-state invitation for the Access & safety group"
@@ -3886,6 +4047,68 @@
       }
     }
   },
+  "siteTypes_addTooltip": "Add Site Type",
+  "siteTypes_builtIn": "Built-in",
+  "siteTypes_custom": "Custom",
+  "siteTypes_deleteDialog_content": "Delete \"{name}\"?",
+  "@siteTypes_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "siteTypes_deleteDialog_inUse": "{count, plural, =1{\"{name}\" is used by 1 site. Deleting it removes it from that site.} other{\"{name}\" is used by {count} sites. Deleting it removes it from those sites.}}",
+  "@siteTypes_deleteDialog_inUse": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "siteTypes_deleteDialog_title": "Delete Site Type?",
+  "siteTypes_deleteTooltip": "Delete site type",
+  "siteTypes_dialog_addTitle": "Add Site Type",
+  "siteTypes_dialog_editTitle": "Edit Site Type",
+  "siteTypes_dialog_nameLabel": "Name",
+  "siteTypes_dialog_nameRequired": "Please enter a name",
+  "siteTypes_editTooltip": "Edit site type",
+  "siteTypes_siteCount": "{count, plural, =0{No sites} =1{1 site} other{{count} sites}}",
+  "@siteTypes_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "siteTypes_snackbar_error": "Could not save the site type: {error}",
+  "@siteTypes_snackbar_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "siteTypes_title": "Site Types",
+  "siteType_builtin_artificial_reef": "Artificial reef",
+  "siteType_builtin_blue_hole": "Blue hole",
+  "siteType_builtin_cave": "Cave",
+  "siteType_builtin_cavern": "Cavern",
+  "siteType_builtin_cenote": "Cenote",
+  "siteType_builtin_kelp_forest": "Kelp forest",
+  "siteType_builtin_lake": "Lake",
+  "siteType_builtin_muck": "Muck",
+  "siteType_builtin_pier": "Pier / jetty",
+  "siteType_builtin_pool": "Pool",
+  "siteType_builtin_quarry": "Quarry",
+  "siteType_builtin_reef": "Reef",
+  "siteType_builtin_river": "River",
+  "siteType_builtin_spring": "Spring",
+  "siteType_builtin_wall": "Wall",
+  "siteType_builtin_wreck": "Wreck",
   "siteMatchReview_sourcePhoto": "from photo",
   "siteMatchReview_sourceDiveComputer": "from dive computer",
   "siteMatchReview_currentSiteCard": "Add location to this site",
@@ -5003,6 +5226,9 @@
     }
   },
   "divePlanner_hint_tankName": "Enter tank name",
+  "divePlanner_label_airBreaks": "Air breaks",
+  "divePlanner_label_airBreaksBreak": "Break (min)",
+  "divePlanner_label_airBreaksOnO2": "On O2 (min)",
   "divePlanner_label_altitude": "Altitude:",
   "divePlanner_label_belowMinReserve": "Below Min Reserve",
   "divePlanner_label_ceiling": "Ceiling",
@@ -5017,13 +5243,23 @@
   "divePlanner_label_gfHigh": "GF High",
   "divePlanner_label_gfLow": "GF Low",
   "divePlanner_label_max": "Max",
+  "divePlanner_label_minutesUnit": "min",
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_remaining": "Remaining",
-  "divePlanner_label_reserve": "Reserve:",
+  "divePlanner_label_reserve": "Reserve",
   "divePlanner_label_runtime": "Runtime",
   "divePlanner_label_sacRate": "RMV:",
   "divePlanner_label_salinity": "Salinity",
+  "divePlanner_gasOptions_title": "Gas options",
+  "divePlanner_gasOptions_sacBottom": "Bottom RMV",
+  "divePlanner_gasOptions_sacDeco": "Deco RMV",
+  "divePlanner_gasOptions_sacFactor": "RMV factor",
+  "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
+  "divePlanner_gasOptions_ppO2Bottom": "Bottom ppO₂",
+  "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
+  "divePlanner_gasOptions_bestMixEnd": "Best mix END",
+  "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_status": "Status",
   "divePlanner_label_tanks": "Tanks",
   "divePlanner_savedTanks_title": "Saved tanks",
@@ -5081,6 +5317,31 @@
   "divePlanner_warning_otuWarning": "OTU accumulation high",
   "divePlanner_warning_ppO2Critical": "ppO₂ of {value} bar exceeds critical limit",
   "divePlanner_warning_ppO2High": "ppO₂ of {value} bar exceeds working limit",
+  "diveSites_detail_showSitesWith": "Show sites with {name}",
+  "@diveSites_detail_showSitesWith": {
+    "description": "Tooltip on a site type or tag chip; tapping it opens the site list filtered to it",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{1 dive will be left without a site.} other{{count} dives will be left without a site.}}",
+  "@diveSites_deleteDialog_divesKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{1 saved plan will be left without a site.} other{{count} saved plans will be left without a site.}}",
+  "@diveSites_deleteDialog_plansKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_detail_access_accessNotes": "Access Notes",
   "diveSites_detail_access_mooring": "Mooring",
   "diveSites_detail_access_parking": "Parking",
@@ -5328,6 +5589,8 @@
   "diveSites_filter_section_location": "Location",
   "diveSites_filter_section_minRating": "Minimum Rating",
   "diveSites_filter_section_options": "Options",
+  "diveSites_filter_section_siteTypes": "Site type",
+  "diveSites_filter_section_tags": "Tags",
   "diveSites_filter_title": "Filter Sites",
   "diveSites_import_appBar_title": "Import Dive Site",
   "diveSites_import_badge_imported": "Imported",
@@ -5363,6 +5626,15 @@
   "diveSites_import_snackbar_imported": "Imported \"{name}\"",
   "diveSites_import_snackbar_viewAction": "View",
   "diveSites_list_activeFilter_clear": "Clear",
+  "diveSites_list_moreTags": "+{count}",
+  "@diveSites_list_moreTags": {
+    "description": "Chip on a site card standing in for the tags that did not fit",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_list_activeFilter_country": "Country: {country}",
   "diveSites_list_activeFilter_depthRangeBoth": "{min}-{max}",
   "diveSites_list_activeFilter_depthRangeMax": "Up to {max}",
@@ -6307,6 +6579,9 @@
   "enum_equipmentType_baselayer": "Base Layer",
   "enum_equipmentType_firstStage": "First Stage",
   "enum_equipmentType_harness": "Harness",
+  "enum_equipmentType_tankBand": "Tank Band",
+  "enum_equipmentType_weightPocket": "Weight Pocket",
+  "enum_equipmentType_gearPocket": "Gear Pocket",
   "enum_equipmentType_hose": "Hose",
   "enum_equipmentType_housing": "Housing",
   "enum_equipmentType_secondStage": "Second Stage",
@@ -6951,6 +7226,80 @@
   "equipment_menu_markAsServiced": "Mark as Serviced",
   "equipment_menu_reactivate": "Reactivate",
   "equipment_menu_retireEquipment": "Retire Equipment",
+  "equipment_retypeOther_apply": "{count, plural, =1{Retype 1 item} other{Retype {count} items}}",
+  "@equipment_retypeOther_apply": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_becomes": "Becomes {type}",
+  "@equipment_retypeOther_becomes": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_becomesWithThickness": "Becomes {type}, {thickness}",
+  "@equipment_retypeOther_becomesWithThickness": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "thickness": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_deselectAll": "Deselect all",
+  "equipment_retypeOther_empty": "No gear marked Other has a name that says what it is",
+  "equipment_retypeOther_errorLoading": "Could not load equipment: {error}",
+  "@equipment_retypeOther_errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_failedSnackbar": "{count, plural, =1{1 item could not be retyped} other{{count} items could not be retyped}}",
+  "@equipment_retypeOther_failedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_intro": "These items are marked Other, but their names say what they are. Untick any that are wrong.",
+  "equipment_retypeOther_retypedSnackbar": "{count, plural, =1{Retyped 1 item} other{Retyped {count} items}}",
+  "@equipment_retypeOther_retypedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_selectAll": "Select all",
+  "equipment_retypeOther_subtitle": "Give imported gear the type its name states",
+  "equipment_retypeOther_title": "Retype gear marked Other",
+  "equipment_retypeOther_undoFailed": "{count, plural, =1{1 item could not be put back} other{{count} items could not be put back}}",
+  "@equipment_retypeOther_undoFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 item changed since and was left as it is} other{{count} items changed since and were left as they are}}",
+  "@equipment_retypeOther_undoSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_undone": "Retype undone",
   "equipment_search_backTooltip": "Back",
   "equipment_search_clearTooltip": "Clear Search",
   "equipment_search_fieldLabel": "Search equipment...",
@@ -9436,6 +9785,18 @@
       }
     }
   },
+  "plannerCanvas_gas_usedReading": "used: {reading}",
+  "@plannerCanvas_gas_usedReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
+    }
+  },
+  "plannerCanvas_gas_endReading": "end: {reading}",
+  "@plannerCanvas_gas_endReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
+    }
+  },
   "plannerCanvas_issue_gasDensityCritical": "Gas density {value} g/L over hard limit",
   "@plannerCanvas_issue_gasDensityCritical": {
     "placeholders": {
@@ -9990,6 +10351,26 @@
   "diveDetailSection_customFields_description": "User-defined custom fields",
   "diveDetailSection_dataSources_name": "Data Sources",
   "diveDetailSection_dataSources_description": "Connected dive computers, source management",
+  "siteDetailSection_map_name": "Map",
+  "siteDetailSection_map_description": "Map preview of the site location",
+  "siteDetailSection_diveStatistics_description": "Dive count, depths reached, longest and latest dives",
+  "siteDetailSection_description_description": "Your description of the site",
+  "siteDetailSection_location_description": "Country, region, body of water, GPS coordinates",
+  "siteDetailSection_depth_description": "Rated depth range and depths reached on dives",
+  "siteDetailSection_altitude_description": "Altitude and altitude dive category",
+  "siteDetailSection_features_description": "Features marked on the site map",
+  "siteDetailSection_tide_description": "Tide cycle graph and timing",
+  "siteDetailSection_reefHealth_description": "Satellite water conditions at the site",
+  "siteDetailSection_marineLife_description": "Species seen at this site",
+  "siteDetailSection_media_description": "Photos, videos and documents for the site",
+  "siteDetailSection_tags_description": "Tags on this site",
+  "siteDetailSection_difficulty_description": "Difficulty level of the site",
+  "siteDetailSection_rating_description": "Your rating of the site",
+  "siteDetailSection_hazards_description": "Hazards and safety notes",
+  "siteDetailSection_access_description": "Entry and exit, parking, mooring, access notes",
+  "siteDetailSection_notes_description": "Your notes about the site",
+  "settings_siteDetailSections_title": "Site Detail Sections",
+  "settings_appearance_header_siteDetails": "Site Details",
   "settings_appearance_header_language": "Language",
   "settings_appearance_header_theme": "Color Theme",
   "settings_appearance_header_mode": "Mode",
@@ -10354,6 +10735,7 @@
   "settings_conflict_ref_serviceKind": "Service type",
   "settings_conflict_ref_sighting": "Sighting",
   "settings_conflict_ref_signer": "Signed by",
+  "settings_conflict_ref_siteType": "Site type",
   "settings_conflict_ref_sourceDive": "Source dive",
   "settings_conflict_ref_species": "Species",
   "settings_conflict_ref_tag": "Tag",
@@ -10560,6 +10942,8 @@
   "settings_manage_diveRoles_subtitle": "Manage custom dive roles",
   "settings_manage_diveTypes": "Dive Types",
   "settings_manage_diveTypes_subtitle": "Manage custom dive types",
+  "settings_manage_siteTypes": "Site Types",
+  "settings_manage_siteTypes_subtitle": "Built-in and custom dive site types",
   "settings_manage_header_manageData": "Manage Data",
   "settings_manage_species": "Species",
   "settings_manage_species_subtitle": "Manage the species catalog",
@@ -11400,6 +11784,17 @@
   "statistics_conditions_visibility_error": "Failed to load visibility data",
   "statistics_conditions_visibility_subtitle": "Dives by visibility condition",
   "statistics_conditions_visibility_title": "Visibility Distribution",
+  "statistics_conditions_siteType_error": "Failed to load site type data",
+  "statistics_conditions_siteType_semanticLabel": "Bar chart. Dives per site type. {description}",
+  "@statistics_conditions_siteType_semanticLabel": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "statistics_conditions_siteType_subtitle": "Dives per site type. A dive at a site with several types counts toward each; sites without a type are not shown.",
+  "statistics_conditions_siteType_title": "Site Types",
   "statistics_conditions_waterType_error": "Failed to load water type data",
   "statistics_conditions_waterType_subtitle": "Salt vs Fresh water dives",
   "statistics_conditions_waterType_title": "Water Type",
@@ -12458,6 +12853,55 @@
   "tags_manage_editTitle": "Edit Tag",
   "tags_manage_nameLabel": "Tag Name",
   "tags_manage_colorLabel": "Color",
+  "tags_manage_narrowDialog_confirm": "Remove",
+  "tags_manage_narrowDialog_dives": "{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}",
+  "@tags_manage_narrowDialog_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_narrowDialog_equipment": "{count, plural, =1{This tag is on 1 equipment item. Turning off \"Use for equipment\" removes it from that item.} other{This tag is on {count} equipment items. Turning off \"Use for equipment\" removes it from those items.}}",
+  "@tags_manage_narrowDialog_equipment": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_narrowDialog_sites": "{count, plural, =1{This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.} other{This tag is on {count} sites. Turning off \"Use for sites\" removes it from those sites.}}",
+  "@tags_manage_narrowDialog_sites": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_narrowDialog_title": "Remove tag from existing items?",
+  "tags_manage_scopeRequired": "Choose at least one: dives, sites, or equipment",
+  "tags_manage_scope_dives": "Dives",
+  "tags_manage_scope_equipment": "Equipment",
+  "tags_manage_scope_sites": "Sites",
+  "tags_manage_siteCount": "{count, plural, =0{0 sites} =1{1 site} other{{count} sites}}",
+  "@tags_manage_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_equipmentCount": "{count, plural, =0{0 equipment items} =1{1 equipment item} other{{count} equipment items}}",
+  "@tags_manage_equipmentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_useForDives": "Use for dives",
+  "tags_manage_useForEquipment": "Use for equipment",
+  "tags_manage_useForSites": "Use for sites",
   "tags_manage_nameRequired": "Tag name is required",
   "tags_manage_deleteTitle": "Delete Tag?",
   "tags_manage_deleteMessage": "\"{tagName}\" will be removed from {count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}. This cannot be undone.",
@@ -12468,6 +12912,39 @@
       },
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_sites": "\"{tagName}\" will be removed from {count, plural, =1{1 site} other{{count} sites}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_sites": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_divesAndSites": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_divesAndSites": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives or sites. This cannot be undone.",
+  "@tags_manage_deleteMessage_unused": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
       }
     }
   },
@@ -12487,6 +12964,26 @@
       }
     }
   },
+  "tags_manage_bulkDeleteMessage_sites": "These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_sites": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_divesAndSites": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_divesAndSites": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives or sites. This cannot be undone.",
   "tags_manage_mergeTitle": "Merge {count} Tags",
   "@tags_manage_mergeTitle": {
     "placeholders": {
@@ -12505,6 +13002,26 @@
       }
     }
   },
+  "tags_manage_mergeAffected_sites": "This will affect {count, plural, =1{1 site} other{{count} sites}} total.",
+  "@tags_manage_mergeAffected_sites": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_divesAndSites": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total.",
+  "@tags_manage_mergeAffected_divesAndSites": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_unused": "These tags are not used on any dives or sites.",
   "tags_manage_mergeAction": "Merge",
   "tags_title_manageTags": "Manage Tags",
   "tank_al100_description": "Aluminum 100 cu ft",
@@ -12622,6 +13139,11 @@
   "transfer_csvExport_typeEquipment": "Equipment",
   "transfer_csvExport_typeObservations": "Gear check-ins",
   "transfer_csvExport_typeSites": "Sites",
+  "transfer_csvExport_unitsHeader": "Units",
+  "transfer_csvExport_unitsMetric": "Metric",
+  "transfer_csvExport_unitsMetricDescription": "Metric values and ISO dates, the same format as earlier exports",
+  "transfer_csvExport_unitsMine": "My units",
+  "transfer_csvExport_unitsMineDescription": "Values in your unit, date and time settings, named in each column header",
   "transfer_detail_backTooltip": "Back to transfer",
   "transfer_export_aboutContent": "Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Backup & Restore.",
   "transfer_export_backupLink": "Go to Backup & Restore",
@@ -13422,7 +13944,29 @@
   "universalImport_triage_noneImportable": "None of the selected files can be imported.",
   "universalImport_review_inBatchDuplicate": "Duplicate of another dive in this import batch.",
   "universalImport_summary_filesTitle": "Files",
-  "universalImport_summary_noticesTitle": "Not in the file",
+  "universalImport_divers_intro": "{count, plural, other{This logbook has dives for {count} divers. Choose where each diver's dives and certifications go.}}",
+  "universalImport_divers_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "universalImport_divers_certificationCount": "{count, plural, =1{1 certification} other{{count} certifications}}",
+  "universalImport_divers_unownedRow": "Dives with no diver",
+  "universalImport_divers_targetLabel": "Import into",
+  "universalImport_divers_targetNew": "Create new profile \"{name}\"",
+  "universalImport_divers_targetSkip": "Don't import",
+  "universalImport_divers_newLabel": "New: {name}",
+  "universalImport_summary_byProfileTitle": "By profile",
+  "universalImport_summary_newProfile": "New profile",
+  "universalImport_summary_switchToSee": "Switch to {name} to see these dives",
+  "@universalImport_divers_intro": {"description": "Explains the import wizard Divers step for a logbook holding several divers", "placeholders": {"count": {"type": "num"}}},
+  "@universalImport_divers_diveCount": {"description": "Dive count of one diver row in the Divers step", "placeholders": {"count": {"type": "num"}}},
+  "@universalImport_divers_certificationCount": {"description": "Certification count of one diver row in the Divers step", "placeholders": {"count": {"type": "num"}}},
+  "@universalImport_divers_unownedRow": {"description": "Divers step row for dives the logbook attributes to no diver"},
+  "@universalImport_divers_targetLabel": {"description": "Label of the profile picker on a Divers step row"},
+  "@universalImport_divers_targetNew": {"description": "Divers step choice that creates a profile named after the diver", "placeholders": {"name": {"type": "String"}}},
+  "@universalImport_divers_targetSkip": {"description": "Divers step choice that leaves the diver out of the import"},
+  "@universalImport_divers_newLabel": {"description": "Review row label for an item going to a profile the import will create", "placeholders": {"name": {"type": "String"}}},
+  "@universalImport_summary_byProfileTitle": {"description": "Import summary section listing what each diver profile received"},
+  "@universalImport_summary_newProfile": {"description": "Import summary label on a profile the import created"},
+  "@universalImport_summary_switchToSee": {"description": "Import summary hint on a profile that is not the active one", "placeholders": {"name": {"type": "String"}}},
+  "universalImport_summary_noticesTitle": "Import notes",
   "universalImport_summary_noticeNoTankPressureTitle": "Tank pressure not recorded",
   "universalImport_summary_noticeNoTankPressureBody": "Air consumption and SAC cannot be calculated. You can add start and end pressure by editing the dive.",
   "universalImport_summary_noticeAffectedDives": "{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}",
@@ -13430,6 +13974,101 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticeDivesSkippedTitle": "Some dives could not be read",
+  "universalImport_summary_noticeDivesSkippedBody": "These dives were skipped because their data in the file could not be read.",
+  "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{1 dive skipped} other{{count} dives skipped}}",
+  "@universalImport_summary_noticeDivesSkippedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticeProfileUnreadableTitle": "Some profiles could not be read",
+  "universalImport_summary_noticeProfileUnreadableBody": "These dives were imported without a depth profile because the profile data in the file is missing or could not be read.",
+  "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "MacDive profiles not decoded",
+  "universalImport_summary_noticeMacdiveProfileUndecodableBody": "MacDive stored these profiles in a form Submersion cannot read. To import them, export from MacDive as XML (File > Export > MacDive XML) and import that file instead.",
+  "universalImport_summary_noticeProfileUndecodableOnPlatformTitle": "Profiles not decoded on this device",
+  "universalImport_summary_noticeProfileUndecodableOnPlatformBody": "This device could not decode the dive computer data in the file, so these dives were imported without depth profiles.",
+  "universalImport_summary_noticeColumnsNotImportedTitle": "Some columns were not imported",
+  "universalImport_summary_noticeColumnsNotImportedBody": "These columns matched a field that another column already fills, so they were left out: {names}. To use one of them instead, import the file again and choose it on the Map Fields step.",
+  "@universalImport_summary_noticeColumnsNotImportedBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_summary_noticeValuesNotConvertedTitle": "Some values left blank",
+  "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.} other{{count} values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.}}",
+  "@universalImport_summary_noticeValuesNotConvertedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticePhotosSkippedTitle": "Some photos skipped",
+  "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 photo had no file name and could not be linked.} other{{count} photos had no file name and could not be linked.}}",
+  "@universalImport_summary_noticePhotosSkippedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certifications and service records not in the file",
+  "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.",
+  "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive logbooks not imported",
+  "universalImport_summary_noticeMacdiveLogbooksBody": "MacDive logbooks ({names}) are saved searches, not fixed lists of dives, so there is nothing to import. You can recreate them as dive filters.",
+  "@universalImport_summary_noticeMacdiveLogbooksBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_summary_unreadableDatesTitle": "Some rows were not imported",
+  "@universalImport_summary_unreadableDatesTitle": {
+    "description": "Heading of the import summary card for CSV rows that were not imported because their date could not be read. A row is a spreadsheet row, one line of the CSV file, as numbered in a spreadsheet app."
+  },
+  "universalImport_summary_unreadableDatesBody": "The date in these rows could not be read. Check the date column in the file, correct these rows, and import it again.",
+  "@universalImport_summary_unreadableDatesBody": {
+    "description": "Body of the import summary card for CSV rows skipped because their date could not be read. 'These rows' are the spreadsheet rows listed below it; 'it' is the CSV file."
+  },
+  "universalImport_summary_unreadableDatesCount": "{count, plural, =1{1 row not imported} other{{count} rows not imported}}",
+  "@universalImport_summary_unreadableDatesCount": {
+    "description": "How many spreadsheet rows of the CSV file were skipped because their date could not be read.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_unreadableDatesRows": "{count, plural, =1{Row {rows}} other{Rows {rows}}}",
+  "@universalImport_summary_unreadableDatesRows": {
+    "description": "Names the skipped spreadsheet rows so the user can find them in the file. {rows} is a comma-separated list of row numbers such as '4, 9, 12' (the header is row 1); {count} is how many numbers it lists.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_summary_unreadableDatesRowsMore": "{count, plural, =1{Rows {rows} and 1 more} other{Rows {rows} and {count} more}}",
+  "@universalImport_summary_unreadableDatesRowsMore": {
+    "description": "The long form of universalImport_summary_unreadableDatesRows: {rows} lists the first ten skipped spreadsheet row numbers, and {count} is how many more rows were skipped but not listed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rows": {
+        "type": "String"
       }
     }
   },
@@ -13448,6 +14087,118 @@
   "universalImport_error_duplicateCheckFailed": "Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.",
   "universalImport_error_noColumnsToMap": "This file has no columns to map. Go back and select the file again, or choose a different source.",
   "universalImport_error_stepFailed": "Import could not continue: {details}",
+  "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Nothing was imported: the date in 1 row could not be read.} other{Nothing was imported: the dates in {count} rows could not be read.}}",
+  "@universalImport_error_unreadableDatesHeadline": {
+    "description": "First line of the error shown when every CSV row was skipped because its date could not be read",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "universalImport_error_unreadableDatesHint": "Check that the date and time columns are mapped on this step, and that they hold dates.",
+  "@universalImport_error_unreadableDatesHint": {
+    "description": "Last line of the unreadable-dates error, pointing the user at the date column mapping on the Map Fields step"
+  },
+  "universalImport_error_noDataInFile": "No importable data was found in this file.",
+  "@universalImport_error_noDataInFile": {
+    "description": "Error shown when a file produced nothing to import"
+  },
+  "universalImport_error_noDataInFileWithDetails": "No importable data was found in this file: {details}",
+  "@universalImport_error_noDataInFileWithDetails": {
+    "description": "Error shown when a file produced nothing to import, followed by the parser's own explanation",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "Failed to parse XML: Expected a single root element at 1:25"
+      }
+    }
+  },
+  "universalImport_error_noDataInFiles": "No importable data was found in the selected files.",
+  "@universalImport_error_noDataInFiles": {
+    "description": "Error shown when none of several selected files produced anything to import"
+  },
+  "universalImport_error_fileUnreadable": "The selected file could not be read. Pick it again.",
+  "@universalImport_error_fileUnreadable": {
+    "description": "Error shown when the selected file's contents are no longer available"
+  },
+  "universalImport_error_parseFailed": "The file could not be read: {details}",
+  "@universalImport_error_parseFailed": {
+    "description": "Error shown when reading the file failed unexpectedly",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FormatException: unexpected end of input"
+      }
+    }
+  },
+  "universalImport_error_noFilesInArchive": "No importable files were found in the archive.",
+  "@universalImport_error_noFilesInArchive": {
+    "description": "Error shown when a ZIP archive holds no file the app can import"
+  },
+  "universalImport_error_noFilesInFolder": "No importable files were found in the selected folder.",
+  "@universalImport_error_noFilesInFolder": {
+    "description": "Error shown when a chosen folder holds no file the app can import"
+  },
+  "universalImport_error_loadFailed": "The file could not be loaded: {details}",
+  "@universalImport_error_loadFailed": {
+    "description": "Error shown when a dropped or shared file could not be loaded",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
+  "universalImport_error_pickFailed": "The file could not be opened: {details}",
+  "@universalImport_error_pickFailed": {
+    "description": "Error shown when a picked file could not be opened",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
+  "universalImport_error_folderScanFailed": "The folder could not be scanned: {details}",
+  "@universalImport_error_folderScanFailed": {
+    "description": "Error shown when a chosen folder could not be scanned for importable files",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "PathNotFoundException: Directory listing failed"
+      }
+    }
+  },
+  "universalImport_error_garminNotFound": "No connected Garmin device found. Connect it by cable, or use Choose Folder to select the device's GARMIN/Activity folder.",
+  "@universalImport_error_garminNotFound": {
+    "description": "Error shown when Import from Garmin Device finds no connected device; names the Choose Folder button"
+  },
+  "universalImport_error_garminReadFailed": "The Garmin device could not be read: {details}",
+  "@universalImport_error_garminReadFailed": {
+    "description": "Error shown when a connected Garmin device could not be read",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Directory listing failed"
+      }
+    }
+  },
+  "universalImport_error_garminNoDives": "No dives were found on the connected Garmin device.",
+  "@universalImport_error_garminNoDives": {
+    "description": "Error shown when a connected Garmin device holds no dive activities"
+  },
+  "universalImport_error_additionalFilePickFailed": "The additional file could not be opened: {details}",
+  "@universalImport_error_additionalFilePickFailed": {
+    "description": "Error shown when the optional additional (profile) file could not be opened",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "FileSystemException: Cannot open file"
+      }
+    }
+  },
   "universalImport_label_columnMapping": "Column Mapping",
   "universalImport_label_columnsMapped": "{mapped} of {total} columns mapped",
   "universalImport_label_consolidate": "Consolidate",
@@ -16809,8 +17560,6 @@
       }
     }
   },
-  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)",
-  "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Depth",
   "@dive3d_metric_depth": {},
   "dive3d_metric_temperature": "Temp",
@@ -17102,6 +17851,9 @@
   "attrLabel_balance_zone": "Balance zone",
   "attrLabel_tilt_tolerance_deg": "Tilt tolerance (°)",
   "attrLabel_tool_type": "Tool type",
+  "attrLabel_band_style": "Style",
+  "attrLabel_pocket_capacity_kg": "Capacity",
+  "attrLabel_pocket_mount": "Mount",
   "attrChoice_plate_material_aluminum": "Aluminum",
   "attrChoice_plate_material_carbon_fiber": "Carbon fiber",
   "attrChoice_plate_material_steel": "Steel",
@@ -17148,6 +17900,11 @@
   "attrChoice_hose_type_lp": "LP (low pressure)",
   "attrChoice_hose_type_hp": "HP (high pressure)",
   "attrChoice_hose_type_lpi": "LPI (inflator)",
+  "attrChoice_band_style_cam_strap": "Cam strap",
+  "attrChoice_band_style_stainless_band": "Stainless band",
+  "attrChoice_pocket_mount_harness": "Harness",
+  "attrChoice_pocket_mount_waist_belt": "Waist belt",
+  "attrChoice_pocket_mount_thigh": "Thigh",
   "attrChoice_bcd_style_jacket": "Jacket",
   "attrChoice_bcd_style_back_inflate": "Back-inflate",
   "attrChoice_bcd_style_wing": "Wing",
@@ -18958,6 +19715,10 @@
   "enum_siteField_longestDive_short": "Longest",
   "enum_siteField_averageDuration": "Avg Duration",
   "enum_siteField_averageDuration_short": "Avg time",
+  "enum_siteField_siteTypes": "Site Types",
+  "enum_siteField_siteTypes_short": "Types",
+  "enum_siteField_tags": "Tags",
+  "enum_siteField_tags_short": "Tags",
   "enum_siteField_maxDepthReached_short": "Your max",
   "enum_buddyField_buddyName": "Name",
   "enum_buddyField_email": "Email",
@@ -21754,7 +22515,6 @@
   "divePlanner_quickPlan_depthSemantics": "Depth: {depth}",
   "divePlanner_quickPlan_timeLabel": "Time:",
   "divePlanner_quickPlan_bottomTimeSemantics": "{minutes, plural, =1{Bottom time: 1 minute} other{Bottom time: {minutes} minutes}}",
-  "divePlanner_quickPlan_minutes": "{minutes} min",
   "divePlanner_quickPlan_previewSemantics": "Plan preview: Descent to {depth}, bottom time {minutes} minutes, ascent with safety stop",
   "divePlanner_quickPlan_previewTitle": "Plan Preview:",
   "divePlanner_quickPlan_previewDescent": "Descent to {depth}",
@@ -21812,6 +22572,15 @@
   "settings_debugLog_minSeverityLabel": "Min severity:",
   "settings_debugLog_shareSubject": "Submersion Debug Logs",
   "settings_debugLog_saveDialogTitle": "Save Debug Logs",
+  "settings_diagnostics_header": "Diagnostics",
+  "settings_diagnostics_viewLog": "View log",
+  "settings_diagnostics_viewLogSubtitle": "Warnings and errors are recorded automatically",
+  "settings_diagnostics_copy": "Copy diagnostics",
+  "settings_diagnostics_copySubtitle": "App version, device and recent log lines for a bug report",
+  "settings_diagnostics_copiedSnack": "Diagnostics copied to clipboard",
+  "settings_diagnostics_openFolder": "Open log folder",
+  "settings_diagnostics_openFolderFailed": "Could not open the log folder. It is at: {path}",
+  "settings_diagnostics_copyFailed": "Could not copy diagnostics: {error}",
   "universalImport_preset_saveTitle": "Save as Preset",
   "universalImport_preset_nameLabel": "Preset Name",
   "universalImport_preset_nameHint": "e.g., My Dive Log CSV",
@@ -21983,13 +22752,6 @@
     }
   },
   "@divePlanner_quickPlan_bottomTimeSemantics": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
-  "@divePlanner_quickPlan_minutes": {
     "placeholders": {
       "minutes": {
         "type": "int"
@@ -22182,6 +22944,43 @@
   "@settings_debugLog_saveDialogTitle": {
     "description": "Title of the system save dialog for the debug log file."
   },
+  "@settings_diagnostics_header": {
+    "description": "Header of the Diagnostics card in Settings > About."
+  },
+  "@settings_diagnostics_viewLog": {
+    "description": "Diagnostics row that opens the log viewer."
+  },
+  "@settings_diagnostics_viewLogSubtitle": {
+    "description": "Subtitle explaining that warnings and errors are logged even without debug mode."
+  },
+  "@settings_diagnostics_copy": {
+    "description": "Diagnostics row that copies a bug-report summary to the clipboard."
+  },
+  "@settings_diagnostics_copySubtitle": {
+    "description": "Subtitle describing what Copy diagnostics puts on the clipboard."
+  },
+  "@settings_diagnostics_copiedSnack": {
+    "description": "Snack bar confirming the diagnostics summary was copied."
+  },
+  "@settings_diagnostics_openFolder": {
+    "description": "Desktop-only Diagnostics row that opens the log folder in the file manager."
+  },
+  "@settings_diagnostics_openFolderFailed": {
+    "description": "Snack bar shown when the file manager refuses to open the log folder; shows the folder path instead.",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@settings_diagnostics_copyFailed": {
+    "description": "Snack bar shown when Copy diagnostics fails, with the error.",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "@universalImport_preset_signatureHeaders": {
     "description": "Count of CSV headers stored as the preset match signature.",
     "placeholders": {
@@ -22355,14 +23154,17 @@
   "startup_backupFailed_technicalDetails": "Technical details",
   "common_action_retry": "Retry",
   "startup_versionMismatch_title": "Your Data Is Newer Than This App",
-  "startup_versionMismatch_body": "Your dive data was saved by a newer version of Submersion (schema v{databaseVersion}). This version only supports up to schema v{appVersion}.",
-  "startup_versionMismatch_causes": "This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.",
-  "startup_versionMismatch_instructions": "Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.",
-  "startup_versionMismatch_storeInstructions": "This app was installed from an app store and is older than the version that created your data. Your data is safe and has not been modified. Update Submersion when the new version appears in the store, then reopen it.",
+  "startup_versionMismatch_body": "Your dive log was saved at schema v{databaseVersion} by a newer version of Submersion. This version opens files up to schema v{appVersion}.",
+  "startup_versionMismatch_causes_lead": "This usually happens when:",
+  "startup_versionMismatch_cause_beta": "A beta build upgraded the file.",
+  "startup_versionMismatch_cause_restored": "A backup from a newer build was restored.",
+  "startup_versionMismatch_cause_shared": "The file is shared with a device on another update channel.",
+  "startup_versionMismatch_instructions": "Your data has not been changed. Open it with the build that wrote it, or with a later one.",
+  "startup_versionMismatch_storeInstructions": "This app came from an app store and is older than the version that saved your data. Your data has not been changed. Update Submersion when the new version appears in the store, then open it again.",
   "startup_versionMismatch_download": "Check for a Newer Stable Release",
   "startup_versionMismatch_betaAction": "Get the Beta Build",
   "startup_versionMismatch_betaNote": "Beta builds are pre-release. Choose this only if a beta build wrote your data.",
-  "startup_versionMismatch_manualLink": "If those buttons do not open a browser, visit:",
+  "startup_versionMismatch_manualLink": "If the buttons do not open a browser:",
   "universalImport_compare_downloaded": "Downloaded",
   "universalImport_compare_errorLoading": "Error loading dive data",
   "universalImport_compare_diveNotFound": "Existing dive not found",
@@ -22785,8 +23587,6 @@
   "settings_export_progress_preparingObservationsCsv": "Preparing gear check-ins CSV...",
   "settings_export_progress_preparingUddf": "Preparing UDDF file...",
   "settings_export_progress_preparingPdf": "Preparing PDF...",
-  "settings_export_progress_selectingBackup": "Selecting backup file...",
-  "settings_export_progress_restoringBackup": "Restoring from backup...",
   "settings_export_empty_dives": "No dives to export",
   "settings_export_empty_sites": "No sites to export",
   "settings_export_empty_equipment": "No equipment to export",
@@ -22794,10 +23594,6 @@
   "settings_export_empty_data": "No data to export",
   "settings_export_empty_diveSites": "No dive sites to export",
   "settings_export_saveFailed": "Save failed: {error}",
-  "settings_export_backupFailed": "Backup failed: {error}",
-  "settings_export_restoreFailed": "Restore failed: {error}",
-  "settings_export_fileUnreadable": "Could not access file",
-  "settings_export_notADbFile": "Please select a .db backup file",
   "settings_export_success_dives": "Dives exported successfully",
   "settings_export_success_sites": "Sites exported successfully",
   "settings_export_success_equipment": "Equipment exported successfully",
@@ -22814,13 +23610,8 @@
   "settings_export_saved_observationsCsv": "Gear check-ins CSV saved",
   "settings_export_saved_uddf": "UDDF file saved successfully",
   "settings_export_saved_pdf": "PDF saved successfully",
-  "settings_export_saved_backup": "Backup saved successfully",
-  "settings_export_restoreComplete": "Restore complete",
   "settings_export_cancelled_save": "Save cancelled",
-  "settings_export_cancelled_backup": "Backup cancelled",
-  "settings_export_cancelled_restore": "Restore cancelled",
   "settings_export_pdfDocumentTitle": "Dive Logbook",
-  "settings_export_saveBackupDialogTitle": "Save Backup",
   "settings_export_saveDivesCsvDialogTitle": "Save Dives CSV",
   "settings_export_saveSitesCsvDialogTitle": "Save Sites CSV",
   "settings_export_saveEquipmentCsvDialogTitle": "Save Equipment CSV",
@@ -22888,20 +23679,6 @@
     }
   },
   "@settings_export_saveFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "@settings_export_backupFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "@settings_export_restoreFailed": {
     "placeholders": {
       "error": {
         "type": "String"
@@ -23398,6 +24175,100 @@
   "statistics_conditions_tempTrend_subtitle": "Every dive in range",
   "statistics_conditions_tempTrend_empty": "No temperature data available",
   "statistics_conditions_tempTrend_error": "Failed to load temperature trend",
+  "statistics_conditions_waterTempBands_title": "Dives by Water Temperature",
+  "@statistics_conditions_waterTempBands_title": {
+    "description": "Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)"
+  },
+  "statistics_conditions_waterTempBands_subtitle": "How your dives split across water temperature bands",
+  "@statistics_conditions_waterTempBands_subtitle": {
+    "description": "Subtitle under the dives-by-water-temperature card title, explaining that the chart shows how many dives fall in each temperature range"
+  },
+  "statistics_conditions_waterTempBands_empty": "No water temperature data available",
+  "@statistics_conditions_waterTempBands_empty": {
+    "description": "Empty state of the dives-by-water-temperature card, shown when no dive in the current filter has a water temperature recorded"
+  },
+  "statistics_conditions_waterTempBands_error": "Failed to load water temperature bands",
+  "@statistics_conditions_waterTempBands_error": {
+    "description": "Error state of the dives-by-water-temperature card, shown when the band counts could not be loaded"
+  },
+  "statistics_conditions_waterTempBands_semanticLabel": "Bar chart. Dives by water temperature. {description}",
+  "@statistics_conditions_waterTempBands_semanticLabel": {
+    "description": "Screen-reader summary of the dives-by-water-temperature-band bar chart",
+    "placeholders": {
+      "description": {
+        "type": "String",
+        "example": "<10°C: 3 dives, 10-18°C: 12 dives"
+      }
+    }
+  },
+  "statistics_conditions_waterTempBands_table_band": "Band",
+  "@statistics_conditions_waterTempBands_table_band": {
+    "description": "Header of the first column of the per-band averages table on the dives-by-water-temperature card: the water-temperature band, such as 10-18°C"
+  },
+  "statistics_conditions_waterTempBands_table_dives": "Dives",
+  "@statistics_conditions_waterTempBands_table_dives": {
+    "description": "Header of the column of the per-band averages table that counts every dive in the band"
+  },
+  "statistics_conditions_waterTempBands_table_avgSac": "Avg SAC",
+  "@statistics_conditions_waterTempBands_table_avgSac": {
+    "description": "Header of the column of the per-band averages table showing the average SAC (tank-pressure drop per minute) of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_avgRmv": "Avg RMV",
+  "@statistics_conditions_waterTempBands_table_avgRmv": {
+    "description": "Header of the column of the per-band averages table showing the average RMV (surface gas volume per minute) of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_avgBottomTime": "Avg bottom time",
+  "@statistics_conditions_waterTempBands_table_avgBottomTime": {
+    "description": "Header of the column of the per-band averages table showing the average bottom time of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_error": "Failed to load band averages",
+  "@statistics_conditions_waterTempBands_table_error": {
+    "description": "Shown in place of the per-band averages table on the dives-by-water-temperature card when the averages could not be loaded"
+  },
+  "statistics_conditions_waterTempBands_table_averageOver": "{value} over {dives}",
+  "@statistics_conditions_waterTempBands_table_averageOver": {
+    "description": "Screen-reader text for one average and how many dives it is based on",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "1.1 bar/min"
+      },
+      "dives": {
+        "type": "String",
+        "example": "17 dives"
+      }
+    }
+  },
+  "statistics_conditions_waterTempBands_table_noData": "no data",
+  "@statistics_conditions_waterTempBands_table_noData": {
+    "description": "Screen-reader text for an average the band has no dives for, read in place of the value (the table itself shows --)"
+  },
+  "statistics_conditions_waterTempBands_table_rowSemanticLabel": "{band}: {dives}. Average {lane}: {consumption}. Average bottom time: {bottomTime}.",
+  "@statistics_conditions_waterTempBands_table_rowSemanticLabel": {
+    "description": "Screen-reader summary of one row of the per-band averages table: the band, its dive count, its average gas consumption and its average bottom time",
+    "placeholders": {
+      "band": {
+        "type": "String",
+        "example": "65-75°F"
+      },
+      "dives": {
+        "type": "String",
+        "example": "20 dives"
+      },
+      "lane": {
+        "type": "String",
+        "example": "SAC"
+      },
+      "consumption": {
+        "type": "String",
+        "example": "1.1 bar/min over 17 dives"
+      },
+      "bottomTime": {
+        "type": "String",
+        "example": "52 min over 20 dives"
+      }
+    }
+  },
   "diveLog_filter_presetLast5Years": "Last 5 years",
   "diveLog_filter_presetLast10Years": "Last 10 years",
   "statistics_trend_tooltip_lowest": "Lowest",
@@ -23728,8 +24599,24 @@
   },
   "diveComputer_detail_duplicateBannerAction": "Merge",
   "startup_versionMismatch_restore_title": "Restore your pre-upgrade backup",
-  "startup_versionMismatch_restore_body": "A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.",
-  "startup_versionMismatch_restore_warning": "Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.",
+  "startup_versionMismatch_restore_warning": "Dives logged after the upgrade exist only in the newer file. It is kept as a pinned backup, so installing the newer version again brings them back.",
+  "startup_interruptedRestore_title": "A restore did not finish",
+  "startup_interruptedRestore_bodyWithDate": "Submersion was restoring a backup on {date} when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
+  "@startup_interruptedRestore_bodyWithDate": {
+    "description": "Startup screen after a restore stopped with the previous database still aside. The date is when the restore began, preformatted.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sat, Sep 13 10:30 AM"
+      }
+    }
+  },
+  "startup_interruptedRestore_body": "Submersion was restoring a backup when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
+  "startup_interruptedRestore_recoverAction": "Recover my previous dive log",
+  "startup_interruptedRestore_recoverNote": "The file that is in its place now is kept beside it, not deleted.",
+  "startup_interruptedRestore_keepAction": "Keep what is there now",
+  "startup_interruptedRestore_keepNote": "Your previous dive log is kept as a file in the database folder.",
+  "startup_interruptedRestore_failed": "Recovery did not complete. Nothing was deleted; both files are still on this device.",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
     "placeholders": {
@@ -23910,5 +24797,58 @@
   "equipment_arrange_reset": "Reset to defaults",
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
-  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive"
+  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
+  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "plannerCanvas_sourceCompare_title": "vs. original dive",
+  "plannerCanvas_issue_repeated": "{message} ({count} legs)",
+  "@plannerCanvas_issue_repeated": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_dialogTitle": "Minimum stop time at {depth}",
+  "@plannerCanvas_stopMinimum_dialogTitle": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_minutesLabel": "Minutes",
+  "plannerCanvas_stopMinimum_apply": "Apply",
+  "plannerCanvas_stopMinimum_clear": "Clear minimum",
+  "diveLog_whatIf_title": "Replan this dive",
+  "diveLog_whatIf_detailLabel": "Detail",
+  "diveLog_whatIf_engineNote": "The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.",
+  "diveLog_whatIf_seedTissues": "Seed tissues from previous dive",
+  "diveLog_whatIf_openInPlanner": "Open in planner",
+  "diveLog_whatIf_planName": "Replan: {title}",
+  "@diveLog_whatIf_planName": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_runtime": "Runtime",
+  "plannerCanvas_compare_maxDepth": "Max depth",
+  "plannerCanvas_compare_deco": "Deco time",
+  "plannerCanvas_compare_gas": "Gas ({tank})",
+  "@plannerCanvas_compare_gas": {
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_cns": "CNS",
+  "plannerCanvas_compare_planned": "Plan",
+  "plannerCanvas_compare_actual": "Actual",
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "numberInput_invalidValue": "Enter a valid number"
 }

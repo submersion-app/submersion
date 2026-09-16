@@ -233,6 +233,7 @@ class UddfFullImportService {
     final settings = <String, String>{};
     final tags = <Map<String, dynamic>>[];
     final customDiveTypes = <Map<String, dynamic>>[];
+    final customSiteTypes = <Map<String, dynamic>>[];
     final customDiveRoles = <Map<String, dynamic>>[];
     final diveComputers = <Map<String, dynamic>>[];
     final equipmentSets = <Map<String, dynamic>>[];
@@ -366,6 +367,21 @@ class UddfFullImportService {
             );
             if (typeData.isNotEmpty) {
               customDiveTypes.add(typeData);
+            }
+          }
+        }
+
+        // Parse custom site types (issue #1765)
+        final siteTypesSection = submersionElement
+            .findElements('sitetypes')
+            .firstOrNull;
+        if (siteTypesSection != null) {
+          for (final typeElement in siteTypesSection.findElements('sitetype')) {
+            final typeData = UddfImportParsers.parseSiteTypeElement(
+              typeElement,
+            );
+            if (typeData.isNotEmpty) {
+              customSiteTypes.add(typeData);
             }
           }
         }
@@ -555,6 +571,7 @@ class UddfFullImportService {
       trips: trips,
       tags: tags,
       customDiveTypes: customDiveTypes,
+      customSiteTypes: customSiteTypes,
       customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
@@ -1003,6 +1020,7 @@ class UddfFullImportService {
       decoModels,
       diveComputers,
     );
+    UddfImportParsers.dropInventedSubmersionProfile(diveElement, diveData);
 
     // Capture the source UUID from the <dive> element's id attribute so
     // downstream consumers (e.g., dive_data_sources sidecar) can persist it.

@@ -57,6 +57,7 @@ import 'package:submersion/features/equipment/domain/services/gear_expander.dart
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart'
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
@@ -196,21 +197,21 @@ class DiveRepository {
   /// filter most sessions never switch on. This is no worse than the
   /// dives-only tick it replaces.
   Stream<void> watchDiveListChanges() => _db
-      .tableUpdates(
-        TableUpdateQuery.allOf([
-          TableUpdateQuery.onTable(_db.dives),
-          TableUpdateQuery.onTable(_db.diveSites),
-          TableUpdateQuery.onTable(_db.trips),
-          TableUpdateQuery.onTable(_db.diveSafetyFindings),
-          // Row chips: tag membership and tag names, and the dive-type
-          // badges. The type NAMES resolve through their own provider, so
-          // only the junction is needed for them.
-          TableUpdateQuery.onTable(_db.diveTags),
-          TableUpdateQuery.onTable(_db.tags),
-          TableUpdateQuery.onTable(_db.diveDiveTypes),
-        ]),
-      )
+      .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
       .debounce(changeTickDebounce);
+
+  List<TableUpdateQuery> get _diveListTables => [
+    TableUpdateQuery.onTable(_db.dives),
+    TableUpdateQuery.onTable(_db.diveSites),
+    TableUpdateQuery.onTable(_db.trips),
+    TableUpdateQuery.onTable(_db.diveSafetyFindings),
+    // Row chips: tag membership and tag names, and the dive-type badges. The
+    // type NAMES resolve through their own provider, so only the junction is
+    // needed for them.
+    TableUpdateQuery.onTable(_db.diveTags),
+    TableUpdateQuery.onTable(_db.tags),
+    TableUpdateQuery.onTable(_db.diveDiveTypes),
+  ];
 
   /// Change tick for [getDiveIdsMatchingEquipmentAttrs]: the dives, both
   /// gear links, the items (their type) and their attribute rows.
@@ -227,6 +228,40 @@ class DiveRepository {
         ]),
       )
       .debounce(changeTickDebounce);
+
+  /// [watchDiveListChanges] plus the tables the buddy filters read
+  /// ([DiveFilterState.readsBuddyLinks]), for a list filtered by buddy.
+  /// See [_buddyLinkTables].
+  Stream<void> watchDiveListChangesWithBuddyLinks() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([..._diveListTables, ..._buddyLinkTables]),
+      )
+      .debounce(changeTickDebounce);
+
+  /// [watchDivesChanges] plus the tables the buddy filters read, for a
+  /// dives-tick consumer filtered by buddy. See [_buddyLinkTables].
+  Stream<void> watchDivesChangesWithBuddyLinks() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          ..._buddyLinkTables,
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
+  /// The `dive_buddies` junction and `buddies`, whose name the buddy-name
+  /// filter matches. A sync pull of a buddy link writes only `dive_buddies`
+  /// (the parent dive is never restamped, #1769), and a merge or rename
+  /// writes no `dives` row either, so no plain dive tick sees them (#1915).
+  ///
+  /// They join a consumer's own tick rather than forming a second one: the
+  /// dive editor's link writers touch `dive_buddies` and then bump the dive
+  /// row outside a transaction, and two separately debounced ticks would
+  /// reload the list once for each write.
+  List<TableUpdateQuery> get _buddyLinkTables => [
+    TableUpdateQuery.onTable(_db.diveBuddies),
+    TableUpdateQuery.onTable(_db.buddies),
+  ];
 
   /// Aggregate change-tick for the dive DETAIL page: fires when ANY table that
   /// feeds a dive's detail view is written -- including a sync applying remote
@@ -1954,6 +1989,20 @@ class DiveRepository {
     }
   }
 
+  /// Deletes the dive rows (their children cascade), first clearing the
+  /// dive plans built from or linked to them: those links have no ON DELETE
+  /// action and would fail the delete. One transaction, so a failed delete
+  /// leaves the plans linked.
+  Future<void> _deleteDiveRows(List<String> ids) => _db.transaction(() async {
+    await clearPlanLinksToDives(
+      _db,
+      _syncRepository,
+      ids,
+      now: DateTime.now().millisecondsSinceEpoch,
+    );
+    await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+  });
+
   /// Delete a dive.
   ///
   /// [cascadeMedia] is true for user-intent deletions (the dive's media
@@ -1966,7 +2015,7 @@ class DiveRepository {
       if (cascadeMedia) await _cascadeMediaForDiveDeletion([id]);
       // Check-ins on the dive stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives([id]);
-      await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
+      await _deleteDiveRows([id]);
       // The FK cascade took this dive's dive_data_sources rows, which may
       // have held the last reference to a stored import file (issue #478).
       // Gated on cascadeMedia for the same reason the media cascade is: a
@@ -1999,7 +2048,7 @@ class DiveRepository {
       if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives(ids);
-      await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
+      await _deleteDiveRows(ids);
       // See deleteDive: the cascade may have orphaned a stored import file.
       if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
       for (final id in ids) {
@@ -4657,25 +4706,7 @@ class DiveRepository {
             ..orderBy([OrderingTerm.asc(_db.gasSwitches.timestamp)]);
 
       final rows = await query.get();
-      return rows.map((row) {
-        final gs = row.readTable(_db.gasSwitches);
-        final tank = row.readTable(_db.diveTanks);
-
-        return GasSwitchWithTank(
-          gasSwitch: GasSwitch(
-            id: gs.id,
-            diveId: gs.diveId,
-            timestamp: gs.timestamp,
-            tankId: gs.tankId,
-            depth: gs.depth,
-            createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
-          ),
-          tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
-          gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
-          o2Fraction: tank.o2Percent / 100.0,
-          heFraction: tank.hePercent / 100.0,
-        );
-      }).toList();
+      return rows.map(_mapGasSwitchRow).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get gas switches for dive: $diveId',
@@ -4684,6 +4715,69 @@ class DiveRepository {
       );
       return [];
     }
+  }
+
+  /// [getGasSwitchesForDive] for many dives at once, keyed by dive id; a
+  /// dive without switches is absent.
+  ///
+  /// One statement per [kSeriesIdChunkSize] ids instead of one per dive, so
+  /// the full UDDF export costs the same for any logbook size (issue #1867).
+  /// Each dive keeps the per-dive read's timestamp order, and a failure is
+  /// logged and yields no switches, as that read's does.
+  Future<Map<String, List<GasSwitchWithTank>>> getGasSwitchesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    try {
+      final byDive = <String, List<GasSwitchWithTank>>{};
+      for (final chunk in seriesIdChunks(diveIds)) {
+        final rows =
+            await (_db.select(_db.gasSwitches).join([
+                    innerJoin(
+                      _db.diveTanks,
+                      _db.diveTanks.id.equalsExp(_db.gasSwitches.tankId),
+                    ),
+                  ])
+                  ..where(_db.gasSwitches.diveId.isIn(chunk))
+                  ..orderBy([OrderingTerm.asc(_db.gasSwitches.timestamp)]))
+                .get();
+        for (final row in rows) {
+          final gasSwitch = _mapGasSwitchRow(row);
+          byDive
+              .putIfAbsent(gasSwitch.gasSwitch.diveId, () => [])
+              .add(gasSwitch);
+        }
+      }
+      return byDive;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get gas switches for ${diveIds.length} dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {};
+    }
+  }
+
+  /// A `gas_switches` row joined to its `dive_tanks` row.
+  GasSwitchWithTank _mapGasSwitchRow(TypedResult row) {
+    final gs = row.readTable(_db.gasSwitches);
+    final tank = row.readTable(_db.diveTanks);
+
+    return GasSwitchWithTank(
+      gasSwitch: GasSwitch(
+        id: gs.id,
+        diveId: gs.diveId,
+        timestamp: gs.timestamp,
+        tankId: gs.tankId,
+        depth: gs.depth,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
+      ),
+      tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
+      gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
+      o2Fraction: tank.o2Percent / 100.0,
+      heFraction: tank.hePercent / 100.0,
+    );
   }
 
   /// Format gas mix as a readable name (e.g., "Air", "EAN32", "Tx 21/35")

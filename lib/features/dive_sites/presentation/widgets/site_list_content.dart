@@ -30,12 +30,17 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 class SiteListContent extends ConsumerStatefulWidget {
@@ -88,7 +93,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
-  List<DiveSite>? _deletedSites;
+  ({List<DiveSite> sites, SiteLinks links})? _deletedSites;
   MergeSnapshot? _mergeSnapshot;
 
   @override
@@ -305,12 +310,24 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   }
 
   Future<BulkActionOutcome> _confirmAndDelete() async {
-    final count = _selectedIds.length;
+    // One snapshot for the dialog and the delete: the selection can change
+    // while the usage is read, and the delete must remove exactly the sites
+    // the dialog described.
+    final idsToDelete = _selectedIds.toList();
+    final count = idsToDelete.length;
+    final usage = await readSiteDeleteUsage(ref, idsToDelete);
+    if (!mounted) return BulkActionOutcome.cancelled;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.diveSites_list_bulkDelete_title),
-        content: Text(context.l10n.diveSites_list_bulkDelete_content(count)),
+        content: Text(
+          withSiteDeleteUsage(
+            context.l10n,
+            context.l10n.diveSites_list_bulkDelete_content(count),
+            usage,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -329,14 +346,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
     if (confirmed == true && mounted) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final idsToDelete = _selectedIds.toList();
       _exitSelectionMode();
 
-      final deletedSites = await ref
+      final deleted = await ref
           .read(siteListNotifierProvider.notifier)
           .bulkDeleteSites(idsToDelete);
 
-      _deletedSites = deletedSites;
+      _deletedSites = deleted;
 
       if (mounted) {
         scaffoldMessenger.clearSnackBars();
@@ -344,7 +360,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           SnackBar(
             content: Text(
               context.l10n.diveSites_list_bulkDelete_snackbar(
-                deletedSites.length,
+                deleted.sites.length,
               ),
             ),
             duration: const Duration(seconds: 5),
@@ -352,10 +368,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             action: SnackBarAction(
               label: context.l10n.diveSites_list_bulkDelete_undo,
               onPressed: () async {
-                if (_deletedSites != null && _deletedSites!.isNotEmpty) {
+                final toRestore = _deletedSites;
+                if (toRestore != null && toRestore.sites.isNotEmpty) {
                   await ref
                       .read(siteListNotifierProvider.notifier)
-                      .restoreSites(_deletedSites!);
+                      .restoreSites(toRestore.sites, links: toRestore.links);
                   _deletedSites = null;
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
@@ -1149,6 +1166,29 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 context.l10n.diveSites_list_activeFilter_hasDives,
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearHasDives: true),
+              ),
+            // One chip per filtered site type and tag (issue #1765).
+            for (final typeId in filter.siteTypeIds)
+              _buildFilterChip(
+                ref
+                        .watch(siteTypesByIdProvider)
+                        .value?[typeId]
+                        ?.localizedName(context.l10n) ??
+                    typeId,
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(
+                      siteTypeIds: {...filter.siteTypeIds}..remove(typeId),
+                    ),
+              ),
+            for (final tagId in filter.tagIds)
+              _buildFilterChip(
+                (ref.watch(tagsProvider).value ?? const <Tag>[])
+                        .where((t) => t.id == tagId)
+                        .firstOrNull
+                        ?.name ??
+                    tagId,
+                () => ref.read(siteFilterProvider.notifier).state = filter
+                    .copyWith(tagIds: {...filter.tagIds}..remove(tagId)),
               ),
           ],
         ),

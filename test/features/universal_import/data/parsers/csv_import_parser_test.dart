@@ -379,6 +379,60 @@ void main() {
     });
   });
 
+  // Issues #1828 and #1829, end to end from the file's bytes.
+  group('parse: day-first, two-digit and unreadable dates', () {
+    const options = ImportOptions(
+      sourceApp: SourceApp.generic,
+      format: ImportFormat.csv,
+    );
+
+    List<DateTime> diveDates(ImportPayload payload) => [
+      for (final dive in payload.entitiesOf(ImportEntityType.dives))
+        dive['dateTime'] as DateTime,
+    ];
+
+    test('a UK logbook imports every row in day-first order', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '03/04/1991,09:00,20\n'
+          '15/04/1991,10:00,18\n';
+
+      final payload = await parser.parse(csvBytes(csv), options: options);
+
+      expect(diveDates(payload), [
+        DateTime.utc(1991, 4, 3, 9),
+        DateTime.utc(1991, 4, 15, 10),
+      ]);
+    });
+
+    test('a two-digit year is not stored as the year 91', () async {
+      const csv =
+          'Date,Time,Max Depth\n'
+          '4/15/91,09:00,20\n';
+
+      final payload = await parser.parse(csvBytes(csv), options: options);
+
+      expect(diveDates(payload).single.year, 1991);
+    });
+
+    test('an unreadable row is reported with its spreadsheet row', () async {
+      // The blank line is row 3, so the unreadable row is row 4.
+      const csv =
+          'Date,Time,Max Depth\n'
+          '2024-01-15,10:00,20\n'
+          '\n'
+          '15 Apr 2024,11:00,18\n';
+
+      final payload = await parser.parse(csvBytes(csv), options: options);
+
+      expect(diveDates(payload), hasLength(1));
+      final skipped = payload.warnings.where(
+        (w) => w.code == ImportWarningCode.unreadableDate,
+      );
+      expect(skipped.single.sourceRow, 4);
+    });
+  });
+
   group('parse - new pipeline features', () {
     test('each dive has a generated UUID', () async {
       const csv =
@@ -900,6 +954,9 @@ void main() {
       expect(warning.field, 'siteName');
       expect(warning.message, contains('"Location"'));
       expect(warning.message, contains('"Site"'));
+      // The import summary names the dropped column in its own card.
+      expect(warning.code, ImportWarningCode.columnsNotImported);
+      expect(warning.names, ['Location']);
     });
 
     test('maps "Dive Name" and "Title" headers to the dive name', () async {
@@ -1157,8 +1214,8 @@ void main() {
       },
     );
 
-    test('custom mapping without detected preset adds mapped buddies to the '
-        'default entity types', () async {
+    test('custom mapping without detected preset adds mapped buddies and '
+        'tags to the default entity types', () async {
       // Headers that do not match any known preset.
       const csv =
           'my_date,my_time,my_depth,my_buddy,my_tags\n'
@@ -1181,18 +1238,14 @@ void main() {
       );
 
       // Without a detected preset the default entity types are
-      // {dives, sites}. A mapped buddy column still adds buddies (#1830),
-      // but tags are not part of that rule and stay unextracted.
+      // {dives, sites}. Mapped buddy (#1830) and tags columns add their
+      // entity types, so neither column is dropped.
       final buddies = result.entitiesOf(ImportEntityType.buddies);
       final tags = result.entitiesOf(ImportEntityType.tags);
       expect(buddies.map((b) => b['name']), ['Alice']);
-      expect(
-        tags,
-        isEmpty,
-        reason:
-            'Without detected preset, default entity types should not '
-            'include tags',
-      );
+      expect(tags.map((t) => t['name']), ['reef']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [tags.single['id']]);
     });
   });
 
@@ -1336,6 +1389,50 @@ void main() {
       expect(sites.map((s) => s['name']), ['Blue Hole']);
       final buddies = result.entitiesOf(ImportEntityType.buddies);
       expect(buddies.map((b) => b['name']), ['Alice']);
+    });
+  });
+
+  group('a mapped tags column imports linked tags', () {
+    test('a custom mapping adds tags to a preset without them', () async {
+      // Garmin Connect is detected and imports dives only, but the user
+      // mapped a tags column by hand.
+      const csv =
+          'Date,Activity Type,Max Depth,Avg Depth,Bottom Time,'
+          'Water Temperature,Labels\n'
+          '2024-01-15,Single-Gas Dive,25.5,18.0,00:45:00,27,"night, wreck"\n';
+
+      const customMapping = FieldMapping(
+        name: 'Garmin plus tags',
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+          ColumnMapping(sourceColumn: 'Labels', targetField: 'tags'),
+        ],
+      );
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        customMappingOverride: customMapping,
+      );
+
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags.map((t) => t['name']), ['night', 'wreck']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [for (final tag in tags) tag['id']]);
+    });
+
+    test('an auto-mapped tags column imports tags', () async {
+      // No preset matches these headers, so they are keyword-mapped.
+      const csv =
+          'Date,Max Depth,Tags\n'
+          '2024-01-15,25.5,reef\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final tags = result.entitiesOf(ImportEntityType.tags);
+      expect(tags.map((t) => t['name']), ['reef']);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tagRefs'], [tags.single['id']]);
     });
   });
 }

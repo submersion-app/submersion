@@ -46,6 +46,19 @@ final hasAnyDiversProvider = FutureProvider<bool>((ref) async {
   return divers.isNotEmpty;
 });
 
+/// Number of diver profiles, counted in SQL without loading or mapping any
+/// row.
+///
+/// For surfaces that only gate on "more than one profile", such as the
+/// dashboard avatar's swap badge. Watching [allDiversProvider] for a length
+/// would hydrate every profile (contacts, insurance, photo bytes) on each
+/// dashboard load. Refreshes on every divers-table write.
+final diverCountProvider = FutureProvider<int>((ref) async {
+  final repository = ref.watch(diverRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
+  return repository.getDiverCount();
+});
+
 /// Single diver provider
 final diverByIdProvider = FutureProvider.family<Diver?, String>((
   ref,

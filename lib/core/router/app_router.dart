@@ -98,12 +98,15 @@ import 'package:submersion/features/settings/presentation/pages/photos_media_hub
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
+import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
+import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
+import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
 import 'package:submersion/features/safety/presentation/pages/chambers_directory_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
@@ -132,6 +135,7 @@ import 'package:submersion/features/media/presentation/pages/network_sources_pag
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
+import 'package:submersion/features/site_types/presentation/pages/site_types_page.dart';
 import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
@@ -1132,6 +1136,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const DiveDetailSectionsPage(),
               ),
               GoRoute(
+                path: 'site-detail-sections',
+                name: 'siteDetailSections',
+                builder: (context, state) => const SiteDetailSectionsPage(),
+              ),
+              GoRoute(
                 path: 'safety',
                 name: 'safetySettings',
                 builder: (context, state) => const SafetySettingsPage(),
@@ -1239,6 +1248,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const FixDiveTimesPage(),
               ),
               GoRoute(
+                path: 'link-buddy-names',
+                name: 'linkBuddyNames',
+                builder: (context, state) => const LinkBuddyNamesPage(),
+              ),
+              GoRoute(
+                path: 'retype-other-gear',
+                name: 'retypeOtherGear',
+                builder: (context, state) => const RetypeOtherGearPage(),
+              ),
+              GoRoute(
                 path: 'debug-logs',
                 name: 'debugLogs',
                 builder: (context, state) => const DebugLogViewerPage(),
@@ -1336,6 +1355,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-types',
             name: 'diveTypes',
             builder: (context, state) => const DiveTypesPage(),
+          ),
+          // Site Types Management (issue #1765)
+          GoRoute(
+            path: '/site-types',
+            name: 'siteTypes',
+            builder: (context, state) => const SiteTypesPage(),
           ),
 
           // Dive Roles Management

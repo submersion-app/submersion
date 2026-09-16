@@ -63,6 +63,11 @@ class DiveFilterState {
   // v1.5: Additional filter criteria
   final List<String> equipmentIds;
   final String? buddyNameFilter;
+
+  /// Linked buddy to restrict to: a live check against the `dive_buddies`
+  /// junction, never the legacy free-text `buddy` column. The buddy page's
+  /// "View all" sets it beside [diveIds], so a dive that loses its link
+  /// while the filter is active drops out (issue #1919).
   final String? buddyId;
   final List<String> diveIds;
   final double? minO2Percent;
@@ -140,6 +145,18 @@ class DiveFilterState {
       date,
     ).add(const Duration(days: 1)).millisecondsSinceEpoch;
   }
+
+  /// Whether a filter reads the `dive_buddies` junction (the name filter also
+  /// joins `buddies.name`). Those tables change without a `dives` write (a
+  /// sync pull of a buddy link, a buddy merge or rename), so a list filtered
+  /// this way must also follow those tables' writes (#1915). A name filter
+  /// counts only with a non-blank comma-separated part: the SQL builder and
+  /// [apply] both drop blank parts, so `' , '` filters nothing.
+  bool get readsBuddyLinks =>
+      buddyId != null ||
+      noBuddyOnly == true ||
+      (buddyNameFilter?.split(',').any((name) => name.trim().isNotEmpty) ??
+          false);
 
   bool get hasActiveFilters =>
       startDate != null ||
@@ -389,6 +406,9 @@ class DiveFilterState {
             return false;
           }
         }
+      }
+      if (buddyId != null && !dive.buddies.any((b) => b.buddy.id == buddyId)) {
+        return false;
       }
       if (diveIds.isNotEmpty && !diveIds.contains(dive.id)) {
         return false;

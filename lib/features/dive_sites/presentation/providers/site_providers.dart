@@ -8,7 +8,11 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -42,6 +46,12 @@ class SiteFilterState {
   final bool? hasCoordinates;
   final bool? hasDives;
 
+  /// Sites carrying any of these types (issue #1765). Empty means no filter.
+  final Set<String> siteTypeIds;
+
+  /// Sites carrying any of these tags (issue #1765). Empty means no filter.
+  final Set<String> tagIds;
+
   const SiteFilterState({
     this.country,
     this.region,
@@ -51,6 +61,8 @@ class SiteFilterState {
     this.minRating,
     this.hasCoordinates,
     this.hasDives,
+    this.siteTypeIds = const {},
+    this.tagIds = const {},
   });
 
   /// Whether any filter is currently active.
@@ -62,7 +74,9 @@ class SiteFilterState {
       maxDepth != null ||
       minRating != null ||
       hasCoordinates != null ||
-      hasDives != null;
+      hasDives != null ||
+      siteTypeIds.isNotEmpty ||
+      tagIds.isNotEmpty;
 
   /// Apply all active filters to a list of sites with dive counts.
   List<SiteWithDiveCount> apply(List<SiteWithDiveCount> sites) {
@@ -127,6 +141,16 @@ class SiteFilterState {
         }
       }
 
+      // Site type and tag filters (issue #1765): any-of within each set.
+      if (siteTypeIds.isNotEmpty &&
+          !siteWithCount.siteTypes.any((t) => siteTypeIds.contains(t.id))) {
+        return false;
+      }
+      if (tagIds.isNotEmpty &&
+          !siteWithCount.tags.any((t) => tagIds.contains(t.id))) {
+        return false;
+      }
+
       return true;
     }).toList();
   }
@@ -140,6 +164,9 @@ class SiteFilterState {
     double? minRating,
     bool? hasCoordinates,
     bool? hasDives,
+    // A non-null set replaces the current one; pass `const {}` to clear.
+    Set<String>? siteTypeIds,
+    Set<String>? tagIds,
     // Clear flags
     bool clearCountry = false,
     bool clearRegion = false,
@@ -161,6 +188,8 @@ class SiteFilterState {
           ? null
           : (hasCoordinates ?? this.hasCoordinates),
       hasDives: clearHasDives ? null : (hasDives ?? this.hasDives),
+      siteTypeIds: siteTypeIds ?? this.siteTypeIds,
+      tagIds: tagIds ?? this.tagIds,
     );
   }
 }
@@ -208,7 +237,35 @@ final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
   ref.invalidateSelfWhen(
     ref.read(siteFeatureRepositoryProvider).watchFeatureChanges(),
   );
+  // Type and tag chips (issue #1765) come from the classification junctions.
+  ref.invalidateSelfWhen(
+    ref.read(siteClassificationRepositoryProvider).watchChanges(),
+  );
   return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
+});
+
+/// The site type and site tag junctions (issue #1765).
+final siteClassificationRepositoryProvider =
+    Provider<SiteClassificationRepository>((ref) {
+      return SiteClassificationRepository();
+    });
+
+/// A site's types, in the diver's chosen order.
+final siteTypesForSiteProvider =
+    FutureProvider.family<List<SiteTypeEntity>, String>((ref, siteId) async {
+      final repository = ref.watch(siteClassificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      return repository.getTypesForSite(siteId);
+    });
+
+/// A site's tags, by name.
+final tagsForSiteProvider = FutureProvider.family<List<Tag>, String>((
+  ref,
+  siteId,
+) async {
+  final repository = ref.watch(siteClassificationRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  return repository.getTagsForSite(siteId);
 });
 
 /// Site sort state provider
@@ -448,7 +505,11 @@ class SiteListNotifier
     _ref.invalidate(sitesWithCountsProvider);
   }
 
-  Future<domain.DiveSite> addSite(domain.DiveSite site) async {
+  /// Creates [site]; a [classification] (issue #1765) is written with it.
+  Future<domain.DiveSite> addSite(
+    domain.DiveSite site, {
+    SiteClassification? classification,
+  }) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
@@ -456,13 +517,21 @@ class SiteListNotifier
     final siteWithDiver = validatedId != null
         ? site.copyWith(diverId: validatedId)
         : site;
-    final newSite = await _repository.createSite(siteWithDiver);
+    final newSite = await _repository.createSite(
+      siteWithDiver,
+      classification: classification,
+    );
     await _loadSites();
     return newSite;
   }
 
-  Future<void> updateSite(domain.DiveSite site) async {
-    await _repository.updateSite(site);
+  /// Updates [site]. Its types and tags change only when a [classification]
+  /// is passed (issue #1765).
+  Future<void> updateSite(
+    domain.DiveSite site, {
+    SiteClassification? classification,
+  }) async {
+    await _repository.updateSite(site, classification: classification);
     await _loadSites();
   }
 
@@ -494,26 +563,33 @@ class SiteListNotifier
     await _loadSites();
   }
 
-  /// Bulk delete multiple sites
-  /// Returns the deleted sites for potential undo
-  Future<List<domain.DiveSite>> bulkDeleteSites(List<String> ids) async {
-    // Get the sites before deleting for undo capability
+  /// Bulk delete multiple sites.
+  ///
+  /// Returns the deleted sites and the dives and plans the delete left
+  /// without a site, so [restoreSites] can undo both.
+  Future<({List<domain.DiveSite> sites, SiteLinks links})> bulkDeleteSites(
+    List<String> ids,
+  ) async {
     final sitesToDelete = await _repository.getSitesByIds(ids);
-    await _repository.bulkDeleteSites(ids);
+    // The delete reports the links it cleared, read in its own transaction.
+    final links = await _repository.bulkDeleteSites(ids);
     await _loadSites();
-    _ref.invalidate(sitesProvider);
-    _ref.invalidate(sitesWithCountsProvider);
-    return sitesToDelete;
+    _invalidateSiteProviders(ids);
+    return (sites: sitesToDelete, links: links);
   }
 
-  /// Restore multiple sites (for undo functionality)
-  Future<void> restoreSites(List<domain.DiveSite> sites) async {
+  /// Restore multiple sites (for undo functionality), then point the dives
+  /// and plans of [links] back at them.
+  Future<void> restoreSites(
+    List<domain.DiveSite> sites, {
+    SiteLinks links = const SiteLinks(),
+  }) async {
     for (final site in sites) {
       await _repository.createSite(site);
     }
+    await _repository.restoreSiteLinks(links);
     await _loadSites();
-    _ref.invalidate(sitesProvider);
-    _ref.invalidate(sitesWithCountsProvider);
+    _invalidateSiteProviders([for (final site in sites) site.id]);
   }
 
   Future<MergeSnapshot?> mergeSites(
@@ -531,7 +607,7 @@ class SiteListNotifier
     );
 
     await _loadSites();
-    _invalidateMergeProviders(dedupedSiteIds);
+    _invalidateSiteProviders(dedupedSiteIds);
 
     return snapshot;
   }
@@ -544,10 +620,12 @@ class SiteListNotifier
       snapshot.originalSurvivor.id,
       ...snapshot.deletedSites.map((s) => s.id),
     ];
-    _invalidateMergeProviders(allSiteIds);
+    _invalidateSiteProviders(allSiteIds);
   }
 
-  void _invalidateMergeProviders(List<String> siteIds) {
+  /// Refreshes the site lists, the dive lists (a merge, delete or undo
+  /// re-points dives) and each of [siteIds]' own providers.
+  void _invalidateSiteProviders(List<String> siteIds) {
     _ref.invalidate(sitesProvider);
     _ref.invalidate(sitesWithCountsProvider);
     _ref.invalidate(divesProvider);
@@ -733,8 +811,11 @@ class ExternalSiteSearchNotifier
       // Convert to local dive site
       final site = externalSite.toDiveSite(diverId: validatedDiverId);
 
-      // Save to database
-      final savedSite = await _siteListNotifier.addSite(site);
+      // Save to database, with its bundled features as site types (#1765)
+      final savedSite = await _siteListNotifier.addSite(
+        site,
+        classification: SiteClassification(typeIds: externalSite.siteTypeIds),
+      );
 
       return savedSite;
     } catch (e) {

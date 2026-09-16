@@ -26,6 +26,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_database.dart';
 
 class MockDiveRepository extends Mock implements DiveRepository {
   @override
@@ -90,6 +91,11 @@ void main() {
     site: site,
   );
   final summary = DiveSummary.fromDive(dive);
+
+  // The site edit page's type and tag pickers read the tag and site type
+  // vocabularies from the database (issue #1765).
+  setUp(() async => setUpTestDatabase());
+  tearDown(() async => tearDownTestDatabase());
 
   // Returns the location-card InkWell (the one carrying a non-null onTap).
   InkWell locationInkWell(WidgetTester tester) {
@@ -173,7 +179,7 @@ void main() {
       expect(find.byType(DiveDetailPage), findsOneWidget);
       expect(find.text('Blue Hole'), findsWidgets);
 
-      // 2. Navigate to Site Detail by tapping "View Site"
+      // 2. Navigate to Site Detail by tapping the location card
       locationInkWell(tester).onTap!();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));

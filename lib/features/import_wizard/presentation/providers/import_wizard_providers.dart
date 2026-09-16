@@ -381,6 +381,36 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// duplicate rows never reach this path with a meaningful action — their
   /// action is set via [setDuplicateAction] from `DuplicateActionCard` — so
   /// this can't clobber a user's duplicate-resolution choice.
+  ///
+  /// A shift-click range can span a duplicate row in the middle without the
+  /// user intending to select it, so -- exactly like [selectAll] -- indices
+  /// in [EntityGroup.duplicateIndices] are never added by this method. They
+  /// stay eligible for [setSelections]'s removal path, though that's moot in
+  /// practice since they can never have been added in the first place.
+  void setSelections(ImportEntityType type, Set<int> indices, bool select) {
+    final current = state.selections[type] ?? const <int>{};
+    final updated = Set<int>.from(current);
+
+    if (select) {
+      final group = state.bundle?.groups[type];
+      final selectable = group == null
+          ? indices
+          : indices.difference(group.duplicateIndices);
+      updated.addAll(selectable);
+    } else {
+      updated.removeAll(indices);
+    }
+
+    final updatedPending = _drainPending(type, indices);
+    final updatedActions = _clearSeededSkip(type, indices, select);
+
+    state = state.copyWith(
+      selections: {...state.selections, type: updated},
+      duplicateActions: updatedActions,
+      pendingDuplicateReview: updatedPending,
+    );
+  }
+
   void toggleSelection(ImportEntityType type, int index) {
     final current = state.selections[type] ?? const <int>{};
     final updated = Set<int>.from(current);
@@ -837,10 +867,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       String? tagWarning;
       if (!token.isCancelled &&
           state.importTags.isNotEmpty &&
-          result.importedDiveIds.isNotEmpty &&
+          (result.importedDiveIds.isNotEmpty ||
+              result.diverOutcomes.any((o) => o.diveIds.isNotEmpty)) &&
           _tagRepository != null) {
         try {
-          await _applyImportTags(result.importedDiveIds);
+          await _applyImportTags(result);
         } catch (e) {
           _log.warning('Tag application failed after import: $e');
           tagWarning = 'Dives imported successfully but tagging failed: $e';
@@ -872,35 +903,51 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     }
   }
 
-  /// Resolve tag selections and apply them to the given dive IDs.
-  Future<void> _applyImportTags(List<String> importedDiveIds) async {
+  /// Resolve tag selections and apply them to every imported dive.
+  ///
+  /// A tag belongs to one diver, so when an import wrote to several
+  /// profiles (issue #1893) each profile gets its own tag of the chosen
+  /// name. The existing tags offered in Review are the active diver's, so
+  /// they are used as they are only for that diver's dives.
+  Future<void> _applyImportTags(UnifiedImportResult result) async {
+    final divesByDiver = <String?, List<String>>{
+      if (result.diverOutcomes.isEmpty)
+        _diverId: result.importedDiveIds
+      else
+        for (final outcome in result.diverOutcomes)
+          if (outcome.diveIds.isNotEmpty) outcome.diverId: outcome.diveIds,
+    };
+    final total = divesByDiver.values.fold<int>(0, (n, ids) => n + ids.length);
     state = state.copyWith(
       importPhase: ImportPhase.applyingTags,
       importCurrent: 0,
-      importTotal: importedDiveIds.length,
+      importTotal: total,
     );
 
-    // Resolve tag selections to tag IDs.
-    final tagIds = <String>[];
-    for (final tagSelection in state.importTags) {
-      if (tagSelection.isNew) {
-        final tag = await _tagRepository!.getOrCreateTag(
-          tagSelection.name,
-          diverId: _diverId,
-        );
-        tagIds.add(tag.id);
-      } else {
-        tagIds.add(tagSelection.existingTagId!);
+    var done = 0;
+    for (final MapEntry(key: diverId, value: diveIds) in divesByDiver.entries) {
+      // Resolve tag selections to this diver's tag IDs.
+      final tagIds = <String>[];
+      for (final tagSelection in state.importTags) {
+        if (!tagSelection.isNew && diverId == _diverId) {
+          tagIds.add(tagSelection.existingTagId!);
+        } else {
+          final tag = await _tagRepository!.getOrCreateTag(
+            tagSelection.name,
+            diverId: diverId,
+          );
+          tagIds.add(tag.id);
+        }
       }
-    }
 
-    // Apply each tag to each imported dive.
-    for (var i = 0; i < importedDiveIds.length; i++) {
-      final diveId = importedDiveIds[i];
-      for (final tagId in tagIds) {
-        await _tagRepository!.addTagToDive(diveId, tagId);
+      // Apply each tag to each of the diver's imported dives.
+      for (final diveId in diveIds) {
+        for (final tagId in tagIds) {
+          await _tagRepository!.addTagToDive(diveId, tagId);
+        }
+        done++;
+        state = state.copyWith(importCurrent: done);
       }
-      state = state.copyWith(importCurrent: i + 1);
     }
   }
 

@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_import/data/services/imported_file_recl
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
@@ -43,6 +44,16 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
+
+/// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
+/// found, with the anchor needed to turn an absolute time into an offset on
+/// that series' own clock.
+typedef ContainedSegmentCandidate = ({
+  String diveId,
+  String seriesId,
+  DateTime effectiveStart,
+});
 
 /// Repository for managing dive computers and multi-profile support.
 class DiveComputerRepository {
@@ -1011,6 +1022,101 @@ class DiveComputerRepository {
     }
   }
 
+  /// Existing `dive_profile_series` rows on [computerId] whose OWN recorded
+  /// window (that series' first/last sample, not the dive's declared
+  /// runtime) contains [time].
+  ///
+  /// Answers "did this computer already record something at this instant",
+  /// for the case [findMatchingDiveWithScore]'s whole-dive time/depth/
+  /// duration comparison cannot: a dive computer that splits one physical
+  /// dive into two native log entries on a brief surface pause. If the
+  /// first entry was later merged (in this app or another) into a longer
+  /// dive, that merged dive's declared start no longer sits within
+  /// [findMatchingDiveWithScore]'s tolerance window of the second entry's
+  /// own start -- but the merged dive's profile still spans it, which this
+  /// checks directly. Ordered most-recent-first; capped at 5 since this
+  /// backs a per-candidate profile-curve comparison the caller does next.
+  ///
+  /// [computerId] is matched via `COALESCE(dps.computer_id, ds.computer_id,
+  /// d.computer_id)`: a native download stamps it on the series row
+  /// directly, but a file-imported dive's series can carry a null
+  /// `computer_id` of its own, with the identity living instead on its
+  /// `dive_data_sources` row (or, failing that, the dive row).
+  ///
+  /// Returns the matching series id alongside the dive id -- not just the
+  /// dive -- because a consolidated or edited dive can hold more than one
+  /// series, and only the specific one that satisfied this window check is
+  /// safe to compare a curve against; the dive's merged, all-sources profile
+  /// is not (it can mix in samples from a different computer entirely, or
+  /// omit this exact series if a later edit superseded it). The candidate's
+  /// [ContainedSegmentCandidate.effectiveStart] is the anchor the caller
+  /// needs to turn its own dive's absolute start time into an offset on that
+  /// series' own clock.
+  Future<List<ContainedSegmentCandidate>> findComputerDivesContainingTime({
+    required String computerId,
+    required DateTime time,
+    String? diverId,
+  }) async {
+    try {
+      final timeMs = time.millisecondsSinceEpoch;
+      final normalizedDiverId = diverId?.trim().isEmpty == true
+          ? null
+          : diverId;
+      final diverClause = normalizedDiverId != null ? 'AND d.diver_id = ?' : '';
+      final diverVars = normalizedDiverId != null
+          ? [Variable(normalizedDiverId)]
+          : <Variable>[];
+
+      final result = await _db
+          .customSelect(
+            '''
+        SELECT d.id AS dive_id, dps.id AS series_id,
+          COALESCE(d.entry_time, d.dive_date_time) as effective_start
+        FROM dives d
+        JOIN dive_profile_series dps ON dps.dive_id = d.id
+        LEFT JOIN dive_data_sources ds ON ds.id = dps.source_id
+        WHERE COALESCE(dps.computer_id, ds.computer_id, d.computer_id) = ?
+          AND (COALESCE(d.entry_time, d.dive_date_time) + dps.start_timestamp * 1000) <= ?
+          AND (COALESCE(d.entry_time, d.dive_date_time) + dps.end_timestamp * 1000) >= ?
+          $diverClause
+        ORDER BY effective_start DESC
+        LIMIT 5
+      ''',
+            variables: [
+              Variable(computerId),
+              Variable(timeMs),
+              Variable(timeMs),
+              ...diverVars,
+            ],
+          )
+          .get();
+
+      return [
+        for (final row in result)
+          (
+            diveId: row.data['dive_id'] as String,
+            seriesId: row.data['series_id'] as String,
+            effectiveStart: DateTime.fromMillisecondsSinceEpoch(
+              row.data['effective_start'] as int,
+            ),
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to find computer dives containing time: $computerId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// The specific profile series [findComputerDivesContainingTime] matched,
+  /// so the caller compares against that series' own samples rather than
+  /// the dive's merged, all-sources profile.
+  Future<ProfileSeries?> getProfileSeriesById(String seriesId) =>
+      _profileSeries.getSeriesById(seriesId);
+
   /// Get dive IDs that were imported from a specific computer.
   Future<List<String>> getDiveIdsForComputer(
     String computerId, {
@@ -1916,6 +2022,41 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get events for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// [getEventsForDive] for many dives at once, keyed by dive id; a dive
+  /// without events is absent.
+  ///
+  /// One statement per [kSeriesIdChunkSize] ids instead of one per dive, so
+  /// the full UDDF export costs the same for any logbook size (issue #1867).
+  /// `dive_profile_events` has no `dive_id` index, which made every
+  /// per-dive read a scan of the whole table. Each dive keeps the per-dive
+  /// read's timestamp order.
+  Future<Map<String, List<DiveProfileEvent>>> getEventsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    try {
+      final byDive = <String, List<DiveProfileEvent>>{};
+      for (final chunk in seriesIdChunks(diveIds)) {
+        final rows =
+            await (_db.select(_db.diveProfileEvents)
+                  ..where((t) => t.diveId.isIn(chunk))
+                  ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+                .get();
+        for (final row in rows) {
+          byDive.putIfAbsent(row.diveId, () => []).add(row);
+        }
+      }
+      return byDive;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get events for ${diveIds.length} dives',
         error: e,
         stackTrace: stackTrace,
       );

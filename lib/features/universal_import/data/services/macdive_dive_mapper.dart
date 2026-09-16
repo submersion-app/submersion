@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/dive_computer_descriptor_index.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_media_entries.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
@@ -132,15 +133,10 @@ class MacDiveDiveMapper {
     final diveCenterMaps = _buildDiveCenterMaps(logbook);
     final certificationMaps = _buildCertificationMaps(logbook);
     final serviceRecordMaps = _buildServiceRecordMaps(logbook);
-    // A MacDive library can hold several divers. Submersion imports into one
-    // diver, so without this the dives arrive as one undifferentiated list
-    // (#912). Tagging by diver name keeps them separable after import.
-    final diverNames = _diverNamesInUse(logbook);
-    final tagMapsWithDivers = <Map<String, dynamic>>[
-      ...tagMaps,
-      if (diverNames.length > 1)
-        for (final name in diverNames) {'name': name, 'uddfId': name},
-    ];
+    // A MacDive library can hold several divers. The payload names each one
+    // and keys every dive and card to its diver, so the wizard's Divers step
+    // can send them to separate profiles (#1893).
+    final sourceDivers = _buildSourceDivers(logbook);
 
     final parse = parseRaw ?? _defaultParseRaw;
     final diveMaps = <Map<String, dynamic>>[];
@@ -179,12 +175,7 @@ class MacDiveDiveMapper {
     }
 
     for (final d in logbook.dives) {
-      final map = _buildDiveMap(
-        d,
-        logbook,
-        converter,
-        multiDiver: diverNames.length > 1,
-      );
+      final map = _buildDiveMap(d, logbook, converter);
       var attached = false;
       if (ffiAvailable && _hasRawProfile(d)) {
         try {
@@ -230,6 +221,8 @@ class MacDiveDiveMapper {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.macdiveProfileUndecodable,
+          count: unreadable,
           message:
               '$unreadable dive(s) had profile data Submersion could not '
               'decode. To import those profiles, export from MacDive as XML '
@@ -242,24 +235,12 @@ class MacDiveDiveMapper {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.profileUndecodableOnPlatform,
+          count: platformBlocked,
           message:
               '$platformBlocked dive(s) had dive computer data that could '
               'not be decoded on this platform. Their details were imported '
               'without depth profiles.',
-          entityType: ImportEntityType.dives,
-        ),
-      );
-    }
-
-    if (diverNames.length > 1) {
-      warnings.add(
-        ImportWarning(
-          severity: ImportWarningSeverity.warning,
-          message:
-              'This MacDive library contains dives for '
-              '${diverNames.length} divers (${diverNames.join(', ')}). '
-              'They will all be imported into the current diver profile, '
-              'each dive tagged with the name it was logged under.',
           entityType: ImportEntityType.dives,
         ),
       );
@@ -277,6 +258,8 @@ class MacDiveDiveMapper {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.macdiveLogbooksNotImported,
+          names: logNames,
           message:
               'MacDive logbooks (${logNames.join(', ')}) were not imported. '
               'MacDive stores them as saved searches rather than as fixed '
@@ -299,9 +282,7 @@ class MacDiveDiveMapper {
     if (mediaMaps.isNotEmpty) entities[ImportEntityType.media] = mediaMaps;
     if (siteMaps.isNotEmpty) entities[ImportEntityType.sites] = siteMaps;
     if (buddyMaps.isNotEmpty) entities[ImportEntityType.buddies] = buddyMaps;
-    if (tagMapsWithDivers.isNotEmpty) {
-      entities[ImportEntityType.tags] = tagMapsWithDivers;
-    }
+    if (tagMaps.isNotEmpty) entities[ImportEntityType.tags] = tagMaps;
     if (gearMaps.isNotEmpty) entities[ImportEntityType.equipment] = gearMaps;
     if (diveTypeMaps.isNotEmpty) {
       entities[ImportEntityType.diveTypes] = diveTypeMaps;
@@ -319,6 +300,7 @@ class MacDiveDiveMapper {
     return ImportPayload(
       entities: entities,
       warnings: warnings,
+      sourceDivers: sourceDivers,
       metadata: {
         'source': 'macdive_sqlite',
         'diveCount': logbook.dives.length,
@@ -611,6 +593,7 @@ class MacDiveDiveMapper {
         // MacDive has no level field; the card name is the closest thing, and
         // _parseCertificationLevel drops it when it matches nothing.
         'level': name,
+        SourceDiver.mapKey: _sourceDiverKey(logbook, c.diverFk),
         if (c.diverNumber != null) 'cardNumber': c.diverNumber,
         if (c.attained != null) 'issueDate': c.attained,
         if (c.expiry != null) 'expiryDate': c.expiry,
@@ -654,13 +637,74 @@ class MacDiveDiveMapper {
 
   /// Distinct diver names that actually have dives attached, in first-seen
   /// order. Dives with no diver link contribute nothing.
-  static List<String> _diverNamesInUse(MacDiveRawLogbook logbook) {
-    final names = <String>[];
+  /// The `sourceDiverKey` of a record whose `ZRELATIONSHIPDIVER` is
+  /// [diverFk]. A missing or dangling link is the unowned row (#1893). A
+  /// diver with no uuid falls back to its primary key, which only this file
+  /// guarantees, so that key is marked file-local for the batch merger.
+  static String _sourceDiverKey(MacDiveRawLogbook logbook, int? diverFk) {
+    final diver = logbook.diversByPk[diverFk];
+    if (diver == null) return SourceDiver.unownedKey;
+    if (diver.uuid.isNotEmpty) return 'macdive:${diver.uuid}';
+    return '${SourceDiver.fileLocalPrefix}macdive-pk${diver.pk}';
+  }
+
+  /// One [SourceDiver] per MacDive diver with dives or certifications, then
+  /// the unowned row when some records name no diver (#1893).
+  static List<SourceDiver> _buildSourceDivers(MacDiveRawLogbook logbook) {
+    final dives = <String, int>{};
     for (final d in logbook.dives) {
-      final name = logbook.diversByPk[d.diverFk]?.fullName;
-      if (name != null && !names.contains(name)) names.add(name);
+      final key = _sourceDiverKey(logbook, d.diverFk);
+      dives[key] = (dives[key] ?? 0) + 1;
     }
-    return names;
+    final certs = <String, int>{};
+    for (final c in logbook.certifications) {
+      // Mirrors _buildCertificationMaps, which drops nameless cards.
+      if ((c.name?.trim() ?? '').isEmpty) continue;
+      final key = _sourceDiverKey(logbook, c.diverFk);
+      certs[key] = (certs[key] ?? 0) + 1;
+    }
+
+    final out = <SourceDiver>[];
+    final seen = <String>{};
+    final pks = logbook.diversByPk.keys.toList()..sort();
+    for (final pk in pks) {
+      final diver = logbook.diversByPk[pk]!;
+      final key = _sourceDiverKey(logbook, pk);
+      if (!seen.add(key)) continue;
+      final diveCount = dives[key] ?? 0;
+      final certificationCount = certs[key] ?? 0;
+      if (diveCount == 0 && certificationCount == 0) continue;
+      final email = diver.email?.trim();
+      out.add(
+        SourceDiver(
+          key: key,
+          name:
+              diver.fullName ??
+              ((email?.isNotEmpty ?? false) ? email! : 'MacDive diver $pk'),
+          diveCount: diveCount,
+          certificationCount: certificationCount,
+          email: diver.email,
+          phone: diver.phone ?? diver.mobile,
+          emergencyContact: diver.emergencyContact,
+          bloodType: diver.bloodType,
+          danNumber: diver.danNumber,
+        ),
+      );
+    }
+
+    final unownedDives = dives[SourceDiver.unownedKey] ?? 0;
+    final unownedCerts = certs[SourceDiver.unownedKey] ?? 0;
+    if (unownedDives > 0 || unownedCerts > 0) {
+      out.add(
+        SourceDiver(
+          key: SourceDiver.unownedKey,
+          name: '',
+          diveCount: unownedDives,
+          certificationCount: unownedCerts,
+        ),
+      );
+    }
+    return out;
   }
 
   // ---- site / buddy / tag / gear ----
@@ -788,13 +832,13 @@ class MacDiveDiveMapper {
   static Map<String, dynamic> _buildDiveMap(
     MacDiveRawDive d,
     MacDiveRawLogbook logbook,
-    MacDiveUnitConverter c, {
-    bool multiDiver = false,
-  }) {
+    MacDiveUnitConverter c,
+  ) {
     final map = <String, dynamic>{};
 
     if (d.uuid.isNotEmpty) map['sourceUuid'] = d.uuid;
     if (d.identifier != null) map['sourceIdentifier'] = d.identifier;
+    map[SourceDiver.mapKey] = _sourceDiverKey(logbook, d.diverFk);
     // `rawDate` is an absolute UTC DateTime derived from ZRAWDATE (NSDate
     // reference seconds). MacDive stores the per-dive zone separately in
     // `ZTIMEZONE` as an NSKeyedArchiver-encoded NSTimeZone. Emitting
@@ -930,14 +974,6 @@ class MacDiveDiveMapper {
         if ((logbook.tagsByPk[tpk]?.name ?? '').isNotEmpty)
           logbook.tagsByPk[tpk]!.name!,
     ];
-    // In a multi-diver library, tag each dive with the name it was logged
-    // under so the merged list stays separable (#912).
-    if (multiDiver) {
-      final diverName = logbook.diversByPk[d.diverFk]?.fullName;
-      if (diverName != null && !tagNames.contains(diverName)) {
-        tagNames.add(diverName);
-      }
-    }
     if (tagNames.isNotEmpty) map['tagRefs'] = tagNames;
 
     // Tanks: join ZTANKANDGAS rows with the referenced tank + gas. Sort

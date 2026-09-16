@@ -320,6 +320,7 @@ class MacDiveDbReader {
         diverNumber: _str(r['ZDIVERNUMBER']),
         cardFrontPath: _str(r['ZCARDFRONT']),
         cardBackPath: _str(r['ZCARDBACK']),
+        diverFk: r['ZRELATIONSHIPDIVER'] as int?,
       ),
     );
   }
@@ -378,6 +379,11 @@ class MacDiveDbReader {
         firstName: _str(r['ZFIRSTNAME']),
         lastName: _str(r['ZLASTNAME']),
         email: _str(r['ZEMAILADDRESS']),
+        phone: _str(r['ZPHONE']),
+        mobile: _str(r['ZMOBILE']),
+        emergencyContact: _str(r['ZEMERGENCYCONTACT']),
+        bloodType: _str(r['ZBLOODTYPE']),
+        danNumber: _str(r['ZINSURANCEDAN']),
       ),
     );
   }

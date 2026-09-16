@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show compute, visibleForTesting;
 
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/statistics/data/series_profile_aggregates.da
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
+import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 
 export 'package:submersion/features/statistics/domain/trend_aggregation.dart'
     show TrendDataPoint;
@@ -186,6 +188,10 @@ class StatisticsRepository {
           TableUpdateQuery.onTable(_db.sightings),
           TableUpdateQuery.onTable(_db.species),
           TableUpdateQuery.onTable(_db.diveSites),
+          // Site type links and names (issue #1765). A link is written
+          // without touching dive_sites, so it needs its own trigger.
+          TableUpdateQuery.onTable(_db.siteSiteTypes),
+          TableUpdateQuery.onTable(_db.siteTypes),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
         ]),
@@ -1297,6 +1303,61 @@ class StatisticsRepository {
     }
   }
 
+  /// Dives per site type (issue #1765), most-dived first; labels are site
+  /// type ids. A dive at a site with several types counts once under each,
+  /// as [getDiveTypeDistribution] counts a dive's own types, so the counts
+  /// can sum past the dive total. Dives without a site, or at a site without
+  /// types, are not counted.
+  Future<List<DistributionSegment>> getSiteTypeDistribution({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+
+      // A built-in is labelled by its slug, which the page translates. A
+      // custom type carries its stored name, because a shared site can hold
+      // another profile's custom type that the current diver's vocabulary
+      // does not include. A link whose type is gone falls back to its id.
+      final results = await _db.customSelect('''
+        SELECT
+          CASE WHEN st.is_built_in = 0 THEN st.name
+            ELSE sst.site_type_id END AS site_type,
+          COUNT(*) AS count
+        FROM dives d
+        JOIN site_site_types sst ON sst.site_id = d.site_id
+        LEFT JOIN site_types st ON st.id = sst.site_type_id
+        WHERE 1=1 $diverFilter ${df.clause}
+        GROUP BY sst.site_type_id
+        ORDER BY count DESC, sst.site_type_id
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
+      if (total == 0) return [];
+
+      return results.map((row) {
+        final count = row.read<int>('count');
+        return DistributionSegment(
+          label: row.read<String>('site_type'),
+          count: count,
+          percentage: count / total * 100,
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get site type distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
   /// Get entry method distribution.
   ///
   /// Buckets each dive by its *effective* entry method: the value on the dive
@@ -1575,6 +1636,143 @@ class StatisticsRepository {
       );
       return [];
     }
+  }
+
+  /// Dives counted per water-temperature band, coldest band first (issue
+  /// #1827).
+  ///
+  /// The bands are [waterTempBandEdges] for [unit], so an imperial diver gets
+  /// Fahrenheit bands rather than Celsius ones relabelled. Each dive's stored
+  /// Celsius reading is converted to [unit] and rounded to the one decimal
+  /// `UnitFormatter.formatTemperature` shows before it is compared, so a dive
+  /// displayed as "65°F" lands in the band that starts at 65 even when it
+  /// was stored as 18.33 °C (64.994 °F), as a Kelvin UDDF import leaves it.
+  ///
+  /// Every band is returned, empty ones included, so the chart keeps its
+  /// shape. Returns an empty list when no dive in scope has a water
+  /// temperature.
+  Future<List<WaterTempBandCount>> getDivesByWaterTempBand({
+    required TemperatureUnit unit,
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final edges = waterTempBandEdges(unit);
+      final perDive = _waterTempBandPerDiveQuery(
+        unit: unit,
+        diverId: diverId,
+        filter: filter,
+      );
+
+      final results = await _db.customSelect('''
+        SELECT band, COUNT(*) AS count FROM (${perDive.sql})
+        GROUP BY band
+        ''', variables: perDive.params.map((p) => Variable(p)).toList()).get();
+
+      if (results.isEmpty) return [];
+      final counts = <int, int>{
+        for (final row in results)
+          row.read<int>('band'): row.read<int>('count'),
+      };
+
+      return [
+        for (var band = 0; band <= edges.length; band++)
+          (
+            lower: band == 0 ? null : edges[band - 1],
+            upper: band == edges.length ? null : edges[band],
+            count: counts[band] ?? 0,
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives by water temperature band',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// The water-temperature band of every dive in scope that has a water
+  /// temperature, as an index into the bands [getDivesByWaterTempBand]
+  /// returns (issue #1873).
+  ///
+  /// Shares its binning with that count, so a per-band average places each
+  /// dive in the band the chart counted it in. Uses the normal statistics
+  /// scope: callers narrow to the gas scope through the per-dive SAC data.
+  Future<Map<String, int>> getWaterTempBandPerDive({
+    required TemperatureUnit unit,
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final perDive = _waterTempBandPerDiveQuery(
+        unit: unit,
+        diverId: diverId,
+        filter: filter,
+      );
+      final results = await _db
+          .customSelect(
+            perDive.sql,
+            variables: perDive.params.map((p) => Variable(p)).toList(),
+          )
+          .get();
+      return {
+        for (final row in results)
+          row.read<String>('dive_id'): row.read<int>('band'),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get water temperature band per dive',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {};
+    }
+  }
+
+  /// One `(dive_id, band)` row per dive in scope with a water temperature,
+  /// and the variables it binds, in order.
+  ///
+  /// Each dive's stored Celsius reading is converted to [unit] and rounded to
+  /// the one decimal `UnitFormatter.formatTemperature` shows before it is
+  /// compared, so a dive displayed as "65°F" lands in the band that starts at
+  /// 65 even when it was stored as 18.33 °C (64.994 °F).
+  ({String sql, List<Object?> params}) _waterTempBandPerDiveQuery({
+    required TemperatureUnit unit,
+    String? diverId,
+    required DiveFilterState filter,
+  }) {
+    final edges = waterTempBandEdges(unit);
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final df = _diveFilter(filter, alias: 'dives');
+    // A fixed expression chosen by the enum, never user text.
+    final displayTemp = switch (unit) {
+      TemperatureUnit.celsius => 'water_temp',
+      TemperatureUnit.fahrenheit => 'water_temp * 9.0 / 5.0 + 32.0',
+    };
+    // Highest edge first so the first matching WHEN is the dive's band.
+    // Edge variables come first: they appear before the diver and filter
+    // placeholders in the statement below, and Drift binds positionally.
+    final whens = [
+      for (var i = edges.length - 1; i >= 0; i--)
+        'WHEN temp >= ? THEN ${i + 1}',
+    ].join('\n          ');
+    return (
+      sql:
+          '''
+        SELECT dive_id, CASE
+          $whens
+          ELSE 0
+        END AS band
+        FROM (
+          SELECT id AS dive_id, ROUND($displayTemp, 1) AS temp
+          FROM dives
+          WHERE water_temp IS NOT NULL $diverFilter ${df.clause}
+        )
+        ''',
+      params: [...edges.reversed, ?diverId, ...df.params],
+    );
   }
 
   // ============================================================================

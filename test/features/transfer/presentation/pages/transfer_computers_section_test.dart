@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
@@ -105,6 +106,46 @@ void main() {
     await pumpComputersSection(tester, const []);
 
     expect(find.text('Known Computers'), findsNothing);
+  });
+
+  group('clock sync switch (#1910)', () {
+    const switchKey = ValueKey('clock_sync_global_switch');
+
+    testWidgets('sits above the connect card when no computers are known', (
+      tester,
+    ) async {
+      await pumpComputersSection(tester, const []);
+
+      expect(find.byKey(switchKey), findsOneWidget);
+      expect(find.text('Sync dive computer clocks'), findsOneWidget);
+      expect(
+        tester.widget<SwitchListTile>(find.byKey(switchKey)).value,
+        isFalse,
+      );
+      expect(
+        tester.getTopLeft(find.byKey(switchKey)).dy,
+        lessThan(tester.getTopLeft(find.text('Connect New Computer')).dy),
+      );
+    });
+
+    testWidgets('toggling it updates the installation setting', (tester) async {
+      await pumpComputersSection(tester, [computer()]);
+
+      await tester.tap(find.byKey(switchKey));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TransferPage)),
+      );
+      expect(
+        container.read(clockSyncSettingsNotifierProvider).globalEnabled,
+        isTrue,
+      );
+      expect(
+        tester.widget<SwitchListTile>(find.byKey(switchKey)).value,
+        isTrue,
+      );
+    });
   });
 
   testWidgets('the strings follow the locale, not hardcoded English', (

@@ -1,3 +1,4 @@
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
@@ -42,6 +43,10 @@ class UnifiedImportResult {
   /// succeeded; these explain why an expected figure is blank.
   final List<ImportNotice> notices;
 
+  /// What each profile received when one import wrote to several
+  /// (issue #1893). Empty for an import into the active profile alone.
+  final List<DiverImportOutcome> diverOutcomes;
+
   const UnifiedImportResult({
     required this.importedCounts,
     required this.consolidatedCount,
@@ -53,5 +58,6 @@ class UnifiedImportResult {
     this.attachedPhotoCount = 0,
     this.unmatchedPhotoCount = 0,
     this.notices = const [],
+    this.diverOutcomes = const [],
   });
 }

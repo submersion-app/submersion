@@ -5,6 +5,7 @@ import 'package:mockito/mockito.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -1242,6 +1243,72 @@ void main() {
         verify(mockTagRepo.addTagToDive('dive-1', 'tag-new')).called(1);
       });
 
+      test('resolves each tag per profile in a multi-profile import', () async {
+        notifier.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+        notifier.addImportTag(
+          const TagSelection(existingTagId: 'tag-existing', name: 'Existing'),
+        );
+        notifier.addImportTag(const TagSelection(name: 'Vacation'));
+
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ['d1'],
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'diver-1',
+              name: 'Me',
+              isNew: false,
+              isActive: true,
+              diveIds: ['d1'],
+            ),
+            DiverImportOutcome(
+              diverId: 'diver-2',
+              name: 'Bo Ray',
+              isNew: true,
+              isActive: false,
+              diveIds: ['d2'],
+            ),
+          ],
+        );
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((_) async => importResult);
+
+        Tag tag(String id, String name) => Tag(
+          id: id,
+          name: name,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+        when(
+          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+        ).thenAnswer((_) async => tag('v1', 'Vacation'));
+        when(
+          mockTagRepo.getOrCreateTag('Existing', diverId: 'diver-2'),
+        ).thenAnswer((_) async => tag('e2', 'Existing'));
+        when(
+          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-2'),
+        ).thenAnswer((_) async => tag('v2', 'Vacation'));
+        when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
+
+        await notifier.performImport();
+
+        verify(mockTagRepo.addTagToDive('d1', 'tag-existing')).called(1);
+        verify(mockTagRepo.addTagToDive('d1', 'v1')).called(1);
+        verify(mockTagRepo.addTagToDive('d2', 'e2')).called(1);
+        verify(mockTagRepo.addTagToDive('d2', 'v2')).called(1);
+        verifyNever(mockTagRepo.addTagToDive('d2', 'tag-existing'));
+      });
+
       test(
         'uses existing tag ID directly without calling getOrCreateTag',
         () async {
@@ -2467,6 +2534,96 @@ void main() {
       expect(after, isNotNull);
       expect(after!.type, ImportEntityType.sites);
       expect(after.index, 0);
+    });
+  });
+
+  group('setSelections', () {
+    test('updates selectedIndices correctly for a range', () {
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+
+      const bundle = ImportBundle(
+        source: ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'test_source',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: [
+              EntityItem(title: 'Dive 1', subtitle: ''),
+              EntityItem(title: 'Dive 2', subtitle: ''),
+              EntityItem(title: 'Dive 3', subtitle: ''),
+              EntityItem(title: 'Dive 4', subtitle: ''),
+            ],
+          ),
+        },
+      );
+
+      notifier.setBundle(bundle);
+      // setBundle defaults non-duplicates to selected, so deselect them first
+      notifier.setSelections(ImportEntityType.dives, {0, 1, 2, 3}, false);
+
+      // Verify nothing is selected yet
+      var state = container.read(importWizardNotifierProvider);
+      expect(state.selections[ImportEntityType.dives], isEmpty);
+
+      // Select indices {1, 2, 3}
+      notifier.setSelections(ImportEntityType.dives, {1, 2, 3}, true);
+      state = container.read(importWizardNotifierProvider);
+      expect(state.selections[ImportEntityType.dives], {1, 2, 3});
+
+      // Deselect index 2
+      notifier.setSelections(ImportEntityType.dives, {2}, false);
+      state = container.read(importWizardNotifierProvider);
+      expect(state.selections[ImportEntityType.dives], {1, 3});
+    });
+
+    test('ignores indices that are duplicates (which cannot be selected)', () {
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+
+      const bundle = ImportBundle(
+        source: ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'test_source',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: [
+              EntityItem(title: 'Dive 1', subtitle: ''),
+              EntityItem(title: 'Dive 2', subtitle: ''),
+              EntityItem(title: 'Dive 3', subtitle: ''),
+            ],
+            duplicateIndices: {1}, // Index 1 is a duplicate
+          ),
+        },
+      );
+
+      notifier.setBundle(bundle);
+
+      // Attempt to select {0, 1, 2}
+      notifier.setSelections(ImportEntityType.dives, {0, 1, 2}, true);
+
+      final state = container.read(importWizardNotifierProvider);
+
+      // Index 1 should NOT be selected because it's in duplicateIndices
+      expect(state.selections[ImportEntityType.dives], {0, 2});
     });
   });
 }

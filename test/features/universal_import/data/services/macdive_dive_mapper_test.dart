@@ -8,6 +8,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_dive_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
@@ -182,52 +183,100 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.serviceRecords), isEmpty);
     });
 
-    test('a multi-diver library is flagged and tagged by diver', () async {
+    test('a multi-diver library describes each diver (#1893)', () async {
       final payload = await MacDiveDiveMapper.toPayload(_multiDiverLogbook());
 
-      // #912: several MacDive divers used to merge into one flat list with
-      // no way to tell them apart.
-      final warning = payload.warnings.singleWhere(
-        (w) => w.message.contains('2 divers'),
-      );
-      expect(warning.severity, ImportWarningSeverity.warning);
-      expect(warning.message, contains('Ann Lee'));
-      expect(warning.message, contains('Bo Ray'));
+      expect(payload.needsDiverMapping, isTrue);
+      expect(payload.sourceDivers.map((d) => d.key), [
+        'macdive:diver-1',
+        'macdive:diver-2',
+        SourceDiver.unownedKey,
+      ]);
+      final ann = payload.sourceDivers[0];
+      expect(ann.name, 'Ann Lee');
+      expect(ann.diveCount, 1);
+      expect(ann.email, 'ann@example.com');
+      // ZPHONE is empty, so the mobile number stands in.
+      expect(ann.phone, '555-0101');
+      expect(ann.emergencyContact, 'Sam Lee');
+      expect(ann.bloodType, 'O+');
+      expect(ann.danNumber, 'DAN-123');
+      expect(payload.sourceDivers[1].certificationCount, 1);
+      expect(payload.sourceDivers[2].diveCount, 1);
 
       final dives = payload.entitiesOf(ImportEntityType.dives);
-      expect(dives.firstWhere((d) => d['sourceUuid'] == 'dive-1')['tagRefs'], [
-        'Ann Lee',
-      ]);
-      expect(dives.firstWhere((d) => d['sourceUuid'] == 'dive-2')['tagRefs'], [
-        'Bo Ray',
-      ]);
-      // A dive with no diver link gets no diver tag.
+      Object? keyOf(String uuid) =>
+          dives.firstWhere((d) => d['sourceUuid'] == uuid)[SourceDiver.mapKey];
+      expect(keyOf('dive-1'), 'macdive:diver-1');
+      expect(keyOf('dive-2'), 'macdive:diver-2');
+      expect(keyOf('dive-3'), SourceDiver.unownedKey);
       expect(
-        dives
-            .firstWhere((d) => d['sourceUuid'] == 'dive-3')
-            .containsKey('tagRefs'),
-        isFalse,
+        payload
+            .entitiesOf(ImportEntityType.certifications)
+            .single[SourceDiver.mapKey],
+        'macdive:diver-2',
       );
 
-      // The names are also emitted as tag entities so the refs resolve.
-      expect(
-        payload.entitiesOf(ImportEntityType.tags).map((t) => t['name']),
-        containsAll(['Ann Lee', 'Bo Ray']),
-      );
-    });
-
-    test('a single-diver library is not tagged or flagged', () async {
-      final payload = await MacDiveDiveMapper.toPayload(
-        _multiDiverLogbook(singleDiver: true),
-      );
+      // The Divers step replaces #912's name tags and warning.
+      expect(payload.entitiesOf(ImportEntityType.tags), isEmpty);
+      for (final dive in dives) {
+        expect(dive.containsKey('tagRefs'), isFalse);
+      }
       expect(
         payload.warnings.where((w) => w.message.contains('divers')),
         isEmpty,
       );
+    });
+
+    test('a diver without a uuid gets a key local to this file', () async {
+      final logbook = _multiDiverLogbook();
+      final payload = await MacDiveDiveMapper.toPayload(
+        MacDiveRawLogbook(
+          dives: logbook.dives,
+          diversByPk: {
+            ...logbook.diversByPk,
+            2: const MacDiveRawDiver(
+              pk: 2,
+              uuid: '',
+              firstName: 'Bo',
+              lastName: 'Ray',
+            ),
+          },
+          sitesByPk: const {},
+          buddiesByPk: const {},
+          tagsByPk: const {},
+          gearByPk: const {},
+          tanksByPk: const {},
+          gasesByPk: const {},
+          tankAndGases: const [],
+          crittersByPk: const {},
+          certifications: logbook.certifications,
+          serviceRecords: const [],
+          events: const [],
+          diveToBuddyPks: const {},
+          diveToTagPks: const {},
+          diveToGearPks: const {},
+          diveToCritterPks: const {},
+          unitsPreference: 'Metric',
+        ),
+      );
+      // A Core Data primary key is only unique within one file, so the merger
+      // qualifies this key with the file before combining a batch's divers.
+      expect(payload.sourceDivers[1].key, 'local:macdive-pk2');
+      expect(payload.sourceDivers[1].name, 'Bo Ray');
+    });
+
+    test('a single-diver library needs no diver mapping', () async {
+      final payload = await MacDiveDiveMapper.toPayload(
+        _multiDiverLogbook(singleDiver: true),
+      );
+      expect(payload.needsDiverMapping, isFalse);
+      // Diver 2 is gone, so their dive and card are unowned.
+      expect(payload.sourceDivers.map((d) => d.key), [
+        'macdive:diver-1',
+        SourceDiver.unownedKey,
+      ]);
       expect(payload.entitiesOf(ImportEntityType.tags), isEmpty);
-      for (final dive in payload.entitiesOf(ImportEntityType.dives)) {
-        expect(dive.containsKey('tagRefs'), isFalse);
-      }
     });
 
     test('MacDive logbooks are reported as not imported', () async {
@@ -1159,6 +1208,51 @@ void main() {
           .firstWhere((s) => s['name'] == 'Test Reef');
       expect(salt['sourceUuid'], 'site-uuid-1');
     });
+
+    // The import summary shows coded warnings only, grouped by code, so each
+    // warning here must carry its code and the count or names the summary
+    // cards print.
+    group('summary codes', () {
+      test('undecodable profiles carry their code and dive count', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _rawDataLogbook(computer: 'Oceanic Matrix Master'),
+          fetchDescriptors: _fakeDescriptors,
+          parseRaw: (v, p, m, d) async =>
+              fail('parser must not be reached for an unknown model'),
+        );
+
+        final w = payload.warnings.single;
+        expect(w.code, ImportWarningCode.macdiveProfileUndecodable);
+        expect(w.count, 2);
+      });
+
+      test(
+        'platform-blocked profiles carry their code and dive count',
+        () async {
+          final payload = await MacDiveDiveMapper.toPayload(
+            _rawDataLogbook(),
+            fetchDescriptors: _fakeDescriptors,
+            parseRaw: (v, p, m, d) async =>
+                throw MissingPluginException('no channel'),
+          );
+
+          final w = payload.warnings.single;
+          expect(w.code, ImportWarningCode.profileUndecodableOnPlatform);
+          expect(w.count, 2);
+        },
+      );
+
+      test('logbooks that were not imported are named', () async {
+        final logbook = await MacDiveDbReader.readAll(bytes);
+        final payload = await MacDiveDiveMapper.toPayload(logbook);
+
+        final w = payload.warnings.singleWhere(
+          (w) => w.code == ImportWarningCode.macdiveLogbooksNotImported,
+        );
+        expect(w.names, contains('Tropical'));
+        expect(w.names, everyElement(isNotEmpty));
+      });
+    });
   });
 }
 
@@ -1449,9 +1543,10 @@ MacDiveRawLogbook _rawDataLogbook({String computer = 'Shearwater Teric'}) {
   );
 }
 
-/// Three dives across two MacDive divers, plus one dive with no diver link.
-/// With [singleDiver] the second diver is removed, so the library looks like
-/// the common one-diver case.
+/// Three dives across two MacDive divers, plus one dive with no diver link,
+/// and one certification belonging to the second diver. With [singleDiver]
+/// the second diver is removed, so their dive and card no longer resolve to
+/// anyone and the library looks like the common one-diver case.
 MacDiveRawLogbook _multiDiverLogbook({bool singleDiver = false}) {
   return MacDiveRawLogbook(
     dives: const [
@@ -1465,6 +1560,11 @@ MacDiveRawLogbook _multiDiverLogbook({bool singleDiver = false}) {
         uuid: 'diver-1',
         firstName: 'Ann',
         lastName: 'Lee',
+        email: 'ann@example.com',
+        mobile: '555-0101',
+        emergencyContact: 'Sam Lee',
+        bloodType: 'O+',
+        danNumber: 'DAN-123',
       ),
       if (!singleDiver)
         2: const MacDiveRawDiver(
@@ -1482,7 +1582,14 @@ MacDiveRawLogbook _multiDiverLogbook({bool singleDiver = false}) {
     gasesByPk: const {},
     tankAndGases: const [],
     crittersByPk: const {},
-    certifications: const [],
+    certifications: const [
+      MacDiveRawCertification(
+        pk: 1,
+        uuid: 'cert-1',
+        name: 'Rescue Diver',
+        diverFk: 2,
+      ),
+    ],
     serviceRecords: const [],
     events: const [],
     diveToBuddyPks: const {},

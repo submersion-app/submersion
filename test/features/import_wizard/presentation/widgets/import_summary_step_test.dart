@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -1119,9 +1120,47 @@ void main() {
       expect(find.text('Failed to read'), findsOneWidget);
       expect(find.text('Needs individual import'), findsOneWidget);
       expect(find.text('Unsupported format'), findsOneWidget);
+      // Why the failed file failed, verbatim from its parser.
+      expect(find.text('bad xml'), findsOneWidget);
       // Imported count label (pluralized).
       expect(find.text('2 dives imported'), findsOneWidget);
       expect(find.text('1 dive imported'), findsOneWidget);
+    });
+
+    testWidgets('only a failed file shows a reason', (tester) async {
+      // The error is carried for failures only; an imported file that somehow
+      // had one must not look like it failed.
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          fileOutcomes: [
+            ImportFileOutcome(
+              fileName: 'ok.uddf',
+              formatName: 'UDDF',
+              status: ImportFileOutcomeStatus.imported,
+              importedDives: 1,
+              error: 'stale reason',
+            ),
+            ImportFileOutcome(
+              fileName: 'other.uddf',
+              formatName: 'UDDF',
+              status: ImportFileOutcomeStatus.imported,
+              importedDives: 0,
+            ),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('stale reason'), findsNothing);
     });
 
     testWidgets('single-file imports render no file outcome section', (
@@ -1251,7 +1290,7 @@ void main() {
 
     testWidgets('explains a missing-tank-pressure notice', (tester) async {
       await pumpWithNotices(tester, const [
-        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 12),
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, count: 12),
       ]);
 
       expect(find.byKey(const Key('import_summary_notices')), findsOneWidget);
@@ -1262,7 +1301,7 @@ void main() {
 
     testWidgets('uses the singular for a single dive', (tester) async {
       await pumpWithNotices(tester, const [
-        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 1),
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, count: 1),
       ], dives: 1);
 
       expect(find.text('Affects 1 dive'), findsOneWidget);
@@ -1272,10 +1311,7 @@ void main() {
       tester,
     ) async {
       await pumpWithNotices(tester, const [
-        ImportNotice(
-          kind: ImportNoticeKind.diveNumberConflict,
-          affectedDives: 2,
-        ),
+        ImportNotice(kind: ImportNoticeKind.diveNumberConflict, count: 2),
       ]);
 
       expect(find.text('Dive numbers already in use'), findsOneWidget);
@@ -1310,10 +1346,7 @@ void main() {
           consolidatedCount: 0,
           skippedCount: 0,
           notices: [
-            ImportNotice(
-              kind: ImportNoticeKind.unknownTransmitter,
-              affectedDives: 3,
-            ),
+            ImportNotice(kind: ImportNoticeKind.unknownTransmitter, count: 3),
           ],
         ),
       );
@@ -1359,10 +1392,418 @@ void main() {
 
     testWidgets('still reports the import as successful', (tester) async {
       await pumpWithNotices(tester, const [
-        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 12),
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, count: 12),
       ]);
 
       expect(find.text('Successfully Imported'), findsOneWidget);
+    });
+
+    testWidgets('heads the section "Import notes"', (tester) async {
+      // The section now carries data-loss cards too, so "Not in the file" no
+      // longer describes all of it.
+      await pumpWithNotices(tester, const [
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, count: 12),
+      ]);
+
+      expect(find.text('Import notes'), findsOneWidget);
+      expect(find.text('Not in the file'), findsNothing);
+    });
+
+    // One card per parser notice kind. [countLine] null means the card shows
+    // no dive count, because its count is not a number of affected dives.
+    Future<void> expectCard(
+      WidgetTester tester,
+      ImportNotice notice, {
+      required String title,
+      required String bodyFragment,
+      required String? countLine,
+    }) async {
+      await pumpWithNotices(tester, [notice]);
+
+      expect(find.text(title), findsOneWidget);
+      expect(find.textContaining(bodyFragment), findsOneWidget);
+      if (countLine == null) {
+        expect(find.textContaining('Affects'), findsNothing);
+      } else {
+        expect(find.text(countLine), findsOneWidget);
+      }
+    }
+
+    testWidgets('names columns an auto-mapping left out', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.columnsNotImported,
+          count: 2,
+          names: ['Location', 'Depth (ft)'],
+        ),
+        title: 'Some columns were not imported',
+        bodyFragment:
+            'already fills, so they were left out: Location, Depth (ft). '
+            'To use one of them instead, import the file again and choose it '
+            'on the Map Fields step.',
+        countLine: null,
+      );
+    });
+
+    testWidgets('explains unreadable profiles', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(kind: ImportNoticeKind.profileUnreadable, count: 2),
+        title: 'Some profiles could not be read',
+        bodyFragment: 'missing or could not be read',
+        countLine: 'Affects 2 dives',
+      );
+    });
+
+    testWidgets('points undecodable MacDive profiles at the XML export', (
+      tester,
+    ) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.macdiveProfileUndecodable,
+          count: 4,
+        ),
+        title: 'MacDive profiles not decoded',
+        bodyFragment: 'File > Export > MacDive XML',
+        countLine: 'Affects 4 dives',
+      );
+    });
+
+    testWidgets('explains profiles this device could not decode', (
+      tester,
+    ) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.profileUndecodableOnPlatform,
+          count: 5,
+        ),
+        title: 'Profiles not decoded on this device',
+        bodyFragment: 'imported without depth profiles',
+        countLine: 'Affects 5 dives',
+      );
+    });
+
+    testWidgets('counts CSV values left blank', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.valuesNotConverted,
+          count: 40,
+        ),
+        title: 'Some values left blank',
+        bodyFragment: '40 values could not be converted and were left blank.',
+        countLine: null,
+      );
+    });
+
+    testWidgets('counts skipped photos in the singular', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(kind: ImportNoticeKind.photosSkipped, count: 1),
+        title: 'Some photos skipped',
+        bodyFragment: '1 photo had no file name and could not be linked.',
+        countLine: null,
+      );
+    });
+
+    testWidgets('points a MacDive XML import at the sqlite database', (
+      tester,
+    ) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.macdiveXmlOmitsCertsAndService,
+          count: 1,
+        ),
+        title: 'Certifications and service records not in the file',
+        bodyFragment: 'import your MacDive.sqlite database',
+        countLine: null,
+      );
+    });
+
+    testWidgets('names the MacDive logbooks that were not imported', (
+      tester,
+    ) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.macdiveLogbooksNotImported,
+          count: 1,
+          names: ['Tropical', 'Wrecks'],
+        ),
+        title: 'MacDive logbooks not imported',
+        bodyFragment: 'MacDive logbooks (Tropical, Wrecks) are saved searches',
+        countLine: null,
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Dives a parser could not read (DL7, Subsurface) are missing from the
+  // import, like CSV rows with an unreadable date, and are shown the same way.
+  group('ImportSummaryStep: dives that could not be read', () {
+    Future<void> pumpWithSkippedDives(
+      WidgetTester tester,
+      int skipped, {
+      int dives = 12,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: dives},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: [
+            ImportNotice(kind: ImportNoticeKind.divesSkipped, count: skipped),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+    }
+
+    testWidgets('get their own card with a count', (tester) async {
+      await pumpWithSkippedDives(tester, 3);
+
+      expect(
+        find.byKey(const Key('import_summary_dives_skipped')),
+        findsOneWidget,
+      );
+      expect(find.text('Some dives could not be read'), findsOneWidget);
+      expect(
+        find.text(
+          'These dives were skipped because their data in the file could '
+          'not be read.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('3 dives skipped'), findsOneWidget);
+      expect(find.textContaining('Affects'), findsNothing);
+    });
+
+    testWidgets('are not filed under import notes', (tester) async {
+      await pumpWithSkippedDives(tester, 1);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsNothing);
+      expect(find.text('1 dive skipped'), findsOneWidget);
+    });
+
+    testWidgets('are shown even when no dive imported', (tester) async {
+      await pumpWithSkippedDives(tester, 2, dives: 0);
+
+      expect(
+        find.byKey(const Key('import_summary_dives_skipped')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('are styled as a problem, like unreadable rows', (
+      tester,
+    ) async {
+      await pumpWithSkippedDives(tester, 2);
+
+      final card = tester.widget<Card>(
+        find.descendant(
+          of: find.byKey(const Key('import_summary_dives_skipped')),
+          matching: find.byType(Card),
+        ),
+      );
+      final context = tester.element(find.byType(ImportSummaryStep));
+      expect(card.color, Theme.of(context).colorScheme.errorContainer);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Issue #1828: rows whose date could not be read used to vanish silently.
+  group('ImportSummaryStep: rows with an unreadable date', () {
+    Future<void> pumpWithSkippedRows(
+      WidgetTester tester,
+      List<int> rowNumbers, {
+      int dives = 12,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: dives},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: [
+            ImportNotice(
+              kind: ImportNoticeKind.unreadableDates,
+              count: rowNumbers.length,
+              rowNumbers: rowNumbers,
+            ),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+    }
+
+    testWidgets('counts the rows and names them', (tester) async {
+      await pumpWithSkippedRows(tester, const [4, 9, 12]);
+
+      expect(
+        find.byKey(const Key('import_summary_unreadable_dates')),
+        findsOneWidget,
+      );
+      expect(find.text('Some rows were not imported'), findsOneWidget);
+      expect(find.textContaining('date in these rows'), findsOneWidget);
+      expect(find.text('3 rows not imported'), findsOneWidget);
+      expect(find.text('Rows 4, 9, 12'), findsOneWidget);
+    });
+
+    testWidgets('uses the singular for a single row', (tester) async {
+      await pumpWithSkippedRows(tester, const [7]);
+
+      expect(find.text('1 row not imported'), findsOneWidget);
+      expect(find.text('Row 7'), findsOneWidget);
+    });
+
+    testWidgets('shortens a long list of rows', (tester) async {
+      await pumpWithSkippedRows(tester, [for (var r = 2; r <= 31; r++) r]);
+
+      expect(find.text('30 rows not imported'), findsOneWidget);
+      expect(
+        find.text('Rows 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 and 20 more'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('is not filed under data missing from the file', (
+      tester,
+    ) async {
+      // "Not in the file" explains gaps in dives that imported; these rows
+      // are dives that did not import at all.
+      await pumpWithSkippedRows(tester, const [4]);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsNothing);
+      expect(find.text('Not in the file'), findsNothing);
+    });
+
+    testWidgets('is shown even when no dive imported', (tester) async {
+      await pumpWithSkippedRows(tester, const [2, 3], dives: 0);
+
+      expect(
+        find.byKey(const Key('import_summary_unreadable_dates')),
+        findsOneWidget,
+      );
+      expect(find.text('2 rows not imported'), findsOneWidget);
+    });
+  });
+
+  group('ImportSummaryStep - by profile (#1893)', () {
+    const outcomes = [
+      DiverImportOutcome(
+        diverId: 'me',
+        name: 'Marci Glazer',
+        isNew: false,
+        isActive: true,
+        diveIds: ['d1', 'd2'],
+      ),
+      DiverImportOutcome(
+        diverId: 'bo',
+        name: 'Alex Glazer',
+        isNew: true,
+        isActive: false,
+        diveIds: ['d3'],
+      ),
+    ];
+
+    testWidgets('lists what each profile received', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: outcomes,
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('By profile'), findsOneWidget);
+      expect(find.text('Marci Glazer'), findsOneWidget);
+      expect(find.text('2 dives imported'), findsOneWidget);
+      expect(find.text('Alex Glazer'), findsOneWidget);
+      expect(find.text('New profile'), findsOneWidget);
+      expect(
+        find.text('Switch to Alex Glazer to see these dives'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a later failure keeps the success view', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'me',
+              name: 'Marci Glazer',
+              isNew: false,
+              isActive: true,
+              diveIds: ['d1', 'd2'],
+            ),
+          ],
+          errorMessage: 'Imported Marci Glazer, then stopped before Alex',
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_success_title')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Imported Marci Glazer, then stopped before Alex'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('one active profile adds no section', (tester) async {
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'me',
+              name: 'Marci Glazer',
+              isNew: false,
+              isActive: true,
+              diveIds: ['d1'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+      expect(find.text('By profile'), findsNothing);
     });
   });
 }

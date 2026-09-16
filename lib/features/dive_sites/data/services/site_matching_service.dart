@@ -4,6 +4,7 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_candidate.dart';
@@ -457,6 +458,8 @@ class SiteMatchingService {
     // Materialise the bundled site, then link.
     final createdSite = await _siteRepository.createSite(
       bundled.toDiveSite(diverId: diverId),
+      // Its bundled features as site types (issue #1765).
+      classification: SiteClassification(typeIds: bundled.siteTypeIds),
     );
     _createdByExternalId[bundled.externalId] = createdSite.id;
     if (createdSite.altitude == null) _locatedThisPass[createdSite.id] = point;

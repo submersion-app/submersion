@@ -7,6 +7,10 @@ import 'package:submersion/features/dive_computer/data/services/dive_import_serv
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
+    as codec;
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
@@ -983,6 +987,259 @@ void main() {
 
         expect(result.isDuplicate, isFalse);
         expect(result.matchedExistingSource, isFalse);
+      },
+    );
+  });
+
+  // ---------------------------------------------------------------------------
+  // detectDuplicate: same-computer contained segment (Dunkerque scenario --
+  // one physical dive the computer split on a brief surface pause, whose
+  // first half is already merged into a longer dive).
+  // ---------------------------------------------------------------------------
+
+  group('detectDuplicate contained segment', () {
+    // 30-minute existing dive on comp-1, sampled every 30s from a flat 10m.
+    List<codec.ProfileSample> existingSamples() => [
+      for (var t = 0; t <= 1800; t += 30)
+        codec.ProfileSample(timestamp: t, depth: 10.0),
+    ];
+
+    ProfileSeries existingSeries({
+      String id = 'series-1',
+      List<codec.ProfileSample>? samples,
+    }) {
+      final s = samples ?? existingSamples();
+      return ProfileSeries(
+        id: id,
+        diveId: 'existing-merged-dive',
+        isPrimary: true,
+        summary: ProfileSeriesSummary.of(s),
+        samples: s,
+        codecVersion: 1,
+        createdAt: 0,
+        updatedAt: 0,
+      );
+    }
+
+    ({String diveId, String seriesId, DateTime effectiveStart}) candidate({
+      String diveId = 'existing-merged-dive',
+      String seriesId = 'series-1',
+      DateTime? effectiveStart,
+    }) => (
+      diveId: diveId,
+      seriesId: seriesId,
+      effectiveStart: effectiveStart ?? DateTime(2026, 6, 1, 19, 52),
+    );
+
+    DownloadedDive segmentDive({
+      required DateTime startTime,
+      required List<ProfileSample> profile,
+    }) => DownloadedDive(
+      startTime: startTime,
+      durationSeconds: (profile.isEmpty ? 0 : profile.last.timeSeconds),
+      maxDepth: 10.0,
+      profile: profile,
+      tanks: const [],
+      events: const [],
+    );
+
+    setUp(() {
+      // No fingerprint / whole-dive fuzzy match on any of these tests --
+      // the contained-segment pass only runs once those have both missed.
+      when(
+        mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => {});
+      when(
+        mockComputerRepo.findMatchingDiveWithScore(
+          profileStartTime: anyNamed('profileStartTime'),
+          toleranceMinutes: anyNamed('toleranceMinutes'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          diverId: anyNamed('diverId'),
+        ),
+      ).thenAnswer((_) async => null);
+    });
+
+    test('matches a native second segment whose curve retraces part of an '
+        'already-merged dive on the same computer', () async {
+      // The watch's own second log entry starts 20 minutes into the
+      // already-merged dive's timeline and runs another 10 minutes.
+      final dive = segmentDive(
+        startTime: DateTime(2026, 6, 1, 20, 12),
+        profile: [
+          for (var t = 0; t <= 600; t += 30)
+            ProfileSample(timeSeconds: t, depth: 10.0),
+        ],
+      );
+
+      when(
+        mockComputerRepo.findComputerDivesContainingTime(
+          computerId: anyNamed('computerId'),
+          time: anyNamed('time'),
+          diverId: anyNamed('diverId'),
+        ),
+      ).thenAnswer((_) async => [candidate()]);
+      when(
+        mockComputerRepo.getProfileSeriesById('series-1'),
+      ).thenAnswer((_) async => existingSeries());
+
+      final result = await service.detectDuplicate(
+        dive,
+        diverId: 'diver-1',
+        computerId: 'comp-1',
+      );
+
+      expect(result.isDuplicate, isTrue);
+      expect(result.matchingDiveId, 'existing-merged-dive');
+      expect(result.confidence, DuplicateConfidence.exact);
+      expect(result.matchedExistingSource, isTrue);
+      // The merged, all-sources profile is never touched: only the specific
+      // series the containment query matched, which can differ from it in a
+      // multi-source or edited dive (Copilot review on #1852).
+      verifyNever(mockDiveRepo.getDiveForAnalysis(any));
+    });
+
+    test('compares against the matched series alone, not a dive merged from '
+        'multiple computers', () async {
+      // The existing dive has TWO series: comp-1's real recording (flat
+      // 10m, what the incoming segment should match) and comp-2's, at a
+      // very different depth. A merged, all-sources profile would blend
+      // the two and could push the mean error over the match threshold,
+      // or coincidentally still pass -- either way, on the wrong data.
+      final dive = segmentDive(
+        startTime: DateTime(2026, 6, 1, 20, 12),
+        profile: [
+          for (var t = 0; t <= 600; t += 30)
+            ProfileSample(timeSeconds: t, depth: 10.0),
+        ],
+      );
+
+      when(
+        mockComputerRepo.findComputerDivesContainingTime(
+          computerId: anyNamed('computerId'),
+          time: anyNamed('time'),
+          diverId: anyNamed('diverId'),
+        ),
+      ).thenAnswer((_) async => [candidate(seriesId: 'series-comp1')]);
+      when(
+        mockComputerRepo.getProfileSeriesById('series-comp1'),
+      ).thenAnswer((_) async => existingSeries(id: 'series-comp1'));
+      // A comp-2 series must never even be looked up for this candidate.
+      when(mockComputerRepo.getProfileSeriesById('series-comp2')).thenAnswer(
+        (_) async => existingSeries(
+          id: 'series-comp2',
+          samples: [
+            for (var t = 0; t <= 1800; t += 30)
+              codec.ProfileSample(timestamp: t, depth: 40.0),
+          ],
+        ),
+      );
+
+      final result = await service.detectDuplicate(
+        dive,
+        diverId: 'diver-1',
+        computerId: 'comp-1',
+      );
+
+      expect(result.isDuplicate, isTrue);
+      expect(result.matchingDiveId, 'existing-merged-dive');
+      verifyNever(mockComputerRepo.getProfileSeriesById('series-comp2'));
+    });
+
+    test(
+      'does not match a same-computer candidate whose curve disagrees',
+      () async {
+        final dive = segmentDive(
+          startTime: DateTime(2026, 6, 1, 20, 12),
+          profile: [
+            for (var t = 0; t <= 600; t += 30)
+              ProfileSample(timeSeconds: t, depth: 25.0), // wrong depth
+          ],
+        );
+
+        when(
+          mockComputerRepo.findComputerDivesContainingTime(
+            computerId: anyNamed('computerId'),
+            time: anyNamed('time'),
+            diverId: anyNamed('diverId'),
+          ),
+        ).thenAnswer((_) async => [candidate()]);
+        when(
+          mockComputerRepo.getProfileSeriesById('series-1'),
+        ).thenAnswer((_) async => existingSeries());
+
+        final result = await service.detectDuplicate(
+          dive,
+          diverId: 'diver-1',
+          computerId: 'comp-1',
+        );
+
+        expect(result.isDuplicate, isFalse);
+      },
+    );
+
+    test('is never consulted when no computerId is given', () async {
+      final dive = segmentDive(
+        startTime: DateTime(2026, 6, 1, 20, 12),
+        profile: [
+          for (var t = 0; t <= 600; t += 30)
+            ProfileSample(timeSeconds: t, depth: 10.0),
+        ],
+      );
+
+      final result = await service.detectDuplicate(dive, diverId: 'diver-1');
+
+      expect(result.isDuplicate, isFalse);
+      verifyNever(
+        mockComputerRepo.findComputerDivesContainingTime(
+          computerId: anyNamed('computerId'),
+          time: anyNamed('time'),
+          diverId: anyNamed('diverId'),
+        ),
+      );
+    });
+
+    test(
+      'is never consulted when the whole-dive fuzzy pass already matched',
+      () async {
+        final dive = segmentDive(
+          startTime: DateTime(2026, 6, 1, 20, 12),
+          profile: [
+            for (var t = 0; t <= 600; t += 30)
+              ProfileSample(timeSeconds: t, depth: 10.0),
+          ],
+        );
+
+        when(
+          mockComputerRepo.findMatchingDiveWithScore(
+            profileStartTime: anyNamed('profileStartTime'),
+            toleranceMinutes: anyNamed('toleranceMinutes'),
+            durationSeconds: anyNamed('durationSeconds'),
+            maxDepth: anyNamed('maxDepth'),
+            diverId: anyNamed('diverId'),
+          ),
+        ).thenAnswer(
+          (_) async => const DiveMatchResult(
+            diveId: 'some-other-dive',
+            score: 0.9,
+            timeDifferenceMs: 1000,
+          ),
+        );
+
+        final result = await service.detectDuplicate(
+          dive,
+          diverId: 'diver-1',
+          computerId: 'comp-1',
+        );
+
+        expect(result.matchingDiveId, 'some-other-dive');
+        verifyNever(
+          mockComputerRepo.findComputerDivesContainingTime(
+            computerId: anyNamed('computerId'),
+            time: anyNamed('time'),
+            diverId: anyNamed('diverId'),
+          ),
+        );
       },
     );
   });

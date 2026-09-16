@@ -135,6 +135,89 @@ void main() {
       expect(dive['notes'], contains('SAC: 16.262 l/min'));
     });
 
+    group('suit as gear (#1824)', () {
+      test('a classified suit becomes gear linked to its dives', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' time='09:00:00' location='Reef'>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <suit>3mm Bare wetsuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+<dive number='2' date='2025-01-15' time='14:00:00' duration='30:00 min'>
+  <suit>Drysuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</trip>
+<dive number='3' date='2025-01-16' time='10:00:00' duration='30:00 min'>
+  <suit>3mm Bare wetsuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final gear = result.entitiesOf(ImportEntityType.equipment);
+        expect(gear, hasLength(2));
+        final wetsuit = gear.firstWhere((g) => g['name'] == '3mm Bare wetsuit');
+        expect(wetsuit['type'], 'wetsuit');
+        expect(wetsuit['thickness'], '3mm');
+        final drysuit = gear.firstWhere((g) => g['name'] == 'Drysuit');
+        expect(drysuit['type'], 'drysuit');
+        expect(drysuit.containsKey('thickness'), isFalse);
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives[0]['equipmentRefs'], [wetsuit['uddfId']]);
+        expect(dives[1]['equipmentRefs'], [drysuit['uddfId']]);
+        expect(dives[2]['equipmentRefs'], [wetsuit['uddfId']]);
+        // The notes line stays: a diver who deselects the suit in review
+        // still has the text on the dive.
+        expect(dives[0]['notes'], contains('Suit: 3mm Bare wetsuit'));
+      });
+
+      test('an unclear suit stays in the notes only', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <suit>Full suit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        expect(result.entitiesOf(ImportEntityType.equipment), isEmpty);
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('equipmentRefs'), isFalse);
+        expect(dive['notes'], contains('Suit: Full suit'));
+      });
+
+      test('a log without suits emits no equipment', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        expect(
+          result.entities.containsKey(ImportEntityType.equipment),
+          isFalse,
+        );
+      });
+    });
+
     test('parses air temperature from divetemperature element', () async {
       final result = await parser.parse(
         xmlBytes('''
@@ -2626,6 +2709,7 @@ $diveXml
         result.warnings.any((w) => w.entityType == ImportEntityType.media),
         isTrue,
       );
+      expect(result.warnings.single.code, ImportWarningCode.photosSkipped);
     });
 
     test('collects pictures from trip-wrapped dives too', () async {
@@ -2667,6 +2751,90 @@ $diveXml
       );
 
       expect(result.entities.containsKey(ImportEntityType.media), isFalse);
+    });
+  });
+
+  // A gradient factor too large for an int makes the dive's parse throw,
+  // which is how a real file with a corrupt dive reaches the skip path.
+  group('a dive that cannot be read', () {
+    const corruptDive = '''
+<dive number='2' date='2025-01-16' time='10:00:00'>
+  <divecomputer model='X'>
+    <extradata key='Deco model' value='GF 99999999999999999999/85'/>
+  </divecomputer>
+</dive>''';
+    const goodDive = "<dive number='1' date='2025-01-15' time='10:00:00'/>";
+
+    test('is coded as a skipped dive', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+$goodDive
+$corruptDive
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
+    });
+
+    test('inside a trip is coded as a skipped dive too', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' time='09:00:00' location='Somewhere'>
+$goodDive
+$corruptDive
+</trip>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
+    });
+
+    // A dive with no date cannot be placed in the log, so it is left out.
+    // The summary must count it rather than let it vanish silently.
+    const datelessDive = "<dive number='3' time='10:00:00'/>";
+
+    test('with no date is coded as a skipped dive', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+$goodDive
+$datelessDive
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
+    });
+
+    test('with no date inside a trip is coded as a skipped dive', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' time='09:00:00' location='Somewhere'>
+$goodDive
+$datelessDive
+</trip>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(result.warnings.single.code, ImportWarningCode.divesSkipped);
     });
   });
 }

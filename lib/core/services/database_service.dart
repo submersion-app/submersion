@@ -17,6 +17,7 @@ import 'package:submersion/core/database/sqlcipher_setup.dart'
     as sqlcipher_setup;
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
@@ -141,6 +142,7 @@ class DatabaseService {
     // The service is a singleton, so a restore seam set by one test would
     // otherwise leak into the next and fire unexpectedly.
     debugOnRestoreWindowOpen = null;
+    debugFailDeleteFor = null;
   }
 
   /// Registers [locationService] without opening anything.
@@ -858,6 +860,17 @@ class DatabaseService {
   @visibleForTesting
   void Function(String stagingPath)? debugOnRestoreWindowOpen;
 
+  /// The restore journal for the database at [dbPath], probing with the live
+  /// key and deleting through [_deleteIfExists] (so [debugFailDeleteFor]
+  /// reaches it). Public for the startup screen, which must ask the same
+  /// question before anything is opened.
+  RestoreJournal restoreJournalFor(String dbPath) => RestoreJournal(
+    dbPath,
+    readSchemaVersion: (path) =>
+        getStoredSchemaVersion(path, keyHex: databaseKeyHex),
+    deleteFile: _deleteIfExists,
+  );
+
   /// Swap the live database for [backupPath].
   ///
   /// [onMigrationProgress] is forwarded to the post-swap [initialize]: when
@@ -913,6 +926,21 @@ class DatabaseService {
       rethrow;
     }
 
+    // Settle whatever an EARLIER restore left aside, then open this restore's
+    // journal entry. Both run before close(), so a failure here is a plain
+    // abort with nothing to roll back and no database left closed. The order
+    // matters: a marker written first could pair with an old leftover after a
+    // crash, and the next launch would offer to "recover" a database the
+    // diver replaced long ago (issue #1901).
+    final journal = restoreJournalFor(destinationPath);
+    try {
+      await _settleLeftoverPreRestore(journal);
+      await journal.begin();
+    } catch (_) {
+      await _bestEffortDelete(stagingPath);
+      rethrow;
+    }
+
     // The ONLY window where the database is unavailable: close, swap the file,
     // reopen. Its duration is a rename + open, not the backup copy.
     //
@@ -932,8 +960,12 @@ class DatabaseService {
     // If the move-in fails, roll the old file back so the app is never left
     // with no database and no data. Renaming into a non-existent destination
     // works identically on POSIX and Windows, so no per-platform branching.
-    final asidePath = '$destinationPath.pre-restore';
-    await _deleteIfExists(asidePath);
+    //
+    // Nothing to delete here: _settleLeftoverPreRestore already cleared or
+    // quarantined this path before close(), so a locked leftover fails the
+    // restore while the database is still open instead of stranding a closed
+    // one (the concern #1856 addressed by guarding a delete at this point).
+    final asidePath = journal.asidePath;
     final destFile = File(destinationPath);
     final hadDest = await destFile.exists();
     try {
@@ -960,7 +992,12 @@ class DatabaseService {
         await _moveIfExists('$asidePath-wal', '$destinationPath-wal');
         await _moveIfExists('$asidePath-shm', '$destinationPath-shm');
       }
-      await _deleteIfExists(stagingPath);
+      await _commitIfNothingAside(journal);
+      // Best-effort: this is cleanup of an orphaned copy we no longer need,
+      // not a step the rollback depends on. A transient failure to remove it
+      // (the same lock that likely broke the swap above) must not skip the
+      // reopen below and leave the app with no database until restart.
+      await _bestEffortDelete(stagingPath);
       await initialize();
       rethrow;
     }
@@ -991,14 +1028,27 @@ class DatabaseService {
       // (corruption, a locked file) is the restored file's own problem and
       // keeps its existing handling, which may legitimately want the
       // swapped-in file left in place for recovery.
-      await _deleteIfExists(destinationPath);
+      //
+      // The rejected file's journal goes FIRST and strictly. SQLite replays
+      // whatever -wal sits beside a database, and the pre-restore copy
+      // usually has no sidecar of its own to overwrite it (a clean close
+      // checkpoints it away). If it cannot be removed, stop here: the
+      // original stays untouched at asidePath rather than being paired with
+      // a foreign journal, and a reopen would only reject the same file.
       await _deleteIfExists('$destinationPath-wal');
       await _deleteIfExists('$destinationPath-shm');
       if (hadDest && await File(asidePath).exists()) {
+        // No delete first: rename replaces its destination on every
+        // platform, so the live path always holds a complete database. A
+        // delete-then-rename would leave a window with no file there, in
+        // which a failed rename makes the next open create an empty one.
         await File(asidePath).rename(destinationPath);
         await _moveIfExists('$asidePath-wal', '$destinationPath-wal');
         await _moveIfExists('$asidePath-shm', '$destinationPath-shm');
+      } else {
+        await _deleteIfExists(destinationPath);
       }
+      await _commitIfNothingAside(journal);
       await initialize();
       rethrow;
     }
@@ -1009,6 +1059,11 @@ class DatabaseService {
     // leave the app with a closed database despite a valid file on disk. A
     // leftover copy is harmless and is swept by the next restore (including a
     // no-op one).
+    //
+    // The journal is settled FIRST: this is the commit point, after which the
+    // aside copy is provably a leftover. Best-effort; a marker that survives
+    // only costs one unnecessary recovery prompt at the next launch.
+    await _bestEffortCommit(journal);
     await _bestEffortDelete(asidePath);
     await _bestEffortDelete('$asidePath-wal');
     await _bestEffortDelete('$asidePath-shm');
@@ -1022,7 +1077,20 @@ class DatabaseService {
     await source.rename(to);
   }
 
+  /// Test seam: paths on which EVERY [_deleteIfExists] call raises instead of
+  /// deleting, until the set is cleared, simulating a locked-file condition
+  /// that outlasts the restore (e.g. a cloud-sync provider materializing or
+  /// evicting the file) that real permission errors on desktop otherwise
+  /// need flaky OS-level setup to reproduce. It raises before the existence
+  /// check, so a path behaves as present-but-locked whether or not the file
+  /// is there. [resetForTesting] also clears it.
+  @visibleForTesting
+  Set<String>? debugFailDeleteFor;
+
   Future<void> _deleteIfExists(String path) async {
+    if (debugFailDeleteFor?.contains(path) ?? false) {
+      throw FileSystemException('debug: simulated delete failure', path);
+    }
     final file = File(path);
     if (await file.exists()) {
       await file.delete();
@@ -1039,15 +1107,68 @@ class DatabaseService {
     }
   }
 
-  /// Best-effort removal of the temp files a [restore] may leave behind
-  /// (`.restore-staging`, `.pre-restore`). Safe to call while the live database
-  /// is open — it touches only the sidecar temp files, never the live DB.
+  /// Deletes a provably stale `.pre-restore` left by an earlier restore, or
+  /// moves a possibly precious one to a timestamped name. Throws on failure,
+  /// which aborts the restore before the database is closed.
+  Future<void> _settleLeftoverPreRestore(RestoreJournal journal) async {
+    switch (journal.classifyPreRestore()) {
+      case PreRestoreState.none:
+        return;
+      case PreRestoreState.stale:
+        for (final path in journal.asideFiles) {
+          await _deleteIfExists(path);
+        }
+      case PreRestoreState.precious:
+        final kept = await journal.quarantine(journal.asidePath);
+        _log.warning(
+          'An earlier restore never settled, and its aside copy may be the '
+          'only copy of the previous database; kept it at $kept instead of '
+          'deleting it',
+        );
+    }
+  }
+
+  /// Settles the journal once a rollback has put everything back: the marker
+  /// protects the aside copy, and with nothing aside there is nothing left to
+  /// protect. A rollback that could not finish leaves the marker, so the next
+  /// launch offers recovery.
+  Future<void> _commitIfNothingAside(RestoreJournal journal) async {
+    if (journal.classifyPreRestore() == PreRestoreState.none) {
+      await _bestEffortCommit(journal);
+    }
+  }
+
+  Future<void> _bestEffortCommit(RestoreJournal journal) async {
+    try {
+      await journal.commit();
+    } catch (e, stack) {
+      _log.warning(
+        'Could not clear the restore marker; the next launch may offer to '
+        'recover the previous database',
+        error: e,
+        stackTrace: stack,
+      );
+    }
+  }
+
+  /// Best-effort removal of the temp files a [restore] may leave behind.
+  /// Touches only restore temp files, never the live database, and deletes a
+  /// `.pre-restore` (with its sidecars) only when the journal proves it stale.
+  /// That matters at startup, where nothing is open and a stranded original
+  /// may be the only copy of the diver's data (issue #1901).
   Future<void> _sweepRestoreTempFiles(String destinationPath) async {
     await _bestEffortDelete('$destinationPath.restore-staging');
-    await _bestEffortDelete('$destinationPath.pre-restore');
-    // The aside copy carries its sidecars now, so they can be stranded too.
-    await _bestEffortDelete('$destinationPath.pre-restore-wal');
-    await _bestEffortDelete('$destinationPath.pre-restore-shm');
+    final journal = restoreJournalFor(destinationPath);
+    final PreRestoreState state;
+    try {
+      state = journal.classifyPreRestore();
+    } catch (_) {
+      return;
+    }
+    if (state != PreRestoreState.stale) return;
+    for (final path in journal.asideFiles) {
+      await _bestEffortDelete(path);
+    }
   }
 
   /// Delete all data and recreate a fresh empty database.

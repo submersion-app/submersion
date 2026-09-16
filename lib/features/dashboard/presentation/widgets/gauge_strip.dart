@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
@@ -471,13 +472,22 @@ class GaugeStrip extends ConsumerWidget {
     VoidCallback? onLongPress,
   }) {
     final scheme = Theme.of(context).colorScheme;
-    final (bg, fg) = switch (tone) {
-      _Tone.alert => (scheme.errorContainer, scheme.onErrorContainer),
-      _Tone.warn => (scheme.tertiaryContainer, scheme.onTertiaryContainer),
-      _Tone.ok => (scheme.secondaryContainer, scheme.onSecondaryContainer),
-      _Tone.neutral => (
-        scheme.surfaceContainerHighest,
+    final status = StatusColors.of(context);
+    final StatusSwatch? swatch = switch (tone) {
+      _Tone.alert => status.alert,
+      _Tone.warn => status.warn,
+      _Tone.ok => status.ok,
+      _Tone.neutral => null,
+    };
+    final (bg, fg, edge) = switch (swatch) {
+      final s? => (s.container, s.onContainer, s.outline),
+      // Neutral is a wash of the preset's own text color rather than
+      // surfaceContainerHighest: the hand-built presets leave that role
+      // unset, so it resolved to the page color and the pill vanished.
+      null => (
+        scheme.onSurface.withValues(alpha: 0.06),
         scheme.onSurfaceVariant,
+        scheme.onSurface.withValues(alpha: 0.14),
       ),
     };
     final widget = InkWell(
@@ -485,9 +495,12 @@ class GaugeStrip extends ConsumerWidget {
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(999),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        // One less than the 12x6 inset each way: Container adds the 1px
+        // border to its padding, so the outlined pill keeps its old size.
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
         decoration: BoxDecoration(
           color: bg,
+          border: Border.all(color: edge),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Row(

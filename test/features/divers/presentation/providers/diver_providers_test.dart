@@ -101,6 +101,37 @@ void main() {
     );
   }
 
+  group('diverCountProvider', () {
+    test('counts divers without loading them', () async {
+      await repo.createDiver(_makeDiver(name: 'Bob'));
+      await repo.createDiver(_makeDiver(name: 'Alice'));
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      expect(await container.read(diverCountProvider.future), 2);
+    });
+
+    test('auto-refreshes after a write to the divers table', () async {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(diverCountProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      expect(await container.read(diverCountProvider.future), 0);
+
+      await repo.createDiver(_makeDiver(name: 'Synced Diver'));
+
+      var count = 0;
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        count = await container.read(diverCountProvider.future);
+        if (count == 1) break;
+      }
+      expect(count, 1);
+    });
+  });
+
   group('allDiversProvider', () {
     test('returns divers sorted by name from the repository', () async {
       await repo.createDiver(_makeDiver(name: 'Bob'));

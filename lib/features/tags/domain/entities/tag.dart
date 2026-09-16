@@ -1,7 +1,24 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-/// Tag entity for organizing dives
+import 'package:submersion/core/database/tag_scope_tables.dart';
+
+/// Where a tag is offered (issues #1765, #1942). A tag applies to at least
+/// one. Member order follows [tagScopeTables], which is the display order.
+enum TagScope {
+  dives,
+  sites,
+  equipment;
+
+  /// Where this scope stores its flag and its links.
+  TagScopeTable get table => switch (this) {
+    TagScope.dives => diveTagScopeTable,
+    TagScope.sites => siteTagScopeTable,
+    TagScope.equipment => equipmentTagScopeTable,
+  };
+}
+
+/// Tag entity for organizing dives, dive sites and equipment
 class Tag extends Equatable {
   final String id;
   final String? diverId;
@@ -10,6 +27,10 @@ class Tag extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Where the tag is offered (issues #1765, #1942). Never empty once stored:
+  /// TagRepository rejects a tag with no scope. Treat as read-only.
+  final Set<TagScope> scopes;
+
   const Tag({
     required this.id,
     this.diverId,
@@ -17,6 +38,7 @@ class Tag extends Equatable {
     this.colorHex,
     required this.createdAt,
     required this.updatedAt,
+    this.scopes = const {TagScope.dives},
   });
 
   /// Get the color as a Flutter Color object
@@ -32,12 +54,16 @@ class Tag extends Equatable {
     }
   }
 
-  /// Create a new tag with a default color
+  /// Whether the tag is offered where [scope] is.
+  bool appliesTo(TagScope scope) => scopes.contains(scope);
+
+  /// Create a new tag with a default color, offered in [scope] only.
   factory Tag.create({
     required String id,
     required String name,
     String? diverId,
     String? colorHex,
+    TagScope scope = TagScope.dives,
   }) {
     final now = DateTime.now();
     return Tag(
@@ -47,6 +73,7 @@ class Tag extends Equatable {
       colorHex: colorHex,
       createdAt: now,
       updatedAt: now,
+      scopes: {scope},
     );
   }
 
@@ -57,6 +84,7 @@ class Tag extends Equatable {
     String? colorHex,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Set<TagScope>? scopes,
   }) {
     return Tag(
       id: id ?? this.id,
@@ -65,6 +93,7 @@ class Tag extends Equatable {
       colorHex: colorHex ?? this.colorHex,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      scopes: scopes ?? this.scopes,
     );
   }
 
@@ -76,6 +105,7 @@ class Tag extends Equatable {
     colorHex,
     createdAt,
     updatedAt,
+    scopes,
   ];
 }
 

@@ -155,6 +155,15 @@ class _FakeServiceRecordRepository implements ServiceRecordRepository {
   ) async => byEquipment[equipmentId] ?? const [];
 
   @override
+  Future<Map<String, List<ServiceRecord>>> getRecordsForEquipmentIds(
+    List<String> equipmentIds,
+  ) async => {
+    for (final id in equipmentIds)
+      if (byEquipment[id] case final records? when records.isNotEmpty)
+        id: records,
+  };
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 

@@ -192,6 +192,7 @@ void main() {
         // Methods that return empty list
         expect(await repository.getDiveProfile('test-id'), isEmpty);
         expect(await repository.getGasSwitchesForDive('test-id'), isEmpty);
+        expect(await repository.getGasSwitchesForDives(['test-id']), isEmpty);
 
         // Methods that return empty map
         expect(await repository.getProfilesByDataSource('test-id'), isEmpty);

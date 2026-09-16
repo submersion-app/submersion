@@ -5,6 +5,7 @@ import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_target_chip.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -246,6 +247,8 @@ class _CollapsedHeader extends StatelessWidget {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
+                      if (item.target case final target?)
+                        ImportTargetChip(target: target),
                     ],
                   ),
                 ),

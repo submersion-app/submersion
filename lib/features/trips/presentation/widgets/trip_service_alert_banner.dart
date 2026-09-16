@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -26,7 +28,7 @@ class TripServiceAlertBanner extends ConsumerWidget {
     final alerts = alertsAsync.value ?? const <DueClock>[];
     if (alerts.isEmpty) return const SizedBox.shrink();
 
-    final scheme = Theme.of(context).colorScheme;
+    final status = StatusColors.of(context);
     // The provider yields one entry per blocking CLOCK; the label counts
     // ITEMS, so collapse to distinct equipment ids (hydro + VIP on one
     // cylinder is still one item to bring to the shop).
@@ -34,12 +36,9 @@ class TripServiceAlertBanner extends ConsumerWidget {
     final anyOverdue = alerts.any(
       (a) => a.status.severity == ServiceClockSeverity.overdue,
     );
-    final background = anyOverdue
-        ? scheme.errorContainer
-        : scheme.tertiaryContainer;
-    final foreground = anyOverdue
-        ? scheme.onErrorContainer
-        : scheme.onTertiaryContainer;
+    final swatch = anyOverdue ? status.alert : status.warn;
+    final background = swatch.container;
+    final foreground = swatch.onContainer;
 
     return Semantics(
       button: true,
@@ -95,10 +94,10 @@ class TripServiceAlertBanner extends ConsumerWidget {
                     leading: Icon(
                       Icons.circle,
                       size: 12,
-                      color:
-                          alert.status.severity == ServiceClockSeverity.overdue
-                          ? Theme.of(sheetContext).colorScheme.error
-                          : Theme.of(sheetContext).colorScheme.tertiary,
+                      color: serviceSeverityDotColor(
+                        sheetContext,
+                        alert.status.severity,
+                      ),
                     ),
                     title: Text(alert.item.name),
                     subtitle: Text(

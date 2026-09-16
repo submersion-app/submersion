@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    show TagScope;
 
 import '../../../../helpers/test_database.dart';
+import '../../tag_test_helpers.dart';
 
 /// Insert a diver into the test DB.
 Future<void> insertTestDiver(String id) async {
@@ -87,6 +90,30 @@ Future<void> insertDiveTag({
       );
 }
 
+/// Insert a minimal dive site into the test DB.
+Future<void> insertTestSite(String id) async {
+  final db = DatabaseService.instance.database;
+  await db.customStatement(
+    'INSERT INTO dive_sites (id, name, created_at, updated_at) '
+    'VALUES (?, ?, 0, 0)',
+    [id, 'Site $id'],
+  );
+}
+
+/// Insert a site-tag association directly into the test DB.
+Future<void> insertSiteTag({
+  required String id,
+  required String siteId,
+  required String tagId,
+}) async {
+  final db = DatabaseService.instance.database;
+  await db.customStatement(
+    'INSERT INTO site_tags (id, site_id, tag_id, created_at) '
+    'VALUES (?, ?, ?, 0)',
+    [id, siteId, tagId],
+  );
+}
+
 void main() {
   late TagRepository repository;
 
@@ -125,14 +152,14 @@ void main() {
     });
   });
 
-  group('getMergedDiveCount', () {
-    test('returns 0 for empty list', () async {
-      final count = await repository.getMergedDiveCount([]);
+  group('getMergedUsage', () {
+    test('returns zero for an empty list', () async {
+      final usage = await repository.getMergedUsage([]);
 
-      expect(count, 0);
+      expect(divesAndSites(usage), (dives: 0, sites: 0));
     });
 
-    test('returns correct count for single tag', () async {
+    test('counts the dives of a single tag', () async {
       await insertTestDiver('diver1');
       await insertTestTag(id: 'tag1', name: 'Deep Dive', diverId: 'diver1');
       await insertTestDive(id: 'dive1', diverId: 'diver1');
@@ -141,12 +168,12 @@ void main() {
       await insertDiveTag(id: 'dt1', diveId: 'dive1', tagId: 'tag1');
       await insertDiveTag(id: 'dt2', diveId: 'dive2', tagId: 'tag1');
 
-      final count = await repository.getMergedDiveCount(['tag1']);
+      final usage = await repository.getMergedUsage(['tag1']);
 
-      expect(count, 2);
+      expect(divesAndSites(usage), (dives: 2, sites: 0));
     });
 
-    test('returns union count for overlapping tags (not sum)', () async {
+    test('counts overlapping dives once (union, not sum)', () async {
       await insertTestDiver('diver1');
       await insertTestTag(id: 'tag1', name: 'Night', diverId: 'diver1');
       await insertTestTag(id: 'tag2', name: 'Deep', diverId: 'diver1');
@@ -159,12 +186,12 @@ void main() {
       await insertDiveTag(id: 'dt3', diveId: 'dive2', tagId: 'tag1');
 
       // Sum would be 3, but union (distinct dives) should be 2
-      final count = await repository.getMergedDiveCount(['tag1', 'tag2']);
+      final usage = await repository.getMergedUsage(['tag1', 'tag2']);
 
-      expect(count, 2);
+      expect(usage[TagScope.dives], 2);
     });
 
-    test('returns count for disjoint tags', () async {
+    test('counts disjoint dives', () async {
       await insertTestDiver('diver1');
       await insertTestTag(id: 'tag1', name: 'Night', diverId: 'diver1');
       await insertTestTag(id: 'tag2', name: 'Deep', diverId: 'diver1');
@@ -175,9 +202,65 @@ void main() {
       await insertDiveTag(id: 'dt1', diveId: 'dive1', tagId: 'tag1');
       await insertDiveTag(id: 'dt2', diveId: 'dive2', tagId: 'tag2');
 
-      final count = await repository.getMergedDiveCount(['tag1', 'tag2']);
+      final usage = await repository.getMergedUsage(['tag1', 'tag2']);
 
-      expect(count, 2);
+      expect(usage[TagScope.dives], 2);
+    });
+
+    test(
+      'counts sites, a site carrying two of the tags once (#1902)',
+      () async {
+        await insertTestDiver('diver1');
+        await insertTestTag(id: 'tag1', name: 'To try', diverId: 'diver1');
+        await insertTestTag(id: 'tag2', name: 'Wreck', diverId: 'diver1');
+        await insertTestSite('site1');
+        await insertTestSite('site2');
+
+        // site1 carries both tags, site2 only tag2.
+        await insertSiteTag(id: 'st1', siteId: 'site1', tagId: 'tag1');
+        await insertSiteTag(id: 'st2', siteId: 'site1', tagId: 'tag2');
+        await insertSiteTag(id: 'st3', siteId: 'site2', tagId: 'tag2');
+
+        final usage = await repository.getMergedUsage(['tag1', 'tag2']);
+
+        expect(divesAndSites(usage), (dives: 0, sites: 2));
+      },
+    );
+
+    test('binds each id once, so a selection past half the SQLite variable '
+        'limit still counts', () async {
+      // SQLite allows 32,766 bound variables per statement. Binding every id
+      // for both the dive and the site count failed from 16,384 ids; binding
+      // them once keeps the ceiling the dive-only count had.
+      await insertTestDiver('diver1');
+      await insertTestTag(id: 'tag1', name: 'Reef', diverId: 'diver1');
+      await insertTestDive(id: 'dive1', diverId: 'diver1');
+      await insertTestSite('site1');
+      await insertDiveTag(id: 'dt1', diveId: 'dive1', tagId: 'tag1');
+      await insertSiteTag(id: 'st1', siteId: 'site1', tagId: 'tag1');
+
+      final ids = [...List.generate(20000, (i) => 'absent-$i'), 'tag1'];
+      final usage = await repository.getMergedUsage(ids);
+
+      expect(divesAndSites(usage), (dives: 1, sites: 1));
+    });
+
+    test('counts dives and sites independently (#1902)', () async {
+      await insertTestDiver('diver1');
+      await insertTestTag(id: 'tag1', name: 'Reef', diverId: 'diver1');
+      await insertTestDive(id: 'dive1', diverId: 'diver1');
+      await insertTestSite('site1');
+      await insertTestSite('site2');
+      await insertTestSite('site3');
+
+      await insertDiveTag(id: 'dt1', diveId: 'dive1', tagId: 'tag1');
+      await insertSiteTag(id: 'st1', siteId: 'site1', tagId: 'tag1');
+      await insertSiteTag(id: 'st2', siteId: 'site2', tagId: 'tag1');
+      await insertSiteTag(id: 'st3', siteId: 'site3', tagId: 'tag1');
+
+      final usage = await repository.getMergedUsage(['tag1']);
+
+      expect(divesAndSites(usage), (dives: 1, sites: 3));
     });
   });
 

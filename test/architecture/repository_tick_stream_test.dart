@@ -198,6 +198,10 @@ void main() {
           DiveRepository().watchAnalysisInputChanges,
       'DiveRepository.watchEquipmentAttrFilterChanges':
           DiveRepository().watchEquipmentAttrFilterChanges,
+      'DiveRepository.watchDiveListChangesWithBuddyLinks':
+          DiveRepository().watchDiveListChangesWithBuddyLinks,
+      'DiveRepository.watchDivesChangesWithBuddyLinks':
+          DiveRepository().watchDivesChangesWithBuddyLinks,
     };
 
     for (final entry in ticks.entries) {
@@ -300,6 +304,37 @@ void main() {
                   name: 'Blue Hole',
                   createdAt: now,
                   updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    // Site type links are clockless children: typing a site writes only the
+    // junction, never dive_sites, so the chart must listen to it (#1765).
+    test('watchStatisticsChanges fires on a site_site_types write', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's2',
+              name: 'Quarry',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      expect(
+        await fires(
+          StatisticsRepository().watchStatisticsChanges(),
+          () => db
+              .into(db.siteSiteTypes)
+              .insert(
+                SiteSiteTypesCompanion.insert(
+                  id: 'j1',
+                  siteId: 's2',
+                  siteTypeId: 'quarry',
+                  createdAt: now,
                 ),
               ),
         ),
@@ -470,6 +505,76 @@ void main() {
         isTrue,
       );
     });
+
+    // The buddy filters read dive_buddies (and buddies.name for the name
+    // filter), which the plain list and dives ticks do not watch. A sync pull
+    // of a buddy link writes only dive_buddies, never the parent dive, and a
+    // rename writes only buddies (#1769, #1915).
+    final buddyAwareTicks = <String, Stream<void> Function()>{
+      'watchDiveListChangesWithBuddyLinks':
+          DiveRepository().watchDiveListChangesWithBuddyLinks,
+      'watchDivesChangesWithBuddyLinks':
+          DiveRepository().watchDivesChangesWithBuddyLinks,
+    };
+    for (final entry in buddyAwareTicks.entries) {
+      test('${entry.key} fires on a dive_buddies write', () async {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: 'd1',
+                diveDateTime: now,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await db
+            .into(db.buddies)
+            .insert(
+              BuddiesCompanion.insert(
+                id: 'b1',
+                name: 'Ann',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        expect(
+          await fires(
+            entry.value(),
+            () => db
+                .into(db.diveBuddies)
+                .insert(
+                  DiveBuddiesCompanion.insert(
+                    id: 'l1',
+                    diveId: 'd1',
+                    buddyId: 'b1',
+                    createdAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      });
+
+      test('${entry.key} fires on a buddies write', () async {
+        expect(
+          await fires(
+            entry.value(),
+            () => db
+                .into(db.buddies)
+                .insert(
+                  BuddiesCompanion.insert(
+                    id: 'b1',
+                    name: 'Ann',
+                    createdAt: now,
+                    updatedAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      });
+    }
 
     test('watchPresetsChanges fires for field presets', () async {
       await seedParents();

@@ -11,6 +11,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
+import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -1149,6 +1151,27 @@ class BuddyRepository {
   /// Bulk delete multiple buddies. Delegates to [BuddyMergeRepository].
   Future<void> bulkDeleteBuddies(List<String> ids) =>
       BuddyMergeRepository().bulkDeleteBuddies(ids);
+
+  /// Legacy buddy text conversion (#1831). Delegates to
+  /// [BuddyConversionRepository].
+  Future<List<MatchCandidate>> legacyConversionCandidates(String diverId) =>
+      BuddyConversionRepository().candidateBuddies(diverId);
+
+  Future<List<UnlinkedTextDive>> unlinkedLegacyTextDives(String diverId) =>
+      BuddyConversionRepository().unlinkedTextDives(diverId);
+
+  Future<ConversionReceipt> applyLegacyConversion(
+    List<ConversionPlan> plans, {
+    required String diverId,
+    required String newBuddyNote,
+  }) => BuddyConversionRepository().apply(
+    plans,
+    diverId: diverId,
+    newBuddyNote: newBuddyNote,
+  );
+
+  Future<void> undoLegacyConversion(ConversionReceipt receipt) =>
+      BuddyConversionRepository().undo(receipt);
 
   /// Fill each buddy's derived primary certification (highest by ladder) from
   /// the certifications table. Single batched query (no N+1); buddies with no

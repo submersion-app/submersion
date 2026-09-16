@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -26,12 +27,16 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -78,6 +83,9 @@ class _RecordingExportService implements ExportService {
   Diver? pdfDiver;
   Uint8List? pdfDiverPhoto;
 
+  /// The dive types the last CSV or PDF export was handed (#1834).
+  Map<String, DiveTypeEntity>? diveTypesById;
+
   Future<String?> _save(String label) async {
     calls.add('save:$label');
     await gate?.future;
@@ -96,10 +104,12 @@ class _RecordingExportService implements ExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) {
     pdfOptions = options;
     pdfDiver = diver;
     pdfDiverPhoto = diverPhoto;
+    this.diveTypesById = diveTypesById;
     return _share('pdf');
   }
 
@@ -114,22 +124,44 @@ class _RecordingExportService implements ExportService {
     List<Certification>? certifications,
     Diver? diver,
     Uint8List? diverPhoto,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) {
     pdfOptions = options;
     pdfDiver = diver;
     pdfDiverPhoto = diverPhoto;
+    this.diveTypesById = diveTypesById;
     return _save('pdf');
   }
 
+  /// The dives the last CSV delivery was handed.
+  List<Dive>? csvDives;
+
+  /// The units the last CSV export was written in (#1813).
+  CsvExportUnits? csvUnits;
+
   @override
-  Future<String> exportDivesToCsv(List<Dive> dives) => _share('csv');
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) {
+    csvDives = dives;
+    csvUnits = units;
+    this.diveTypesById = diveTypesById;
+    return _share('csv');
+  }
 
   @override
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) {
+    csvDives = dives;
     csvSaveTitle = dialogTitle;
+    csvUnits = units;
+    this.diveTypesById = diveTypesById;
     return _save('csv');
   }
 
@@ -167,12 +199,19 @@ class _RecordingExportService implements ExportService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Returns no buddies; the junction load is exercised in repository tests.
+/// Serves [byDive] as the junction; the real load is exercised in repository
+/// tests.
 class _FakeBuddyRepository extends BuddyRepository {
+  _FakeBuddyRepository([this.byDive = const {}]);
+  final Map<String, List<BuddyWithRole>> byDive;
+
   @override
   Future<Map<String, List<BuddyWithRole>>> getBuddiesForDives(
     List<String> diveIds,
-  ) async => const {};
+  ) async => {
+    for (final id in diveIds)
+      if (byDive[id] != null) id: byDive[id]!,
+  };
 }
 
 class _FakeDiveRepository implements DiveRepository {
@@ -231,6 +270,8 @@ void main() {
     WidgetTester tester, {
     Diver? diver,
     DiverPhotoLoader? photoLoader,
+    Map<String, List<BuddyWithRole>> linkedBuddies = const {},
+    Future<List<DiveTypeEntity>>? diveTypes,
   }) async {
     final summaries = dives.map(DiveSummary.fromDive).toList();
     final base = await getBaseOverrides();
@@ -261,13 +302,20 @@ void main() {
           // and the diver. Those reach a database widget tests do not have,
           // and the reads never settle, so stub them the way
           // getBaseOverrides stubs preDiveSessionForDiveProvider.
-          buddyRepositoryProvider.overrideWithValue(_FakeBuddyRepository()),
+          buddyRepositoryProvider.overrideWithValue(
+            _FakeBuddyRepository(linkedBuddies),
+          ),
           allCertificationsProvider.overrideWith((ref) async => const []),
           currentDiverProvider.overrideWith((ref) async => diver),
           // The real loader reads the file system, and a dart:io await never
           // completes inside testWidgets' FakeAsync zone.
           if (photoLoader != null)
             diverPhotoLoaderProvider.overrideWithValue(photoLoader),
+          // The exports wait for the diver's dive types, which would
+          // otherwise reach the database these tests do not have.
+          diveTypesProvider.overrideWith(
+            (ref) => diveTypes ?? Future.value(const <DiveTypeEntity>[]),
+          ),
         ],
         child: const DiveListContent(showAppBar: false),
         // Pinned: the finders below are English, and the host machine's
@@ -328,6 +376,93 @@ void main() {
 
     expect(exportService.calls, ['share:csv']);
     expect(find.text('Exported 2 dives successfully'), findsOneWidget);
+  });
+
+  group('bulk CSV export carries the linked buddies (#1861)', () {
+    // getDivesByIds does not hydrate the dive_buddies junction, and the
+    // batched load only ran for PDF, so the CSV's Buddy and Dive Master
+    // columns came out empty for picker-linked teams.
+    final team = [
+      linkedParticipant('Ana', DiveRole.buddyId),
+      linkedParticipant('Mia', DiveRole.diveMasterId),
+    ];
+
+    for (final destination in ['Share', 'Save to File']) {
+      testWidgets('via $destination', (tester) async {
+        await pumpAndOpenExportSheet(tester, linkedBuddies: {'d1': team});
+        await chooseFormatAndDestination(tester, 'CSV', destination);
+
+        final byId = {for (final d in exportService.csvDives!) d.id: d};
+        expect(byId.keys, unorderedEquals(['d1', 'd2']));
+        expect(byId['d1']!.buddies, team);
+        expect(byId['d2']!.buddies, isEmpty);
+      });
+    }
+  });
+
+  testWidgets('bulk CSV export defaults to My units (#1813)', (tester) async {
+    await pumpAndOpenExportSheet(tester);
+    await chooseFormatAndDestination(tester, 'CSV', 'Share');
+
+    expect(exportService.csvUnits?.isMetric, isFalse);
+  });
+
+  testWidgets('the bulk CSV unit choice reaches the export (#1813)', (
+    tester,
+  ) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('CSV'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Metric'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    expect(exportService.csvUnits, same(CsvExportUnits.metric));
+  });
+
+  group('names each dive type as the diver did (#1834)', () {
+    final custom = DiveTypeEntity(
+      id: 'search_recovery_1a2b3c4d',
+      diverId: 'me',
+      name: 'Search & Recovery',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    testWidgets('bulk CSV export passes the diver\'s dive types', (
+      tester,
+    ) async {
+      await pumpAndOpenExportSheet(tester, diveTypes: Future.value([custom]));
+      await chooseFormatAndDestination(tester, 'CSV', 'Save to File');
+
+      expect(exportService.diveTypesById, {custom.id: custom});
+    });
+
+    testWidgets('bulk PDF export passes the diver\'s dive types', (
+      tester,
+    ) async {
+      await pumpAndOpenExportSheet(tester, diveTypes: Future.value([custom]));
+      await chooseFormatAndDestination(tester, 'PDF Logbook', 'Share');
+
+      expect(exportService.diveTypesById, {custom.id: custom});
+    });
+
+    testWidgets('bulk CSV export waits for dive types still loading', (
+      tester,
+    ) async {
+      final load = Completer<List<DiveTypeEntity>>();
+      await pumpAndOpenExportSheet(tester, diveTypes: load.future);
+      await tester.tap(find.text('CSV'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save to File'));
+      await tester.pump();
+
+      load.complete([custom]);
+      await tester.pumpAndSettle();
+
+      expect(exportService.diveTypesById, {custom.id: custom});
+    });
   });
 
   testWidgets('bulk PDF export honours the chosen destination', (tester) async {

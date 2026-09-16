@@ -165,4 +165,37 @@ void main() {
       },
     );
   });
+
+  group('divers (#1893)', () {
+    late Uint8List diverBytes;
+
+    setUpAll(() async {
+      final path =
+          '${Directory.systemTemp.path}/mdr_divers_${DateTime.now().microsecondsSinceEpoch}.sqlite';
+      final file = buildSyntheticMacDiveDb(path, includeDivers: true);
+      diverBytes = Uint8List.fromList(await file.readAsBytes());
+      file.deleteSync();
+    });
+
+    test('reads the diver profile columns', () async {
+      final logbook = await MacDiveDbReader.readAll(diverBytes);
+      final ann = logbook.diversByPk[1]!;
+      expect(ann.fullName, 'Ann Lee');
+      expect(ann.email, 'ann@example.com');
+      expect(ann.phone, isNull);
+      expect(ann.mobile, '555-0101');
+      expect(ann.emergencyContact, 'Sam Lee');
+      expect(ann.bloodType, 'O+');
+      expect(ann.danNumber, 'DAN-123');
+    });
+
+    test('links dives and certifications to their diver', () async {
+      final logbook = await MacDiveDbReader.readAll(diverBytes);
+      final byPk = {for (final d in logbook.dives) d.pk: d};
+      expect(byPk[1]!.diverFk, 1);
+      expect(byPk[2]!.diverFk, 1);
+      expect(byPk[3]!.diverFk, isNull);
+      expect(logbook.certifications.single.diverFk, 2);
+    });
+  });
 }

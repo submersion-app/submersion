@@ -51,6 +51,11 @@ void main() {
     // which run before the database (and the diver's preferences) can be read.
     'lib/core/presentation/widgets/startup_restore_card.dart':
         'renders before settings are readable',
+    // The interrupted-restore screen, for the same reason and earlier still:
+    // it is shown before anything is opened, so that a missing live file is
+    // not replaced by a fresh empty database (issue #1901).
+    'lib/core/presentation/widgets/interrupted_restore_view.dart':
+        'renders before settings are readable',
     // The printed card face imitates a physical certification card, so it
     // keeps that card's compact month/year whatever the diver picked. There is
     // no day to reorder; the spoken Semantics label carries the full date in

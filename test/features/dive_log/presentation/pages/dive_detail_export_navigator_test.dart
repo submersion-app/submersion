@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -19,7 +22,11 @@ class _StubExportService implements ExportService {
   final calls = <String>[];
 
   @override
-  Future<String> exportDivesToCsv(List<Dive> dives) async {
+  Future<String> exportDivesToCsv(
+    List<Dive> dives, {
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
+  }) async {
     calls.add('share:csv');
     return '/tmp/shared_csv';
   }
@@ -28,6 +35,8 @@ class _StubExportService implements ExportService {
   Future<String?> saveDivesCsvToFile(
     List<Dive> dives, {
     required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, DiveTypeEntity> diveTypesById = const {},
   }) async {
     calls.add('save:csv');
     return '/tmp/saved_csv';
@@ -141,6 +150,9 @@ void main() {
           uddfDivesExtrasFetchProvider.overrideWithValue(
             (diveIds, options) async => const UddfDivesExtras.empty(),
           ),
+          // The CSV route attaches the dive's linked buddies (#1861); the real
+          // read would reach the database and never settle.
+          buddiesForDiveProvider(dive.id).overrideWith((ref) async => const []),
         ],
         child: DiveDetailPage(diveId: dive.id, embedded: true),
       ),

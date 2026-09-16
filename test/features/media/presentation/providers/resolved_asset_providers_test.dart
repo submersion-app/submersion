@@ -131,4 +131,15 @@ void main() {
     expect(result.isAvailable, isTrue);
     expect(result.bytes, equals(Uint8List.fromList([7, 7])));
   });
+
+  test('linkedGalleryAssetsProvider counts the id a row resolves to on this '
+      'device, not just its synced id', () async {
+    // setUp cached media-1 -> local-1, so this device knows the row's photo
+    // as 'local-1' while the synced row still says 'original-asset-id'.
+    final ids = await container()
+        .read(linkedGalleryAssetsProvider)
+        .idsOnThisDevice([item()]);
+
+    expect(ids, {'original-asset-id', 'local-1'});
+  });
 }

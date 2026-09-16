@@ -52,6 +52,19 @@ void main() {
     );
   });
 
+  test('the two pockets and the tank band are told apart (#1877)', () {
+    // All three used to be typed BCD, so each needs its own glyph and none
+    // may borrow the vest's.
+    final parts = [
+      EquipmentType.tankBand,
+      EquipmentType.weightPocket,
+      EquipmentType.gearPocket,
+    ];
+    final icons = parts.map(equipmentTypeIcon).toSet();
+    expect(icons, hasLength(parts.length));
+    expect(icons, isNot(contains(equipmentTypeIcon(EquipmentType.bcd))));
+  });
+
   test('a tool no longer looks like the catch-all', () {
     // `other` was a wrench until Tool became a type of its own; two wrenches
     // in one list is the ambiguity #1189 complained about.
@@ -90,6 +103,9 @@ void main() {
       EquipmentType.dpv: SubmersionIcons.dpv,
       EquipmentType.undersuit: SubmersionIcons.undersuit,
       EquipmentType.baselayer: SubmersionIcons.baselayer,
+      EquipmentType.tankBand: SubmersionIcons.tankBand,
+      EquipmentType.weightPocket: SubmersionIcons.weightPocket,
+      EquipmentType.gearPocket: SubmersionIcons.gearPocket,
     };
 
     test('are wired to the equipment font', () {

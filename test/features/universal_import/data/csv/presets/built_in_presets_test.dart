@@ -82,14 +82,34 @@ void main() {
       }
     });
 
-    // A mapped site or buddy column only becomes a linked record when the
-    // correlator extracts that entity type; otherwise every dive imports
-    // with no site, and buddies stay free text (#1830). This table is kept
-    // separate from the parser's own rule so a preset cannot silently drift.
+    test('every preset that maps a suit column imports equipment (#1824)', () {
+      final suitPresets = builtInCsvPresets.where(
+        (p) => p.mappings.values.any(
+          (m) => m.columns.any((c) => c.targetField == 'suit'),
+        ),
+      );
+      // Submersion's own export has no suit column (#1820), so only the
+      // Subsurface preset maps one today; the loop covers any future preset.
+      expect(suitPresets.map((p) => p.id), contains('subsurface'));
+      for (final preset in suitPresets) {
+        expect(
+          preset.supportedEntities,
+          contains(ImportEntityType.equipment),
+          reason: '${preset.name} maps a suit column but drops the suit',
+        );
+      }
+    });
+
+    // A mapped site, buddy or tags column only becomes a linked record when
+    // the correlator extracts that entity type; otherwise every dive imports
+    // with no site, buddies stay free text (#1830), and tags are dropped.
+    // This table is kept separate from the parser's own rule so a preset
+    // cannot silently drift.
     const entityTypeForTargetField = {
       'siteName': ImportEntityType.sites,
       'site': ImportEntityType.sites,
       'buddy': ImportEntityType.buddies,
+      'tags': ImportEntityType.tags,
     };
 
     test('every preset imports the entity types its mapped columns need', () {

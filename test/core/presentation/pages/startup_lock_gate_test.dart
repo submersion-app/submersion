@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/presentation/pages/lock_screen_view.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/core/presentation/widgets/interrupted_restore_view.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
@@ -147,4 +150,56 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     },
   );
+
+  testWidgets('an interrupted restore on an encrypted install keeps '
+      'encryption on and is offered for recovery (#1901)', (tester) async {
+    // The stranded original is encrypted, but the live path is empty (the
+    // swap's rollback could not put it back). Judging encryption by the live
+    // path alone read that as an interrupted disable-encryption run: the flag
+    // was switched off, the key dropped, the encrypted original became
+    // unreadable to the recovery probe, and startup went on to create an
+    // empty database.
+    final keychain = InMemoryKeychain();
+    await tester.runAsync(() async {
+      final security = DatabaseSecurityService.instance;
+      await security.configure(
+        prefs: prefs,
+        keyStore: DatabaseSecurityKeyStore(storage: keychain),
+      );
+      await security.enableSecurity(
+        password: 'hunter2',
+        dbPath: dbPath,
+        kdf: testKdf,
+      );
+      await security.preferences.setDbEncryptionEnabled(true);
+      await security.refreshDerivedKey();
+      final original = DatabaseService.openRaw(
+        '$dbPath.pre-restore',
+        mode: sqlite3.OpenMode.readWriteCreate,
+        keyHex: security.databaseKeyHex,
+      );
+      original.execute('CREATE TABLE placeholder (x)');
+      original.execute(
+        'PRAGMA user_version = ${AppDatabase.currentSchemaVersion}',
+      );
+      original.close();
+      File(
+        '$dbPath.restore-pending',
+      ).writeAsStringSync('{"startedAt":"2026-09-13T10:00:00.000Z"}');
+      // Relaunch with the same keychain, so the cached key unlocks silently.
+      security.resetForTesting();
+      await security.configure(
+        prefs: prefs,
+        keyStore: DatabaseSecurityKeyStore(storage: keychain),
+      );
+    });
+
+    var started = false;
+    await tester.pumpWidget(wrapper(onInitializeStarted: () => started = true));
+    await settleRealAsync(tester);
+
+    expect(find.byType(InterruptedRestoreView), findsOneWidget);
+    expect(started, isFalse, reason: 'opening would create an empty database');
+    expect(DatabaseSecurityService.instance.encryptionEnabled, isTrue);
+  });
 }

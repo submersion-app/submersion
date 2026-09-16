@@ -6,12 +6,12 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/child_installed_text.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -111,8 +111,8 @@ class ChildrenCard extends ConsumerWidget {
                             Icon(
                               Icons.circle,
                               size: 10,
-                              color: _dotColor(
-                                theme.colorScheme,
+                              color: serviceSeverityDotColor(
+                                context,
                                 worst[child.id]?.status.severity,
                               ),
                             ),
@@ -160,14 +160,6 @@ class ChildrenCard extends ConsumerWidget {
     UnitFormatter units,
     EquipmentItem child,
   ) => childInstalledText(l10n, units, child) ?? child.type.localizedName(l10n);
-
-  Color _dotColor(ColorScheme scheme, ServiceClockSeverity? severity) {
-    return switch (severity) {
-      ServiceClockSeverity.overdue => scheme.error,
-      ServiceClockSeverity.dueSoon => scheme.tertiary,
-      ServiceClockSeverity.ok || null => scheme.surfaceContainerHighest,
-    };
-  }
 
   Future<void> _onAction(
     BuildContext context,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
@@ -15,11 +16,13 @@ import 'package:submersion/features/import_wizard/domain/models/import_step_fail
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
+import 'package:submersion/features/universal_import/data/models/diver_target.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -37,6 +40,8 @@ import 'package:submersion/features/dive_import/data/services/fit_parser_service
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
+import 'package:submersion/features/universal_import/data/services/default_diver_mapping.dart';
+import 'package:submersion/features/universal_import/data/services/payload_diver_expander.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
@@ -44,8 +49,11 @@ import 'package:submersion/features/universal_import/data/services/import_duplic
 import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
 import 'package:submersion/features/universal_import/domain/services/bundled_photo_exporter.dart';
 import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
+import 'package:submersion/features/universal_import/presentation/providers/empty_payload_message.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 export 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 
@@ -72,6 +80,22 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
        super(const UniversalImportState());
 
   final Ref _ref;
+
+  /// Localizations for the errors this notifier records. It has no
+  /// `BuildContext`, and the wizard shows these strings as they are.
+  ///
+  /// Falls back to English when the language setting cannot be read. It
+  /// lives in settings, and a settings failure is one of the errors these
+  /// strings report: throwing again from inside that catch would skip the
+  /// failure and leave the step loading.
+  AppLocalizations get _l10n {
+    try {
+      return l10nForLocaleTag(_ref.read(localeProvider));
+    } catch (e) {
+      _log.warning('Language setting unavailable, reporting in English: $e');
+      return l10nForLocaleTag('en');
+    }
+  }
 
   /// Injectable so a widget test can answer the writability question
   /// without real filesystem work: `testWidgets` runs in a fake-async
@@ -236,14 +260,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         final expansion = await _zipExpansion.expandZipBytes(bytes, fileName);
         applyExpansionExtras(expansion);
         if (expansion.filePaths.isEmpty) {
-          state = state.copyWith(
-            isLoading: false,
-            error: 'No importable files found in archive',
-          );
-          return const DetectionResult(
+          final message = _l10n.universalImport_error_noFilesInArchive;
+          state = state.copyWith(isLoading: false, error: message);
+          return DetectionResult(
             format: ImportFormat.unknown,
             confidence: 0.0,
-            warnings: ['No importable files found in archive'],
+            warnings: [message],
           );
         }
         if (expansion.filePaths.length == 1) {
@@ -283,14 +305,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
       return detection;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load file: $e',
-      );
-      return const DetectionResult(
+      final message = _l10n.universalImport_error_loadFailed('$e');
+      state = state.copyWith(isLoading: false, error: message);
+      return DetectionResult(
         format: ImportFormat.unknown,
         confidence: 0.0,
-        warnings: ['Failed to detect file format'],
+        warnings: [message],
       );
     }
   }
@@ -332,7 +352,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       if (expansion.filePaths.isEmpty) {
         state = state.copyWith(
           isLoading: false,
-          error: 'No importable files found in archive',
+          error: _l10n.universalImport_error_noFilesInArchive,
         );
         return;
       }
@@ -344,7 +364,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to pick file: $e',
+        error: _l10n.universalImport_error_pickFailed('$e'),
       );
     }
   }
@@ -417,7 +437,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     if (expansion.filePaths.isEmpty) {
       state = state.copyWith(
         isLoading: false,
-        error: 'No importable files found in archive',
+        error: _l10n.universalImport_error_noFilesInArchive,
       );
       return;
     }
@@ -508,7 +528,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       if (paths.isEmpty) {
         state = state.copyWith(
           isLoading: false,
-          error: 'No importable files found in the selected folder',
+          error: _l10n.universalImport_error_noFilesInFolder,
         );
         return;
       }
@@ -522,7 +542,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       if (expandedPaths.isEmpty) {
         state = state.copyWith(
           isLoading: false,
-          error: 'No importable files found in the selected folder',
+          error: _l10n.universalImport_error_noFilesInFolder,
         );
         return;
       }
@@ -537,7 +557,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to scan folder: $e',
+        error: _l10n.universalImport_error_folderScanFailed('$e'),
       );
     }
   }
@@ -561,10 +581,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       if (devices.isEmpty) {
         state = state.copyWith(
           isLoading: false,
-          error:
-              'No connected Garmin device found. Connect it by cable, '
-              "or use Choose Folder to select the device's GARMIN/Activity "
-              'folder.',
+          error: _l10n.universalImport_error_garminNotFound,
         );
         return;
       }
@@ -572,7 +589,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to read Garmin device: $e',
+        error: _l10n.universalImport_error_garminReadFailed('$e'),
       );
     }
   }
@@ -596,7 +613,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     if (divePaths.isEmpty) {
       state = state.copyWith(
         isLoading: false,
-        error: 'No dives found on the connected Garmin device.',
+        error: _l10n.universalImport_error_garminNoDives,
       );
       return;
     }
@@ -741,7 +758,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to pick additional file: $e',
+        error: _l10n.universalImport_error_additionalFilePickFailed('$e'),
       );
     }
   }
@@ -831,7 +848,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         files: result.files,
         clearDetectionResult: true,
       );
-      throw _fail('No data could be parsed from the selected files');
+      throw _fail(_l10n.universalImport_error_noDataInFiles);
     }
 
     final payload = _applySurfacingPressureRule(
@@ -844,6 +861,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       isLoading: false,
       files: result.files,
       payload: payload,
+      clearDiverMapping: true,
       duplicateResult: dupResult,
       selections: selections,
       currentStep: ImportWizardStep.review,
@@ -863,7 +881,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final bytes = state.fileBytes;
     final opts = state.options;
     if (bytes == null || opts == null) {
-      throw _fail('The selected file could not be read. Please pick it again.');
+      throw _fail(_l10n.universalImport_error_fileUnreadable);
     }
 
     state = state.copyWith(isLoading: true, clearError: true);
@@ -892,15 +910,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         error: e,
         stackTrace: stackTrace,
       );
-      throw _fail('Failed to parse file: $e');
+      throw _fail(_l10n.universalImport_error_parseFailed('$e'));
     }
 
+    // The per-row warnings are English transformer strings, so a CSV whose
+    // every row was skipped is summarised rather than shown its first one.
     if (payload.isEmpty) {
-      throw _fail(
-        payload.warnings.isNotEmpty
-            ? payload.warnings.first.message
-            : 'No data could be parsed from the file',
-      );
+      throw _fail(emptyPayloadMessage(_l10n, payload.warnings));
     }
 
     final dupResult = await _checkDuplicatesOrEmpty(payload);
@@ -911,6 +927,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(
       isLoading: false,
       payload: payload,
+      clearDiverMapping: true,
       duplicateResult: dupResult,
       selections: selections,
       currentStep: ImportWizardStep.review,
@@ -1065,6 +1082,55 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   void deselectAll(ImportEntityType type) {
     state = state.copyWith(
       selections: {...state.selections, type: const <int>{}},
+    );
+  }
+
+  // -- Divers step (issue #1893) --
+
+  /// Seeds the Divers step's choices for a multi-diver payload. A mapping
+  /// already present is kept, so walking Back and Next never resets choices
+  /// the user made; a fresh parse clears it first.
+  void initDiverMapping({
+    required List<Diver> profiles,
+    required String activeDiverId,
+  }) {
+    final parsed = state.parsedPayload;
+    if (parsed == null || !parsed.needsDiverMapping) return;
+    if (state.diverMapping.isNotEmpty) return;
+    state = state.copyWith(
+      diverMapping: defaultDiverMapping(
+        sourceDivers: parsed.sourceDivers,
+        profiles: profiles,
+        activeDiverId: activeDiverId,
+      ),
+    );
+  }
+
+  void setDiverTarget(String sourceKey, DiverTarget target) {
+    state = state.copyWith(
+      diverMapping: {...state.diverMapping, sourceKey: target},
+    );
+  }
+
+  /// Splits the parsed payload across profiles per the diver mapping,
+  /// always starting from the parsed payload. A photo resolution is keyed by
+  /// media index, so it is dropped when the media list changes under it.
+  void applyDiverMapping({required String activeDiverId}) {
+    final parsed = state.parsedPayload;
+    if (parsed == null || !parsed.needsDiverMapping) return;
+    final expanded = PayloadDiverExpander.expand(
+      parsed,
+      state.diverMapping,
+      activeDiverId: activeDiverId,
+    );
+    final mediaChanged = !const DeepCollectionEquality().equals(
+      expanded.entitiesOf(ImportEntityType.media),
+      state.payload?.entitiesOf(ImportEntityType.media),
+    );
+    state = state.copyWith(
+      sourcePayload: parsed,
+      payload: expanded,
+      clearPhotoResolution: mediaChanged,
     );
   }
 

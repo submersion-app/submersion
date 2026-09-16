@@ -93,6 +93,25 @@ class ImportSourceInfo {
   });
 }
 
+/// The diver profile an item will be imported into (issue #1893). Shown on
+/// review rows when one import writes to more than one profile.
+class ImportTarget {
+  /// The item's `_targetKey` (`diver:<id>` or `new:<source key>`).
+  final String key;
+
+  /// The profile's name, or the source diver's name for a new profile.
+  final String name;
+
+  /// Whether the import will create this profile.
+  final bool isNew;
+
+  const ImportTarget({
+    required this.key,
+    required this.name,
+    required this.isNew,
+  });
+}
+
 /// A single entity item within an [EntityGroup], ready for display in the
 /// wizard review step.
 class EntityItem {
@@ -110,12 +129,24 @@ class EntityItem {
   /// Only set for [ImportEntityType.dives] items. Null for other entity types.
   final IncomingDiveData? diveData;
 
+  /// The profile this item goes to, when the import writes to several.
+  final ImportTarget? target;
+
   const EntityItem({
     required this.title,
     required this.subtitle,
     this.icon,
     this.diveData,
+    this.target,
   });
+
+  EntityItem copyWith({ImportTarget? target}) => EntityItem(
+    title: title,
+    subtitle: subtitle,
+    icon: icon,
+    diveData: diveData,
+    target: target ?? this.target,
+  );
 }
 
 /// A group of [EntityItem]s of the same [ImportEntityType].
@@ -165,7 +196,15 @@ class ImportBundle {
   /// All entity groups contained in this bundle, keyed by entity type.
   final Map<ImportEntityType, EntityGroup> groups;
 
-  const ImportBundle({required this.source, required this.groups});
+  /// The next dive number of each target profile, keyed by target key
+  /// (issue #1893). Empty for an import into the active profile alone.
+  final Map<String, int> nextDiveNumberByTarget;
+
+  const ImportBundle({
+    required this.source,
+    required this.groups,
+    this.nextDiveNumberByTarget = const {},
+  });
 
   /// Returns the [ImportEntityType]s that have at least one group in this bundle.
   List<ImportEntityType> get availableTypes => List.unmodifiable(groups.keys);

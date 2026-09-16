@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 import 'package:submersion/features/dive_computer/data/services/downloaded_tank_defaults.dart';
+import 'package:submersion/features/dive_computer/domain/services/profile_overlap_match.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -74,15 +75,20 @@ class DuplicateResult {
   /// Depth difference in meters (if matched)
   final double? depthDifferenceMeters;
 
-  /// True when [matchingDiveId] was matched via an exact hit against one of
-  /// the matched dive's EXISTING `dive_data_sources` keys (fingerprint or
-  /// source UUID) rather than fuzzy time/depth/duration matching.
+  /// True when [matchingDiveId] is confidently the SAME data the diver
+  /// already has, rather than fuzzy time/depth/duration matching: either an
+  /// exact hit against one of the matched dive's EXISTING
+  /// `dive_data_sources` keys (fingerprint or source UUID), or a contained-
+  /// segment match (see [DiveImportService._detectContainedSegment]) —
+  /// timestamp containment plus depth-curve agreement showing the download
+  /// is a native re-recording of part of a dive already stored.
   ///
-  /// Set by [DiveImportService.detectDuplicate]'s fingerprint pass, which
-  /// KNOWS the match came from a source-key hit. Propagated through
+  /// Set by [DiveImportService.detectDuplicate]'s fingerprint and
+  /// contained-segment passes. Propagated through
   /// `DiveMatchResult.matchedExistingSource` so the import wizard can
   /// default such matches to skip instead of consolidate — the downloaded
-  /// dive is a re-download of data the matched dive already has.
+  /// dive is a re-download of data the matched dive already has, and
+  /// "Combiner" would just refuse a same-computer pair anyway.
   final bool matchedExistingSource;
 
   const DuplicateResult({
@@ -367,6 +373,8 @@ class DiveImportService {
         // Check for duplicates
         final duplicateResult = await detectDuplicate(
           dive,
+          diverId: diverId,
+          computerId: computer.id,
           sourceKeysCache: sourceKeysCache,
         );
 
@@ -512,10 +520,20 @@ class DiveImportService {
   /// would not be recognized as a duplicate on the next download from that
   /// same secondary computer, since only the primary computer's fingerprint
   /// was ever checked.
+  ///
+  /// When [computerId] is given and the fuzzy pass above finds nothing,
+  /// falls back to [_detectContainedSegment]: a dive computer that split one
+  /// physical dive into two native log entries on a brief surface pause logs
+  /// the second entry with its own later start time, which sits well outside
+  /// [timeTolerance] of a FIRST entry that was already merged (in this app or
+  /// another) into a longer dive. That merged dive's own recorded profile
+  /// still spans the second entry's start, so this checks containment
+  /// directly instead of comparing whole-dive summaries.
   Future<DuplicateResult> detectDuplicate(
     DownloadedDive dive, {
     double timeTolerance = 5.0, // minutes
     String? diverId,
+    String? computerId,
     Map<String, Set<String>>? sourceKeysCache,
   }) async {
     final rawFingerprint = dive.rawFingerprint;
@@ -551,6 +569,14 @@ class DiveImportService {
     );
 
     if (match == null) {
+      if (computerId != null && computerId.isNotEmpty) {
+        final contained = await _detectContainedSegment(
+          dive,
+          computerId: computerId,
+          diverId: diverId,
+        );
+        if (contained != null) return contained;
+      }
       return DuplicateResult.noMatch();
     }
 
@@ -567,6 +593,81 @@ class DiveImportService {
       timeDifferenceSeconds: timeDiffSeconds,
       depthDifferenceMeters: match.depthDifferenceMeters,
     );
+  }
+
+  /// Whether [dive] is a native segment already recorded, on [computerId],
+  /// inside an existing dive's own profile window -- see [detectDuplicate].
+  ///
+  /// Two checks must both pass, so an unrelated dive that merely started
+  /// during the window (a buddy's separate dive logged on the same
+  /// computer, days of edits later) is never claimed:
+  /// - timestamp containment: [DiveComputerRepository.findComputerDivesContainingTime]
+  ///   restricts candidates to dives whose recorded profile, on this same
+  ///   computer, actually spans [dive]'s start;
+  /// - curve agreement: [compareProfileOverlap] then requires [dive]'s own
+  ///   samples to track that candidate's depth tightly over (nearly) their
+  ///   whole length, not merely start inside its time span.
+  ///
+  /// Returns null rather than a low-confidence result when no candidate
+  /// clears [ProfileOverlapMatch.isStrongMatch]; the caller falls through to
+  /// [DuplicateResult.noMatch] itself.
+  Future<DuplicateResult?> _detectContainedSegment(
+    DownloadedDive dive, {
+    required String computerId,
+    String? diverId,
+  }) async {
+    if (_diveRepository == null || dive.profile.length < 2) return null;
+
+    final candidates = await _repository.findComputerDivesContainingTime(
+      computerId: computerId,
+      time: dive.startTime,
+      diverId: diverId,
+    );
+    if (candidates.isEmpty) return null;
+
+    final incomingSamples = [
+      for (final s in dive.profile)
+        (offsetSeconds: s.timeSeconds, depth: s.depth),
+    ];
+
+    for (final candidate in candidates) {
+      // The specific series the containment query matched, not the dive's
+      // merged, all-sources profile: a consolidated or edited dive can hold
+      // more than one series, and the merged view can mix in samples from a
+      // different computer, or drop this exact one if a later edit
+      // superseded it.
+      final series = await _repository.getProfileSeriesById(candidate.seriesId);
+      if (series == null || series.samples.length < 2) continue;
+
+      final existingSamples = [
+        for (final s in series.samples)
+          (offsetSeconds: s.timestamp, depth: s.depth),
+      ];
+      final incomingOffsetSeconds = dive.startTime
+          .difference(candidate.effectiveStart)
+          .inSeconds;
+
+      final overlap = compareProfileOverlap(
+        existing: existingSamples,
+        incoming: incomingSamples,
+        incomingOffsetSeconds: incomingOffsetSeconds,
+      );
+      if (overlap == null || !overlap.isStrongMatch) continue;
+
+      _log.info(
+        'Contained-segment match: ${candidate.diveId} already spans this '
+        'download (coverage ${overlap.coverage.toStringAsFixed(2)}, mean '
+        'error ${overlap.meanAbsDepthErrorMeters.toStringAsFixed(2)}m)',
+      );
+      return DuplicateResult(
+        matchingDiveId: candidate.diveId,
+        confidence: DuplicateConfidence.exact,
+        score: 1.0,
+        timeDifferenceSeconds: incomingOffsetSeconds,
+        matchedExistingSource: true,
+      );
+    }
+    return null;
   }
 
   /// Convert a numeric score to a confidence level.

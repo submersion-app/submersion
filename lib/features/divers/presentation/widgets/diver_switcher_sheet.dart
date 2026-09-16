@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -92,6 +93,21 @@ Future<void> showDiverSwitcherSheet(BuildContext context) {
                   );
                 },
               ),
+            ),
+            const Divider(height: 1),
+            // Pinned below the list so the sheet is never a dead end for a
+            // single-profile user. Navigates with the CALLER's context: the
+            // sheet's own context is gone once it pops.
+            ListTile(
+              leading: Icon(
+                Icons.person_add,
+                color: Theme.of(sheetContext).colorScheme.primary,
+              ),
+              title: Text(l10n.settings_profileHub_addNewDiver),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                context.push('/settings/diver-profile/new');
+              },
             ),
           ],
         ),

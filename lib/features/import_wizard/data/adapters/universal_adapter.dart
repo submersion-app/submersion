@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -46,6 +47,12 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
+import 'package:submersion/features/import_wizard/data/adapters/diver_slice_review.dart';
+import 'package:submersion/features/import_wizard/data/adapters/existing_import_records.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/universal_import/data/services/diver_slice_duplicates.dart';
+import 'package:submersion/features/universal_import/data/services/payload_slicer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/resolved_photo_attachment.dart';
@@ -60,7 +67,10 @@ import 'package:submersion/features/universal_import/data/models/picked_import_f
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart'
     show performConsolidations;
+import 'package:submersion/features/import_wizard/presentation/widgets/diver_mapping_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/photo_folder_step.dart';
+import 'package:submersion/features/universal_import/data/models/diver_target.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
@@ -149,6 +159,35 @@ final universalAdapterPhotosReadyProvider = Provider<bool>((ref) {
       !_hasBundledPhotos(state.photoPathsByBaseName) ||
       state.bundledPhotoFolderPath != null;
   return referencedReady && bundledReady;
+});
+
+/// True once a payload exists that needed no column mapping (every format
+/// but CSV), so the Map Fields step played no part in this import and the
+/// step indicator leaves it out (issue #1893).
+final universalAdapterNoFieldMappingProvider = Provider<bool>((ref) {
+  final state = ref.watch(universalImportNotifierProvider);
+  return state.payload != null && !state.needsFieldMapping;
+});
+
+/// True when the parsed payload has at most one diver, so the Divers step
+/// has nothing to ask and skips itself (issue #1893).
+final universalAdapterSingleDiverProvider = Provider<bool>((ref) {
+  final parsed = ref.watch(
+    universalImportNotifierProvider.select((s) => s.parsedPayload),
+  );
+  return !(parsed?.needsDiverMapping ?? false);
+});
+
+/// True once every row of the Divers step has a choice and at least one of
+/// them imports somewhere.
+final universalAdapterDiverMappingReadyProvider = Provider<bool>((ref) {
+  final state = ref.watch(universalImportNotifierProvider);
+  final parsed = state.parsedPayload;
+  if (parsed == null || !parsed.needsDiverMapping) return true;
+  final rows = orderedDiverRows(parsed.sourceDivers);
+  final mapping = state.diverMapping;
+  return rows.every((row) => mapping.containsKey(row.key)) &&
+      rows.any((row) => mapping[row.key] is! SkipDiverTarget);
 });
 
 /// Import source adapter for universal file imports (CSV, Subsurface XML,
@@ -255,9 +294,30 @@ class UniversalAdapter implements ImportSourceAdapter {
       canAdvance: universalAdapterMappingReadyProvider,
       canAutoAdvance: _universalAdapterMappingAutoAdvanceProvider,
       autoAdvance: true,
+      hiddenWhen: universalAdapterNoFieldMappingProvider,
       onBeforeAdvance: () async {
         final notifier = _ref.read(universalImportNotifierProvider.notifier);
         await notifier.confirmFieldMapping();
+        await _seedDiverMapping();
+      },
+    ),
+    WizardStepDef(
+      label: 'Divers',
+      icon: Icons.people_outline,
+      builder: (context) => const DiverMappingStep(),
+      canAdvance: universalAdapterDiverMappingReadyProvider,
+      // Only a logbook with two or more divers has anything to ask.
+      canAutoAdvance: universalAdapterSingleDiverProvider,
+      autoAdvance: true,
+      hiddenWhen: universalAdapterSingleDiverProvider,
+      onBeforeAdvance: () async {
+        final activeDiverId = await _ref.read(
+          validatedCurrentDiverIdProvider.future,
+        );
+        if (activeDiverId == null) return;
+        _ref
+            .read(universalImportNotifierProvider.notifier)
+            .applyDiverMapping(activeDiverId: activeDiverId);
       },
     ),
     WizardStepDef(
@@ -270,8 +330,25 @@ class UniversalAdapter implements ImportSourceAdapter {
       // user has not made.
       canAutoAdvance: universalAdapterNoPhotosProvider,
       autoAdvance: true,
+      hiddenWhen: universalAdapterNoPhotosProvider,
     ),
   ];
+
+  /// Seeds the Divers step's defaults (issue #1893). Runs as Map Fields is
+  /// left, which the wizard does even when it auto-skips that step, after
+  /// choosing the next page and before rendering it.
+  Future<void> _seedDiverMapping() async {
+    final parsed = _ref.read(universalImportNotifierProvider).parsedPayload;
+    if (parsed == null || !parsed.needsDiverMapping) return;
+    final activeDiverId = await _ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    if (activeDiverId == null) return;
+    final profiles = await _ref.read(allDiversProvider.future);
+    _ref
+        .read(universalImportNotifierProvider.notifier)
+        .initDiverMapping(profiles: profiles, activeDiverId: activeDiverId);
+  }
 
   @override
   Future<ImportBundle> buildBundle() async {
@@ -362,13 +439,106 @@ class UniversalAdapter implements ImportSourceAdapter {
       _mediaToEntityItem,
     );
 
+    final targets = await _importTargets(payload);
     return ImportBundle(
       source: ImportSourceInfo(
         type: ImportSourceType.universal,
         displayName: _displayName,
       ),
-      groups: groups,
+      // One profile needs no labels; the counts already say where it goes.
+      groups: targets.length > 1
+          ? _labelTargets(groups, payload, targets)
+          : groups,
+      nextDiveNumberByTarget: await _nextDiveNumbers(targets.keys),
     );
+  }
+
+  /// The profile behind each target key of an expanded payload (#1893).
+  /// Empty for a payload that was never split across profiles.
+  Future<Map<String, ImportTarget>> _importTargets(
+    ImportPayload payload,
+  ) async {
+    final keys = <String>{
+      for (final items in payload.entities.values)
+        for (final item in items)
+          if (item[DiverTarget.itemKey] case final String key) key,
+    };
+    if (keys.isEmpty) return const {};
+    final profiles = await _ref.read(allDiversProvider.future);
+    final nameById = {for (final p in profiles) p.id: p.name};
+    final nameBySource = {for (final d in payload.sourceDivers) d.key: d.name};
+    return {
+      for (final key in keys)
+        key: switch (DiverTarget.diverIdOf(key)) {
+          final String id => ImportTarget(
+            key: key,
+            name: nameById[id] ?? id,
+            isNew: false,
+          ),
+          null => ImportTarget(
+            key: key,
+            name: nameBySource[DiverTarget.newSourceKeyOf(key)] ?? '',
+            isNew: true,
+          ),
+        },
+    };
+  }
+
+  /// [groups] with each item labelled with its target. Groups are built one
+  /// to one from the payload's lists, so index i is payload item i.
+  Map<wizard.ImportEntityType, EntityGroup> _labelTargets(
+    Map<wizard.ImportEntityType, EntityGroup> groups,
+    ImportPayload payload,
+    Map<String, ImportTarget> targets,
+  ) {
+    return {
+      for (final MapEntry(key: type, value: group) in groups.entries)
+        type: EntityGroup(
+          items: [
+            for (final (i, item) in group.items.indexed)
+              switch (payload.entitiesOf(
+                ui.ImportEntityType.values.byName(type.name),
+              )[i][DiverTarget.itemKey]) {
+                final String key when targets.containsKey(key) => item.copyWith(
+                  target: targets[key],
+                ),
+                _ => item,
+              },
+          ],
+          duplicateIndices: group.duplicateIndices,
+          matchResults: group.matchResults,
+          entityMatches: group.entityMatches,
+          autoSkipIndices: group.autoSkipIndices,
+        ),
+    };
+  }
+
+  /// Each target's next dive number: a new profile starts at 1.
+  Future<Map<String, int>> _nextDiveNumbers(Iterable<String> targetKeys) async {
+    final dives = _ref.read(diveRepositoryProvider);
+    return {
+      for (final key in targetKeys)
+        key: switch (DiverTarget.diverIdOf(key)) {
+          final String id => await dives.getNextDiveNumber(diverId: id),
+          null => 1,
+        },
+    };
+  }
+
+  /// The records a slice's items are checked against: the active profile
+  /// through its providers as always, another profile through the
+  /// repositories, a profile the import creates against nothing (#1893).
+  Future<ExistingImportRecords> _existingRecordsFor(
+    String? targetKey,
+    String? activeDiverId,
+  ) {
+    if (targetKey == null) return loadActiveDiverRecords(_ref, activeDiverId);
+    final diverId = DiverTarget.diverIdOf(targetKey);
+    if (diverId == null) return loadNewProfileRecords(_ref);
+    if (diverId == activeDiverId) {
+      return loadActiveDiverRecords(_ref, activeDiverId);
+    }
+    return loadProfileRecords(_ref, diverId);
   }
 
   @override
@@ -377,47 +547,31 @@ class UniversalAdapter implements ImportSourceAdapter {
     final payload = notifierState.payload;
     if (payload == null) return bundle;
 
-    const checker = ImportDuplicateChecker();
-
-    // Scope duplicate detection to the current diver's data only.
+    // Scope duplicate detection to each target profile's own data (#1893).
+    // An unexpanded payload is one slice checked against the active diver,
+    // exactly as before.
     final currentDiver = await _ref.read(currentDiverProvider.future);
-    final diverId = currentDiver?.id;
-
-    // Use refresh() to force re-fetch from the database. read() may return
-    // stale cached data if a provider was invalidated but not yet re-fetched.
-    final existingTrips = await _ref.refresh(allTripsProvider.future);
-    final existingSites = await _ref.refresh(sitesProvider.future);
-    final existingEquipment = await _ref.refresh(allEquipmentProvider.future);
-    final existingBuddies = await _ref.refresh(allBuddiesProvider.future);
-    final existingDiveCenters = await _ref.refresh(
-      allDiveCentersProvider.future,
+    final activeDiverId = currentDiver?.id;
+    final checkIntraBatch =
+        (payload.metadata['batchFileCount'] as int? ?? 1) > 1;
+    final units = UnitFormatter(_ref.read(settingsProvider));
+    final slices = PayloadSlicer.slice(
+      payload,
+      firstTargetKey: activeDiverId == null
+          ? null
+          : ExistingDiverTarget(activeDiverId).targetKey,
     );
-    final existingCertifications = await _ref.refresh(
-      allCertificationsProvider.future,
-    );
-    final existingTags = await _ref.refresh(tagsProvider.future);
-    final existingDiveTypes = await _ref.refresh(diveTypesProvider.future);
-    final diveRepo = _ref.read(diveRepositoryProvider);
-    final existingDives = await diveRepo.getAllDives(diverId: diverId);
-    final existingSourceUuidByDiveId = await diveRepo.getSourceUuidByDiveId(
-      diverId: diverId,
-    );
-
-    final dupResult = checker.check(
-      payload: payload,
-      existingDives: existingDives,
-      existingSites: existingSites,
-      existingTrips: existingTrips,
-      existingEquipment: existingEquipment,
-      existingBuddies: existingBuddies,
-      existingDiveCenters: existingDiveCenters,
-      existingCertifications: existingCertifications,
-      existingTags: existingTags,
-      existingDiveTypes: existingDiveTypes,
-      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
-      checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
-      units: UnitFormatter(_ref.read(settingsProvider)),
-    );
+    final dupResult = mergeDuplicateResults([
+      for (final slice in slices)
+        duplicatesToGlobal(
+          slice,
+          (await _existingRecordsFor(slice.targetKey, activeDiverId)).check(
+            slice.payload,
+            checkIntraBatch: checkIntraBatch,
+            units: units,
+          ),
+        ),
+    ]);
 
     final updatedGroups = Map<wizard.ImportEntityType, EntityGroup>.from(
       bundle.groups,
@@ -479,7 +633,301 @@ class UniversalAdapter implements ImportSourceAdapter {
       entityMatches: dupResult.entityMatches[ui.ImportEntityType.diveTypes],
     );
 
-    return ImportBundle(source: bundle.source, groups: updatedGroups);
+    return ImportBundle(
+      source: bundle.source,
+      groups: updatedGroups,
+      nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
+    );
+  }
+
+  /// One importer run: [payload] with the review state that indexes it,
+  /// written to [diverId]. A single-diver import runs this once for the
+  /// whole payload; a multi-diver import once per profile (issue #1893).
+  Future<UddfEntityImportResult> _runImporter({
+    required UddfEntityImporter importer,
+    required ImportRepositories repos,
+    required ImportPayload payload,
+    required ImportBundle bundle,
+    required Map<wizard.ImportEntityType, Set<int>> selections,
+    required Map<wizard.ImportEntityType, Map<int, DuplicateAction>>
+    duplicateActions,
+    required String diverId,
+    required bool retainSourceDiveNumbers,
+    ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
+  }) {
+    final notifierState = _ref.read(universalImportNotifierProvider);
+
+    // Resolve selections for all entity types: include duplicate items
+    // whose action is importAsNew (not just the base selection set).
+    Set<int> resolve(wizard.ImportEntityType type) =>
+        _resolveSelections(type, selections, duplicateActions);
+
+    final uddfData = payloadToUddfResult(payload);
+
+    // #756: flagged duplicates whose action is skip (or explicit link via
+    // consolidate) must LINK the dive to the matched existing record rather
+    // than dropping the association or creating a twin. Build source-ref ->
+    // existing-id seeds for the importer's id mappings.
+    Map<String, String> preResolvedIdsFor(
+      wizard.ImportEntityType type,
+      List<Map<String, dynamic>> items,
+    ) {
+      final matches = bundle.groups[type]?.entityMatches;
+      if (matches == null || matches.isEmpty) return const {};
+      final actions = duplicateActions[type] ?? const {};
+      final map = <String, String>{};
+      for (final entry in matches.entries) {
+        final action = actions[entry.key];
+        // Seed for skip and consolidate (both mean "do not create a new
+        // row"), and for an undecided duplicate as a safety net -- the
+        // wizard gates advancement on pending decisions, so that state is
+        // not reachable today, but dropping the association silently is the
+        // exact defect this fix exists to prevent. A seed is harmless when
+        // the entity IS imported: _importBuddies/_importTags/_importEquipment
+        // overwrite the mapping with the newly created id.
+        final links =
+            action == null ||
+            action == DuplicateAction.skip ||
+            action == DuplicateAction.consolidate;
+        if (!links) continue;
+        if (entry.key < 0 || entry.key >= items.length) continue;
+        final item = items[entry.key];
+        // A dive references its types by id (the slug), not by uddfId or
+        // name, and a UDDF type record carries no uddfId at all (#1834).
+        final ref = type == wizard.ImportEntityType.diveTypes
+            ? (item['id'] as String?) ?? (item['uddfId'] as String?)
+            : (item['uddfId'] as String?) ?? (item['name'] as String?);
+        if (ref != null) map[ref] = entry.value.existingId;
+      }
+      return map;
+    }
+
+    final uddfSelections = UddfImportSelections(
+      dives: resolve(wizard.ImportEntityType.dives),
+      sites: resolve(wizard.ImportEntityType.sites),
+      siteOverrides: _resolveSiteOverrides(duplicateActions, bundle),
+      buddies: resolve(wizard.ImportEntityType.buddies),
+      equipment: resolve(wizard.ImportEntityType.equipment),
+      trips: resolve(wizard.ImportEntityType.trips),
+      certifications: resolve(wizard.ImportEntityType.certifications),
+      diveCenters: resolve(wizard.ImportEntityType.diveCenters),
+      tags: resolve(wizard.ImportEntityType.tags),
+      diveTypes: resolve(wizard.ImportEntityType.diveTypes),
+      equipmentSets: resolve(wizard.ImportEntityType.equipmentSets),
+      courses: resolve(wizard.ImportEntityType.courses),
+    );
+
+    return importer.import(
+      data: uddfData,
+      selections: uddfSelections,
+      repositories: repos,
+      diverId: diverId,
+      retainSourceDiveNumbers: retainSourceDiveNumbers,
+      // The confirmed options, not the raw auto-detection: Source
+      // Confirmation lets the diver override a wrong guess, the parse
+      // already ran on the override, and a resync later picks its parser
+      // from whatever is persisted here.
+      sourceFormat:
+          notifierState.options?.format ??
+          notifierState.detectionResult?.format,
+      sourceFileBytes: notifierState.fileBytes,
+      sourceFileName: notifierState.fileName,
+      sourceFilesById: batchSourceFiles(notifierState.files),
+      preResolvedBuddyIds: preResolvedIdsFor(
+        wizard.ImportEntityType.buddies,
+        uddfData.buddies,
+      ),
+      preResolvedTagIds: preResolvedIdsFor(
+        wizard.ImportEntityType.tags,
+        uddfData.tags,
+      ),
+      preResolvedEquipmentIds: preResolvedIdsFor(
+        wizard.ImportEntityType.equipment,
+        uddfData.equipment,
+      ),
+      preResolvedDiveTypeIds: preResolvedIdsFor(
+        wizard.ImportEntityType.diveTypes,
+        uddfData.customDiveTypes,
+      ),
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
+  }
+
+  Future<UddfEntityImporter> _buildImporter() async {
+    final settings = _ref.read(settingsProvider);
+    final resolver = DefaultTankPresetResolver(
+      repository: _ref.read(tankPresetRepositoryProvider),
+    );
+    final defaultTankPreset = await resolver.resolve(
+      settings.defaultTankPreset,
+    );
+    return UddfEntityImporter(
+      defaultTankPreset: defaultTankPreset,
+      defaultStartPressure: settings.defaultStartPressure,
+      applyDefaultTankToImports: settings.applyDefaultTankToImports,
+      placeNameLanguage: settings.placeNameLanguage,
+    );
+  }
+
+  /// Imports each slice into its profile, creating new profiles just before
+  /// their own slice, so a failure never leaves an empty profile behind. A
+  /// slice with nothing selected is skipped and creates nothing. A failure
+  /// in the first imported slice fails the import as before; a later one
+  /// stops the loop and is reported next to what already landed.
+  Future<
+    ({
+      UddfEntityImportResult result,
+      List<DiverImportOutcome> outcomes,
+      String? error,
+      Set<int> unreachedDives,
+    })
+  >
+  _importSlices({
+    required List<DiverSlice> slices,
+    required UddfEntityImporter importer,
+    required ImportRepositories repos,
+    required ImportPayload payload,
+    required ImportBundle bundle,
+    required Map<wizard.ImportEntityType, Set<int>> selections,
+    required Map<wizard.ImportEntityType, Map<int, DuplicateAction>>
+    duplicateActions,
+    required String activeDiverId,
+    required bool retainSourceDiveNumbers,
+    ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
+  }) async {
+    final profiles = await _ref.read(allDiversProvider.future);
+    final nameById = {for (final p in profiles) p.id: p.name};
+    var total = const UddfEntityImportResult();
+    final outcomes = <DiverImportOutcome>[];
+    // The dives of slice [from] and every slice after it: what a stop at
+    // that slice leaves unimported.
+    Set<int> diveIndicesFrom(int from) => {
+      for (final s in slices.skip(from))
+        ...?s.globalIndices[ui.ImportEntityType.dives],
+    };
+
+    for (final (index, slice) in slices.indexed) {
+      if (cancelToken?.isCancelled ?? false) {
+        return (
+          result: total,
+          outcomes: outcomes,
+          error: null,
+          unreachedDives: diveIndicesFrom(index),
+        );
+      }
+      final review = DiverSliceReview.of(
+        slice,
+        bundle,
+        selections,
+        duplicateActions,
+      );
+      if (!_importsAnything(review)) continue;
+
+      final targetKey = slice.targetKey!;
+      final newSourceKey = DiverTarget.newSourceKeyOf(targetKey);
+      var name = newSourceKey ?? '';
+      try {
+        final String diverId;
+        if (newSourceKey != null) {
+          final source = payload.sourceDivers
+              .where((d) => d.key == newSourceKey)
+              .firstOrNull;
+          if (source == null) {
+            throw StateError('No source diver $newSourceKey');
+          }
+          name = source.name;
+          diverId = await _createProfile(source);
+        } else {
+          diverId = DiverTarget.diverIdOf(targetKey)!;
+          name = nameById[diverId] ?? diverId;
+        }
+
+        final sliceResult = await _runImporter(
+          importer: importer,
+          repos: repos,
+          payload: slice.payload,
+          bundle: review.bundle,
+          selections: review.selections,
+          duplicateActions: review.duplicateActions,
+          diverId: diverId,
+          retainSourceDiveNumbers: retainSourceDiveNumbers,
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
+        total = addSliceResult(total, slice, sliceResult);
+        outcomes.add(
+          DiverImportOutcome(
+            diverId: diverId,
+            name: name,
+            isNew: newSourceKey != null,
+            isActive: diverId == activeDiverId,
+            diveIds: sliceResult.diveIds,
+          ),
+        );
+      } catch (e, stackTrace) {
+        if (outcomes.isEmpty) rethrow;
+        _log.error(
+          'Import stopped before profile $name',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return (
+          result: total,
+          outcomes: outcomes,
+          error:
+              'Imported ${outcomes.map((o) => o.name).join(', ')}, '
+              'then stopped before $name: $e',
+          unreachedDives: diveIndicesFrom(index),
+        );
+      }
+    }
+    return (
+      result: total,
+      outcomes: outcomes,
+      error: null,
+      unreachedDives: const <int>{},
+    );
+  }
+
+  /// Whether a slice's review imports anything at all.
+  bool _importsAnything(DiverSliceReview review) =>
+      wizard.ImportEntityType.values.any(
+        (type) => _resolveSelections(
+          type,
+          review.selections,
+          review.duplicateActions,
+        ).isNotEmpty,
+      ) ||
+      _resolveSiteOverrides(review.duplicateActions, review.bundle).isNotEmpty;
+
+  /// Creates the profile a new-profile target asked for, seeded from what
+  /// the source logbook knows about the diver.
+  Future<String> _createProfile(SourceDiver source) async {
+    final now = DateTime.now();
+    final created = await _ref
+        .read(diverRepositoryProvider)
+        .createDiver(
+          Diver(
+            id: '',
+            name: source.name,
+            email: source.email,
+            phone: source.phone,
+            emergencyContact: EmergencyContact(name: source.emergencyContact),
+            bloodType: source.bloodType,
+            insurance: source.danNumber == null
+                ? const DiverInsurance()
+                : DiverInsurance(
+                    provider: 'DAN',
+                    policyNumber: source.danNumber,
+                  ),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    return created.id;
   }
 
   @override
@@ -514,113 +962,65 @@ class UniversalAdapter implements ImportSourceAdapter {
     }
 
     final skipped = _countSkipped(selections, duplicateActions);
-
-    // Resolve selections for all entity types: include duplicate items
-    // whose action is importAsNew (not just the base selection set).
-    Set<int> resolve(wizard.ImportEntityType type) =>
-        _resolveSelections(type, selections, duplicateActions);
-
-    final uddfData = _payloadToUddfResult(payload);
-
-    // #756: flagged duplicates whose action is skip (or explicit link via
-    // consolidate) must LINK the dive to the matched existing record rather
-    // than dropping the association or creating a twin. Build source-ref ->
-    // existing-id seeds for the importer's id mappings.
-    Map<String, String> preResolvedIdsFor(
-      wizard.ImportEntityType type,
-      List<Map<String, dynamic>> items,
-    ) {
-      final matches = bundle.groups[type]?.entityMatches;
-      if (matches == null || matches.isEmpty) return const {};
-      final actions = duplicateActions[type] ?? const {};
-      final map = <String, String>{};
-      for (final entry in matches.entries) {
-        final action = actions[entry.key];
-        // Seed for skip and consolidate (both mean "do not create a new
-        // row"), and for an undecided duplicate as a safety net -- the
-        // wizard gates advancement on pending decisions, so that state is
-        // not reachable today, but dropping the association silently is the
-        // exact defect this fix exists to prevent. A seed is harmless when
-        // the entity IS imported: _importBuddies/_importTags overwrite the
-        // mapping with the newly created id.
-        final links =
-            action == null ||
-            action == DuplicateAction.skip ||
-            action == DuplicateAction.consolidate;
-        if (!links) continue;
-        if (entry.key < 0 || entry.key >= items.length) continue;
-        final item = items[entry.key];
-        final ref = (item['uddfId'] as String?) ?? (item['name'] as String?);
-        if (ref != null) map[ref] = entry.value.existingId;
-      }
-      return map;
-    }
-
-    final uddfSelections = UddfImportSelections(
-      dives: resolve(wizard.ImportEntityType.dives),
-      sites: resolve(wizard.ImportEntityType.sites),
-      siteOverrides: _resolveSiteOverrides(duplicateActions, bundle),
-      buddies: resolve(wizard.ImportEntityType.buddies),
-      equipment: resolve(wizard.ImportEntityType.equipment),
-      trips: resolve(wizard.ImportEntityType.trips),
-      certifications: resolve(wizard.ImportEntityType.certifications),
-      diveCenters: resolve(wizard.ImportEntityType.diveCenters),
-      tags: resolve(wizard.ImportEntityType.tags),
-      diveTypes: resolve(wizard.ImportEntityType.diveTypes),
-      equipmentSets: resolve(wizard.ImportEntityType.equipmentSets),
-      courses: resolve(wizard.ImportEntityType.courses),
-    );
-
     final repos = universalImportRepositories(_ref);
+    final importer = await _buildImporter();
 
-    final settings = _ref.read(settingsProvider);
-    final resolver = DefaultTankPresetResolver(
-      repository: _ref.read(tankPresetRepositoryProvider),
+    // Every profile this import writes to, the active one first (#1893). A
+    // payload the Divers step never split is one untargeted slice, imported
+    // into the active diver exactly as before.
+    final slices = PayloadSlicer.slice(
+      payload,
+      firstTargetKey: ExistingDiverTarget(currentDiver.id).targetKey,
     );
-    final defaultTankPreset = await resolver.resolve(
-      settings.defaultTankPreset,
-    );
-    final importer = UddfEntityImporter(
-      defaultTankPreset: defaultTankPreset,
-      defaultStartPressure: settings.defaultStartPressure,
-      applyDefaultTankToImports: settings.applyDefaultTankToImports,
-      placeNameLanguage: settings.placeNameLanguage,
-    );
-
-    final result = await importer.import(
-      data: uddfData,
-      selections: uddfSelections,
-      repositories: repos,
-      diverId: currentDiver.id,
-      retainSourceDiveNumbers: retainSourceDiveNumbers,
-      // The confirmed options, not the raw auto-detection: Source
-      // Confirmation lets the diver override a wrong guess, the parse
-      // already ran on the override, and a resync later picks its parser
-      // from whatever is persisted here.
-      sourceFormat:
-          notifierState.options?.format ??
-          notifierState.detectionResult?.format,
-      sourceFileBytes: notifierState.fileBytes,
-      sourceFileName: notifierState.fileName,
-      sourceFilesById: batchSourceFiles(notifierState.files),
-      preResolvedBuddyIds: preResolvedIdsFor(
-        wizard.ImportEntityType.buddies,
-        uddfData.buddies,
-      ),
-      preResolvedTagIds: preResolvedIdsFor(
-        wizard.ImportEntityType.tags,
-        uddfData.tags,
-      ),
-      onProgress: onProgress,
-      cancelToken: cancelToken,
-    );
+    final UddfEntityImportResult result;
+    var outcomes = const <DiverImportOutcome>[];
+    String? stoppedEarly;
+    var unreachedDives = const <int>{};
+    if (slices.length == 1 && slices.single.targetKey == null) {
+      result = await _runImporter(
+        importer: importer,
+        repos: repos,
+        payload: payload,
+        bundle: bundle,
+        selections: selections,
+        duplicateActions: duplicateActions,
+        diverId: currentDiver.id,
+        retainSourceDiveNumbers: retainSourceDiveNumbers,
+        onProgress: onProgress,
+        cancelToken: cancelToken,
+      );
+    } else {
+      final run = await _importSlices(
+        slices: slices,
+        importer: importer,
+        repos: repos,
+        payload: payload,
+        bundle: bundle,
+        selections: selections,
+        duplicateActions: duplicateActions,
+        activeDiverId: currentDiver.id,
+        retainSourceDiveNumbers: retainSourceDiveNumbers,
+        onProgress: onProgress,
+        cancelToken: cancelToken,
+      );
+      result = run.result;
+      outcomes = run.outcomes;
+      stoppedEarly = run.error;
+      unreachedDives = run.unreachedDives;
+    }
 
     // Fold consolidate-flagged dives (imported as standalone above) into their
     // matched existing dive. These indices come only from an explicit user
     // choice in the review step, and each has a match result (the UI offers
     // Consolidate only on matches).
-    final diveActions =
-        duplicateActions[wizard.ImportEntityType.dives] ?? const {};
+    final reached = reachedDiveReview(
+      actions: duplicateActions[wizard.ImportEntityType.dives] ?? const {},
+      matches:
+          bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
+          const {},
+      unreached: unreachedDives,
+    );
+    final diveActions = reached.actions;
     final consolidateIndices = <int>{
       for (final entry in diveActions.entries)
         if (entry.value == DuplicateAction.consolidate) entry.key,
@@ -629,13 +1029,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     var consolidated = 0;
     var removedDiveIds = const <String>{};
     if (consolidateIndices.isNotEmpty) {
-      final matchResults =
-          bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
-          const <int, DiveMatchResult>{};
       final summary = await performConsolidations(
         indices: consolidateIndices,
         diveIdByIndex: result.diveIdByIndex,
-        duplicateResult: ImportDuplicateResult(diveMatches: matchResults),
+        duplicateResult: ImportDuplicateResult(diveMatches: reached.matches),
         consolidationService: _ref.read(diveConsolidationServiceProvider),
         diveRepository: repos.diveRepository,
       );
@@ -654,9 +1051,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     // skipped or consolidated duplicate.
     final photoDiveIds = photoTargetDiveIds(
       diveIdByIndex: result.diveIdByIndex,
-      matchResults:
-          bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
-          const {},
+      matchResults: reached.matches,
       duplicateActions: diveActions,
     );
 
@@ -806,16 +1201,29 @@ class UniversalAdapter implements ImportSourceAdapter {
       ?numberConflict,
     ];
 
+    final diverOutcomes = [
+      for (final outcome in outcomes) outcome.withoutDives(removedDiveIds),
+    ];
     return UnifiedImportResult(
       notices: notices,
       importedCounts: counts,
       consolidatedCount: consolidated,
       skippedCount: skipped + cleanedUpFailures,
-      importedDiveIds: netImportedDiveIds,
+      // "View Dives", the quality count and site matching all work in the
+      // active profile, so they get only its dives; every profile's dives
+      // are in diverOutcomes.
+      importedDiveIds: diverOutcomes.isEmpty
+          ? netImportedDiveIds
+          : [
+              for (final outcome in diverOutcomes)
+                if (outcome.isActive) ...outcome.diveIds,
+            ],
       fileOutcomes: fileOutcomes,
       attachedPhotoCount: attachedPhotos + resolvedPhotos,
       unmatchedPhotoCount:
           notifierState.unmatchedPhotoCount + (resolution?.notFoundCount ?? 0),
+      diverOutcomes: diverOutcomes,
+      errorMessage: stoppedEarly,
     );
   }
 
@@ -1128,6 +1536,33 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// folded into the match and then removed. The linker's path dedupe
   /// keeps a repeat import from doubling any of them up.
   @visibleForTesting
+  /// The dive review decisions and duplicate matches of the profiles an
+  /// import actually reached (issue #1893). When a later profile's slice
+  /// fails or the user cancels, its dives were never imported; left in, a
+  /// skipped or consolidated duplicate there would still send its photos to
+  /// the existing dive it matched.
+  @visibleForTesting
+  static ({
+    Map<int, DuplicateAction> actions,
+    Map<int, DiveMatchResult> matches,
+  })
+  reachedDiveReview({
+    required Map<int, DuplicateAction> actions,
+    required Map<int, DiveMatchResult> matches,
+    required Set<int> unreached,
+  }) {
+    return (
+      actions: {
+        for (final entry in actions.entries)
+          if (!unreached.contains(entry.key)) entry.key: entry.value,
+      },
+      matches: {
+        for (final entry in matches.entries)
+          if (!unreached.contains(entry.key)) entry.key: entry.value,
+      },
+    );
+  }
+
   static Map<int, String> photoTargetDiveIds({
     required Map<int, String> diveIdByIndex,
     required Map<int, DiveMatchResult> matchResults,
@@ -1370,7 +1805,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     return counts;
   }
 
-  static UddfImportResult _payloadToUddfResult(ImportPayload payload) {
+  /// The entity importer's input for [payload]. Exposed so round-trip
+  /// tests import exactly what the wizard would.
+  @visibleForTesting
+  static UddfImportResult payloadToUddfResult(ImportPayload payload) {
     return UddfImportResult(
       dives: payload.entitiesOf(ui.ImportEntityType.dives),
       sites: payload.entitiesOf(ui.ImportEntityType.sites),
@@ -1389,6 +1827,13 @@ class UniversalAdapter implements ImportSourceAdapter {
             in (payload.metadata[ImportPayload.customDiveRolesKey] as List?) ??
                 const [])
           if (role is Map<String, dynamic>) role,
+      ],
+      // Issue #1765: carried as metadata for the same reason as the roles.
+      customSiteTypes: [
+        for (final type
+            in (payload.metadata[ImportPayload.customSiteTypesKey] as List?) ??
+                const [])
+          if (type is Map<String, dynamic>) type,
       ],
     );
   }
@@ -1418,6 +1863,12 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // 3a); the field is optional only for legacy callers.
     equipmentObservationRepository: ref.read(
       equipmentObservationRepositoryProvider,
+    ),
+    // Site types and site tags (issue #1765); without them an import
+    // restores sites but not their classification.
+    siteTypeRepository: ref.read(siteTypeRepositoryProvider),
+    siteClassificationRepository: ref.read(
+      siteClassificationRepositoryProvider,
     ),
   );
 }

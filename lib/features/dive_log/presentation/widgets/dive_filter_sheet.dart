@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_types/presentation/dive_type_display.da
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    show TagScope;
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
@@ -759,7 +761,12 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       ref
                           .watch(tagListNotifierProvider)
                           .when(
-                            data: (allTags) {
+                            data: (everyTag) {
+                              // Dive tags only (issue #1765).
+                              final allTags = [
+                                for (final tag in everyTag)
+                                  if (tag.appliesTo(TagScope.dives)) tag,
+                              ];
                               if (allTags.isEmpty) {
                                 return Text(
                                   context.l10n.diveLog_filter_noTagsYet,

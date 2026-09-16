@@ -7,12 +7,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_role_dialog.dart';
@@ -32,15 +32,6 @@ class ComponentsCard extends ConsumerWidget {
   final String equipmentId;
 
   const ComponentsCard({super.key, required this.equipmentId});
-
-  Color _dotColor(BuildContext context, ServiceClockSeverity? severity) {
-    final scheme = Theme.of(context).colorScheme;
-    return switch (severity) {
-      ServiceClockSeverity.overdue => scheme.error,
-      ServiceClockSeverity.dueSoon => scheme.tertiary,
-      _ => scheme.surfaceContainerHighest,
-    };
-  }
 
   Future<void> _editRole(
     BuildContext context,
@@ -166,7 +157,7 @@ class ComponentsCard extends ConsumerWidget {
                 }
                 return _ComponentsList(
                   parts: parts,
-                  dotColorFor: (part) => _dotColor(
+                  dotColorFor: (part) => serviceSeverityDotColor(
                     context,
                     worstClocks[part.componentEquipmentId]?.status.severity,
                   ),

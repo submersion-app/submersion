@@ -79,9 +79,8 @@ class BatchParseService {
         final payload = await parser.parse(bytes, options: options);
 
         if (payload.isEmpty) {
-          final message = payload.warnings.isNotEmpty
-              ? payload.warnings.first.message
-              : 'No data could be parsed from the file';
+          final message =
+              payload.failureReason ?? 'No data could be parsed from the file';
           updated[i] = file.copyWith(
             status: ImportFileStatus.failed,
             error: message,

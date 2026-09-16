@@ -6,6 +6,7 @@ import 'package:submersion/features/media/domain/value_objects/media_attach_targ
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -22,8 +23,12 @@ class SiteMediaImportHelper {
     required WidgetRef ref,
     required String siteId,
   }) async {
+    // As this device knows them: a row linked on another device carries that
+    // device's asset id (#885).
     final mediaRepo = ref.read(mediaRepositoryProvider);
-    final alreadyLinkedIds = await mediaRepo.getLinkedAssetIdsForSite(siteId);
+    final alreadyLinkedIds = await ref
+        .read(linkedGalleryAssetsProvider)
+        .idsOnThisDevice(await mediaRepo.getGalleryLinksForSite(siteId));
     if (!context.mounted) return false;
 
     // Sites have no dive window: open the picker over all time. buffer is

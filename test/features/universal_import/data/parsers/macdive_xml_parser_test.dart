@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 
 void main() {
@@ -259,6 +260,73 @@ void main() {
       expect(dive['entryMethod'], 'boat');
     });
 
+    // MacDive's gear type is free text. Passing it through raw left
+    // UddfEntityImporter matching "BCD - Wing" against enum names and storing
+    // every such item as `other`; the SQLite path already classifies it.
+    test('classifies free-text gear types onto EquipmentType names', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <gear>
+      <item><type>BCD - Wing</type><name>Hog Wing</name></item>
+      <item><type>Drysuit</type><name>Trilam</name></item>
+      <item><type>Reg - Longhose</type><name>Apex XTX50</name></item>
+      <item><type>Lucky Charm</type><name>Rubber Duck</name></item>
+      <item><name>No Type</name></item>
+    </gear>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+      Map<String, dynamic> byName(String name) =>
+          equipment.firstWhere((g) => g['name'] == name);
+
+      expect(byName('Hog Wing')['type'], 'bcd');
+      expect(byName('Trilam')['type'], 'drysuit');
+      expect(byName('Apex XTX50')['type'], 'regulator');
+      expect(
+        byName('Rubber Duck')['type'],
+        'other',
+        reason: 'unrecognised text classifies as other, not raw passthrough',
+      );
+      expect(
+        byName('No Type').containsKey('type'),
+        isFalse,
+        reason: 'a missing type leaves the importer default in place',
+      );
+    });
+
+    test('blank gear types leave the type key unset', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <gear>
+      <item><type></type><name>Empty Type</name></item>
+      <item><type>   </type><name>Whitespace Type</name></item>
+    </gear>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+
+      for (final name in ['Empty Type', 'Whitespace Type']) {
+        final item = equipment.firstWhere((g) => g['name'] == name);
+        expect(
+          item.containsKey('type'),
+          isFalse,
+          reason: '"$name" carries no type, so it must not become other',
+        );
+      }
+    });
+
     test('unknown entryType strings pass through as null', () async {
       const xml = '''<?xml version="1.0"?>
 <dives><units>Metric</units><schema>2.2.0</schema>
@@ -293,6 +361,11 @@ void main() {
           .where((w) => w.message.contains('certifications'))
           .toList();
       expect(notices, hasLength(1));
+      expect(
+        notices.single.code,
+        ImportWarningCode.macdiveXmlOmitsCertsAndService,
+        reason: 'the summary shows coded warnings only',
+      );
 
       final message = notices.single.message;
       expect(message, contains('service records'));
@@ -320,6 +393,42 @@ void main() {
         isEmpty,
         reason: 'an empty logbook has no import for the notice to qualify',
       );
+    });
+
+    // #1893: MacDive writes the diver on each dive. The reference library
+    // fills it on 503 of 540 dives and leaves it empty on exactly the dives
+    // whose MacDive.sqlite row names no diver.
+    test('groups dives by <diver>', () async {
+      const xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<dives>
+    <units>Metric</units>
+    <schema>2.2.0</schema>
+    <dive><date>2024-06-01 09:00:00</date><identifier>a</identifier><diver>Ann Lee</diver><samples/></dive>
+    <dive><date>2024-06-02 09:00:00</date><identifier>b</identifier><diver> Bo Ray </diver><samples/></dive>
+    <dive><date>2024-06-03 09:00:00</date><identifier>c</identifier><diver></diver><samples/></dive>
+    <dive><date>2024-06-04 09:00:00</date><identifier>d</identifier><diver>Ann Lee</diver><samples/></dive>
+</dives>''';
+      final payload = await const MacDiveXmlParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+
+      expect(payload.sourceDivers, const [
+        SourceDiver(key: 'name:Ann Lee', name: 'Ann Lee', diveCount: 2),
+        SourceDiver(key: 'name:Bo Ray', name: 'Bo Ray', diveCount: 1),
+        SourceDiver(key: SourceDiver.unownedKey, name: '', diveCount: 1),
+      ]);
+      expect(payload.needsDiverMapping, isTrue);
+      expect(
+        payload
+            .entitiesOf(ImportEntityType.dives)
+            .map((d) => d[SourceDiver.mapKey]),
+        ['name:Ann Lee', 'name:Bo Ray', SourceDiver.unownedKey, 'name:Ann Lee'],
+      );
+    });
+
+    test('a file with one diver needs no diver mapping', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      expect(payload.needsDiverMapping, isFalse);
     });
   });
 

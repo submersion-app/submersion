@@ -19,6 +19,7 @@ import 'package:submersion/features/import_wizard/presentation/providers/import_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/step_indicator_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
@@ -193,13 +194,25 @@ class _UnifiedImportWizardBodyState
     super.dispose();
   }
 
-  List<String> _buildStepLabels() {
+  /// The step indicator's labels and current dot. Steps that do not apply
+  /// to this import are left out (issue #1893); watching their conditions
+  /// keeps the indicator in step as the import reveals what it holds.
+  ({List<String> labels, int current}) _buildStepIndicator() {
     final l10n = context.l10n;
-    final labels = _acquisitionSteps.map((s) => s.label).toList();
-    labels.add(l10n.universalImport_step_review);
-    labels.add(l10n.universalImport_step_import);
-    labels.add(l10n.universalImport_step_done);
-    return labels;
+    final steps = _acquisitionSteps;
+    return stepIndicatorView(
+      acquisitionLabels: [for (final s in steps) s.label],
+      hidden: [
+        for (final s in steps)
+          if (s.hiddenWhen case final hidden?) ref.watch(hidden) else false,
+      ],
+      trailingLabels: [
+        l10n.universalImport_step_review,
+        l10n.universalImport_step_import,
+        l10n.universalImport_step_done,
+      ],
+      currentPage: _currentPage,
+    );
   }
 
   Future<void> _animateToPage(int page) async {
@@ -479,7 +492,7 @@ class _UnifiedImportWizardBodyState
 
   @override
   Widget build(BuildContext context) {
-    final stepLabels = _buildStepLabels();
+    final indicator = _buildStepIndicator();
     final currentStepDef = _currentPage < _acquisitionSteps.length
         ? _acquisitionSteps[_currentPage]
         : null;
@@ -498,7 +511,10 @@ class _UnifiedImportWizardBodyState
       ),
       body: Column(
         children: [
-          WizardStepIndicator(labels: stepLabels, currentStep: _currentPage),
+          WizardStepIndicator(
+            labels: indicator.labels,
+            currentStep: indicator.current,
+          ),
           Expanded(
             child: PageView(
               controller: _pageController,

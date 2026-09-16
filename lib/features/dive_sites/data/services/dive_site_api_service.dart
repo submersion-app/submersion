@@ -52,6 +52,28 @@ class ExternalDiveSite {
     );
   }
 
+  /// Built-in site types for this site's bundled `features` (issue #1765),
+  /// in feature order without repeats. Exact matches only: the other
+  /// features (drift, sharks, training...) describe the diving, not the
+  /// place.
+  List<String> get siteTypeIds {
+    const featureToType = {
+      'wreck': 'wreck',
+      'wall': 'wall',
+      'reef': 'reef',
+      'lake': 'lake',
+      'cave': 'cave',
+      'speleology': 'cave',
+      'cavern': 'cavern',
+    };
+    final ids = <String>{};
+    for (final feature in features) {
+      final type = featureToType[feature];
+      if (type != null) ids.add(type);
+    }
+    return ids.toList();
+  }
+
   String _buildDescription() {
     final parts = <String>[];
     if (description != null && description!.isNotEmpty) {
@@ -149,6 +171,12 @@ class DiveSiteApiService {
           region: site['region'] as String?,
           ocean: site['ocean'] as String?,
           source: 'Bundled dive site database',
+          // Read since issue #1765 for site types; the loader skipped them
+          // before, so the "Features:" description line never appeared.
+          features: [
+            for (final f in (site['features'] as List<dynamic>? ?? const []))
+              if (f is String) f,
+          ],
         );
       }).toList();
 
