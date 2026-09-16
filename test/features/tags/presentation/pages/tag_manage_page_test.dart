@@ -33,7 +33,7 @@ final _testStats = [
       createdAt: DateTime(2024),
       updatedAt: DateTime(2024),
     ),
-    diveCount: 12,
+    counts: const {TagScope.dives: 12},
   ),
   TagStatistic(
     tag: Tag(
@@ -44,7 +44,7 @@ final _testStats = [
       createdAt: DateTime(2024),
       updatedAt: DateTime(2024),
     ),
-    diveCount: 5,
+    counts: const {TagScope.dives: 5},
   ),
 ];
 
@@ -109,13 +109,15 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
 
 /// Mock TagRepository used only for [tagRepositoryProvider] overrides.
 class _MockTagRepository extends TagRepository {
-  _MockTagRepository({this.mergedUsage = (dives: 0, sites: 0)});
+  _MockTagRepository({
+    this.mergedUsage = const {TagScope.dives: 0, TagScope.sites: 0},
+  });
 
   /// What a bulk delete's preview reports for the selection.
-  final ({int dives, int sites}) mergedUsage;
+  final Map<TagScope, int> mergedUsage;
 
   @override
-  Future<({int dives, int sites})> getMergedUsage(List<String> tagIds) async =>
+  Future<Map<TagScope, int>> getMergedUsage(List<String> tagIds) async =>
       mergedUsage;
 
   @override
@@ -522,11 +524,9 @@ void main() {
           name: 'To try',
           createdAt: DateTime(2024),
           updatedAt: DateTime(2024),
-          appliesToDives: forDives,
-          appliesToSites: true,
+          scopes: {if (forDives) TagScope.dives, TagScope.sites},
         ),
-        diveCount: forDives ? 2 : 0,
-        siteCount: 3,
+        counts: {TagScope.dives: forDives ? 2 : 0, TagScope.sites: 3},
       );
 
       Future<void> tapAndExpectStayPut(WidgetTester tester) async {
@@ -870,8 +870,8 @@ void main() {
       final created = notifier.added.single;
       expect(created.name, 'To try');
       expect(created.colorHex, '#22C55E');
-      expect(created.appliesToDives, isFalse);
-      expect(created.appliesToSites, isTrue);
+      expect(created.appliesTo(TagScope.dives), isFalse);
+      expect(created.appliesTo(TagScope.sites), isTrue);
       expect(find.byType(AlertDialog), findsNothing);
     });
 
@@ -1006,13 +1006,13 @@ void main() {
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
       await tester.pump();
 
-      repository.usage.complete((dives: 0, sites: 0));
+      repository.usage.complete(const {TagScope.dives: 0, TagScope.sites: 0});
       await tester.pumpAndSettle();
 
       final saved = notifier.updated.single;
       expect(saved.colorHex, '#EF4444');
-      expect(saved.appliesToDives, isFalse);
-      expect(saved.appliesToSites, isTrue);
+      expect(saved.appliesTo(TagScope.dives), isFalse);
+      expect(saved.appliesTo(TagScope.sites), isTrue);
     });
   });
 
@@ -1191,13 +1191,11 @@ void main() {
         diverId: 'diver1',
         name: 'To try',
         colorHex: '#F97316',
-        appliesToDives: false,
-        appliesToSites: true,
+        scopes: const {TagScope.sites},
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
       ),
-      diveCount: 0,
-      siteCount: 3,
+      counts: const {TagScope.dives: 0, TagScope.sites: 3},
     );
 
     testWidgets('a sites-only tag names its sites', (tester) async {
@@ -1223,7 +1221,9 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           stats: [..._testStats, sitesOnlyStat],
-          repository: _MockTagRepository(mergedUsage: (dives: 12, sites: 3)),
+          repository: _MockTagRepository(
+            mergedUsage: const {TagScope.dives: 12, TagScope.sites: 3},
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -1281,10 +1281,10 @@ class _FailOnceTagListNotifier extends _MockTagListNotifier {
 /// A repository whose usage read waits on [usage], so a test can act while
 /// the narrowing check is in flight.
 class _GatedUsageTagRepository extends _MockTagRepository {
-  final Completer<({int dives, int sites})> usage = Completer();
+  final Completer<Map<TagScope, int>> usage = Completer();
 
   @override
-  Future<({int dives, int sites})> getTagUsage(String tagId) => usage.future;
+  Future<Map<TagScope, int>> getTagUsage(String tagId) => usage.future;
 }
 
 /// A notifier whose saves fail, as a database or sync failure would.

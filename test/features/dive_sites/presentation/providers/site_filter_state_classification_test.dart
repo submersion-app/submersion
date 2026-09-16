@@ -20,7 +20,7 @@ void main() {
     name: id,
     createdAt: now,
     updatedAt: now,
-    appliesToSites: true,
+    scopes: const {TagScope.dives, TagScope.sites},
   );
   SiteWithDiveCount site(
     String id, {

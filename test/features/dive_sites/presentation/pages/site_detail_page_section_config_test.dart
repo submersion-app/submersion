@@ -207,7 +207,7 @@ void main() {
       name: 'To try',
       createdAt: DateTime(2026),
       updatedAt: DateTime(2026),
-      appliesToSites: true,
+      scopes: const {TagScope.dives, TagScope.sites},
     );
 
     testWidgets('shows after Site Media when the site has tags', (

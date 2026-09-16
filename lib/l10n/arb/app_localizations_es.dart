@@ -4336,6 +4336,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Aún no hay inmersiones registradas';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones quedarán sin centro de buceo.',
+      one: '1 inmersión quedará sin centro de buceo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return '¿Estás seguro de que deseas eliminar \"$name\"?';
   }
@@ -8923,6 +8934,28 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'Mostrar puntos con $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones quedarán sin sitio.',
+      one: '1 inmersión quedará sin sitio.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planes guardados quedarán sin sitio.',
+      one: '1 plan guardado quedará sin sitio.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40681,9 +40714,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cómo se agrupa y ordena el equipo en una inmersión';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -40754,4 +40784,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Ingresa un número válido';
 }

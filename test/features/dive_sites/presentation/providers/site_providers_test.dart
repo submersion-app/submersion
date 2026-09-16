@@ -206,6 +206,36 @@ void main() {
     });
   });
 
+  group('SiteListNotifier - Bulk delete undo', () {
+    test('bulkDeleteSites of a site a dive uses succeeds, and restoreSites '
+        'puts the site back and re-links the dive (issue #1952)', () async {
+      await siteRepository.createSite(
+        const DiveSite(id: 'bd-1', name: 'Bulk A', country: 'Fiji'),
+      );
+      await _insertDive(database, id: 'bd-dive', siteId: 'bd-1');
+      Future<String?> diveSiteId() async => (await container.read(
+        divesProvider.future,
+      )).singleWhere((d) => d.id == 'bd-dive').site?.id;
+      // Cache both, so a stale read after the delete would show.
+      expect(await container.read(siteProvider('bd-1').future), isNotNull);
+      expect(await diveSiteId(), 'bd-1');
+
+      final notifier = container.read(siteListNotifierProvider.notifier);
+      final deleted = await notifier.bulkDeleteSites(['bd-1']);
+
+      expect(await container.read(siteProvider('bd-1').future), isNull);
+      expect(await diveSiteId(), isNull);
+      expect(deleted.sites.map((s) => s.id), ['bd-1']);
+      expect(deleted.links.diveSiteIds, {'bd-dive': 'bd-1'});
+
+      await notifier.restoreSites(deleted.sites, links: deleted.links);
+
+      final restored = await container.read(siteProvider('bd-1').future);
+      expect(restored?.country, 'Fiji');
+      expect(await diveSiteId(), 'bd-1');
+    });
+  });
+
   group('sitesWithCountsProvider auto-refresh', () {
     test('refreshes dive counts when a dive is written directly to the DB '
         '(sync scenario)', () async {

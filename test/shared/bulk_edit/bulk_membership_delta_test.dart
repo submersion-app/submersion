@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 
 void main() {
   test('ensureOn on a "some" item adds it (to the dives missing it)', () {

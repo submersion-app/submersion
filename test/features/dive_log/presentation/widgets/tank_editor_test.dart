@@ -235,6 +235,176 @@ void main() {
       expect(updatedTank!.transmitterSerial, '180777');
     });
 
+    testWidgets('an unparseable He% keeps the last known-good mix instead of '
+        'silently turning it into air (issue #1900)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final builtInPresets = TankPresets.all
+          .map((p) => TankPresetEntity.fromBuiltIn(p))
+          .toList();
+
+      const tank = DiveTank(
+        id: 'tank-5',
+        volume: 11.1,
+        workingPressure: 206.843,
+        gasMix: GasMix(o2: 21.0, he: 35.0),
+      );
+
+      DiveTank? updatedTank;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(builtInPresets),
+            ),
+            tankPresetsProvider.overrideWith(
+              (ref) => Future.value(builtInPresets),
+            ),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: TankEditor(
+                  tank: tank,
+                  tankNumber: 1,
+                  onChanged: (t) => updatedTank = t,
+                  onRemove: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final heField = find.widgetWithText(TextFormField, '35');
+      expect(heField, findsOneWidget);
+      await tester.enterText(heField, 'abc');
+      await tester.pump();
+
+      // The validator's inline error is shown...
+      expect(find.text('Enter a valid number'), findsOneWidget);
+      // ...and the persisted mix keeps the tank's real He, not 0 (air).
+      expect(updatedTank, isNotNull);
+      expect(updatedTank!.gasMix.he, 35.0);
+      expect(updatedTank!.gasMix.o2, 21.0);
+    });
+
+    testWidgets(
+      'clearing a field then retyping garbage does not fall back to the '
+      'blank-intermediate 0.0 that round-tripped through the parent '
+      '(issue #1900 review)',
+      (tester) async {
+        // A real parent (TankRow) writes every onChanged result straight
+        // back into the tank it passes down, so clearing a field to retype
+        // it briefly rebuilds the editor with widget.tank.gasMix.he == 0
+        // (the blank default). Falling back to widget.tank.gasMix on a
+        // following invalid keystroke would still turn the mix into air
+        // despite the validator error; this host reproduces that rebuild.
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+
+        final builtInPresets = TankPresets.all
+            .map((p) => TankPresetEntity.fromBuiltIn(p))
+            .toList();
+
+        const initialTank = DiveTank(
+          id: 'tank-6',
+          volume: 11.1,
+          workingPressure: 206.843,
+          gasMix: GasMix(o2: 21.0, he: 35.0),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              tankPresetListNotifierProvider.overrideWith(
+                (ref) => _MockTankPresetListNotifier(builtInPresets),
+              ),
+              tankPresetsProvider.overrideWith(
+                (ref) => Future.value(builtInPresets),
+              ),
+            ].cast(),
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: _RebuildingTankHost(initial: initialTank),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // By label rather than current text: the field's text changes
+        // across this test's steps, but its label never does.
+        final heField = find.ancestor(
+          of: find.text('He'),
+          matching: find.byType(TextFormField),
+        );
+        expect(heField, findsOneWidget);
+        final o2Field = find.ancestor(
+          of: find.text('O2'),
+          matching: find.byType(TextFormField),
+        );
+        expect(o2Field, findsOneWidget);
+
+        // Type a real edit on both fields first: each new value must become
+        // that field's own "last valid" value, overriding the tank's
+        // original 21/35.
+        await tester.enterText(o2Field, '30');
+        await tester.pump();
+        await tester.enterText(heField, '40');
+        await tester.pump();
+
+        // Clear it: the blank default (air, He 0) round-trips through the
+        // parent and rebuilds the editor with tank.gasMix.he == 0.
+        await tester.enterText(heField, '');
+        await tester.pump();
+
+        // Now type something unparseable.
+        await tester.enterText(heField, 'xyz');
+        await tester.pump();
+
+        expect(find.text('Enter a valid number'), findsOneWidget);
+        final hostState = tester.state<_RebuildingTankHostState>(
+          find.byType(_RebuildingTankHost),
+        );
+        expect(
+          hostState.lastTank!.gasMix.o2,
+          30.0,
+          reason: 'the untouched O2 field keeps its own last valid edit',
+        );
+        expect(
+          hostState.lastTank!.gasMix.he,
+          40.0,
+          reason:
+              'must fall back to the last value the diver actually typed '
+              '(40, from the edit above), not the tank\'s original 35 nor '
+              'the blank-default 0.0 that round-tripped through the parent '
+              'when the field was cleared',
+        );
+      },
+    );
+
     testWidgets('applyPreset shows volumeCuft in imperial mode', (
       tester,
     ) async {
@@ -486,4 +656,35 @@ class _MockTankPresetListNotifier
 
   @override
   Future<void> deletePreset(String id) async {}
+}
+
+/// Mirrors how a real parent (TankRow) drives TankEditor: every onChanged
+/// result is written straight back into the tank passed down, so the editor
+/// really does rebuild with widget.tank reflecting a blank-field's transient
+/// default -- not just the value the diver last confirmed.
+class _RebuildingTankHost extends StatefulWidget {
+  const _RebuildingTankHost({required this.initial});
+
+  final DiveTank initial;
+
+  @override
+  State<_RebuildingTankHost> createState() => _RebuildingTankHostState();
+}
+
+class _RebuildingTankHostState extends State<_RebuildingTankHost> {
+  late DiveTank _tank = widget.initial;
+  DiveTank? lastTank;
+
+  @override
+  Widget build(BuildContext context) {
+    return TankEditor(
+      tank: _tank,
+      tankNumber: 1,
+      onChanged: (t) => setState(() {
+        _tank = t;
+        lastTank = t;
+      }),
+      onRemove: () {},
+    );
+  }
 }

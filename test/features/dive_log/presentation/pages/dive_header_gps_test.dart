@@ -120,9 +120,10 @@ void main() {
     expect(find.byKey(const ValueKey('gps-exit-marker')), findsOneWidget);
   });
 
-  testWidgets('site without GPS renders the map with a View Site affordance', (
+  testWidgets('site without GPS renders the map with no badge over it', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     await _pump(tester, _diveWithSite());
 
     expect(find.byType(FlutterMap), findsOneWidget);
@@ -130,10 +131,16 @@ void main() {
     expect(find.byType(PolylineLayer), findsNothing);
     expect(find.byKey(const ValueKey('gps-entry-marker')), findsNothing);
     expect(find.byKey(const ValueKey('gps-exit-marker')), findsNothing);
-    // The header carries one badge pointing at the site, not a row of
-    // per-view deep links.
-    expect(find.text('View Site'), findsOneWidget);
+    // The whole card is the link to the site, so no visible badge or row of
+    // per-view deep links sits on top of the map.
+    expect(find.text('View Site'), findsNothing);
     expect(find.text('Map'), findsNothing);
     expect(find.text('3D'), findsNothing);
+    // Screen readers still hear the card as a link to the site.
+    expect(
+      find.bySemanticsLabel(RegExp(r'^View Site Blue Hole')),
+      findsOneWidget,
+    );
+    semantics.dispose();
   });
 }

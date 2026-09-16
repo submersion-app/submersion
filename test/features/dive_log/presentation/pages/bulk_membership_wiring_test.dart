@@ -12,7 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -551,6 +551,40 @@ void main() {
           'e4',
         }, reason: 'dive $diveId keeps the set and drops only the camera');
       }
+    });
+
+    // Issue #1942 moved the editor to lib/shared; the page still supplies
+    // the dive wording, so a row and an empty collection read as before.
+    testWidgets('the rows and the empty state keep their dive wording', (
+      tester,
+    ) async {
+      await seedTag('t1', 'Nitrox');
+      await seedDive('d1');
+      await repository.bulkAddTags(['d1'], ['t1']);
+
+      await pump(tester, ['d1']);
+
+      final tags = editorFor('Tags');
+      expect(
+        find.descendant(of: tags, matching: find.text('on all 1')),
+        findsOneWidget,
+      );
+      final toggle = find.byKey(const ValueKey('membership-toggle-t1'));
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: tags, matching: find.text('removing from all')),
+        findsOneWidget,
+      );
+      // No buddy is on the dive.
+      expect(
+        find.descendant(
+          of: editorFor('Buddies'),
+          matching: find.text('No items on the selected dives yet'),
+        ),
+        findsOneWidget,
+      );
     });
 
     // Issue #1754: the confirmation must say what the save is about to change,

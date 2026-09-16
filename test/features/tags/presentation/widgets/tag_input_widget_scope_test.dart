@@ -102,7 +102,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 250));
 
     expect(picked.single.name, 'Avoid');
-    expect(picked.single.appliesToSites, isTrue);
-    expect(picked.single.appliesToDives, isFalse);
+    expect(picked.single.appliesTo(TagScope.sites), isTrue);
+    expect(picked.single.appliesTo(TagScope.dives), isFalse);
   });
 }

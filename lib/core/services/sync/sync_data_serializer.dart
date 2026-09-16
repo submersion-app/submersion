@@ -13,6 +13,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
+import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
+import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 
 /// Sync data format version for compatibility checking
 const int syncFormatVersion = 2;
@@ -2976,11 +2978,11 @@ class SyncDataSerializer {
     final survivor = ids.first;
     // The survivor keeps every use the folded rows had (v217, issue #1765):
     // folding a dive tag and a site tag of the same name must not drop
-    // either scope.
-    final anyDives =
-        remote.appliesToDives || rivals.any((r) => r.appliesToDives);
-    final anySites =
-        remote.appliesToSites || rivals.any((r) => r.appliesToSites);
+    // either scope. The union runs over the tag scope registry (#1942).
+    final scopes = {
+      ...tagScopesOf(remote),
+      for (final rival in rivals) ...tagScopesOf(rival),
+    };
     for (final loser in ids.skip(1)) {
       await _foldTagInto(loser: loser, survivor: survivor);
     }
@@ -2988,16 +2990,14 @@ class SyncDataSerializer {
       await _db
           .into(_db.tags)
           .insertOnConflictUpdate(
-            _normalizedTag(remote)
-                .copyWith(appliesToDives: anyDives, appliesToSites: anySites)
-                .toCompanion(false),
+            RawValuesInsertable<Tag>({
+              ..._normalizedTag(remote).toColumns(false),
+              ...tagScopeColumns(scopes),
+            }),
           );
     } else {
       await (_db.update(_db.tags)..where((t) => t.id.equals(survivor))).write(
-        TagsCompanion(
-          appliesToDives: Value(anyDives),
-          appliesToSites: Value(anySites),
-        ),
+        RawValuesInsertable<Tag>(tagScopeColumns(scopes)),
       );
     }
   }
@@ -3015,8 +3015,9 @@ class SyncDataSerializer {
     return trimmed == remote.name ? remote : remote.copyWith(name: trimmed);
   }
 
-  /// Moves [loser]'s dive links onto [survivor], drops the losing tag row and
-  /// remembers the alias.
+  /// Moves [loser]'s links onto [survivor] in every junction of the tag
+  /// scope registry (#1942), drops the losing tag row and remembers the
+  /// alias.
   ///
   /// A link the survivor already covers is deleted outright rather than
   /// tombstoned -- it is a local identity fold, not a user deleting a tag.
@@ -3040,67 +3041,70 @@ class SyncDataSerializer {
     required String loser,
     required String survivor,
   }) async {
-    final moving = await (_db.select(
-      _db.diveTags,
-    )..where((t) => t.tagId.equals(loser))).get();
-
-    if (moving.isNotEmpty) {
-      final covered =
-          (await (_db.select(
-                _db.diveTags,
-              )..where((t) => t.tagId.equals(survivor))).get())
-              .map((r) => r.diveId)
-              .toSet();
-      final now = DateTime.now().millisecondsSinceEpoch;
-      for (final row in moving) {
-        if (!covered.add(row.diveId)) {
-          await (_db.delete(
-            _db.diveTags,
-          )..where((t) => t.id.equals(row.id))).go();
-          continue;
-        }
-        await (_db.update(_db.diveTags)..where((t) => t.id.equals(row.id)))
-            .write(DiveTagsCompanion(tagId: Value(survivor)));
-        await _syncRepository.markRecordPending(
-          entityType: 'diveTags',
-          recordId: row.id,
-          localUpdatedAt: now,
-        );
-      }
+    for (final junction in tagScopeTables) {
+      await _foldTagLinks(junction, loser: loser, survivor: survivor);
     }
-
-    // Site links follow the survivor the same way (v217, issue #1765);
-    // without this the loser's delete would cascade them away.
-    final movingSites = await (_db.select(
-      _db.siteTags,
-    )..where((t) => t.tagId.equals(loser))).get();
-    if (movingSites.isNotEmpty) {
-      final coveredSites =
-          (await (_db.select(
-                _db.siteTags,
-              )..where((t) => t.tagId.equals(survivor))).get())
-              .map((r) => r.siteId)
-              .toSet();
-      final now = DateTime.now().millisecondsSinceEpoch;
-      for (final row in movingSites) {
-        if (!coveredSites.add(row.siteId)) {
-          await (_db.delete(
-            _db.siteTags,
-          )..where((t) => t.id.equals(row.id))).go();
-          continue;
-        }
-        await (_db.update(_db.siteTags)..where((t) => t.id.equals(row.id)))
-            .write(SiteTagsCompanion(tagId: Value(survivor)));
-        await _syncRepository.markRecordPending(
-          entityType: 'siteTags',
-          recordId: row.id,
-          localUpdatedAt: now,
-        );
-      }
-    }
-
     await (_db.delete(_db.tags)..where((t) => t.id.equals(loser))).go();
     _tagIdAliases[loser] = survivor;
+  }
+
+  /// Repoints [junction]'s links from [loser] to [survivor], each marked
+  /// pending. An item that already carries the survivor loses its loser link
+  /// outright instead. Without the repoint, deleting the loser would cascade
+  /// every link away. No parent is re-stamped (see [_foldTagInto]).
+  Future<void> _foldTagLinks(
+    TagScopeTable junction, {
+    required String loser,
+    required String survivor,
+  }) async {
+    final table = junction.junctionTable;
+    final parent = junction.parentColumn;
+    final moving = await _db
+        .customSelect(
+          'SELECT id, $parent AS parent_id FROM $table WHERE tag_id = ?',
+          variables: [Variable.withString(loser)],
+        )
+        .get();
+    if (moving.isEmpty) return;
+
+    final covered = {
+      for (final row
+          in await _db
+              .customSelect(
+                'SELECT $parent AS parent_id FROM $table WHERE tag_id = ?',
+                variables: [Variable.withString(survivor)],
+              )
+              .get())
+        row.read<String>('parent_id'),
+    };
+    // Named so Drift refreshes the streams over this junction.
+    final updates = {
+      _db.allTables.firstWhere((t) => t.actualTableName == table),
+    };
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final row in moving) {
+      final id = row.read<String>('id');
+      if (!covered.add(row.read<String>('parent_id'))) {
+        await _db.customUpdate(
+          'DELETE FROM $table WHERE id = ?',
+          variables: [Variable.withString(id)],
+          updates: updates,
+          updateKind: UpdateKind.delete,
+        );
+        continue;
+      }
+      await _db.customUpdate(
+        'UPDATE $table SET tag_id = ? WHERE id = ?',
+        variables: [Variable.withString(survivor), Variable.withString(id)],
+        updates: updates,
+        updateKind: UpdateKind.update,
+      );
+      await _syncRepository.markRecordPending(
+        entityType: junction.syncEntity,
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    }
   }
 
   /// Applies a remote `dive_tags` row.

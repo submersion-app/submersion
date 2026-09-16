@@ -563,26 +563,33 @@ class SiteListNotifier
     await _loadSites();
   }
 
-  /// Bulk delete multiple sites
-  /// Returns the deleted sites for potential undo
-  Future<List<domain.DiveSite>> bulkDeleteSites(List<String> ids) async {
-    // Get the sites before deleting for undo capability
+  /// Bulk delete multiple sites.
+  ///
+  /// Returns the deleted sites and the dives and plans the delete left
+  /// without a site, so [restoreSites] can undo both.
+  Future<({List<domain.DiveSite> sites, SiteLinks links})> bulkDeleteSites(
+    List<String> ids,
+  ) async {
     final sitesToDelete = await _repository.getSitesByIds(ids);
-    await _repository.bulkDeleteSites(ids);
+    // The delete reports the links it cleared, read in its own transaction.
+    final links = await _repository.bulkDeleteSites(ids);
     await _loadSites();
-    _ref.invalidate(sitesProvider);
-    _ref.invalidate(sitesWithCountsProvider);
-    return sitesToDelete;
+    _invalidateSiteProviders(ids);
+    return (sites: sitesToDelete, links: links);
   }
 
-  /// Restore multiple sites (for undo functionality)
-  Future<void> restoreSites(List<domain.DiveSite> sites) async {
+  /// Restore multiple sites (for undo functionality), then point the dives
+  /// and plans of [links] back at them.
+  Future<void> restoreSites(
+    List<domain.DiveSite> sites, {
+    SiteLinks links = const SiteLinks(),
+  }) async {
     for (final site in sites) {
       await _repository.createSite(site);
     }
+    await _repository.restoreSiteLinks(links);
     await _loadSites();
-    _ref.invalidate(sitesProvider);
-    _ref.invalidate(sitesWithCountsProvider);
+    _invalidateSiteProviders([for (final site in sites) site.id]);
   }
 
   Future<MergeSnapshot?> mergeSites(
@@ -600,7 +607,7 @@ class SiteListNotifier
     );
 
     await _loadSites();
-    _invalidateMergeProviders(dedupedSiteIds);
+    _invalidateSiteProviders(dedupedSiteIds);
 
     return snapshot;
   }
@@ -613,10 +620,12 @@ class SiteListNotifier
       snapshot.originalSurvivor.id,
       ...snapshot.deletedSites.map((s) => s.id),
     ];
-    _invalidateMergeProviders(allSiteIds);
+    _invalidateSiteProviders(allSiteIds);
   }
 
-  void _invalidateMergeProviders(List<String> siteIds) {
+  /// Refreshes the site lists, the dive lists (a merge, delete or undo
+  /// re-points dives) and each of [siteIds]' own providers.
+  void _invalidateSiteProviders(List<String> siteIds) {
     _ref.invalidate(sitesProvider);
     _ref.invalidate(sitesWithCountsProvider);
     _ref.invalidate(divesProvider);

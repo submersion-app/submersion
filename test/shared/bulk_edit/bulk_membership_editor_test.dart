@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 
 void main() {
-  // a is on all 3 dives, b on 2 of 3, c on none (just added via the picker).
+  // a is on all 3 selected items, b on 2 of 3, c on none (just added via the
+  // picker).
   const items = [
     BulkMembershipItem(id: 'a', label: 'Regulator'),
     BulkMembershipItem(id: 'b', label: 'Wetsuit'),
@@ -12,27 +12,37 @@ void main() {
   ];
   const counts = {'a': 3, 'b': 2, 'c': 0};
 
+  // Plain wording, so these cases show the widget prints only what its
+  // caller supplies. The dive wording has its own test beside the dive page.
+  final labels = BulkMembershipLabels(
+    onAll: (total) => 'on all $total',
+    onSome: (count, total) => 'on $count of $total',
+    adding: (total) => 'adding to all $total',
+    removing: 'removing from all',
+    empty: 'Nothing here yet',
+    add: 'Add',
+  );
+
   Future<void> pumpEditor(
     WidgetTester tester, {
     void Function(MembershipDelta)? onChanged,
     ({int serial, Set<String> ids})? ensureOn,
+    List<BulkMembershipItem> rows = items,
+    bool absentStartsChecked = true,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
-        // Every assertion matches an English label, so pin the locale instead
-        // of inheriting the ambient platform one.
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: BulkMembershipEditor(
             title: 'Equipment',
-            totalDives: 3,
-            items: items,
+            total: 3,
+            labels: labels,
+            items: rows,
             counts: counts,
             onAdd: () {},
             onChanged: onChanged ?? (_) {},
             ensureOn: ensureOn,
+            absentStartsChecked: absentStartsChecked,
           ),
         ),
       ),
@@ -45,6 +55,14 @@ void main() {
     expect(find.text('on all 3'), findsOneWidget); // a
     expect(find.text('on 2 of 3'), findsOneWidget); // b
     expect(find.text('adding to all 3'), findsOneWidget); // c (just added)
+  });
+
+  testWidgets('shows the add label and empty wording the caller supplies', (
+    tester,
+  ) async {
+    await pumpEditor(tester, rows: const []);
+    expect(find.widgetWithText(TextButton, 'Add'), findsOneWidget);
+    expect(find.text('Nothing here yet'), findsOneWidget);
   });
 
   testWidgets('unchecking an on-all item yields a remove', (tester) async {
@@ -95,7 +113,7 @@ void main() {
     (tester) async {
       MembershipDelta? last;
       await pumpEditor(tester, onChanged: (d) => last = d);
-      // c (on no dives) starts checked -> "adding to all 3".
+      // c (on none) starts checked -> "adding to all 3".
       expect(find.text('adding to all 3'), findsOneWidget);
 
       // Toggle c off: it changes nothing, so the subtitle must not still claim
@@ -107,6 +125,52 @@ void main() {
       expect(last!.removeIds, isNot(contains('c')));
     },
   );
+
+  // Issue #1942: the equipment tag sheet lists every equipment tag, so a row
+  // on none of the items is an offer, not a pick.
+  group('absentStartsChecked false', () {
+    testWidgets(
+      'a row on none of the items starts unchecked and adds nothing',
+      (tester) async {
+        MembershipDelta? last;
+        await pumpEditor(
+          tester,
+          onChanged: (d) => last = d,
+          absentStartsChecked: false,
+        );
+        final c = tester.widget<Checkbox>(
+          find.byKey(const ValueKey('membership-toggle-c')),
+        );
+        expect(c.value, isFalse);
+        expect(find.text('adding to all 3'), findsNothing);
+        expect(last!.isEmpty, isTrue);
+      },
+    );
+
+    testWidgets('ticking it adds it', (tester) async {
+      MembershipDelta? last;
+      await pumpEditor(
+        tester,
+        onChanged: (d) => last = d,
+        absentStartsChecked: false,
+      );
+      await tester.tap(find.byKey(const ValueKey('membership-toggle-c')));
+      await tester.pump();
+      expect(last!.addIds, ['c']);
+      expect(find.text('adding to all 3'), findsOneWidget);
+    });
+
+    testWidgets('an ensureOn request still switches it on', (tester) async {
+      MembershipDelta? last;
+      await pumpEditor(
+        tester,
+        onChanged: (d) => last = d,
+        absentStartsChecked: false,
+        ensureOn: (serial: 1, ids: {'c'}),
+      );
+      expect(last!.addIds, ['c']);
+    });
+  });
 
   // Issue #1754: applying an equipment set must put every item in the set on
   // all the selected dives, including rows that are already listed.
@@ -128,7 +192,7 @@ void main() {
       expect(find.text('on all 3'), findsOneWidget);
     });
 
-    testWidgets('puts an on-some row on every dive', (tester) async {
+    testWidgets('puts an on-some row on every item', (tester) async {
       MembershipDelta? last;
       await pumpEditor(
         tester,

@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/pdf_text.dart';
@@ -151,6 +152,34 @@ void main() {
     test('renders the rating', () {
       expect(text, contains('****'));
     });
+  });
+
+  group('water type and entry method fallback (#793)', () {
+    test(
+      'renders the site\'s water type and entry method when the dive has none',
+      () async {
+        // Built rather than copyWith'd: copyWith cannot null out waterType/
+        // entryMethod (its `??` pattern reads a null argument as "unchanged").
+        final fallbackDive = Dive(
+          id: 'd-fallback',
+          dateTime: dive.dateTime,
+          entryTime: dive.entryTime,
+          exitTime: dive.exitTime,
+          runtime: dive.runtime,
+          maxDepth: dive.maxDepth,
+          avgDepth: dive.avgDepth,
+          site: const DiveSite(
+            id: 'site-1',
+            name: 'Blue Hole',
+            waterType: WaterType.fresh,
+            entryMethod: EntryMethod.shore,
+          ),
+        );
+        final text = pdfVisibleText(await render(fallbackDive));
+        expect(text, contains(WaterType.fresh.displayName));
+        expect(text, contains(EntryMethod.shore.displayName));
+      },
+    );
   });
 
   group('review findings', () {

@@ -30,6 +30,26 @@ Future<void> clearPlanLinksToDives(
   );
 }
 
+/// Clears the site of the dive plans set at [siteIds], stamping and marking
+/// each plan so the change reaches peers. Run it inside the caller's
+/// transaction, before the sites are deleted: `dive_plans.site_id`
+/// references `dive_sites` with no ON DELETE action.
+Future<void> clearPlanLinksToSites(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  List<String> siteIds, {
+  required int now,
+}) async {
+  if (siteIds.isEmpty) return;
+  await _clearPlanLinks(
+    db,
+    syncRepository,
+    links: [('site_id', List.filled(siteIds.length, '?').join(', '))],
+    args: siteIds,
+    now: now,
+  );
+}
+
 /// Clears the links surviving dive plans hold to [diverId]'s dives and
 /// private sites, stamping and marking each plan so the change reaches
 /// peers. Run it inside the caller's transaction, after shared sites have
@@ -80,9 +100,15 @@ Future<void> _clearPlanLinks(
         )
         .get();
     if (rows.isEmpty) continue;
-    await db.customStatement(
+    // customUpdate, not customStatement: naming the table is what tells the
+    // saved-plans list (which watches `dive_plans`) to refresh.
+    await db.customUpdate(
       'UPDATE dive_plans SET $column = NULL, updated_at = ? WHERE $where',
-      [now, ...args],
+      variables: [
+        Variable.withInt(now),
+        for (final a in args) Variable.withString(a),
+      ],
+      updates: {db.divePlans},
     );
     planIds.addAll(rows.map((r) => r.read<String>('id')));
   }

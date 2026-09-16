@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    show TagScope;
 
 import '../../../../helpers/test_database.dart';
+import '../../tag_test_helpers.dart';
 
 /// Insert a diver into the test DB.
 Future<void> insertTestDiver(String id) async {
@@ -153,7 +156,7 @@ void main() {
     test('returns zero for an empty list', () async {
       final usage = await repository.getMergedUsage([]);
 
-      expect(usage, (dives: 0, sites: 0));
+      expect(divesAndSites(usage), (dives: 0, sites: 0));
     });
 
     test('counts the dives of a single tag', () async {
@@ -167,7 +170,7 @@ void main() {
 
       final usage = await repository.getMergedUsage(['tag1']);
 
-      expect(usage, (dives: 2, sites: 0));
+      expect(divesAndSites(usage), (dives: 2, sites: 0));
     });
 
     test('counts overlapping dives once (union, not sum)', () async {
@@ -185,7 +188,7 @@ void main() {
       // Sum would be 3, but union (distinct dives) should be 2
       final usage = await repository.getMergedUsage(['tag1', 'tag2']);
 
-      expect(usage.dives, 2);
+      expect(usage[TagScope.dives], 2);
     });
 
     test('counts disjoint dives', () async {
@@ -201,7 +204,7 @@ void main() {
 
       final usage = await repository.getMergedUsage(['tag1', 'tag2']);
 
-      expect(usage.dives, 2);
+      expect(usage[TagScope.dives], 2);
     });
 
     test(
@@ -220,7 +223,7 @@ void main() {
 
         final usage = await repository.getMergedUsage(['tag1', 'tag2']);
 
-        expect(usage, (dives: 0, sites: 2));
+        expect(divesAndSites(usage), (dives: 0, sites: 2));
       },
     );
 
@@ -239,7 +242,7 @@ void main() {
       final ids = [...List.generate(20000, (i) => 'absent-$i'), 'tag1'];
       final usage = await repository.getMergedUsage(ids);
 
-      expect(usage, (dives: 1, sites: 1));
+      expect(divesAndSites(usage), (dives: 1, sites: 1));
     });
 
     test('counts dives and sites independently (#1902)', () async {
@@ -257,7 +260,7 @@ void main() {
 
       final usage = await repository.getMergedUsage(['tag1']);
 
-      expect(usage, (dives: 1, sites: 3));
+      expect(divesAndSites(usage), (dives: 1, sites: 3));
     });
   });
 

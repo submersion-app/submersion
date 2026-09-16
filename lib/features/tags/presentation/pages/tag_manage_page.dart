@@ -9,6 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
 import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
@@ -230,22 +231,18 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         child: CircleAvatar(radius: 16, backgroundColor: tag.color),
       ),
       title: Text(tag.name),
-      // Where the tag is offered (issue #1765).
+      // Where the tag is offered (issues #1765, #1942).
       subtitle: Text(
         [
-          if (tag.appliesToDives) context.l10n.tags_manage_scope_dives,
-          if (tag.appliesToSites) context.l10n.tags_manage_scope_sites,
+          for (final scope in TagScope.values)
+            if (tag.appliesTo(scope)) tagScopeName(context.l10n, scope),
         ].join(' · '),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            tagUsageCounts(
-              context.l10n,
-              dives: stat.diveCount,
-              sites: stat.siteCount,
-            ),
+            tagUsageCounts(context.l10n, stat.counts),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -273,8 +270,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   void _showCreateDialog() {
     final controller = TextEditingController();
     String selectedColor = TagColors.predefined.first;
-    bool forDives = true;
-    bool forSites = false;
+    Set<TagScope> scopes = const {TagScope.dives};
     bool saving = false;
     bool failed = false;
 
@@ -310,10 +306,14 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                   ),
                   const SizedBox(height: 8),
                   ..._scopeEditor(
-                    forDives: forDives,
-                    forSites: forSites,
-                    onDives: (v) => setDialogState(() => forDives = v),
-                    onSites: (v) => setDialogState(() => forSites = v),
+                    scopes: scopes,
+                    // Applied to the dialog's current set, never replaced
+                    // in place, so a Save already under way keeps its own.
+                    onToggle: (scope, on) => setDialogState(
+                      () => scopes = on
+                          ? scopes.union({scope})
+                          : scopes.difference({scope}),
+                    ),
                   ),
                   if (failed) _saveErrorLine(),
                 ],
@@ -332,16 +332,12 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                         // callback: the disabled button is only built next frame.
                         if (saving) return;
                         final name = controller.text.trim();
-                        if (name.isEmpty || (!forDives && !forSites)) return;
-                        final newTag =
-                            Tag.create(
-                              id: _uuid.v4(),
-                              name: name,
-                              colorHex: selectedColor,
-                            ).copyWith(
-                              appliesToDives: forDives,
-                              appliesToSites: forSites,
-                            );
+                        if (name.isEmpty || scopes.isEmpty) return;
+                        final newTag = Tag.create(
+                          id: _uuid.v4(),
+                          name: name,
+                          colorHex: selectedColor,
+                        ).copyWith(scopes: scopes);
                         _saveFromDialog(
                           dialogContext,
                           setSaving: (v) => setDialogState(() => saving = v),
@@ -367,8 +363,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     final tag = stat.tag;
     final controller = TextEditingController(text: tag.name);
     String selectedColor = tag.colorHex ?? TagColors.predefined.first;
-    bool forDives = tag.appliesToDives;
-    bool forSites = tag.appliesToSites;
+    Set<TagScope> scopes = tag.scopes;
     bool saving = false;
     bool failed = false;
 
@@ -403,10 +398,14 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                   ),
                   const SizedBox(height: 8),
                   ..._scopeEditor(
-                    forDives: forDives,
-                    forSites: forSites,
-                    onDives: (v) => setDialogState(() => forDives = v),
-                    onSites: (v) => setDialogState(() => forSites = v),
+                    scopes: scopes,
+                    // Applied to the dialog's current set, never replaced
+                    // in place, so a Save already under way keeps its own.
+                    onToggle: (scope, on) => setDialogState(
+                      () => scopes = on
+                          ? scopes.union({scope})
+                          : scopes.difference({scope}),
+                    ),
                   ),
                   if (failed) _saveErrorLine(),
                 ],
@@ -452,9 +451,10 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                             // while the usage read is in flight.
                             final name = controller.text.trim();
                             final color = selectedColor;
-                            final dives = forDives;
-                            final sites = forSites;
-                            if (name.isEmpty || (!dives && !sites)) return;
+                            // The editor replaces the set on every tick and
+                            // never modifies it, so this reference is safe.
+                            final chosen = scopes;
+                            if (name.isEmpty || chosen.isEmpty) return;
                             _saveFromDialog(
                               dialogContext,
                               setSaving: (v) =>
@@ -464,8 +464,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                               save: () async {
                                 final confirmed = await _confirmNarrowing(
                                   tag,
-                                  forDives: dives,
-                                  forSites: sites,
+                                  scopes: chosen,
                                 );
                                 if (!confirmed) return false;
                                 await ref
@@ -475,8 +474,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                                         name: name,
                                         colorHex: color,
                                         updatedAt: DateTime.now(),
-                                        appliesToDives: dives,
-                                        appliesToSites: sites,
+                                        scopes: chosen,
                                       ),
                                     );
                                 // Site cards and the site filter read tags too.
@@ -555,29 +553,24 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     ),
   );
 
-  /// "Use for dives" and "Use for sites" (issue #1765), with an error line
-  /// while neither is ticked.
+  /// One "Use for ..." checkbox per scope in the registry (issues #1765,
+  /// #1942), with an error line while none is ticked. [onToggle] reports one
+  /// scope ticked or unticked; the caller applies it to its current set, so
+  /// two taps before a rebuild each keep their change.
   List<Widget> _scopeEditor({
-    required bool forDives,
-    required bool forSites,
-    required ValueChanged<bool> onDives,
-    required ValueChanged<bool> onSites,
+    required Set<TagScope> scopes,
+    required void Function(TagScope scope, bool on) onToggle,
   }) {
     final l10n = context.l10n;
     return [
-      CheckboxListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(l10n.tags_manage_useForDives),
-        value: forDives,
-        onChanged: (v) => onDives(v ?? false),
-      ),
-      CheckboxListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(l10n.tags_manage_useForSites),
-        value: forSites,
-        onChanged: (v) => onSites(v ?? false),
-      ),
-      if (!forDives && !forSites)
+      for (final scope in TagScope.values)
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(tagScopeUseForLabel(l10n, scope)),
+          value: scopes.contains(scope),
+          onChanged: (v) => onToggle(scope, v ?? false),
+        ),
+      if (scopes.isEmpty)
         Text(
           l10n.tags_manage_scopeRequired,
           style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -585,25 +578,25 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     ];
   }
 
-  /// Turning off a scope removes the tag from every dive or site carrying it
-  /// (the repository does that so a link always implies its scope). Asks
-  /// first when that would remove anything; true to go ahead.
+  /// Turning off a scope removes the tag from every item of that scope
+  /// carrying it (the repository does that so a link always implies its
+  /// scope). Asks first when that would remove anything; true to go ahead.
   Future<bool> _confirmNarrowing(
     Tag tag, {
-    required bool forDives,
-    required bool forSites,
+    required Set<TagScope> scopes,
   }) async {
-    final droppingDives = tag.appliesToDives && !forDives;
-    final droppingSites = tag.appliesToSites && !forSites;
-    if (!droppingDives && !droppingSites) return true;
+    final dropping = [
+      for (final scope in TagScope.values)
+        if (tag.appliesTo(scope) && !scopes.contains(scope)) scope,
+    ];
+    if (dropping.isEmpty) return true;
 
     final l10n = context.l10n;
     final usage = await ref.read(tagRepositoryProvider).getTagUsage(tag.id);
     final messages = [
-      if (droppingDives && usage.dives > 0)
-        l10n.tags_manage_narrowDialog_dives(usage.dives),
-      if (droppingSites && usage.sites > 0)
-        l10n.tags_manage_narrowDialog_sites(usage.sites),
+      for (final scope in dropping)
+        if ((usage[scope] ?? 0) > 0)
+          tagScopeNarrowLine(l10n, scope, usage[scope]!),
     ];
     if (messages.isEmpty || !mounted) return true;
 
@@ -682,13 +675,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           title: Text(
             ctx.l10n.tags_manage_bulkDeleteTitle(_selectedIds.length),
           ),
-          content: Text(
-            tagsBulkDeleteMessage(
-              ctx.l10n,
-              dives: usage.dives,
-              sites: usage.sites,
-            ),
-          ),
+          content: Text(tagsBulkDeleteMessage(ctx.l10n, usage)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -724,14 +711,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.tags_manage_deleteTitle),
-        content: Text(
-          tagDeleteMessage(
-            ctx.l10n,
-            stat.tag.name,
-            dives: stat.diveCount,
-            sites: stat.siteCount,
-          ),
-        ),
+        content: Text(tagDeleteMessage(ctx.l10n, stat.tag.name, stat.counts)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
