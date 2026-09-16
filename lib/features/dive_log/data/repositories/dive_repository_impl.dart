@@ -2173,6 +2173,7 @@ class DiveRepository {
             'd.dive_date_time, d.entry_time, '
             'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
             'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
+            'd.is_planned, '
             'd.dive_type, d.dive_mode, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
@@ -3064,6 +3065,7 @@ class DiveRepository {
           'd.dive_date_time, d.entry_time, '
           'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
           'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
+          'd.is_planned, '
           'd.dive_type, d.dive_mode, '
           'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
           's.name AS site_name, s.country AS site_country, '
@@ -3171,6 +3173,7 @@ class DiveRepository {
         isFavorite: row.read<int>('is_favorite') == 1,
         excludedFromStats: row.read<int>('excluded_from_stats') == 1,
         excludedFromGasStats: row.read<int>('excluded_from_gas_stats') == 1,
+        isPlanned: row.read<int>('is_planned') == 1,
         diveMode: DiveMode.fromCode(row.read<String>('dive_mode')),
         diveTypeIds: diveTypesByDive[id] ?? [row.read<String>('dive_type')],
         tags: tagsByDive[id] ?? [],
@@ -5647,7 +5650,10 @@ class DiveRepository {
         '${diverId != null ? ' for diver $diverId' : ''}',
       );
 
+      // A planned dive holds no number until it is promoted (issue #2002),
+      // so it neither takes a slot nor shifts the numbers around it.
       final query = _db.select(_db.dives)
+        ..where((t) => t.isPlanned.equals(false))
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
           (t) => OrderingTerm.asc(t.diveDateTime),
