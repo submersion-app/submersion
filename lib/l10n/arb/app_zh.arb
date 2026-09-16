@@ -8613,6 +8613,11 @@
   "safetyHub_incidentsLink": "未遂事件日志",
   "safetyHub_incidentsLink_subtitle": "私密、非惩罚性的事件记录",
   "diveLog_detail_menu_logNearMiss": "记录未遂事件",
+  "diveLog_planned_chip": "计划中",
+  "diveLog_planned_bannerTitle": "计划的潜水",
+  "diveLog_planned_bannerBody": "等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。",
+  "diveLog_detail_menu_markLogged": "标记为已记录",
+  "diveLog_planned_markedLogged": "已标记为已记录",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 起未遂事件与此次潜水关联} other{{count} 起未遂事件与此次潜水关联}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

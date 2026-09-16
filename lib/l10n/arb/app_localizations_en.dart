@@ -28041,6 +28041,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => 'Log near-miss';
 
   @override
+  String get diveLog_planned_chip => 'Planned';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Planned dive';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Awaiting dive computer data. Mark it as logged if you dived without one.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Mark as logged';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Marked as logged';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

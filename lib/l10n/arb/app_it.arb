@@ -8613,6 +8613,11 @@
   "safetyHub_incidentsLink": "Registro dei quasi incidenti",
   "safetyHub_incidentsLink_subtitle": "Note private e non punitive sugli incidenti",
   "diveLog_detail_menu_logNearMiss": "Registra quasi incidente",
+  "diveLog_planned_chip": "Pianificata",
+  "diveLog_planned_bannerTitle": "Immersione pianificata",
+  "diveLog_planned_bannerBody": "In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.",
+  "diveLog_detail_menu_markLogged": "Segna come registrata",
+  "diveLog_planned_markedLogged": "Segnata come registrata",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 quasi incidente collegato a questa immersione} other{{count} quasi incidenti collegati a questa immersione}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

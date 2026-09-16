@@ -8613,6 +8613,11 @@
   "safetyHub_incidentsLink": "Registro de quase acidentes",
   "safetyHub_incidentsLink_subtitle": "Notas de incidentes privadas e não punitivas",
   "diveLog_detail_menu_logNearMiss": "Registrar quase acidente",
+  "diveLog_planned_chip": "Planejado",
+  "diveLog_planned_bannerTitle": "Mergulho planejado",
+  "diveLog_planned_bannerBody": "Aguardando os dados do computador. Marque como registrado se mergulhou sem computador.",
+  "diveLog_detail_menu_markLogged": "Marcar como registrado",
+  "diveLog_planned_markedLogged": "Marcado como registrado",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 quase acidente vinculado a este mergulho} other{{count} quase acidentes vinculados a este mergulho}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

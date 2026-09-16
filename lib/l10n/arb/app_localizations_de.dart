@@ -28448,6 +28448,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => 'Beinahe-Unfall erfassen';
 
   @override
+  String get diveLog_planned_chip => 'Geplant';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Geplanter Tauchgang';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Als protokolliert markieren';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Als protokolliert markiert';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

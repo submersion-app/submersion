@@ -28397,6 +28397,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => 'Kvázibaleset rögzítése';
 
   @override
+  String get diveLog_planned_chip => 'Tervezett';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Tervezett merülés';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Naplózottnak jelölés';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Naplózottnak jelölve';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

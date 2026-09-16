@@ -46446,6 +46446,36 @@ abstract class AppLocalizations {
   /// **'Log near-miss'**
   String get diveLog_detail_menu_logNearMiss;
 
+  /// No description provided for @diveLog_planned_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get diveLog_planned_chip;
+
+  /// No description provided for @diveLog_planned_bannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive'**
+  String get diveLog_planned_bannerTitle;
+
+  /// No description provided for @diveLog_planned_bannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting dive computer data. Mark it as logged if you dived without one.'**
+  String get diveLog_planned_bannerBody;
+
+  /// No description provided for @diveLog_detail_menu_markLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as logged'**
+  String get diveLog_detail_menu_markLogged;
+
+  /// No description provided for @diveLog_planned_markedLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as logged'**
+  String get diveLog_planned_markedLogged;
+
   /// No description provided for @diveLog_detail_linkedIncidents.
   ///
   /// In en, this message translates to:

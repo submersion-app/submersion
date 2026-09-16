@@ -28503,6 +28503,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => 'Registra quasi incidente';
 
   @override
+  String get diveLog_planned_chip => 'Pianificata';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Immersione pianificata';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Segna come registrata';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Segnata come registrata';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

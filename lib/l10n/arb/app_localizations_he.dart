@@ -27811,6 +27811,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => 'רישום כמעט-תאונה';
 
   @override
+  String get diveLog_planned_chip => 'מתוכננת';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'צלילה מתוכננת';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'סימון כנרשמה';
+
+  @override
+  String get diveLog_planned_markedLogged => 'סומנה כנרשמה';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

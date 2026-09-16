@@ -28015,6 +28015,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => 'تسجيل حادث وشيك';
 
   @override
+  String get diveLog_planned_chip => 'مخططة';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'غوصة مخططة';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';
+
+  @override
+  String get diveLog_planned_markedLogged => 'تم وضع علامة مسجلة';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

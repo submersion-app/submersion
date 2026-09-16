@@ -8613,6 +8613,11 @@
   "safetyHub_incidentsLink": "Beinahe-Unfall-Log",
   "safetyHub_incidentsLink_subtitle": "Private, nicht wertende Vorfallnotizen",
   "diveLog_detail_menu_logNearMiss": "Beinahe-Unfall erfassen",
+  "diveLog_planned_chip": "Geplant",
+  "diveLog_planned_bannerTitle": "Geplanter Tauchgang",
+  "diveLog_planned_bannerBody": "Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.",
+  "diveLog_detail_menu_markLogged": "Als protokolliert markieren",
+  "diveLog_planned_markedLogged": "Als protokolliert markiert",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 Beinahe-Unfall mit diesem Tauchgang verknüpft} other{{count} Beinahe-Unfälle mit diesem Tauchgang verknüpft}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

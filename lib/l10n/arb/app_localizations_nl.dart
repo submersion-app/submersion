@@ -28293,6 +28293,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => 'Bijna-ongeval vastleggen';
 
   @override
+  String get diveLog_planned_chip => 'Gepland';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Geplande duik';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Markeren als gelogd';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Gemarkeerd als gelogd';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

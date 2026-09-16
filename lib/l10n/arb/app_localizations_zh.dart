@@ -27014,6 +27014,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_menu_logNearMiss => '记录未遂事件';
 
   @override
+  String get diveLog_planned_chip => '计划中';
+
+  @override
+  String get diveLog_planned_bannerTitle => '计划的潜水';
+
+  @override
+  String get diveLog_planned_bannerBody => '等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。';
+
+  @override
+  String get diveLog_detail_menu_markLogged => '标记为已记录';
+
+  @override
+  String get diveLog_planned_markedLogged => '已标记为已记录';
+
+  @override
   String diveLog_detail_linkedIncidents(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

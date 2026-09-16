@@ -8613,6 +8613,11 @@
   "safetyHub_incidentsLink": "Bijna-ongevallenlog",
   "safetyHub_incidentsLink_subtitle": "Privé, niet-bestraffende incidentnotities",
   "diveLog_detail_menu_logNearMiss": "Bijna-ongeval vastleggen",
+  "diveLog_planned_chip": "Gepland",
+  "diveLog_planned_bannerTitle": "Geplande duik",
+  "diveLog_planned_bannerBody": "Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.",
+  "diveLog_detail_menu_markLogged": "Markeren als gelogd",
+  "diveLog_planned_markedLogged": "Gemarkeerd als gelogd",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 bijna-ongeval gekoppeld aan deze duik} other{{count} bijna-ongevallen gekoppeld aan deze duik}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

@@ -8613,6 +8613,11 @@
   "safetyHub_incidentsLink": "Kvázibaleset-napló",
   "safetyHub_incidentsLink_subtitle": "Privát, nem büntető jellegű eseményjegyzetek",
   "diveLog_detail_menu_logNearMiss": "Kvázibaleset rögzítése",
+  "diveLog_planned_chip": "Tervezett",
+  "diveLog_planned_bannerTitle": "Tervezett merülés",
+  "diveLog_planned_bannerBody": "Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.",
+  "diveLog_detail_menu_markLogged": "Naplózottnak jelölés",
+  "diveLog_planned_markedLogged": "Naplózottnak jelölve",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 kvázibaleset kapcsolódik ehhez a merüléshez} other{{count} kvázibaleset kapcsolódik ehhez a merüléshez}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

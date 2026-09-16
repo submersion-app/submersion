@@ -18231,6 +18231,11 @@
   "safetyHub_incidentsLink": "Near-miss log",
   "safetyHub_incidentsLink_subtitle": "Private, non-punitive incident notes",
   "diveLog_detail_menu_logNearMiss": "Log near-miss",
+  "diveLog_planned_chip": "Planned",
+  "diveLog_planned_bannerTitle": "Planned dive",
+  "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
+  "diveLog_detail_menu_markLogged": "Mark as logged",
+  "diveLog_planned_markedLogged": "Marked as logged",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
