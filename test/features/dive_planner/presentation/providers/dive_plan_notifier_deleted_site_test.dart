@@ -94,4 +94,27 @@ void main() {
       expect(planner.state.siteId, 'site-2');
     },
   );
+
+  test(
+    'save leaves the plan dirty when the diver edited during the save',
+    () async {
+      await seedSite('site-1');
+      await seedSite('site-2');
+      final planner = notifier();
+      addTearDown(planner.dispose);
+      planner.updateSite('site-1');
+
+      final saving = planner.save();
+      planner.updateSite('site-2');
+      await saving;
+
+      // The write described the plan as it was submitted, so an edit made
+      // during the async gap is still unsaved and the plan is still dirty.
+      // Clearing the flag unconditionally disables Save and strands the edit.
+      expect(planner.state.isDirty, isTrue);
+
+      await planner.save();
+      expect((await repository.getPlan(planner.state.id))!.siteId, 'site-2');
+    },
+  );
 }

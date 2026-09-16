@@ -784,7 +784,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       state = state.copyWith(isDirty: false);
       return;
     }
-    final plan = divePlanFromState(state, existing: _loaded);
+    final submitted = state;
+    final plan = divePlanFromState(submitted, existing: _loaded);
     final stored = await repository.savePlan(plan, summary: summary);
     _loaded = stored;
     if (!mounted) return;
@@ -794,7 +795,17 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     // still being the one that was sent, because the diver can pick another
     // site during the save's async gap and that newer choice wins.
     final siteWentAway = stored.siteId == null && state.siteId == plan.siteId;
-    state = state.copyWith(isDirty: false, clearSiteId: siteWentAway);
+    // What was written describes the plan as it was submitted, so an edit made
+    // during that async gap is not in the database and the plan is still
+    // dirty. Clearing the flag unconditionally disables Save and strands the
+    // edit until the diver happens to touch the plan again. Every mutator
+    // assigns a fresh state, so reference identity answers this exactly,
+    // without depending on the resolution of the clock behind updatedAt.
+    final editedDuringSave = !identical(state, submitted);
+    state = state.copyWith(
+      isDirty: editedDuringSave,
+      clearSiteId: siteWentAway,
+    );
   }
 
   /// Mark the plan as saved without persisting (legacy path; prefer [save]).
