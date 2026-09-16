@@ -732,6 +732,9 @@ void main() {
               siteDiveCountProvider(accessSite.id).overrideWith((_) async => 0),
             ],
             child: MaterialApp(
+              // The order assertions match on the English enum names, so the
+              // platform locale of the test runner must not decide them.
+              locale: const Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: SiteDetailPage(siteId: accessSite.id),
@@ -752,6 +755,69 @@ void main() {
         expect(accessNotesY, lessThan(entryY));
         expect(entryY, lessThan(exitY));
         expect(exitY, lessThan(mooringY));
+      },
+    );
+
+    testWidgets(
+      'a long access label wraps inside the card instead of overflowing '
+      '(#1037)',
+      (tester) async {
+        const accessSite = DiveSite(
+          id: 'narrow-site',
+          name: 'Narrow Site',
+          accessNotes: 'Walk in from the church parking lot',
+        );
+        // A narrow phone at a large accessibility text scale: the widest case
+        // the stacked label has to survive.
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(240, 900);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+        // Other cards on the page have their own layouts at this extreme; the
+        // measurement below, not the error channel, is what this test asserts.
+        final originalOnError = FlutterError.onError;
+        FlutterError.onError = (details) {
+          if (details.toString().contains('overflowed')) return;
+          originalOnError?.call(details);
+        };
+        addTearDown(() => FlutterError.onError = originalOnError);
+
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              siteProvider(accessSite.id).overrideWith((_) async => accessSite),
+              siteDiveCountProvider(accessSite.id).overrideWith((_) async => 0),
+            ],
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Builder(
+                builder: (context) => MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: const TextScaler.linear(3)),
+                  child: SiteDetailPage(siteId: accessSite.id),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final label = find.text('Access Notes');
+        final card = find
+            .ancestor(of: label, matching: find.byType(Card))
+            .first;
+        expect(
+          tester.getSize(label).width,
+          lessThanOrEqualTo(tester.getSize(card).width),
+          reason: 'the label must wrap, not run past the access card',
+        );
       },
     );
 

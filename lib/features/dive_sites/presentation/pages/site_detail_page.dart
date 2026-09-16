@@ -1676,14 +1676,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(width: 8),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w600,
+              // Flexible like [_buildDetailRow]'s halves: a long translated
+              // label ("Megkozelitesi megjegyzesek") or a large accessibility
+              // text scale wraps onto a second line instead of running past
+              // the card edge.
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
