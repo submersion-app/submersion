@@ -141,6 +141,8 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                   isSelectionMode: _isSelectionMode,
                   selectedIds: _selectedIds,
                   onToggle: _selection.toggle,
+                  onRangeSelectTo: (id) =>
+                      _selection.extendTo(id, selectableIds),
                 ),
               ),
             ],

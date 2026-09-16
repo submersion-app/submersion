@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -134,6 +135,66 @@ void main() {
         matching: find.byType(Checkbox),
       ),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('shift-tap extends the selection to every row in between', (
+    tester,
+  ) async {
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      await repo.enqueueUpload(mediaId: 'm-a');
+      await repo.enqueueUpload(mediaId: 'm-b');
+      await repo.enqueueUpload(mediaId: 'm-c');
+      // Sorted explicitly: this test's assertion depends on row order (the
+      // range must skip over nothing), and pinning it here keeps the test
+      // independent of watchEntries()'s own ordering guarantees.
+      snapshot = (await repo.watchEntries().first)
+        ..sort((a, b) => b.id.compareTo(a.id));
+    });
+
+    await tester.pumpWidget(
+      app(
+        snapshot,
+        labels: {
+          'm-a': 'IMG_0001.JPG',
+          'm-b': 'IMG_0002.JPG',
+          'm-c': 'IMG_0003.JPG',
+        },
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pump();
+
+    // Plain tap on the first row, then shift-tap the third: the second
+    // row, never tapped directly, must still fall inside the range.
+    await tester.tap(find.text('IMG_0001.JPG'));
+    await tester.pump();
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.tap(find.text('IMG_0003.JPG'));
+    await tester.pump();
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pump();
+
+    expect(find.text('3 selected'), findsOneWidget);
+    expect(
+      tester
+          .widget<Checkbox>(
+            find.descendant(
+              of: find.ancestor(
+                of: find.text('IMG_0002.JPG'),
+                matching: find.byType(ListTile),
+              ),
+              matching: find.byType(Checkbox),
+            ),
+          )
+          .value,
+      isTrue,
+      reason: 'the untapped middle row must be checked by the range',
     );
   });
 

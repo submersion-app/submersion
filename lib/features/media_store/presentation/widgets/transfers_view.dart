@@ -5,6 +5,7 @@ import 'package:submersion/features/media/presentation/providers/resolved_asset_
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 
 /// The transfer queue list: active, waiting, and failed transfers with
@@ -23,11 +24,18 @@ class TransfersView extends ConsumerWidget {
     this.isSelectionMode = false,
     this.selectedIds = const {},
     this.onToggle,
+    this.onRangeSelectTo,
   });
 
   final bool isSelectionMode;
   final Set<String> selectedIds;
   final ValueChanged<String>? onToggle;
+
+  /// Extends the selection from the host's anchor to a row, for a row tap
+  /// made while Shift is held. Checkbox taps never call this -- clicking the
+  /// exact control is always a plain toggle, matching the other selectable
+  /// lists in the app (dive/site/buddy lists).
+  final ValueChanged<String>? onRangeSelectTo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,11 +63,19 @@ class TransfersView extends ConsumerWidget {
                 );
                 // The tile has no tap handler of its own, so while selecting
                 // the whole row has to toggle -- otherwise the checkbox is
-                // the only target.
+                // the only target. Shift extends the range from the host's
+                // anchor, matching every other selectable list in the app.
                 return isSelectionMode && onToggle != null
                     ? GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () => onToggle!(id),
+                        onTap: () {
+                          if (SelectableListScope.isShiftPressed() &&
+                              onRangeSelectTo != null) {
+                            onRangeSelectTo!(id);
+                          } else {
+                            onToggle!(id);
+                          }
+                        },
                         child: tile,
                       )
                     : tile;
