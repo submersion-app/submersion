@@ -10424,13 +10424,13 @@
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
   },
-  "settings_navCustomization_showLabels_title": "Show labels",
-  "@settings_navCustomization_showLabels_title": {
-    "description": "Switch title: whether nav destinations show a text label next to the icon, on the phone bottom bar and the expanded desktop sidebar (#1424)."
+  "settings_navCustomization_alwaysHideLabels_title": "Always hide labels",
+  "@settings_navCustomization_alwaysHideLabels_title": {
+    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
   },
-  "settings_navCustomization_showLabels_subtitle": "Show text labels next to icons in the bottom bar and the expanded sidebar",
-  "@settings_navCustomization_showLabels_subtitle": {
-    "description": "Subtitle under the show-labels switch."
+  "settings_navCustomization_alwaysHideLabels_subtitle": "Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there's room to show them",
+  "@settings_navCustomization_alwaysHideLabels_subtitle": {
+    "description": "Subtitle under the always-hide-labels switch."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {

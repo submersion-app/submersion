@@ -39,20 +39,20 @@ void main() {
     });
   });
 
-  group('AppSettingsRepository.getNavShowLabels', () {
-    test('defaults to true when key is absent', () async {
-      expect(await repository.getNavShowLabels(), isTrue);
+  group('AppSettingsRepository.getNavAlwaysHideLabels', () {
+    test('defaults to false when key is absent', () async {
+      expect(await repository.getNavAlwaysHideLabels(), isFalse);
     });
 
-    test('round-trips false', () async {
-      await repository.setNavShowLabels(false);
-      expect(await repository.getNavShowLabels(), isFalse);
+    test('round-trips true', () async {
+      await repository.setNavAlwaysHideLabels(true);
+      expect(await repository.getNavAlwaysHideLabels(), isTrue);
     });
 
-    test('round-trips true after being set to false', () async {
-      await repository.setNavShowLabels(false);
-      await repository.setNavShowLabels(true);
-      expect(await repository.getNavShowLabels(), isTrue);
+    test('round-trips false after being set to true', () async {
+      await repository.setNavAlwaysHideLabels(true);
+      await repository.setNavAlwaysHideLabels(false);
+      expect(await repository.getNavAlwaysHideLabels(), isFalse);
     });
   });
 

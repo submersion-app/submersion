@@ -30,26 +30,28 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
         ? NavOrderScope.desktop
         : NavOrderScope.phone;
 
-    final showLabelsAsync = ref.watch(navShowLabelsProvider);
+    final alwaysHideLabelsAsync = ref.watch(navAlwaysHideLabelsProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_navCustomization_title)),
       body: Column(
         children: [
-          showLabelsAsync.when(
-            data: (showLabels) => SwitchListTile(
-              key: const ValueKey('navShowLabelsSwitch'),
-              title: Text(l10n.settings_navCustomization_showLabels_title),
-              subtitle: Text(
-                l10n.settings_navCustomization_showLabels_subtitle,
+          alwaysHideLabelsAsync.when(
+            data: (alwaysHideLabels) => SwitchListTile(
+              key: const ValueKey('navAlwaysHideLabelsSwitch'),
+              title: Text(
+                l10n.settings_navCustomization_alwaysHideLabels_title,
               ),
-              value: showLabels,
+              subtitle: Text(
+                l10n.settings_navCustomization_alwaysHideLabels_subtitle,
+              ),
+              value: alwaysHideLabels,
               onChanged: (value) async {
                 try {
                   await ref
                       .read(appSettingsRepositoryProvider)
-                      .setNavShowLabels(value);
-                  ref.invalidate(navShowLabelsProvider);
+                      .setNavAlwaysHideLabels(value);
+                  ref.invalidate(navAlwaysHideLabelsProvider);
                 } catch (_) {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(

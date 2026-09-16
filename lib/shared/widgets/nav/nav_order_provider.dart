@@ -22,14 +22,15 @@ final movableNavIdsProvider = Provider<List<String>>((ref) => movableNavIds);
 /// sheet, and the Appearance page preview tile all agree on the same slot
 /// count within a build.
 int currentPhonePrimarySlotCount(WidgetRef ref, Size viewSize) {
-  final showLabels = ref.watch(navShowLabelsProvider).value ?? true;
+  final alwaysHideLabels =
+      ref.watch(navAlwaysHideLabelsProvider).value ?? false;
   final availableCount = ref.watch(movableNavIdsProvider).length;
   final baseWidth = viewSize.width < viewSize.height
       ? viewSize.width
       : viewSize.height;
   return phonePrimarySlotCount(
     baseWidth: baseWidth,
-    showLabels: showLabels,
+    showLabels: !alwaysHideLabels,
     availableCount: availableCount,
   );
 }

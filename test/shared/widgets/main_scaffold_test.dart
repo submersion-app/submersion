@@ -194,14 +194,14 @@ class _FakeRepo implements AppSettingsRepository {
   @override
   Future<void> setRawSetting(String key, String value) async {}
 
-  /// Label-visibility setting (#1424), defaulting to today's behavior.
-  bool showLabels = true;
+  /// Always-hide-labels setting (#1424), defaulting to today's behavior.
+  bool alwaysHideLabels = false;
 
   @override
-  Future<bool> getNavShowLabels() async => showLabels;
+  Future<bool> getNavAlwaysHideLabels() async => alwaysHideLabels;
   @override
-  Future<void> setNavShowLabels(bool value) async {
-    showLabels = value;
+  Future<void> setNavAlwaysHideLabels(bool value) async {
+    alwaysHideLabels = value;
   }
 
   @override
@@ -475,7 +475,7 @@ void main() {
       return result.app;
     }
 
-    group('label visibility (#1424)', () {
+    group('always-hide labels (#1424)', () {
       testWidgets('the bottom bar always shows labels by default', (
         tester,
       ) async {
@@ -494,14 +494,14 @@ void main() {
         );
       });
 
-      testWidgets('turning the setting off hides the bottom bar labels', (
+      testWidgets('turning always-hide on hides the bottom bar labels', (
         tester,
       ) async {
         tester.view.physicalSize = const Size(400, 800);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.reset);
 
-        final repo = _FakeRepo()..showLabels = false;
+        final repo = _FakeRepo()..alwaysHideLabels = true;
         await tester.pumpWidget(await buildHarness(repo: repo));
         await tester.pumpAndSettle();
 
@@ -512,7 +512,7 @@ void main() {
         );
       });
 
-      testWidgets('the desktop rail starts extended when the setting is on', (
+      testWidgets('the desktop rail starts extended when always-hide is off', (
         tester,
       ) async {
         tester.view.physicalSize = const Size(1400, 900);
@@ -527,14 +527,14 @@ void main() {
         expect(rail.extended, isTrue);
       });
 
-      testWidgets('the desktop rail starts collapsed when the setting is off', (
+      testWidgets('the desktop rail starts collapsed when always-hide is on', (
         tester,
       ) async {
         tester.view.physicalSize = const Size(1400, 900);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.reset);
 
-        final repo = _FakeRepo()..showLabels = false;
+        final repo = _FakeRepo()..alwaysHideLabels = true;
         await tester.pumpWidget(await buildHarness(repo: repo));
         await tester.pumpAndSettle();
 

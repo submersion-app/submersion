@@ -28267,17 +28267,17 @@ abstract class AppLocalizations {
   /// **'Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen width.'**
   String get settings_navCustomization_description;
 
-  /// Switch title: whether nav destinations show a text label next to the icon, on the phone bottom bar and the expanded desktop sidebar (#1424).
+  /// Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424).
   ///
   /// In en, this message translates to:
-  /// **'Show labels'**
-  String get settings_navCustomization_showLabels_title;
+  /// **'Always hide labels'**
+  String get settings_navCustomization_alwaysHideLabels_title;
 
-  /// Subtitle under the show-labels switch.
+  /// Subtitle under the always-hide-labels switch.
   ///
   /// In en, this message translates to:
-  /// **'Show text labels next to icons in the bottom bar and the expanded sidebar'**
-  String get settings_navCustomization_showLabels_subtitle;
+  /// **'Hide text labels next to icons in the bottom bar and the expanded sidebar, even when there\'s room to show them'**
+  String get settings_navCustomization_alwaysHideLabels_subtitle;
 
   /// Help text shown when arranging the wide-screen navigation rail.
   ///

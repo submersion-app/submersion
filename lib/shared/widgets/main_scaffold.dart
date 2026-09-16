@@ -32,8 +32,8 @@ class MainScaffold extends ConsumerStatefulWidget {
 class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// Manual override for the rail's expanded/collapsed state, set by tapping
   /// the collapse arrow. `null` means "no manual override yet, follow
-  /// [navShowLabelsProvider]'s default"; a non-null value means the user
-  /// overrode it for this session (#1424), same as before this setting
+  /// [navAlwaysHideLabelsProvider]'s default"; a non-null value means the
+  /// user overrode it for this session (#1424), same as before this setting
   /// existed -- it is not persisted, so it resets on restart.
   bool? _isCollapsedOverride;
 
@@ -233,7 +233,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final isWideScreen = screenWidth >= 800;
     final isDesktopExtended = screenWidth >= 1200;
     final navAccent = _navAccentLookup(context);
-    final showLabels = ref.watch(navShowLabelsProvider).value ?? true;
+    final alwaysHideLabels =
+        ref.watch(navAlwaysHideLabelsProvider).value ?? false;
     // Watched only on wide screens: building this provider kicks off a
     // settings read for the rail order, and a phone never renders a rail.
     // Riverpod rebuilds subscriptions each build, so a resize into rail
@@ -263,10 +264,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     if (isWideScreen) {
       // Desktop/Tablet layout with NavigationRail
       // Only allow collapse toggle when screen is wide enough for extended mode.
-      // With no manual override yet, the label-visibility setting decides
+      // With no manual override yet, the always-hide-labels setting decides
       // whether the rail starts extended (#1424); the arrow below can always
       // override that for the rest of this session.
-      final isCollapsed = _isCollapsedOverride ?? !showLabels;
+      final isCollapsed = _isCollapsedOverride ?? alwaysHideLabels;
       final showExtended = isDesktopExtended && !isCollapsed;
 
       return Scaffold(
@@ -363,7 +364,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         selectedIndex,
         primary: primaryDestinations,
         overflow: overflowDestinations,
-        showLabels: showLabels,
+        alwaysHideLabels: alwaysHideLabels,
       ),
     );
   }
@@ -373,14 +374,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     int selectedIndex, {
     required List<NavDestination> primary,
     required List<NavDestination> overflow,
-    required bool showLabels,
+    required bool alwaysHideLabels,
   }) {
     final navAccent = _navAccentLookup(context);
     return NavigationBar(
       selectedIndex: selectedIndex,
-      labelBehavior: showLabels
-          ? NavigationDestinationLabelBehavior.alwaysShow
-          : NavigationDestinationLabelBehavior.alwaysHide,
+      labelBehavior: alwaysHideLabels
+          ? NavigationDestinationLabelBehavior.alwaysHide
+          : NavigationDestinationLabelBehavior.alwaysShow,
       onDestinationSelected: (index) => _onDestinationSelected(
         index,
         destinations: primary,

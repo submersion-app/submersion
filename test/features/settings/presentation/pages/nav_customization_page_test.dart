@@ -386,47 +386,51 @@ void main() {
       expect(_firstRowId(tester), 'dives');
     });
 
-    group('show-labels switch (#1424)', () {
-      testWidgets('defaults to on', (tester) async {
+    group('always-hide-labels switch (#1424)', () {
+      testWidgets('defaults to off', (tester) async {
         await pumpPage(tester);
 
         final tile = tester.widget<SwitchListTile>(
-          find.byKey(const ValueKey('navShowLabelsSwitch')),
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
         );
-        expect(tile.value, isTrue);
+        expect(tile.value, isFalse);
       });
 
-      testWidgets('reflects a stored off value', (tester) async {
+      testWidgets('reflects a stored on value', (tester) async {
         final repo = FakeAppSettingsRepository();
-        await repo.setNavShowLabels(false);
+        await repo.setNavAlwaysHideLabels(true);
         await pumpPage(tester, repo: repo);
 
         final tile = tester.widget<SwitchListTile>(
-          find.byKey(const ValueKey('navShowLabelsSwitch')),
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
         );
-        expect(tile.value, isFalse);
+        expect(tile.value, isTrue);
       });
 
       testWidgets('tapping it persists the new value', (tester) async {
         final repo = await pumpPage(tester);
 
-        await tester.tap(find.byKey(const ValueKey('navShowLabelsSwitch')));
+        await tester.tap(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
         await tester.pumpAndSettle();
 
-        expect(await repo.getNavShowLabels(), isFalse);
+        expect(await repo.getNavAlwaysHideLabels(), isTrue);
         final tile = tester.widget<SwitchListTile>(
-          find.byKey(const ValueKey('navShowLabelsSwitch')),
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
         );
-        expect(tile.value, isFalse);
+        expect(tile.value, isTrue);
       });
 
       testWidgets('a failed save reports the error and keeps the old value', (
         tester,
       ) async {
-        final repo = _ShowLabelsWriteFailsRepo();
+        final repo = _AlwaysHideLabelsWriteFailsRepo();
         await pumpPage(tester, repo: repo);
 
-        await tester.tap(find.byKey(const ValueKey('navShowLabelsSwitch')));
+        await tester.tap(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
         await tester.pumpAndSettle();
 
         expect(
@@ -434,9 +438,9 @@ void main() {
           findsOneWidget,
         );
         final tile = tester.widget<SwitchListTile>(
-          find.byKey(const ValueKey('navShowLabelsSwitch')),
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
         );
-        expect(tile.value, isTrue);
+        expect(tile.value, isFalse);
       });
 
       testWidgets('a failed read hides the switch but the rest of the page '
@@ -447,7 +451,10 @@ void main() {
 
         // The switch's AsyncValue.when has no data to build a tile from, and
         // this shows the error branch renders nothing rather than crashing.
-        expect(find.byKey(const ValueKey('navShowLabelsSwitch')), findsNothing);
+        expect(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+          findsNothing,
+        );
         // The rest of the page is unaffected by the failed read.
         expect(find.byKey(const ValueKey('navScopeSegments')), findsOneWidget);
       });
@@ -476,9 +483,10 @@ class _WriteFailsRepo extends FakeAppSettingsRepository {
       throw StateError('write failed');
 }
 
-/// Fake whose show-labels write always fails, so the switch's error path runs.
-class _ShowLabelsWriteFailsRepo extends FakeAppSettingsRepository {
+/// Fake whose always-hide-labels write always fails, so the switch's error
+/// path runs.
+class _AlwaysHideLabelsWriteFailsRepo extends FakeAppSettingsRepository {
   @override
-  Future<void> setNavShowLabels(bool value) async =>
+  Future<void> setNavAlwaysHideLabels(bool value) async =>
       throw StateError('write failed');
 }

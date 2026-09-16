@@ -20,7 +20,7 @@ class AppSettingsRepository {
   static const _shareByDefaultKey = 'share_new_records_by_default';
   static const _navPrimaryIdsKey = 'nav_primary_ids';
   static const _navRailIdsKey = 'nav_rail_ids';
-  static const _navShowLabelsKey = 'nav_show_labels';
+  static const _navAlwaysHideLabelsKey = 'nav_always_hide_labels';
   static const _blenderPrefsKey = 'gas_blender_prefs';
   static const _equipmentArrangementKey = 'equipment_arrangement';
 
@@ -61,21 +61,22 @@ class AppSettingsRepository {
   Future<void> setNavRailIds(List<String> ids) =>
       _setIdList(_navRailIdsKey, ids);
 
-  /// Whether nav destinations show their text label next to the icon, on the
-  /// phone bottom bar and the extended desktop rail (#1424).
+  /// Whether nav destinations are forced to icon-only, hiding their text
+  /// label even where the layout would otherwise show one (phone bottom bar,
+  /// extended desktop rail) (#1424).
   ///
-  /// Defaults to `true` -- today's behavior -- when the key has never been
+  /// Defaults to `false` -- today's behavior -- when the key has never been
   /// written or on a read error, matching [getShareByDefault]'s
   /// degrade-to-default contract.
-  Future<bool> getNavShowLabels() async {
-    final raw = await getRawSetting(_navShowLabelsKey);
-    return raw != 'false';
+  Future<bool> getNavAlwaysHideLabels() async {
+    final raw = await getRawSetting(_navAlwaysHideLabelsKey);
+    return raw == 'true';
   }
 
-  /// Persists the label-visibility toggle. Rethrows so a failed save is
+  /// Persists the always-hide-labels toggle. Rethrows so a failed save is
   /// visible, matching [setNavPrimaryIds].
-  Future<void> setNavShowLabels(bool value) =>
-      setRawSetting(_navShowLabelsKey, value ? 'true' : 'false');
+  Future<void> setNavAlwaysHideLabels(bool value) =>
+      setRawSetting(_navAlwaysHideLabelsKey, value ? 'true' : 'false');
 
   /// Reads a JSON-encoded list of strings, returning `null` when unset, when
   /// the stored value is not a JSON list, or on read error.
