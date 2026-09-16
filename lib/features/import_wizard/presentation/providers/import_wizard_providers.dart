@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -198,6 +200,16 @@ class ImportWizardState {
 ///
 /// Orchestrates review selections, duplicate actions, import progress,
 /// and results. Source-specific logic is delegated to an [ImportSourceAdapter].
+/// The unfilled planned dives a download may fill (issue #2002), keyed by
+/// the import's target profile (null = unscoped). Follows the dives tick so
+/// a plan created or promoted mid-wizard shows up.
+final plannedFillCandidatesProvider = FutureProvider.autoDispose
+    .family<List<Dive>, String?>((ref, diverId) {
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDivesChanges());
+      return repository.getPlannedDives(diverId: diverId);
+    });
+
 class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   ImportWizardNotifier(
     this._adapter, {
@@ -680,6 +692,42 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   ///   [action] is [DuplicateAction.skip]; adds [index] otherwise.
   /// - Drains [index] from [ImportWizardState.pendingDuplicateReview] for
   ///   [type] via [_drainPending].
+  /// The profile this import writes to, for the planned-dive candidates
+  /// (issue #2002). Null in an unscoped library.
+  String? get diverId => _diverId;
+
+  /// Point a planned-fill row at another planned dive, or (null) at none,
+  /// in which case the row imports as new. Rewrites the bundle's match
+  /// result so the card and the adapter read one source of truth.
+  void setPlannedFillTarget(int index, String? plannedDiveId) {
+    final bundle = state.bundle;
+    final group = bundle?.groups[ImportEntityType.dives];
+    final current = group?.matchResults?[index];
+    if (bundle == null || group == null || current == null) return;
+    final updated = plannedDiveId == null
+        ? current.copyWith(clearPlannedDiveId: true)
+        : current.copyWith(plannedDiveId: plannedDiveId);
+    final matchResults = {...group.matchResults!, index: updated};
+    final groups = {
+      ...bundle.groups,
+      ImportEntityType.dives: group.copyWith(matchResults: matchResults),
+    };
+    state = state.copyWith(
+      bundle: ImportBundle(
+        source: bundle.source,
+        groups: groups,
+        nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
+      ),
+    );
+    setDuplicateAction(
+      ImportEntityType.dives,
+      index,
+      plannedDiveId == null
+          ? DuplicateAction.importAsNew
+          : DuplicateAction.fillPlanned,
+    );
+  }
+
   void setDuplicateAction(
     ImportEntityType type,
     int index,

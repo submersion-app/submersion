@@ -83,6 +83,13 @@ class EntityReviewList extends StatefulWidget {
   /// re-picking the active field to flip its direction.
   final ValueChanged<DiveReviewSortField>? onSortFieldChanged;
 
+  /// Label of the planned dive a fill row targets (issue #2002); null for
+  /// other rows or when the caller does not resolve labels.
+  final String? Function(int index)? plannedDiveLabelForIndex;
+
+  /// Opens the planned-dive picker for a fill row.
+  final void Function(int index)? onChangeFillTarget;
+
   const EntityReviewList({
     super.key,
     required this.group,
@@ -101,6 +108,8 @@ class EntityReviewList extends StatefulWidget {
     this.sortField,
     this.sortAscending = false,
     this.onSortFieldChanged,
+    this.plannedDiveLabelForIndex,
+    this.onChangeFillTarget,
   });
 
   static void _noopBulkAction(DuplicateAction _) {}
@@ -350,6 +359,10 @@ class _EntityReviewListState extends State<EntityReviewList> {
         existingDiveId: widget.existingDiveIdForIndex(index),
         projectedDiveNumber: widget.projectedDiveNumbers?[index],
         isPending: widget.pendingIndices.contains(index),
+        plannedDiveLabel: widget.plannedDiveLabelForIndex?.call(index),
+        onChangeFillTarget: widget.onChangeFillTarget == null
+            ? null
+            : () => widget.onChangeFillTarget!(index),
       ),
     );
   }

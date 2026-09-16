@@ -6,6 +6,10 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/planned_dive_picker_sheet.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -338,7 +342,7 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
 // Single tab content (used by multi-type layout)
 // ---------------------------------------------------------------------------
 
-class _EntityTab extends StatelessWidget {
+class _EntityTab extends ConsumerWidget {
   final ImportEntityType type;
   final ImportBundle bundle;
   final ImportWizardState state;
@@ -354,13 +358,46 @@ class _EntityTab extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final group = bundle.groups[type]!;
     final selectedIndices = state.selections[type] ?? const <int>{};
     final duplicateActions = state.duplicateActions[type] ?? const {};
     // Per-tab, not per-adapter: an adapter may implement an action for only
     // some entity types (e.g. Universal supports replaceSource on sites only).
     final availableActions = notifier.duplicateActionsFor(type);
+
+    // Planned dives a download may fill (issue #2002). Only the dives tab of
+    // an adapter that offers the action needs them; other tabs never read
+    // the provider.
+    final offersFill =
+        type == ImportEntityType.dives &&
+        availableActions.contains(DuplicateAction.fillPlanned);
+    final plannedDives = offersFill
+        ? ref.watch(plannedFillCandidatesProvider(notifier.diverId)).value ??
+              const <Dive>[]
+        : const <Dive>[];
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    String? plannedLabelFor(int index) {
+      final plannedId = group.matchResults?[index]?.plannedDiveId;
+      if (plannedId == null) return null;
+      final dive = plannedDives.where((d) => d.id == plannedId).firstOrNull;
+      if (dive == null) return null;
+      final label = plannedDiveLabel(dive, units, context.l10n);
+      return dive.profile.isNotEmpty
+          ? '$label. ${context.l10n.universalImport_fillPlanned_replacesProfile}'
+          : label;
+    }
+
+    Future<void> changeFillTarget(int index) async {
+      final current = group.matchResults?[index]?.plannedDiveId;
+      final picked = await showPlannedDivePicker(
+        context,
+        plannedDives: plannedDives,
+        selectedId: current,
+      );
+      if (picked == null) return;
+      notifier.setPlannedFillTarget(index, picked.isEmpty ? null : picked);
+    }
 
     return SingleChildScrollView(
       child: EntityReviewList(
@@ -401,6 +438,8 @@ class _EntityTab extends StatelessWidget {
         onSortFieldChanged: type == ImportEntityType.dives
             ? notifier.setDiveSortField
             : null,
+        plannedDiveLabelForIndex: offersFill ? plannedLabelFor : null,
+        onChangeFillTarget: offersFill ? changeFillTarget : null,
       ),
     );
   }

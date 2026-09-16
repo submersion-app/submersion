@@ -130,4 +130,34 @@ void main() {
     );
     expect(state().selections[ImportEntityType.dives], contains(0));
   });
+
+  test('setPlannedFillTarget repoints the row and keeps fillPlanned', () {
+    notifier.setBundle(_bundle({0: _plannedMatch}));
+
+    notifier.setPlannedFillTarget(0, 'p2');
+
+    final match =
+        state().bundle!.groups[ImportEntityType.dives]!.matchResults![0]!;
+    expect(match.plannedDiveId, 'p2');
+    expect(match.diveId, 'p2');
+    expect(
+      state().duplicateActions[ImportEntityType.dives]![0],
+      DuplicateAction.fillPlanned,
+    );
+  });
+
+  test('setPlannedFillTarget(null) clears the target and imports as new', () {
+    notifier.setBundle(_bundle({0: _plannedMatch}));
+
+    notifier.setPlannedFillTarget(0, null);
+
+    final match =
+        state().bundle!.groups[ImportEntityType.dives]!.matchResults![0]!;
+    expect(match.isPlannedFill, isFalse);
+    expect(
+      state().duplicateActions[ImportEntityType.dives]![0],
+      DuplicateAction.importAsNew,
+    );
+    expect(state().selections[ImportEntityType.dives], contains(0));
+  });
 }
