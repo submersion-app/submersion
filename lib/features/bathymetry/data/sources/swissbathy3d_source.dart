@@ -15,6 +15,8 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_source.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
+part 'swissbathy3d_sibling_precache.dart';
+
 const _log = LoggerService('SwissBathy3dSource');
 
 /// Regional tier: swisstopo swissBATHY3D lake-bed elevation model, via the
@@ -84,15 +86,6 @@ const _log = LoggerService('SwissBathy3dSource');
 /// result would silently starve whichever tile's entries were not part of
 /// the first tile's own neighborhood — the Bug 15 failure mode one layer
 /// deeper.
-/// Every dive site coordinate already known to the app, regardless of which
-/// diver logged it -- used only to opportunistically pre-cache OTHER sites
-/// on a lake whose asset [SwissBathy3dSource.fetch] just downloaded anyway
-/// (see [SwissBathy3dSource._precacheSiblingSites]). Optional at the call
-/// site: null (the default) means "don't bother", and the normal per-visit
-/// fetch path is unaffected either way -- this is a pure cache-warming
-/// bonus, never load-bearing for a caller's own result.
-typedef KnownDiveSiteLocations = Future<List<GeoPoint>> Function();
-
 class SwissBathy3dSource implements BathymetrySource {
   static const String sourceId = 'swissbathy3d';
   static const double tileSizeMeters = 1000;
@@ -292,10 +285,15 @@ class SwissBathy3dSource implements BathymetrySource {
     // accidentally fail -- the result this call actually promised its
     // caller. Placed before the failure checks below so it still runs
     // (for whichever lake(s) DID resolve) even when this span itself is
-    // about to throw.
-    for (final touchedLake in lakesTouched.values) {
+    // about to throw. One call for every lake touched, not one per lake,
+    // so the known-site lookup runs once and every sibling tile still
+    // shares [maxConcurrentTileRequests] with the rest of this class
+    // instead of each lake's pass running as its own uncapped, concurrent
+    // side quest -- see [_precacheSiblingSites]'s own doc.
+    if (lakesTouched.isNotEmpty) {
       _precacheSiblingSites(
-        touchedLake,
+        this,
+        lakesTouched.values,
         sharedZipBytes,
         sharedCandidates,
       ).ignore();
@@ -404,48 +402,6 @@ class SwissBathy3dSource implements BathymetrySource {
       referenceLevelMeters: lake.meanLevelMeters,
     );
     return grid;
-  }
-
-  /// Opportunistically caches every other locally KNOWN dive site's own
-  /// tile within [lake], reusing the candidates/zip bytes [fetch] already
-  /// resolved for the tile(s) that triggered this call -- no extra network
-  /// request beyond what that call already made. Called fire-and-forget
-  /// (see the call site in [fetch]); every failure here -- a failed
-  /// [_knownSiteLocations] lookup, or one particular site's own
-  /// [_fetchTile] call -- is swallowed, exactly like the manual "reload map
-  /// data" sweep's per-tile failures, since this is a pure cache-warming
-  /// bonus, never load-bearing for [fetch]'s own caller.
-  ///
-  /// Addresses #1764's follow-up: without this, visiting a NEW, previously
-  /// unvisited dive site on an already-downloaded lake re-downloads the
-  /// whole (sometimes 100+ MB) lake asset again, even though every cell
-  /// this app will ever need from it for that site was already sitting in
-  /// memory once, moments earlier, for a different site on the same lake.
-  Future<void> _precacheSiblingSites(
-    SwissLakeLevel lake,
-    Map<String, Future<Uint8List>> sharedZipBytes,
-    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
-  ) async {
-    final knownSiteLocations = _knownSiteLocations;
-    if (knownSiteLocations == null) return;
-    final List<GeoPoint> sites;
-    try {
-      sites = await knownSiteLocations();
-    } catch (_) {
-      return;
-    }
-    for (final site in sites) {
-      if (findSwissLake(site)?.name != lake.name) continue;
-      final lv95 = Lv95Transform.fromWgs84(site.latitude, site.longitude);
-      final tileE = (lv95.easting / tileSizeMeters).floor();
-      final tileN = (lv95.northing / tileSizeMeters).floor();
-      try {
-        await _fetchTile(tileE, tileN, lake, sharedZipBytes, sharedCandidates);
-      } catch (_) {
-        // Best-effort: this site's own future visit will resolve and cache
-        // it normally, exactly as if this pre-cache pass never ran.
-      }
-    }
   }
 
   /// Tries each of [candidates] in order — downloading (via [download]) and
