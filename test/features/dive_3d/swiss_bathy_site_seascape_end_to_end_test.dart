@@ -34,13 +34,6 @@ void main() {
   const betlis = GeoPoint(47.1355029, 9.1445462);
   const murgWest = GeoPoint(47.1130533, 9.2086694);
 
-  Uint8List zipOf(String entryName, String content) {
-    final archive = Archive();
-    final bytes = utf8.encode(content);
-    archive.addFile(ArchiveFile(entryName, bytes.length, bytes));
-    return Uint8List.fromList(ZipEncoder().encode(archive));
-  }
-
   List<double> requestedBbox(http.Request req) =>
       req.url.queryParameters['bbox']!.split(',').map(double.parse).toList();
 
@@ -69,6 +62,43 @@ void main() {
     return buffer.toString();
   }
 
+  /// swisstopo publishes one asset per LAKE, not per tile (#1764):
+  /// [SwissBathy3dSource] now queries STAC exactly once per lake and
+  /// downloads one shared zip covering every tile that lake's asset offers,
+  /// rather than once per tile. This fixed href (and the zip built below)
+  /// stands in for that one real Walensee asset.
+  const walenseeHref = 'https://example.org/walensee.zip';
+
+  /// Every tile either site's up-to-81-tile production span could touch,
+  /// each named the way swisstopo's own zip entries are (see
+  /// `_entryTileRe` in swissbathy3d_resolution.dart), so the shared zip
+  /// below answers both fetches from the one asset -- exactly like the
+  /// real bug report's ~28-of-81 tile overlap between the two sites.
+  List<({int tileE, int tileN})> tilesAround(GeoPoint point) {
+    final lv95 = Lv95Transform.fromWgs84(point.latitude, point.longitude);
+    final centerE = (lv95.easting / 1000).floor();
+    final centerN = (lv95.northing / 1000).floor();
+    return [
+      for (var e = centerE - 4; e <= centerE + 4; e++)
+        for (var n = centerN - 4; n <= centerN + 4; n++) (tileE: e, tileN: n),
+    ];
+  }
+
+  Uint8List? walenseeZip;
+  Uint8List buildWalenseeZip() {
+    final tiles = {
+      for (final t in [...tilesAround(betlis), ...tilesAround(murgWest)])
+        '${t.tileE}_${t.tileN}': t,
+    };
+    final archive = Archive();
+    for (final t in tiles.values) {
+      final name = 'swissBATHY3D_CHLV95_LN02_${t.tileE}_${t.tileN}.asc';
+      final bytes = utf8.encode(tileGrid(t.tileE, t.tileN));
+      archive.addFile(ArchiveFile(name, bytes.length, bytes));
+    }
+    return Uint8List.fromList(ZipEncoder().encode(archive));
+  }
+
   /// One shared handler (and cache) for both sites, exactly like the real
   /// app reuses one [SwissBathyTileCacheRepository] across every site view:
   /// tiles common to both sites' spans (the bug report's ~28 of 81) come
@@ -77,18 +107,13 @@ void main() {
   Future<http.Response> handler(http.Request req) async {
     if (req.url.path.endsWith('/items')) {
       final bbox = requestedBbox(req);
-      final centerLat = (bbox[1] + bbox[3]) / 2;
-      final centerLon = (bbox[0] + bbox[2]) / 2;
-      final lv95 = Lv95Transform.fromWgs84(centerLat, centerLon);
-      final tE = (lv95.easting / 1000).floor();
-      final tN = (lv95.northing / 1000).floor();
       return http.Response(
         jsonEncode({
           'features': [
             {
               'bbox': bbox,
               'assets': {
-                'grid': {'href': 'https://example.org/${tE}_$tN.zip'},
+                'grid': {'href': walenseeHref},
               },
             },
           ],
@@ -96,10 +121,8 @@ void main() {
         200,
       );
     }
-    final match = RegExp(r'(-?\d+)_(-?\d+)\.zip$').firstMatch(req.url.path)!;
-    final tileE = int.parse(match.group(1)!);
-    final tileN = int.parse(match.group(2)!);
-    return http.Response.bytes(zipOf('tile.asc', tileGrid(tileE, tileN)), 200);
+    walenseeZip ??= buildWalenseeZip();
+    return http.Response.bytes(walenseeZip!, 200);
   }
 
   test('two distinct real Walensee sites at the production span yield distinct '
