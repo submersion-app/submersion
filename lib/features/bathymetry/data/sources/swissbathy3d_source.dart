@@ -228,17 +228,13 @@ class SwissBathy3dSource implements BathymetrySource {
     // view from either taking minutes (one at a time) or hammering the OGD
     // server with dozens of simultaneous requests.
     final failedTileKeys = <String>[];
-    // Every distinct lake actually touched while resolving this span's
-    // tiles, collected so _precacheSiblingSites can run once per lake
-    // afterwards -- see that method's doc and the call site below.
-    final lakesTouched = <String, SwissLakeLevel>{};
-    // Lake names _fetchTile actually did fresh work for (not served purely
-    // from cache) -- see that method's own doc on this parameter. Gates
-    // the precache call below so a fully-cached fetch() (the common case
-    // on a lake, per BathymetryRepository's own doc on why lake
-    // coordinates skip outer-cell quantization) never pays for a
-    // known-site-locations lookup it has nothing to reuse for.
-    final freshlyResolvedLakes = <String>{};
+    // Lakes _fetchTile actually did fresh work for (not served purely from
+    // cache) -- see that method's own doc on this parameter. Gates the
+    // precache call below so a fully-cached fetch() (the common case on a
+    // lake, per BathymetryRepository's own doc on why lake coordinates
+    // skip outer-cell quantization) never pays for a known-site-locations
+    // lookup it has nothing to reuse for.
+    final freshlyResolvedLakes = <String, SwissLakeLevel>{};
     final results = await _runBounded(tileCoords, maxConcurrentTileRequests, (
       coord,
     ) async {
@@ -252,7 +248,6 @@ class SwissBathy3dSource implements BathymetrySource {
         // registered bbox (a real edge tile of the requested lake).
         final tileLake =
             findSwissLake(_tileCenterWgs84(coord.tileE, coord.tileN)) ?? lake;
-        lakesTouched[tileLake.name] = tileLake;
         return await _fetchTile(
           coord.tileE,
           coord.tileN,
@@ -306,7 +301,7 @@ class SwissBathy3dSource implements BathymetrySource {
     if (freshlyResolvedLakes.isNotEmpty) {
       _precacheSiblingSites(
         this,
-        [for (final name in freshlyResolvedLakes) lakesTouched[name]!],
+        freshlyResolvedLakes.values,
         sharedZipBytes,
         sharedCandidates,
       ).ignore();
@@ -368,7 +363,7 @@ class SwissBathy3dSource implements BathymetrySource {
     SwissLakeLevel lake,
     Map<String, Future<Uint8List>> sharedZipBytes,
     Map<String, Future<List<SwissBathyAsset>>> sharedCandidates, {
-    Set<String>? freshlyResolvedLakes,
+    Map<String, SwissLakeLevel>? freshlyResolvedLakes,
   }) async {
     final tileKey = '${tileE}_$tileN';
 
@@ -378,11 +373,20 @@ class SwissBathy3dSource implements BathymetrySource {
     );
     if (cached != null) {
       if (!_isStale(cached.checkedAt)) return cached.grid;
-      return _refreshIfStale(this, tileKey, tileE, tileN, lake, cached);
+      return _refreshIfStale(
+        this,
+        tileKey,
+        tileE,
+        tileN,
+        lake,
+        cached,
+        sharedZipBytes,
+        sharedCandidates,
+      );
     }
     if (await _tileCache.hasCachedAnswer(tileKey)) return null;
 
-    freshlyResolvedLakes?.add(lake.name);
+    freshlyResolvedLakes?[lake.name] = lake;
     final List<SwissBathyAsset> candidates;
     final ({SwissBathyAsset asset, RawEsriGrid subRaw})? resolved;
     try {

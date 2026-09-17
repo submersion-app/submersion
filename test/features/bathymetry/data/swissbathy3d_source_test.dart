@@ -1174,6 +1174,98 @@ nodata_value -9999
       expect(itemCalls, 1);
     });
 
+    test('two tiles of the SAME lake -- sharing one items lookup and one '
+        'download (#1764) -- can still fail independently at the '
+        'parse/slice stage: a corrupt entry for one tile does not take '
+        'down its neighbor, and only the corrupt tile\'s key is reported '
+        'failed', () async {
+      // A and B are 6 tiles apart in easting -- well outside
+      // extractGridZipTextsFiltered's own +/-1-tile filename-proximity
+      // window, so each tile's OWN _downloadAndParseFiltered call only
+      // ever decompresses its own entry, never its neighbor's (a smaller
+      // separation would fold both entries into BOTH tiles' filtered set
+      // and B's corrupt content would take A down too, defeating the
+      // point of this test).
+      const tileAE = 2684;
+      const tileBE = 2690;
+      const tileN = 1245;
+      final center = Lv95Transform.toWgs84(
+        (tileAE + tileBE) / 2 * 1000 + 500,
+        tileN * 1000 + 500,
+      );
+      final centerPoint = GeoPoint(center.latitude, center.longitude);
+      const tileAGrid = '''
+ncols 2
+nrows 2
+xllcorner 2684000
+yllcorner 1245000
+cellsize 500
+nodata_value -9999
+400.0 400.0
+400.0 400.0
+''';
+
+      var itemCalls = 0;
+      var downloadCalls = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          itemCalls++;
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': _requestedBbox(req),
+                  'assets': {
+                    'grid': {'href': 'https://example.org/shared_lake.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        downloadCalls++;
+        return http.Response.bytes(
+          _zipOfMultiple({
+            'swissBATHY3D_CHLV95_LN02_${tileAE}_$tileN.asc': tileAGrid,
+            // Not a valid ESRI ASCII grid at all -- EsriAsciiGridParser
+            // throws FormatException('missing ESRI header: ncols') on it.
+            'swissBATHY3D_CHLV95_LN02_${tileBE}_$tileN.asc': 'not a grid',
+          }),
+          200,
+        );
+      });
+
+      // Wide enough to reach both A (2684) and B (2690) in one span.
+      await expectLater(
+        source.fetch(centerPoint, spanMeters: 7000),
+        throwsA(isA<BathymetryFetchException>()),
+      );
+      // Shared lake, so the items lookup and the zip download both still
+      // happened only once, even though one of the two tiles inside that
+      // shared zip failed to parse.
+      expect(itemCalls, 1);
+      expect(downloadCalls, 1);
+
+      // Tile A's own success is still durably cached despite the overall
+      // throw -- checked directly rather than via a second fetch() call,
+      // since tile B's corrupt entry is a deterministic parse failure
+      // (unlike a transient network error, retrying it would just fail
+      // again the exact same way).
+      final tileCache = SwissBathyTileCacheRepository(db);
+      final cachedA = await tileCache.read(
+        '${tileAE}_$tileN',
+        expectedReferenceLevelMeters: 405.92,
+      );
+      expect(cachedA, isNotNull);
+      expect(cachedA!.grid.depthAt(0, 0), closeTo(405.92 - 400.0, 1e-6));
+      final cachedB = await tileCache.read(
+        '${tileBE}_$tileN',
+        expectedReferenceLevelMeters: 405.92,
+      );
+      expect(cachedB, isNull);
+    });
+
     test('a missing tile inside the span is a gap, not a crash, when at least '
         'one neighboring tile has data', () async {
       // Same boundary point/span as above, but this time the shared

@@ -15,20 +15,22 @@ import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cac
 import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/features/bathymetry/data/swiss_lake_depth_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
 /// Every dive site's own coordinate already logged in the app, regardless of
 /// diver -- bathymetry pre-caching is purely geographic, not diver-scoped.
 /// Sites without GPS ([DiveSite.location] null) are skipped; they have no
-/// tile to pre-cache. The only production wiring point for
-/// [KnownDiveSiteLocations], kept here rather than inline at each
-/// [SwissBathy3dSource] construction site below so the two that pass it
-/// share one instance and one doc comment -- the third,
+/// tile to pre-cache. Reads [siteRepositoryProvider] rather than
+/// constructing a `SiteRepository` directly, matching every other call
+/// site's DI convention (Copilot review). The only production wiring
+/// point for [KnownDiveSiteLocations], kept here rather than inline at
+/// each [SwissBathy3dSource] construction site below so the two that pass
+/// it share one instance and one doc comment -- the third,
 /// [swissBathyManualRefreshProvider], deliberately omits it: its
 /// `refreshAllCachedTiles()` never reads `knownSiteLocations` at all.
-Future<List<GeoPoint>> _knownDiveSiteLocations() async {
-  final sites = await SiteRepository().getAllSites();
+Future<List<GeoPoint>> _knownDiveSiteLocations(Ref ref) async {
+  final sites = await ref.read(siteRepositoryProvider).getAllSites();
   return [
     for (final site in sites)
       if (site.location != null) site.location!,
@@ -62,7 +64,7 @@ final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
         sources: [
           SwissBathy3dSource(
             tileCache: SwissBathyTileCacheRepository(db),
-            knownSiteLocations: _knownDiveSiteLocations,
+            knownSiteLocations: () => _knownDiveSiteLocations(ref),
           ),
           NoaaDemSource(),
           EmodnetSource(),
@@ -87,7 +89,7 @@ final swissLakeDepthServiceProvider = Provider<SwissLakeDepthService?>((ref) {
     return SwissLakeDepthService(
       SwissBathy3dSource(
         tileCache: SwissBathyTileCacheRepository(db),
-        knownSiteLocations: _knownDiveSiteLocations,
+        knownSiteLocations: () => _knownDiveSiteLocations(ref),
       ),
     );
   } on StateError {

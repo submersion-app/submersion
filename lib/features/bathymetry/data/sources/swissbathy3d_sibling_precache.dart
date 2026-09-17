@@ -48,22 +48,38 @@ Future<void> _precacheSiblingSites(
     return;
   }
 
-  final lakesByName = {for (final lake in lakes) lake.name: lake};
-  final siblingTiles = <({int tileE, int tileN, SwissLakeLevel lake})>[];
+  final lakeNames = {for (final lake in lakes) lake.name};
+  // Keyed by tile so two sites that floor to the same 1-km cell (two
+  // buddies' GPS for the same dive, or simply two nearby sites) dispatch
+  // one _fetchTile call, not one each racing to write the same row
+  // (Copilot review).
+  final siblingTiles =
+      <String, ({int tileE, int tileN, SwissLakeLevel lake})>{};
   for (final site in sites) {
-    final lake = lakesByName[findSwissLake(site)?.name];
-    if (lake == null) continue;
     final lv95 = Lv95Transform.fromWgs84(site.latitude, site.longitude);
-    siblingTiles.add((
-      tileE: (lv95.easting / SwissBathy3dSource.tileSizeMeters).floor(),
-      tileN: (lv95.northing / SwissBathy3dSource.tileSizeMeters).floor(),
-      lake: lake,
-    ));
+    final tileE = (lv95.easting / SwissBathy3dSource.tileSizeMeters).floor();
+    final tileN = (lv95.northing / SwissBathy3dSource.tileSizeMeters).floor();
+    // Resolved the same way fetch() resolves every tile's own lake
+    // (tile-center first, the site's own point only as a fallback for a
+    // tile whose center misses every registered bbox) rather than the
+    // site's raw point alone -- otherwise a site near a real lake-boundary
+    // overlap could get cached here under a different lake (and so a
+    // different reference level) than a real visit to that same tile
+    // would resolve via fetch(), self-healing on that later visit but
+    // wasting this pre-cache attempt in the meantime (Copilot review).
+    final tileLake =
+        findSwissLake(_tileCenterWgs84(tileE, tileN)) ?? findSwissLake(site);
+    if (tileLake == null || !lakeNames.contains(tileLake.name)) continue;
+    siblingTiles['${tileE}_$tileN'] = (
+      tileE: tileE,
+      tileN: tileN,
+      lake: tileLake,
+    );
   }
   if (siblingTiles.isEmpty) return;
 
   await _runBounded(
-    siblingTiles,
+    siblingTiles.values.toList(),
     SwissBathy3dSource.maxConcurrentTileRequests,
     (tile) async {
       try {

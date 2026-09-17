@@ -15,6 +15,15 @@ bool _isStale(DateTime? checkedAt) {
 /// unchanged rather than propagating an error: a stale-but-present tile
 /// beats no tile, and per the fair-use requirement this must never turn
 /// into an unbounded re-download loop.
+///
+/// [sharedZipBytes]/[sharedCandidates] are the SAME maps `fetch()` passed
+/// into [SwissBathy3dSource._fetchTile] for this call, not fresh throwaway
+/// ones (Copilot review): a span whose tiles have all gone stale together
+/// -- the common shape for a repeat visit, since every tile of a lake was
+/// cached in the same first visit and so expires together too -- used to
+/// have each tile's staleness check fire its own independent STAC items
+/// lookup for the same lake, reproducing #1764's exact amplification for
+/// the revisit path even though the initial-fetch path was fixed.
 Future<BathymetryGrid?> _refreshIfStale(
   SwissBathy3dSource source,
   String tileKey,
@@ -22,6 +31,8 @@ Future<BathymetryGrid?> _refreshIfStale(
   int tileN,
   SwissLakeLevel lake,
   SwissBathyTileCacheEntry cached,
+  Map<String, Future<Uint8List>> sharedZipBytes,
+  Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
 ) async {
   return (await _checkAndMaybeUpdate(
     source,
@@ -30,8 +41,8 @@ Future<BathymetryGrid?> _refreshIfStale(
     tileN,
     lake,
     cached,
-    <String, Future<Uint8List>>{},
-    <String, Future<List<SwissBathyAsset>>>{},
+    sharedZipBytes,
+    sharedCandidates,
   )).grid;
 }
 
@@ -90,6 +101,16 @@ _checkAndMaybeUpdate(
   // previously-covering href keeps the check just as cheap (still only
   // the light items lookup above, no asset download) while actually
   // comparing the right two datetimes.
+  // Records that this check happened without changing the cached grid --
+  // shared by all three "nothing to update" outcomes below, which
+  // otherwise only differ in which datetime they touch the row with.
+  Future<({BathymetryGrid? grid, _TileCheckOutcome outcome})> stillUpToDate(
+    String? sourceDatetime,
+  ) async {
+    await source._tileCache.touch(tileKey, sourceDatetime: sourceDatetime);
+    return (grid: cached.grid, outcome: _TileCheckOutcome.upToDate);
+  }
+
   final previousHref = cached.sourceHref;
   SwissBathyAsset? matched;
   if (previousHref != null) {
@@ -103,8 +124,7 @@ _checkAndMaybeUpdate(
   if (matched != null && matched.datetime == cached.sourceDatetime) {
     // Same asset, same version: nothing to update, just record that the
     // check happened, so the next one is due again in staleCheckInterval.
-    await source._tileCache.touch(tileKey, sourceDatetime: matched.datetime);
-    return (grid: cached.grid, outcome: _TileCheckOutcome.upToDate);
+    return stillUpToDate(matched.datetime);
   }
 
   // Either the previously-covering asset changed version, or it is no
@@ -123,22 +143,14 @@ _checkAndMaybeUpdate(
     if (resolved == null) {
       // None of the candidates' actual content covers this tile --
       // nothing usable to update to, so just record the check happened.
-      await source._tileCache.touch(
-        tileKey,
-        sourceDatetime: cached.sourceDatetime,
-      );
-      return (grid: cached.grid, outcome: _TileCheckOutcome.upToDate);
+      return await stillUpToDate(cached.sourceDatetime);
     }
     if (resolved.asset.href == previousHref &&
         resolved.asset.datetime == cached.sourceDatetime) {
       // Only reachable when the href-based shortcut above could not run
       // (no stored href yet) but re-resolution landed on the exact same
       // asset and version anyway -- still no update needed.
-      await source._tileCache.touch(
-        tileKey,
-        sourceDatetime: resolved.asset.datetime,
-      );
-      return (grid: cached.grid, outcome: _TileCheckOutcome.upToDate);
+      return await stillUpToDate(resolved.asset.datetime);
     }
     final grid = parseSwissLv95RawGrid(
       resolved.subRaw,
