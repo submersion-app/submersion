@@ -1769,6 +1769,8 @@ class DiveComputerRepository {
         // existing dive, but the computer did log it. Idempotent through
         // insertOnConflictUpdate.
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: diveId);
+        // Apply every equipment set that lists this computer as a member
+        // (issue #1020). Additive, independent of the defaulter above.
         await EquipmentSetForComputerLinker().linkComputerSetsForDive(
           diveId: diveId,
         );

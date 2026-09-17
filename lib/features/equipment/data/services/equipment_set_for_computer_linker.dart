@@ -47,6 +47,13 @@ class EquipmentSetForComputerLinker {
   AppDatabase get _db => DatabaseService.instance.database;
 
   /// Returns true when at least one set was applied.
+  ///
+  /// Scoped to the dive's own diver, same as `DiveEquipmentDefaulter`: a
+  /// dive computer can be shared across diver profiles in one local
+  /// database (e.g. buddies syncing one install), and without this a set
+  /// another diver built around that same computer would silently attach
+  /// its unrelated gear to this diver's dive. A dive with no diver (owner-
+  /// less) is skipped entirely rather than crossing diver scopes.
   Future<bool> linkComputerSetsForDive({required String diveId}) async {
     if (DatabaseService.instance.databaseOrNull == null) return false;
     try {
@@ -54,20 +61,31 @@ class EquipmentSetForComputerLinker {
           .gearTwinEquipmentIdsForDive(diveId);
       if (computerEquipmentIds.isEmpty) return false;
 
-      final memberRows = await (_db.select(
-        _db.equipmentSetItems,
-      )..where((t) => t.equipmentId.isIn(computerEquipmentIds))).get();
-      final candidateSetIds = memberRows.map((r) => r.setId).toSet();
-      if (candidateSetIds.isEmpty) return false;
+      final dive = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      final diverId = dive?.diverId;
+      if (diverId == null) return false;
 
-      final optedInRows =
-          await (_db.select(_db.equipmentSets)..where(
-                (t) =>
-                    t.id.isIn(candidateSetIds) &
-                    t.autoApplyOnComputerImport.equals(true),
-              ))
-              .get();
-      final setIds = optedInRows.map((r) => r.id).toSet();
+      // One joined query for "opted-in sets, owned by this diver, that
+      // contain one of these computers" rather than a set-membership
+      // lookup followed by a separate opt-in filter.
+      final placeholders = computerEquipmentIds.map((_) => '?').join(',');
+      final rows = await _db
+          .customSelect(
+            'SELECT DISTINCT s.id FROM equipment_sets s '
+            'JOIN equipment_set_items i ON i.set_id = s.id '
+            'WHERE i.equipment_id IN ($placeholders) '
+            'AND s.auto_apply_on_computer_import = 1 '
+            'AND s.diver_id = ?',
+            variables: [
+              for (final id in computerEquipmentIds) Variable<String>(id),
+              Variable<String>(diverId),
+            ],
+            readsFrom: {_db.equipmentSets, _db.equipmentSetItems},
+          )
+          .get();
+      final setIds = rows.map((row) => row.read<String>('id')).toSet();
       if (setIds.isEmpty) return false;
 
       var appliedAny = false;

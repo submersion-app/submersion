@@ -55,9 +55,24 @@ void main() {
     );
   }
 
+  Future<void> insertDive(String id, {String? diverId = 'd1'}) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diverId: Value(diverId),
+            diveDateTime: t,
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+  }
+
   Future<void> insertSet(
     String id, {
-    String? diverId,
+    String? diverId = 'd1',
     bool autoApplyOnComputerImport = true,
   }) async {
     final t = DateTime.now().millisecondsSinceEpoch;
@@ -102,6 +117,7 @@ void main() {
     await addToSet('set-ccr', 'gear-computer');
     await addToSet('set-ccr', 'gear-drysuit');
     await addToSet('set-ccr', 'gear-fins');
+    await insertDive('dive1');
     await linkSource('dive1', 'c1');
 
     expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
@@ -123,6 +139,7 @@ void main() {
     await insertSet('set-bailout');
     await addToSet('set-bailout', 'gear-computer');
     await addToSet('set-bailout', 'gear-bailout');
+    await insertDive('dive1');
     await linkSource('dive1', 'c1');
 
     expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
@@ -140,6 +157,7 @@ void main() {
     await insertSet('set-ccr');
     await addToSet('set-ccr', 'gear-computer');
     await addToSet('set-ccr', 'gear-drysuit');
+    await insertDive('dive1');
     await linkSource('dive1', 'c1');
     await db
         .into(db.diveEquipment)
@@ -169,6 +187,7 @@ void main() {
       await insertSet('set-ccr');
       await addToSet('set-ccr', 'gear-computer');
       await addToSet('set-ccr', 'gear-fins');
+      await insertDive('dive1');
       await linkSource('dive1', 'c1');
       await db
           .into(db.diveEquipment)
@@ -197,6 +216,7 @@ void main() {
       await insertSet('set-ccr', autoApplyOnComputerImport: false);
       await addToSet('set-ccr', 'gear-computer');
       await addToSet('set-ccr', 'gear-drysuit');
+      await insertDive('dive1');
       await linkSource('dive1', 'c1');
 
       expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
@@ -217,6 +237,7 @@ void main() {
       await insertSet('set-other', autoApplyOnComputerImport: false);
       await addToSet('set-other', 'gear-computer');
       await addToSet('set-other', 'gear-bailout');
+      await insertDive('dive1');
       await linkSource('dive1', 'c1');
 
       expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
@@ -227,6 +248,41 @@ void main() {
   test('is a no-op when the computer belongs to no set', () async {
     await insertGear('gear-computer');
     await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertDive('dive1');
+    await linkSource('dive1', 'c1');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+    expect(await equipmentOn('dive1'), isEmpty);
+  });
+
+  test(
+    'is a no-op when the matching set belongs to a different diver',
+    () async {
+      // A dive computer can be shared across diver profiles in one local
+      // database; a set another diver built around it must not silently
+      // attach that diver's gear to this diver's dive.
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-other-diver', diverId: 'd2');
+      await addToSet('set-other-diver', 'gear-computer');
+      await addToSet('set-other-diver', 'gear-drysuit');
+      await insertDive('dive1', diverId: 'd1');
+      await linkSource('dive1', 'c1');
+
+      expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+      expect(await equipmentOn('dive1'), isEmpty);
+    },
+  );
+
+  test('is a no-op for an owner-less dive', () async {
+    await insertGear('gear-computer');
+    await insertGear('gear-drysuit', type: 'exposure');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertSet('set-ccr');
+    await addToSet('set-ccr', 'gear-computer');
+    await addToSet('set-ccr', 'gear-drysuit');
+    await insertDive('dive1', diverId: null);
     await linkSource('dive1', 'c1');
 
     expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
@@ -253,6 +309,7 @@ void main() {
     await insertSet('set-ccr');
     await addToSet('set-ccr', 'gear-computer');
     await addToSet('set-ccr', 'gear-drysuit');
+    await insertDive('dive1');
     await linkSource('dive1', 'c1');
 
     await linker.linkComputerSetsForDive(diveId: 'dive1');
