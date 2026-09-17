@@ -919,6 +919,40 @@ void main() {
     );
   });
 
+  group('telling identical items apart (#1549)', () {
+    testWidgets('two identical items gain the serial number that differs', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      EquipmentItem pouch(String id, String serial) => EquipmentItem(
+        id: id,
+        name: 'Pouches',
+        type: EquipmentType.other,
+        brand: 'Palantic',
+        model: 'Drop-Bottom',
+        serialNumber: serial,
+      );
+      // Descending serial order, so input order cannot produce the result.
+      final overrides = await _buildPhoneOverrides(
+        items: [pouch('b', 'X2'), pouch('a', 'X1')],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Palantic Drop-Bottom · S/N X1'), findsOneWidget);
+      expect(find.text('Palantic Drop-Bottom · S/N X2'), findsOneWidget);
+    });
+  });
+
   group('group by type (shared gear arrangement)', () {
     final items = [
       _makeEquipment(

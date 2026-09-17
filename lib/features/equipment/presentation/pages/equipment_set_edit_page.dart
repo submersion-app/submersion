@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -308,6 +310,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                   ref.watch(equipmentArrangementProvider),
                   typeLabel: (type) => type.localizedName(context.l10n),
                 );
+                // Labelled as one list, so identical items read differently
+                // from each other (#1549).
+                final labels = equipmentRowLabelsOf(context, ref, equipment);
 
                 return Column(
                   children: groups.map((group) {
@@ -322,7 +327,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                               child: EquipmentGroupHeader(type: group.type!),
                             ),
                           ...group.items.map(
-                            (item) => _buildEquipmentCheckbox(context, item),
+                            (item) =>
+                                _buildEquipmentCheckbox(context, item, labels),
                           ),
                         ],
                       ),
@@ -366,7 +372,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     );
   }
 
-  Widget _buildEquipmentCheckbox(BuildContext context, EquipmentItem item) {
+  Widget _buildEquipmentCheckbox(
+    BuildContext context,
+    EquipmentItem item,
+    Map<String, EquipmentRowLabel> labels,
+  ) {
     final isSelected = _selectedEquipmentIds.contains(item.id);
 
     return CheckboxListTile(
@@ -381,7 +391,10 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         });
       },
       title: Text(item.name),
-      subtitle: item.fullName != item.name ? Text(item.fullName) : null,
+      subtitle: switch (labels[item.id]?.subtitle) {
+        final detail? => Text(detail),
+        null => null,
+      },
       secondary: Icon(
         equipmentTypeIcon(item.type),
         color: Theme.of(context).colorScheme.onSurfaceVariant,

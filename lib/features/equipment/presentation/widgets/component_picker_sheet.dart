@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_history_rewri
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -242,6 +243,9 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
                   ),
                 );
               }
+              // Labelled as one list, so identical candidates read differently
+              // from each other (#1549).
+              final labels = equipmentRowLabelsOf(context, ref, candidates);
               final grouped = <EquipmentType, List<EquipmentItem>>{};
               for (final item in candidates) {
                 grouped.putIfAbsent(item.type, () => []).add(item);
@@ -284,9 +288,10 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
                                   ? null
                                   : (value) => _toggle(item.id, value == true),
                               title: Text(item.name),
-                              subtitle: item.fullName != item.name
-                                  ? Text(item.fullName)
-                                  : null,
+                              subtitle: switch (labels[item.id]?.subtitle) {
+                                final detail? => Text(detail),
+                                null => null,
+                              },
                               secondary: Icon(equipmentTypeIcon(item.type)),
                               controlAffinity: ListTileControlAffinity.trailing,
                             ),

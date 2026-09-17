@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, DiveSite;
 import 'package:submersion/core/providers/provider.dart';
@@ -37,12 +38,16 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<Widget> buildPage({String? setId, bool realEquipment = false}) async {
+  Future<Widget> buildPage({
+    String? setId,
+    bool realEquipment = false,
+    List<EquipmentItem> equipment = const [],
+  }) async {
     final overrides = await getBaseOverrides();
     overrides.addAll([
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
       if (!realEquipment)
-        activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
+        activeEquipmentProvider.overrideWith((ref) async => equipment),
       sitesProvider.overrideWith(
         (ref) async => const [
           DiveSite(
@@ -90,6 +95,27 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Save geofence'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('identical items are told apart (#1549)', (tester) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    EquipmentItem pouch(String id, String serial) => EquipmentItem(
+      id: id,
+      name: 'Pouches',
+      type: EquipmentType.other,
+      brand: 'Palantic',
+      model: 'Drop-Bottom',
+      serialNumber: serial,
+    );
+    // Descending serial order, so input order cannot produce the result.
+    await tester.pumpWidget(
+      await buildPage(equipment: [pouch('b', 'X2'), pouch('a', 'X1')]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Palantic Drop-Bottom · S/N X1'), findsOneWidget);
+    expect(find.text('Palantic Drop-Bottom · S/N X2'), findsOneWidget);
+  });
 
   testWidgets('toggles default and manages geofences before saving', (
     tester,
