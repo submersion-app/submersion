@@ -2051,10 +2051,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     return DecoratedSliver(
       decoration: GutterRailDecoration(
-        // Unlike the band this replaced, the rail is never covered by a card,
-        // so it does not need to fight for legibility with opacity. Half
-        // alpha keeps it quiet while still reading as a deliberate mark.
-        color: scheme.secondary.withValues(alpha: 0.5),
+        // The accent colour, at full strength. A neutral grey was tried
+        // first and read as a second pane border: the rail sits 6px from the
+        // navigation rail's grey divider, in the same visual language as the
+        // window chrome. The accent reads as a group marker instead, and
+        // follows the active theme preset.
+        color: scheme.primary,
       ),
       sliver: SliverMainAxisGroup(
         slivers: [

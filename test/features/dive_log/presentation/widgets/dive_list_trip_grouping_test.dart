@@ -153,6 +153,36 @@ void main() {
       );
     });
 
+    testWidgets('the rail is the accent colour, not a chrome grey', (
+      tester,
+    ) async {
+      // A grey rail 6px from the navigation divider read as a second, messy
+      // pane border. The accent colour reads as a group marker instead.
+      final overrides = await groupingOverrides(
+        [makeDive('d1'), makeDive('d2', tripId: 't1', tripName: 'Tassie')],
+        tripTotals: const {'t1': 1},
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final rail =
+          tester
+                  .widget<DecoratedSliver>(find.byType(DecoratedSliver))
+                  .decoration
+              as GutterRailDecoration;
+      final scheme = Theme.of(
+        tester.element(find.byType(DiveListContent)),
+      ).colorScheme;
+      expect(rail.color, scheme.primary);
+    });
+
     testWidgets('grouped dive cards are exactly as wide as loose ones', (
       tester,
     ) async {
