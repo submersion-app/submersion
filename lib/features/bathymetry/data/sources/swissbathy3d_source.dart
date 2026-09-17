@@ -84,6 +84,15 @@ const _log = LoggerService('SwissBathy3dSource');
 /// result would silently starve whichever tile's entries were not part of
 /// the first tile's own neighborhood — the Bug 15 failure mode one layer
 /// deeper.
+/// Every dive site coordinate already known to the app, regardless of which
+/// diver logged it -- used only to opportunistically pre-cache OTHER sites
+/// on a lake whose asset [SwissBathy3dSource.fetch] just downloaded anyway
+/// (see [SwissBathy3dSource._precacheSiblingSites]). Optional at the call
+/// site: null (the default) means "don't bother", and the normal per-visit
+/// fetch path is unaffected either way -- this is a pure cache-warming
+/// bonus, never load-bearing for a caller's own result.
+typedef KnownDiveSiteLocations = Future<List<GeoPoint>> Function();
+
 class SwissBathy3dSource implements BathymetrySource {
   static const String sourceId = 'swissbathy3d';
   static const double tileSizeMeters = 1000;
@@ -116,13 +125,16 @@ class SwissBathy3dSource implements BathymetrySource {
 
   final SwissStacClient _stac;
   final SwissBathyTileCacheRepository _tileCache;
+  final KnownDiveSiteLocations? _knownSiteLocations;
 
   SwissBathy3dSource({
     required SwissBathyTileCacheRepository tileCache,
     http.Client? httpClient,
     SwissStacClient? stacClient,
+    KnownDiveSiteLocations? knownSiteLocations,
   }) : _tileCache = tileCache,
-       _stac = stacClient ?? SwissStacClient(client: httpClient);
+       _stac = stacClient ?? SwissStacClient(client: httpClient),
+       _knownSiteLocations = knownSiteLocations;
 
   @override
   String get id => sourceId;
@@ -204,6 +216,16 @@ class SwissBathy3dSource implements BathymetrySource {
     // _fetchTile.
     final sharedZipBytes = <String, Future<Uint8List>>{};
 
+    // Same sharing, one step earlier: every tile of the SAME lake asks the
+    // STAC items endpoint the identical "which asset covers this?" question
+    // and gets the identical one-item answer back (#1764) -- an 8 km span
+    // touching up to 81 tiles used to fire up to 81 near-identical metadata
+    // lookups for an answer that never varies within a lake, each on its
+    // own 15 s budget. A single slow or transiently failed lookup among
+    // those 81 was enough to fail the whole span; see
+    // [_findAssetCandidatesForLake]'s doc.
+    final sharedCandidates = <String, Future<List<SwissBathyAsset>>>{};
+
     // Bounded concurrency, not strictly sequential nor unbounded: up to
     // maxConcurrentTileRequests tiles in flight at once. Each is
     // cache-checked before any network call, so a warm cache stays cheap;
@@ -211,6 +233,10 @@ class SwissBathy3dSource implements BathymetrySource {
     // view from either taking minutes (one at a time) or hammering the OGD
     // server with dozens of simultaneous requests.
     final failedTileKeys = <String>[];
+    // Every distinct lake actually touched while resolving this span's
+    // tiles, collected so _precacheSiblingSites can run once per lake
+    // afterwards -- see that method's doc and the call site below.
+    final lakesTouched = <String, SwissLakeLevel>{};
     final results = await _runBounded(tileCoords, maxConcurrentTileRequests, (
       coord,
     ) async {
@@ -224,11 +250,13 @@ class SwissBathy3dSource implements BathymetrySource {
         // registered bbox (a real edge tile of the requested lake).
         final tileLake =
             findSwissLake(_tileCenterWgs84(coord.tileE, coord.tileN)) ?? lake;
+        lakesTouched[tileLake.name] = tileLake;
         return await _fetchTile(
           coord.tileE,
           coord.tileN,
           tileLake,
           sharedZipBytes,
+          sharedCandidates,
         );
       } on BathymetryFetchException catch (e) {
         // Individually harmless -- the failed tile's own cache stays
@@ -255,6 +283,23 @@ class SwissBathy3dSource implements BathymetrySource {
       }
     });
     final tiles = [for (final tile in results) ?tile];
+
+    // Fire-and-forget, deliberately not awaited (.ignore() suppresses the
+    // unawaited-future lint and any unhandled-error crash report): this is
+    // a pure cache-warming bonus for OTHER dive sites on the same lake(s),
+    // reusing the zip bytes/candidates already in memory from the tiles
+    // above, so it must never delay -- or, via some future refactor,
+    // accidentally fail -- the result this call actually promised its
+    // caller. Placed before the failure checks below so it still runs
+    // (for whichever lake(s) DID resolve) even when this span itself is
+    // about to throw.
+    for (final touchedLake in lakesTouched.values) {
+      _precacheSiblingSites(
+        touchedLake,
+        sharedZipBytes,
+        sharedCandidates,
+      ).ignore();
+    }
 
     if (failedTileKeys.isNotEmpty) {
       // Whatever DID succeed is already sitting in the per-tile cache, so
@@ -287,6 +332,8 @@ class SwissBathy3dSource implements BathymetrySource {
   /// href across every tile in the same [fetch] call — see that method's
   /// doc — so two tile coordinates resolving to the same href (the common
   /// case: one asset per lake, not per tile) share one network round trip.
+  /// [sharedCandidates] does the same one step earlier, for the STAC items
+  /// metadata lookup itself — see [_findAssetCandidatesForLake]'s doc.
   /// Each tile still calls [_downloadAndParseFiltered] independently to
   /// parse just its own filename-filtered subset of entries, never a
   /// subset another tile already resolved. [_firstOverlappingCandidate]
@@ -299,6 +346,7 @@ class SwissBathy3dSource implements BathymetrySource {
     int tileN,
     SwissLakeLevel lake,
     Map<String, Future<Uint8List>> sharedZipBytes,
+    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
   ) async {
     final tileKey = '${tileE}_$tileN';
 
@@ -315,7 +363,7 @@ class SwissBathy3dSource implements BathymetrySource {
     final List<SwissBathyAsset> candidates;
     final ({SwissBathyAsset asset, RawEsriGrid subRaw})? resolved;
     try {
-      candidates = await _findAssetCandidates(_tileBboxWgs84(tileE, tileN));
+      candidates = await _findAssetCandidatesForLake(lake, sharedCandidates);
       resolved = await _firstOverlappingCandidate(
         tileE,
         tileN,
@@ -356,6 +404,48 @@ class SwissBathy3dSource implements BathymetrySource {
       referenceLevelMeters: lake.meanLevelMeters,
     );
     return grid;
+  }
+
+  /// Opportunistically caches every other locally KNOWN dive site's own
+  /// tile within [lake], reusing the candidates/zip bytes [fetch] already
+  /// resolved for the tile(s) that triggered this call -- no extra network
+  /// request beyond what that call already made. Called fire-and-forget
+  /// (see the call site in [fetch]); every failure here -- a failed
+  /// [_knownSiteLocations] lookup, or one particular site's own
+  /// [_fetchTile] call -- is swallowed, exactly like the manual "reload map
+  /// data" sweep's per-tile failures, since this is a pure cache-warming
+  /// bonus, never load-bearing for [fetch]'s own caller.
+  ///
+  /// Addresses #1764's follow-up: without this, visiting a NEW, previously
+  /// unvisited dive site on an already-downloaded lake re-downloads the
+  /// whole (sometimes 100+ MB) lake asset again, even though every cell
+  /// this app will ever need from it for that site was already sitting in
+  /// memory once, moments earlier, for a different site on the same lake.
+  Future<void> _precacheSiblingSites(
+    SwissLakeLevel lake,
+    Map<String, Future<Uint8List>> sharedZipBytes,
+    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
+  ) async {
+    final knownSiteLocations = _knownSiteLocations;
+    if (knownSiteLocations == null) return;
+    final List<GeoPoint> sites;
+    try {
+      sites = await knownSiteLocations();
+    } catch (_) {
+      return;
+    }
+    for (final site in sites) {
+      if (findSwissLake(site)?.name != lake.name) continue;
+      final lv95 = Lv95Transform.fromWgs84(site.latitude, site.longitude);
+      final tileE = (lv95.easting / tileSizeMeters).floor();
+      final tileN = (lv95.northing / tileSizeMeters).floor();
+      try {
+        await _fetchTile(tileE, tileN, lake, sharedZipBytes, sharedCandidates);
+      } catch (_) {
+        // Best-effort: this site's own future visit will resolve and cache
+        // it normally, exactly as if this pre-cache pass never ran.
+      }
+    }
   }
 
   /// Tries each of [candidates] in order — downloading (via [download]) and
@@ -475,6 +565,7 @@ class SwissBathy3dSource implements BathymetrySource {
       lake,
       cached,
       <String, Future<Uint8List>>{},
+      <String, Future<List<SwissBathyAsset>>>{},
     )).grid;
   }
 
@@ -503,12 +594,13 @@ class SwissBathy3dSource implements BathymetrySource {
     SwissLakeLevel lake,
     SwissBathyTileCacheEntry cached,
     Map<String, Future<Uint8List>> sharedZipBytes,
+    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
   ) async {
     Future<List<RawEsriGrid>> download(String href) =>
         _downloadAndParseFiltered(href, tileE, tileN, sharedZipBytes);
     final List<SwissBathyAsset> candidates;
     try {
-      candidates = await _findAssetCandidates(_tileBboxWgs84(tileE, tileN));
+      candidates = await _findAssetCandidatesForLake(lake, sharedCandidates);
     } on SwissStacException {
       // metadata lookup failed -- retry on next check
       return (grid: cached.grid, outcome: _TileCheckOutcome.failed);
@@ -623,6 +715,7 @@ class SwissBathy3dSource implements BathymetrySource {
     final tileKeys = await _tileCache.allTileKeys();
 
     final sharedZipBytes = <String, Future<Uint8List>>{};
+    final sharedCandidates = <String, Future<List<SwissBathyAsset>>>{};
 
     final outcomes = await _runBounded(tileKeys, maxConcurrentTileRequests, (
       tileKey,
@@ -676,6 +769,7 @@ class SwissBathy3dSource implements BathymetrySource {
         lake,
         cached,
         sharedZipBytes,
+        sharedCandidates,
       );
       return result.outcome;
     });
@@ -765,6 +859,42 @@ class SwissBathy3dSource implements BathymetrySource {
     );
   }
 
+  /// The [SwissBathyAsset] candidates covering [lake], memoized in
+  /// [sharedCandidates] by lake name across every tile of one [fetch]/
+  /// [refreshAllCachedTiles] call — the STAC items lookup this wraps is
+  /// queried against [lake]'s own (generous, per [SwissLakeLevel]'s doc)
+  /// bounding box instead of one tile's tiny ~1 km box, so it is safe to
+  /// share: any item overlapping a tile's own small box necessarily also
+  /// overlaps the box of the lake that tile resolved into, so a lake-wide
+  /// query never misses a candidate a per-tile query would have found (and
+  /// can only surface MORE, e.g. a genuinely overlapping neighbor lake at a
+  /// shared boundary — [_firstOverlappingCandidate] still validates every
+  /// candidate's actual downloaded content against each tile's own real
+  /// extent regardless, so a broader candidate list here cannot make a
+  /// wrong candidate win).
+  ///
+  /// Before this, swisstopo publishing one asset per LAKE (not per tile —
+  /// see this file's own doc) meant an 8 km span touching up to 81 tiles
+  /// fired up to 81 near-identical metadata lookups for an answer that
+  /// never varies within a lake: needless load on the OGD API, and up to
+  /// 81 separate 15 s-budgeted chances for a single slow or transiently
+  /// failed lookup to fail the entire span (#1764). Memoizing on the
+  /// FUTURE, exactly like [sharedZipBytes] does for the asset download,
+  /// also means concurrently-dispatched tiles of the same lake share one
+  /// in-flight request instead of each starting their own.
+  Future<List<SwissBathyAsset>> _findAssetCandidatesForLake(
+    SwissLakeLevel lake,
+    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
+  ) => sharedCandidates.putIfAbsent(
+    lake.name,
+    () => _findAssetCandidates([
+      lake.minLon,
+      lake.minLat,
+      lake.maxLon,
+      lake.maxLat,
+    ]),
+  );
+
   /// Tries each candidate collection ID in turn, falling through to the
   /// next on a confirmed 404 (wrong ID) rather than failing outright.
   Future<List<SwissBathyAsset>> _findAssetCandidates(List<double> bbox) async {
@@ -790,26 +920,6 @@ class SwissBathy3dSource implements BathymetrySource {
       (tileN + 0.5) * tileSizeMeters,
     );
     return GeoPoint(center.latitude, center.longitude);
-  }
-
-  static List<double> _tileBboxWgs84(int tileE, int tileN) {
-    final sw = Lv95Transform.toWgs84(
-      tileE * tileSizeMeters,
-      tileN * tileSizeMeters,
-    );
-    final ne = Lv95Transform.toWgs84(
-      (tileE + 1) * tileSizeMeters,
-      (tileN + 1) * tileSizeMeters,
-    );
-    // Small buffer so a tile-edge coordinate reliably intersects the item's
-    // own bbox despite the two approximation formulas' independent error.
-    const epsilon = 0.0005;
-    return [
-      sw.longitude - epsilon,
-      sw.latitude - epsilon,
-      ne.longitude + epsilon,
-      ne.latitude + epsilon,
-    ];
   }
 
   /// Matches swisstopo's internal entry naming, e.g.

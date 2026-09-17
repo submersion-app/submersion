@@ -15,7 +15,23 @@ import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cac
 import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/features/bathymetry/data/swiss_lake_depth_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+/// Every dive site's own coordinate already logged in the app, regardless of
+/// diver -- bathymetry pre-caching is purely geographic, not diver-scoped.
+/// Sites without GPS ([DiveSite.location] null) are skipped; they have no
+/// tile to pre-cache. The only production wiring point for
+/// [KnownDiveSiteLocations], kept here rather than inline at each
+/// [SwissBathy3dSource] construction site below so all three share one
+/// instance and one doc comment.
+Future<List<GeoPoint>> _knownDiveSiteLocations() async {
+  final sites = await SiteRepository().getAllSites();
+  return [
+    for (final site in sites)
+      if (site.location != null) site.location!,
+  ];
+}
 
 /// How long a TRANSIENT null (fetch failure, cache DB not ready) survives
 /// before the grid provider forgets it and lets the next read retry.
@@ -42,7 +58,10 @@ final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
         // and is never fetched), then global GMRT, then the coarse
         // public-domain fallback.
         sources: [
-          SwissBathy3dSource(tileCache: SwissBathyTileCacheRepository(db)),
+          SwissBathy3dSource(
+            tileCache: SwissBathyTileCacheRepository(db),
+            knownSiteLocations: _knownDiveSiteLocations,
+          ),
           NoaaDemSource(),
           EmodnetSource(),
           GmrtSource(),
@@ -64,7 +83,10 @@ final swissLakeDepthServiceProvider = Provider<SwissLakeDepthService?>((ref) {
   try {
     final db = LocalCacheDatabaseService.instance.database;
     return SwissLakeDepthService(
-      SwissBathy3dSource(tileCache: SwissBathyTileCacheRepository(db)),
+      SwissBathy3dSource(
+        tileCache: SwissBathyTileCacheRepository(db),
+        knownSiteLocations: _knownDiveSiteLocations,
+      ),
     );
   } on StateError {
     return null;
