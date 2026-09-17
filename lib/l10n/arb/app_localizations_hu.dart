@@ -5516,10 +5516,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Profil exportálása képként';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Eltávolítás a kedvencekből';
 
@@ -6299,6 +6295,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'PDF napló bejegyzés';
+
+  @override
+  String get diveLog_export_profileAsImage => 'Profil képként';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Képernyőkép a merülési profil diagramról';
 
   @override
   String get diveLog_export_success => 'Merülés sikeresen exportálva';

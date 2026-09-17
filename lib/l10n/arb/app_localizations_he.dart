@@ -5398,9 +5398,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => 'ייצוא פרופיל כתמונה';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => 'הסרה מהמועדפים';
 
   @override
@@ -6155,6 +6152,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'רשומת יומן PDF';
+
+  @override
+  String get diveLog_export_profileAsImage => 'פרופיל כתמונה';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'צילום מסך של גרף פרופיל הצלילה';
 
   @override
   String get diveLog_export_success => 'הצלילה יוצאה בהצלחה';

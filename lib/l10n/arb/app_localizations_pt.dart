@@ -5531,10 +5531,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Exportar perfil como imagem';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Remover dos favoritos';
 
@@ -6319,6 +6315,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'Entrada PDF do Logbook';
+
+  @override
+  String get diveLog_export_profileAsImage => 'Perfil como Imagem';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Captura de tela do grafico do perfil de mergulho';
 
   @override
   String get diveLog_export_success => 'Mergulho exportado com sucesso';

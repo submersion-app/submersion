@@ -5257,9 +5257,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => '导出轮廓为图片';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => '从收藏中移除';
 
   @override
@@ -5989,6 +5986,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'PDF 日志条目';
+
+  @override
+  String get diveLog_export_profileAsImage => '轮廓为图片';
+
+  @override
+  String get diveLog_export_profileAsImageDescription => '潜水轮廓图的截图';
 
   @override
   String get diveLog_export_success => '潜水导出成功';

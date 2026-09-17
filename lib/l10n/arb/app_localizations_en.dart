@@ -5434,10 +5434,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Export profile as image';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Remove from favorites';
 
@@ -6204,6 +6200,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'PDF Logbook Entry';
+
+  @override
+  String get diveLog_export_profileAsImage => 'Profile as Image';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Screenshot of the dive profile chart';
 
   @override
   String get diveLog_export_success => 'Dive exported successfully';

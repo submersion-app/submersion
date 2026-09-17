@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 void main() {
   group('resolveParsedTanks', () {
@@ -786,6 +788,51 @@ void main() {
       final switches = resolveGasSwitches(parsed);
       expect(switches, hasLength(1));
       expect(switches.single.toTankIndex, 1);
+    });
+  });
+
+  group('resolveDiluentGas', () {
+    test('returns null for an empty tank list', () {
+      expect(resolveDiluentGas(const []), isNull);
+    });
+
+    test('returns null when no tank carries the diluent role', () {
+      final tanks = [
+        const DownloadedTank(index: 0, o2Percent: 21.0, role: 'backGas'),
+        const DownloadedTank(index: 1, o2Percent: 100.0, role: 'oxygenSupply'),
+      ];
+      expect(resolveDiluentGas(tanks), isNull);
+    });
+
+    test('returns the diluent tank\'s gas mix when present', () {
+      final tanks = [
+        const DownloadedTank(index: 0, o2Percent: 100.0, role: 'oxygenSupply'),
+        DownloadedTank(
+          index: 1,
+          o2Percent: 18.0,
+          hePercent: 45.0,
+          role: TankRole.diluent.name,
+        ),
+      ];
+      final diluent = resolveDiluentGas(tanks);
+      expect(diluent, isNotNull);
+      expect(diluent!.o2, 18.0);
+      expect(diluent.he, 45.0);
+    });
+
+    test('returns the first diluent tank when more than one is tagged', () {
+      final tanks = [
+        DownloadedTank(index: 0, o2Percent: 21.0, role: TankRole.diluent.name),
+        DownloadedTank(
+          index: 1,
+          o2Percent: 18.0,
+          hePercent: 45.0,
+          role: TankRole.diluent.name,
+        ),
+      ];
+      final diluent = resolveDiluentGas(tanks);
+      expect(diluent!.o2, 21.0);
+      expect(diluent.he, 0.0);
     });
   });
 }

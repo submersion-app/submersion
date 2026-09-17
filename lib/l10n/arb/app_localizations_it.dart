@@ -5527,10 +5527,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Esporta profilo come immagine';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Rimuovi dai preferiti';
 
@@ -6314,6 +6310,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'Voce logbook PDF';
+
+  @override
+  String get diveLog_export_profileAsImage => 'Profilo come immagine';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Screenshot del grafico del profilo di immersione';
 
   @override
   String get diveLog_export_success => 'Immersione esportata con successo';
