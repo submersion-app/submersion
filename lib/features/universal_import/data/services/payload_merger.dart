@@ -1,5 +1,6 @@
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/payload_ref_keys.dart';
@@ -366,6 +367,7 @@ class PayloadMerger {
       if (id != null) {
         final first = firstById[id];
         if (first != null) {
+          _unionTagScopes(type, first, item);
           _unionRefLists(type, first, item);
           _enrich(first, item);
           continue;
@@ -410,6 +412,7 @@ class PayloadMerger {
         if (key != null) (survivors[key] ??= []).add(_Survivor(item, sourceId));
         continue;
       }
+      _unionTagScopes(type, survivor.item, item);
       _unionRefLists(type, survivor.item, item);
       _enrich(survivor.item, item);
       if (sourceId != null) survivor.sourceIds.add(sourceId);
@@ -423,6 +426,23 @@ class PayloadMerger {
       if (foldedId is String && survivorId is String) {
         aliases[foldedId] = survivorId;
       }
+    }
+  }
+
+  /// Gives a folded tag every scope either record asks for (issues #1765,
+  /// #1942). Scope flags are booleans, so [_enrich], which only fills a
+  /// missing field, would keep the first file's `false` over a later file's
+  /// `true`. The union runs over the effective scopes, so a record that says
+  /// nothing about a scope keeps that scope's default.
+  static void _unionTagScopes(
+    ImportEntityType type,
+    Map<String, dynamic> survivor,
+    Map<String, dynamic> item,
+  ) {
+    if (type != ImportEntityType.tags) return;
+    final scopes = {...importedTagScopes(survivor), ...importedTagScopes(item)};
+    for (final MapEntry(key: scope, value: key) in importTagScopeKeys.entries) {
+      survivor[key] = scopes.contains(scope);
     }
   }
 

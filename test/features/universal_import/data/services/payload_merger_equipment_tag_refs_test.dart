@@ -106,4 +106,41 @@ void main() {
       expect(refsOf(merged, 'Travel reg'), ['a:tag_1']);
     });
   });
+
+  test('a tag two files define keeps every scope either gives it', () {
+    ImportPayload tagOnly(Map<String, dynamic> tag) => ImportPayload(
+      entities: {
+        ImportEntityType.tags: [tag],
+      },
+    );
+    final merged = merger.merge([
+      FilePayload(
+        fileId: 'a',
+        fileName: 'a.uddf',
+        payload: tagOnly({
+          'uddfId': 'tag_1',
+          'name': 'Rental',
+          'appliesToDives': true,
+          'appliesToSites': false,
+          'appliesToEquipment': false,
+        }),
+      ),
+      FilePayload(
+        fileId: 'b',
+        fileName: 'b.uddf',
+        payload: tagOnly({
+          'uddfId': 'tag_1',
+          'name': 'Rental',
+          'appliesToDives': false,
+          'appliesToSites': false,
+          'appliesToEquipment': true,
+        }),
+      ),
+    ]);
+
+    final tag = merged.entitiesOf(ImportEntityType.tags).single;
+    expect(tag['appliesToDives'], isTrue);
+    expect(tag['appliesToSites'], isFalse);
+    expect(tag['appliesToEquipment'], isTrue);
+  });
 }
