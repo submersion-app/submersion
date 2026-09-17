@@ -112,10 +112,13 @@ class MixTemplateMenu extends ConsumerWidget {
     );
     if (edited == null) return;
 
-    ref.read(blenderTemplatesProvider.notifier).state = [
+    // Re-sorted, not just replaced in place: the edited O2/He may now belong
+    // somewhere else in the list under the O2-descending/He-ascending rule
+    // (issue #1876), the same rule MixTemplateManager's own add/edit apply.
+    ref.read(blenderTemplatesProvider.notifier).state = MixTemplate.sorted([
       for (final t in ref.read(blenderTemplatesProvider))
         if (t == current) edited else t,
-    ];
+    ]);
     ref.read(blenderTargetMixProvider.notifier).state = GasMix(
       o2: edited.o2,
       he: edited.he,
@@ -140,10 +143,14 @@ class MixTemplateMenu extends ConsumerWidget {
       messenger.showSnackBar(SnackBar(content: Text(problem)));
       return;
     }
-    ref.read(blenderTemplatesProvider.notifier).state = [
+    // Re-sorts the whole list, matching MixTemplateManager's own add
+    // (issue #1876), so it stays consistently ordered regardless of which
+    // of the three ways (settings page, "Save current mix", "Adjust
+    // values") added or changed a template.
+    ref.read(blenderTemplatesProvider.notifier).state = MixTemplate.sorted([
       ...existing,
       candidate,
-    ];
+    ]);
     saveBlenderPreferences(ref);
     messenger.showSnackBar(
       SnackBar(

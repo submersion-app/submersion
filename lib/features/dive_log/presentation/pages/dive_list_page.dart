@@ -29,7 +29,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/add_dive_botto
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
@@ -1051,11 +1050,6 @@ class DiveListTile extends ConsumerWidget {
                                       ),
                                 ),
                               ],
-                              const SizedBox(width: 8),
-                              DiveModeBadge(
-                                mode: summary?.diveMode ?? DiveMode.oc,
-                                dense: true,
-                              ),
                             ],
                           ),
                           // Site location (country/region)
@@ -1103,10 +1097,12 @@ class DiveListTile extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                // Stat row plus the dive-type badges, right-aligned on the
-                // same line. DiveCardStatRow reserves the badges' collapsed
-                // "+N" width first, so at a narrow pane the stats ellipsize
-                // instead of overflowing. Tags get their own line below.
+                // Stat row plus the dive-type badges and the dive mode badge,
+                // right-aligned on the same line with the mode last.
+                // DiveCardStatRow reserves the badges' narrowest width first
+                // (types collapsed to "+N", mode at full width), so at a narrow
+                // pane the stats ellipsize instead of overflowing. Tags get
+                // their own line below.
                 SelectionInset(
                   isSelectionMode: isSelectionMode,
                   start: 52,
@@ -1123,6 +1119,7 @@ class DiveListTile extends ConsumerWidget {
                         ),
                     ],
                     diveTypeLabels: diveTypeLabels,
+                    diveMode: summary?.diveMode ?? DiveMode.oc,
                   ),
                 ),
                 // Tags, on their own line so a long tag name never competes

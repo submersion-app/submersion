@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -131,6 +132,25 @@ class _MockTagRepository extends TagRepository {
 List<Tag> _tagsFromStats(List<TagStatistic> stats) =>
     stats.map((s) => s.tag).toList();
 
+/// A stat for a tag offered in [scopes] and used [counts] times per scope.
+TagStatistic _scopedStat(
+  String id,
+  String name,
+  Set<TagScope> scopes,
+  Map<TagScope, int> counts,
+) => TagStatistic(
+  tag: Tag(
+    id: id,
+    diverId: 'diver1',
+    name: name,
+    colorHex: '#F97316',
+    scopes: scopes,
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
+  ),
+  counts: counts,
+);
+
 Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
@@ -186,6 +206,11 @@ Widget _buildRoutedTestWidget({
         path: '/sites',
         builder: (context, state) =>
             const Scaffold(body: Text('SITES_LIST_PAGE')),
+      ),
+      GoRoute(
+        path: '/equipment',
+        builder: (context, state) =>
+            const Scaffold(body: Text('EQUIPMENT_LIST_PAGE')),
       ),
     ],
   );
@@ -1242,6 +1267,131 @@ void main() {
         find.text(
           'These tags will be removed from 12 dives and 3 sites total. '
           'This cannot be undone.',
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('the equipment scope (#1942)', () {
+    const d = TagScope.dives;
+    const s = TagScope.sites;
+    const e = TagScope.equipment;
+    final kit = _scopedStat('kit', 'Travel kit', const {e}, const {e: 2});
+
+    testWidgets('a row names every scope and its usage in each', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          stats: [
+            _scopedStat(
+              'all',
+              'Everywhere',
+              const {d, s, e},
+              const {d: 12, s: 3, e: 5},
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dives · Sites · Equipment'), findsOneWidget);
+      expect(find.text('12 dives, 3 sites, 5 equipment items'), findsOneWidget);
+    });
+
+    testWidgets('an equipment tag row stays on the page', (tester) async {
+      await tester.pumpWidget(_buildRoutedTestWidget(stats: [kit]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Travel kit'));
+      await tester.pumpAndSettle();
+
+      // Rows are inert outside selection (#1888), whatever the scope.
+      expect(find.text('EQUIPMENT_LIST_PAGE'), findsNothing);
+      expect(find.text('Edit Tag'), findsNothing);
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('Travel kit')),
+      );
+      expect(container.read(equipmentFilterProvider).tagIds, isEmpty);
+    });
+
+    testWidgets('a create can offer a tag for equipment only', (tester) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'Rental');
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      final useForEquipment = find.widgetWithText(
+        CheckboxListTile,
+        'Use for equipment',
+      );
+      await tester.ensureVisible(useForEquipment);
+      await tester.tap(useForEquipment);
+      await tester.pump();
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.added.single.scopes, {e});
+    });
+
+    testWidgets('widening a tag to equipment saves without asking', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag1')));
+      await tester.pumpAndSettle();
+      final useForEquipment = find.widgetWithText(
+        CheckboxListTile,
+        'Use for equipment',
+      );
+      await tester.ensureVisible(useForEquipment);
+      await tester.tap(useForEquipment);
+      await tester.pump();
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Remove tag from existing items?'), findsNothing);
+      expect(notifier.updated.single.scopes, {d, e});
+    });
+
+    testWidgets('a bulk delete names dives, sites and equipment', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          stats: [..._testStats, kit],
+          repository: _MockTagRepository(
+            mergedUsage: const {d: 12, s: 3, e: 2},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night Dive'));
+      await tester.tap(find.text('Travel kit'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'These tags will be removed from 12 dives, 3 sites, and 2 equipment '
+          'items total. This cannot be undone.',
         ),
         findsOneWidget,
       );

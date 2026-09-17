@@ -11791,6 +11791,92 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_appBar_title => 'Ausrüstung';
 
   @override
+  String get equipment_bulkTags_action => 'Tags bearbeiten';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'wird zu allen $total hinzugefügt';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags von $count Teilen aktualisiert',
+      one: 'Tags von 1 Teil aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird zu allen $count Ausrüstungsteilen hinzugefügt',
+      one: 'Wird zu 1 Ausrüstungsteil hinzugefügt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird von allen $count Ausrüstungsteilen entfernt',
+      one: 'Wird von 1 Ausrüstungsteil entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Änderungen anwenden?';
+
+  @override
+  String get equipment_bulkTags_empty => 'Noch keine Ausrüstungs-Tags';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Tags konnten nicht aktualisiert werden: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'an allen $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'an $count von $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'wird von allen entfernt';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Tags';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tags von $count Teilen bearbeiten',
+      one: 'Tags von 1 Teil bearbeiten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Rückgängig';
+
+  @override
+  String get equipment_bulkTags_undoFailed =>
+      'Die Tag-Änderung konnte nicht rückgängig gemacht werden.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Abbrechen';
 
   @override
@@ -12315,6 +12401,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'Wartung ist überfällig!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'Ausrüstung mit $name anzeigen';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'Größe';
 
   @override
@@ -12525,6 +12616,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_tagsLabel => 'Tags';
+
+  @override
   String get equipment_edit_parentLabel => 'Eingebaut in';
 
   @override
@@ -12594,6 +12688,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Ausrüstung mit diesem Status';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'Keine Ausrüstung mit diesen Tags';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'Keine Ausrüstung in dieser Kategorie';
 
@@ -12640,6 +12738,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_section_tags => 'Tags';
 
   @override
   String get equipment_filter_section_category => 'Kategorie';
@@ -13497,6 +13598,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Maximale Einsatztiefe';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return 'Maximale Einsatztiefe: $depth $unit bei $ppo2 bar ppO2 mit $o2% Sauerstoff';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => 'Sauerstoff (O₂)';
 
   @override
@@ -13720,11 +13831,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return '$gas zugeben';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => 'Start';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => 'Aktion';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => 'Hinzufügen';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => 'Druck';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => 'Mix';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13798,6 +13921,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return 'Gib eine gültige Zahl ein (Dezimaltrennzeichen: \"$separator\")';
+  }
+
+  @override
   String get gasCalculators_blender_currency => 'Währung';
 
   @override
@@ -13837,6 +13965,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_blender_flushFeeVolume => 'Spülvolumen';
 
   @override
+  String get gasCalculators_blender_flushFeeColumnGas => 'Gas';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => 'Flasche';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => 'Volumen';
+
+  @override
   String gasCalculators_blender_flushFeeLine(String gas) {
     return '$gas-Schlauchspülung';
   }
@@ -13846,7 +13983,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_blender_billedDate(String date) {
-    return 'Rechnung vom $date';
+    return 'Gasbezug vom $date';
   }
 
   @override
@@ -13915,6 +14052,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return 'Aktionen für $label';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return '$mix zur Rechnung hinzugefügt';
   }
@@ -13961,6 +14103,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound =>
       'Rechnung nicht gefunden.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete =>
+      'Diese Rechnung löschen';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'Rechnung löschen?';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'Dies kann nicht rückgängig gemacht werden.';
 
   @override
   String get gasCalculators_blender_defaults =>
@@ -21164,8 +21318,89 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return '\"$tagName\" wird von $_temp0 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount Tauchgängen',
+      one: '1 Tauchgang',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return '\"$tagName\" wird von $_temp0 und $_temp1 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount Tauchplätzen',
+      one: '1 Tauchplatz',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return '\"$tagName\" wird von $_temp0 und $_temp1 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount Tauchgängen',
+      one: '1 Tauchgang',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount Tauchplätzen',
+      one: '1 Tauchplatz',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return '\"$tagName\" wird von $_temp0, $_temp1 und $_temp2 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" wird bei keinem Tauchgang und keinem Tauchplatz verwendet. Dies kann nicht rückgängig gemacht werden.';
+    return '\"$tagName\" wird bei keinem Tauchgang, keinem Tauchplatz und keinem Ausrüstungsteil verwendet. Dies kann nicht rückgängig gemacht werden.';
   }
 
   @override
@@ -21217,8 +21452,86 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Diese Tags werden von insgesamt $_temp0 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount Tauchgängen',
+      one: '1 Tauchgang',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Diese Tags werden von insgesamt $_temp0 und $_temp1 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount Tauchplätzen',
+      one: '1 Tauchplatz',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Diese Tags werden von insgesamt $_temp0 und $_temp1 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount Tauchgängen',
+      one: '1 Tauchgang',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount Tauchplätzen',
+      one: '1 Tauchplatz',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteilen',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Diese Tags werden von insgesamt $_temp0, $_temp1 und $_temp2 entfernt. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'Diese Tags werden bei keinem Tauchgang und keinem Tauchplatz verwendet. Dies kann nicht rückgängig gemacht werden.';
+      'Diese Tags werden bei keinem Tauchgang, keinem Tauchplatz und keinem Ausrüstungsteil verwendet. Dies kann nicht rückgängig gemacht werden.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21272,8 +21585,86 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungsteile',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Dies betrifft insgesamt $_temp0.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteile',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Dies betrifft insgesamt $_temp0 und $_temp1.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount Tauchplätze',
+      one: '1 Tauchplatz',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteile',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Dies betrifft insgesamt $_temp0 und $_temp1.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount Tauchplätze',
+      one: '1 Tauchplatz',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount Ausrüstungsteile',
+      one: '1 Ausrüstungsteil',
+    );
+    return 'Dies betrifft insgesamt $_temp0, $_temp1 und $_temp2.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'Diese Tags werden bei keinem Tauchgang und keinem Tauchplatz verwendet.';
+      'Diese Tags werden bei keinem Tauchgang, keinem Tauchplatz und keinem Ausrüstungsteil verwendet.';
 
   @override
   String get tags_manage_mergeAction => 'Zusammenführen';
@@ -30914,6 +31305,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentField_notes => 'Notizen';
 
   @override
+  String get enum_equipmentField_tags => 'Tags';
+
+  @override
   String get enum_equipmentField_itemName_short => 'Name';
 
   @override
@@ -30960,6 +31354,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'Notizen';
+
+  @override
+  String get enum_equipmentField_tags_short => 'Tags';
 
   @override
   String get enum_diveCenterField_centerName => 'Name';

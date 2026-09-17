@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_card_stat_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 
 void main() {
@@ -49,9 +51,11 @@ void main() {
               alignment: Alignment.topLeft,
               child: SizedBox(
                 width: width,
+                // GAUGE is the widest mode code, so the largest reservation.
                 child: DiveCardStatRow(
                   stats: stats,
                   diveTypeLabels: diveTypeLabels,
+                  diveMode: DiveMode.gauge,
                 ),
               ),
             ),
@@ -74,13 +78,15 @@ void main() {
         );
         expect(tester.takeException(), isNull, reason: 'at ${width}px');
         expect(find.byType(DiveTypeBadgeRow), findsOneWidget);
+        expect(find.byType(DiveModeBadge), findsOneWidget);
       }
     });
 
     testWidgets('the badge reservation follows the text scale', (tester) async {
-      // The collapsed "+N" badge grows with the text scale, so a reservation
-      // measured at the default scale would leave it too little room.
-      for (var width = 120.0; width <= 400; width += 10) {
+      // The collapsed "+N" and mode badges grow with the text scale, so a
+      // reservation measured at the default scale would leave them too
+      // little room. Below 200px the doubled badges alone exceed the line.
+      for (var width = 200.0; width <= 400; width += 10) {
         await pumpRow(
           tester,
           width: width,
@@ -101,24 +107,38 @@ void main() {
         DiveCardStat(icon: Icons.arrow_downward, text: long),
         DiveCardStat(icon: Icons.timer_outlined, text: long),
       ];
-      // No badges: each slot gets (width - 16px gap) / 2, so these widths
-      // sweep the slots through 10-20px, across the icon's own 14px and the
-      // icon plus its 4px gap.
-      for (var width = 36.0; width <= 56; width += 1) {
+      // No type badges, so each slot gets an even share of what the mode
+      // badge leaves. A 1px sweep walks the slots through the icon's own
+      // 14px and the icon plus its 4px gap; each check reads the slot's
+      // rendered width rather than predicting it.
+      final slotsSeen = <double>[];
+      for (var width = 86.0; width <= 130; width += 1) {
         await pumpRow(
           tester,
           width: width,
           stats: stats,
           diveTypeLabels: const [],
         );
-        final slot = (width - 16) / 2;
         expect(tester.takeException(), isNull, reason: 'at ${width}px');
+        final slot = tester
+            .getSize(
+              find
+                  .ancestor(
+                    of: find.text(long).first,
+                    matching: find.byType(SizedBox),
+                  )
+                  .first,
+            )
+            .width;
+        slotsSeen.add(slot);
         expect(
           find.byType(Icon),
           slot >= 14 ? findsNWidgets(2) : findsNothing,
           reason: 'slot ${slot}px',
         );
       }
+      expect(slotsSeen, contains(inInclusiveRange(14, 17.99)));
+      expect(slotsSeen, contains(lessThan(14)));
     });
 
     testWidgets('a short stat is not truncated by a long neighbor', (
@@ -126,7 +146,7 @@ void main() {
     ) async {
       await pumpRow(
         tester,
-        width: 280,
+        width: 320,
         stats: const [
           DiveCardStat(icon: Icons.arrow_downward, text: '131.4m'),
           DiveCardStat(text: long),

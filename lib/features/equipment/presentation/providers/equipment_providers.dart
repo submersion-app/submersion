@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/domain/services/battery_cycles.dar
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -355,6 +356,11 @@ final equipmentSearchProvider =
       }
       final repository = ref.watch(equipmentRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Tag names match too (issue #1942): a rename or a new link must
+      // refresh the results.
+      ref.invalidateSelfWhen(
+        ref.read(equipmentTagRepositoryProvider).watchChanges(),
+      );
       return repository.searchEquipment(query, diverId: validatedDiverId);
     });
 
@@ -425,7 +431,12 @@ class EquipmentListNotifier
     _ref.invalidate(equipmentByStatusProvider(null));
   }
 
-  Future<EquipmentItem> addEquipment(EquipmentItem equipment) async {
+  /// [tagIds], when given, become the new item's tags in the same
+  /// transaction as its row (issue #1942).
+  Future<EquipmentItem> addEquipment(
+    EquipmentItem equipment, {
+    List<String>? tagIds,
+  }) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
@@ -433,13 +444,24 @@ class EquipmentListNotifier
     final equipmentWithDiver = validatedId != null
         ? equipment.copyWith(diverId: validatedId)
         : equipment;
-    final newEquipment = await _repository.createEquipment(equipmentWithDiver);
+    final newEquipment = tagIds == null
+        ? await _repository.createEquipment(equipmentWithDiver)
+        : await _repository.createEquipmentWithTags(equipmentWithDiver, tagIds);
     await refresh();
     return newEquipment;
   }
 
-  Future<void> updateEquipment(EquipmentItem equipment) async {
-    await _repository.updateEquipment(equipment);
+  /// [tagIds], when given, replace the item's tags in the same transaction
+  /// as its row (issue #1942). Null leaves the tags as they are.
+  Future<void> updateEquipment(
+    EquipmentItem equipment, {
+    List<String>? tagIds,
+  }) async {
+    if (tagIds == null) {
+      await _repository.updateEquipment(equipment);
+    } else {
+      await _repository.updateEquipmentWithTags(equipment, tagIds);
+    }
     await refresh();
   }
 

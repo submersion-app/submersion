@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   // A UnitFormatter backed by metric default settings.
@@ -54,9 +55,60 @@ void main() {
       expect(adapter.formatValue(EquipmentField.components, 3, units), '3');
     });
 
-    test('is the last value so saved column orders are stable', () {
-      expect(EquipmentField.values.last, EquipmentField.components);
+    test('keeps its place before the later appended tags', () {
+      const values = EquipmentField.values;
+      expect(values[values.length - 2], EquipmentField.components);
       expect(EquipmentField.components.categoryName, 'details');
+    });
+  });
+
+  group('EquipmentField.tags', () {
+    test('extracts the names from the adapter map and defaults to none', () {
+      final adapter = EquipmentFieldAdapter(
+        tagNames: {
+          'equip-1': ['Rental', 'Travel kit'],
+        },
+      );
+      expect(adapter.extractValue(EquipmentField.tags, testItem), [
+        'Rental',
+        'Travel kit',
+      ]);
+      expect(
+        EquipmentFieldAdapter.instance.extractValue(
+          EquipmentField.tags,
+          testItem,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a table cell is a comma list; no tags is the placeholder', () {
+      final adapter = EquipmentFieldAdapter.instance;
+      expect(
+        adapter.formatValue(EquipmentField.tags, [
+          'Rental',
+          'Travel kit',
+        ], units),
+        'Rental, Travel kit',
+      );
+      expect(adapter.formatValue(EquipmentField.tags, <String>[], units), '--');
+    });
+
+    test('is appended last, so saved layouts keep their order', () {
+      expect(EquipmentField.values.last, EquipmentField.tags);
+      expect(EquipmentField.tags.categoryName, 'other');
+      expect(EquipmentField.tags.sortable, isFalse);
+      expect(EquipmentField.tags.isRightAligned, isFalse);
+      expect(
+        EquipmentFieldAdapter.instance.fieldFromName('tags'),
+        EquipmentField.tags,
+      );
+    });
+
+    test('labels are localized', () {
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      expect(EquipmentField.tags.localizedDisplayName(l10n), 'Tags');
+      expect(EquipmentField.tags.localizedShortLabel(l10n), 'Tags');
     });
   });
 
@@ -694,9 +746,11 @@ void main() {
       expect(EquipmentField.notes.sortable, isFalse);
     });
 
-    test('all fields except notes are sortable', () {
+    test('all fields except notes and tags are sortable', () {
       for (final field in EquipmentField.values) {
-        if (field == EquipmentField.notes) continue;
+        if (field == EquipmentField.notes || field == EquipmentField.tags) {
+          continue;
+        }
         expect(field.sortable, isTrue, reason: field.name);
       }
     });

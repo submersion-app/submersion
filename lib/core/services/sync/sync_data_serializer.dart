@@ -23,6 +23,8 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    as tag_domain;
 
 /// Sync data format version for compatibility checking
 const int syncFormatVersion = 2;
@@ -40,6 +42,11 @@ typedef StreamedBase = ({
   String? toHlc,
   int rowCount,
 });
+
+/// One incoming surrogate-keyed junction row, reduced to the pair it means
+/// and the id the sender holds it under. See [SyncDataSerializer] and
+/// issue #2003.
+typedef JunctionPair = ({String parent, String child, String id});
 
 /// Value serializer used only for sync export/import of BLOB-bearing entities.
 ///
@@ -2991,6 +2998,7 @@ class SyncDataSerializer {
       await _db
           .into(_db.tags)
           .insertOnConflictUpdate(_normalizedTag(remote).toCompanion(false));
+      await _sweepNarrowedTagScopes(remote.id, tagScopesOf(remote));
       return;
     }
 
@@ -3018,6 +3026,38 @@ class SyncDataSerializer {
     } else {
       await (_db.update(_db.tags)..where((t) => t.id.equals(survivor))).write(
         RawValuesInsertable<Tag>(tagScopeColumns(scopes)),
+      );
+    }
+    // After the fold, so a link moved onto the survivor from a losing tag is
+    // swept too when the scope it belongs to is off.
+    await _sweepNarrowedTagScopes(survivor, scopes);
+  }
+
+  /// Unlinks [tagId] from every registry scope [scopes] does NOT cover.
+  ///
+  /// `updateTag` unlinks and tombstones a narrowed scope's links on the device
+  /// that narrows it, but a link that device never saw (added concurrently on
+  /// another device) survived on the peer holding it, and nothing filters on
+  /// the flag when links are read, so the item went on showing a tag whose
+  /// scope no longer applies (issue #2003).
+  ///
+  /// Driven by [tagScopeTables], so dives, sites and any scope added later are
+  /// covered by the registry entry alone, exactly as [_foldTagInto] is. No
+  /// tombstones: every device applying the same tag row performs the identical
+  /// repair from its own copy, which is how [_foldTagInto] already reasons
+  /// about the links it folds.
+  Future<void> _sweepNarrowedTagScopes(
+    String tagId,
+    Set<tag_domain.TagScope> scopes,
+  ) async {
+    final covered = {for (final scope in scopes) scope.table.junctionTable};
+    for (final junction in tagScopeTables) {
+      if (covered.contains(junction.junctionTable)) continue;
+      await _db.customUpdate(
+        'DELETE FROM ${junction.junctionTable} WHERE tag_id = ?',
+        variables: [Variable.withString(tagId)],
+        updates: {_tableNamed(junction.junctionTable)},
+        updateKind: UpdateKind.delete,
       );
     }
   }
@@ -3098,9 +3138,7 @@ class SyncDataSerializer {
         row.read<String>('parent_id'),
     };
     // Named so Drift refreshes the streams over this junction.
-    final updates = {
-      _db.allTables.firstWhere((t) => t.actualTableName == table),
-    };
+    final updates = {_tableNamed(table)};
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final row in moving) {
       final id = row.read<String>('id');
@@ -3127,6 +3165,100 @@ class SyncDataSerializer {
     }
   }
 
+  /// The Drift table called [name], so a raw statement can tell Drift what it
+  /// touched and the stream queries over that table refresh.
+  TableInfo<Table, dynamic> _tableNamed(String name) =>
+      _db.allTables.firstWhere((t) => t.actualTableName == name);
+
+  /// Reconciles every pair in [pairs] to the LOWER of the two ids, by
+  /// deleting this device's row whenever the incoming id sorts below it.
+  ///
+  /// `dive_tags`, `dive_dive_types`, `site_site_types` and `site_tags` carry a
+  /// surrogate uuid primary key (#347: a re-added pair must never collide with
+  /// its predecessor's tombstone), so two devices that add the same pair while
+  /// apart mint two ids for it. Absorbing the peer's row with DO NOTHING alone
+  /// kept the pair but FORGOT the peer's id, and [deleteRecord] removes a
+  /// junction row BY ID: a delete on one device then matched nothing on the
+  /// other and the link came back (issue #2003). `diveEquipment` and
+  /// `divePlanEquipment` never had this problem because their sync id IS the
+  /// natural key (see [_splitCompositeId]).
+  ///
+  /// Lowest id wins, the rule [_applyTagRecord] already uses for rival tags:
+  /// the survivor has to be a property of the rows rather than of this device,
+  /// or the two would flip-flop forever, each adopting the other's id on every
+  /// sync. Both sides run the identical comparison from their own copy, so the
+  /// fleet converges without republishing anything and the losing row needs no
+  /// tombstone -- it is a local identity reconciliation, not a user deleting a
+  /// link. SQLite compares TEXT byte by byte and Dart `compareTo` compares
+  /// code units, which agree on the ASCII uuids these ids are.
+  ///
+  /// The caller still inserts with DO NOTHING afterwards: that insert now
+  /// lands the peer's row when the local rival lost, and stays the no-op it
+  /// always was when the local id won. The remaining gap is narrow and known:
+  /// a pair deleted on one device BEFORE the two adds ever crossed is still
+  /// tombstoned under an id the peer never held, because a tombstone carries
+  /// only the id.
+  Future<void> _reconcileJunctionIds(
+    String table, {
+    required String parentColumn,
+    required String childColumn,
+    required List<JunctionPair> pairs,
+  }) async {
+    if (pairs.isEmpty) return;
+    await _db.batch((batch) {
+      for (final pair in pairs) {
+        batch.customStatement(
+          'DELETE FROM $table '
+          'WHERE $parentColumn = ? AND $childColumn = ? AND id > ?',
+          [pair.parent, pair.child, pair.id],
+        );
+      }
+    });
+  }
+
+  /// [rows] reduced to one entry per natural pair, the LOWEST id winning.
+  ///
+  /// One payload can carry two rows that mean the same pair: [_withTagAlias]
+  /// rewrites a link's tag id to the survivor of a tag fold, so a peer's links
+  /// for two same-name tags on one item both land on the surviving tag, and
+  /// rows predating the unique indexes can hold a true duplicate. `insertAll`
+  /// with DO NOTHING keeps whichever came FIRST, which is arrival order rather
+  /// than the deterministic rule [_reconcileJunctionIds] applies to a local
+  /// rival. A device with no local copy would then settle on a different
+  /// survivor from one that already held a rival row, and neither republishes
+  /// to heal the split (PR #2004 review).
+  ///
+  /// The map is keyed by the pair itself (records compare structurally) and
+  /// iterates in first-insertion order, so the surviving rows keep the order
+  /// their pairs first appeared in.
+  List<T> _lowestIdPerPair<T>(List<T> rows, JunctionPair Function(T) pairOf) {
+    if (rows.length < 2) return rows;
+    final lowest = <(String, String), T>{};
+    for (final row in rows) {
+      final pair = pairOf(row);
+      final key = (pair.parent, pair.child);
+      final held = lowest[key];
+      if (held == null || pair.id.compareTo(pairOf(held).id) < 0) {
+        lowest[key] = row;
+      }
+    }
+    return lowest.values.toList();
+  }
+
+  /// The tags NOT offered in [junction]'s scope, so a link naming one can be
+  /// refused as it arrives.
+  ///
+  /// Read whole rather than probed per link: a tag vocabulary is tens of rows
+  /// (the reason [upsertRecords] reconciles tags one at a time), while the
+  /// junctions run to one row per tagged dive, and neither carries an index
+  /// that leads with `tag_id`.
+  Future<Set<String>> _tagsOutsideScope(TagScopeTable junction) async {
+    final rows = await _db
+        .customSelect('SELECT id FROM tags WHERE ${junction.scopeColumn} = 0')
+        .get();
+    return {for (final row in rows) row.read<String>('id')};
+  }
+
   /// Applies a remote `dive_tags` row.
   ///
   /// `DO NOTHING` on ANY uniqueness conflict, not just the primary key: a peer
@@ -3138,7 +3270,23 @@ class SyncDataSerializer {
   ///
   /// Junction rows are immutable (they are deleted and re-inserted with fresh
   /// ids, never edited), so declining to update an existing row loses nothing.
+  /// Which of the two ids survives is settled first by [_reconcileJunctionIds],
+  /// so a later tombstone naming either device's id finds the row.
+  ///
+  /// A link whose tag no longer covers the dive scope is refused outright
+  /// rather than inserted and repaired: links apply AFTER their parent tag
+  /// within a payload, so one for a switched-off scope would otherwise land
+  /// straight back on top of the sweep [_sweepNarrowedTagScopes] just did.
   Future<void> _applyDiveTagRecord(DiveTag record) async {
+    if ((await _tagsOutsideScope(diveTagScopeTable)).contains(record.tagId)) {
+      return;
+    }
+    await _reconcileJunctionIds(
+      diveTagScopeTable.junctionTable,
+      parentColumn: diveTagScopeTable.parentColumn,
+      childColumn: 'tag_id',
+      pairs: [(parent: record.diveId, child: record.tagId, id: record.id)],
+    );
     await _db
         .into(_db.diveTags)
         .insert(
@@ -3157,11 +3305,18 @@ class SyncDataSerializer {
   ///
   /// An empty `target` means plain `ON CONFLICT DO NOTHING`, which absorbs a
   /// conflict on ANY uniqueness constraint. Dropping the peer's row loses
-  /// nothing: the pair is the entire meaning of a junction row, and this table
-  /// carries no other mutable column. Before that index existed, keeping both
-  /// rows is exactly how one dive came to show the same type twice on every
-  /// device in the fleet (issue #1360).
+  /// nothing once [_reconcileJunctionIds] has settled which id the pair keeps:
+  /// the pair is the entire meaning of a junction row, and this table carries
+  /// no other mutable column. Before that index existed, keeping both rows is
+  /// exactly how one dive came to show the same type twice on every device in
+  /// the fleet (issue #1360).
   Future<void> _applyDiveDiveTypeRecord(DiveDiveType record) async {
+    await _reconcileJunctionIds(
+      'dive_dive_types',
+      parentColumn: 'dive_id',
+      childColumn: 'dive_type_id',
+      pairs: [(parent: record.diveId, child: record.diveTypeId, id: record.id)],
+    );
     await _db
         .into(_db.diveDiveTypes)
         .insert(
@@ -3174,9 +3329,16 @@ class SyncDataSerializer {
 
   /// Applies one incoming `site_site_types` row (v217, issue #1765). The
   /// table has its (site, type) unique index from the day it exists, so a
-  /// peer's copy of a pair this device holds under another id is skipped
-  /// with DO NOTHING, for the reasons [_applyDiveDiveTypeRecord] gives.
+  /// peer's copy of a pair this device holds under another id is reconciled
+  /// to the lower id and then skipped with DO NOTHING, for the reasons
+  /// [_applyDiveDiveTypeRecord] gives.
   Future<void> _applySiteSiteTypeRecord(SiteSiteType record) async {
+    await _reconcileJunctionIds(
+      'site_site_types',
+      parentColumn: 'site_id',
+      childColumn: 'site_type_id',
+      pairs: [(parent: record.siteId, child: record.siteTypeId, id: record.id)],
+    );
     await _db
         .into(_db.siteSiteTypes)
         .insert(
@@ -3190,6 +3352,15 @@ class SyncDataSerializer {
   /// Applies one incoming `site_tags` row (v217, issue #1765), the site twin
   /// of [_applyDiveTagRecord].
   Future<void> _applySiteTagRecord(SiteTag record) async {
+    if ((await _tagsOutsideScope(siteTagScopeTable)).contains(record.tagId)) {
+      return;
+    }
+    await _reconcileJunctionIds(
+      siteTagScopeTable.junctionTable,
+      parentColumn: siteTagScopeTable.parentColumn,
+      childColumn: 'tag_id',
+      pairs: [(parent: record.siteId, child: record.tagId, id: record.id)],
+    );
     await _db
         .into(_db.siteTags)
         .insert(
@@ -4501,10 +4672,27 @@ class SyncDataSerializer {
         }
         return;
       case 'diveTags':
+        final diveTagsOffScope = await _tagsOutsideScope(diveTagScopeTable);
+        final diveTagRows = _lowestIdPerPair(
+          records
+              .map((record) => DiveTag.fromJson(_withTagAlias(record)))
+              .where((row) => !diveTagsOffScope.contains(row.tagId))
+              .toList(),
+          (row) => (parent: row.diveId, child: row.tagId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          diveTagScopeTable.junctionTable,
+          parentColumn: diveTagScopeTable.parentColumn,
+          childColumn: 'tag_id',
+          pairs: [
+            for (final row in diveTagRows)
+              (parent: row.diveId, child: row.tagId, id: row.id),
+          ],
+        );
         await _db.batch(
           (b) => b.insertAll(
             _db.diveTags,
-            records.map((r) => DiveTag.fromJson(_withTagAlias(r))).toList(),
+            diveTagRows,
             onConflict: DoNothing<$DiveTagsTable, DiveTag>(target: const []),
           ),
         );
@@ -4512,10 +4700,23 @@ class SyncDataSerializer {
       case 'diveDiveTypes':
         // DoNothing, not insertAllOnConflictUpdate: see
         // [_applyDiveDiveTypeRecord].
+        final diveTypeRows = _lowestIdPerPair(
+          records.map((r) => DiveDiveType.fromJson(r)).toList(),
+          (row) => (parent: row.diveId, child: row.diveTypeId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'dive_dive_types',
+          parentColumn: 'dive_id',
+          childColumn: 'dive_type_id',
+          pairs: [
+            for (final row in diveTypeRows)
+              (parent: row.diveId, child: row.diveTypeId, id: row.id),
+          ],
+        );
         await _db.batch(
           (b) => b.insertAll(
             _db.diveDiveTypes,
-            records.map((r) => DiveDiveType.fromJson(r)).toList(),
+            diveTypeRows,
             onConflict: DoNothing<$DiveDiveTypesTable, DiveDiveType>(
               target: const [],
             ),
@@ -4544,10 +4745,23 @@ class SyncDataSerializer {
         return;
       case 'siteSiteTypes':
         // DoNothing: see [_applySiteSiteTypeRecord].
+        final siteTypeRows = _lowestIdPerPair(
+          records.map((r) => SiteSiteType.fromJson(r)).toList(),
+          (row) => (parent: row.siteId, child: row.siteTypeId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'site_site_types',
+          parentColumn: 'site_id',
+          childColumn: 'site_type_id',
+          pairs: [
+            for (final row in siteTypeRows)
+              (parent: row.siteId, child: row.siteTypeId, id: row.id),
+          ],
+        );
         await _db.batch(
           (b) => b.insertAll(
             _db.siteSiteTypes,
-            records.map((r) => SiteSiteType.fromJson(r)).toList(),
+            siteTypeRows,
             onConflict: DoNothing<$SiteSiteTypesTable, SiteSiteType>(
               target: const [],
             ),
@@ -4555,10 +4769,27 @@ class SyncDataSerializer {
         );
         return;
       case 'siteTags':
+        final siteTagsOffScope = await _tagsOutsideScope(siteTagScopeTable);
+        final siteTagRows = _lowestIdPerPair(
+          records
+              .map((record) => SiteTag.fromJson(_withTagAlias(record)))
+              .where((row) => !siteTagsOffScope.contains(row.tagId))
+              .toList(),
+          (row) => (parent: row.siteId, child: row.tagId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          siteTagScopeTable.junctionTable,
+          parentColumn: siteTagScopeTable.parentColumn,
+          childColumn: 'tag_id',
+          pairs: [
+            for (final row in siteTagRows)
+              (parent: row.siteId, child: row.tagId, id: row.id),
+          ],
+        );
         await _db.batch(
           (b) => b.insertAll(
             _db.siteTags,
-            records.map((r) => SiteTag.fromJson(_withTagAlias(r))).toList(),
+            siteTagRows,
             onConflict: DoNothing<$SiteTagsTable, SiteTag>(target: const []),
           ),
         );

@@ -150,8 +150,9 @@ void main() {
     }
 
     final metric = await totalFor(VolumeUnit.liters, '1');
-    // 1 per 100 L is 28.3168 per 100 cu ft.
-    final imperial = await totalFor(VolumeUnit.cubicFeet, '28.3168');
+    // 1 per 100 L is 28.3168 per 100 cu ft, rounded to the field's two-decimal
+    // cap (issue #1876) -- the 0.001 tolerance below easily absorbs that.
+    final imperial = await totalFor(VolumeUnit.cubicFeet, '28.32');
 
     expect(imperial, closeTo(metric, metric * 0.001));
   });
@@ -165,8 +166,9 @@ void main() {
     final liters = ref.read(blenderBillingProvider).lines.first.freeGasLiters;
     final expected = (liters * _cuftPerLiter).toStringAsFixed(0);
 
-    // Converting twice printed "0 cuft" for hundreds of litres of gas.
-    expect(find.text('$expected cuft'), findsWidgets);
+    // Converting twice printed "0" for hundreds of litres of gas. The unit
+    // sits in the column header now, not repeated per cell.
+    expect(find.text(expected), findsWidgets);
     expect(expected, isNot('0'));
   });
 }

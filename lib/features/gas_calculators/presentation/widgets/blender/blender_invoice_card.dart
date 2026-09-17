@@ -22,6 +22,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_export_sheet.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_volume_conversion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -140,7 +141,6 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _dateHeader(context, billedDate, settings),
-              _tariffSummary(context, settings, currency),
               TextField(
                 controller: _billedTo,
                 decoration: InputDecoration(
@@ -153,7 +153,9 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
                 onEditingComplete: () => saveBlenderPreferences(ref),
                 onSubmitted: (_) => saveBlenderPreferences(ref),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              _tariffSummary(context, settings, currency),
+              const SizedBox(height: 4),
               if (fills.isEmpty && !showFlush)
                 Text(
                   context.l10n.gasCalculators_blender_billedNone,
@@ -180,20 +182,28 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  for (var i = 0; i < BlenderGasRole.values.length; i++)
-                    _flushFeeLine(
-                      context,
-                      i,
-                      flushGases[i],
-                      flushMultiplier,
-                      currency,
-                      units,
-                      settings,
-                    ),
-                  const SizedBox(height: 4),
+                  _flushFeeTable(
+                    context,
+                    flushGases,
+                    flushMultiplier,
+                    currency,
+                    units,
+                    settings,
+                  ),
+                  const Divider(height: 12),
                 ],
-                for (final f in fills)
-                  _fillLine(context, f, currency, units, decimals),
+                if (fills.any((f) => f.lines.isNotEmpty)) ...[
+                  BlenderBilledLineHeader(units: units, currency: currency),
+                  const Divider(height: 12),
+                ],
+                // A thin divider between fills, not after the last one, so
+                // it is clear at a glance where one fill ends and the next
+                // begins (issue #1876 follow-up) without visually competing
+                // with the header/total divider below the whole list.
+                for (var i = 0; i < fills.length; i++) ...[
+                  if (i > 0) const Divider(height: 12),
+                  _fillLine(context, fills[i], currency, units, decimals),
+                ],
               ],
               const SizedBox(height: 8),
               TextButton.icon(
@@ -334,9 +344,17 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
   /// the "Cost" card. Zipped by role against the gas that role *currently*
   /// holds, matching how the price fields there are labelled - not by
   /// grouping historical invoice lines, which may have been filled under a
-  /// fill order since reconfigured (PR #1215 review). Keying by role rather
-  /// than by bank position keeps this correct however the fill order is
-  /// arranged (issue #42).
+  /// A compact table of the currently priced gases, units and currency in
+  /// the column header instead of repeated after every entry (issue #1876),
+  /// on the same flexible `Row`/`Expanded` grid the rest of the mixer's
+  /// tables use. Zipped by role against the gas that role *currently* holds,
+  /// matching how the price fields there are labelled - not by grouping
+  /// historical invoice lines, which may have been filled under a fill order
+  /// since reconfigured (PR #1215 review). Keying by role rather than by
+  /// bank position keeps this correct however the fill order is arranged
+  /// (issue #42).
+  static const List<int> _tariffFlex = [3, 2];
+
   Widget _tariffSummary(
     BuildContext context,
     AppSettings settings,
@@ -345,25 +363,66 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     final topupO2 = ref.watch(blenderTopupO2PercentProvider);
     final prices = ref.watch(blenderGasPricesProvider);
     final units = UnitFormatter(settings);
-    final parts = <String>[];
-    for (final role in BlenderGasRole.values) {
-      final price = prices[role.index];
-      if (price == null) continue;
-      final display = pricePer100LitersToDisplay(price, settings);
-      parts.add(
-        '${formatPreciseGasName(context, gasForRole(role, topupO2))} '
-        '${formatMoney(display, currency)}/100${units.volumeSymbol}',
-      );
-    }
-    if (parts.isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
+    final priced = [
+      for (final role in BlenderGasRole.values)
+        if (prices[role.index] case final price?) (role, price),
+    ];
+    if (priced.isEmpty) return const SizedBox.shrink();
+    final headerStyle = blenderTableHeaderStyle(context);
+    final valueStyle = blenderTableValueStyle(
+      context,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        '${context.l10n.gasCalculators_blender_tariff}: ${parts.join('  ·  ')}',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(context.l10n.gasCalculators_blender_tariff, style: headerStyle),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                flex: _tariffFlex[0],
+                child: Text(
+                  context.l10n.gasCalculators_blender_flushFeeColumnGas,
+                  style: headerStyle,
+                ),
+              ),
+              Expanded(
+                flex: _tariffFlex[1],
+                child: Text(
+                  '$currency/100${units.volumeSymbol}',
+                  style: headerStyle,
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+          for (final (role, price) in priced)
+            Row(
+              children: [
+                Expanded(
+                  flex: _tariffFlex[0],
+                  child: Text(
+                    formatPreciseGasName(context, gasForRole(role, topupO2)),
+                    style: valueStyle,
+                  ),
+                ),
+                Expanded(
+                  flex: _tariffFlex[1],
+                  child: Text(
+                    formatFixedForInput(
+                      pricePer100LitersToDisplay(price, settings),
+                      2,
+                    ),
+                    style: valueStyle,
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
@@ -411,6 +470,9 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
                   volume: line.freeGasLiters != null
                       ? units.formatVolume(line.freeGasLiters)
                       : units.formatPressure(line.addedBar, decimals: decimals),
+                  cylinder: line.cylinderLiters != null
+                      ? units.formatTankVolume(line.cylinderLiters, null)
+                      : '',
                   cost: line.cost == null
                       ? ''
                       : formatMoney(line.cost!, currency),
@@ -501,32 +563,93 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     }
   }
 
-  /// One structured flush-fee line: the gas, its purge volume, and what that
-  /// volume costs at the configured rate. Derived from settings rather than
+  /// The hose-purge fee for every gas role, aligned to the same
+  /// `kBilledLineFlex` grid the itemised gas lines use below it: the gas
+  /// spans columns 1+2, the purge volume spans columns 3+4, and the cost
+  /// sits in column 5 with the same fixed 48px width as the fill line's
+  /// menu button, so all of the invoice's tables share one set of column
+  /// edges (issue #1876 follow-up). Units sit once in a header row rather
+  /// than repeated per line (issue #1876). Derived from settings rather than
   /// stored in [blenderBilledFillsProvider] — nothing in that append-only
   /// list is "first" by construction, so a fee meant to sit once at the top
   /// of the bill has to live outside it (issue #1335).
-  Widget _flushFeeLine(
+  Widget _flushFeeTable(
     BuildContext context,
-    int index,
-    FlushFeeGasSetting gas,
+    List<FlushFeeGasSetting> flushGases,
     int multiplier,
     String currency,
     UnitFormatter units,
     AppSettings settings,
   ) {
-    final role = BlenderGasRole.values[index];
+    final prices = ref.watch(blenderGasPricesProvider);
+    final headerStyle = blenderTableHeaderStyle(context);
+    final valueStyle = blenderTableValueStyle(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: kBilledLineFlex[0],
+              child: Text(
+                context.l10n.gasCalculators_blender_flushFeeColumnGas,
+                style: headerStyle,
+              ),
+            ),
+            Expanded(
+              flex: kBilledLineFlex[1] + kBilledLineFlex[2],
+              child: Text(
+                units.volumeSymbol,
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            Expanded(flex: kBilledLineFlex[3], child: const SizedBox()),
+            Expanded(
+              flex: kBilledLineFlex[4],
+              child: Text(
+                currency,
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        for (var i = 0; i < BlenderGasRole.values.length; i++)
+          _flushFeeRow(
+            context,
+            BlenderGasRole.values[i],
+            flushGases[i],
+            multiplier,
+            prices[i],
+            units,
+            settings,
+            valueStyle,
+          ),
+      ],
+    );
+  }
+
+  Widget _flushFeeRow(
+    BuildContext context,
+    BlenderGasRole role,
+    FlushFeeGasSetting gas,
+    int multiplier,
+    double? price,
+    UnitFormatter units,
+    AppSettings settings,
+    TextStyle? style,
+  ) {
     final label = blenderGasRoleLabel(context, role);
-    final price = ref.watch(blenderGasPricesProvider)[role.index];
     final cost = flushFeeCost(gas.volumeLiters * multiplier, price);
-    final style = Theme.of(context).textTheme.bodyMedium;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            flex: 3,
+            flex: kBilledLineFlex[0],
             child: Text(
               multiplier > 1 ? '$label  ×$multiplier' : label,
               style: style,
@@ -536,24 +659,24 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
           // gases settings card (blender_fill_gases_card.dart), next to its
           // price, and shown here as plain text rather than a second,
           // easily-drifting entry point for the same number (issue #42
-          // follow-up). Plain text, not a disabled-looking field: an
-          // InputDecorator still reads as an inert input control (issue #44
           // follow-up).
-          SizedBox(
-            width: 72,
+          Expanded(
+            flex: kBilledLineFlex[1] + kBilledLineFlex[2],
             child: Text(
-              '${formatRoundedForInput(litersToDisplayVolume(gas.volumeLiters, settings), 2)} '
-              '${units.volumeSymbol}',
+              formatRoundedForInput(
+                litersToDisplayVolume(gas.volumeLiters, settings),
+                2,
+              ),
               key: Key('blender-flush-fee-liters-${role.name}'),
               style: style,
               textAlign: TextAlign.end,
             ),
           ),
-          const SizedBox(width: 8),
+          Expanded(flex: kBilledLineFlex[3], child: const SizedBox()),
           Expanded(
-            flex: 2,
+            flex: kBilledLineFlex[4],
             child: Text(
-              cost == null ? '' : formatMoney(cost, currency),
+              cost == null ? '' : formatFixedForInput(cost, 2),
               style: style,
               textAlign: TextAlign.end,
             ),
@@ -571,6 +694,9 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     int decimals,
   ) {
     final theme = Theme.of(context);
+    final titleStyle = theme.textTheme.titleSmall?.copyWith(
+      fontWeight: FontWeight.w600,
+    );
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -578,47 +704,69 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
         children: [
           Row(
             children: [
+              // Aligned to the gas-line grid below it (kBilledLineFlex):
+              // label spans columns 1+2, total spans columns 3+4, and the
+              // menu sits in column 5, so the title row's columns line up
+              // visually with the itemised gas lines underneath it (issue
+              // #1876 follow-up).
               Expanded(
-                flex: 2,
+                flex: kBilledLineFlex[0] + kBilledLineFlex[1],
                 child: Text(
                   fill.label,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: titleStyle,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Flexible(
+              Expanded(
+                flex: kBilledLineFlex[2] + kBilledLineFlex[3],
                 child: Text(
                   fill.total == null ? '' : formatMoney(fill.total!, currency),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: titleStyle,
                   textAlign: TextAlign.end,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // Compact so a label, an amount and two actions still fit the
-              // narrowest phone the app supports.
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 18),
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                tooltip: context.l10n.gasCalculators_blender_editLine(
-                  fill.label,
+              // A single overflow menu instead of two separate icons: on the
+              // narrowest phones two full-size IconButtons plus the label and
+              // total left no room to breathe (issue #1876 follow-up).
+              //
+              // Column 5's proportional width, right-aligned so the button
+              // lines up with the price column's own right edge below it.
+              Expanded(
+                flex: kBilledLineFlex[4],
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: PopupMenuButton<_FillLineAction>(
+                    key: Key('blender-fill-line-menu-${fill.id}'),
+                    icon: const Icon(Icons.more_vert, size: 18),
+                    padding: EdgeInsets.zero,
+                    tooltip: context.l10n.gasCalculators_blender_lineActions(
+                      fill.label,
+                    ),
+                    onSelected: (action) => switch (action) {
+                      _FillLineAction.edit => _editLine(fill),
+                      _FillLineAction.delete => _delete(fill),
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: _FillLineAction.edit,
+                        child: Text(
+                          context.l10n.gasCalculators_blender_editLine(
+                            fill.label,
+                          ),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: _FillLineAction.delete,
+                        child: Text(
+                          context.l10n.gasCalculators_blender_deleteLine(
+                            fill.label,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () => _editLine(fill),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close, size: 18),
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                tooltip: context.l10n.gasCalculators_blender_deleteLine(
-                  fill.label,
-                ),
-                onPressed: () => _delete(fill),
               ),
             ],
           ),
@@ -789,6 +937,9 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     saveBlenderPreferences(ref);
   }
 }
+
+/// The two actions offered by a fill line's overflow menu.
+enum _FillLineAction { edit, delete }
 
 /// What the edit sheet hands back.
 class _LineEdit {

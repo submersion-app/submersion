@@ -118,14 +118,44 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      // Order is preserved: the edited mix replaces 10/70 in place rather
-      // than moving to the end of the list.
+      // 18/45 still sorts ahead of 12/70 under the O2-descending rule
+      // (issue #1876), so this particular edit happens to land in the same
+      // place -- see the dedicated re-sort test below for one that moves.
       expect(ref.read(blenderTemplatesProvider), const [
         MixTemplate(o2: 18, he: 45),
         MixTemplate(o2: 12, he: 70),
       ]);
       expect(ref.read(blenderTargetMixProvider), const GasMix(o2: 12, he: 70));
       expect(picked, const MixTemplate(o2: 12, he: 70));
+    },
+  );
+
+  testWidgets(
+    '"Adjust values" re-sorts the list when the edit changes where the '
+    'template belongs',
+    (tester) async {
+      final ref = await _pump(
+        tester,
+        templates: const [
+          MixTemplate(o2: 18, he: 45),
+          MixTemplate(o2: 10, he: 70),
+        ],
+        target: const GasMix(o2: 10, he: 70),
+      );
+
+      await _openMenu(tester);
+      await tester.tap(find.text('Adjust values'));
+      await tester.pumpAndSettle();
+
+      // 21 now outranks the existing 18/45 under the O2-descending rule.
+      await tester.enterText(find.byType(TextField).first, '21');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(ref.read(blenderTemplatesProvider), const [
+        MixTemplate(o2: 21, he: 70),
+        MixTemplate(o2: 18, he: 45),
+      ]);
     },
   );
 
@@ -167,6 +197,24 @@ void main() {
       MixTemplate(o2: 15, he: 40),
     ]);
     expect(find.text('Saved 15/40'), findsOneWidget);
+  });
+
+  testWidgets('"Save current mix" re-sorts the whole list, not just appends '
+      '(issue #1876)', (tester) async {
+    final ref = await _pump(
+      tester,
+      templates: const [MixTemplate(o2: 10, he: 70)],
+      target: const GasMix(o2: 21, he: 30),
+    );
+
+    await _openMenu(tester);
+    await tester.tap(find.text('Save current mix'));
+    await tester.pumpAndSettle();
+
+    expect(ref.read(blenderTemplatesProvider), const [
+      MixTemplate(o2: 21, he: 30),
+      MixTemplate(o2: 10, he: 70),
+    ]);
   });
 
   testWidgets('"Save current mix" refuses a mix that is already saved', (

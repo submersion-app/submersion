@@ -19,17 +19,33 @@ void main() {
       const t = MixTemplate(o2: 12, he: 60);
       expect(MixTemplate.fromJson(t.toJson()), t);
     });
+
+    test('sorted orders O2 descending, He ascending on a tie (#1876)', () {
+      final sorted = MixTemplate.sorted(const [
+        MixTemplate(o2: 10, he: 70),
+        MixTemplate(o2: 21, he: 30),
+        MixTemplate(o2: 21, he: 10),
+        MixTemplate(o2: 18, he: 35),
+      ]);
+      expect(sorted, const [
+        MixTemplate(o2: 21, he: 10),
+        MixTemplate(o2: 21, he: 30),
+        MixTemplate(o2: 18, he: 35),
+        MixTemplate(o2: 10, he: 70),
+      ]);
+    });
   });
 
   group('BlenderPreferences.defaults', () {
-    test('seeds the five templates named in issue #1100', () {
+    test('seeds the five templates named in issue #1100, O2 descending '
+        '(#1876)', () {
       final prefs = BlenderPreferences.defaults(cylinderWaterLiters: 12);
       expect(prefs.templates.map((t) => t.label).toList(), [
-        '7/75',
-        '10/70',
-        '12/60',
-        '15/55',
         '18/35',
+        '15/55',
+        '12/60',
+        '10/70',
+        '7/75',
       ]);
     });
 

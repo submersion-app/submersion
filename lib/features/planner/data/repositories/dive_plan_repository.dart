@@ -54,11 +54,20 @@ class DivePlanRepository {
   /// Upserts the plan and its children; children removed since the last save
   /// are deleted WITH per-row tombstones (parent-surviving child deletes
   /// must tombstone individually or other devices resurrect them).
-  Future<void> savePlan(
+  ///
+  /// Returns the plan as it was stored, which is not always the plan passed
+  /// in: a [domain.DivePlan.siteId] that no longer names a row is dropped,
+  /// and [domain.DivePlan.updatedAt] carries the stamp this save wrote rather
+  /// than the one submitted. Callers holding the plan in memory should adopt
+  /// the returned value.
+  Future<domain.DivePlan> savePlan(
     domain.DivePlan plan, {
     PlanSummaryData? summary,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    // The plan actually written, once the site has been resolved. Assigned
+    // inside the transaction and read after it commits.
+    var stored = plan;
     final removedTankIds = <String>[];
     final removedSegmentIds = <String>[];
     final addedEquipmentIds = <String>[];
@@ -84,9 +93,28 @@ class DivePlanRepository {
           for (final r in existingSegmentRows) r.id: r.createdAt,
         };
 
+        // The planner holds the site id in memory, so it goes stale when the
+        // site is deleted while a plan that names it is still being edited,
+        // re-saved by the plan-deleted snackbar's Undo, or duplicated.
+        // `dive_plans.site_id` references `dive_sites` with no ON DELETE
+        // action under `PRAGMA foreign_keys = ON`, so writing a dead id fails
+        // the whole save with SqliteException(787) and the diver loses the
+        // plan rather than just the site (issue #1985). Resolve it here, at
+        // the write, because that is the one point every caller passes
+        // through; a site deleted between this check and the insert is
+        // impossible while both run in the same transaction.
+        // `updatedAt` too: the row is stamped with this save's own clock
+        // (_planCompanion writes `now`), so a returned plan still carrying
+        // the submitted timestamp would not be the plan as stored, and a
+        // caller comparing it against the row would silently disagree. The
+        // millisecond round-trip matches what getPlan reads back.
+        stored = (await _withResolvedSite(
+          plan,
+        )).copyWith(updatedAt: DateTime.fromMillisecondsSinceEpoch(now));
+
         await _db
             .into(_db.divePlans)
-            .insertOnConflictUpdate(_planCompanion(plan, now, summary));
+            .insertOnConflictUpdate(_planCompanion(stored, now, summary));
 
         for (var i = 0; i < plan.tanks.length; i++) {
           await _db
@@ -228,6 +256,7 @@ class DivePlanRepository {
         );
       }
       SyncEventBus.notifyLocalChange();
+      return stored;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save plan ${plan.id}',
@@ -236,6 +265,27 @@ class DivePlanRepository {
       );
       rethrow;
     }
+  }
+
+  /// Returns [plan] with a [domain.DivePlan.siteId] that no longer names a
+  /// `dive_sites` row cleared, and [plan] itself otherwise.
+  ///
+  /// The plan keeps everything else: a deleted site costs the plan its site,
+  /// never the save. Deleting a site already clears the column on plans that
+  /// are stored (issue #1952); this is the same outcome for a plan whose id
+  /// was still only in memory when the site went.
+  Future<domain.DivePlan> _withResolvedSite(domain.DivePlan plan) async {
+    final siteId = plan.siteId;
+    if (siteId == null) return plan;
+    final site = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+    if (site != null) return plan;
+    _log.warning(
+      'Plan ${plan.id} names dive site $siteId, which no longer exists; '
+      'saving the plan without a site',
+    );
+    return plan.copyWith(clearSiteId: true);
   }
 
   Future<domain.DivePlan?> getPlan(String id) async {
@@ -409,7 +459,9 @@ class DivePlanRepository {
     final sourceRow = await (_db.select(
       _db.divePlans,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
-    await savePlan(
+    // The stored copy, not `copy`: a source plan set at a since-deleted site
+    // is duplicated without one, and the caller must see that.
+    return savePlan(
       copy,
       summary: sourceRow?.summaryMaxDepth != null
           ? PlanSummaryData(
@@ -419,7 +471,6 @@ class DivePlanRepository {
             )
           : null,
     );
-    return copy;
   }
 
   // ---- mapping ----

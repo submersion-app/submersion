@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/core/utils/locale_number_symbols.dart';
+import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_decimal_digits_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A row of pressure (optional) plus O2 plus He fields.
@@ -25,6 +28,7 @@ class BlenderMixRow extends StatelessWidget {
     this.priceController,
     this.priceLabel,
     this.onPriceChanged,
+    this.pressureMaxIntDigits = 3,
   });
 
   static const double _stackBelow = 420;
@@ -62,6 +66,13 @@ class BlenderMixRow extends StatelessWidget {
   final TextEditingController? priceController;
   final String? priceLabel;
   final ValueChanged<String>? onPriceChanged;
+
+  /// Digits allowed before the decimal separator in the pressure field
+  /// (issue #1876). Bar fill pressures never reach four digits, but psi
+  /// ones commonly do (e.g. a 300-bar cylinder is ~4350 psi), so the caller
+  /// derives this from the diver's pressure unit rather than one fixed cap
+  /// clipping every unit alike.
+  final int pressureMaxIntDigits;
 
   @override
   Widget build(BuildContext context) {
@@ -157,64 +168,82 @@ class BlenderMixRow extends StatelessWidget {
   );
 
   Widget _pressureField(BuildContext context) => _field(
+    context,
     controller: pressureController!,
     label: '${context.l10n.gasCalculators_blender_pressure} ($pressureSymbol)',
     onChanged: onPressure!,
+    maxIntDigits: pressureMaxIntDigits,
   );
 
   Widget _o2Field(BuildContext context) => _field(
+    context,
     controller: o2Controller,
     label: '${context.l10n.gasCalculators_blender_o2} (%)',
     onChanged: (_) => onMix(),
-    errorText: errorText,
+    sharedErrorText: errorText,
   );
 
   Widget _heField(BuildContext context) => _field(
+    context,
     controller: heController,
     label: '${context.l10n.gasCalculators_blender_he} (%)',
     onChanged: (_) => onMix(),
-    errorText: errorText,
+    sharedErrorText: errorText,
   );
 
   /// Like the pressure field, this never shows [errorText]: an invalid O2/He
   /// mix has nothing to do with the price the row's gas costs.
-  Widget _priceField(BuildContext context) {
-    return TextField(
-      controller: priceController,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-      decoration: InputDecoration(
-        labelText: priceLabel,
-        isDense: true,
-        border: const OutlineInputBorder(),
-      ),
-      onChanged: onPriceChanged,
-      onEditingComplete: onSave,
-      onSubmitted: onSave == null ? null : (_) => onSave!(),
-    );
-  }
+  Widget _priceField(BuildContext context) => _field(
+    context,
+    controller: priceController!,
+    label: priceLabel,
+    onChanged: onPriceChanged!,
+  );
 
-  /// [errorText] is passed in per field rather than read from the widget, so
-  /// that only the fields the message applies to carry it.
-  Widget _field({
+  /// One decimal field: digit-limited and auto-correcting an unambiguous
+  /// wrong decimal separator the same way as the rest of the mixer
+  /// (issue #1876), with a visible error only for what is left genuinely
+  /// unreadable after that correction. [sharedErrorText] is the pre-existing
+  /// "invalid mix" message passed in per field from the caller, shown only
+  /// when this field's own text is readable -- an unreadable keystroke is
+  /// the more immediate problem for the diver to fix first.
+  Widget _field(
+    BuildContext context, {
     required TextEditingController controller,
-    required String label,
+    required String? label,
     required ValueChanged<String> onChanged,
-    String? errorText,
+    String? sharedErrorText,
+    int maxIntDigits = 3,
   }) {
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-      decoration: InputDecoration(
-        labelText: label,
-        errorText: errorText,
-        isDense: true,
-        border: const OutlineInputBorder(),
-      ),
-      onChanged: onChanged,
-      onEditingComplete: onSave,
-      onSubmitted: onSave == null ? null : (_) => onSave!(),
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final text = controller.text;
+        final unreadable =
+            text.trim().isNotEmpty && smartParseUserDecimal(text) == null;
+        final errorText = unreadable
+            ? context.l10n.gasCalculators_blender_invalidNumber(
+                localeNumberFormat().symbols.DECIMAL_SEP,
+              )
+            : sharedErrorText;
+        return TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+            BlenderDecimalDigitsFormatter(maxIntDigits: maxIntDigits),
+          ],
+          decoration: InputDecoration(
+            labelText: label,
+            errorText: errorText,
+            isDense: true,
+            border: const OutlineInputBorder(),
+          ),
+          onChanged: onChanged,
+          onEditingComplete: onSave,
+          onSubmitted: onSave == null ? null : (_) => onSave!(),
+        );
+      },
     );
   }
 }

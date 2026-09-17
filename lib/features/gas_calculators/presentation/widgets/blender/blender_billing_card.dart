@@ -12,6 +12,7 @@ import 'package:submersion/features/gas_calculators/domain/blending/flush_fee.da
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_volume_conversion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -93,8 +94,14 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
             _flushFeeSettings(context, settings, units, currency),
             if (billing.lines.isNotEmpty) ...[
               const Divider(height: 28),
-              for (final line in billing.lines)
-                _costLine(context, line, units, settings, currency, decimals),
+              _costTable(
+                context,
+                billing.lines,
+                units,
+                settings,
+                currency,
+                decimals,
+              ),
               const Divider(height: 20),
               _totalLine(context, billing, currency),
               const SizedBox(height: 8),
@@ -128,6 +135,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
   void _saveFill(BuildContext context, BillingResult billing, String currency) {
     final target = ref.read(blenderTargetMixProvider);
     final label = formatPreciseMix(context, target);
+    final cylinderLiters = ref.read(blenderCylinderLitersProvider);
     final fill = BilledFill(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       label: label,
@@ -138,6 +146,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
             addedBar: line.addedBar,
             cost: line.cost,
             freeGasLiters: line.freeGasLiters,
+            cylinderLiters: cylinderLiters,
           ),
       ],
       total: billing.total,
@@ -283,45 +292,105 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
     );
   }
 
-  Widget _costLine(
+  static const List<int> _costFlex = [4, 4, 4, 4];
+
+  /// Units in a header row rather than repeated after every gas (issue #1876
+  /// follow-up), on the same flexible `Row`/`Expanded` grid the values below
+  /// it use so the columns compress in place on a narrow screen.
+  Widget _costTable(
     BuildContext context,
-    GasCostLine line,
+    List<GasCostLine> lines,
     UnitFormatter units,
     AppSettings settings,
     String currency,
     int decimals,
   ) {
-    final style = Theme.of(context).textTheme.bodyMedium;
+    final headerStyle = blenderTableHeaderStyle(context);
+    final valueStyle = blenderTableValueStyle(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: _costFlex[0],
+              child: Text(
+                context.l10n.gasCalculators_blender_flushFeeColumnGas,
+                style: headerStyle,
+              ),
+            ),
+            Expanded(
+              flex: _costFlex[1],
+              child: Text(
+                '${context.l10n.gasCalculators_blender_stepColumnAdded} '
+                '(${units.pressureSymbol})',
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            Expanded(
+              flex: _costFlex[2],
+              child: Text(
+                units.volumeSymbol,
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            Expanded(
+              flex: _costFlex[3],
+              child: Text(
+                currency,
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        for (final line in lines)
+          _costLine(context, line, units, currency, decimals, valueStyle),
+      ],
+    );
+  }
+
+  Widget _costLine(
+    BuildContext context,
+    GasCostLine line,
+    UnitFormatter units,
+    String currency,
+    int decimals,
+    TextStyle? style,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
           Expanded(
-            flex: 4,
+            flex: _costFlex[0],
             child: Text(formatPreciseGasName(context, line.gas), style: style),
           ),
           Expanded(
-            flex: 4,
+            flex: _costFlex[1],
             child: Text(
-              '+${units.formatPressure(line.addedBar, decimals: decimals)}',
+              '+${units.formatPressureValue(line.addedBar, decimals: decimals)}',
               style: style,
               textAlign: TextAlign.end,
             ),
           ),
           Expanded(
-            flex: 4,
+            flex: _costFlex[2],
             child: Text(
-              // formatVolume converts litres to the diver's unit itself.
+              // formatVolumeValue converts litres to the diver's unit itself.
               // Converting first made a cubic-foot diver's column read zero.
-              units.formatVolume(line.freeGasLiters),
+              units.formatVolumeValue(line.freeGasLiters),
               style: style,
               textAlign: TextAlign.end,
             ),
           ),
           Expanded(
-            flex: 4,
+            flex: _costFlex[3],
             child: Text(
-              line.cost == null ? '' : formatMoney(line.cost!, currency),
+              line.cost == null ? '' : formatFixedForInput(line.cost!, 2),
               style: style,
               textAlign: TextAlign.end,
             ),
@@ -414,63 +483,117 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
               },
             ),
           ),
-          for (var i = 0; i < BlenderGasRole.values.length; i++)
-            _flushFeeGasRow(context, ref, i, settings, units, currency),
+          _flushFeeTable(context, ref, settings, units, currency),
         ],
       ],
     );
   }
 
-  /// One tab-aligned row per gas: label, purge volume, price -- all three
-  /// rows lined up on the same columns (issue #44 follow-up) instead of the
-  /// former two stacked label/value blocks. Both figures are entered once,
-  /// next to their bank on the Fill gases settings card, and shown here as
-  /// plain text rather than a second, easily-drifting entry point for the
-  /// same numbers.
-  Widget _flushFeeGasRow(
+  /// Every gas's purge volume and rate on the same `_costFlex` grid the cost
+  /// table below it uses (issue #1876 follow-up): gas in column 1, column 2
+  /// left blank since a flush has no "added bar" of its own, volume in
+  /// column 3, rate in column 4 -- so both tables' columns share one set of
+  /// edges. Units sit in a header row rather than repeated per cell, so
+  /// narrow screens compress the columns in place instead of overflowing
+  /// off-screen the way `DataTable`'s fixed widths did. Both figures are
+  /// entered once, next to their bank on the Fill gases settings card, and
+  /// shown here as plain text rather than a second, easily-drifting entry
+  /// point for the same numbers.
+  Widget _flushFeeTable(
     BuildContext context,
     WidgetRef ref,
-    int index,
     AppSettings settings,
     UnitFormatter units,
     String currency,
   ) {
-    final role = BlenderGasRole.values[index];
-    final label = blenderGasRoleLabel(context, role);
-    final price = ref.watch(blenderGasPricesProvider)[index];
-    final volumeLiters = ref
-        .watch(blenderFlushFeeGasesProvider)[index]
-        .volumeLiters;
-    final style = Theme.of(context).textTheme.bodyMedium;
+    final prices = ref.watch(blenderGasPricesProvider);
+    final flushGases = ref.watch(blenderFlushFeeGasesProvider);
+    final headerStyle = blenderTableHeaderStyle(context);
+    final valueStyle = blenderTableValueStyle(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: _costFlex[0],
+              child: Text(
+                context.l10n.gasCalculators_blender_flushFeeColumnGas,
+                style: headerStyle,
+              ),
+            ),
+            Expanded(flex: _costFlex[1], child: const SizedBox()),
+            Expanded(
+              flex: _costFlex[2],
+              child: Text(
+                units.volumeSymbol,
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            Expanded(
+              flex: _costFlex[3],
+              child: Text(
+                '$currency/100${units.volumeSymbol}',
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        for (var i = 0; i < BlenderGasRole.values.length; i++)
+          _flushFeeGasRow(
+            context,
+            BlenderGasRole.values[i],
+            settings,
+            flushGases[i].volumeLiters,
+            prices[i],
+            valueStyle,
+          ),
+      ],
+    );
+  }
+
+  Widget _flushFeeGasRow(
+    BuildContext context,
+    BlenderGasRole role,
+    AppSettings settings,
+    double volumeLiters,
+    double? price,
+    TextStyle? style,
+  ) {
     return Padding(
       key: Key('blender-flush-fee-row-${role.name}'),
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
           Expanded(
-            flex: 5,
-            child: Text(
-              '$label ${context.l10n.gasCalculators_blender_flushFeeVolume}',
-              style: style,
-            ),
+            flex: _costFlex[0],
+            child: Text(blenderGasRoleLabel(context, role), style: style),
           ),
+          Expanded(flex: _costFlex[1], child: const SizedBox()),
           Expanded(
-            flex: 2,
+            flex: _costFlex[2],
             child: Text(
-              '${formatRoundedForInput(litersToDisplayVolume(volumeLiters, settings), 2)} '
-              '${units.volumeSymbol}',
+              formatRoundedForInput(
+                litersToDisplayVolume(volumeLiters, settings),
+                2,
+              ),
               key: Key('blender-flush-fee-volume-${role.name}'),
               style: style,
               textAlign: TextAlign.end,
             ),
           ),
           Expanded(
-            flex: 3,
+            flex: _costFlex[3],
             child: Text(
               price == null
                   ? ''
-                  : '${formatRoundedForInput(pricePer100LitersToDisplay(price, settings), 2)} '
-                        '$currency/100${units.volumeSymbol}',
+                  : formatRoundedForInput(
+                      pricePer100LitersToDisplay(price, settings),
+                      2,
+                    ),
               key: Key('blender-flush-fee-price-${role.name}'),
               style: style,
               textAlign: TextAlign.end,

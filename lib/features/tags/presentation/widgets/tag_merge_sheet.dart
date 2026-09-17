@@ -28,12 +28,19 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
   Map<TagScope, int>? _affected;
   bool _isMerging = false;
 
+  /// Most used first, in the Manage Tags list's order: dives, then sites,
+  /// then equipment (#1942). The first one seeds the name and the color, so
+  /// a merge of equipment-only tags starts from the one on the most items.
   List<TagStatistic> get _sortedStats {
-    final sorted = [...widget.selectedStats];
-    sorted.sort(
-      (a, b) => b.count(TagScope.dives).compareTo(a.count(TagScope.dives)),
-    );
-    return sorted;
+    int byUse(TagStatistic a, TagStatistic b) {
+      for (final scope in TagScope.values) {
+        final order = b.count(scope).compareTo(a.count(scope));
+        if (order != 0) return order;
+      }
+      return 0;
+    }
+
+    return [...widget.selectedStats]..sort(byUse);
   }
 
   @override

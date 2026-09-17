@@ -9,6 +9,7 @@ import 'package:submersion/features/gas_calculators/domain/blending/equation_of_
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/blender_settings_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_fill_gases_card.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_settings_action.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_blender_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -35,8 +36,13 @@ Future<String Function()> _pumpWithRouter(WidgetTester tester) async {
     routes: [
       GoRoute(
         path: '/gas-calculators',
-        builder: (context, state) =>
-            const Scaffold(body: GasBlenderCalculator()),
+        // The gear lives on the surrounding chrome now, not inside the
+        // calculator itself (issue #1876 follow-up); mirror
+        // GasCalculatorDetailPage's real assembly here.
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(actions: const [BlenderSettingsAction()]),
+          body: const GasBlenderCalculator(),
+        ),
       ),
       GoRoute(
         path: kTrimixMixerSettingsRoute,

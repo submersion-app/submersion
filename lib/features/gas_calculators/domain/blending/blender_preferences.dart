@@ -23,6 +23,18 @@ class MixTemplate {
 
   Map<String, dynamic> toJson() => {'o2': o2, 'he': he};
 
+  /// [templates] ordered O2 descending, He ascending on a tie (issue #1876):
+  /// a leaner mix first, and among equally-lean mixes the one with less
+  /// helium (so cheaper trimix sorts ahead of pricier trimix at the same O2).
+  static List<MixTemplate> sorted(List<MixTemplate> templates) {
+    final copy = List<MixTemplate>.of(templates);
+    copy.sort((a, b) {
+      final byO2 = b.o2.compareTo(a.o2);
+      return byO2 != 0 ? byO2 : a.he.compareTo(b.he);
+    });
+    return copy;
+  }
+
   static MixTemplate? fromJson(Object? json) {
     if (json is! Map) return null;
     final o2 = _toDouble(json['o2']);
@@ -106,12 +118,14 @@ class BlenderPreferences {
   /// The mixes named in issue #1100, seeded on first use only. A user who
   /// deletes all of them keeps an empty list, because seeding keys on the
   /// absence of the whole blob rather than on an empty list.
+  // Ordered O2 descending, He ascending on a tie (issue #1876 follow-up) --
+  // the same rule newly added templates are sorted by.
   static const List<MixTemplate> seedTemplates = [
-    MixTemplate(o2: 7, he: 75),
-    MixTemplate(o2: 10, he: 70),
-    MixTemplate(o2: 12, he: 60),
-    MixTemplate(o2: 15, he: 55),
     MixTemplate(o2: 18, he: 35),
+    MixTemplate(o2: 15, he: 55),
+    MixTemplate(o2: 12, he: 60),
+    MixTemplate(o2: 10, he: 70),
+    MixTemplate(o2: 7, he: 75),
   ];
 
   final List<MixTemplate> templates;

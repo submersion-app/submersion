@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 
 /// One stat slot on the detailed dive card: an optional leading icon plus
@@ -16,13 +18,15 @@ class DiveCardStat {
   const DiveCardStat({this.icon, required this.text, this.color});
 }
 
-/// The detailed dive card's stat line: the stat slots on the start side and
-/// the dive-type badges right-aligned on the same line.
+/// The detailed dive card's stat line: the stat slots on the start side, and
+/// the dive-type badges plus the dive mode badge right-aligned on the same
+/// line, with the mode badge last.
 ///
 /// A plain Row cannot share this line safely. The stats are rigid text, and
 /// giving them a Flexible splits the width evenly with the badges' Expanded
 /// no matter what each side needs. So this measures instead: the badges get
-/// their collapsed "+N" width reserved first, the stats get the remainder at
+/// their narrowest width reserved first (the type badges collapsed to "+N",
+/// the mode badge at its full width), the stats get the remainder at
 /// their natural width, and only when that remainder is too small do the
 /// stats ellipsize, each under a fair share of it (see [fairShareWidths]).
 /// The badges then take whatever the stats leave, expanding back out of
@@ -30,15 +34,18 @@ class DiveCardStat {
 class DiveCardStatRow extends StatelessWidget {
   final List<DiveCardStat> stats;
   final List<String> diveTypeLabels;
+  final DiveMode diveMode;
 
   const DiveCardStatRow({
     super.key,
     required this.stats,
     required this.diveTypeLabels,
+    required this.diveMode,
   });
 
   static const _statGap = 16.0;
   static const _badgeGap = 8.0;
+  static const _modeGap = 6.0;
   static const _iconSize = 14.0;
   static const _iconGap = 4.0;
 
@@ -95,14 +102,18 @@ class DiveCardStatRow extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final naturals = [for (final stat in stats) naturalWidth(stat)];
-        final badgeReserve = diveTypeLabels.isEmpty
+        final typeReserve = diveTypeLabels.isEmpty
             ? 0.0
-            : _badgeGap +
-                  DiveTypeBadgeRow.minWidthOf(
+            : DiveTypeBadgeRow.minWidthOf(
                     context,
                     diveTypeLabels,
                     dense: true,
-                  );
+                  ) +
+                  _modeGap;
+        final badgeReserve =
+            _badgeGap +
+            typeReserve +
+            DiveModeBadge.widthOf(context, diveMode, dense: true);
         final gaps = _statGap * math.max(0, stats.length - 1);
         final widths = constraints.maxWidth.isFinite
             ? fairShareWidths(
@@ -121,15 +132,29 @@ class DiveCardStatRow extends StatelessWidget {
                 child: _buildStat(stats[i], styleOf(stats[i]), widths[i]),
               ),
             ],
-            if (diveTypeLabels.isNotEmpty) ...[
-              const SizedBox(width: _badgeGap),
-              Expanded(
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: DiveTypeBadgeRow(labels: diveTypeLabels, dense: true),
+            const SizedBox(width: _badgeGap),
+            // Within the badge cell the type badges are the ones that give:
+            // they collapse into "+N" while the mode badge keeps its width.
+            Expanded(
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (diveTypeLabels.isNotEmpty) ...[
+                      Flexible(
+                        child: DiveTypeBadgeRow(
+                          labels: diveTypeLabels,
+                          dense: true,
+                        ),
+                      ),
+                      const SizedBox(width: _modeGap),
+                    ],
+                    DiveModeBadge(mode: diveMode, dense: true),
+                  ],
                 ),
               ),
-            ],
+            ),
           ],
         );
       },

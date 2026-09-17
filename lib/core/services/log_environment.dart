@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/app_version.dart';
+import 'package:submersion/core/utils/os_version.dart';
 
 /// Value shown wherever a field could not be determined.
 const _unknown = 'unknown';
@@ -28,6 +29,9 @@ class LogEnvironment {
   final String platform;
 
   /// Full OS version string, e.g. `Version 26.6 (Build 23G93)`.
+  ///
+  /// Corrected by [normalizeOsVersion] before it is stored, so a Windows 11
+  /// machine is not recorded as the Windows 10 it claims to be (#1982).
   final String osVersion;
 
   /// Host locale, e.g. `de_DE.UTF-8`.
@@ -89,7 +93,10 @@ class LogEnvironment {
     var locale = _unknown;
     try {
       platform = Platform.operatingSystem;
-      osVersion = Platform.operatingSystemVersion;
+      osVersion = normalizeOsVersion(
+        platform: platform,
+        version: Platform.operatingSystemVersion,
+      );
       locale = Platform.localeName;
     } on Object {
       // Platform getters throw on unsupported hosts (e.g. web).
