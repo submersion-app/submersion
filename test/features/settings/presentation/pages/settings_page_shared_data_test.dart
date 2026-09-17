@@ -147,6 +147,11 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
   Future<BlenderPreferences?> getBlenderPreferences() async => null;
   @override
   Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
+
+  @override
+  Future<bool> getNavAlwaysHideLabels() async => false;
+  @override
+  Future<void> setNavAlwaysHideLabels(bool value) async {}
 }
 
 /// Mock SettingsNotifier that doesn't access the database.

@@ -41,6 +41,11 @@ const Map<String, ImportEntityType> siteListRefTypes = {
   'tagRefs': ImportEntityType.tags,
 };
 
+/// Equipment map fields holding a list of entity references (issue #1942).
+const Map<String, ImportEntityType> equipmentListRefTypes = {
+  'tagRefs': ImportEntityType.tags,
+};
+
 /// Service record field naming the equipment item it belongs to.
 const Map<String, ImportEntityType> serviceRecordRefTypes = {
   'equipmentRef': ImportEntityType.equipment,

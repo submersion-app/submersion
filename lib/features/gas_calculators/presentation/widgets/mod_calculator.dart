@@ -109,10 +109,17 @@ class ModCalculator extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Result card
+              //
+              // ppO2 is stated in bar regardless of the depth/pressure unit
+              // setting: it is a fixed diving convention (like gas density in
+              // g/L), not a diver-configurable quantity.
               Semantics(
-                label:
-                    'Maximum Operating Depth: ${displayMod.toStringAsFixed(1)} $primaryUnit '
-                    'at ${ppO2.toStringAsFixed(1)} bar ppO2 with ${o2.toStringAsFixed(0)}% oxygen',
+                label: context.l10n.gasCalculators_mod_semanticsLabel(
+                  displayMod.toStringAsFixed(1),
+                  primaryUnit,
+                  ppO2.toStringAsFixed(1),
+                  o2.toStringAsFixed(0),
+                ),
                 child: Card(
                   color: colorScheme.primaryContainer,
                   child: Padding(

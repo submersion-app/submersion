@@ -39,6 +39,23 @@ void main() {
     });
   });
 
+  group('AppSettingsRepository.getNavAlwaysHideLabels', () {
+    test('defaults to false when key is absent', () async {
+      expect(await repository.getNavAlwaysHideLabels(), isFalse);
+    });
+
+    test('round-trips true', () async {
+      await repository.setNavAlwaysHideLabels(true);
+      expect(await repository.getNavAlwaysHideLabels(), isTrue);
+    });
+
+    test('round-trips false after being set to true', () async {
+      await repository.setNavAlwaysHideLabels(true);
+      await repository.setNavAlwaysHideLabels(false);
+      expect(await repository.getNavAlwaysHideLabels(), isFalse);
+    });
+  });
+
   group('AppSettingsRepository.getBlenderPreferences', () {
     test('returns null when never written', () async {
       expect(await repository.getBlenderPreferences(), isNull);

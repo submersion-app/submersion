@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_settings_action.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_blender_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_calculators_summary_widget.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_consumption_calculator.dart';
@@ -52,12 +53,22 @@ class GasCalculatorDetailPage extends StatelessWidget {
             );
     }
 
+    // Only the blender has chrome-level actions today (its settings gear,
+    // issue #1876 follow-up); every other calculator's page stays plain.
+    final actions = toolId == 'blender'
+        ? const [BlenderSettingsAction()]
+        : const <Widget>[];
+
     if (embedded) {
-      return PlanningToolPane(title: tool.title, child: calculator);
+      return PlanningToolPane(
+        title: tool.title,
+        actions: actions,
+        child: calculator,
+      );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(tool.title)),
+      appBar: AppBar(title: Text(tool.title), actions: actions),
       body: calculator,
     );
   }

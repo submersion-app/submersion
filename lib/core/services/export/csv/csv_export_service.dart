@@ -68,11 +68,13 @@ class CsvExportService {
   Future<String> exportEquipmentToCsv(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    Map<String, List<String>> tagNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     final csvData = generateEquipmentCsvContent(
       equipment,
       componentNames: componentNames,
+      tagNames: tagNames,
       units: units,
     );
     return saveAndShareFile(csvData, 'equipment_export.csv', 'text/csv');
@@ -188,13 +190,15 @@ class CsvExportService {
   /// Generate CSV content for equipment (without sharing).
   /// [componentNames] maps an assembly's id to its parts' names in template
   /// order (issue #1487); items absent from it get an empty cell.
+  /// [tagNames] maps an item's id to its tag names (issue #1942).
   String generateEquipmentCsvContent(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    Map<String, List<String>> tagNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
   }) => CsvEquipmentWriter(
     units,
-  ).write(equipment, componentNames: componentNames);
+  ).write(equipment, componentNames: componentNames, tagNames: tagNames);
 
   // ==================== Save to File ====================
 
@@ -251,12 +255,14 @@ class CsvExportService {
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
+    Map<String, List<String>> tagNames = const {},
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     final csvContent = generateEquipmentCsvContent(
       equipment,
       componentNames: componentNames,
+      tagNames: tagNames,
       units: units,
     );
     final dateStr = _dateFormat.format(DateTime.now());

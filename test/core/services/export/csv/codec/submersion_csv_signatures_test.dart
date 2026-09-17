@@ -60,4 +60,13 @@ void main() {
     );
     expect(SubmersionCsvSignatures.match(['Date', 'Time', 'Depth']), isNull);
   });
+
+  test('an equipment export from before the Tags column still matches', () {
+    // Detection uses containsAll over a fixed signature, so the new column
+    // is optional (issue #1942).
+    final headers = _headers(
+      CsvEquipmentWriter(CsvExportUnits.metric).write(goldenEquipment()),
+    )..remove('Tags');
+    expect(SubmersionCsvSignatures.match(headers), SubmersionCsvKind.equipment);
+  });
 }

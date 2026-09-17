@@ -58,13 +58,16 @@ void main() {
       ];
 
       const filter = EquipmentFilterState(type: EquipmentType.bcd);
-      expect(filter.apply(equipment).map((e) => e.id), ['bcd']);
+      expect(filter.apply(equipment, const {}).map((e) => e.id), ['bcd']);
     });
 
     test('apply passes the list through when no category is selected', () {
       final equipment = [_item('reg', EquipmentType.regulator)];
 
-      expect(const EquipmentFilterState().apply(equipment), same(equipment));
+      expect(
+        const EquipmentFilterState().apply(equipment, const {}),
+        same(equipment),
+      );
     });
 
     test('clearStatus resets both halves of the status axis', () {
@@ -137,7 +140,7 @@ void main() {
         type: EquipmentType.hose,
         attrConditions: [hp],
       );
-      expect(filter.apply(equipment).map((e) => e.id), ['hp1']);
+      expect(filter.apply(equipment, const {}).map((e) => e.id), ['hp1']);
       expect(filter.hasActiveFilters, isTrue);
     });
 

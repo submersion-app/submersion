@@ -4,126 +4,188 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// A tag can be scoped to dives, sites, or both (#1849), and deleting or
-/// merging it rewrites every dive and site that carries it. These messages
-/// name only what is actually affected (#1902). Usage arrives as a map per
-/// scope (#1942).
+const _d = TagScope.dives;
+const _s = TagScope.sites;
+const _e = TagScope.equipment;
+
+/// One combination of affected scopes and the English each family gives it.
+typedef _Case = ({
+  String name,
+  Map<TagScope, int> usage,
+  String delete,
+  String bulk,
+  String merge,
+});
+
+/// Every combination of affected scopes (#1902, #1942). A tag can carry any
+/// mix of dives, sites and equipment, and each message names exactly what a
+/// delete or merge rewrites, one whole sentence per combination.
+const List<_Case> _cases = [
+  (
+    name: 'dives only',
+    usage: {_d: 12},
+    delete: '"Reef" will be removed from 12 dives. This cannot be undone.',
+    bulk:
+        'These tags will be removed from 12 dives total. '
+        'This cannot be undone.',
+    merge: 'This will affect 12 dives total.',
+  ),
+  (
+    name: 'sites only',
+    usage: {_s: 3},
+    delete: '"Reef" will be removed from 3 sites. This cannot be undone.',
+    bulk:
+        'These tags will be removed from 3 sites total. '
+        'This cannot be undone.',
+    merge: 'This will affect 3 sites total.',
+  ),
+  (
+    name: 'equipment only',
+    usage: {_e: 5},
+    delete:
+        '"Reef" will be removed from 5 equipment items. '
+        'This cannot be undone.',
+    bulk:
+        'These tags will be removed from 5 equipment items total. '
+        'This cannot be undone.',
+    merge: 'This will affect 5 equipment items total.',
+  ),
+  (
+    name: 'dives and sites',
+    usage: {_d: 12, _s: 1},
+    delete:
+        '"Reef" will be removed from 12 dives and 1 site. '
+        'This cannot be undone.',
+    bulk:
+        'These tags will be removed from 12 dives and 1 site total. '
+        'This cannot be undone.',
+    merge: 'This will affect 12 dives and 1 site total.',
+  ),
+  (
+    name: 'dives and equipment',
+    usage: {_d: 1, _e: 2},
+    delete:
+        '"Reef" will be removed from 1 dive and 2 equipment items. '
+        'This cannot be undone.',
+    bulk:
+        'These tags will be removed from 1 dive and 2 equipment items '
+        'total. This cannot be undone.',
+    merge: 'This will affect 1 dive and 2 equipment items total.',
+  ),
+  (
+    name: 'sites and equipment',
+    usage: {_s: 2, _e: 1},
+    delete:
+        '"Reef" will be removed from 2 sites and 1 equipment item. '
+        'This cannot be undone.',
+    bulk:
+        'These tags will be removed from 2 sites and 1 equipment item '
+        'total. This cannot be undone.',
+    merge: 'This will affect 2 sites and 1 equipment item total.',
+  ),
+  (
+    name: 'dives, sites and equipment',
+    usage: {_d: 12, _s: 3, _e: 5},
+    delete:
+        '"Reef" will be removed from 12 dives, 3 sites, and 5 equipment '
+        'items. This cannot be undone.',
+    bulk:
+        'These tags will be removed from 12 dives, 3 sites, and 5 '
+        'equipment items total. This cannot be undone.',
+    merge: 'This will affect 12 dives, 3 sites, and 5 equipment items total.',
+  ),
+  (
+    name: 'nothing',
+    usage: {_d: 0, _s: 0, _e: 0},
+    delete:
+        '"Reef" is not used on any dives, sites, or equipment. '
+        'This cannot be undone.',
+    bulk:
+        'These tags are not used on any dives, sites, or equipment. '
+        'This cannot be undone.',
+    merge: 'These tags are not used on any dives, sites, or equipment.',
+  ),
+];
+
 void main() {
   final l10n = lookupAppLocalizations(const Locale('en'));
 
-  Map<TagScope, int> usage({int dives = 0, int sites = 0}) => {
-    TagScope.dives: dives,
-    TagScope.sites: sites,
-  };
-
   group('tagDeleteMessage', () {
-    test('names dives only', () {
-      expect(
-        tagDeleteMessage(l10n, 'Wreck', usage(dives: 12)),
-        '"Wreck" will be removed from 12 dives. This cannot be undone.',
-      );
-    });
-
-    test('names sites only, the case #1902 reported', () {
-      expect(
-        tagDeleteMessage(l10n, 'To try', usage(sites: 3)),
-        '"To try" will be removed from 3 sites. This cannot be undone.',
-      );
-    });
-
-    test('names dives and sites', () {
-      expect(
-        tagDeleteMessage(l10n, 'Reef', usage(dives: 12, sites: 1)),
-        '"Reef" will be removed from 12 dives and 1 site. '
-        'This cannot be undone.',
-      );
-    });
-
-    test('says an unused tag is on nothing', () {
-      expect(
-        tagDeleteMessage(l10n, 'Old', usage()),
-        '"Old" is not used on any dives or sites. This cannot be undone.',
-      );
-    });
+    for (final c in _cases) {
+      test('names ${c.name}', () {
+        expect(tagDeleteMessage(l10n, 'Reef', c.usage), c.delete);
+      });
+    }
   });
 
   group('tagsBulkDeleteMessage', () {
-    test('names dives only', () {
-      expect(
-        tagsBulkDeleteMessage(l10n, usage(dives: 1)),
-        'These tags will be removed from 1 dive total. This cannot be undone.',
-      );
-    });
-
-    test('names sites only', () {
-      expect(
-        tagsBulkDeleteMessage(l10n, usage(sites: 4)),
-        'These tags will be removed from 4 sites total. '
-        'This cannot be undone.',
-      );
-    });
-
-    test('names dives and sites', () {
-      expect(
-        tagsBulkDeleteMessage(l10n, usage(dives: 7, sites: 2)),
-        'These tags will be removed from 7 dives and 2 sites total. '
-        'This cannot be undone.',
-      );
-    });
-
-    test('says unused tags are on nothing', () {
-      expect(
-        tagsBulkDeleteMessage(l10n, usage()),
-        'These tags are not used on any dives or sites. '
-        'This cannot be undone.',
-      );
-    });
+    for (final c in _cases) {
+      test('names ${c.name}', () {
+        expect(tagsBulkDeleteMessage(l10n, c.usage), c.bulk);
+      });
+    }
   });
 
   group('tagsMergeAffectedMessage', () {
-    test('names dives only', () {
-      expect(
-        tagsMergeAffectedMessage(l10n, usage(dives: 14)),
-        'This will affect 14 dives total.',
-      );
-    });
+    for (final c in _cases) {
+      test('names ${c.name}', () {
+        expect(tagsMergeAffectedMessage(l10n, c.usage), c.merge);
+      });
+    }
+  });
 
-    test('names sites only', () {
+  test('each family gives every combination a message of its own', () {
+    final families = <String Function(Map<TagScope, int>)>[
+      (usage) => tagDeleteMessage(l10n, 'Reef', usage),
+      (usage) => tagsBulkDeleteMessage(l10n, usage),
+      (usage) => tagsMergeAffectedMessage(l10n, usage),
+    ];
+    for (final family in families) {
       expect(
-        tagsMergeAffectedMessage(l10n, usage(sites: 1)),
-        'This will affect 1 site total.',
+        _cases.map((c) => family(c.usage)).toSet(),
+        hasLength(_cases.length),
       );
-    });
+    }
+  });
 
-    test('names dives and sites', () {
-      expect(
-        tagsMergeAffectedMessage(l10n, usage(dives: 3, sites: 5)),
-        'This will affect 3 dives and 5 sites total.',
-      );
-    });
-
-    test('says unused tags affect nothing', () {
-      expect(
-        tagsMergeAffectedMessage(l10n, usage()),
-        'These tags are not used on any dives or sites.',
-      );
-    });
+  test('a scope missing from the usage map counts as zero', () {
+    expect(
+      tagDeleteMessage(l10n, 'Reef', const {}),
+      '"Reef" is not used on any dives, sites, or equipment. '
+      'This cannot be undone.',
+    );
+    expect(
+      tagsMergeAffectedMessage(l10n, const {_e: 5}),
+      'This will affect 5 equipment items total.',
+    );
   });
 
   group('tagUsageCounts', () {
-    test('shows dives alone when no site carries the tag', () {
-      expect(tagUsageCounts(l10n, usage(dives: 12)), '12 dives');
+    test('shows dives alone when nothing else carries the tag', () {
+      expect(tagUsageCounts(l10n, const {_d: 12}), '12 dives');
     });
 
     test('adds sites when some carry the tag', () {
-      expect(tagUsageCounts(l10n, usage(sites: 3)), '0 dives, 3 sites');
+      expect(tagUsageCounts(l10n, const {_s: 3}), '0 dives, 3 sites');
     });
 
-    test('reads a scope the map lacks as zero', () {
+    test('adds equipment items when some carry the tag (#1942)', () {
+      expect(tagUsageCounts(l10n, const {_e: 5}), '0 dives, 5 equipment items');
       expect(
-        tagUsageCounts(l10n, const {TagScope.sites: 2}),
-        '0 dives, 2 sites',
+        tagUsageCounts(l10n, const {_d: 1, _e: 1}),
+        '1 dive, 1 equipment item',
       );
+    });
+
+    test('lists every scope in registry order', () {
+      expect(
+        tagUsageCounts(l10n, const {_e: 5, _s: 3, _d: 12}),
+        '12 dives, 3 sites, 5 equipment items',
+      );
+    });
+
+    test('leaves out a zero site or equipment count', () {
+      expect(tagUsageCounts(l10n, const {_d: 2, _s: 0, _e: 0}), '2 dives');
     });
   });
 }

@@ -119,6 +119,14 @@ class AccessSafetySection extends StatelessWidget {
       children: [
         _row(
           context,
+          key: 'parkingInfo',
+          label: l10n.diveSites_edit_access_parkingInfo_label,
+          controller: parkingInfoController,
+          placeholder: l10n.diveSites_edit_access_parkingInfo_hint,
+          maxLines: 2,
+        ),
+        _row(
+          context,
           key: 'accessNotes',
           label: l10n.diveSites_edit_access_accessNotes_label,
           controller: accessNotesController,
@@ -146,14 +154,6 @@ class AccessSafetySection extends StatelessWidget {
           label: l10n.diveSites_edit_access_mooringNumber_label,
           controller: mooringNumberController,
           placeholder: l10n.diveSites_edit_access_mooringNumber_hint,
-        ),
-        _row(
-          context,
-          key: 'parkingInfo',
-          label: l10n.diveSites_edit_access_parkingInfo_label,
-          controller: parkingInfoController,
-          placeholder: l10n.diveSites_edit_access_parkingInfo_hint,
-          maxLines: 2,
         ),
         _row(
           context,

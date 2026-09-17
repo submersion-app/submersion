@@ -629,6 +629,31 @@ void main() {
     );
   });
 
+  testWidgets('a chart selection at time 0 seeks playback to 00:00', (
+    tester,
+  ) async {
+    // The chart reports time 0 for its surface lead-in vertex, which has no
+    // profile sample; playback must land on 00:00, not the first sample.
+    final container = ProviderContainer(overrides: _defaultOverrides());
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(_wrapContainer(container, size: _desktopSize));
+    await tester.pumpAndSettle();
+    expect(container.read(playbackProvider('d1')).isActive, isTrue);
+
+    final chart = tester.widget<DiveProfileChart>(
+      find.byType(DiveProfileChart),
+    );
+    chart.onTimeSelected!(300);
+    await tester.pump();
+    expect(container.read(playbackProvider('d1')).currentTimestamp, 300);
+
+    chart.onTimeSelected!(0);
+    await tester.pump();
+    expect(container.read(playbackProvider('d1')).currentTimestamp, 0);
+    expect(container.read(profileReviewProvider('d1')), 0);
+  });
+
   group('phone layout', () {
     testWidgets('no transport bar below the chart', (tester) async {
       await tester.pumpWidget(_wrap(_defaultOverrides(), size: _phoneSize));
@@ -681,7 +706,7 @@ void main() {
       final chart = tester.widget<DiveProfileChart>(
         find.byType(DiveProfileChart),
       );
-      chart.onPointSelected!(3);
+      chart.onTimeSelected!(30);
       await tester.pump();
 
       expect(container.read(profileReviewProvider('d1')), 30);

@@ -323,7 +323,9 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.textContaining('CHF/100'), findsWidgets);
+        // The unit and currency now sit once in the column headers instead
+        // of being repeated on every row.
+        expect(find.textContaining('CHF/100'), findsOneWidget);
         expect(find.text('Price'), findsNothing);
       },
     );

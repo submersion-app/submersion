@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/flush_fee.dart';
@@ -52,6 +53,12 @@ Future<WidgetRef> _pump(
 }
 
 void main() {
+  late String? previousLocale;
+
+  setUp(() => previousLocale = Intl.defaultLocale);
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   testWidgets('rows are labelled by role, not by bank number', (tester) async {
     // Issue #42: banks are identities (oxygen, helium, topup) rather than
     // positions, and the defaults fill oxygen, then helium, then topup.
@@ -271,4 +278,150 @@ void main() {
     );
     expect(o2Volume.controller?.text, '40');
   });
+
+  testWidgets('a dot under a German locale is auto-corrected to the price it '
+      'unambiguously means, with no error', (tester) async {
+    // Under de, '.' is the grouping separator, not the decimal one, but
+    // "12.5" cannot be a well-formed grouping either way (a group of one
+    // digit), so it unambiguously means 12,5 -- smartParseUserDecimal
+    // corrects it rather than discarding it (#1091's original fix stays
+    // intact for the genuinely ambiguous shapes).
+    Intl.defaultLocale = 'de';
+    final ref = await _pump(
+      tester,
+      overrides: [
+        blenderGasPricesProvider.overrideWith((ref) => const [9.5, null, null]),
+      ],
+    );
+
+    await tester.enterText(
+      find.byKey(const Key('blender-gas-price-o2')),
+      '12.5',
+    );
+    await tester.pump();
+
+    final field = tester.widget<TextField>(
+      find.byKey(const Key('blender-gas-price-o2')),
+    );
+    expect(field.decoration?.errorText, isNull);
+    expect(
+      ref.read(blenderGasPricesProvider)[BlenderGasRole.o2.index],
+      closeTo(12.5, 0.001),
+    );
+  });
+
+  testWidgets(
+    'a dot under a German locale is auto-corrected on the flush volume '
+    'field too',
+    (tester) async {
+      Intl.defaultLocale = 'de';
+      final ref = await _pump(tester);
+
+      await tester.enterText(
+        find.byKey(const Key('blender-flush-fee-volume-o2')),
+        '12.5',
+      );
+      await tester.pump();
+
+      final field = tester.widget<TextField>(
+        find.byKey(const Key('blender-flush-fee-volume-o2')),
+      );
+      expect(field.decoration?.errorText, isNull);
+      expect(
+        ref
+            .read(blenderFlushFeeGasesProvider)[BlenderGasRole.o2.index]
+            .volumeLiters,
+        closeTo(12.5, 0.001),
+      );
+    },
+  );
+
+  testWidgets('a valid comma decimal under a German locale clears the error', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'de';
+    await _pump(tester);
+
+    await tester.enterText(
+      find.byKey(const Key('blender-gas-price-o2')),
+      '12,5',
+    );
+    await tester.pump();
+
+    final field = tester.widget<TextField>(
+      find.byKey(const Key('blender-gas-price-o2')),
+    );
+    expect(field.decoration?.errorText, isNull);
+  });
+
+  testWidgets(
+    'a genuinely unreadable price shows the error and keeps the price '
+    'that was already stored',
+    (tester) async {
+      // A lone separator has nothing on either side for
+      // smartParseUserDecimal to correct, unlike the single-dot-under-German
+      // case above -- genuinely unreadable under any locale. The stored
+      // price must survive the bad keystroke rather than being discarded
+      // (see _priceOrKeep/#1876 hardening).
+      final ref = await _pump(
+        tester,
+        overrides: [
+          blenderGasPricesProvider.overrideWith(
+            (ref) => const [9.5, null, null],
+          ),
+        ],
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('blender-gas-price-o2')),
+        ',',
+      );
+      await tester.pump();
+
+      final field = tester.widget<TextField>(
+        find.byKey(const Key('blender-gas-price-o2')),
+      );
+      expect(field.decoration?.errorText, isNotNull);
+      expect(
+        ref.read(blenderGasPricesProvider)[BlenderGasRole.o2.index],
+        closeTo(9.5, 0.001),
+      );
+    },
+  );
+
+  testWidgets(
+    'a genuinely unreadable flush volume shows the error and keeps the '
+    'volume that was already stored',
+    (tester) async {
+      final ref = await _pump(
+        tester,
+        overrides: [
+          blenderFlushFeeGasesProvider.overrideWith(
+            (ref) => const [
+              FlushFeeGasSetting(volumeLiters: 40),
+              FlushFeeGasSetting(volumeLiters: 20),
+              FlushFeeGasSetting(volumeLiters: 20),
+            ],
+          ),
+        ],
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('blender-flush-fee-volume-o2')),
+        ',',
+      );
+      await tester.pump();
+
+      final field = tester.widget<TextField>(
+        find.byKey(const Key('blender-flush-fee-volume-o2')),
+      );
+      expect(field.decoration?.errorText, isNotNull);
+      expect(
+        ref
+            .read(blenderFlushFeeGasesProvider)[BlenderGasRole.o2.index]
+            .volumeLiters,
+        closeTo(40, 0.001),
+      );
+    },
+  );
 }

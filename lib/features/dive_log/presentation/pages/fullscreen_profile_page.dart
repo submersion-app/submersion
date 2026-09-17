@@ -535,11 +535,11 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                 finding: finding,
                                 dismissed: true,
                               ),
-                          onPointSelected: (index) {
-                            if (index == null || index >= chartProfile.length) {
-                              return;
-                            }
-                            final timestamp = chartProfile[index].timestamp;
+                          // Time, not sample index: the surface lead-in
+                          // before the first sample reports 0, so playback
+                          // and the tooltip agree on 00:00.
+                          onTimeSelected: (timestamp) {
+                            if (timestamp == null) return;
                             ref
                                     .read(
                                       profileReviewProvider(
