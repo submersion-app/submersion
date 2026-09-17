@@ -6900,6 +6900,7 @@
   "universalImport_fillPlanned_importAsNew": "Importa invece come nuova immersione",
   "universalImport_fillPlanned_undo": "Annulla completamenti",
   "universalImport_fillPlanned_undone": "Immersioni pianificate ripristinate",
+  "universalImport_fillPlanned_undoFailed": "Impossibile ripristinare tutte le immersioni pianificate. Riprova.",
   "universalImport_label_taggedAs": "Taggato come: {tag}",
   "universalImport_label_unknownDate": "Data sconosciuta",
   "universalImport_label_unnamed": "Senza nome",

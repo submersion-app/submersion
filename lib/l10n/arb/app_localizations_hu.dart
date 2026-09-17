@@ -23477,6 +23477,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tervezett merülések visszaállítva';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Nem sikerült minden tervezett merülést visszaállítani. Próbáld újra.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Címkézve mint: $tag';
   }

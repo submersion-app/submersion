@@ -22961,6 +22961,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_fillPlanned_undone => 'צלילות מתוכננות שוחזרו';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'לא ניתן היה לשחזר את כל הצלילות המתוכננות. נסו שוב.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'מתויג כ: $tag';
   }

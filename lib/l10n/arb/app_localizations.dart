@@ -38101,6 +38101,12 @@ abstract class AppLocalizations {
   /// **'Planned dives restored'**
   String get universalImport_fillPlanned_undone;
 
+  /// No description provided for @universalImport_fillPlanned_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not restore every planned dive. Try again.'**
+  String get universalImport_fillPlanned_undoFailed;
+
   /// Text showing the batch tag applied to imported items
   ///
   /// In en, this message translates to:

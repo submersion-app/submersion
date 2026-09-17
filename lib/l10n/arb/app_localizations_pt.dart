@@ -23544,6 +23544,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mergulhos planejados restaurados';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Não foi possível restaurar todos os mergulhos planejados. Tente novamente.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Marcado como: $tag';
   }

@@ -6904,6 +6904,7 @@
   "universalImport_fillPlanned_importAsNew": "Inkább új merülésként importálás",
   "universalImport_fillPlanned_undo": "Kitöltések visszavonása",
   "universalImport_fillPlanned_undone": "Tervezett merülések visszaállítva",
+  "universalImport_fillPlanned_undoFailed": "Nem sikerült minden tervezett merülést visszaállítani. Próbáld újra.",
   "universalImport_label_taggedAs": "Címkézve mint: {tag}",
   "universalImport_label_unknownDate": "Ismeretlen dátum",
   "universalImport_label_unnamed": "Névtelen",

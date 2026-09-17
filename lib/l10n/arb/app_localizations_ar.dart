@@ -23142,6 +23142,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمت استعادة الغوصات المخططة';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'تعذرت استعادة كل الغوصات المخططة. حاول مرة أخرى.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'موسوم كـ: $tag';
   }

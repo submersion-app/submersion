@@ -23630,6 +23630,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plongées planifiées restaurées';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Impossible de restaurer toutes les plongées planifiées. Réessayez.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Étiqueté comme : $tag';
   }

@@ -6904,6 +6904,7 @@
   "universalImport_fillPlanned_importAsNew": "Importer comme nouvelle plongée à la place",
   "universalImport_fillPlanned_undo": "Annuler les compléments",
   "universalImport_fillPlanned_undone": "Plongées planifiées restaurées",
+  "universalImport_fillPlanned_undoFailed": "Impossible de restaurer toutes les plongées planifiées. Réessayez.",
   "universalImport_label_taggedAs": "Étiqueté comme : {tag}",
   "universalImport_label_unknownDate": "Date inconnue",
   "universalImport_label_unnamed": "Sans nom",

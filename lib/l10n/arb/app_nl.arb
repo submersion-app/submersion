@@ -7008,6 +7008,7 @@
   "universalImport_fillPlanned_importAsNew": "In plaats daarvan als nieuwe duik importeren",
   "universalImport_fillPlanned_undo": "Invullen ongedaan maken",
   "universalImport_fillPlanned_undone": "Geplande duiken hersteld",
+  "universalImport_fillPlanned_undoFailed": "Niet elke geplande duik kon worden hersteld. Probeer het opnieuw.",
   "universalImport_label_taggedAs": "Getagd als: {tag}",
   "universalImport_label_unknownDate": "Onbekende datum",
   "universalImport_label_unnamed": "Naamloos",

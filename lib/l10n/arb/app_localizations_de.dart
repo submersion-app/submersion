@@ -23489,6 +23489,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Geplante Tauchgänge wiederhergestellt';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Nicht alle geplanten Tauchgänge konnten wiederhergestellt werden. Versuche es erneut.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Getaggt als: $tag';
   }

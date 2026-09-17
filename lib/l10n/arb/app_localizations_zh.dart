@@ -22287,6 +22287,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_fillPlanned_undone => '已恢复计划的潜水';
 
   @override
+  String get universalImport_fillPlanned_undoFailed => '无法恢复所有计划的潜水。请重试。';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return '标记为：$tag';
   }

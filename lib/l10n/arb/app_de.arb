@@ -7008,6 +7008,7 @@
   "universalImport_fillPlanned_importAsNew": "Stattdessen als neuen Tauchgang importieren",
   "universalImport_fillPlanned_undo": "Ausfüllen rückgängig machen",
   "universalImport_fillPlanned_undone": "Geplante Tauchgänge wiederhergestellt",
+  "universalImport_fillPlanned_undoFailed": "Nicht alle geplanten Tauchgänge konnten wiederhergestellt werden. Versuche es erneut.",
   "universalImport_label_taggedAs": "Getaggt als: {tag}",
   "universalImport_label_unknownDate": "Unbekanntes Datum",
   "universalImport_label_unnamed": "Unbenannt",

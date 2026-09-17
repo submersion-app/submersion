@@ -7008,6 +7008,7 @@
   "universalImport_fillPlanned_importAsNew": "Importar como inmersión nueva en su lugar",
   "universalImport_fillPlanned_undo": "Deshacer completados",
   "universalImport_fillPlanned_undone": "Inmersiones planificadas restauradas",
+  "universalImport_fillPlanned_undoFailed": "No se pudieron restaurar todas las inmersiones planificadas. Inténtalo de nuevo.",
   "universalImport_label_taggedAs": "Etiquetado como: {tag}",
   "universalImport_label_unknownDate": "Fecha desconocida",
   "universalImport_label_unnamed": "Sin nombre",

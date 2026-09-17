@@ -7008,6 +7008,7 @@
   "universalImport_fillPlanned_importAsNew": "Importar como um novo mergulho em vez disso",
   "universalImport_fillPlanned_undo": "Desfazer preenchimentos",
   "universalImport_fillPlanned_undone": "Mergulhos planejados restaurados",
+  "universalImport_fillPlanned_undoFailed": "Não foi possível restaurar todos os mergulhos planejados. Tente novamente.",
   "universalImport_label_taggedAs": "Marcado como: {tag}",
   "universalImport_label_unknownDate": "Data desconhecida",
   "universalImport_label_unnamed": "Sem nome",

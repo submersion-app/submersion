@@ -23151,6 +23151,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_fillPlanned_undone => 'Planned dives restored';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Could not restore every planned dive. Try again.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Tagged as: $tag';
   }

@@ -7194,6 +7194,7 @@
   "universalImport_fillPlanned_importAsNew": "改为作为新潜水导入",
   "universalImport_fillPlanned_undo": "撤销填充",
   "universalImport_fillPlanned_undone": "已恢复计划的潜水",
+  "universalImport_fillPlanned_undoFailed": "无法恢复所有计划的潜水。请重试。",
   "universalImport_label_taggedAs": "标记为：{tag}",
   "universalImport_label_unknownDate": "未知日期",
   "universalImport_label_unnamed": "未命名",

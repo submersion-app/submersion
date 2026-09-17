@@ -23355,6 +23355,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_fillPlanned_undone => 'Geplande duiken hersteld';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Niet elke geplande duik kon worden hersteld. Probeer het opnieuw.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Getagd als: $tag';
   }

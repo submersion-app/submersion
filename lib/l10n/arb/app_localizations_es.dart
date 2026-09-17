@@ -23560,6 +23560,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inmersiones planificadas restauradas';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'No se pudieron restaurar todas las inmersiones planificadas. Inténtalo de nuevo.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Etiquetado como: $tag';
   }

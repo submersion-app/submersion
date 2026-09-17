@@ -23542,6 +23542,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Immersioni pianificate ripristinate';
 
   @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Impossibile ripristinare tutte le immersioni pianificate. Riprova.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Taggato come: $tag';
   }
