@@ -4,6 +4,9 @@
   "equipment_components_add": "Add component",
   "equipment_components_containsSection": "Contains",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
+  "equipment_rowLabel_identifier": "ID {identifier}",
+  "equipment_rowLabel_serial": "S/N {serial}",
+  "equipment_rowLabel_purchased": "Bought {date}",
   "equipment_components_countOfTotal": "{total, plural, =1{{count} of 1 component} other{{count} of {total} components}}",
   "@equipment_components_countOfTotal": {
     "placeholders": {

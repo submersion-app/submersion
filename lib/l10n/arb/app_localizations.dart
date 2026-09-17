@@ -146,6 +146,24 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 component} other{{count} components}}'**
   String equipment_components_count(num count);
 
+  /// No description provided for @equipment_rowLabel_identifier.
+  ///
+  /// In en, this message translates to:
+  /// **'ID {identifier}'**
+  String equipment_rowLabel_identifier(Object identifier);
+
+  /// No description provided for @equipment_rowLabel_serial.
+  ///
+  /// In en, this message translates to:
+  /// **'S/N {serial}'**
+  String equipment_rowLabel_serial(Object serial);
+
+  /// No description provided for @equipment_rowLabel_purchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought {date}'**
+  String equipment_rowLabel_purchased(Object date);
+
   /// No description provided for @equipment_components_countOfTotal.
   ///
   /// In en, this message translates to:

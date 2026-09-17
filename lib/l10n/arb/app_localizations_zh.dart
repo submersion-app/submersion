@@ -35,6 +35,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return '编号 $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return '序列号 $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return '购买于 $date';
+  }
+
+  @override
   String equipment_components_countOfTotal(int count, int total) {
     String _temp0 = intl.Intl.pluralLogic(
       total,

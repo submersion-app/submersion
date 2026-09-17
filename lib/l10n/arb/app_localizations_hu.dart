@@ -35,6 +35,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'Azonosító: $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'Sorozatszám: $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'Vásárolva: $date';
+  }
+
+  @override
   String equipment_components_countOfTotal(int count, int total) {
     String _temp0 = intl.Intl.pluralLogic(
       total,

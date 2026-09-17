@@ -35,6 +35,21 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'ID $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'S/N $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'Gekocht $date';
+  }
+
+  @override
   String equipment_components_countOfTotal(int count, int total) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
