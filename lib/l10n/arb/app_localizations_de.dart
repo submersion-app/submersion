@@ -7520,9 +7520,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_menuCollapseAllTrips => 'Alle Reisen zuklappen';
 
   @override
-  String get diveLog_listPage_tripGroupLabel => 'REISE';
-
-  @override
   String diveLog_listPage_tripGroupDiveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

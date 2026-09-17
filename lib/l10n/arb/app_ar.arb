@@ -2600,7 +2600,6 @@
   "diveLog_listPage_menuGroupTrips": "تجميع الرحلات",
   "diveLog_listPage_menuExpandAllTrips": "توسيع كل الرحلات",
   "diveLog_listPage_menuCollapseAllTrips": "طي كل الرحلات",
-  "diveLog_listPage_tripGroupLabel": "رحلة",
   "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} من {total} غوصات",
   "diveLog_listPage_tripGroupExpand": "إظهار غوصات {tripName}",

@@ -2496,7 +2496,6 @@
   "diveLog_listPage_menuGroupTrips": "Utak csoportositasa",
   "diveLog_listPage_menuExpandAllTrips": "Minden ut kibontasa",
   "diveLog_listPage_menuCollapseAllTrips": "Minden ut osszecsukasa",
-  "diveLog_listPage_tripGroupLabel": "UT",
   "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 merules} other{{count} merules}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} / {total} merules",
   "diveLog_listPage_tripGroupExpand": "{tripName} merulesei megjelenitese",

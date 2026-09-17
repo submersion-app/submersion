@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sect
 import 'package:submersion/features/dive_log/presentation/providers/trip_group_collapse_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/trip_group_rail.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
@@ -2024,13 +2025,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
-  /// One trip: a faint full-bleed band behind a pinned header and its dives.
+  /// One trip: a thin gutter rail beside a pinned header and its dives.
   ///
-  /// The band is a [DecoratedSliver] rather than a widget wrapping the rows,
-  /// for two reasons. It keeps the rows lazily built, and it makes the grouped
-  /// region WIDER than the cards it contains rather than narrower, which is
-  /// the whole constraint of #1193. Nothing in here may touch the cards' own
-  /// margins.
+  /// The rail is a [DecoratedSliver] rather than a widget wrapping the rows,
+  /// for two reasons. It keeps the rows lazily built, and it paints in the
+  /// margin the cards already leave empty rather than taking space from them,
+  /// which is the whole constraint of #1193. Nothing in here may touch the
+  /// cards' own margins.
+  ///
+  /// This replaced a near-opaque tinted band with a 2px accent border above
+  /// and below it. The band had to be that heavy to read at all, because the
+  /// cards cover everything but its margins, and the result was the loudest
+  /// thing on the page.
   Widget _buildTripSectionSliver(
     BuildContext context,
     TripSection section,
@@ -2044,22 +2050,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         : (checkedInGroup == groupIds.length ? true : null);
 
     return DecoratedSliver(
-      decoration: BoxDecoration(
-        // The band is the only thing besides the header marking the group,
-        // now that the side rail was dropped, so it has to be legible rather
-        // than merely present.
-        //
-        // Checked on a simulator rather than guessed at. The dive cards are
-        // near-white and nearly fill the band's width, so only the margins
-        // and the gaps between cards show the tint at all: a faint alpha
-        // reads as nothing, and raising it a little only darkens thin
-        // slivers. It takes close to the full container colour for the group
-        // to read as one block. 0.14 and 0.38 were both too weak on device.
-        color: scheme.secondaryContainer.withValues(alpha: 0.9),
-        border: Border(
-          top: BorderSide(color: scheme.secondary, width: 2),
-          bottom: BorderSide(color: scheme.secondary, width: 2),
-        ),
+      decoration: GutterRailDecoration(
+        // Unlike the band this replaced, the rail is never covered by a card,
+        // so it does not need to fight for legibility with opacity. Half
+        // alpha keeps it quiet while still reading as a deliberate mark.
+        color: scheme.secondary.withValues(alpha: 0.5),
       ),
       sliver: SliverMainAxisGroup(
         slivers: [

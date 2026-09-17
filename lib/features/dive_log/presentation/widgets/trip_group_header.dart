@@ -9,7 +9,12 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Base height of a trip group header at the default text scale.
-const double _kHeaderBaseExtent = 62;
+///
+/// 48 rather than the 62 the filled version needed: the header no longer draws
+/// a card, so it spends no height on that card's padding, and the kicker line
+/// that pushed the name down is gone. It stays at 48 rather than shrinking
+/// further because the open-trip button inside it needs a full tap target.
+const double _kHeaderBaseExtent = 48;
 
 /// Height of the pinned trip header, grown for the ambient text scale.
 ///
@@ -86,65 +91,38 @@ class TripGroupHeader extends ConsumerWidget {
       label: section.collapsed
           ? l10n.diveLog_listPage_tripGroupExpand(section.tripName)
           : l10n.diveLog_listPage_tripGroupCollapse(section.tripName),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-        child: Material(
-          color: scheme.secondaryContainer,
-          borderRadius: BorderRadius.circular(12),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onToggle,
+      // No fill, no border, no rounded card: the group is marked by the rail
+      // in the list's gutter, and this reads as a heading over the list
+      // rather than as a control sitting on top of it. The Material stays,
+      // transparent, because the InkWell still needs one to splash on.
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 4),
             child: Row(
               children: [
-                Container(
-                  width: 4,
-                  height: double.infinity,
-                  color: scheme.secondary,
-                ),
-                const SizedBox(width: 10),
-                Icon(
-                  Icons.card_travel,
-                  size: 18,
-                  color: scheme.onSecondaryContainer,
-                ),
-                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            l10n.diveLog_listPage_tripGroupLabel,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: scheme.onSecondaryContainer,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              section.tripName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: scheme.onSecondaryContainer,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        section.tripName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       Text(
                         '$dateText  ·  $countText',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSecondaryContainer.withValues(
-                            alpha: 0.8,
-                          ),
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -159,6 +137,7 @@ class TripGroupHeader extends ConsumerWidget {
                 else
                   IconButton(
                     icon: const Icon(Icons.open_in_new, size: 18),
+                    color: scheme.onSurfaceVariant,
                     tooltip: l10n.diveLog_listPage_tripGroupOpenTrip(
                       section.tripName,
                     ),
@@ -166,7 +145,8 @@ class TripGroupHeader extends ConsumerWidget {
                   ),
                 Icon(
                   section.collapsed ? Icons.chevron_right : Icons.expand_more,
-                  color: scheme.onSecondaryContainer,
+                  size: 20,
+                  color: scheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 4),
               ],

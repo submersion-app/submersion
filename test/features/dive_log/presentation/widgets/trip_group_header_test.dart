@@ -165,6 +165,24 @@ void main() {
       expect(find.byIcon(Icons.open_in_new), findsNothing);
     });
 
+    testWidgets('carries no kicker, no trip icon and no fill', (tester) async {
+      // The quiet treatment: the trip reads as a heading over the list, not
+      // as a filled card with a label in front of the name.
+      await pumpHeader(tester, value: section());
+
+      expect(find.text('TRIP'), findsNothing);
+      expect(find.byIcon(Icons.card_travel), findsNothing);
+      final material = tester.widget<Material>(
+        find
+            .descendant(
+              of: find.byType(TripGroupHeader),
+              matching: find.byType(Material),
+            )
+            .first,
+      );
+      expect(material.color, Colors.transparent);
+    });
+
     testWidgets('a partly selected group reads as mixed', (tester) async {
       await pumpHeader(
         tester,
@@ -181,6 +199,26 @@ void main() {
 
 void _extentTests() {
   group('tripGroupHeaderExtent', () {
+    testWidgets('is 48 at the default text scale', (tester) async {
+      // Down from 62: the header lost its card padding, its kicker line and
+      // its icon, and 48 still clears the minimum tap target for the
+      // open-trip button that sits inside it.
+      late double extent;
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(),
+          child: Builder(
+            builder: (context) {
+              extent = tripGroupHeaderExtent(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      expect(extent, 48);
+    });
+
     testWidgets('grows past 200% instead of capping', (tester) async {
       // The cap this replaced reintroduced the very clipping the fixed extent
       // exists to prevent: both iOS and Android offer accessibility text sizes

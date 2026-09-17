@@ -2600,7 +2600,6 @@
   "diveLog_listPage_menuGroupTrips": "Reizen groeperen",
   "diveLog_listPage_menuExpandAllTrips": "Alle reizen uitklappen",
   "diveLog_listPage_menuCollapseAllTrips": "Alle reizen inklappen",
-  "diveLog_listPage_tripGroupLabel": "REIS",
   "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 duik} other{{count} duiken}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} van {total} duiken",
   "diveLog_listPage_tripGroupExpand": "Duiken van {tripName} tonen",

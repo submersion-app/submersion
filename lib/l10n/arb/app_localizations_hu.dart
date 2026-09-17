@@ -7503,9 +7503,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_menuCollapseAllTrips => 'Minden ut osszecsukasa';
 
   @override
-  String get diveLog_listPage_tripGroupLabel => 'UT';
-
-  @override
   String diveLog_listPage_tripGroupDiveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
