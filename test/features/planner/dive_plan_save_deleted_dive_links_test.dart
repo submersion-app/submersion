@@ -22,7 +22,10 @@ import '../../helpers/test_database.dart';
 ///
 /// `savePlan` therefore resolves both dive links as it writes and drops an id
 /// that no longer names a row, keeping the plan: a dead link costs the plan its
-/// link, never the save.
+/// link, never the save. A dead source dive also takes the surface interval
+/// that separated the plan from it, as unfollowing the dive does, so the plan
+/// is stored as a plain first dive rather than a repetitive one with no dive
+/// behind it.
 void main() {
   late DivePlanRepository repository;
   late AppDatabase db;
@@ -50,17 +53,21 @@ void main() {
   Future<void> deleteDive(String id) =>
       (db.delete(db.dives)..where((t) => t.id.equals(id))).go();
 
-  domain.DivePlan planLinking({String? sourceDiveId, String? linkedDiveId}) =>
-      domain.DivePlan(
-        id: 'plan-1',
-        name: 'Reef dive',
-        gfLow: 30,
-        gfHigh: 70,
-        sourceDiveId: sourceDiveId,
-        linkedDiveId: linkedDiveId,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-      );
+  domain.DivePlan planLinking({
+    String? sourceDiveId,
+    String? linkedDiveId,
+    Duration? surfaceInterval,
+  }) => domain.DivePlan(
+    id: 'plan-1',
+    name: 'Reef dive',
+    gfLow: 30,
+    gfHigh: 70,
+    sourceDiveId: sourceDiveId,
+    linkedDiveId: linkedDiveId,
+    surfaceInterval: surfaceInterval,
+    createdAt: DateTime(2026, 1, 1),
+    updatedAt: DateTime(2026, 1, 1),
+  );
 
   test(
     'savePlan stores a plan whose source dive was deleted, without the link',
@@ -141,6 +148,43 @@ void main() {
     final loaded = await repository.getPlan('plan-1');
     expect(loaded!.sourceDiveId, 'dive-1');
     expect(loaded.linkedDiveId, 'dive-2');
+  });
+
+  test(
+    'savePlan drops the surface interval along with a dead source dive',
+    () async {
+      await seedDive('dive-1');
+      final plan = planLinking(
+        sourceDiveId: 'dive-1',
+        surfaceInterval: const Duration(hours: 2),
+      );
+      await deleteDive('dive-1');
+
+      final stored = await repository.savePlan(plan);
+
+      expect(stored.surfaceInterval, isNull);
+      expect((await repository.getPlan('plan-1'))!.surfaceInterval, isNull);
+    },
+  );
+
+  test('savePlan keeps the surface interval while the source dive exists, '
+      'even when the linked dive went', () async {
+    await seedDive('dive-1');
+    await seedDive('dive-2');
+    final plan = planLinking(
+      sourceDiveId: 'dive-1',
+      linkedDiveId: 'dive-2',
+      surfaceInterval: const Duration(hours: 2),
+    );
+    await deleteDive('dive-2');
+
+    final stored = await repository.savePlan(plan);
+
+    expect(stored.surfaceInterval, const Duration(hours: 2));
+    expect(
+      (await repository.getPlan('plan-1'))!.surfaceInterval,
+      const Duration(hours: 2),
+    );
   });
 
   test('savePlan leaves a plan with no dive links alone', () async {

@@ -57,7 +57,8 @@ class DivePlanRepository {
   ///
   /// Returns the plan as it was stored, which is not always the plan passed
   /// in: a [domain.DivePlan.siteId], [domain.DivePlan.sourceDiveId] or
-  /// [domain.DivePlan.linkedDiveId] that no longer names a row is dropped,
+  /// [domain.DivePlan.linkedDiveId] that no longer names a row is dropped (a
+  /// dropped source dive taking [domain.DivePlan.surfaceInterval] with it),
   /// and [domain.DivePlan.updatedAt] carries the stamp this save wrote rather
   /// than the one submitted. Callers holding the plan in memory should adopt
   /// the returned value.
@@ -280,6 +281,10 @@ class DivePlanRepository {
   /// for a plan whose id was still only in memory when the row went.
   ///
   /// The references are independent, so a plan can lose one and keep another.
+  /// The one exception is the surface interval, which only means something as
+  /// the gap after the source dive: it goes with that dive, as unfollowing the
+  /// dive in the planner does, so the plan is stored as a plain first dive
+  /// rather than a repetitive one with nothing to repeat.
   Future<domain.DivePlan> _withResolvedReferences(domain.DivePlan plan) async {
     final siteGone = await _isDangling(
       plan.siteId,
@@ -303,6 +308,7 @@ class DivePlanRepository {
     return plan.copyWith(
       clearSiteId: siteGone,
       clearSourceDiveId: sourceDiveGone,
+      clearSurfaceInterval: sourceDiveGone,
       clearLinkedDiveId: linkedDiveGone,
     );
   }

@@ -800,6 +800,18 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
         stored.sourceDiveId == null && state.sourceDiveId == plan.sourceDiveId;
     final linkedDiveWentAway =
         stored.linkedDiveId == null && state.linkedDiveId == plan.linkedDiveId;
+    // A dropped source dive takes the context it seeded, as clearFollowedDive
+    // does. The tissues are never stored, so leaving them would keep seeding
+    // deco for a plan that no longer follows a dive, and the schedule would
+    // change silently on the next reload. The repository drops the surface
+    // interval with the dive. Each keeps the same guard: tissues or an
+    // interval the diver set during the async gap are a newer choice.
+    final tissuesWentAway =
+        sourceDiveWentAway &&
+        identical(state.initialTissueState, submitted.initialTissueState);
+    final surfaceIntervalWentAway =
+        stored.surfaceInterval == null &&
+        state.surfaceInterval == plan.surfaceInterval;
     // What was written describes the plan as it was submitted, so an edit made
     // during that async gap is not in the database and the plan is still
     // dirty. Clearing the flag unconditionally disables Save and strands the
@@ -811,6 +823,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       isDirty: editedDuringSave,
       clearSiteId: siteWentAway,
       clearSourceDiveId: sourceDiveWentAway,
+      clearInitialTissueState: tissuesWentAway,
+      clearSurfaceInterval: surfaceIntervalWentAway,
       clearLinkedDiveId: linkedDiveWentAway,
     );
   }
