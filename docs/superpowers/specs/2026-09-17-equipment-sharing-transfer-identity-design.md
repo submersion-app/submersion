@@ -212,7 +212,10 @@ Per row: title `item.name`; subtitle parts joined with " · ":
 `fullName` when it differs from the name, then "ID <identifier>" when set.
 When two or more rows in `visibleRows` still produce the same title and
 subtitle, each of them appends the first field, in this order, whose value
-differs across the colliding group: serial number, size, purchase date. Size
+differs across the colliding group: serial number, size, purchase date. Rows
+that still read the same after one field are regrouped and go on to the next,
+so two of four identical pouches can be split by serial number and the other
+two by purchase date. Size
 is free text and shows as written; the date goes through the active diver's
 date format. If nothing
 differs, the rows stay identical; the builder never invents a counter, since

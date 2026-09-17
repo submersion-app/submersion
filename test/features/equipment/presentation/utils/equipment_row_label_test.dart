@@ -111,6 +111,32 @@ void main() {
     expect(labels['b']!.subtitle, 'Palantic Drop-Bottom');
   });
 
+  test('rows a tie-break leaves colliding move on to the next one', () {
+    // Four rows collide. Serial separates two of them; the two with no
+    // serial still read the same, and only the purchase date can split them.
+    final labels = buildEquipmentRowLabels([
+      _pouch('d', purchased: DateTime(2025, 6, 1)),
+      _pouch('b', serial: 'X2'),
+      _pouch('c', purchased: DateTime(2024, 3, 9)),
+      _pouch('a', serial: 'X1'),
+    ], _strings);
+    expect(labels['a']!.subtitle, 'Palantic Drop-Bottom · S/N X1');
+    expect(labels['b']!.subtitle, 'Palantic Drop-Bottom · S/N X2');
+    expect(labels['c']!.subtitle, 'Palantic Drop-Bottom · Bought 2024-3-9');
+    expect(labels['d']!.subtitle, 'Palantic Drop-Bottom · Bought 2025-6-1');
+  });
+
+  test('a shared serial number falls through to the size', () {
+    final labels = buildEquipmentRowLabels([
+      _pouch('b', serial: 'X1', size: 'L'),
+      _pouch('a', serial: 'X1', size: 'M'),
+      _pouch('c'),
+    ], _strings);
+    expect(labels['a']!.subtitle, 'Palantic Drop-Bottom · S/N X1 · M');
+    expect(labels['b']!.subtitle, 'Palantic Drop-Bottom · S/N X1 · L');
+    expect(labels['c']!.subtitle, 'Palantic Drop-Bottom');
+  });
+
   test('truly identical rows stay identical: no invented counter', () {
     final labels = buildEquipmentRowLabels([
       _pouch('a'),
