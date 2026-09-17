@@ -279,6 +279,42 @@ void main() {
       expect(modeRect.top, greaterThan(titleRect.bottom));
     });
 
+    testWidgets('mirrors in RTL: the mode badge stays at the trailing edge', (
+      tester,
+    ) async {
+      // The whole card mirrors in RTL (the badge cell aligns with
+      // AlignmentDirectional.centerEnd), so "right-most" becomes left-most:
+      // the mode badge keeps the card's outer edge rather than being pinned
+      // physically right, which would strand it inside the cluster.
+      await tester.pumpWidget(
+        harness(
+          builder: (resolve, isVisible) => Directionality(
+            textDirection: TextDirection.rtl,
+            child: DiveListTile(
+              diveId: 'd1',
+              diveNumber: 7,
+              dateTime: DateTime(2026, 3, 15),
+              siteName: 'Blue Hole',
+              maxDepth: 20.0,
+              duration: const Duration(minutes: 30),
+              summary: summaryWith(['wreck', 'night']),
+              onTap: () {},
+              diveTypeShortLabelResolver: resolve,
+              diveTypeListVisibilityPredicate: isVisible,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final cardRect = tester.getRect(find.byType(Card));
+      final modeRect = tester.getRect(find.byType(DiveModeBadge));
+      final typeRowRect = tester.getRect(find.byType(DiveTypeBadgeRow));
+      expect(modeRect.center.dx, lessThan(cardRect.center.dx));
+      expect(modeRect.right, lessThanOrEqualTo(typeRowRect.left));
+      expect(modeRect.center.dy, closeTo(typeRowRect.center.dy, 0.5));
+    });
+
     testWidgets('fits a phone-width row with types and the mode badge', (
       tester,
     ) async {
