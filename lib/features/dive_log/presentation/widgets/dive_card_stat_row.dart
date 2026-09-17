@@ -144,14 +144,16 @@ class DiveCardStatRow extends StatelessWidget {
       softWrap: false,
       overflow: TextOverflow.ellipsis,
     );
-    // Too narrow for the icon as well: drop it rather than overflow.
-    if (stat.icon == null || width < _iconSize + _iconGap) return text;
+    // Narrower than the icon itself: drop it rather than overflow.
+    if (stat.icon == null || width < _iconSize) return text;
     return Row(
       children: [
         ExcludeSemantics(
           child: Icon(stat.icon, size: _iconSize, color: style?.color),
         ),
-        const SizedBox(width: _iconGap),
+        // Between the icon's width and icon plus gap, the gap shrinks and
+        // the text gets nothing, so the icon stays without overflowing.
+        SizedBox(width: math.min(_iconGap, width - _iconSize)),
         Flexible(child: text),
       ],
     );

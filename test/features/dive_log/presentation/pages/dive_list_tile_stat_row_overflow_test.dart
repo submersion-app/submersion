@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
@@ -98,6 +99,19 @@ void main() {
     );
   }
 
+  CardViewConfig configWithStat2(DiveField field) {
+    final base = CardViewConfig.defaultDetailed();
+    return base.copyWith(
+      slots: [
+        for (final slot in base.slots)
+          if (slot.slotId == 'stat2')
+            CardSlotConfig(slotId: 'stat2', field: field)
+          else
+            slot,
+      ],
+    );
+  }
+
   final widths = [for (var w = 280.0; w <= 360.0; w += 10) w];
 
   group('DiveListTile stat row at narrow master-pane widths', () {
@@ -118,24 +132,33 @@ void main() {
       testWidgets('a long stat value fits at ${width}px', (tester) async {
         // A joined dive-type list in a stat slot is far wider than any
         // numeric stat, so the stats must give way rather than overflow.
-        final base = CardViewConfig.defaultDetailed();
-        final config = base.copyWith(
-          slots: [
-            for (final slot in base.slots)
-              if (slot.slotId == 'stat2')
-                const CardSlotConfig(
-                  slotId: 'stat2',
-                  field: DiveField.diveTypeName,
-                )
-              else
-                slot,
-          ],
+        await tester.pumpWidget(
+          buildTile(
+            width: width,
+            config: configWithStat2(DiveField.diveTypeName),
+          ),
         );
-
-        await tester.pumpWidget(buildTile(width: width, config: config));
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
+      });
+    }
+
+    for (final width in widths) {
+      testWidgets('a stat without an icon fits at ${width}px', (tester) async {
+        // Icon-less fields render as "<short label>: <value>" instead.
+        const field = DiveField.siteLatitude;
+        final label = field.localizedShortLabel(
+          lookupAppLocalizations(const Locale('en')),
+        );
+
+        await tester.pumpWidget(
+          buildTile(width: width, config: configWithStat2(field)),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.textContaining('$label: '), findsOneWidget);
       });
     }
   });
