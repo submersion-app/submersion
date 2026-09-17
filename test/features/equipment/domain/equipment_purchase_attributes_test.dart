@@ -55,6 +55,7 @@ void main() {
       expect(keys, [
         EquipmentAttrKeys.buoyancyKg,
         EquipmentAttrKeys.dryWeightKg,
+        EquipmentAttrKeys.identifier,
         EquipmentAttrKeys.sku,
         EquipmentAttrKeys.retailer,
         EquipmentAttrKeys.productUrl,

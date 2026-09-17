@@ -130,6 +130,11 @@ void main() {
             key: EquipmentAttrKeys.installedDate,
             valueNum: DateTime(2025, 1, 1).millisecondsSinceEpoch.toDouble(),
           ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.identifier,
+            valueText: 'B1',
+          ),
         ],
       ),
     );
@@ -142,6 +147,8 @@ void main() {
     expect(stored.attrNum(EquipmentAttrKeys.rechargeable), 1);
     expect(text(EquipmentAttrKeys.retailer), isNull);
     expect(stored.installedDate, now);
+    // The identifier names one physical cell, so the new one starts unmarked.
+    expect(stored.identifier, isNull);
   });
 
   Future<(EquipmentItem, EquipmentItem)> ccrWithCell() async {

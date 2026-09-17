@@ -12,7 +12,7 @@ void main() {
       // Universal attrs are always present.
       expect(
         defs.map((d) => d.key),
-        containsAll(['buoyancy_kg', 'dry_weight_kg']),
+        containsAll(['buoyancy_kg', 'dry_weight_kg', 'tank_identifier']),
         reason: '${type.name} missing universal attributes',
       );
       // No duplicate keys within a type.
@@ -23,6 +23,12 @@ void main() {
         reason: '${type.name} has duplicate keys',
       );
     }
+  });
+
+  test('the identifier is a spec-group text attribute on every type', () {
+    final def = EquipmentAttributeCatalog.defFor(EquipmentAttrKeys.identifier);
+    expect(def?.kind, AttributeKind.text);
+    expect(def?.group, AttributeGroup.spec);
   });
 
   test('type-specific expectations', () {
@@ -50,6 +56,7 @@ void main() {
       unorderedEquals([
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         // Present on every type since issue #1517.
         'sku',
         'retailer',
@@ -215,6 +222,7 @@ void main() {
         'depth_rating_m',
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         'sku',
         'retailer',
         'product_url',
@@ -332,6 +340,7 @@ void main() {
         'upf_rating',
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         'sku',
         'retailer',
         'product_url',
@@ -359,6 +368,7 @@ void main() {
         'purge_valve',
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         'sku',
         'retailer',
         'product_url',
@@ -377,6 +387,7 @@ void main() {
         'size',
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         'sku',
         'retailer',
         'product_url',
@@ -396,6 +407,7 @@ void main() {
         'mount',
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         'sku',
         'retailer',
         'product_url',
@@ -429,6 +441,7 @@ void main() {
         'mount',
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         'sku',
         'retailer',
         'product_url',
@@ -510,6 +523,7 @@ void main() {
         'depth_rating_m',
         'buoyancy_kg',
         'dry_weight_kg',
+        'tank_identifier',
         'sku',
         'retailer',
         'product_url',
