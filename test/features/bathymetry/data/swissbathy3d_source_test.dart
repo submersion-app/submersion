@@ -1641,6 +1641,74 @@ nodata_value -9999
 
         expect(grid.depthAt(0, 0), closeTo(405.92 - 100.0, 1e-9));
       });
+
+      test('one known site with corrupt coordinates does not abort '
+          'pre-caching for every OTHER known site in the same call', () async {
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+        const corruptSite = GeoPoint(double.nan, double.nan);
+
+        var downloadCalls = 0;
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                return http.Response(
+                  jsonEncode({
+                    'features': [
+                      {
+                        'bbox': _requestedBbox(req),
+                        'assets': {
+                          'grid': {
+                            'href': 'https://example.org/shared_lake.zip',
+                          },
+                        },
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              downloadCalls++;
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                    2685,
+                    1240,
+                    100.0,
+                  ),
+                  'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                    2690,
+                    1245,
+                    200.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          // The corrupt entry is listed FIRST, so a missing per-site
+          // guard would abort the loop before ever reaching the valid
+          // sibling after it.
+          knownSiteLocations: () async => [corruptSite, siblingPoint],
+        );
+
+        await source.fetch(zurichseePoint, spanMeters: 100);
+        await settle();
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final cached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(cached, isNotNull);
+        expect(cached!.grid.depthAt(0, 0), closeTo(405.92 - 200.0, 1e-9));
+        expect(downloadCalls, 1);
+      });
     },
   );
 

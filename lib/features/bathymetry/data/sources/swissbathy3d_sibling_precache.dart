@@ -56,25 +56,33 @@ Future<void> _precacheSiblingSites(
   final siblingTiles =
       <String, ({int tileE, int tileN, SwissLakeLevel lake})>{};
   for (final site in sites) {
-    final lv95 = Lv95Transform.fromWgs84(site.latitude, site.longitude);
-    final tileE = (lv95.easting / SwissBathy3dSource.tileSizeMeters).floor();
-    final tileN = (lv95.northing / SwissBathy3dSource.tileSizeMeters).floor();
-    // Resolved the same way fetch() resolves every tile's own lake
-    // (tile-center first, the site's own point only as a fallback for a
-    // tile whose center misses every registered bbox) rather than the
-    // site's raw point alone -- otherwise a site near a real lake-boundary
-    // overlap could get cached here under a different lake (and so a
-    // different reference level) than a real visit to that same tile
-    // would resolve via fetch(), self-healing on that later visit but
-    // wasting this pre-cache attempt in the meantime (Copilot review).
-    final tileLake =
-        findSwissLake(_tileCenterWgs84(tileE, tileN)) ?? findSwissLake(site);
-    if (tileLake == null || !lakeNames.contains(tileLake.name)) continue;
-    siblingTiles['${tileE}_$tileN'] = (
-      tileE: tileE,
-      tileN: tileN,
-      lake: tileLake,
-    );
+    try {
+      final lv95 = Lv95Transform.fromWgs84(site.latitude, site.longitude);
+      final tileE = (lv95.easting / SwissBathy3dSource.tileSizeMeters).floor();
+      final tileN = (lv95.northing / SwissBathy3dSource.tileSizeMeters).floor();
+      // Resolved the same way fetch() resolves every tile's own lake
+      // (tile-center first, the site's own point only as a fallback for a
+      // tile whose center misses every registered bbox) rather than the
+      // site's raw point alone -- otherwise a site near a real
+      // lake-boundary overlap could get cached here under a different
+      // lake (and so a different reference level) than a real visit to
+      // that same tile would resolve via fetch(), self-healing on that
+      // later visit but wasting this pre-cache attempt in the meantime
+      // (Copilot review).
+      final tileLake =
+          findSwissLake(_tileCenterWgs84(tileE, tileN)) ?? findSwissLake(site);
+      if (tileLake == null || !lakeNames.contains(tileLake.name)) continue;
+      siblingTiles['${tileE}_$tileN'] = (
+        tileE: tileE,
+        tileN: tileN,
+        lake: tileLake,
+      );
+    } catch (_) {
+      // One site's own bad coordinates (e.g. a corrupted lat/lon row)
+      // must not abort pre-caching for every OTHER known site in this
+      // call -- exactly like the per-tile fetch loop below already
+      // tolerates one tile's failure without affecting its siblings.
+    }
   }
   if (siblingTiles.isEmpty) return;
 
