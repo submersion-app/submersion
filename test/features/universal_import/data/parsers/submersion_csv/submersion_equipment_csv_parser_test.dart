@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_equipment_csv_parser.dart';
@@ -11,9 +14,6 @@ import 'package:submersion/features/universal_import/data/parsers/submersion_csv
 import '../../../../../core/services/export/csv/csv_dives_writer_test.dart'
     show imperial;
 import '../../../../../core/services/export/csv/csv_test_fixtures.dart';
-import 'package:csv/csv.dart';
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 Uint8List _bytes(String s) => Uint8List.fromList(utf8.encode(s));
 
