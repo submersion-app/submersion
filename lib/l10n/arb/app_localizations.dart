@@ -8961,12 +8961,6 @@ abstract class AppLocalizations {
   /// **'Next dive'**
   String get diveLog_detail_tooltip_nextDive;
 
-  /// No description provided for @diveLog_detail_tooltip_exportProfileImage.
-  ///
-  /// In en, this message translates to:
-  /// **'Export profile as image'**
-  String get diveLog_detail_tooltip_exportProfileImage;
-
   /// No description provided for @diveLog_detail_tooltip_removeFromFavorites.
   ///
   /// In en, this message translates to:

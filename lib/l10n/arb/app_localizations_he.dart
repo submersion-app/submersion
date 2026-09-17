@@ -5398,9 +5398,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => 'ייצוא פרופיל כתמונה';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => 'הסרה מהמועדפים';
 
   @override

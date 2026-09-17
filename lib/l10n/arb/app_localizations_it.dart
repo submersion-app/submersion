@@ -5527,10 +5527,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Esporta profilo come immagine';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Rimuovi dai preferiti';
 

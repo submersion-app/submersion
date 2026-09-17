@@ -2117,7 +2117,6 @@
   "diveLog_detail_tooltip_editDive": "Editar inmersión",
   "diveLog_detail_tooltip_previousDive": "Previous dive",
   "diveLog_detail_tooltip_nextDive": "Next dive",
-  "diveLog_detail_tooltip_exportProfileImage": "Exportar perfil como imagen",
   "diveLog_detail_tooltip_removeFromFavorites": "Quitar de favoritos",
   "diveLog_detail_tooltip_viewFullscreen": "Ver en pantalla completa",
   "diveLog_detail_viewSite": "Ver punto de buceo",

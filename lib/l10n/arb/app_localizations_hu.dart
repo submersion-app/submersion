@@ -5516,10 +5516,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Profil exportalasa kepkent';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Eltavolitas a kedvencekbol';
 

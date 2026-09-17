@@ -5434,10 +5434,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Export profile as image';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Remove from favorites';
 
