@@ -269,6 +269,28 @@ void main() {
     );
   });
 
+  test(
+    'a non-string error.message (Copilot review) degrades to the bare '
+    'status code instead of throwing a TypeError while building the error',
+    () async {
+      final store = GoogleDriveMediaObjectStore.withClient(
+        MockClient((_) async => http.Response('{"error":{"message":42}}', 400)),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.bin'),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.message,
+            'message',
+            contains('HTTP 400'),
+          ),
+        ),
+      );
+    },
+  );
+
   test('a missing source file is a fatal MediaStoreException', () async {
     final store = build();
     await expectLater(

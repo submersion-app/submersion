@@ -459,7 +459,8 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
       if (decoded is! Map<String, Object?>) return null;
       final error = decoded['error'];
       if (error is! Map<String, Object?>) return null;
-      return error['message'] as String?;
+      final message = error['message'];
+      return message is String ? message : null;
     } on FormatException {
       return null;
     }
