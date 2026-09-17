@@ -87,9 +87,17 @@ log service records, edit service clocks, record check-ins, receive service
 reminders. Only three actions stay with the owner: delete, transfer, and
 managing the item's shares.
 
-Null-owner equipment does not exist (the v64 migration removed it), and
-`validatedCurrentDiverIdProvider` is null only when no diver exists. With a
+Null-owner equipment is not a supported state: the v64 migration removed it,
+and the only known source today is a peer applying a diver deletion (#1957,
+tracked separately). Such a row is visible to nobody, as today, because
+`diver_id = ?` never matches NULL and a share row is the only other way in.
+`validatedCurrentDiverIdProvider` is null only when no diver exists; with a
 null diver id every query stays unfiltered, as today.
+
+The kept-item handling under "Diver deletion and merge" runs on the deleting
+device. It marks the transferred rows pending, so peers receive the new owner
+before the `divers` tombstone removes the old one, and #1957's ownerless rows
+are not made worse by this work.
 
 ### Data
 
