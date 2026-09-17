@@ -20,17 +20,22 @@ class ImportEquipmentTagLinker {
 
   /// [items] are the file's equipment maps. [equipmentIdMapping] and
   /// [tagIdMapping] map the file's ids to local ids; an item with no id is
-  /// keyed by its name, whether it was linked to a duplicate or created.
+  /// keyed by its name, whether it was linked to a duplicate or created. A
+  /// name two id-less items in the file share cannot say which of them a
+  /// mapping stands for, so neither links through it.
   Future<void> link({
     required List<Map<String, dynamic>> items,
     required Map<String, String> equipmentIdMapping,
     required Map<String, String> tagIdMapping,
   }) async {
     final widened = <String>{};
+    final idlessNameCounts = countIdlessEquipmentNames(items);
     for (final data in items) {
       final refs = data['tagRefs'];
       if (refs is! List) continue;
-      final key = (data['uddfId'] as String?) ?? (data['name'] as String?);
+      final uddfId = data['uddfId'] as String?;
+      final name = data['name'] as String?;
+      final key = uddfId ?? (idlessNameCounts[name] == 1 ? name : null);
       final equipmentId = key == null ? null : equipmentIdMapping[key];
       if (equipmentId == null) continue;
       final tagIds = <String>{
@@ -42,6 +47,23 @@ class ImportEquipmentTagLinker {
       }
       await links.addTags([equipmentId], tagIds);
     }
+  }
+
+  /// How many equipment maps in [items] have no `uddfId` under each
+  /// non-empty name. Counted over the whole file, selected or not: an
+  /// unselected namesake still makes the name ambiguous.
+  static Map<String, int> countIdlessEquipmentNames(
+    List<Map<String, dynamic>> items,
+  ) {
+    final counts = <String, int>{};
+    for (final item in items) {
+      if (item['uddfId'] != null) continue;
+      final name = item['name'];
+      if (name is String && name.isNotEmpty) {
+        counts[name] = (counts[name] ?? 0) + 1;
+      }
+    }
+    return counts;
   }
 
   /// Widens the exact row. A lookup by name (as getOrCreateTag does) is

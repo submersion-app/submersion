@@ -98,4 +98,25 @@ void main() {
     );
     expect(await tagNamesOfReg(), isEmpty);
   });
+
+  test('a name two id-less rows share links neither by name', () async {
+    // One row was matched to the existing Reg by name (a skipped duplicate,
+    // or the selected one of two); the name alone cannot say which row the
+    // local item stands for.
+    await link.link(
+      items: const [
+        {
+          'name': 'Reg',
+          'tagRefs': ['tag_a'],
+        },
+        {
+          'name': 'Reg',
+          'tagRefs': ['tag_b'],
+        },
+      ],
+      equipmentIdMapping: {'Reg': regId},
+      tagIdMapping: {'tag_a': night.id, 'tag_b': rental.id},
+    );
+    expect(await tagNamesOfReg(), isEmpty);
+  });
 }

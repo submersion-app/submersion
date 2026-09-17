@@ -751,16 +751,11 @@ class UddfEntityImporter {
 
     // An item with no id is keyed by its name, as the import wizard keys a
     // duplicate, so its tags still link (issue #1942). A name two id-less
-    // items share would link one item's tags to the other, so it keys
-    // neither.
-    final idlessNameCounts = <String, int>{};
-    for (final i in selected) {
-      if (i >= items.length || items[i]['uddfId'] != null) continue;
-      final name = items[i]['name'];
-      if (name is String && name.isNotEmpty) {
-        idlessNameCounts[name] = (idlessNameCounts[name] ?? 0) + 1;
-      }
-    }
+    // items in the file share (selected or not) would link one item's tags
+    // to the other, so it keys neither.
+    final idlessNameCounts = ImportEquipmentTagLinker.countIdlessEquipmentNames(
+      items,
+    );
 
     for (var i = 0; i < items.length; i++) {
       if (!selected.contains(i)) continue;

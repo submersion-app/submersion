@@ -59,10 +59,13 @@ void main() {
     };
   }
 
-  Future<void> import(UddfImportResult data) async {
+  Future<void> import(
+    UddfImportResult data, {
+    UddfImportSelections? selections,
+  }) async {
     await UddfEntityImporter().import(
       data: data,
-      selections: UddfImportSelections.selectAll(data),
+      selections: selections ?? UddfImportSelections.selectAll(data),
       repositories: repositories(),
       diverId: await createTestDiver(),
     );
@@ -112,4 +115,44 @@ void main() {
       );
     }
   });
+
+  test(
+    'a deselected id-less namesake lends the selected row no tags',
+    () async {
+      const cold = {
+        'uddfId': 'tag_cold',
+        'name': 'Cold water',
+        'appliesToDives': false,
+        'appliesToSites': false,
+        'appliesToEquipment': true,
+      };
+      const data = UddfImportResult(
+        tags: [rental, cold],
+        equipment: [
+          {
+            'name': 'Wing',
+            'type': 'bcd',
+            'tagRefs': ['tag_rental'],
+          },
+          {
+            'name': 'Wing',
+            'type': 'bcd',
+            'tagRefs': ['tag_cold'],
+          },
+        ],
+      );
+      final all = UddfImportSelections.selectAll(data);
+      await import(
+        data,
+        selections: UddfImportSelections(tags: all.tags, equipment: const {0}),
+      );
+
+      final wing = (await EquipmentRepository().getAllEquipment()).single;
+      expect(
+        await EquipmentTagRepository().getTagsForEquipment(wing.id),
+        isEmpty,
+        reason: 'which Wing a name stands for is ambiguous in this file',
+      );
+    },
+  );
 }
