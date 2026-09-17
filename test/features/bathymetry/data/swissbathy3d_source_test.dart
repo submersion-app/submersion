@@ -1597,6 +1597,180 @@ nodata_value -9999
         expect(cached, isNull);
       });
 
+      test('a sibling site still gets its own real data even though the '
+          'fetch-center tile itself resolved to no data (GitHub Copilot '
+          'review: candidates are shared per LAKE, but each tile -- '
+          'including every sibling -- still re-checks its OWN entry '
+          'proximity and content coverage independently)', () async {
+        // The fetched tile (2685_1240) has NO matching zip entry at all,
+        // so its own resolution is a genuine "no data" gap -- while the
+        // sibling (2690_1245), five tiles away, has a real entry. Sharing
+        // the (non-empty) asset CANDIDATES list between them must not
+        // make the sibling inherit the center tile's own "no data"
+        // verdict.
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                return http.Response(
+                  jsonEncode({
+                    'features': [
+                      {
+                        'bbox': _requestedBbox(req),
+                        'assets': {
+                          'grid': {
+                            'href': 'https://example.org/shared_lake.zip',
+                          },
+                        },
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              // Only the SIBLING's own tile has a matching entry -- the
+              // fetched tile (2685_1240) has none, so it must resolve to
+              // a genuine gap regardless of this non-empty candidates
+              // list.
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                    2690,
+                    1245,
+                    200.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          knownSiteLocations: () async => [siblingPoint],
+        );
+
+        // The fetch center's own tile is a genuine, single-tile gap (no
+        // entry at all), so fetch() itself throws -- fire-and-forget
+        // precaching is deliberately dispatched BEFORE that throw (see
+        // fetch()'s own doc) and must still run regardless.
+        await expectLater(
+          source.fetch(zurichseePoint, spanMeters: 100),
+          throwsA(isA<BathymetryFetchException>()),
+        );
+        await settle();
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final siblingCached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(siblingCached, isNotNull);
+        expect(
+          siblingCached!.grid.depthAt(0, 0),
+          closeTo(405.92 - 200.0, 1e-9),
+        );
+      });
+
+      test('a stale tile that actually re-downloads a changed asset also '
+          'triggers pre-caching for sibling sites, not just a first-ever '
+          'fetch (GitHub Copilot review)', () async {
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+
+        var version = 1;
+        Future<http.Response> handler(http.Request req) async {
+          if (req.url.path.endsWith('/items')) {
+            return http.Response(
+              jsonEncode({
+                'features': [
+                  {
+                    'bbox': _requestedBbox(req),
+                    'properties': {
+                      'datetime': version == 1
+                          ? '2023-01-01T00:00:00Z'
+                          : '2024-06-01T00:00:00Z',
+                    },
+                    'assets': {
+                      'grid': {'href': 'https://example.org/shared_lake.zip'},
+                    },
+                  },
+                ],
+              }),
+              200,
+            );
+          }
+          return http.Response.bytes(
+            _zipOfMultiple({
+              'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                2685,
+                1240,
+                version == 1 ? 100.0 : 150.0,
+              ),
+              'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                2690,
+                1245,
+                200.0,
+              ),
+            }),
+            200,
+          );
+        }
+
+        // First fetch (no known sites yet) caches the tile normally.
+        final seedingSource = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(client: MockClient(handler)),
+        );
+        await seedingSource.fetch(zurichseePoint, spanMeters: 100);
+
+        // Backdate its check so the next fetch treats it as stale, and
+        // bump the served version so that stale check genuinely
+        // re-downloads and re-parses, not just confirms "unchanged".
+        await (db.update(
+          db.swissBathyTileCache,
+        )..where((t) => t.tileKey.equals('2685_1240'))).write(
+          SwissBathyTileCacheCompanion(
+            checkedAt: Value(
+              DateTime.now()
+                  .subtract(SwissBathy3dSource.staleCheckInterval * 2)
+                  .millisecondsSinceEpoch,
+            ),
+          ),
+        );
+        version = 2;
+
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(client: MockClient(handler)),
+          knownSiteLocations: () async => [siblingPoint],
+        );
+
+        final grid = await source.fetch(zurichseePoint, spanMeters: 100);
+        await settle();
+
+        // The stale tile genuinely picked up the new version.
+        expect(grid.depthAt(0, 0), closeTo(405.92 - 150.0, 1e-9));
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final siblingCached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(siblingCached, isNotNull);
+        expect(
+          siblingCached!.grid.depthAt(0, 0),
+          closeTo(405.92 - 200.0, 1e-9),
+        );
+      });
+
       test('a failing knownSiteLocations callback never affects the caller\'s '
           'own result', () async {
         final source = SwissBathy3dSource(

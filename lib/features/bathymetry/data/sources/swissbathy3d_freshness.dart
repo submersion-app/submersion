@@ -28,6 +28,15 @@ bool _isStale(DateTime? checkedAt) {
 /// [parsedEntries] is likewise `fetch()`'s own single-lake-scoped map --
 /// see [SwissBathy3dSource._fetchTile]'s doc for why it travels as its own
 /// parameter rather than living on [shared].
+///
+/// [freshlyResolvedLakes], when given, records [lake]'s name when this
+/// check actually re-downloaded and re-parsed a genuinely changed asset
+/// (outcome [_TileCheckOutcome.updated]) -- mirroring [_fetchTile]'s own
+/// cold-cache marking, so [_precacheSiblingSites] also fires after a
+/// stale tile's real re-download, not only after a first-ever fetch
+/// (GitHub Copilot review: a stale tile that revalidated to a genuinely
+/// new asset version used to leave every sibling site unaware that lake's
+/// shared maps now hold fresh, reusable data).
 Future<BathymetryGrid?> _refreshIfStale(
   SwissBathy3dSource source,
   String tileKey,
@@ -36,9 +45,10 @@ Future<BathymetryGrid?> _refreshIfStale(
   SwissLakeLevel lake,
   SwissBathyTileCacheEntry cached,
   _SharedFetchState shared,
-  Map<String, Future<RawEsriGrid>> parsedEntries,
-) async {
-  return (await _checkAndMaybeUpdate(
+  Map<String, Future<RawEsriGrid>> parsedEntries, {
+  Map<String, SwissLakeLevel>? freshlyResolvedLakes,
+}) async {
+  final result = await _checkAndMaybeUpdate(
     source,
     tileKey,
     tileE,
@@ -47,7 +57,11 @@ Future<BathymetryGrid?> _refreshIfStale(
     cached,
     shared,
     parsedEntries,
-  )).grid;
+  );
+  if (result.outcome == _TileCheckOutcome.updated) {
+    freshlyResolvedLakes?[lake.name] = lake;
+  }
+  return result.grid;
 }
 
 /// The same one-light-lookup, re-download-only-on-change check

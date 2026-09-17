@@ -453,6 +453,7 @@ class SwissBathy3dSource implements BathymetrySource {
         cached,
         shared,
         parsedEntries,
+        freshlyResolvedLakes: freshlyResolvedLakes,
       );
     }
     if (await _tileCache.hasCachedAnswer(tileKey)) return null;
