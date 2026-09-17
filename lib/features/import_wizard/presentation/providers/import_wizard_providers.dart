@@ -696,35 +696,62 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// (issue #2002). Null in an unscoped library.
   String? get diverId => _diverId;
 
-  /// Point a planned-fill row at another planned dive, or (null) at none,
-  /// in which case the row imports as new. Rewrites the bundle's match
-  /// result so the card and the adapter read one source of truth.
+  /// Point a planned-fill row at another planned dive, or (null) at none.
+  /// Rewrites the bundle so the card and the adapter read one source of
+  /// truth.
+  ///
+  /// A row that loses its target stops being a match at all: its match
+  /// result and duplicate flag are removed and it imports as an ordinary
+  /// new dive. Keeping a match with an empty dive id would not do, since an
+  /// empty id already means "duplicate of another dive in this batch" to
+  /// the comparison card.
   void setPlannedFillTarget(int index, String? plannedDiveId) {
+    const type = ImportEntityType.dives;
     final bundle = state.bundle;
-    final group = bundle?.groups[ImportEntityType.dives];
+    final group = bundle?.groups[type];
     final current = group?.matchResults?[index];
     if (bundle == null || group == null || current == null) return;
-    final updated = plannedDiveId == null
-        ? current.copyWith(clearPlannedDiveId: true)
-        : current.copyWith(plannedDiveId: plannedDiveId);
-    final matchResults = {...group.matchResults!, index: updated};
-    final groups = {
-      ...bundle.groups,
-      ImportEntityType.dives: group.copyWith(matchResults: matchResults),
-    };
+
+    final EntityGroup updatedGroup;
+    if (plannedDiveId == null) {
+      updatedGroup = group.copyWith(
+        duplicateIndices: group.duplicateIndices.difference({index}),
+        matchResults: {
+          for (final entry in group.matchResults!.entries)
+            if (entry.key != index) entry.key: entry.value,
+        },
+      );
+    } else {
+      updatedGroup = group.copyWith(
+        matchResults: {
+          ...group.matchResults!,
+          index: current.withPlannedDive(plannedDiveId),
+        },
+      );
+    }
     state = state.copyWith(
       bundle: ImportBundle(
         source: bundle.source,
-        groups: groups,
+        groups: {...bundle.groups, type: updatedGroup},
         nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
       ),
     );
-    setDuplicateAction(
-      ImportEntityType.dives,
-      index,
-      plannedDiveId == null
-          ? DuplicateAction.importAsNew
-          : DuplicateAction.fillPlanned,
+
+    if (plannedDiveId != null) {
+      setDuplicateAction(type, index, DuplicateAction.fillPlanned);
+      return;
+    }
+    // No longer a duplicate: drop its action, keep it selected for import.
+    final actions = Map<int, DuplicateAction>.from(
+      state.duplicateActions[type] ?? const <int, DuplicateAction>{},
+    )..remove(index);
+    state = state.copyWith(
+      duplicateActions: {...state.duplicateActions, type: actions},
+      selections: {
+        ...state.selections,
+        type: {...state.selections[type] ?? const <int>{}, index},
+      },
+      pendingDuplicateReview: _drainPending(type, {index}),
     );
   }
 

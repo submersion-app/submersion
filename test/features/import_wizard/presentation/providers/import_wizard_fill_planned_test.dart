@@ -146,18 +146,34 @@ void main() {
     );
   });
 
-  test('setPlannedFillTarget(null) clears the target and imports as new', () {
+  test('setPlannedFillTarget(null) turns the row into a plain new import', () {
     notifier.setBundle(_bundle({0: _plannedMatch}));
 
     notifier.setPlannedFillTarget(0, null);
 
-    final match =
-        state().bundle!.groups[ImportEntityType.dives]!.matchResults![0]!;
-    expect(match.isPlannedFill, isFalse);
+    // Not a match any more: an empty dive id would read as an in-batch
+    // duplicate on the comparison card, so the match is removed outright.
+    final group = state().bundle!.groups[ImportEntityType.dives]!;
+    expect(group.matchResults!.containsKey(0), isFalse);
+    expect(group.duplicateIndices, isNot(contains(0)));
     expect(
-      state().duplicateActions[ImportEntityType.dives]![0],
-      DuplicateAction.importAsNew,
+      state().duplicateActions[ImportEntityType.dives]?.containsKey(0) ?? false,
+      isFalse,
     );
     expect(state().selections[ImportEntityType.dives], contains(0));
+    expect(state().pendingFor(ImportEntityType.dives), isEmpty);
+  });
+
+  test('clearing one fill row leaves the others untouched', () {
+    notifier.setBundle(_bundle({0: _plannedMatch, 1: _plannedMatch}));
+
+    notifier.setPlannedFillTarget(0, null);
+
+    final group = state().bundle!.groups[ImportEntityType.dives]!;
+    expect(group.matchResults![1]!.plannedDiveId, 'p1');
+    expect(
+      state().duplicateActions[ImportEntityType.dives]![1],
+      DuplicateAction.fillPlanned,
+    );
   });
 }

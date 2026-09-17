@@ -152,18 +152,17 @@ class DiveMatchResult {
   /// one.
   bool get isPlannedFill => plannedDiveId != null;
 
-  /// Point the fill at another planned dive, or (with [clearPlannedDiveId])
-  /// at none. [diveId] follows the planned dive so the comparison card and
-  /// the wizard's existing-dive lookups need no extra plumbing.
-  DiveMatchResult copyWith({
-    String? plannedDiveId,
-    bool clearPlannedDiveId = false,
-  }) {
-    final nextPlanned = clearPlannedDiveId
-        ? null
-        : (plannedDiveId ?? this.plannedDiveId);
+  /// Point the fill at another planned dive. [diveId] follows the planned
+  /// dive so the comparison card and the wizard's existing-dive lookups need
+  /// no extra plumbing.
+  ///
+  /// There is deliberately no way to clear the target here: an empty
+  /// [diveId] already means "duplicate of another dive in this batch" to the
+  /// comparison card, so a fill row that loses its target stops being a
+  /// match at all (see ImportWizardNotifier.setPlannedFillTarget).
+  DiveMatchResult withPlannedDive(String plannedDiveId) {
     return DiveMatchResult(
-      diveId: clearPlannedDiveId ? '' : (nextPlanned ?? diveId),
+      diveId: plannedDiveId,
       score: score,
       timeDifferenceMs: timeDifferenceMs,
       depthDifferenceMeters: depthDifferenceMeters,
@@ -172,7 +171,7 @@ class DiveMatchResult {
       matchedComputerId: matchedComputerId,
       matchedExistingSource: matchedExistingSource,
       inBatchIndex: inBatchIndex,
-      plannedDiveId: nextPlanned,
+      plannedDiveId: plannedDiveId,
     );
   }
 

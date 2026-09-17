@@ -6289,7 +6289,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v219: buddies.linked_diver_id and dives.outing_id (issue #2002).
+  /// v220: buddies.linked_diver_id and dives.outing_id (issue #2002).
   /// Idempotent, so it is safe from both onUpgrade and the beforeOpen
   /// backstop, and a no-op for either table when it does not exist yet.
   /// SQLite lets ADD COLUMN carry a REFERENCES clause only for a nullable

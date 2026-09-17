@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_notice.da
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_diver_outcomes.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/undo_fills_button.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -239,7 +239,7 @@ class _SuccessView extends StatelessWidget {
                 key: const Key('import_summary_skipped_row'),
               ),
             if (fillOutcomes.isNotEmpty)
-              _UndoFillsButton(outcomes: fillOutcomes),
+              UndoFillsButton(outcomes: fillOutcomes),
             for (final notice in notices)
               if (notice.kind.reportsMissingDives) ...[
                 const SizedBox(height: 8),
@@ -749,63 +749,6 @@ class _CountRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Undo for the planned dives this import filled (issue #2002): restores
-/// each from its snapshot and refreshes the dive lists. Disables itself
-/// once used, since the snapshots are then stale.
-class _UndoFillsButton extends ConsumerStatefulWidget {
-  final List<PlannedDiveFillOutcome> outcomes;
-
-  const _UndoFillsButton({required this.outcomes});
-
-  @override
-  ConsumerState<_UndoFillsButton> createState() => _UndoFillsButtonState();
-}
-
-class _UndoFillsButtonState extends ConsumerState<_UndoFillsButton> {
-  bool _done = false;
-  bool _busy = false;
-
-  Future<void> _undo() async {
-    setState(() => _busy = true);
-    final service = PlannedDiveFillService();
-    try {
-      for (final outcome in widget.outcomes) {
-        await service.undo(outcome);
-      }
-      ref.invalidate(paginatedDiveListProvider);
-      ref.invalidate(diveListNotifierProvider);
-      ref.invalidate(divesProvider);
-      ref.invalidate(diveStatisticsProvider);
-      ref.invalidate(diveNumberingInfoProvider);
-      if (!mounted) return;
-      setState(() => _done = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.universalImport_fillPlanned_undone),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton.icon(
-          key: const Key('import_summary_undo_fills'),
-          onPressed: _done || _busy ? null : _undo,
-          icon: const Icon(Icons.undo),
-          label: Text(context.l10n.universalImport_fillPlanned_undo),
-        ),
       ),
     );
   }

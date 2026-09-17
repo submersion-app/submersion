@@ -98,4 +98,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(PlannedDiveChip), findsOneWidget);
   });
+
+  testWidgets('a screen reader hears that the dive is planned', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: await overrides(),
+        child: detailedTile(_summary(isPlanned: true)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel(RegExp('Planned')), findsWidgets);
+    handle.dispose();
+  });
 }

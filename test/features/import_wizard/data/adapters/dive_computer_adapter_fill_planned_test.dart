@@ -256,20 +256,18 @@ void main() {
     });
   });
 
-  test('copyWith moves or clears the planned target', () {
+  test('withPlannedDive repoints the fill and keeps the dive id in step', () {
     const base = DiveMatchResult(
       diveId: 'p1',
       score: 1,
       timeDifferenceMs: 0,
       plannedDiveId: 'p1',
     );
-    final moved = base.copyWith(plannedDiveId: 'p2');
+    final moved = base.withPlannedDive('p2');
     expect(moved.plannedDiveId, 'p2');
     expect(moved.diveId, 'p2');
-    final cleared = base.copyWith(clearPlannedDiveId: true);
-    expect(cleared.plannedDiveId, isNull);
-    expect(cleared.isPlannedFill, isFalse);
-    expect(cleared.diveId, '');
+    expect(moved.isPlannedFill, isTrue);
+    expect(moved.score, 1);
   });
 }
 
