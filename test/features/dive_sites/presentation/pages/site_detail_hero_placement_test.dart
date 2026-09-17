@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
@@ -21,6 +22,22 @@ import '../../../../helpers/mock_providers.dart';
 /// and never one of the configurable sections.
 void main() {
   const site = DiveSite(id: 'site-1', name: 'Blue Hole', maxDepth: 30);
+
+  // The depth values format through Intl.getCurrentLocale(), which resolves
+  // the Intl.defaultLocale process global rather than the MaterialApp locale.
+  // The app assigns it from the diver's locale; a page pumped alone in a test
+  // never runs that. Pinned rather than merely saved, so '30.0m' below rests
+  // on this file and not on the host or a locale an earlier test left behind.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
 
   Future<void> pumpPage(
     WidgetTester tester, {

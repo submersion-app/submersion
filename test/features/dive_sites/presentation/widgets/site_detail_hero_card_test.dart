@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
@@ -19,6 +20,27 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
+  // The rating and depth values format through Intl.getCurrentLocale(), and
+  // the dates through a DateFormat built without a locale, so both resolve
+  // the Intl.defaultLocale process global rather than the MaterialApp locale.
+  // The app assigns it from the diver's locale; a widget test that pumps the
+  // card alone never runs that.
+  //
+  // Pinned rather than merely saved: left unset it falls back to
+  // Intl.systemLocale, so these assertions would rest on the host, and a test
+  // earlier in the run that left another locale behind would break them.
+  // en_US needs no initializeDateFormatting call; intl bundles its symbols.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   const siteId = 'site-1';
 
   final threeDives = SiteDiveStatistics(
