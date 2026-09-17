@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -14,7 +16,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 /// The shared gear renderer (issue #1487): set bands first, loose gear last,
 /// each band's top-level rows arranged by the diver's preference, assemblies
@@ -64,6 +69,7 @@ void main() {
 
   Widget build({
     required EquipmentArrangement arrangement,
+    List<GearLink>? gear,
     void Function(String)? onRemovePart,
     void Function(String)? onRemoveSubtree,
     void Function(String)? onRemoveSet,
@@ -75,6 +81,7 @@ void main() {
     overrides: [
       equipmentArrangementProvider.overrideWithValue(arrangement),
       equipmentSetsProvider.overrideWith((ref) async => [winter]),
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       equipmentComponentsIndexProvider.overrideWith((ref) async => template),
       activeComponentIdsProvider.overrideWith((ref) async => activeParts),
     ],
@@ -85,7 +92,7 @@ void main() {
       home: Scaffold(
         body: SingleChildScrollView(
           child: DiveGearTreeView(
-            links: links,
+            links: gear ?? links,
             onRemovePart: onRemovePart,
             onRemoveSubtree: onRemoveSubtree,
             onRemoveSet: onRemoveSet,
@@ -292,5 +299,31 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byTooltip('Add missing parts'), findsNothing);
+  });
+
+  testWidgets('identical items on a dive are told apart', (tester) async {
+    EquipmentItem pouch(String id, String mark) => EquipmentItem(
+      id: id,
+      name: 'Pouches',
+      type: EquipmentType.other,
+      brand: 'Palantic',
+      model: 'Drop-Bottom',
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: id,
+          key: EquipmentAttrKeys.identifier,
+          valueText: mark,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        gear: gearLinksFor([pouch('b', 'P2'), pouch('a', 'P1')], const []),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Palantic Drop-Bottom · ID P1'), findsOneWidget);
+    expect(find.text('Palantic Drop-Bottom · ID P2'), findsOneWidget);
   });
 }

@@ -12,6 +12,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -79,6 +81,12 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             index: index,
             isActive: activeParts.contains,
           );
+    // Every item on the dive, parts included, labelled as one list: telling
+    // identical items apart means comparing them with their neighbours
+    // (#1549).
+    final labels = equipmentRowLabelsOf(context, ref, [
+      for (final link in widget.links) link.item,
+    ]);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +102,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             ),
           // The arrangement sees only the top-level items of this bucket;
           // parts keep template order underneath their assembly.
-          ..._bucketRows(context, bucket, arrangement, shortfalls),
+          ..._bucketRows(context, bucket, arrangement, shortfalls, labels),
         ],
       ],
     );
@@ -105,6 +113,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
     GearBucket bucket,
     EquipmentArrangement arrangement,
     Map<String, AssemblyShortfall> shortfalls,
+    Map<String, EquipmentRowLabel> labels,
   ) {
     final l10n = context.l10n;
     final rootsById = {for (final n in bucket.roots) n.link.item.id: n};
@@ -122,6 +131,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             depth: 0,
             showType: group.type == null,
             shortfalls: shortfalls,
+            labels: labels,
           ),
       ],
     ];
@@ -133,6 +143,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
     required int depth,
     required bool showType,
     required Map<String, AssemblyShortfall> shortfalls,
+    required Map<String, EquipmentRowLabel> labels,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -148,7 +159,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
     final fewerParts =
         shortfall != null && shortfall.partsAvailable > shortfall.partsOnDive;
     final subtitleParts = <String>[
-      if (item.fullName != item.name) item.fullName,
+      ...?labels[item.id]?.subtitleParts,
       if (fewerParts)
         l10n.equipment_components_countOfTotal(
           shortfall.partsOnDive,
@@ -233,6 +244,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             depth: depth + 1,
             showType: false,
             shortfalls: shortfalls,
+            labels: labels,
           ),
     ];
   }
