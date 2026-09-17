@@ -35,6 +35,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count מתוך $total רכיבים',
+      one: '$count מתוך רכיב אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.';
 
@@ -2978,6 +2989,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'התחל';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'הוספת חלקים חסרים';
 
   @override
   String get diveLog_gear_collapse => 'הסתרת חלקים';

@@ -35,6 +35,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count/$total 个组件',
+      one: '$count/1 个组件',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError => '该装备已包含此项，因此无法将其添加为组件。';
 
   @override
@@ -2884,6 +2895,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_start_begin => '开始';
+
+  @override
+  String get diveLog_gear_addMissingParts => '添加缺少的部件';
 
   @override
   String get diveLog_gear_collapse => '隐藏部件';

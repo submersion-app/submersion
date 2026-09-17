@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 component} other{{count} components}}'**
   String equipment_components_count(num count);
 
+  /// No description provided for @equipment_components_countOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, =1{{count} of 1 component} other{{count} of {total} components}}'**
+  String equipment_components_countOfTotal(int count, int total);
+
   /// No description provided for @equipment_components_cycleError.
   ///
   /// In en, this message translates to:
@@ -4946,6 +4952,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Begin'**
   String get preDive_start_begin;
+
+  /// No description provided for @diveLog_gear_addMissingParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Add missing parts'**
+  String get diveLog_gear_addMissingParts;
 
   /// No description provided for @diveLog_gear_collapse.
   ///

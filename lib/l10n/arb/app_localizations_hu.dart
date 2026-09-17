@@ -35,6 +35,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count/$total alkatrész',
+      one: '$count/1 alkatrész',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Az a felszerelés már tartalmazza ezt, ezért nem adható hozzá alkatrészként.';
 
@@ -3048,6 +3059,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Kezdés';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'Hiányzó részek hozzáadása';
 
   @override
   String get diveLog_gear_collapse => 'Részek elrejtése';

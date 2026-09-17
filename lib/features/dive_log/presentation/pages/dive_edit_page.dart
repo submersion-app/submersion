@@ -3380,6 +3380,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       _setGear(GearExpander.removeSubtree(_gearRows, id)),
                   onRemovePart: (id) =>
                       _setGear(GearExpander.removePart(_gearRows, id)),
+                  // Re-adding the assembly writes only what its template
+                  // gained since the dive was logged; the picker cannot
+                  // offer it again, since it is already on the dive (#1988).
+                  onUpdateAssembly: (link) =>
+                      _addGear([link.item], viaSetId: link.viaSetId),
                 ),
                 const SizedBox(height: 8),
                 Row(

@@ -4,6 +4,13 @@
   "equipment_components_add": "Add component",
   "equipment_components_containsSection": "Contains",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
+  "equipment_components_countOfTotal": "{total, plural, =1{{count} of 1 component} other{{count} of {total} components}}",
+  "@equipment_components_countOfTotal": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
   "equipment_components_editRole": "Edit role",
   "equipment_components_empty": "No components. Add the parts this item is assembled from.",
@@ -1884,6 +1891,7 @@
   "preDive_start_noEquipmentSet": "None",
   "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
+  "diveLog_gear_addMissingParts": "Add missing parts",
   "diveLog_gear_collapse": "Hide parts",
   "diveLog_gear_expand": "Show parts",
   "diveLog_gear_removeAssembly": "Remove assembly and its parts",

@@ -35,6 +35,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count van $total onderdelen',
+      one: '$count van 1 onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Dat item bevat dit item al, dus het kan niet als onderdeel worden toegevoegd.';
 
@@ -3037,6 +3048,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Beginnen';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'Ontbrekende onderdelen toevoegen';
 
   @override
   String get diveLog_gear_collapse => 'Onderdelen verbergen';
