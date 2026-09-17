@@ -230,6 +230,13 @@ class SwissBathy3dSource implements BathymetrySource {
     // tiles, collected so _precacheSiblingSites can run once per lake
     // afterwards -- see that method's doc and the call site below.
     final lakesTouched = <String, SwissLakeLevel>{};
+    // Lake names _fetchTile actually did fresh work for (not served purely
+    // from cache) -- see that method's own doc on this parameter. Gates
+    // the precache call below so a fully-cached fetch() (the common case
+    // on a lake, per BathymetryRepository's own doc on why lake
+    // coordinates skip outer-cell quantization) never pays for a
+    // known-site-locations lookup it has nothing to reuse for.
+    final freshlyResolvedLakes = <String>{};
     final results = await _runBounded(tileCoords, maxConcurrentTileRequests, (
       coord,
     ) async {
@@ -250,6 +257,7 @@ class SwissBathy3dSource implements BathymetrySource {
           tileLake,
           sharedZipBytes,
           sharedCandidates,
+          freshlyResolvedLakes: freshlyResolvedLakes,
         );
       } on BathymetryFetchException catch (e) {
         // Individually harmless -- the failed tile's own cache stays
@@ -285,15 +293,18 @@ class SwissBathy3dSource implements BathymetrySource {
     // accidentally fail -- the result this call actually promised its
     // caller. Placed before the failure checks below so it still runs
     // (for whichever lake(s) DID resolve) even when this span itself is
-    // about to throw. One call for every lake touched, not one per lake,
-    // so the known-site lookup runs once and every sibling tile still
-    // shares [maxConcurrentTileRequests] with the rest of this class
-    // instead of each lake's pass running as its own uncapped, concurrent
-    // side quest -- see [_precacheSiblingSites]'s own doc.
-    if (lakesTouched.isNotEmpty) {
+    // about to throw. One call covering every FRESHLY resolved lake, not
+    // one per lake and not for every touched lake regardless of outcome
+    // (see freshlyResolvedLakes' own doc): the known-site lookup runs at
+    // most once per fetch() call, only when there is genuinely new
+    // in-memory data worth reusing, and every sibling tile still shares
+    // [maxConcurrentTileRequests] with the rest of this class instead of
+    // running as its own uncapped, concurrent side quest -- see
+    // [_precacheSiblingSites]'s own doc.
+    if (freshlyResolvedLakes.isNotEmpty) {
       _precacheSiblingSites(
         this,
-        lakesTouched.values,
+        [for (final name in freshlyResolvedLakes) lakesTouched[name]!],
         sharedZipBytes,
         sharedCandidates,
       ).ignore();
@@ -339,13 +350,24 @@ class SwissBathy3dSource implements BathymetrySource {
   /// returned, trying every candidate STAC returned for this bbox (not
   /// just the first) in case an earlier one's declared bbox overlapped but
   /// its actual content did not — see that method's doc.
+  ///
+  /// [freshlyResolvedLakes], when given, records [lake]'s name the moment
+  /// this call passes both cache-check early-returns below and starts
+  /// doing genuinely fresh work (a real STAC/download attempt, whether it
+  /// ultimately succeeds, finds a definitive gap, or throws) — [fetch]
+  /// uses it to tell "this lake's shared maps may hold real data worth
+  /// reusing" apart from "every tile was already cached," so
+  /// [_precacheSiblingSites] only ever runs when there is something to
+  /// actually reuse (Copilot review: a 100%-cache-hit fetch() call used to
+  /// still fire a full known-site-locations lookup for nothing).
   Future<BathymetryGrid?> _fetchTile(
     int tileE,
     int tileN,
     SwissLakeLevel lake,
     Map<String, Future<Uint8List>> sharedZipBytes,
-    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
-  ) async {
+    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates, {
+    Set<String>? freshlyResolvedLakes,
+  }) async {
     final tileKey = '${tileE}_$tileN';
 
     final cached = await _tileCache.read(
@@ -358,6 +380,7 @@ class SwissBathy3dSource implements BathymetrySource {
     }
     if (await _tileCache.hasCachedAnswer(tileKey)) return null;
 
+    freshlyResolvedLakes?.add(lake.name);
     final List<SwissBathyAsset> candidates;
     final ({SwissBathyAsset asset, RawEsriGrid subRaw})? resolved;
     try {
@@ -838,18 +861,30 @@ class SwissBathy3dSource implements BathymetrySource {
   /// FUTURE, exactly like [sharedZipBytes] does for the asset download,
   /// also means concurrently-dispatched tiles of the same lake share one
   /// in-flight request instead of each starting their own.
+  ///
+  /// Queried with the same small epsilon buffer the old per-tile bbox
+  /// used to carry (Copilot review): several registered lake boxes in
+  /// [swissLakeLevels] are deliberately hand-tightened to just inside the
+  /// real STAC item's own edge, specifically to stop them overlapping a
+  /// neighboring lake for point-containment ([findSwissLake]). Querying
+  /// that tightened box with zero margin would silently return no
+  /// candidates at all if swisstopo ever republishes an item whose bbox
+  /// contracts by even a fraction of a degree at that edge; the buffer
+  /// costs nothing here (unlike the removed per-tile one, this query
+  /// already runs at most once per lake per call) and keeps that failure
+  /// mode firmly theoretical.
   Future<List<SwissBathyAsset>> _findAssetCandidatesForLake(
     SwissLakeLevel lake,
     Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
-  ) => sharedCandidates.putIfAbsent(
-    lake.name,
-    () => _findAssetCandidates([
-      lake.minLon,
-      lake.minLat,
-      lake.maxLon,
-      lake.maxLat,
-    ]),
-  );
+  ) => sharedCandidates.putIfAbsent(lake.name, () {
+    const epsilon = 0.0005;
+    return _findAssetCandidates([
+      lake.minLon - epsilon,
+      lake.minLat - epsilon,
+      lake.maxLon + epsilon,
+      lake.maxLat + epsilon,
+    ]);
+  });
 
   /// Tries each candidate collection ID in turn, falling through to the
   /// next on a confirmed 404 (wrong ID) rather than failing outright.

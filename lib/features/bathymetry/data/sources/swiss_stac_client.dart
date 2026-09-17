@@ -322,8 +322,16 @@ class SwissStacClient {
     return resp.bodyBytes;
   }
 
-  /// First 200 characters of [body], for a log line that must never embed an
-  /// unbounded server response.
-  static String _truncate(String body) =>
-      body.length <= 200 ? body : '${body.substring(0, 200)}...';
+  /// First 200 UTF-16 code units of [body], for a log line that must never
+  /// embed an unbounded server response. Backs off to 199 when code unit
+  /// 199 is a lead (high) surrogate, so a non-BMP character (an emoji, some
+  /// CJK extension characters) straddling the cut is dropped whole rather
+  /// than split into an unpaired surrogate.
+  static String _truncate(String body) {
+    if (body.length <= 200) return body;
+    var cut = 200;
+    final lead = body.codeUnitAt(cut - 1);
+    if (lead >= 0xD800 && lead <= 0xDBFF) cut--;
+    return '${body.substring(0, cut)}...';
+  }
 }

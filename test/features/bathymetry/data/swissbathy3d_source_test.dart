@@ -351,7 +351,7 @@ nodata_value -9999
         final source = buildSource((req) async {
           if (req.url.path.endsWith('/items')) {
             final bbox = _requestedBbox(req);
-            final isRotseeQuery = (bbox[1] - rotseeBox.minLat).abs() < 1e-6;
+            final isRotseeQuery = (bbox[1] - rotseeBox.minLat).abs() < 1e-3;
             final href = isRotseeQuery
                 ? 'https://example.org/rotsee_tile.zip'
                 : 'https://example.org/vw_tile.zip';
@@ -1090,7 +1090,7 @@ nodata_value -9999
       final source = buildSource((req) async {
         if (req.url.path.endsWith('/items')) {
           final bbox = _requestedBbox(req);
-          final isRotseeQuery = (bbox[1] - rotseeBox.minLat).abs() < 1e-6;
+          final isRotseeQuery = (bbox[1] - rotseeBox.minLat).abs() < 1e-3;
           if (isRotseeQuery) {
             rotseeItemCalls++;
             return http.Response(

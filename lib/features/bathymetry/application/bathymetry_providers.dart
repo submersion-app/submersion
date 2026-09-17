@@ -23,8 +23,10 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// Sites without GPS ([DiveSite.location] null) are skipped; they have no
 /// tile to pre-cache. The only production wiring point for
 /// [KnownDiveSiteLocations], kept here rather than inline at each
-/// [SwissBathy3dSource] construction site below so all three share one
-/// instance and one doc comment.
+/// [SwissBathy3dSource] construction site below so the two that pass it
+/// share one instance and one doc comment -- the third,
+/// [swissBathyManualRefreshProvider], deliberately omits it: its
+/// `refreshAllCachedTiles()` never reads `knownSiteLocations` at all.
 Future<List<GeoPoint>> _knownDiveSiteLocations() async {
   final sites = await SiteRepository().getAllSites();
   return [
