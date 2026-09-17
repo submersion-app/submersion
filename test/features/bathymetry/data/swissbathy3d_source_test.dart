@@ -2175,6 +2175,100 @@ nodata_value -9999
       },
     );
 
+    test('a transient metadata-check failure for a lake does not poison the '
+        'sweep\'s check for a LATER tile of the SAME lake, once the pool '
+        'has moved past the failed attempt (#1764 follow-up: the shared '
+        'per-lake candidates lookup must evict a failed attempt instead of '
+        'replaying it forever to every tile sharing it)', () async {
+      // maxConcurrentTileRequests + 1 tiles of the same lake, all sharing
+      // one STAC asset href: the first maxConcurrentTileRequests tiles'
+      // checks all start together and genuinely share ONE in-flight
+      // attempt (intended -- see _memoizeFuture's doc), so they fail
+      // together when it does. The pool only starts the LAST tile's
+      // check once one of those slots frees up, i.e. strictly after that
+      // shared attempt has already failed and (with the fix) evicted
+      // itself -- so this last tile must get its own fresh attempt
+      // rather than silently inheriting the others' failure.
+      const tileCount = SwissBathy3dSource.maxConcurrentTileRequests + 1;
+      const cellsPerTile = 10;
+      String row(double value) => List.filled(cellsPerTile, value).join(' ');
+      final wideGrid = () {
+        final buffer = StringBuffer()
+          ..writeln('ncols ${cellsPerTile * tileCount}')
+          ..writeln('nrows $cellsPerTile')
+          ..writeln('xllcorner 2685000')
+          ..writeln('yllcorner 1240000')
+          ..writeln('cellsize 100')
+          ..writeln('nodata_value -9999');
+        final dataRow = List.generate(
+          tileCount,
+          (i) => row(100.0 + i),
+        ).join(' ');
+        for (var r = 0; r < cellsPerTile; r++) {
+          buffer.writeln(dataRow);
+        }
+        return buffer.toString();
+      }();
+
+      var sweeping = false;
+      var sweepItemCalls = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          if (sweeping) {
+            sweepItemCalls++;
+            // Only the FIRST metadata lookup during the sweep fails.
+            // If the shared per-lake lookup wrongly kept that failure
+            // cached, every later tile's check would fail without ever
+            // issuing a second request.
+            if (sweepItemCalls == 1) {
+              return http.Response('server error', 500);
+            }
+          }
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': [8.0, 46.0, 10.0, 48.0],
+                  'properties': {'datetime': '2023-01-01T00:00:00Z'},
+                  'assets': {
+                    'grid': {'href': 'https://example.org/lake_wide.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response.bytes(_zipOf('lake.asc', wideGrid), 200);
+      });
+
+      for (var i = 0; i < tileCount; i++) {
+        final tileE = 2685 + i;
+        final center = Lv95Transform.toWgs84(tileE * 1000 + 500, 1240500);
+        await source.fetch(
+          GeoPoint(center.latitude, center.longitude),
+          spanMeters: 100,
+        );
+      }
+
+      sweeping = true;
+      final summary = await source.refreshAllCachedTiles();
+
+      expect(summary.total, tileCount);
+      // The first maxConcurrentTileRequests tiles' checks genuinely
+      // share -- and so all fail with -- the one in-flight attempt; the
+      // one tile the pool only starts afterward gets its own fresh,
+      // successful attempt instead of inheriting that failure.
+      expect(summary.failed, SwissBathy3dSource.maxConcurrentTileRequests);
+      expect(summary.upToDate, 1);
+      expect(summary.updated, 0);
+      // Exactly two metadata attempts for the whole sweep: the one
+      // shared (and failed) attempt, and the later tile's own fresh
+      // retry -- not one attempt per tile, and not the failure silently
+      // replayed to every tile sharing the cache entry.
+      expect(sweepItemCalls, 2);
+    });
+
     test(
       'caps concurrent freshness checks at maxConcurrentTileRequests when '
       'more tiles are cached than the limit, the same bounded pool fetch '

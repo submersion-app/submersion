@@ -37,6 +37,42 @@ _firstOverlappingCandidate(
   return null;
 }
 
+/// Memoizes [compute] under [key] in [cache], like [Map.putIfAbsent], but
+/// evicts a REJECTED future once it fails instead of leaving it cached.
+///
+/// A plain `putIfAbsent(key, compute)` stores whatever future `compute()`
+/// returns immediately, including one that later fails: every other caller
+/// sharing this [cache] within the same `fetch()`/`refreshAllCachedTiles()`
+/// call then awaits that same rejected future and fails too, even though a
+/// fresh attempt might well have succeeded. That turns one transient
+/// network blip into a whole-lake failure — reintroducing #1764's own
+/// amplification pattern in the failure direction this time, most visibly
+/// in `refreshAllCachedTiles()`'s sweep, which tallies each cached tile
+/// independently and would otherwise mark every stale tile of the affected
+/// lake as failed for what was really only one bad request (Copilot
+/// review). Concurrent callers before the failure resolves still share the
+/// one in-flight attempt exactly as `putIfAbsent` would; only a caller
+/// arriving AFTER it has already failed gets a fresh retry.
+Future<T> _memoizeFuture<T>(
+  Map<String, Future<T>> cache,
+  String key,
+  Future<T> Function() compute,
+) {
+  final existing = cache[key];
+  if (existing != null) return existing;
+  late Future<T> future;
+  future = () async {
+    try {
+      return await compute();
+    } catch (_) {
+      if (identical(cache[key], future)) cache.remove(key);
+      rethrow;
+    }
+  }();
+  cache[key] = future;
+  return future;
+}
+
 /// Downloads the zip at [href], memoized in [sharedZipBytes] by href so a
 /// shared lake-wide asset travels over the network only once per `fetch()`/
 /// `refreshAllCachedTiles()` call regardless of how many tiles resolve to
@@ -45,7 +81,11 @@ Future<Uint8List> _downloadZipBytes(
   SwissBathy3dSource source,
   String href,
   Map<String, Future<Uint8List>> sharedZipBytes,
-) => sharedZipBytes.putIfAbsent(href, () => source._stac.downloadBytes(href));
+) => _memoizeFuture(
+  sharedZipBytes,
+  href,
+  () => source._stac.downloadBytes(href),
+);
 
 /// Downloads (shared, see [_downloadZipBytes]) and parses only the entries
 /// of the zip at [href] relevant to tile ([tileE], [tileN]) — potentially
@@ -108,10 +148,12 @@ Future<List<RawEsriGrid>> _downloadAndParseFiltered(
 /// touching up to 81 tiles fired up to 81 near-identical metadata lookups
 /// for an answer that never varies within a lake: needless load on the OGD
 /// API, and up to 81 separate 15 s-budgeted chances for a single slow or
-/// transiently failed lookup to fail the entire span (#1764). Memoizing on
-/// the FUTURE, exactly like `sharedZipBytes` does for the asset download,
-/// also means concurrently-dispatched tiles of the same lake share one
-/// in-flight request instead of each starting their own.
+/// transiently failed lookup to fail the entire span (#1764). Memoizing via
+/// [_memoizeFuture], exactly like `sharedZipBytes` does for the asset
+/// download, means concurrently-dispatched tiles of the same lake share
+/// one in-flight request instead of each starting their own, while a
+/// FAILED attempt is evicted rather than replayed to every other tile of
+/// the lake in this call (see [_memoizeFuture]'s own doc).
 ///
 /// Queried with the same small epsilon buffer the old per-tile bbox used
 /// to carry (Copilot review): several registered lake boxes in
@@ -127,7 +169,7 @@ Future<List<SwissBathyAsset>> _findAssetCandidatesForLake(
   SwissBathy3dSource source,
   SwissLakeLevel lake,
   Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
-) => sharedCandidates.putIfAbsent(lake.name, () {
+) => _memoizeFuture(sharedCandidates, lake.name, () {
   const epsilon = 0.0005;
   return _findAssetCandidates(source, [
     lake.minLon - epsilon,
