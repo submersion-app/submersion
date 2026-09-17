@@ -17158,7 +17158,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      'Húzza az elemeket az átrendezéshez. A legfelső elemek az alsó navigációs sávban jelennek meg; hogy hány, az a képernyő méretétől függ, nem a tájolásától.';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
@@ -17180,7 +17180,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+      'Az alábbi elemek a Tovabb menübe kerülnek, ha nem férnek el a sávban';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

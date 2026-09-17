@@ -17206,7 +17206,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      'Arrastra los elementos para reordenarlos. Los primeros aparecen en la barra de navegación inferior; cuántos depende del tamaño de la pantalla, no de su orientación.';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
@@ -17228,7 +17228,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+      'Los elementos de abajo van al menú Más cuando no caben en la barra';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

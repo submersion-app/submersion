@@ -17182,7 +17182,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen width.';
+      'Elemente ziehen, um sie neu zu ordnen. Die obersten Elemente erscheinen in der unteren Navigationsleiste; wie viele, hängt von der Bildschirmgröße ab, nicht von der Ausrichtung.';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
@@ -17204,7 +17204,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'More menu below - wider phones may show more of the items above here too';
+      'Elemente darunter kommen ins Menü „Mehr“, wenn sie nicht in die Leiste passen';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

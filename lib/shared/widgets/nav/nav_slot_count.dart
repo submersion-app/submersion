@@ -25,7 +25,8 @@ const double navSlotWidthIconOnly = 64;
 ///
 /// The result is never below [kMinPhonePrimarySlotCount], so no device ever
 /// shows fewer primary slots than the fixed value every phone got before
-/// this became width-dependent.
+/// this became width-dependent, unless fewer destinations than that exist:
+/// the [availableCount] cap always wins.
 int phonePrimarySlotCount({
   required double baseWidth,
   required bool showLabels,
@@ -35,6 +36,8 @@ int phonePrimarySlotCount({
   // Home and More each occupy one slot's worth of width too.
   final usableWidth = baseWidth - (2 * slotWidth);
   final computed = usableWidth <= 0 ? 0 : (usableWidth / slotWidth).floor();
-  if (computed <= kMinPhonePrimarySlotCount) return kMinPhonePrimarySlotCount;
-  return computed > availableCount ? availableCount : computed;
+  final atLeastMinimum = computed < kMinPhonePrimarySlotCount
+      ? kMinPhonePrimarySlotCount
+      : computed;
+  return atLeastMinimum > availableCount ? availableCount : atLeastMinimum;
 }

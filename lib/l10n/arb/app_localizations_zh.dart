@@ -16351,7 +16351,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      '拖动项目以重新排列。顶部的项目会显示在底部导航栏中；显示数量取决于屏幕尺寸，而非屏幕方向。';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title => '始终隐藏标签';
@@ -16371,8 +16371,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_navCustomization_scopeDesktop => '桌面';
 
   @override
-  String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+  String get settings_navCustomization_dividerLabel => '下方的项目在导航栏放不下时会移入“更多”菜单';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

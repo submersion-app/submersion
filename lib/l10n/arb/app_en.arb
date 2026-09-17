@@ -10420,7 +10420,7 @@
   "@settings_navCustomization_title": {
     "description": "Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail."
   },
-  "settings_navCustomization_description": "Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen width.",
+  "settings_navCustomization_description": "Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen size, not its orientation.",
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
   },
@@ -10444,7 +10444,7 @@
   "@settings_navCustomization_scopeDesktop": {
     "description": "Segmented-button label for editing the desktop navigation rail order."
   },
-  "settings_navCustomization_dividerLabel": "More menu below - wider phones may show more of the items above here too",
+  "settings_navCustomization_dividerLabel": "Items below go to the More menu when they do not fit in the bar",
   "@settings_navCustomization_dividerLabel": {
     "description": "Non-interactive divider row between primary and overflow destinations."
   },

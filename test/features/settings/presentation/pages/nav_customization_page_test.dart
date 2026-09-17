@@ -159,7 +159,7 @@ void main() {
       // the tell that the page opened on the phone scope.
       expect(
         find.text(
-          'More menu below - wider phones may show more of the items above here too',
+          'Items below go to the More menu when they do not fit in the bar',
         ),
         findsOneWidget,
       );
@@ -174,7 +174,7 @@ void main() {
       expect(find.byKey(const ValueKey('nav-divider')), findsNothing);
       expect(
         find.text(
-          'More menu below - wider phones may show more of the items above here too',
+          'Items below go to the More menu when they do not fit in the bar',
         ),
         findsNothing,
       );

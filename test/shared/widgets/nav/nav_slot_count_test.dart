@@ -54,6 +54,16 @@ void main() {
       expect(count, 5);
     });
 
+    test('the minimum never exceeds the number of available destinations', () {
+      final count = phonePrimarySlotCount(
+        baseWidth: 360,
+        showLabels: true,
+        availableCount: 2,
+      );
+
+      expect(count, 2);
+    });
+
     test('a pure rotation does not change the result', () {
       // Portrait 400x800 and the same phone rotated to 800x400: min() picks
       // the same base width either way.

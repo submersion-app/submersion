@@ -16791,7 +16791,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      'גררו פריטים כדי לסדר אותם מחדש. הפריטים העליונים מופיעים בסרגל הניווט התחתון; מספרם תלוי בגודל המסך, לא בכיוון שלו.';
 
   @override
   String get settings_navCustomization_alwaysHideLabels_title =>
@@ -16813,7 +16813,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+      'פריטים שמתחת עוברים לתפריט עוד כשאין להם מקום בסרגל';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';
