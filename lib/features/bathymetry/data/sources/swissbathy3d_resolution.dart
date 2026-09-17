@@ -14,6 +14,19 @@ part of 'swissbathy3d_source.dart';
 /// candidate alone meant one wrong-but-plausible candidate silently
 /// starved every tile query it happened to satisfy, surfacing as
 /// widespread "no tile here" gaps despite genuine coverage.
+///
+/// Before downloading anything, a candidate whose OWN [SwissBathyAsset.bbox]
+/// is present but does not reach this specific tile's bounds (with a small
+/// buffer, see [_tileBboxWgs84]) is skipped without a network call (GitHub
+/// Copilot review): [_findAssetCandidatesForLake] now queries per LAKE, not
+/// per tile (#1764), so [candidates] can include a genuinely different,
+/// merely-neighboring lake's asset whose own declared bbox never actually
+/// reaches every tile of the lake the query was for. This is still only a
+/// pre-filter, never the correctness authority — a candidate with no
+/// [SwissBathyAsset.bbox] at all is never skipped by it (same
+/// unrecognized-proves-nothing rule as everywhere else in this class), and
+/// [extractRawEsriSubgridFromGrids] still makes the real decision on
+/// whatever content this loop does download.
 Future<({SwissBathyAsset asset, RawEsriGrid subRaw})?>
 _firstOverlappingCandidate(
   int tileE,
@@ -21,7 +34,10 @@ _firstOverlappingCandidate(
   List<SwissBathyAsset> candidates,
   Future<List<RawEsriGrid>> Function(String href) download,
 ) async {
+  final tileBbox = _tileBboxWgs84(tileE, tileN);
   for (final asset in candidates) {
+    final assetBbox = asset.bbox;
+    if (assetBbox != null && !_bboxesOverlap(assetBbox, tileBbox)) continue;
     final rawGrids = await download(asset.href);
     if (rawGrids.isEmpty) continue;
     final subRaw = extractRawEsriSubgridFromGrids(
@@ -35,6 +51,63 @@ _firstOverlappingCandidate(
     return (asset: asset, subRaw: subRaw);
   }
   return null;
+}
+
+/// Tile ([tileE], [tileN])'s own bounds, reprojected to WGS84 and padded
+/// by the same small epsilon [_findAssetCandidatesForLake] already uses
+/// for the lake-level query — this is a cheap pre-filter, not the
+/// correctness authority (see [_firstOverlappingCandidate]'s own doc), so
+/// a slightly generous box only risks trying one extra candidate, never
+/// wrongly skipping a real one.
+({double minLon, double minLat, double maxLon, double maxLat}) _tileBboxWgs84(
+  int tileE,
+  int tileN,
+) {
+  const epsilon = 0.0005;
+  final corners = [
+    Lv95Transform.toWgs84(
+      tileE * SwissBathy3dSource.tileSizeMeters,
+      tileN * SwissBathy3dSource.tileSizeMeters,
+    ),
+    Lv95Transform.toWgs84(
+      (tileE + 1) * SwissBathy3dSource.tileSizeMeters,
+      tileN * SwissBathy3dSource.tileSizeMeters,
+    ),
+    Lv95Transform.toWgs84(
+      tileE * SwissBathy3dSource.tileSizeMeters,
+      (tileN + 1) * SwissBathy3dSource.tileSizeMeters,
+    ),
+    Lv95Transform.toWgs84(
+      (tileE + 1) * SwissBathy3dSource.tileSizeMeters,
+      (tileN + 1) * SwissBathy3dSource.tileSizeMeters,
+    ),
+  ];
+  var minLon = double.infinity;
+  var minLat = double.infinity;
+  var maxLon = -double.infinity;
+  var maxLat = -double.infinity;
+  for (final corner in corners) {
+    if (corner.longitude < minLon) minLon = corner.longitude;
+    if (corner.longitude > maxLon) maxLon = corner.longitude;
+    if (corner.latitude < minLat) minLat = corner.latitude;
+    if (corner.latitude > maxLat) maxLat = corner.latitude;
+  }
+  return (
+    minLon: minLon - epsilon,
+    minLat: minLat - epsilon,
+    maxLon: maxLon + epsilon,
+    maxLat: maxLat + epsilon,
+  );
+}
+
+bool _bboxesOverlap(
+  ({double minLon, double minLat, double maxLon, double maxLat}) a,
+  ({double minLon, double minLat, double maxLon, double maxLat}) b,
+) {
+  return a.minLon <= b.maxLon &&
+      a.maxLon >= b.minLon &&
+      a.minLat <= b.maxLat &&
+      a.maxLat >= b.minLat;
 }
 
 /// Memoizes [compute] under [key] in [cache], like [Map.putIfAbsent], but

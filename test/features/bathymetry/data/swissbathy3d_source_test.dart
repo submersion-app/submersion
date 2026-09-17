@@ -857,6 +857,53 @@ nodata_value -9999
       expect(grid.depthAt(0, 0), closeTo(referenceLevel - 408.0, 1e-9));
     });
 
+    test('skips a candidate whose OWN declared bbox does not reach the '
+        'requested tile without even downloading it (GitHub Copilot '
+        'review: since #1764 queries STAC per LAKE rather than per tile, '
+        'a genuinely different neighboring lake\'s asset can pass the '
+        'wider lake-level bbox check yet still declare a bbox that never '
+        'reaches this specific tile)', () async {
+      var farAwayDownloads = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  // Inside Zürichsee's own registered bbox (lat
+                  // 47.19-47.36, lon 8.55-8.85) -- so it survives the
+                  // existing lake-level query-bbox check -- but nowhere
+                  // near zurichseePoint's own tile (lon ~8.569), at the
+                  // opposite edge of that same generous lake box.
+                  'bbox': [8.80, 47.30, 8.82, 47.32],
+                  'assets': {
+                    'grid': {'href': 'https://example.org/far_away.zip'},
+                  },
+                },
+                {
+                  'bbox': _requestedBbox(req),
+                  'assets': {
+                    'grid': {'href': 'https://example.org/real.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        if (req.url.path.endsWith('far_away.zip')) {
+          farAwayDownloads++;
+          return http.Response.bytes(_zipOf('tile.asc', gridBody), 200);
+        }
+        return http.Response.bytes(_zipOf('tile.asc', gridBody), 200);
+      });
+
+      final grid = await source.fetch(zurichseePoint, spanMeters: 100);
+
+      expect(farAwayDownloads, 0);
+      expect(grid.depthAt(0, 0), closeTo(405.92 - 408.0, 1e-9));
+    });
+
     test('treats the tile as a genuine gap only once every candidate\'s real '
         'content has been checked and none of them overlap (Bug 14)', () async {
       const decoyGrid = '''

@@ -347,9 +347,15 @@ class SwissBathy3dSource implements BathymetrySource {
         // timeout) that fetch()'s own caller would otherwise never see:
         // BathymetryFetchException's message alone used to reach no log at
         // all once it got here.
+        // The LV95 tile indices pinpoint a real, ~1 km location, so -- like
+        // SwissStacClient's own warnings -- they stay out of this
+        // always-persisted (even with Debug-Modus off) warning and only
+        // reach the debug-level, Debug-Modus-gated line below (GitHub
+        // Copilot review).
         if (loggedFailureMessages.add(e.toString())) {
-          _log.warning('tile ${coord.tileE}_${coord.tileN} failed', error: e);
+          _log.warning('a tile failed', error: e);
         }
+        _log.debug('tile ${coord.tileE}_${coord.tileN} failed', error: e);
         failedTileKeys.add('${coord.tileE}_${coord.tileN}');
         return null;
       }
