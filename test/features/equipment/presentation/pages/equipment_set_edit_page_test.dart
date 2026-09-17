@@ -79,6 +79,7 @@ void main() {
       overrides: overrides,
       child: MaterialApp.router(
         routerConfig: router,
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),

@@ -10,7 +10,10 @@ import 'package:submersion/features/equipment/domain/models/equipment_picker_fil
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../helpers/mock_providers.dart';
 
 /// The Add Equipment picker carries the same arrangement as the gear lists
 /// it feeds, which #1576 asked for by name.
@@ -49,6 +52,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           activeEquipmentProvider.overrideWith((ref) async => gear),
           equipmentArrangementProvider.overrideWithValue(arrangement),
           equipmentPickerFilterProvider.overrideWith((ref) => filter),

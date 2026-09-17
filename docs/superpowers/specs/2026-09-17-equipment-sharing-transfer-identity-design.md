@@ -204,13 +204,25 @@ no migration.
 `lib/features/equipment/presentation/utils/equipment_row_label.dart`:
 
 ```dart
-List<EquipmentRowLabel> buildEquipmentRowLabels(
-  List<EquipmentItem> visibleRows, {required UnitFormatter units, l10n})
+Map<String, EquipmentRowLabel> buildEquipmentRowLabels(
+  Iterable<EquipmentItem> rows,
+  EquipmentRowLabelStrings strings,
+)
 ```
+
+The map is keyed by item id. `EquipmentRowLabelStrings` carries the localized
+wrappers ("ID {identifier}", "S/N {serial}", "Bought {date}") and the date
+formatter, so the builder needs no `BuildContext`, provider or settings.
+Widgets call `equipmentRowLabelsOf(context, ref, items)` in
+`equipment_row_labels_of.dart`, which supplies them from the app's language
+and the active diver's date format. That helper reads `settingsProvider`, so
+a widget test that mounts any consumer must override it with
+`MockSettingsNotifier`, or the real notifier starts a database load inside
+the test.
 
 Per row: title `item.name`; subtitle parts joined with " · ":
 `fullName` when it differs from the name, then "ID <identifier>" when set.
-When two or more rows in `visibleRows` still produce the same title and
+When two or more rows in `rows` still produce the same title and
 subtitle, each of them appends the first field, in this order, whose value
 differs across the colliding group: serial number, size, purchase date. Rows
 that still read the same after one field are regrouped and go on to the next,

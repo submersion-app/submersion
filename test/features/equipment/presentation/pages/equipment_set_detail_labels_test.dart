@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
@@ -82,5 +84,27 @@ void main() {
     // No brand, model or identifier: the row falls back to the type name.
     expect(find.text('Blue one'), findsOneWidget);
     expect(find.text('Mask'), findsOneWidget);
+  });
+
+  testWidgets('ungrouped, an identifier alone does not push out the type', (
+    tester,
+  ) async {
+    // With no type heading, "ID P2" on its own would not say what the item
+    // is; the old brand-or-type subtitle always did.
+    await pump(tester, [
+      EquipmentItem(
+        id: 'm',
+        name: 'Blue one',
+        type: EquipmentType.mask,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: 'm',
+            key: EquipmentAttrKeys.identifier,
+            valueText: 'P2',
+          ),
+        ],
+      ),
+    ]);
+    expect(find.text('Mask · ID P2'), findsOneWidget);
   });
 }

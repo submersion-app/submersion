@@ -297,9 +297,16 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            // The type stands in for a missing brand and model, as it always
+            // has here; an identifier or a tie-break detail follows it
+            // rather than replacing it, or "ID P2" alone would not say what
+            // the item is.
             Text(
-              labels[item.id]?.subtitle ??
+              [
+                if (item.fullName == item.name)
                   item.type.localizedName(context.l10n),
+                ...?labels[item.id]?.subtitleParts,
+              ].join(' · '),
             ),
             AssemblyChips(itemId: item.id),
           ],
