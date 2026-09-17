@@ -193,6 +193,17 @@ class _FakeRepo implements AppSettingsRepository {
   Future<String?> getRawSetting(String key) async => null;
   @override
   Future<void> setRawSetting(String key, String value) async {}
+
+  /// Always-hide-labels setting (#1424), defaulting to today's behavior.
+  bool alwaysHideLabels = false;
+
+  @override
+  Future<bool> getNavAlwaysHideLabels() async => alwaysHideLabels;
+  @override
+  Future<void> setNavAlwaysHideLabels(bool value) async {
+    alwaysHideLabels = value;
+  }
+
   @override
   Future<BlenderPreferences?> getBlenderPreferences() async => null;
   @override
@@ -325,6 +336,28 @@ void main() {
 
       expect(find.byType(NavigationBar), findsOneWidget);
     });
+
+    testWidgets(
+      'a phone build viewing an overflow route highlights the More tab',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        // Default primary destinations are [dashboard, dives, sites, trips];
+        // equipment only appears in the overflow "More" sheet, so no primary
+        // route matches and _calculateSelectedIndex must fall through to the
+        // last (More) index rather than defaulting to 0.
+        await tester.pumpWidget(
+          await _buildTestApp(initialLocation: '/equipment'),
+        );
+        await tester.pumpAndSettle();
+
+        final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+        expect(bar.selectedIndex, bar.destinations.length - 1);
+      },
+    );
   });
 
   group('MainScaffold mobile nav customization', () {
@@ -441,6 +474,138 @@ void main() {
       );
       return result.app;
     }
+
+    group('always-hide labels (#1424)', () {
+      testWidgets('the bottom bar always shows labels by default', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(400, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo();
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+        expect(
+          bar.labelBehavior,
+          NavigationDestinationLabelBehavior.alwaysShow,
+        );
+      });
+
+      testWidgets('turning always-hide on hides the bottom bar labels', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(400, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo()..alwaysHideLabels = true;
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+        expect(
+          bar.labelBehavior,
+          NavigationDestinationLabelBehavior.alwaysHide,
+        );
+      });
+
+      testWidgets('the desktop rail starts extended when always-hide is off', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo();
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+        expect(rail.extended, isTrue);
+      });
+
+      testWidgets('the desktop rail starts collapsed when always-hide is on', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo()..alwaysHideLabels = true;
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+        expect(rail.extended, isFalse);
+      });
+
+      testWidgets(
+        'the manual collapse arrow still overrides the setting for the session',
+        (tester) async {
+          tester.view.physicalSize = const Size(1400, 900);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          final repo = _FakeRepo();
+          await tester.pumpWidget(await buildHarness(repo: repo));
+          await tester.pumpAndSettle();
+
+          expect(
+            tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+            isTrue,
+          );
+
+          await tester.tap(find.byIcon(Icons.keyboard_double_arrow_left));
+          await tester.pumpAndSettle();
+
+          expect(
+            tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+            isFalse,
+          );
+        },
+      );
+
+      testWidgets('a wider phone shows more than the minimum primary slots', (
+        tester,
+      ) async {
+        // 700 base width, labels shown: (700 - 2*80) / 80 = 6.75 -> 6 slots,
+        // well above the 3-slot minimum.
+        tester.view.physicalSize = const Size(700, 1400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo();
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        // [Home, 6 middle, More] = 8 destinations, not the old fixed 5.
+        expect(find.byType(NavigationDestination), findsNWidgets(8));
+      });
+
+      testWidgets(
+        'a narrow landscape phone bases the slot count on height, not width',
+        (tester) async {
+          // width (700) >= height (400), but 700 is still under the 800px
+          // rail threshold, so this is phone bottom-bar mode. The slot count
+          // must use min(width, height) so a rotation cannot change it:
+          // basing it on height (400) gives the 3-slot minimum, while
+          // wrongly basing it on width (700) would give 6.
+          tester.view.physicalSize = const Size(700, 400);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          final repo = _FakeRepo();
+          await tester.pumpWidget(await buildHarness(repo: repo));
+          await tester.pumpAndSettle();
+
+          // [Home, 3 middle (the minimum), More] = 5 destinations.
+          expect(find.byType(NavigationDestination), findsNWidgets(5));
+        },
+      );
+    });
 
     testWidgets('default primary ids render default nav labels', (
       tester,

@@ -115,8 +115,10 @@ void main() {
     await pumpChart(tester);
 
     // fl_chart reserves the axis-name band (16, its default axisNameSize)
-    // plus the tick gutter for the left axis; the plot rect starts there.
-    const plotLeft = 16 + 32.0;
+    // plus the tick gutter for the left axis, then lays the plot out inside
+    // its 1 px border (the border Container pads its child by the border
+    // width); the plot rect starts there.
+    const plotLeft = 16 + 32 + 1.0;
     expect(DiveProfileChart.leftAxisSize(chartWidth), 32);
     expect(
       handleX(tester, RangeSelectionOverlay.startHandleKey),

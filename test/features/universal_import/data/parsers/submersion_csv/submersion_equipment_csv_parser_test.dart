@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_equipment_csv_parser.dart';
@@ -113,5 +116,71 @@ void main() {
       ).containsKey('components'),
       isFalse,
     );
+  });
+
+  group('Tags column (#1942)', () {
+    const reg = EquipmentItem(
+      id: 'r',
+      name: 'Reg',
+      type: EquipmentType.regulator,
+    );
+    const mask = EquipmentItem(id: 'm', name: 'Mask', type: EquipmentType.mask);
+    const fins = EquipmentItem(id: 'f', name: 'Fins', type: EquipmentType.fins);
+
+    String csv() => CsvEquipmentWriter(CsvExportUnits.metric).write(
+      const [reg, mask, fins],
+      tagNames: const {
+        'r': ['Salt; fresh', 'Travel'],
+        'm': ['=Deep', 'travel '],
+      },
+    );
+
+    test(
+      'each distinct name becomes one equipment tag the rows reference',
+      () async {
+        final payload = await const SubmersionEquipmentCsvParser().parse(
+          _bytes(csv()),
+        );
+        expect(payload.warnings, isEmpty);
+        final tags = payload.entitiesOf(ImportEntityType.tags);
+        // "travel " is "Travel": the tags table is unique on lower(trim(name)).
+        expect(tags.map((t) => t['name']), ['Salt; fresh', 'Travel', '=Deep']);
+        for (final tag in tags) {
+          expect(tag['appliesToEquipment'], isTrue);
+          expect(tag['appliesToDives'], isFalse);
+          expect(tag['appliesToSites'], isFalse);
+        }
+        final ids = {for (final t in tags) t['name']: t['uddfId']};
+        final items = payload.entitiesOf(ImportEntityType.equipment);
+        expect(_byName(items, 'Reg')['tagRefs'], [
+          ids['Salt; fresh'],
+          ids['Travel'],
+        ]);
+        expect(_byName(items, 'Mask')['tagRefs'], [
+          ids['=Deep'],
+          ids['Travel'],
+        ]);
+        expect(
+          _byName(items, 'Fins').containsKey('tagRefs'),
+          isFalse,
+          reason: 'a blank cell adds nothing',
+        );
+      },
+    );
+
+    test('a file from before the Tags column reads with no tags', () async {
+      final rows = const CsvToListConverter(
+        shouldParseNumbers: false,
+      ).convert(csv());
+      final at = rows.first.indexOf('Tags');
+      final legacy = const ListToCsvConverter().convert([
+        for (final row in rows) [...row]..removeAt(at),
+      ]);
+      final payload = await const SubmersionEquipmentCsvParser().parse(
+        _bytes(legacy),
+      );
+      expect(payload.entitiesOf(ImportEntityType.equipment), hasLength(3));
+      expect(payload.entitiesOf(ImportEntityType.tags), isEmpty);
+    });
   });
 }

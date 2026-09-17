@@ -1077,6 +1077,15 @@ final shareByDefaultProvider = FutureProvider<bool>((ref) async {
   return repo.getShareByDefault();
 });
 
+/// Whether nav destinations are forced to icon-only, hiding their text label
+/// even where the layout would otherwise show one (#1424). Global (not
+/// per-diver), matching the nav-order settings this pairs with.
+final navAlwaysHideLabelsProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(appSettingsRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchSettingsChanges());
+  return repo.getNavAlwaysHideLabels();
+});
+
 /// Settings notifier that persists to database per-diver
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final DiverSettingsRepository _repository;

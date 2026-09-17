@@ -3181,7 +3181,6 @@
   "diveLog_detail_tooltip_editDive": "Edit dive",
   "diveLog_detail_tooltip_previousDive": "Previous dive",
   "diveLog_detail_tooltip_nextDive": "Next dive",
-  "diveLog_detail_tooltip_exportProfileImage": "Export profile as image",
   "diveLog_detail_tooltip_removeFromFavorites": "Remove from favorites",
   "diveLog_detail_tooltip_viewFullscreen": "View fullscreen",
   "diveLog_detail_viewSite": "View Site",
@@ -3543,6 +3542,8 @@
   "diveLog_export_pageAsImageDescription": "Screenshot of entire dive details",
   "diveLog_export_pdfDescription": "Printable dive log page",
   "diveLog_export_pdfLogbookEntry": "PDF Logbook Entry",
+  "diveLog_export_profileAsImage": "Profile as Image",
+  "diveLog_export_profileAsImageDescription": "Screenshot of the dive profile chart",
   "diveLog_export_success": "Dive exported successfully",
   "diveLog_export_titleDiveNumber": "Export Dive #{number}",
   "diveLog_export_uddf": "UDDF",
@@ -10572,9 +10573,17 @@
   "@settings_navCustomization_title": {
     "description": "Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail."
   },
-  "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
+  "settings_navCustomization_description": "Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen size, not its orientation.",
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
+  },
+  "settings_navCustomization_alwaysHideLabels_title": "Always hide labels",
+  "@settings_navCustomization_alwaysHideLabels_title": {
+    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
+  },
+  "settings_navCustomization_alwaysHideLabels_subtitle": "Icons only, even where labels would normally fit",
+  "@settings_navCustomization_alwaysHideLabels_subtitle": {
+    "description": "Subtitle under the always-hide-labels switch."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {
@@ -10588,7 +10597,7 @@
   "@settings_navCustomization_scopeDesktop": {
     "description": "Segmented-button label for editing the desktop navigation rail order."
   },
-  "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
+  "settings_navCustomization_dividerLabel": "Items below go to the More menu when they do not fit in the bar",
   "@settings_navCustomization_dividerLabel": {
     "description": "Non-interactive divider row between primary and overflow destinations."
   },

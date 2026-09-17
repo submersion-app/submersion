@@ -5257,9 +5257,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => '导出轮廓为图片';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => '从收藏中移除';
 
   @override
@@ -5989,6 +5986,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'PDF 日志条目';
+
+  @override
+  String get diveLog_export_profileAsImage => '轮廓为图片';
+
+  @override
+  String get diveLog_export_profileAsImageDescription => '潜水轮廓图的截图';
 
   @override
   String get diveLog_export_success => '潜水导出成功';
@@ -16530,7 +16533,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      '拖动项目以重新排列。顶部的项目会显示在底部导航栏中；显示数量取决于屏幕尺寸，而非屏幕方向。';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_title => '始终隐藏标签';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitle =>
+      '仅显示图标,即使有空间显示标签';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
@@ -16543,8 +16553,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_navCustomization_scopeDesktop => '桌面';
 
   @override
-  String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+  String get settings_navCustomization_dividerLabel => '下方的项目在导航栏放不下时会移入“更多”菜单';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

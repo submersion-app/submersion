@@ -5531,10 +5531,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Exportar perfil como imagen';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Quitar de favoritos';
 
@@ -6315,6 +6311,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'Entrada de registro PDF';
+
+  @override
+  String get diveLog_export_profileAsImage => 'Perfil como imagen';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Captura de pantalla del gráfico del perfil de inmersión';
 
   @override
   String get diveLog_export_success => 'Inmersión exportada correctamente';
@@ -17390,7 +17393,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      'Arrastra los elementos para reordenarlos. Los primeros aparecen en la barra de navegación inferior; cuántos depende del tamaño de la pantalla, no de su orientación.';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_title =>
+      'Ocultar siempre las etiquetas';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitle =>
+      'Solo iconos, incluso cuando las etiquetas cabrían';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
@@ -17404,7 +17415,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+      'Los elementos de abajo van al menú Más cuando no caben en la barra';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

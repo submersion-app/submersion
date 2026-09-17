@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Canonical metadata for a single bottom-nav / nav-rail destination.
 ///
@@ -176,19 +177,17 @@ final List<String> movableNavIds = List.unmodifiable(
   kNavDestinations.where((d) => !d.isPinned).map((d) => d.id),
 );
 
-/// Number of customizable slots between Home and More in the phone bottom bar.
-const int kPhonePrimarySlotCount = 3;
-
 /// Default order for both nav surfaces: every movable id in canonical order.
 ///
-/// On phone the first [kPhonePrimarySlotCount] entries are the bottom-bar
-/// slots and the tail is the More sheet; on wide screens the whole list is the
-/// rail, below the pinned Home destination.
+/// On phone the first [kMinPhonePrimarySlotCount] entries are the guaranteed
+/// bottom-bar slots (more may show on a wider screen, see
+/// `phonePrimarySlotCount`) and the tail is the More sheet; on wide screens
+/// the whole list is the rail, below the pinned Home destination.
 final List<String> kDefaultNavOrder = movableNavIds;
 
 /// Default primary middle-slot ids (slots 2, 3, 4).
 final List<String> kDefaultPrimaryIds = List.unmodifiable(
-  kDefaultNavOrder.take(kPhonePrimarySlotCount),
+  kDefaultNavOrder.take(kMinPhonePrimarySlotCount),
 );
 
 /// Normalizes a stored nav order into a complete, ordered list of movable ids.

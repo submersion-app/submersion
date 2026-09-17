@@ -5427,9 +5427,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => 'تصدير الملف كصورة';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => 'إزالة من المفضلة';
 
   @override
@@ -6187,6 +6184,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'إدخال سجل PDF';
+
+  @override
+  String get diveLog_export_profileAsImage => 'الملف كصورة';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'لقطة شاشة لمخطط ملف الغوصة';
 
   @override
   String get diveLog_export_success => 'تم تصدير الغوصة بنجاح';
@@ -17096,7 +17100,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      'اسحب العناصر لإعادة ترتيبها. تظهر العناصر العلوية في شريط التنقل السفلي؛ ويعتمد عددها على حجم الشاشة وليس على اتجاهها.';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_title =>
+      'إخفاء التسميات دائمًا';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitle =>
+      'أيقونات فقط، حتى عند توفر مساحة للتسميات';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
@@ -17110,7 +17122,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+      'تنتقل العناصر أدناه إلى قائمة المزيد عندما لا يتسع لها الشريط';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

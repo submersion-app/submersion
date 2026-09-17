@@ -27,6 +27,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -1870,5 +1871,8 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     siteClassificationRepository: ref.read(
       siteClassificationRepositoryProvider,
     ),
+    // Equipment tags (issue #1942); without it imported gear arrives with
+    // none of its tags.
+    equipmentTagRepository: ref.read(equipmentTagRepositoryProvider),
   );
 }

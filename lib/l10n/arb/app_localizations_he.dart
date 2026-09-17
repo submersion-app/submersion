@@ -5398,9 +5398,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => 'ייצוא פרופיל כתמונה';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => 'הסרה מהמועדפים';
 
   @override
@@ -6155,6 +6152,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'רשומת יומן PDF';
+
+  @override
+  String get diveLog_export_profileAsImage => 'פרופיל כתמונה';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'צילום מסך של גרף פרופיל הצלילה';
 
   @override
   String get diveLog_export_success => 'הצלילה יוצאה בהצלחה';
@@ -16972,7 +16976,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      'גררו פריטים כדי לסדר אותם מחדש. הפריטים העליונים מופיעים בסרגל הניווט התחתון; מספרם תלוי בגודל המסך, לא בכיוון שלו.';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_title =>
+      'הסתר תוויות תמיד';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitle =>
+      'סמלים בלבד, גם כשיש מקום לתוויות';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
@@ -16986,7 +16998,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+      'פריטים שמתחת עוברים לתפריט עוד כשאין להם מקום בסרגל';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';

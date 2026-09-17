@@ -46,7 +46,9 @@ import 'package:submersion/features/site_types/data/repositories/site_type_repos
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_import/data/services/import_equipment_tag_linker.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
@@ -66,6 +68,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/services/import_tank_defaults.dart';
 import 'package:uuid/uuid.dart';
 
@@ -115,6 +118,10 @@ class ImportRepositories {
   /// to their types and tags (issue #1765).
   final SiteClassificationRepository? siteClassificationRepository;
 
+  /// Optional so existing bundles keep compiling; when null, imported
+  /// equipment is not linked to its tags (issue #1942).
+  final EquipmentTagRepository? equipmentTagRepository;
+
   const ImportRepositories({
     required this.tripRepository,
     required this.equipmentRepository,
@@ -135,6 +142,7 @@ class ImportRepositories {
     this.equipmentComponentRepository,
     this.siteTypeRepository,
     this.siteClassificationRepository,
+    this.equipmentTagRepository,
   });
 }
 
@@ -480,6 +488,20 @@ class UddfEntityImporter {
       onProgress,
     );
 
+    // Equipment tags (issue #1942). Equipment imported before its tags
+    // existed, so the links are made now that both have local ids.
+    final equipmentTagRepository = repositories.equipmentTagRepository;
+    if (equipmentTagRepository != null) {
+      await ImportEquipmentTagLinker(
+        tags: repositories.tagRepository,
+        links: equipmentTagRepository,
+      ).link(
+        items: data.equipment,
+        equipmentIdMapping: equipmentIdMapping,
+        tagIdMapping: tagIdMapping,
+      );
+    }
+
     final diveTypesCount = await _importDiveTypes(
       data.customDiveTypes,
       selections.diveTypes,
@@ -727,6 +749,14 @@ class UddfEntityImporter {
     onProgress?.call(ImportPhase.equipment, 0, selected.length);
     var count = 0;
 
+    // An item with no id is keyed by its name, as the import wizard keys a
+    // duplicate, so its tags still link (issue #1942). A name two id-less
+    // items in the file share (selected or not) would link one item's tags
+    // to the other, so it keys neither.
+    final idlessNameCounts = ImportEquipmentTagLinker.countIdlessEquipmentNames(
+      items,
+    );
+
     for (var i = 0; i < items.length; i++) {
       if (!selected.contains(i)) continue;
       final equipData = items[i];
@@ -787,7 +817,11 @@ class UddfEntityImporter {
       );
 
       await repository.createEquipment(item);
-      if (uddfId != null) idMapping[uddfId] = newId;
+      if (uddfId != null) {
+        idMapping[uddfId] = newId;
+      } else if (idlessNameCounts[name] == 1) {
+        idMapping.putIfAbsent(name, () => newId);
+      }
       count++;
       onProgress?.call(ImportPhase.equipment, count, selected.length);
     }
@@ -1076,28 +1110,27 @@ class UddfEntityImporter {
 
       final uddfId = tagData['uddfId'] as String?;
 
-      // Reuse the tag this diver already has by that name rather than minting
-      // a second uuid for it -- the same guard _importDiveTypes applies to
-      // colliding slugs. `tags` is uniquely indexed on (diver scope,
-      // case-folded name) since v149, so a blind mint would collide (#1032).
-      // Scope (issue #1765). A file that predates it says nothing: the tag
-      // stays a dive tag, and a site that references it widens it later.
-      final appliesToDives = tagData['appliesToDives'] as bool? ?? true;
-      final appliesToSites = tagData['appliesToSites'] as bool? ?? false;
+      // Reuse the tag this diver already has by that name rather than
+      // minting a second uuid for it, the same guard _importDiveTypes
+      // applies to colliding slugs. `tags` is uniquely indexed on (diver
+      // scope, case-folded name) since v149, so a blind mint would collide
+      // (#1032). Scopes (issues #1765, #1942): a file that says nothing
+      // about one keeps its default, and a site or item that references
+      // the tag widens it later.
+      final scopes = importedTagScopes(tagData);
 
       final existing = await repository.getTagByName(name, diverId: diverId);
       if (existing != null) {
         if (uddfId != null) idMapping[uddfId] = existing.id;
         // Keep every use the file gives the tag.
-        if (appliesToSites && !existing.appliesTo(TagScope.sites)) {
-          await repository.getOrCreateTag(
-            name,
-            diverId: diverId,
-            scope: TagScope.sites,
-          );
-        }
-        if (appliesToDives && !existing.appliesTo(TagScope.dives)) {
-          await repository.getOrCreateTag(name, diverId: diverId);
+        for (final scope in scopes) {
+          if (!existing.appliesTo(scope)) {
+            await repository.getOrCreateTag(
+              name,
+              diverId: diverId,
+              scope: scope,
+            );
+          }
         }
         continue;
       }
@@ -1113,12 +1146,7 @@ class UddfEntityImporter {
         colorHex: tagData['colorHex'] as String? ?? tagData['color'] as String?,
         createdAt: now,
         updatedAt: now,
-        // A tag must apply somewhere; a file claiming neither is read as a
-        // dive tag.
-        scopes: {
-          if (appliesToDives || !appliesToSites) TagScope.dives,
-          if (appliesToSites) TagScope.sites,
-        },
+        scopes: scopes,
       );
 
       await repository.createTag(tag);

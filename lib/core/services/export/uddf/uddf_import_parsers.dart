@@ -634,12 +634,15 @@ class UddfImportParsers {
 
     tag['name'] = getElementText(tagElement, 'name') ?? '';
     tag['colorHex'] = getElementText(tagElement, 'color');
-    // Where the tag is offered (issue #1765); null when a file predates it.
+    // Where the tag is offered (issues #1765, #1942); null when a file predates it.
     tag['appliesToDives'] = _parseBool(
       getElementText(tagElement, 'appliestodives'),
     );
     tag['appliesToSites'] = _parseBool(
       getElementText(tagElement, 'appliestosites'),
+    );
+    tag['appliesToEquipment'] = _parseBool(
+      getElementText(tagElement, 'appliestoequipment'),
     );
 
     return tag;
@@ -650,6 +653,15 @@ class UddfImportParsers {
     'false' || '0' => false,
     _ => null,
   };
+
+  /// The `<tagref>` values of [parent]'s own `<tags>` child (issues #1765,
+  /// #1942). `findElements` matches direct children only, so a check-in's
+  /// `<tags>` inside an item's `<observations>` is never read as the item's.
+  static List<String> _tagRefsOf(XmlElement parent) => [
+    for (final ref
+        in parent.findElements('tags').expand((s) => s.findElements('tagref')))
+      if (ref.innerText.trim().isNotEmpty) ref.innerText.trim(),
+  ];
 
   /// A custom site type definition from `<sitetypes>` (issue #1765):
   /// `{id, name, sortOrder}`, or empty when the element lacks an id or name.
@@ -916,13 +928,7 @@ class UddfImportParsers {
         if (ref.innerText.trim().isNotEmpty) ref.innerText.trim(),
     ];
     if (typeRefs.isNotEmpty) site['siteTypeRefs'] = typeRefs;
-    final tagRefs = [
-      for (final ref
-          in siteElement
-              .findElements('tags')
-              .expand((s) => s.findElements('tagref')))
-        if (ref.innerText.trim().isNotEmpty) ref.innerText.trim(),
-    ];
+    final tagRefs = _tagRefsOf(siteElement);
     if (tagRefs.isNotEmpty) site['tagRefs'] = tagRefs;
 
     return site;
@@ -1006,6 +1012,12 @@ class UddfImportParsers {
           },
       ];
     }
+
+    // Tags (issue #1942), carried on the map because the import wizard
+    // keeps only entity lists. The entity importer links them once the
+    // file's tags exist.
+    final tagRefs = _tagRefsOf(itemElement);
+    if (tagRefs.isNotEmpty) item['tagRefs'] = tagRefs;
 
     return item;
   }

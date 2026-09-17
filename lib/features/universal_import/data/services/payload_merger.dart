@@ -1,5 +1,6 @@
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/payload_ref_keys.dart';
@@ -66,6 +67,9 @@ class PayloadMerger {
 
   /// Site map fields holding a list of entity references (issue #1765).
   static final _siteListRefFields = siteListRefTypes.keys.toList();
+
+  /// Equipment map fields holding a list of entity references (issue #1942).
+  static final _equipmentListRefFields = equipmentListRefTypes.keys.toList();
 
   /// Site list fields every file's record adds to when a site folds: its
   /// tags and its site types. Its suggested types are not among them; as
@@ -300,6 +304,17 @@ class PayloadMerger {
         _componentRefFields,
         (ref) => '$fileId:$ref',
       );
+      // An item's tag references point at namespaced tag ids, like a
+      // site's (issue #1942).
+      for (final field in _equipmentListRefFields) {
+        final refs = item[field];
+        if (refs is List) {
+          item[field] = [
+            for (final ref in refs)
+              if (ref is String && ref.isNotEmpty) '$fileId:$ref' else ref,
+          ];
+        }
+      }
     }
 
     // A diver key only this file guarantees is qualified by the file, on the
@@ -352,6 +367,7 @@ class PayloadMerger {
       if (id != null) {
         final first = firstById[id];
         if (first != null) {
+          _unionTagScopes(type, first, item);
           _unionRefLists(type, first, item);
           _enrich(first, item);
           continue;
@@ -396,6 +412,7 @@ class PayloadMerger {
         if (key != null) (survivors[key] ??= []).add(_Survivor(item, sourceId));
         continue;
       }
+      _unionTagScopes(type, survivor.item, item);
       _unionRefLists(type, survivor.item, item);
       _enrich(survivor.item, item);
       if (sourceId != null) survivor.sourceIds.add(sourceId);
@@ -412,11 +429,29 @@ class PayloadMerger {
     }
   }
 
+  /// Gives a folded tag every scope either record asks for (issues #1765,
+  /// #1942). Scope flags are booleans, so [_enrich], which only fills a
+  /// missing field, would keep the first file's `false` over a later file's
+  /// `true`. The union runs over the effective scopes, so a record that says
+  /// nothing about a scope keeps that scope's default.
+  static void _unionTagScopes(
+    ImportEntityType type,
+    Map<String, dynamic> survivor,
+    Map<String, dynamic> item,
+  ) {
+    if (type != ImportEntityType.tags) return;
+    final scopes = {...importedTagScopes(survivor), ...importedTagScopes(item)};
+    for (final MapEntry(key: scope, value: key) in importTagScopeKeys.entries) {
+      survivor[key] = scopes.contains(scope);
+    }
+  }
+
   /// Unions [item]'s reference lists into [survivor]'s, for the fields
   /// where each file's record carries links of its own: a site's tags and
-  /// site types (issue #1765). [_enrich] only fills a missing field, so
-  /// without this the folded record's links would be lost. Repeats that
-  /// later resolve to one id are dropped by [_rewriteAliases].
+  /// site types (issue #1765), an equipment item's tags (issue #1942).
+  /// [_enrich] only fills a missing field, so without this the folded
+  /// record's links would be lost. Repeats that later resolve to one id are
+  /// dropped by [_rewriteAliases].
   static void _unionRefLists(
     ImportEntityType type,
     Map<String, dynamic> survivor,
@@ -424,6 +459,7 @@ class PayloadMerger {
   ) {
     final fields = switch (type) {
       ImportEntityType.sites => _siteUnionFields,
+      ImportEntityType.equipment => _equipmentListRefFields,
       _ => const <String>[],
     };
     for (final field in fields) {
@@ -561,6 +597,19 @@ class PayloadMerger {
 
     for (final item in entities[ImportEntityType.equipment] ?? const []) {
       _rewriteNested(item, 'components', _componentRefFields, resolve);
+      // An item's tag references follow a folded tag (issue #1942). Two
+      // references that fold into one tag become one.
+      for (final field in _equipmentListRefFields) {
+        final refs = item[field];
+        if (refs is List) {
+          item[field] = [
+            ...{
+              for (final ref in refs)
+                if (ref is String) resolve(ref) else ref,
+            },
+          ];
+        }
+      }
     }
 
     for (final set in entities[ImportEntityType.equipmentSets] ?? const []) {
