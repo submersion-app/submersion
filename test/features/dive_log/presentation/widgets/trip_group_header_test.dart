@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
@@ -65,19 +65,23 @@ void main() {
     bool isSelectionMode = false,
     bool? groupChecked,
     ValueChanged<bool?>? onGroupCheckedChanged,
+    TextDirection textDirection = TextDirection.ltr,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
         overrides: overrides,
-        child: TripGroupHeader(
-          section: value,
-          onToggle: onToggle ?? () {},
-          onOpenTrip: onOpenTrip ?? () {},
-          isSelectionMode: isSelectionMode,
-          groupChecked: groupChecked,
-          onGroupCheckedChanged: onGroupCheckedChanged,
+        child: Directionality(
+          textDirection: textDirection,
+          child: TripGroupHeader(
+            section: value,
+            onToggle: onToggle ?? () {},
+            onOpenTrip: onOpenTrip ?? () {},
+            isSelectionMode: isSelectionMode,
+            groupChecked: groupChecked,
+            onGroupCheckedChanged: onGroupCheckedChanged,
+          ),
         ),
       ),
     );
@@ -181,6 +185,33 @@ void main() {
             .first,
       );
       expect(material.color, Colors.transparent);
+    });
+
+    testWidgets('the name keeps a 16px inset on the leading side (LTR)', (
+      tester,
+    ) async {
+      await pumpHeader(tester, value: section());
+
+      final header = tester.getRect(find.byType(TripGroupHeader));
+      final name = tester.getRect(find.text('Tassie'));
+      expect(name.left - header.left, 16);
+    });
+
+    testWidgets('the name keeps a 16px inset on the leading side (RTL)', (
+      tester,
+    ) async {
+      // The rail mirrors to the right under RTL, so the header's wide inset
+      // has to follow it. A physical left inset would leave 4px there and
+      // push the text onto the rail.
+      await pumpHeader(
+        tester,
+        value: section(),
+        textDirection: TextDirection.rtl,
+      );
+
+      final header = tester.getRect(find.byType(TripGroupHeader));
+      final name = tester.getRect(find.text('Tassie'));
+      expect(header.right - name.right, 16);
     });
 
     testWidgets('a partly selected group reads as mixed', (tester) async {

@@ -13,11 +13,15 @@ import 'package:submersion/features/dive_log/presentation/widgets/trip_group_rai
 /// reading pixels back is the only honest check.
 ///
 /// Run through [WidgetTester.runAsync]: rasterizing needs the real event loop,
-/// and inside the fake-async zone `Picture.toImage` never completes -- the
-/// test just sits there until the ten-minute timeout kills it.
+/// and inside the fake-async zone `Picture.toImage` never completes. The test
+/// just sits there until the ten-minute timeout kills it.
+///
+/// [paintSize] overrides the box handed to the painter, for the degenerate
+/// boxes a raster image cannot itself have.
 Future<Color Function(int x, int y)> _paint(
   Decoration decoration, {
   required Size size,
+  Size? paintSize,
   TextDirection textDirection = TextDirection.ltr,
 }) async {
   final recorder = ui.PictureRecorder();
@@ -25,7 +29,7 @@ Future<Color Function(int x, int y)> _paint(
   decoration.createBoxPainter().paint(
     canvas,
     Offset.zero,
-    ImageConfiguration(size: size, textDirection: textDirection),
+    ImageConfiguration(size: paintSize ?? size, textDirection: textDirection),
   );
   final image = await recorder.endRecording().toImage(
     size.width.round(),
@@ -94,6 +98,28 @@ void main() {
       // 2px accent borders the band used to draw.
       expect(at(100, 0).a, 0.0);
       expect(at(100, 99).a, 0.0);
+    });
+
+    testWidgets('an empty area paints nothing and does not throw', (
+      tester,
+    ) async {
+      // A collapsed sliver can hand the painter a zero-height box.
+      final at = (await tester.runAsync(
+        () => _paint(
+          rail,
+          size: const Size(200, 1),
+          paintSize: const Size(200, 0),
+        ),
+      ))!;
+
+      expect(at(7, 0).a, 0.0);
+    });
+
+    test('equal rails share a hash code', () {
+      expect(
+        const GutterRailDecoration(color: Color(0xFF336699)).hashCode,
+        const GutterRailDecoration(color: Color(0xFF336699)).hashCode,
+      );
     });
 
     test('two rails with the same colour are equal', () {

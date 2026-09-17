@@ -100,7 +100,9 @@ class TripGroupHeader extends ConsumerWidget {
         child: InkWell(
           onTap: onToggle,
           child: Padding(
-            padding: const EdgeInsets.only(left: 16, right: 4),
+            // Directional: the wide inset sits on the leading side, where
+            // the gutter rail is, in both LTR and RTL.
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
             child: Row(
               children: [
                 Expanded(
