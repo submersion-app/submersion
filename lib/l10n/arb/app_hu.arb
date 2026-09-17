@@ -5094,7 +5094,7 @@
   "settings_navCustomization_scopeDesktop": "Asztali",
   "settings_navCustomization_alwaysHideLabels_title": "Címkék mindig elrejtve",
   "settings_navCustomization_alwaysHideLabels_subtitle": "Csak ikonok, még akkor is, ha elférne a címke",
-  "settings_navCustomization_dividerLabel": "Az alábbi elemek a Tovabb menübe kerülnek, ha nem férnek el a sávban",
+  "settings_navCustomization_dividerLabel": "Az alábbi elemek a Tovább menübe kerülnek, ha nem férnek el a sávban",
   "settings_navCustomization_resetButton": "Reset to defaults",
   "settings_navCustomization_pinnedTooltip": "Always shown",
   "settings_navCustomization_moveUpLabel": "Move {destination} up",

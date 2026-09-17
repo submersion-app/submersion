@@ -17180,7 +17180,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Az alábbi elemek a Tovabb menübe kerülnek, ha nem férnek el a sávban';
+      'Az alábbi elemek a Tovább menübe kerülnek, ha nem férnek el a sávban';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';
