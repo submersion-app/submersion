@@ -2,9 +2,24 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
 
 import '../../../../helpers/test_database.dart';
+
+/// Throws on every call after the first, to simulate one set applying
+/// successfully before a later one fails mid-loop.
+class _FailAfterFirstSetRepository extends EquipmentSetRepository {
+  var _calls = 0;
+
+  @override
+  Future<List<String>> getEquipmentIdsInSet(String setId) async {
+    _calls++;
+    if (_calls > 1) throw Exception('boom');
+    return super.getEquipmentIdsInSet(setId);
+  }
+}
 
 void main() {
   late AppDatabase db;
@@ -317,6 +332,45 @@ void main() {
 
     expect(await equipmentOn('dive1'), {'gear-computer', 'gear-drysuit'});
   });
+
+  test(
+    'reports and notifies a partial success when a later set fails mid-loop',
+    () async {
+      // Two opted-in sets; the fake throws once the first has already been
+      // applied, simulating a failure partway through the loop. The already-
+      // written set must still be reported and synced, not masked as false.
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertGear('gear-bailout', type: 'cylinder');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-a');
+      await addToSet('set-a', 'gear-computer');
+      await addToSet('set-a', 'gear-drysuit');
+      await insertSet('set-b');
+      await addToSet('set-b', 'gear-computer');
+      await addToSet('set-b', 'gear-bailout');
+      await insertDive('dive1');
+      await linkSource('dive1', 'c1');
+
+      final failingLinker = EquipmentSetForComputerLinker(
+        equipmentSetRepository: _FailAfterFirstSetRepository(),
+      );
+      final notified = SyncEventBus.changes.first;
+
+      expect(
+        await failingLinker.linkComputerSetsForDive(diveId: 'dive1'),
+        isTrue,
+      );
+      final applied = await equipmentOn('dive1');
+      expect(applied, contains('gear-computer'));
+      expect(
+        applied.contains('gear-drysuit') ^ applied.contains('gear-bailout'),
+        isTrue,
+        reason: 'exactly one set should have written before the failure',
+      );
+      await expectLater(notified, completes);
+    },
+  );
 
   test('returns false instead of throwing when the read fails', () async {
     await insertGear('gear-computer');

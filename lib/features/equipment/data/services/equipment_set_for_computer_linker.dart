@@ -56,6 +56,10 @@ class EquipmentSetForComputerLinker {
   /// less) is skipped entirely rather than crossing diver scopes.
   Future<bool> linkComputerSetsForDive({required String diveId}) async {
     if (DatabaseService.instance.databaseOrNull == null) return false;
+    // Declared outside the try so a failure partway through the loop below
+    // still reports (and notifies sync about) whichever sets already wrote
+    // successfully, instead of masking a real DB change as "nothing happened".
+    var appliedAny = false;
     try {
       final computerEquipmentIds = await _gearLinker
           .gearTwinEquipmentIdsForDive(diveId);
@@ -88,7 +92,6 @@ class EquipmentSetForComputerLinker {
       final setIds = rows.map((row) => row.read<String>('id')).toSet();
       if (setIds.isEmpty) return false;
 
-      var appliedAny = false;
       for (final setId in setIds) {
         final setEquipmentIds = await _sets.getEquipmentIdsInSet(setId);
         if (setEquipmentIds.isEmpty) continue;
@@ -99,11 +102,18 @@ class EquipmentSetForComputerLinker {
         );
         appliedAny = true;
       }
-      if (appliedAny) SyncEventBus.notifyLocalChange();
       return appliedAny;
     } catch (_) {
-      // Best-effort: never let this fail the dive operation.
-      return false;
+      // Best-effort: never let this fail the dive operation. appliedAny may
+      // already be true if an earlier set in the loop wrote successfully
+      // before a later one threw; report that partial success rather than
+      // masking it as false.
+      return appliedAny;
+    } finally {
+      // Runs once regardless of which path returned, so a partial success
+      // followed by a thrown exception still notifies sync about the sets
+      // that did get written.
+      if (appliedAny) SyncEventBus.notifyLocalChange();
     }
   }
 }
