@@ -68,6 +68,7 @@ void main() {
     test('volume uses the locale decimal separator', () {
       Intl.defaultLocale = 'de';
       expect(metric.formatVolume(11.5, decimals: 1), '11,5 L');
+      expect(metric.formatVolumeValue(11.5, decimals: 1), '11,5');
     });
 
     test('tank volume uses the locale decimal separator', () {

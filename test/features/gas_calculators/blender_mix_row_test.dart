@@ -83,4 +83,23 @@ void main() {
       'Price': null,
     });
   });
+
+  testWidgets('an unreadable keystroke in one field shows its own error there '
+      'instead of the shared mix error', (tester) async {
+    // A lone separator has nothing on either side to correct -- genuinely
+    // unreadable under any locale. The field's own "invalid number"
+    // message takes priority over the shared mix error passed in for
+    // O2/He, since a bad keystroke is the more immediate problem to fix
+    // first (see BlenderMixRow._field).
+    await pumpRow(tester, withPressure: true, errorText: mixError);
+
+    await tester.enterText(find.widgetWithText(TextField, '80').first, ',');
+    await tester.pump();
+
+    final o2Field = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .firstWhere((f) => f.controller?.text == ',');
+    expect(o2Field.decoration?.errorText, isNot(mixError));
+    expect(o2Field.decoration?.errorText, isNotNull);
+  });
 }

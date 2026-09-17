@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/equation_of_state.dart';
@@ -179,6 +180,59 @@ void main() {
         const GasMix(o2: 21),
       );
       expect(loaderContainer.read(blenderTargetPressureProvider), 200.0);
+    });
+
+    test(
+      'a stored billed date is restored when the running invoice has fills',
+      () async {
+        // A diver mid-session (e.g. app relaunched between fills) must not
+        // lose the date they already picked for the bill in progress.
+        final storedDate = DateTime(2026, 1, 3);
+        final repo = FakeAppSettingsRepository()
+          ..blenderPreferences =
+              BlenderPreferences.defaults(cylinderWaterLiters: 12).copyWith(
+                billedDate: storedDate,
+                billedFills: const [
+                  BilledFill(id: '1', label: 'Tx 21/35', lines: [], total: 12),
+                ],
+              );
+        final loaderContainer = containerWithRepo(repo);
+        addTearDown(loaderContainer.dispose);
+
+        await loaderContainer.read(blenderPreferencesLoaderProvider.future);
+
+        expect(loaderContainer.read(blenderBilledDateProvider), storedDate);
+      },
+    );
+
+    test('a stored billed date is NOT restored when the running invoice is '
+        'empty, so the header shows today rather than a stale date', () async {
+      // Issue #1876: paying archives the fills and resets the date to
+      // "now", but that "now" gets persisted too. Restoring it
+      // unconditionally on the next launch left a stale date on screen
+      // once real time had moved on, even though nothing was billed yet.
+      final staleDate = DateTime(2020, 1, 1);
+      final repo = FakeAppSettingsRepository()
+        ..blenderPreferences = BlenderPreferences.defaults(
+          cylinderWaterLiters: 12,
+        ).copyWith(billedDate: staleDate, billedFills: const []);
+      final loaderContainer = containerWithRepo(repo);
+      addTearDown(loaderContainer.dispose);
+
+      final before = DateTime.now();
+      await loaderContainer.read(blenderPreferencesLoaderProvider.future);
+      // blenderBilledDateProvider is lazy: its DateTime.now() default is
+      // only computed on first read, so "after" has to be captured once
+      // that read has happened, not before it -- otherwise it is always
+      // earlier than the value it is meant to bound.
+      final restored = loaderContainer.read(blenderBilledDateProvider);
+      final after = DateTime.now();
+      expect(restored, isNot(staleDate));
+      expect(
+        restored.isAfter(before.subtract(const Duration(seconds: 5))) &&
+            !restored.isAfter(after),
+        isTrue,
+      );
     });
   });
 }

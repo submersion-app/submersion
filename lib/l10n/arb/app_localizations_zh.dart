@@ -12977,6 +12977,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_maximumOperatingDepth => '最大作业深度';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return '最大操作深度：$depth $unit，ppO2 为 $ppo2 巴，氧气 $o2%';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => '氧气 (O₂)';
 
   @override
@@ -13194,11 +13204,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return '充入 $gas';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => '起始';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => '操作';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => '已添加';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => '压力';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => '混合气';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13265,6 +13287,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return '请输入有效数字（小数点分隔符：\"$separator\"）';
+  }
+
+  @override
   String get gasCalculators_blender_currency => '货币';
 
   @override
@@ -13297,6 +13324,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_flushFeeVolume => '吹扫量';
+
+  @override
+  String get gasCalculators_blender_flushFeeColumnGas => '气体';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => '气瓶';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => '容量';
 
   @override
   String gasCalculators_blender_flushFeeLine(String gas) {
@@ -13374,6 +13410,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return '$label 的操作';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return '$mix 已加入账单';
   }
@@ -13415,6 +13456,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound => '未找到该账单。';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete => '删除此发票';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle => '删除发票？';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody => '此操作无法撤销。';
 
   @override
   String get gasCalculators_blender_defaults => '默认设置与计费';

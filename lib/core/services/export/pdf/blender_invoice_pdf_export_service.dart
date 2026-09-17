@@ -133,6 +133,16 @@ class BlenderInvoicePdfExportService {
                     ),
                   ),
                   pw.Text(
+                    // A plain hyphen, not the app's em dash: the PDF's
+                    // Helvetica font has no glyph for U+2014 and silently
+                    // drops it.
+                    line.cylinder.isEmpty ? '-' : line.cylinder,
+                    style: const pw.TextStyle(
+                      fontSize: 10,
+                      color: PdfColors.grey700,
+                    ),
+                  ),
+                  pw.Text(
                     line.cost,
                     style: const pw.TextStyle(
                       fontSize: 10,

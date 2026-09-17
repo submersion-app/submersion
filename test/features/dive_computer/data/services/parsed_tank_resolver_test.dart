@@ -397,6 +397,106 @@ void main() {
         expect(resolveParsedTanks(parsed).single.role, 'oxygenSupply');
       });
 
+      test('HP CCR oxygen tank with no matched gas mix defaults to 100% O2, '
+          'not the diluent it would otherwise fall back to (issue #726)', () {
+        // Real Shearwater HP CCR dive: two pressure-telemetry tanks
+        // (diluent + O2), neither linked to a gas mix (DC_GASMIX_UNKNOWN)
+        // and neither breathed in the OC sense samples track, so both
+        // would otherwise fall through to the "primary mix" guess and the
+        // O2 tank would be mislabeled with the diluent's 18% trimix.
+        final parsed = makeParsedDive(
+          gasMixes: [pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0)],
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: unknownGasMixIndex,
+              startPressureBar: 200.0,
+              usage: 2, // DC_USAGE_DILUENT
+            ),
+            pigeon.TankInfo(
+              index: 1,
+              gasMixIndex: unknownGasMixIndex,
+              startPressureBar: 200.0,
+              usage: 1, // DC_USAGE_OXYGEN
+            ),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        final oxygenTank = tanks.firstWhere((t) => t.index == 1);
+        expect(oxygenTank.role, 'oxygenSupply');
+        expect(oxygenTank.o2Percent, 100.0);
+        expect(oxygenTank.hePercent, 0.0);
+
+        // The diluent tank is unaffected: it still falls back to the
+        // primary mix, since that guess is meaningful for it.
+        final diluentTank = tanks.firstWhere((t) => t.index == 0);
+        expect(diluentTank.role, 'diluent');
+        expect(diluentTank.o2Percent, 18.0);
+        expect(diluentTank.hePercent, 45.0);
+      });
+
+      test('an unlinked oxygen tank matches an explicit oxygen-tagged gas mix '
+          'instead of being duplicated as a phantom deco cylinder (Copilot '
+          'review on #1972)', () {
+        // Unlike Shearwater, some computers DO report an explicit
+        // usage-tagged gas mix for the O2 supply, but the tank record still
+        // isn't index-linked to it (gasMixIndex unknown) and it's never the
+        // dominant gas on any sample (it's injected into the loop, not
+        // breathed OC). The real gas mix must be matched by its usage tag
+        // rather than left for the "no match" default, or it gets
+        // synthesized a second time below as an unclaimed gas.
+        final gasMixes = [
+          pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+          pigeon.GasMix(
+            index: 1,
+            o2Percent: 100.0,
+            hePercent: 0.0,
+            usage: 1, // DC_USAGE_OXYGEN
+          ),
+        ];
+        final tankInfos = [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 200.0,
+            usage: 2, // DC_USAGE_DILUENT
+          ),
+          pigeon.TankInfo(
+            index: 1,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 200.0,
+            usage: 1, // DC_USAGE_OXYGEN
+          ),
+        ];
+
+        final tanks = resolveParsedTanks(
+          makeParsedDive(gasMixes: gasMixes, tanks: tankInfos),
+        );
+
+        // Exactly two cylinders: no phantom duplicate for the matched gas.
+        expect(tanks, hasLength(2));
+
+        final oxygenTank = tanks.firstWhere((t) => t.index == 1);
+        expect(oxygenTank.role, 'oxygenSupply');
+        expect(oxygenTank.o2Percent, 100.0);
+        expect(oxygenTank.hePercent, 0.0);
+        expect(
+          oxygenTank.startPressure,
+          200.0,
+          reason: 'stays the real, pressure-tracked transmitter tank',
+        );
+
+        // Gas switches must resolve to the real tank, not a phantom one.
+        final switches = resolveGasSwitches(
+          makeParsedDive(
+            gasMixes: gasMixes,
+            tanks: tankInfos,
+            samples: [sample(0, 0, 0), sample(60, 1, 1)],
+          ),
+        );
+        expect(switches.single.toTankIndex, 1);
+      });
+
       test('synthesized deco cylinder (no transmitter) gets the deco role', () {
         final parsed = makeParsedDive(
           gasMixes: [

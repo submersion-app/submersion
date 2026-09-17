@@ -7,6 +7,7 @@ import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/os_version.dart';
 
 void main() {
   final environment = LogEnvironment(
@@ -148,8 +149,22 @@ void main() {
       final captured = await LogEnvironment.capture();
 
       expect(captured.platform, Platform.operatingSystem);
-      expect(captured.osVersion, Platform.operatingSystemVersion);
       expect(captured.locale, Platform.localeName);
+    });
+
+    test('corrects the OS version the host reports about itself', () async {
+      // Not compared against Platform.operatingSystemVersion directly: a
+      // Windows 11 host reports itself as Windows 10, and capture is what
+      // corrects it (#1982). On every other platform this is the raw string.
+      final captured = await LogEnvironment.capture();
+
+      expect(
+        captured.osVersion,
+        normalizeOsVersion(
+          platform: Platform.operatingSystem,
+          version: Platform.operatingSystemVersion,
+        ),
+      );
     });
 
     test('degrades when the version lookup never answers', () async {

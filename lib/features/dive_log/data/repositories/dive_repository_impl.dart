@@ -5259,6 +5259,54 @@ class DiveRepository {
     return _mapDiveTimesRow(rows.first);
   }
 
+  /// The id of the chronologically earliest EXECUTED dive of [diverId]
+  /// (excludes planner rows with `isPlanned = true`, which have no crew,
+  /// gear or checklist tied to them yet and must never steal a checklist
+  /// link meant for the real dive) whose effective start (entryTime,
+  /// falling back to the legacy diveDateTime) is at or after [notBefore].
+  /// Mirrors [getPreviousDive]'s predicate and ordering in reverse, with an
+  /// explicit diver filter -- unlike [getPreviousDive], which is used for
+  /// the surface-interval lookback and does not need one.
+  ///
+  /// Returns only the id, not a hydrated [domain.Dive]: the sole caller,
+  /// [ChecklistDiveLinker], only compares identity, and that linker runs
+  /// this lookup once per checklist session on every dive import, so
+  /// hydrating tanks/profile/equipment (see [_mapRowToDive]) for every
+  /// candidate would be wasted work on every import.
+  Future<String?> getNextDive({
+    required String? diverId,
+    required DateTime notBefore,
+  }) async {
+    try {
+      final cutoffMs = notBefore.millisecondsSinceEpoch;
+      final query = _db.selectOnly(_db.dives)
+        ..addColumns([_db.dives.id])
+        ..where(
+          _db.dives.isPlanned.equals(false) &
+              (_db.dives.entryTime.isBiggerOrEqualValue(cutoffMs) |
+                  (_db.dives.entryTime.isNull() &
+                      _db.dives.diveDateTime.isBiggerOrEqualValue(cutoffMs))),
+        )
+        ..orderBy([
+          OrderingTerm.asc(
+            coalesce([_db.dives.entryTime, _db.dives.diveDateTime]),
+          ),
+        ])
+        ..limit(1);
+      if (diverId != null) {
+        query.where(_db.dives.diverId.equals(diverId));
+      } else {
+        query.where(_db.dives.diverId.isNull());
+      }
+
+      final row = await query.getSingleOrNull();
+      return row?.read(_db.dives.id);
+    } catch (e, stackTrace) {
+      _log.error('Failed to get next dive', error: e, stackTrace: stackTrace);
+      return null;
+    }
+  }
+
   /// Times-only equivalent of [getPreviousDive] (identical predicate and
   /// ordering), for lookback chains that need only id and timestamps.
   Future<domain.DiveTimes?> getPreviousDiveTimes(String diveId) async {

@@ -13384,6 +13384,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'العمق التشغيلي الأقصى';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return 'أقصى عمق تشغيلي: $depth $unit عند $ppo2 بار ppO2 مع $o2% أكسجين';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => 'الأكسجين (O₂)';
 
   @override
@@ -13607,11 +13617,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return 'أضف $gas';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => 'البداية';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => 'الإجراء';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => 'أضيف';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => 'الضغط';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => 'الخليط';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13682,6 +13704,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return 'أدخل رقمًا صالحًا (الفاصلة العشرية: \"$separator\")';
+  }
+
+  @override
   String get gasCalculators_blender_currency => 'العملة';
 
   @override
@@ -13720,6 +13747,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_flushFeeVolume => 'حجم التنظيف';
+
+  @override
+  String get gasCalculators_blender_flushFeeColumnGas => 'الغاز';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => 'الأسطوانة';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => 'الحجم';
 
   @override
   String gasCalculators_blender_flushFeeLine(String gas) {
@@ -13800,6 +13836,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return 'إجراءات $label';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return 'تمت إضافة $mix إلى الفاتورة';
   }
@@ -13845,6 +13886,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound =>
       'الفاتورة غير موجودة.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete => 'حذف هذه الفاتورة';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'حذف الفاتورة؟';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get gasCalculators_blender_defaults => 'الإعدادات الافتراضية والفوترة';

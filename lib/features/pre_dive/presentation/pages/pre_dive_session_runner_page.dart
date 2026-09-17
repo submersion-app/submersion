@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/cell_linearity.dart';
@@ -58,10 +57,10 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
         );
   }
 
-  /// Resolves [item] to [state], freezing its live overdue-service list at
-  /// this exact moment -- the informative red warning becomes a snapshot the
-  /// instant the diver makes a decision, rather than staying tied to
-  /// whatever the equipment's service clocks say later.
+  /// Resolves [item] to [state], freezing its live service-clock list at
+  /// this exact moment -- every configured clock, not only overdue ones,
+  /// becomes a snapshot the instant the diver makes a decision, rather than
+  /// staying tied to whatever the equipment's service clocks say later.
   Future<void> _resolve(
     WidgetRef ref,
     PreDiveSessionItem item,
@@ -70,7 +69,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     String? note,
     double? sourceValueNumber,
   }) async {
-    final overdueServices = await _overdueEntriesFor(ref, item);
+    final overdueServices = await _serviceEntriesFor(ref, item);
     await _setState(
       ref,
       item,
@@ -83,12 +82,13 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     );
   }
 
-  /// The item's currently overdue service clocks, or null when the item has
-  /// no linked equipment. Null and empty are deliberately different: null
-  /// means there was nothing to check, while an empty list means the linked
-  /// equipment was checked and nothing was overdue. Collapsing the two would
-  /// store a snapshot for every unlinked item and lose that distinction.
-  Future<List<OverdueServiceEntry>?> _overdueEntriesFor(
+  /// The item's linked equipment's current service clocks, or null when the
+  /// item has no linked equipment. Null and empty are deliberately
+  /// different: null means there was nothing to check, while an empty list
+  /// means the linked equipment was checked and has no configured clocks.
+  /// Collapsing the two would store a snapshot for every unlinked item and
+  /// lose that distinction.
+  Future<List<OverdueServiceEntry>?> _serviceEntriesFor(
     WidgetRef ref,
     PreDiveSessionItem item,
   ) async {
@@ -98,9 +98,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
       serviceClockStatusesProvider(equipmentId).future,
     );
     return [
-      for (final status in statuses)
-        if (status.severity == ServiceClockSeverity.overdue)
-          OverdueServiceEntry.fromStatus(status),
+      for (final status in statuses) OverdueServiceEntry.fromStatus(status),
     ];
   }
 

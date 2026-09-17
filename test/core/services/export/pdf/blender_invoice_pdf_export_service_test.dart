@@ -23,11 +23,13 @@ void main() {
               BlenderInvoiceExportLine(
                 gas: 'O2',
                 volume: '30 L',
+                cylinder: '12 L',
                 cost: 'CHF 10.00',
               ),
               BlenderInvoiceExportLine(
                 gas: 'He',
                 volume: '240 L',
+                cylinder: '',
                 cost: 'CHF 25.00',
               ),
             ],
@@ -55,6 +57,17 @@ void main() {
     expect(text, contains('240 L'));
     expect(text, contains('Total'));
     expect(text, contains('35.00'));
+  });
+
+  test('the cylinder size prints for a line that has one, a dash for one '
+      'that predates cylinder tracking', () async {
+    final bytes = await service.generateBytes(data());
+    final text = pdfVisibleText(bytes);
+
+    expect(text, contains('12 L'));
+    // A plain hyphen, not an em dash: Helvetica in the pdf package has no
+    // glyph for U+2014 and silently drops it from the rendered text.
+    expect(text, contains('-'));
   });
 
   test('an incomplete total is flagged in the document', () async {

@@ -13291,6 +13291,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_maximumOperatingDepth => 'עומק הפעלה מקסימלי';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return 'עומק תפעול מרבי: $depth $unit ב-$ppo2 בר ppO2 עם $o2% חמצן';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => 'חמצן (O₂)';
 
   @override
@@ -13513,11 +13523,23 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return 'הוסף $gas';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => 'התחלה';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => 'פעולה';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => 'נוסף';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => 'לחץ';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => 'תערובת';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13587,6 +13609,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
+  }
+
+  @override
   String get gasCalculators_blender_currency => 'מטבע';
 
   @override
@@ -13623,6 +13650,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_flushFeeVolume => 'נפח שטיפה';
+
+  @override
+  String get gasCalculators_blender_flushFeeColumnGas => 'גז';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => 'בלון';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => 'נפח';
 
   @override
   String gasCalculators_blender_flushFeeLine(String gas) {
@@ -13702,6 +13738,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return 'פעולות עבור $label';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return '$mix נוסף לחיוב';
   }
@@ -13747,6 +13788,17 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound =>
       'החשבונית לא נמצאה.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete => 'מחק חשבונית זו';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'למחוק את החשבונית?';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'לא ניתן לבטל פעולה זו.';
 
   @override
   String get gasCalculators_blender_defaults => 'הגדרות ברירת מחדל וחיוב';

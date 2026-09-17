@@ -143,12 +143,26 @@ _ResolvedCylinders _resolveCylinders(
       consumed.add(gasIndex);
       gasIndexToTankIndex[gasIndex] = tank.index;
     }
-    final o2 = gas?.o2Percent ?? 21.0;
+    // Resolve the role first: Shearwater HP CCR pressure records tag the O2
+    // tank with DC_USAGE_OXYGEN but never link it to a gas mix (it carries
+    // DC_GASMIX_UNKNOWN, see the class comment above), so `gas` is null here
+    // even though the role is known. The O2-heuristic inputs below don't
+    // matter for that case: DC_USAGE_OXYGEN short-circuits _inferRole before
+    // they're consulted.
+    final role = _inferRole(
+      tank.usage,
+      gas?.o2Percent ?? 21.0,
+      gas?.hePercent ?? 0.0,
+    );
+    // No gas mixes (e.g. gauge mode): default to air rather than mislabel,
+    // except a CCR oxygen supply cylinder, which is pure O2 by definition
+    // (#726) -- unlike air, that default isn't a guess.
+    final o2 =
+        gas?.o2Percent ?? (role == TankRole.oxygenSupply.name ? 100.0 : 21.0);
     final he = gas?.hePercent ?? 0.0;
     result.add(
       DownloadedTank(
         index: tank.index,
-        // No gas mixes (e.g. gauge mode): default to air rather than mislabel.
         o2Percent: o2,
         hePercent: he,
         startPressure: tank.startPressureBar,
@@ -157,7 +171,7 @@ _ResolvedCylinders _resolveCylinders(
           reading: surfacingReadings[tank.index],
         ),
         volumeLiters: tank.volumeLiters,
-        role: _inferRole(tank.usage, o2, he),
+        role: role,
         transmitterSerial: _transmitterSerial(tank.transmitterSerial),
       ),
     );
@@ -293,7 +307,8 @@ List<String> _inferSensorlessRoles(
 bool _nearlyEqualPercent(double a, double b) => (a - b).abs() < 1e-6;
 
 /// The gas-mix index (position in [gasMixes]) for [tank], preferring the gas
-/// actually breathed on it. Returns null only when there are no gas mixes.
+/// actually breathed on it. Returns null when there are no gas mixes, or for
+/// a CCR oxygen supply tank that matched neither of the first two rules.
 int? _resolveTankGasIndex(
   pigeon.TankInfo tank,
   List<pigeon.ProfileSample> samples,
@@ -310,6 +325,19 @@ int? _resolveTankGasIndex(
   // 2. The computer's own tank->gas link, when it set one (non-Shearwater).
   if (tank.gasMixIndex >= 0 && tank.gasMixIndex < gasMixes.length) {
     return tank.gasMixIndex;
+  }
+  // A CCR oxygen supply cylinder is never "breathed" in the OC sense rule 1
+  // tracks, and libdivecomputer's Shearwater parser never links it to a gas
+  // mix (rule 2), so falling through to rule 3 below would mislabel pure O2
+  // as whatever gas happens to be first (#726). Some other computers DO
+  // report an explicit usage-tagged gas mix for it without index-linking the
+  // tank to it, though -- match that by its usage tag first, so it's
+  // consumed here rather than synthesized a second time as an unclaimed gas
+  // mix (caught in review on #1972). Only when no such entry exists is it
+  // left gasless, so the caller can apply the correct 100% O2 default.
+  if (tank.usage == 1 /* DC_USAGE_OXYGEN */ ) {
+    final oxygenGasIndex = gasMixes.indexWhere((g) => g.usage == 1);
+    return oxygenGasIndex >= 0 ? oxygenGasIndex : null;
   }
   // 3. Last resort: the dive's primary (first) mix -- never a hardcoded air
   //    default, which would mislabel an EAN dive.

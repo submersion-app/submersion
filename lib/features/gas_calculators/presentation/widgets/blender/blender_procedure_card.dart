@@ -4,6 +4,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_blender.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -75,8 +76,7 @@ class BlenderProcedureCard extends ConsumerWidget {
             const SizedBox(height: 4),
             _temperatureSummary(context, units, fillTemp, settledTemp),
             const SizedBox(height: 12),
-            for (final step in result.steps)
-              _stepLine(context, step, units, decimals),
+            _stepTable(context, result.steps, units, decimals),
             // Only worth saying when the two temperatures differ. At equal
             // temperatures the last step already reads the target, and a
             // "settles to" line would restate it.
@@ -107,36 +107,117 @@ class BlenderProcedureCard extends ConsumerWidget {
   /// procedure it conditions (issue #44 follow-up); both temperatures show
   /// unconditionally now, since a fill station cares what the cylinder settles
   /// to even when it happens to match the fill temperature today.
+  ///
+  /// Wraps onto two lines with [Wrap] rather than one `Text` with
+  /// `overflow: ellipsis`: a phone-width card cannot fit both readings on
+  /// one line, and the single-line version clipped "Ruhetemperatur" off
+  /// entirely instead of just losing the middot separator (issue #1876
+  /// follow-up).
   Widget _temperatureSummary(
     BuildContext context,
     UnitFormatter units,
     double fillTemp,
     double settledTemp,
   ) {
-    final label =
-        '${context.l10n.gasCalculators_blender_fillTemp}: '
-        '${units.formatTemperature(fillTemp, decimals: 0)}'
-        '  ·  ${context.l10n.gasCalculators_blender_settledTemp}: '
-        '${units.formatTemperature(settledTemp, decimals: 0)}';
-    return Text(
-      label,
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.onPrimaryContainer,
+    );
+    return Wrap(
       key: const Key('blender-temperature-summary'),
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: Theme.of(context).colorScheme.onPrimaryContainer,
-      ),
-      overflow: TextOverflow.ellipsis,
+      children: [
+        Text(
+          '${context.l10n.gasCalculators_blender_fillTemp}: '
+          '${units.formatTemperature(fillTemp, decimals: 0)}',
+          style: style,
+        ),
+        Text('  ·  ', style: style),
+        Text(
+          '${context.l10n.gasCalculators_blender_settledTemp}: '
+          '${units.formatTemperature(settledTemp, decimals: 0)}',
+          style: style,
+        ),
+      ],
     );
   }
 
-  Widget _stepLine(
+  /// A flexible `Row`/`Expanded` table with the units in its header, so the
+  /// columns compress in place on a narrow screen instead of overflowing
+  /// off-screen the way `DataTable`'s fixed column widths did (issue #1876
+  /// follow-up: the diver could not read the pressure or mix columns at all
+  /// on a phone).
+  static const List<int> _flex = [4, 4, 4, 4];
+
+  Widget _stepTable(
+    BuildContext context,
+    List<BlendStep> steps,
+    UnitFormatter units,
+    int decimals,
+  ) {
+    final onPrimaryContainer = Theme.of(context).colorScheme.onPrimaryContainer;
+    final headerStyle = blenderTableHeaderStyle(
+      context,
+      color: onPrimaryContainer,
+    );
+    final valueStyle = blenderTableValueStyle(
+      context,
+      color: onPrimaryContainer,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: _flex[0],
+              child: Text(
+                context.l10n.gasCalculators_blender_stepColumnAction,
+                style: headerStyle,
+              ),
+            ),
+            Expanded(
+              flex: _flex[1],
+              child: Text(
+                '${context.l10n.gasCalculators_blender_stepColumnAdded} '
+                '(${units.pressureSymbol})',
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            Expanded(
+              flex: _flex[2],
+              child: Text(
+                '${context.l10n.gasCalculators_blender_stepColumnPressure} '
+                '(${units.pressureSymbol})',
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            Expanded(
+              flex: _flex[3],
+              child: Text(
+                context.l10n.gasCalculators_blender_stepColumnMix,
+                style: headerStyle,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        for (final step in steps)
+          _stepRow(context, step, units, decimals, valueStyle),
+      ],
+    );
+  }
+
+  Widget _stepRow(
     BuildContext context,
     BlendStep step,
     UnitFormatter units,
     int decimals,
+    TextStyle? style,
   ) {
-    final style = Theme.of(context).textTheme.bodyLarge?.copyWith(
-      color: Theme.of(context).colorScheme.onPrimaryContainer,
-    );
     final action = step.fillGas == null
         ? context.l10n.gasCalculators_blender_stepStartLabel
         : context.l10n.gasCalculators_blender_stepAdd(
@@ -151,23 +232,35 @@ class BlenderProcedureCard extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 5, child: Text(action, style: style)),
           Expanded(
-            flex: 4,
+            flex: _flex[0],
+            child: Text(action, style: style),
+          ),
+          Expanded(
+            flex: _flex[1],
             child: Text(added, style: style, textAlign: TextAlign.end),
           ),
           Expanded(
-            flex: 5,
+            flex: _flex[2],
             child: Text(
-              units.formatPressure(step.pressureBar, decimals: decimals),
+              units.formatPressureValue(step.pressureBar, decimals: decimals),
               style: style,
               textAlign: TextAlign.end,
             ),
           ),
           Expanded(
-            flex: 5,
+            flex: _flex[3],
             child: Text(
-              formatPreciseMix(context, step.resultingMix),
+              // Spaced around the '/' -- "Tx 14.7 / 55.9" rather than
+              // "Tx 14.7/55.9" -- so this narrow column wraps at the spaces
+              // instead of needing to fit the whole mix on one line (issue
+              // #1876 follow-up). Scoped to this column rather than
+              // formatPreciseMix itself, which other call sites (the
+              // invoice's fill title, the cost card) still want compact.
+              formatPreciseMix(
+                context,
+                step.resultingMix,
+              ).replaceAll('/', ' / '),
               style: style,
               textAlign: TextAlign.end,
             ),
