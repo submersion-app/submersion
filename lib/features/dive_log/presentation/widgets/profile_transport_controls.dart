@@ -6,6 +6,12 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_play
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// The slider's hover overlay radius, and so the distance its track is inset
+/// from each side of the slider box (the overlay is wider than the thumb).
+/// The minimap is inset by the same amount so a given x is the same dive
+/// time on both.
+const double _scrubTrackInset = 24;
+
 /// Playback transport for the fullscreen profile: skip / play / skip,
 /// a minimap scrub slider, elapsed / total time, and a speed chip.
 class ProfileTransportControls extends ConsumerStatefulWidget {
@@ -100,6 +106,8 @@ class _ProfileTransportControlsState
             alignment: Alignment.center,
             children: [
               Positioned.fill(
+                left: _scrubTrackInset,
+                right: _scrubTrackInset,
                 child: CustomPaint(
                   painter: _MinimapPainter(
                     profile: widget.profile,
@@ -114,6 +122,9 @@ class _ProfileTransportControlsState
                   inactiveTrackColor: Colors.transparent,
                   thumbShape: const RoundSliderThumbShape(
                     enabledThumbRadius: 7,
+                  ),
+                  overlayShape: const RoundSliderOverlayShape(
+                    overlayRadius: _scrubTrackInset,
                   ),
                 ),
                 child: Slider(
