@@ -213,7 +213,8 @@ Per row: title `item.name`; subtitle parts joined with " · ":
 When two or more rows in `visibleRows` still produce the same title and
 subtitle, each of them appends the first field, in this order, whose value
 differs across the colliding group: serial number, size, purchase date. Size
-and date go through the active diver's unit and date formatting. If nothing
+is free text and shows as written; the date goes through the active diver's
+date format. If nothing
 differs, the rows stay identical; the builder never invents a counter, since
 "#2" would not be stable across lists.
 
