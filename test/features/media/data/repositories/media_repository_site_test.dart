@@ -94,7 +94,7 @@ void main() {
   });
 
   group('site dedupe lookups', () {
-    test('linked asset ids and local paths for site', () async {
+    test('linked local paths for site', () async {
       await insertSite('site-1');
       await repository.createMedia(
         item('a.jpg', siteId: 'site-1', platformAssetId: 'asset-9'),
@@ -109,11 +109,9 @@ void main() {
         ),
       );
 
-      expect(await repository.getLinkedAssetIdsForSite('site-1'), {'asset-9'});
       expect(await repository.getLinkedLocalPathsForSite('site-1'), {
         '/tmp/map.pdf',
       });
-      expect(await repository.getLinkedAssetIdsForSite('site-2'), isEmpty);
       expect(await repository.getLinkedLocalPathsForSite('site-2'), isEmpty);
     });
 
@@ -121,16 +119,12 @@ void main() {
       'a broken schema surfaces the failure instead of an empty set',
       () async {
         // An empty set would read as "nothing linked here yet" and let the
-        // importer re-link every asset, so these lookups rethrow rather than
-        // swallow. Dropping the table is the cheapest genuine query failure.
+        // importer re-link every file, so this lookup rethrows rather than
+        // swallows. Dropping the table is the cheapest genuine query failure.
         // (Closing the database is NOT one: Drift answers a closed handle's
         // customSelect with an empty result rather than an error.)
         await db.customStatement('DROP TABLE media');
 
-        await expectLater(
-          repository.getLinkedAssetIdsForSite('site-1'),
-          throwsA(anything),
-        );
         await expectLater(
           repository.getLinkedLocalPathsForSite('site-1'),
           throwsA(anything),

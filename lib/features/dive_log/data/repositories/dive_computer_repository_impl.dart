@@ -44,6 +44,16 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
+
+/// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
+/// found, with the anchor needed to turn an absolute time into an offset on
+/// that series' own clock.
+typedef ContainedSegmentCandidate = ({
+  String diveId,
+  String seriesId,
+  DateTime effectiveStart,
+});
 
 /// Repository for managing dive computers and multi-profile support.
 class DiveComputerRepository {
@@ -1012,6 +1022,101 @@ class DiveComputerRepository {
     }
   }
 
+  /// Existing `dive_profile_series` rows on [computerId] whose OWN recorded
+  /// window (that series' first/last sample, not the dive's declared
+  /// runtime) contains [time].
+  ///
+  /// Answers "did this computer already record something at this instant",
+  /// for the case [findMatchingDiveWithScore]'s whole-dive time/depth/
+  /// duration comparison cannot: a dive computer that splits one physical
+  /// dive into two native log entries on a brief surface pause. If the
+  /// first entry was later merged (in this app or another) into a longer
+  /// dive, that merged dive's declared start no longer sits within
+  /// [findMatchingDiveWithScore]'s tolerance window of the second entry's
+  /// own start -- but the merged dive's profile still spans it, which this
+  /// checks directly. Ordered most-recent-first; capped at 5 since this
+  /// backs a per-candidate profile-curve comparison the caller does next.
+  ///
+  /// [computerId] is matched via `COALESCE(dps.computer_id, ds.computer_id,
+  /// d.computer_id)`: a native download stamps it on the series row
+  /// directly, but a file-imported dive's series can carry a null
+  /// `computer_id` of its own, with the identity living instead on its
+  /// `dive_data_sources` row (or, failing that, the dive row).
+  ///
+  /// Returns the matching series id alongside the dive id -- not just the
+  /// dive -- because a consolidated or edited dive can hold more than one
+  /// series, and only the specific one that satisfied this window check is
+  /// safe to compare a curve against; the dive's merged, all-sources profile
+  /// is not (it can mix in samples from a different computer entirely, or
+  /// omit this exact series if a later edit superseded it). The candidate's
+  /// [ContainedSegmentCandidate.effectiveStart] is the anchor the caller
+  /// needs to turn its own dive's absolute start time into an offset on that
+  /// series' own clock.
+  Future<List<ContainedSegmentCandidate>> findComputerDivesContainingTime({
+    required String computerId,
+    required DateTime time,
+    String? diverId,
+  }) async {
+    try {
+      final timeMs = time.millisecondsSinceEpoch;
+      final normalizedDiverId = diverId?.trim().isEmpty == true
+          ? null
+          : diverId;
+      final diverClause = normalizedDiverId != null ? 'AND d.diver_id = ?' : '';
+      final diverVars = normalizedDiverId != null
+          ? [Variable(normalizedDiverId)]
+          : <Variable>[];
+
+      final result = await _db
+          .customSelect(
+            '''
+        SELECT d.id AS dive_id, dps.id AS series_id,
+          COALESCE(d.entry_time, d.dive_date_time) as effective_start
+        FROM dives d
+        JOIN dive_profile_series dps ON dps.dive_id = d.id
+        LEFT JOIN dive_data_sources ds ON ds.id = dps.source_id
+        WHERE COALESCE(dps.computer_id, ds.computer_id, d.computer_id) = ?
+          AND (COALESCE(d.entry_time, d.dive_date_time) + dps.start_timestamp * 1000) <= ?
+          AND (COALESCE(d.entry_time, d.dive_date_time) + dps.end_timestamp * 1000) >= ?
+          $diverClause
+        ORDER BY effective_start DESC
+        LIMIT 5
+      ''',
+            variables: [
+              Variable(computerId),
+              Variable(timeMs),
+              Variable(timeMs),
+              ...diverVars,
+            ],
+          )
+          .get();
+
+      return [
+        for (final row in result)
+          (
+            diveId: row.data['dive_id'] as String,
+            seriesId: row.data['series_id'] as String,
+            effectiveStart: DateTime.fromMillisecondsSinceEpoch(
+              row.data['effective_start'] as int,
+            ),
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to find computer dives containing time: $computerId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// The specific profile series [findComputerDivesContainingTime] matched,
+  /// so the caller compares against that series' own samples rather than
+  /// the dive's merged, all-sources profile.
+  Future<ProfileSeries?> getProfileSeriesById(String seriesId) =>
+      _profileSeries.getSeriesById(seriesId);
+
   /// Get dive IDs that were imported from a specific computer.
   Future<List<String>> getDiveIdsForComputer(
     String computerId, {
@@ -1116,6 +1221,14 @@ class DiveComputerRepository {
     int? gfLow,
     int? gfHigh,
     int? decoConservatism,
+    // CCR/SCR diluent gas mix (issue #1879), derived from the resolved tank
+    // list's Diluent cylinder by the caller. Null when the download had none
+    // (OC dive, or a CCR dive whose transmitter naming did not resolve to a
+    // role). Only ever written for a brand-new dive row below; a dive
+    // matched to an existing row keeps whatever diluent it already has, the
+    // same way every other field in that branch is left untouched.
+    double? diluentO2,
+    double? diluentHe,
     List<EventData>? events,
     List<GasSwitchData>? gasSwitches,
     int? diveNumber,
@@ -1253,6 +1366,16 @@ class DiveComputerRepository {
                 decoAlgorithm: Value(decoAlgorithm),
                 decoConservatism: Value(decoConservatism),
                 diveMode: Value(diveMode.code),
+                // Only set when the caller resolved a Diluent cylinder,
+                // never a fabricated default -- an OC dive or a CCR dive
+                // whose transmitter naming didn't resolve to a role stays
+                // without one, exactly as if no diluent had been entered.
+                diluentO2: diluentO2 != null
+                    ? Value(diluentO2)
+                    : const Value.absent(),
+                diluentHe: diluentO2 != null
+                    ? Value(diluentHe ?? 0.0)
+                    : const Value.absent(),
                 diveType: Value(diveTypeId),
                 createdAt: Value(now),
                 updatedAt: Value(now),

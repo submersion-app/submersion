@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
@@ -66,7 +67,8 @@ void main() {
       dives: [dive],
       tripStartDate: DateTime.utc(2024, 1, 15),
       tripEndDate: DateTime.utc(2024, 1, 15),
-      existingAssetIds: const {},
+      linked: const [],
+      linkedGalleryAssets: const LinkedGalleryAssets(),
       photoPickerService: picker,
     );
 

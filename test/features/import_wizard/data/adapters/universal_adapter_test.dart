@@ -474,14 +474,15 @@ void main() {
       );
     });
 
-    testWidgets('acquisitionSteps has four steps', (tester) async {
+    testWidgets('acquisitionSteps has five steps', (tester) async {
       await _runWithAdapter(
         tester,
         overrides: _buildBundleOverrides(),
         callback: (adapter) async {
-          // Select File, Confirm Source, Map Fields, Photos. The Photos step
-          // auto-advances away when the payload references no photos.
-          expect(adapter.acquisitionSteps, hasLength(4));
+          // Select File, Confirm Source, Map Fields, Divers, Photos. Divers
+          // auto-advances away for a logbook with one diver, Photos when the
+          // payload references no photos.
+          expect(adapter.acquisitionSteps, hasLength(5));
           expect(adapter.acquisitionSteps.last.label, 'Photos');
         },
       );

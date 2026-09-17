@@ -867,10 +867,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       String? tagWarning;
       if (!token.isCancelled &&
           state.importTags.isNotEmpty &&
-          result.importedDiveIds.isNotEmpty &&
+          (result.importedDiveIds.isNotEmpty ||
+              result.diverOutcomes.any((o) => o.diveIds.isNotEmpty)) &&
           _tagRepository != null) {
         try {
-          await _applyImportTags(result.importedDiveIds);
+          await _applyImportTags(result);
         } catch (e) {
           _log.warning('Tag application failed after import: $e');
           tagWarning = 'Dives imported successfully but tagging failed: $e';
@@ -902,35 +903,51 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     }
   }
 
-  /// Resolve tag selections and apply them to the given dive IDs.
-  Future<void> _applyImportTags(List<String> importedDiveIds) async {
+  /// Resolve tag selections and apply them to every imported dive.
+  ///
+  /// A tag belongs to one diver, so when an import wrote to several
+  /// profiles (issue #1893) each profile gets its own tag of the chosen
+  /// name. The existing tags offered in Review are the active diver's, so
+  /// they are used as they are only for that diver's dives.
+  Future<void> _applyImportTags(UnifiedImportResult result) async {
+    final divesByDiver = <String?, List<String>>{
+      if (result.diverOutcomes.isEmpty)
+        _diverId: result.importedDiveIds
+      else
+        for (final outcome in result.diverOutcomes)
+          if (outcome.diveIds.isNotEmpty) outcome.diverId: outcome.diveIds,
+    };
+    final total = divesByDiver.values.fold<int>(0, (n, ids) => n + ids.length);
     state = state.copyWith(
       importPhase: ImportPhase.applyingTags,
       importCurrent: 0,
-      importTotal: importedDiveIds.length,
+      importTotal: total,
     );
 
-    // Resolve tag selections to tag IDs.
-    final tagIds = <String>[];
-    for (final tagSelection in state.importTags) {
-      if (tagSelection.isNew) {
-        final tag = await _tagRepository!.getOrCreateTag(
-          tagSelection.name,
-          diverId: _diverId,
-        );
-        tagIds.add(tag.id);
-      } else {
-        tagIds.add(tagSelection.existingTagId!);
+    var done = 0;
+    for (final MapEntry(key: diverId, value: diveIds) in divesByDiver.entries) {
+      // Resolve tag selections to this diver's tag IDs.
+      final tagIds = <String>[];
+      for (final tagSelection in state.importTags) {
+        if (!tagSelection.isNew && diverId == _diverId) {
+          tagIds.add(tagSelection.existingTagId!);
+        } else {
+          final tag = await _tagRepository!.getOrCreateTag(
+            tagSelection.name,
+            diverId: diverId,
+          );
+          tagIds.add(tag.id);
+        }
       }
-    }
 
-    // Apply each tag to each imported dive.
-    for (var i = 0; i < importedDiveIds.length; i++) {
-      final diveId = importedDiveIds[i];
-      for (final tagId in tagIds) {
-        await _tagRepository!.addTagToDive(diveId, tagId);
+      // Apply each tag to each of the diver's imported dives.
+      for (final diveId in diveIds) {
+        for (final tagId in tagIds) {
+          await _tagRepository!.addTagToDive(diveId, tagId);
+        }
+        done++;
+        state = state.copyWith(importCurrent: done);
       }
-      state = state.copyWith(importCurrent: i + 1);
     }
   }
 

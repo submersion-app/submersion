@@ -589,9 +589,19 @@ class ReparseService {
       totalDurationSeconds: parsed.durationSeconds,
     );
     final waterTemp = _minWaterTemp(parsed);
+    // Diluent gas mix (issue #1879), from the same resolved tank list the
+    // tank carry-over below derives roles from, so a re-parse always agrees
+    // with whichever cylinder carries the Diluent role. Value.absent() keeps
+    // a diluent stamped by hand or by another source when this parse found
+    // none, the same convention as waterTemp/GPS above.
+    final diluent = resolveDiluentGas(
+      resolveParsedTanks(parsed, trimAtSurfacing: trimTankPressureAtSurfacing),
+    );
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
+        diluentO2: diluent != null ? Value(diluent.o2) : const Value.absent(),
+        diluentHe: diluent != null ? Value(diluent.he) : const Value.absent(),
         maxDepth: Value(parsed.maxDepthMeters),
         avgDepth: Value(
           parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
@@ -833,8 +843,12 @@ class ReparseService {
                 ? Value(tank.volumeLiters)
                 : const Value.absent(),
             workingPressure: const Value.absent(),
-            startPressure: Value(tank.startPressure),
-            endPressure: Value(tank.endPressure),
+            // Same rule as volume: a dive computer with no air integration
+            // resolves a tank (its configured gas mix) but never reports a
+            // pressure, so the diver's own manually-entered start/end
+            // pressure would otherwise be nulled out by every re-parse.
+            startPressure: Value.absentIfNull(tank.startPressure),
+            endPressure: Value.absentIfNull(tank.endPressure),
             o2Percent: Value(tank.o2Percent),
             hePercent: Value(tank.hePercent),
             // The transmitter serial is computer-owned and written

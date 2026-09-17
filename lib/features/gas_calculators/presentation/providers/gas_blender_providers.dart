@@ -243,7 +243,13 @@ final blenderPreferencesLoaderProvider = FutureProvider<void>((ref) async {
       .read(appSettingsRepositoryProvider)
       .getBlenderPreferences();
   if (stored == null) return;
-  ref.read(blenderTemplatesProvider.notifier).state = stored.templates;
+  // Sorted on load too, not just on every mutation path (mix_template_manager
+  // and mix_template_menu): otherwise an install with an older, unsorted
+  // saved list stayed unsorted until the next add/edit (Copilot review,
+  // issue #1876 follow-up).
+  ref.read(blenderTemplatesProvider.notifier).state = MixTemplate.sorted(
+    stored.templates,
+  );
   ref.read(blenderGasPricesProvider.notifier).state = stored.gasPrices;
   ref.read(blenderFillTempProvider.notifier).state = stored.fillTempC;
   ref.read(blenderSettledTempProvider.notifier).state = stored.settledTempC;
@@ -265,7 +271,11 @@ final blenderPreferencesLoaderProvider = FutureProvider<void>((ref) async {
       stored.flushFeeEnabled;
   ref.read(blenderFlushFeeModeProvider.notifier).state = stored.flushFeeMode;
   ref.read(blenderFlushFeeGasesProvider.notifier).state = stored.flushFeeGases;
-  if (stored.billedDate != null) {
+  // Only restored when the running invoice already has fills on it: an empty
+  // invoice has nothing to anchor a date to, and restoring a stale one
+  // unconditionally left yesterday's date on screen after the app was
+  // reopened with nothing billed yet, instead of today's (issue #1876).
+  if (stored.billedDate != null && stored.billedFills.isNotEmpty) {
     ref.read(blenderBilledDateProvider.notifier).state = stored.billedDate!;
   }
   ref.read(blenderArchivedInvoicesProvider.notifier).state =

@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
 import 'package:submersion/features/statistics/domain/career_totals.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
@@ -42,6 +43,8 @@ class HeroHeader extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Empty with one profile; brings its own gap otherwise.
+              const HeroDiverAvatar(),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

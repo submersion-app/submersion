@@ -1,22 +1,18 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_relations.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_equipment_tag_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
@@ -32,6 +28,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -49,7 +46,6 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show Dive;
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
-import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -59,7 +55,7 @@ final exportServiceProvider = Provider<ExportService>((ref) {
 });
 
 /// Export state for tracking export operations
-enum ExportStatus { idle, exporting, success, restoreComplete, error }
+enum ExportStatus { idle, exporting, success, error }
 
 /// Import phases for progress tracking
 enum ImportPhase {
@@ -156,6 +152,21 @@ class ExportNotifier extends StateNotifier<ExportState> {
     return ComponentsIndex.fromRows(
       rows,
     ).namesByParent({for (final e in equipment) e.id: e});
+  }
+
+  /// Each exported item's tag names, by name, for the Tags column of the
+  /// equipment CSV (issue #1942). One query for every item.
+  Future<Map<String, List<String>>> _equipmentTagNamesFor(
+    List<EquipmentItem> equipment,
+  ) async {
+    final byItem = await _ref
+        .read(equipmentTagRepositoryProvider)
+        .getTagsByEquipment();
+    return {
+      for (final item in equipment)
+        if (byItem[item.id] case final tags? when tags.isNotEmpty)
+          item.id: [for (final tag in tags) tag.name],
+    };
   }
 
   /// The diver's dive types by id, so the CSV, Excel and PDF exports name each
@@ -261,6 +272,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.exportEquipmentToCsv(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        tagNames: await _equipmentTagNamesFor(equipment),
         units: _csvUnits(unitMode),
       );
       state = state.copyWith(
@@ -639,6 +651,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         siteClassification.customSiteTypes,
         (type) => type.id,
       );
+      // Equipment tags (issue #1942): each item's tag ids and the tags they
+      // name, resolved by id like the site tags above.
+      final equipmentTags = await loadEquipmentTagsForExport(
+        _ref.read(equipmentTagRepositoryProvider),
+        [for (final e in equipment) e.id],
+      );
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -670,12 +688,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: relations.diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+        tags: mergeById(
+          mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+          equipmentTags.tags,
+          (tag) => tag.id,
+        ),
         diveTags: relations.diveTags,
         customDiveTypes: customDiveTypes,
         customSiteTypes: customSiteTypes,
         siteTypeIdsBySite: siteClassification.typeIdsBySite,
         siteTagIdsBySite: siteClassification.tagIdsBySite,
+        equipmentTagIdsByItem: equipmentTags.tagIdsByItem,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
@@ -1171,6 +1194,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveEquipmentCsvToFile(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        tagNames: await _equipmentTagNamesFor(equipment),
         dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
         units: _csvUnits(unitMode),
       );
@@ -1252,6 +1276,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         siteClassification.customSiteTypes,
         (type) => type.id,
       );
+      // Equipment tags (issue #1942): each item's tag ids and the tags they
+      // name, resolved by id like the site tags above.
+      final equipmentTags = await loadEquipmentTagsForExport(
+        _ref.read(equipmentTagRepositoryProvider),
+        [for (final e in equipment) e.id],
+      );
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -1283,12 +1313,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: relations.diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+        tags: mergeById(
+          mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+          equipmentTags.tags,
+          (tag) => tag.id,
+        ),
         diveTags: relations.diveTags,
         customDiveTypes: customDiveTypes,
         customSiteTypes: customSiteTypes,
         siteTypeIdsBySite: siteClassification.typeIdsBySite,
         siteTagIdsBySite: siteClassification.tagIdsBySite,
+        equipmentTagIdsByItem: equipmentTags.tagIdsByItem,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
@@ -1382,114 +1417,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
   void reset() {
     state = const ExportState();
-  }
-
-  Future<void> createBackup() async {
-    state = state.copyWith(
-      status: ExportStatus.exporting,
-      message: _l10n.backup_backingUp,
-    );
-    try {
-      final dateFormat = DateFormat('yyyy-MM-dd_HHmmss');
-      final timestamp = dateFormat.format(DateTime.now());
-      final fileName = 'submersion_backup_$timestamp.db';
-
-      // Create temporary backup first
-      final directory = await getApplicationDocumentsDirectory();
-      final tempBackupPath = '${directory.path}/$fileName';
-      await DatabaseService.instance.backup(tempBackupPath);
-
-      // Let user choose where to save the file
-      final savePath = await FilePicker.saveFile(
-        dialogTitle: _l10n.settings_export_saveBackupDialogTitle,
-        fileName: fileName,
-        type: FileType.any,
-        bytes: await File(tempBackupPath).readAsBytes(),
-        mimeType: 'application/vnd.sqlite3',
-      );
-
-      if (savePath == null) {
-        // User cancelled - clean up temp file
-        await File(tempBackupPath).delete();
-        state = state.copyWith(
-          status: ExportStatus.idle,
-          message: _l10n.settings_export_cancelled_backup,
-        );
-        return;
-      }
-
-      // file_picker 12 writes the bytes itself on every platform, so the
-      // former non-Android manual write is gone.
-      await File(tempBackupPath).delete();
-
-      state = state.copyWith(
-        status: ExportStatus.success,
-        message: _l10n.settings_export_saved_backup,
-        filePath: savedFileLocation(savePath),
-      );
-    } catch (e) {
-      state = state.copyWith(
-        status: ExportStatus.error,
-        message: _l10n.settings_export_backupFailed('$e'),
-      );
-    }
-  }
-
-  Future<void> restoreBackup() async {
-    state = state.copyWith(
-      status: ExportStatus.exporting,
-      message: _l10n.settings_export_progress_selectingBackup,
-    );
-    try {
-      // Use FileType.any on iOS/macOS since custom extensions don't work reliably
-      final useAnyType = Platform.isIOS || Platform.isMacOS;
-      final picked = await FilePicker.pickFile(
-        type: useAnyType ? FileType.any : FileType.custom,
-        allowedExtensions: useAnyType ? null : ['db'],
-      );
-
-      if (picked == null) {
-        state = state.copyWith(
-          status: ExportStatus.idle,
-          message: _l10n.settings_export_cancelled_restore,
-        );
-        return;
-      }
-
-      final filePath = picked.path;
-      if (filePath == null) {
-        state = state.copyWith(
-          status: ExportStatus.error,
-          message: _l10n.settings_export_fileUnreadable,
-        );
-        return;
-      }
-
-      // On iOS/macOS, verify file extension manually
-      final extension = filePath.split('.').last.toLowerCase();
-      if (extension != 'db') {
-        state = state.copyWith(
-          status: ExportStatus.error,
-          message: _l10n.settings_export_notADbFile,
-        );
-        return;
-      }
-
-      state = state.copyWith(
-        message: _l10n.settings_export_progress_restoringBackup,
-      );
-      await DatabaseService.instance.restore(filePath);
-
-      state = state.copyWith(
-        status: ExportStatus.restoreComplete,
-        message: _l10n.settings_export_restoreComplete,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        status: ExportStatus.error,
-        message: _l10n.settings_export_restoreFailed('$e'),
-      );
-    }
   }
 }
 

@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
@@ -448,6 +449,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   ) async {
     if (action == 'delete') {
       final divers = await ref.read(allDiversProvider.future);
+      final usage = await readSiteDeleteUsage(ref, [site.id]);
       if (!context.mounted) return;
       final diverCount = divers.length;
       final isSharedDelete = site.isShared && diverCount >= 2;
@@ -461,9 +463,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 : ctx.l10n.diveSites_detail_deleteDialog_title,
           ),
           content: Text(
-            isSharedDelete
-                ? ctx.l10n.sites_deleteShared_body(site.name)
-                : ctx.l10n.diveSites_detail_deleteDialog_content,
+            withSiteDeleteUsage(
+              ctx.l10n,
+              isSharedDelete
+                  ? ctx.l10n.sites_deleteShared_body(site.name)
+                  : ctx.l10n.diveSites_detail_deleteDialog_content,
+              usage,
+            ),
           ),
           actions: [
             TextButton(
@@ -1608,8 +1614,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
+            if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[
+              _buildAccessRow(
+                context,
+                Icons.local_parking,
+                context.l10n.diveSites_detail_access_parking,
+                site.parkingInfo!,
+              ),
+            ],
             if (site.accessNotes != null && site.accessNotes!.isNotEmpty) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.info_outline,
                 context.l10n.diveSites_detail_access_accessNotes,
@@ -1617,7 +1631,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ),
             ],
             if (site.entryMethod != null) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.login,
                 context.l10n.diveSites_detail_access_entryMethod,
@@ -1627,7 +1641,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             // Only when it differs: a mirrored exit repeats the entry row.
             if (site.exitMethod != null &&
                 site.exitMethod != site.entryMethod) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.logout,
                 context.l10n.diveSites_detail_access_exitMethod,
@@ -1636,23 +1650,67 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             ],
             if (site.mooringNumber != null &&
                 site.mooringNumber!.isNotEmpty) ...[
-              _buildDetailRow(
+              _buildAccessRow(
                 context,
                 Icons.anchor,
                 context.l10n.diveSites_detail_access_mooring,
                 site.mooringNumber!,
               ),
             ],
-            if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[
-              _buildDetailRow(
-                context,
-                Icons.local_parking,
-                context.l10n.diveSites_detail_access_parking,
-                site.parkingInfo!,
-              ),
-            ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// One access-card field: label on its own line so it reads as a
+  /// subheading, value below. Unlike [_buildDetailRow]'s label/value pair on
+  /// one line, these values are often full sentences (access notes, parking
+  /// tips) that need the width, not a right-aligned sliver next to the label
+  /// (#1037).
+  Widget _buildAccessRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Flexible like [_buildDetailRow]'s halves: a long translated
+              // label ("Megkozelitesi megjegyzesek") or a large accessibility
+              // text scale wraps onto a second line instead of running past
+              // the card edge.
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+        ],
       ),
     );
   }

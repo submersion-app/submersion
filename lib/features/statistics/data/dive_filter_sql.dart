@@ -154,6 +154,15 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
     }
   }
 
+  // Linked buddy: a live junction check, never the legacy scalar column,
+  // mirroring DiveRepository and DiveFilterState.apply (#1919).
+  if (filter.buddyId != null) {
+    conditions.add(
+      'id IN (SELECT dive_id FROM dive_buddies WHERE buddy_id = ?)',
+    );
+    params.add(filter.buddyId);
+  }
+
   if (filter.diveIds.isNotEmpty) {
     final ph = List.filled(filter.diveIds.length, '?').join(', ');
     conditions.add('id IN ($ph)');

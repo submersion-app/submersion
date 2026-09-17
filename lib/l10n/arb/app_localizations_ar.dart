@@ -35,6 +35,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count من $total مكوّنات',
+      one: '$count من مكوّن واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.';
 
@@ -2498,6 +2509,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_wallet_tooltip_add => 'إضافة شهادة';
 
   @override
+  String get certifications_wallet_tooltip_moreOptions => 'خيارات إضافية';
+
+  @override
   String get certifications_wallet_tooltip_share => 'مشاركة الشهادة';
 
   @override
@@ -2997,6 +3011,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'بدء';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'إضافة الأجزاء الناقصة';
 
   @override
   String get diveLog_gear_collapse => 'إخفاء الأجزاء';
@@ -4244,6 +4261,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_detail_noDivesLogged => 'لا توجد غطسات مسجلة بعد';
 
   @override
+  String diveCenters_dialog_deleteDivesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستبقى $count غطسة بدون مركز غوص.',
+      one: 'ستبقى غطسة واحدة بدون مركز غوص.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveCenters_dialog_deleteMessage(Object name) {
     return 'هل أنت متأكد من حذف \"$name\"؟';
   }
@@ -5413,9 +5441,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => 'تصدير الملف كصورة';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => 'إزالة من المفضلة';
 
   @override
@@ -6173,6 +6198,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'إدخال سجل PDF';
+
+  @override
+  String get diveLog_export_profileAsImage => 'الملف كصورة';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'لقطة شاشة لمخطط ملف الغوصة';
 
   @override
   String get diveLog_export_success => 'تم تصدير الغوصة بنجاح';
@@ -8499,6 +8531,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_label_max => 'الأقصى';
 
   @override
+  String get divePlanner_label_minutesUnit => 'دقيقة';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
@@ -8749,6 +8784,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveSites_detail_showSitesWith(String name) {
     return 'عرض المواقع التي تحمل $name';
+  }
+
+  @override
+  String diveSites_deleteDialog_divesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستبقى $count غطسة بدون موقع.',
+      one: 'ستبقى غطسة واحدة بدون موقع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_deleteDialog_plansKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستبقى $count خطة محفوظة بدون موقع.',
+      one: 'ستبقى خطة محفوظة واحدة بدون موقع.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11553,6 +11610,103 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_appBar_title => 'المعدات';
 
   @override
+  String get equipment_bulkTags_action => 'تعديل الوسوم';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'إضافة إلى كل الـ $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث الوسوم على $count عنصر',
+      many: 'تم تحديث الوسوم على $count عنصرًا',
+      few: 'تم تحديث الوسوم على $count عناصر',
+      two: 'تم تحديث الوسوم على عنصرين',
+      one: 'تم تحديث الوسوم على عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة إلى كل الـ $count قطعة معدات',
+      many: 'إضافة إلى كل الـ $count قطعة معدات',
+      few: 'إضافة إلى كل الـ $count قطع معدات',
+      two: 'إضافة إلى قطعتي معدات',
+      one: 'إضافة إلى قطعة معدات واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة من كل الـ $count قطعة معدات',
+      many: 'إزالة من كل الـ $count قطعة معدات',
+      few: 'إزالة من كل الـ $count قطع معدات',
+      two: 'إزالة من قطعتي معدات',
+      one: 'إزالة من قطعة معدات واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'تطبيق التغييرات؟';
+
+  @override
+  String get equipment_bulkTags_empty => 'لا توجد وسوم معدات بعد';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'تعذر تحديث الوسوم: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'في كل الـ $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'في $count من $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'إزالة من الكل';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'الوسوم';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعديل الوسوم على $count عنصر',
+      many: 'تعديل الوسوم على $count عنصرًا',
+      few: 'تعديل الوسوم على $count عناصر',
+      two: 'تعديل الوسوم على عنصرين',
+      one: 'تعديل الوسوم على عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'تراجع';
+
+  @override
+  String get equipment_bulkTags_undoFailed => 'تعذر التراجع عن تغيير الوسوم.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'إلغاء';
 
   @override
@@ -12078,6 +12232,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'الصيانة متأخرة!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'عرض المعدات التي تحمل $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'المقاس';
 
   @override
@@ -12282,6 +12441,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_statusLabel => 'الحالة';
 
   @override
+  String get equipment_edit_tagsLabel => 'الوسوم';
+
+  @override
   String get equipment_edit_parentLabel => 'مركّب في';
 
   @override
@@ -12349,6 +12511,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد معدات بهذه الحالة';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'لا توجد معدات بهذه الوسوم';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'لا توجد معدات في هذه الفئة';
 
@@ -12395,6 +12561,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'الحالة';
+
+  @override
+  String get equipment_filter_section_tags => 'الوسوم';
 
   @override
   String get equipment_filter_section_category => 'الفئة';
@@ -12447,6 +12616,103 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_menu_retireEquipment => 'إيقاف المعدات';
+
+  @override
+  String equipment_retypeOther_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغيير نوع $count عنصر',
+      one: 'تغيير نوع عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_becomes(String type) {
+    return 'النوع الجديد: $type';
+  }
+
+  @override
+  String equipment_retypeOther_becomesWithThickness(
+    String type,
+    String thickness,
+  ) {
+    return 'النوع الجديد: $type، $thickness';
+  }
+
+  @override
+  String get equipment_retypeOther_deselectAll => 'إلغاء تحديد الكل';
+
+  @override
+  String get equipment_retypeOther_empty =>
+      'لا توجد معدات مصنفة كأخرى يذكر اسمها نوعها';
+
+  @override
+  String equipment_retypeOther_errorLoading(String error) {
+    return 'تعذر تحميل المعدات: $error';
+  }
+
+  @override
+  String equipment_retypeOther_failedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذر تغيير نوع $count عنصر',
+      one: 'تعذر تغيير نوع عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_intro =>
+      'هذه العناصر مصنفة كأخرى، لكن أسماءها تبين ما هي. ألغِ تحديد العناصر الخاطئة.';
+
+  @override
+  String equipment_retypeOther_retypedSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تغيير نوع $count عنصر',
+      one: 'تم تغيير نوع عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_selectAll => 'تحديد الكل';
+
+  @override
+  String get equipment_retypeOther_subtitle =>
+      'منح المعدات المستوردة النوع الذي يذكره اسمها';
+
+  @override
+  String get equipment_retypeOther_title => 'تصحيح المعدات المصنفة كأخرى';
+
+  @override
+  String equipment_retypeOther_undoFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذرت استعادة $count عنصر',
+      one: 'تعذرت استعادة عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_retypeOther_undoSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغير $count عنصر منذ ذلك الحين وتُركت كما هي',
+      one: 'تغير عنصر واحد منذ ذلك الحين وتُرك كما هو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_retypeOther_undone => 'تم التراجع عن تغيير النوع';
 
   @override
   String get equipment_search_backTooltip => 'رجوع';
@@ -13136,6 +13402,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'العمق التشغيلي الأقصى';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return 'أقصى عمق تشغيلي: $depth $unit عند $ppo2 بار ppO2 مع $o2% أكسجين';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => 'الأكسجين (O₂)';
 
   @override
@@ -13359,11 +13635,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return 'أضف $gas';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => 'البداية';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => 'الإجراء';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => 'أضيف';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => 'الضغط';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => 'الخليط';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13434,6 +13722,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return 'أدخل رقمًا صالحًا (الفاصلة العشرية: \"$separator\")';
+  }
+
+  @override
   String get gasCalculators_blender_currency => 'العملة';
 
   @override
@@ -13472,6 +13765,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_flushFeeVolume => 'حجم التنظيف';
+
+  @override
+  String get gasCalculators_blender_flushFeeColumnGas => 'الغاز';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => 'الأسطوانة';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => 'الحجم';
 
   @override
   String gasCalculators_blender_flushFeeLine(String gas) {
@@ -13552,6 +13854,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return 'إجراءات $label';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return 'تمت إضافة $mix إلى الفاتورة';
   }
@@ -13597,6 +13904,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound =>
       'الفاتورة غير موجودة.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete => 'حذف هذه الفاتورة';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'حذف الفاتورة؟';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get gasCalculators_blender_defaults => 'الإعدادات الافتراضية والفوترة';
@@ -16799,7 +17117,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_navCustomization_description =>
-      'Drag items to reorder. The top three appear in your bottom navigation bar.';
+      'اسحب العناصر لإعادة ترتيبها. تظهر العناصر العلوية في شريط التنقل السفلي؛ ويعتمد عددها على حجم الشاشة وليس على اتجاهها.';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_title =>
+      'إخفاء التسميات دائمًا';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitle =>
+      'أيقونات فقط، حتى عند توفر مساحة للتسميات';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
@@ -16813,7 +17139,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_navCustomization_dividerLabel =>
-      'Items below appear in the More menu';
+      'تنتقل العناصر أدناه إلى قائمة المزيد عندما لا يتسع لها الشريط';
 
   @override
   String get settings_navCustomization_resetButton => 'Reset to defaults';
@@ -20561,6 +20887,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_narrowDialog_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      many:
+          'هذا الوسم على $count قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      few:
+          'هذا الوسم على $count قطع معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.',
+      two:
+          'هذا الوسم على قطعتي معدات. إيقاف \"استخدام للمعدات\" يزيله من هاتين القطعتين.',
+      one:
+          'هذا الوسم على قطعة معدات واحدة. إيقاف \"استخدام للمعدات\" يزيله من تلك القطعة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_manage_narrowDialog_sites(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20578,10 +20923,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'إزالة الوسم من العناصر الحالية؟';
 
   @override
-  String get tags_manage_scopeRequired => 'اختر الغوصات أو المواقع أو كليهما';
+  String get tags_manage_scopeRequired =>
+      'اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات';
 
   @override
   String get tags_manage_scope_dives => 'الغوصات';
+
+  @override
+  String get tags_manage_scope_equipment => 'المعدات';
 
   @override
   String get tags_manage_scope_sites => 'المواقع';
@@ -20599,7 +20948,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_equipmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطعة معدات',
+      many: '$count قطعة معدات',
+      few: '$count قطع معدات',
+      two: 'قطعتا معدات',
+      one: 'قطعة معدات واحدة',
+      zero: '0 قطع معدات',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_manage_useForDives => 'استخدام للغوصات';
+
+  @override
+  String get tags_manage_useForEquipment => 'استخدام للمعدات';
 
   @override
   String get tags_manage_useForSites => 'استخدام للمواقع';
@@ -20623,6 +20990,148 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_sites(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndSites(
+    String tagName,
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطعة معدات',
+      many: '$count قطعة معدات',
+      few: '$count قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة \"$tagName\" من $_temp0 و$_temp1 و$_temp2. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_unused(String tagName) {
+    return '\"$tagName\" غير مستخدم في أي غوصة أو موقع أو قطعة معدات. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
   String tags_manage_bulkDeleteTitle(int count) {
     return 'حذف $count وسم؟';
   }
@@ -20638,6 +21147,143 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'سيتم إزالة هذه الوسوم من $_temp0 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
   }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sites(int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndSites(
+    int diveCount,
+    int siteCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيتم إزالة هذه الوسوم من $_temp0 و$_temp1 و$_temp2 إجمالاً. لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get tags_manage_bulkDeleteMessage_unused =>
+      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -20661,6 +21307,140 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'سيؤثر هذا على $_temp0 إجمالاً.';
   }
+
+  @override
+  String tags_manage_mergeAffected_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيؤثر هذا على $_temp0 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع',
+      one: 'موقع واحد',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطعة معدات',
+      many: '$count قطعة معدات',
+      few: '$count قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 إجمالاً.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصة',
+      many: '$diveCount غوصة',
+      few: '$diveCount غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount موقع',
+      many: '$siteCount موقعًا',
+      few: '$siteCount مواقع',
+      two: 'موقعين',
+      one: 'موقع واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount قطعة معدات',
+      many: '$equipmentCount قطعة معدات',
+      few: '$equipmentCount قطع معدات',
+      two: 'قطعتي معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return 'سيؤثر هذا على $_temp0 و$_temp1 و$_temp2 إجمالاً.';
+  }
+
+  @override
+  String get tags_manage_mergeAffected_unused =>
+      'هذه الوسوم غير مستخدمة في أي غوصة أو موقع أو قطعة معدات.';
 
   @override
   String get tags_manage_mergeAction => 'دمج';
@@ -22329,6 +23109,69 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_summary_filesTitle => 'الملفات';
 
   @override
+  String universalImport_divers_intro(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'يحتوي هذا السجل على غطسات لـ $count غواصين. اختر وجهة غطسات وشهادات كل غواص.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String universalImport_divers_certificationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهادات',
+      one: 'شهادة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_divers_unownedRow => 'غطسات بلا غواص';
+
+  @override
+  String get universalImport_divers_targetLabel => 'استيراد إلى';
+
+  @override
+  String universalImport_divers_targetNew(String name) {
+    return 'إنشاء ملف غواص جديد \"$name\"';
+  }
+
+  @override
+  String get universalImport_divers_targetSkip => 'عدم الاستيراد';
+
+  @override
+  String universalImport_divers_newLabel(String name) {
+    return 'جديد: $name';
+  }
+
+  @override
+  String get universalImport_summary_byProfileTitle => 'حسب ملف الغواص';
+
+  @override
+  String get universalImport_summary_newProfile => 'ملف غواص جديد';
+
+  @override
+  String universalImport_summary_switchToSee(String name) {
+    return 'انتقل إلى $name لرؤية هذه الغطسات';
+  }
+
+  @override
   String get universalImport_summary_noticesTitle => 'ملاحظات الاستيراد';
 
   @override
@@ -22367,15 +23210,6 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'تم تخطي غطسة واحدة',
     );
     return '$_temp0';
-  }
-
-  @override
-  String get universalImport_summary_noticeMultipleDiversTitle =>
-      'غطسات لأكثر من غوّاص';
-
-  @override
-  String universalImport_summary_noticeMultipleDiversBody(String names) {
-    return 'تحتوي مكتبة MacDive هذه على غطسات سجّلها $names. تم استيرادها كلها إلى الغوّاص الحالي، ووُسمت كل غطسة بالاسم الذي سُجّلت به.';
   }
 
   @override
@@ -26294,10 +27128,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_about_bathymetryCredit =>
-      'بيانات قياس الأعماق: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)';
-
-  @override
   String get dive3d_metric_depth => 'العمق';
 
   @override
@@ -30140,6 +30970,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentField_notes => 'ملاحظات';
 
   @override
+  String get enum_equipmentField_tags => 'الوسوم';
+
+  @override
   String get enum_equipmentField_itemName_short => 'الاسم';
 
   @override
@@ -30186,6 +31019,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'ملاحظات';
+
+  @override
+  String get enum_equipmentField_tags_short => 'الوسوم';
 
   @override
   String get enum_diveCenterField_centerName => 'الاسم';
@@ -36977,11 +37813,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String divePlanner_quickPlan_minutes(int minutes) {
-    return '$minutes دقيقة';
-  }
-
-  @override
   String divePlanner_quickPlan_previewSemantics(Object depth, int minutes) {
     return 'معاينة الخطة: نزول إلى $depth، وقت القاع $minutes دقيقة، صعود مع توقف أمان';
   }
@@ -37722,20 +38553,31 @@ class AppLocalizationsAr extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'حُفظت بيانات غوصك بإصدار أحدث من Submersion (المخطط v$databaseVersion). هذا الإصدار يدعم حتى المخطط v$appVersion فقط.';
+    return 'حُفظ سجل غوصك بالمخطط v$databaseVersion بواسطة إصدار أحدث من Submersion. هذا الإصدار يفتح الملفات حتى المخطط v$appVersion.';
   }
 
   @override
-  String get startup_versionMismatch_causes =>
-      'يعني هذا عادةً أن إصدارًا تجريبيًا (بيتا) قد رقّى بياناتك، أو أنه تمت استعادة نسخة احتياطية من إصدار أحدث، أو أن الملف مشترك مع جهاز على قناة تحديث مختلفة. قد لا يكون هناك إصدار مستقر أحدث بعد.';
+  String get startup_versionMismatch_causes_lead => 'يحدث هذا عادةً عندما:';
+
+  @override
+  String get startup_versionMismatch_cause_beta =>
+      'قام إصدار بيتا بترقية الملف.';
+
+  @override
+  String get startup_versionMismatch_cause_restored =>
+      'تمت استعادة نسخة احتياطية من إصدار أحدث.';
+
+  @override
+  String get startup_versionMismatch_cause_shared =>
+      'الملف مشترك مع جهاز على قناة تحديث أخرى.';
 
   @override
   String get startup_versionMismatch_instructions =>
-      'بياناتك آمنة ولم تُعدَّل. افتحها بالإصدار الذي كتبها، أو بأي إصدار أحدث. إذا أُخذت نسخة احتياطية قبل الترقية، فهي موجودة في مجلد Backups ويمكن استعادتها بمجرد تشغيل إصدار قادر على فتح الملف.';
+      'لم تُعدَّل بياناتك. افتحها بالإصدار الذي كتبها، أو بإصدار أحدث.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'تم تثبيت هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي أنشأ بياناتك. بياناتك آمنة ولم يتم تعديلها. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم أعد فتحه.';
+      'هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي حفظ بياناتك. لم تُعدَّل بياناتك. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم افتحه مجددًا.';
 
   @override
   String get startup_versionMismatch_download => 'البحث عن إصدار مستقر أحدث';
@@ -37749,7 +38591,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'إذا لم تفتح هذه الأزرار متصفحًا، فتفضل بزيارة:';
+      'إذا لم تفتح الأزرار متصفحًا:';
 
   @override
   String get universalImport_compare_downloaded => 'المنزَّلة';
@@ -38108,14 +38950,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_progress_preparingPdf => 'جارٍ تحضير ملف PDF...';
 
   @override
-  String get settings_export_progress_selectingBackup =>
-      'جارٍ اختيار ملف النسخة الاحتياطية...';
-
-  @override
-  String get settings_export_progress_restoringBackup =>
-      'جارٍ الاستعادة من النسخة الاحتياطية...';
-
-  @override
   String get settings_export_empty_dives => 'لا توجد غوصات للتصدير';
 
   @override
@@ -38137,23 +38971,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_export_saveFailed(String error) {
     return 'فشل الحفظ: $error';
   }
-
-  @override
-  String settings_export_backupFailed(String error) {
-    return 'فشل النسخ الاحتياطي: $error';
-  }
-
-  @override
-  String settings_export_restoreFailed(String error) {
-    return 'فشلت الاستعادة: $error';
-  }
-
-  @override
-  String get settings_export_fileUnreadable => 'تعذّر الوصول إلى الملف';
-
-  @override
-  String get settings_export_notADbFile =>
-      'يُرجى اختيار ملف نسخة احتياطية بامتداد .db';
 
   @override
   String get settings_export_success_dives => 'تم تصدير الغوصات بنجاح';
@@ -38231,25 +39048,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_saved_pdf => 'تم حفظ ملف PDF بنجاح';
 
   @override
-  String get settings_export_saved_backup => 'تم حفظ النسخة الاحتياطية بنجاح';
-
-  @override
-  String get settings_export_restoreComplete => 'اكتملت الاستعادة';
-
-  @override
   String get settings_export_cancelled_save => 'تم إلغاء الحفظ';
 
   @override
-  String get settings_export_cancelled_backup => 'تم إلغاء النسخ الاحتياطي';
-
-  @override
-  String get settings_export_cancelled_restore => 'تم إلغاء الاستعادة';
-
-  @override
   String get settings_export_pdfDocumentTitle => 'سجل الغوص';
-
-  @override
-  String get settings_export_saveBackupDialogTitle => 'حفظ النسخة الاحتياطية';
 
   @override
   String get settings_export_saveDivesCsvDialogTitle => 'حفظ ملف CSV للغوصات';
@@ -38966,6 +39768,49 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get statistics_conditions_waterTempBands_table_band => 'النطاق';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_dives => 'الغطسات';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgSac => 'متوسط SAC';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgRmv => 'متوسط RMV';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_avgBottomTime =>
+      'متوسط وقت القاع';
+
+  @override
+  String get statistics_conditions_waterTempBands_table_error =>
+      'تعذر تحميل متوسطات النطاقات';
+
+  @override
+  String statistics_conditions_waterTempBands_table_averageOver(
+    String value,
+    String dives,
+  ) {
+    return '$value من $dives';
+  }
+
+  @override
+  String get statistics_conditions_waterTempBands_table_noData =>
+      'لا توجد بيانات';
+
+  @override
+  String statistics_conditions_waterTempBands_table_rowSemanticLabel(
+    String band,
+    String dives,
+    String lane,
+    String consumption,
+    String bottomTime,
+  ) {
+    return '$band: $dives. متوسط $lane: $consumption. متوسط وقت القاع: $bottomTime.';
+  }
+
+  @override
   String get diveLog_filter_presetLast5Years => 'آخر 5 سنوات';
 
   @override
@@ -39485,12 +40330,40 @@ class AppLocalizationsAr extends AppLocalizations {
       'استعادة النسخة الاحتياطية السابقة للترقية';
 
   @override
-  String get startup_versionMismatch_restore_body =>
-      'توجد على هذا الجهاز نسخة احتياطية من سجل الغوص أُخذت قبل الترقية، وهذا الإصدار يستطيع فتحها.';
+  String get startup_versionMismatch_restore_warning =>
+      'الغوصات المسجّلة بعد الترقية موجودة في الملف الأحدث فقط. يُحتفظ به كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيدها.';
 
   @override
-  String get startup_versionMismatch_restore_warning =>
-      'كل ما سجّلته بعد الترقية موجود في الملف الأحدث فقط. يُحتفظ بذلك الملف كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيده.';
+  String get startup_interruptedRestore_title => 'لم تكتمل عملية استعادة';
+
+  @override
+  String startup_interruptedRestore_bodyWithDate(String date) {
+    return 'كان Submersion يستعيد نسخة احتياطية في $date عندما توقف. لا يزال سجل الغوص الخاص بك من قبل تلك الاستعادة على هذا الجهاز، ويمكن لهذا الإصدار فتحه.';
+  }
+
+  @override
+  String get startup_interruptedRestore_body =>
+      'كان Submersion يستعيد نسخة احتياطية عندما توقف. لا يزال سجل الغوص الخاص بك من قبل تلك الاستعادة على هذا الجهاز، ويمكن لهذا الإصدار فتحه.';
+
+  @override
+  String get startup_interruptedRestore_recoverAction =>
+      'استرداد سجل الغوص السابق';
+
+  @override
+  String get startup_interruptedRestore_recoverNote =>
+      'يُحتفظ بالملف الموجود مكانه الآن بجانبه، ولا يُحذف.';
+
+  @override
+  String get startup_interruptedRestore_keepAction =>
+      'الإبقاء على الموجود حاليًا';
+
+  @override
+  String get startup_interruptedRestore_keepNote =>
+      'يُحتفظ بسجل الغوص السابق كملف في مجلد قاعدة البيانات.';
+
+  @override
+  String get startup_interruptedRestore_failed =>
+      'لم تكتمل عملية الاسترداد. لم يُحذف أي شيء؛ لا يزال الملفان على هذا الجهاز.';
 
   @override
   String backup_history_preDowngradeSubtitle(String size) {
@@ -39877,9 +40750,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'كيفية تجميع المعدات وترتيبها في الغوصة';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -39950,4 +40820,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'أدخل رقمًا صالحًا';
 }

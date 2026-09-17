@@ -8,7 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_deco_section.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_environment_section.dart';
-import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -48,25 +48,24 @@ Widget _harness(
   child: SingleChildScrollView(child: child),
 );
 
-/// The Gas options row labelled [label] ("Bottom RMV", "Deco RMV").
-Finder _gasOptionRow(String label) =>
-    find.widgetWithText(PlanGasOptionNumberField, label);
+/// The planner number-box row labelled [label] ("Bottom RMV", "GF Low").
+Finder _planRow(String label) => find.widgetWithText(PlanNumberField, label);
 
-/// The text field inside the Gas options row labelled [label].
-Finder _gasOptionField(String label) =>
-    find.descendant(of: _gasOptionRow(label), matching: find.byType(TextField));
+/// The text field inside the number-box row labelled [label].
+Finder _planField(String label) =>
+    find.descendant(of: _planRow(label), matching: find.byType(TextField));
 
-String _gasOptionText(WidgetTester tester, String label) =>
-    tester.widget<TextField>(_gasOptionField(label)).controller!.text;
+String _planFieldText(WidgetTester tester, String label) =>
+    tester.widget<TextField>(_planField(label)).controller!.text;
 
-String? _gasOptionHint(WidgetTester tester, String label) =>
-    tester.widget<TextField>(_gasOptionField(label)).decoration!.hintText;
+String? _planFieldHint(WidgetTester tester, String label) =>
+    tester.widget<TextField>(_planField(label)).decoration!.hintText;
 
 /// The Semantics label wrapping the Bottom RMV field.
 String? _rmvSemanticsLabel(WidgetTester tester) => tester
     .widgetList<Semantics>(
       find.ancestor(
-        of: _gasOptionField('Bottom RMV'),
+        of: _planField('Bottom RMV'),
         matching: find.byType(Semantics),
       ),
     )
@@ -110,18 +109,20 @@ void main() {
     });
   });
 
-  testWidgets('deco section renders both GF sliders at the diver settings', (
+  testWidgets('deco section renders both GF boxes at the diver settings', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanDecoSection()));
     await tester.pumpAndSettle();
-    expect(find.byType(Slider), findsNWidgets(2));
+    expect(find.byType(Slider), findsNothing);
+    expect(find.byType(PlanNumberField), findsNWidgets(2));
     // AppSettings defaults: GF 50/85.
-    expect(find.text('50%'), findsOneWidget);
-    expect(find.text('85%'), findsOneWidget);
+    expect(_planFieldText(tester, 'GF Low'), '50');
+    expect(_planFieldText(tester, 'GF High'), '85');
+    expect(find.text('%'), findsNWidgets(2));
   });
 
-  testWidgets('dragging the GF Low slider changes gfLow and leaves gfHigh', (
+  testWidgets('typing in the GF Low box changes gfLow and leaves gfHigh', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanDecoSection()));
@@ -132,17 +133,15 @@ void main() {
     expect(container.read(divePlanNotifierProvider).gfLow, 50);
     expect(container.read(divePlanNotifierProvider).gfHigh, 85);
 
-    await tester.drag(find.byType(Slider).first, const Offset(80, 0));
+    await tester.enterText(_planField('GF Low'), '35');
     await tester.pumpAndSettle();
 
     final state = container.read(divePlanNotifierProvider);
-    expect(state.gfLow, greaterThan(50));
-    expect(state.gfLow, lessThanOrEqualTo(100));
+    expect(state.gfLow, 35);
     expect(state.gfHigh, 85);
-    expect(find.text('${state.gfLow}%'), findsOneWidget);
   });
 
-  testWidgets('dragging the GF High slider changes gfHigh and leaves gfLow', (
+  testWidgets('typing in the GF High box changes gfHigh and leaves gfLow', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanDecoSection()));
@@ -151,14 +150,33 @@ void main() {
       tester.element(find.byType(PlanDecoSection)),
     );
 
-    await tester.drag(find.byType(Slider).last, const Offset(-80, 0));
+    await tester.enterText(_planField('GF High'), '70');
     await tester.pumpAndSettle();
 
     final state = container.read(divePlanNotifierProvider);
-    expect(state.gfHigh, lessThan(85));
-    expect(state.gfHigh, greaterThanOrEqualTo(10));
+    expect(state.gfHigh, 70);
     expect(state.gfLow, 50);
-    expect(find.text('${state.gfHigh}%'), findsOneWidget);
+  });
+
+  testWidgets('GF boxes refuse a value outside the 10-100% band', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(const PlanDecoSection()));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanDecoSection)),
+    );
+
+    // A gradient factor over 100 is not a conservative plan, it is nonsense:
+    // the box flags it and the plan keeps the last good value.
+    await tester.enterText(_planField('GF High'), '120');
+    await tester.pumpAndSettle();
+
+    expect(container.read(divePlanNotifierProvider).gfHigh, 85);
+    expect(
+      tester.widget<TextField>(_planField('GF High')).decoration?.errorText,
+      isNotNull,
+    );
   });
 
   testWidgets('deco section chooses the last stop from 3, 4, 5 or 6 m', (
@@ -232,10 +250,10 @@ void main() {
       await tester.pumpWidget(_harness(const PlanGasSection()));
       await tester.pumpAndSettle();
 
-      expect(_gasOptionText(tester, 'Bottom RMV'), '15');
+      expect(_planFieldText(tester, 'Bottom RMV'), '15');
       expect(
         find.descendant(
-          of: _gasOptionRow('Bottom RMV'),
+          of: _planRow('Bottom RMV'),
           matching: find.text('L/min'),
         ),
         findsOneWidget,
@@ -252,11 +270,11 @@ void main() {
         tester.element(find.byType(PlanGasSection)),
       );
 
-      await tester.enterText(_gasOptionField('Bottom RMV'), '17.5');
+      await tester.enterText(_planField('Bottom RMV'), '17.5');
       await tester.pumpAndSettle();
 
       expect(container.read(divePlanNotifierProvider).sacRate, 17.5);
-      expect(_gasOptionText(tester, 'Bottom RMV'), '17.5');
+      expect(_planFieldText(tester, 'Bottom RMV'), '17.5');
     });
 
     testWidgets('imperial shows the plan RMV converted to cuft/min', (
@@ -269,10 +287,10 @@ void main() {
 
       // The default 15 L/min is 0.5297 cuft/min, not "15 cuft/min", and at
       // 1 decimal it read "0.5".
-      expect(_gasOptionText(tester, 'Bottom RMV'), '0.53');
+      expect(_planFieldText(tester, 'Bottom RMV'), '0.53');
       expect(
         find.descendant(
-          of: _gasOptionRow('Bottom RMV'),
+          of: _planRow('Bottom RMV'),
           matching: find.text('cuft/min'),
         ),
         findsOneWidget,
@@ -292,7 +310,7 @@ void main() {
         tester.element(find.byType(PlanGasSection)),
       );
 
-      await tester.enterText(_gasOptionField('Bottom RMV'), '0.55');
+      await tester.enterText(_planField('Bottom RMV'), '0.55');
       await tester.pumpAndSettle();
 
       expect(
@@ -301,7 +319,7 @@ void main() {
       );
       // The field re-seeds from the plan after every edit; at 1 decimal it
       // rewrote the diver's "0.55" to "0.6" mid-entry.
-      expect(_gasOptionText(tester, 'Bottom RMV'), '0.55');
+      expect(_planFieldText(tester, 'Bottom RMV'), '0.55');
     });
 
     testWidgets('imperial re-seeds the field when the plan RMV changes', (
@@ -322,7 +340,7 @@ void main() {
           .loadPlan(current.copyWith(sacRate: 8));
       await tester.pumpAndSettle();
 
-      expect(_gasOptionText(tester, 'Bottom RMV'), '0.28');
+      expect(_planFieldText(tester, 'Bottom RMV'), '0.28');
       expect(_rmvSemanticsLabel(tester), 'RMV: 0.28 cuft per minute');
       expect(container.read(divePlanNotifierProvider).sacRate, 8);
     });
@@ -336,13 +354,13 @@ void main() {
         tester.element(find.byType(PlanGasSection)),
       );
 
-      expect(_gasOptionHint(tester, 'Deco RMV'), '15');
+      expect(_planFieldHint(tester, 'Deco RMV'), '15');
 
-      await tester.enterText(_gasOptionField('Deco RMV'), '12.5');
+      await tester.enterText(_planField('Deco RMV'), '12.5');
       await tester.pumpAndSettle();
 
       expect(container.read(divePlanNotifierProvider).sacDeco, 12.5);
-      expect(_gasOptionText(tester, 'Deco RMV'), '12.5');
+      expect(_planFieldText(tester, 'Deco RMV'), '12.5');
     });
 
     testWidgets('imperial hints and edits at two decimals', (tester) async {
@@ -354,16 +372,16 @@ void main() {
         tester.element(find.byType(PlanGasSection)),
       );
 
-      expect(_gasOptionHint(tester, 'Deco RMV'), '0.53');
+      expect(_planFieldHint(tester, 'Deco RMV'), '0.53');
 
-      await tester.enterText(_gasOptionField('Deco RMV'), '0.45');
+      await tester.enterText(_planField('Deco RMV'), '0.45');
       await tester.pumpAndSettle();
 
       expect(
         container.read(divePlanNotifierProvider).sacDeco,
         closeTo(0.45 / _cuftPerLiter, 1e-6),
       );
-      expect(_gasOptionText(tester, 'Deco RMV'), '0.45');
+      expect(_planFieldText(tester, 'Deco RMV'), '0.45');
     });
   });
 
@@ -416,7 +434,7 @@ void main() {
       // takes the value the button named, as it would for a metric diver.
       expect(tester.takeException(), isNull);
       expect(container.read(divePlanNotifierProvider).sacRate, 8.2);
-      expect(_gasOptionText(tester, 'Bottom RMV'), '0.29');
+      expect(_planFieldText(tester, 'Bottom RMV'), '0.29');
       expect(find.byIcon(Icons.history), findsNothing);
     });
 

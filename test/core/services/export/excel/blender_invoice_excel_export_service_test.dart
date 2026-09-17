@@ -22,11 +22,13 @@ void main() {
               BlenderInvoiceExportLine(
                 gas: 'O₂',
                 volume: '30 L',
+                cylinder: '12 L',
                 cost: 'CHF 10.00',
               ),
               BlenderInvoiceExportLine(
                 gas: 'He',
                 volume: '240 L',
+                cylinder: '',
                 cost: 'CHF 25.00',
               ),
             ],
@@ -86,14 +88,18 @@ void main() {
     final decoded = xl.Excel.decodeBytes(bytes);
     final sheet = decoded[BlenderInvoiceExcelExportService.invoiceSheet];
 
-    // Row 4 is the column header ('Fill', 'Gas', 'Volume', 'Cost', 'Total').
+    // Row 4 is the column header
+    // ('Fill', 'Gas', 'Volume', 'Cylinder', 'Cost', 'Total').
     expect(cellText(sheet, 5, 0), 'Tx 18/45');
     expect(cellText(sheet, 5, 1), 'O₂');
     expect(cellText(sheet, 5, 2), '30 L');
-    expect(cellText(sheet, 5, 4), 'CHF 35.00');
+    expect(cellText(sheet, 5, 3), '12 L');
+    expect(cellText(sheet, 5, 5), 'CHF 35.00');
     expect(cellText(sheet, 6, 0), '');
     expect(cellText(sheet, 6, 1), 'He');
-    expect(cellText(sheet, 6, 4), '');
+    // The He line predates cylinder tracking, so its column is blank.
+    expect(cellText(sheet, 6, 3), '');
+    expect(cellText(sheet, 6, 5), '');
   });
 
   test('a fill with no lines keeps its label under the Fill column', () {
@@ -101,13 +107,15 @@ void main() {
     final decoded = xl.Excel.decodeBytes(bytes);
     final sheet = decoded[BlenderInvoiceExcelExportService.invoiceSheet];
 
-    // Row 4 is the column header ('Fill', 'Gas', 'Volume', 'Cost', 'Total').
+    // Row 4 is the column header
+    // ('Fill', 'Gas', 'Volume', 'Cylinder', 'Cost', 'Total').
     expect(cellText(sheet, 4, 0), 'Fill');
     expect(cellText(sheet, 5, 0), 'Bench fill');
     expect(cellText(sheet, 5, 1), '');
     expect(cellText(sheet, 5, 2), '');
     expect(cellText(sheet, 5, 3), '');
-    expect(cellText(sheet, 5, 4), 'CHF 20.00');
+    expect(cellText(sheet, 5, 4), '');
+    expect(cellText(sheet, 5, 5), 'CHF 20.00');
   });
 
   test('an incomplete total is flagged on its own row', () {

@@ -9,6 +9,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/trip_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -92,14 +93,6 @@ class TripGalleryPage extends ConsumerWidget {
 
       // Get existing asset IDs to filter out
       final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
-      final existingIds = <String>{};
-      for (final mediaList in mediaByDive.values) {
-        for (final item in mediaList) {
-          if (item.platformAssetId != null) {
-            existingIds.add(item.platformAssetId!);
-          }
-        }
-      }
 
       // Scan gallery
       final photoPickerService = ref.read(photoPickerServiceProvider);
@@ -107,7 +100,8 @@ class TripGalleryPage extends ConsumerWidget {
         dives: dives,
         tripStartDate: trip.startDate,
         tripEndDate: trip.endDate,
-        existingAssetIds: existingIds,
+        linked: [for (final items in mediaByDive.values) ...items],
+        linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
         photoPickerService: photoPickerService,
       );
 

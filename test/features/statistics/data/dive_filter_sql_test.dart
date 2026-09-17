@@ -715,6 +715,13 @@ void main() {
       'favoritesOnly': const DiveFilterState(favoritesOnly: true),
       'buddyNameFilter': const DiveFilterState(buddyNameFilter: 'alice'),
       'noBuddyOnly': const DiveFilterState(noBuddyOnly: true),
+      'buddyId': const DiveFilterState(buddyId: 'b1'),
+      // The buddy page's "View all" shape: a saved id list plus the live
+      // link. d1 is in the list but only names Alice in legacy text.
+      'buddyId + saved diveIds': const DiveFilterState(
+        diveIds: ['d1', 'd6'],
+        buddyId: 'b1',
+      ),
       'diveIds': const DiveFilterState(diveIds: ['d1', 'd4']),
       'minO2Percent (any-tank)': const DiveFilterState(minO2Percent: 30),
       'maxO2Percent (any-tank)': const DiveFilterState(maxO2Percent: 20),
@@ -815,6 +822,23 @@ void main() {
           'repository SQL filter (getDiveSummaries) must match junction '
           'buddies too',
     );
+    // buddyId is a live junction-link check (#1919): the dive list's SQL,
+    // this subquery and apply() must all keep only d6, never d1's legacy
+    // "Alice" text, and must drop a saved id that has no link.
+    for (final key in ['buddyId', 'buddyId + saved diveIds']) {
+      final filter = battery[key]!;
+      expect(await idsMatching(filter), {'d6'}, reason: '$key: subquery');
+      expect(filter.apply(domainDives).map((d) => d.id).toSet(), {
+        'd6',
+      }, reason: '$key: apply()');
+      expect(
+        (await DiveRepository().getDiveSummaries(
+          filter: filter,
+        )).map((s) => s.id).toSet(),
+        {'d6'},
+        reason: '$key: repository SQL filter (getDiveSummaries)',
+      );
+    }
     expect(await idsMatching(battery['customFieldKey + value substring']!), {
       'd6',
     }, reason: "only d6's visMeters value ('15') contains '1'");

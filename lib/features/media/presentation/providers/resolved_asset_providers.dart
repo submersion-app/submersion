@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/media_byte_retention.dart';
@@ -20,6 +21,14 @@ final assetResolutionServiceProvider = Provider<AssetResolutionService>((ref) {
   return AssetResolutionService(
     cacheRepository: ref.watch(localAssetCacheRepositoryProvider),
     photoPickerService: ref.watch(photoPickerServiceProvider),
+  );
+});
+
+/// Recognises gallery assets already linked to a dive or site, as this
+/// device knows them. See [LinkedGalleryAssets].
+final linkedGalleryAssetsProvider = Provider<LinkedGalleryAssets>((ref) {
+  return LinkedGalleryAssets(
+    resolve: ref.watch(assetResolutionServiceProvider).resolveAssetId,
   );
 });
 

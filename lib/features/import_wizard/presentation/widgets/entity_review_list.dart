@@ -8,6 +8,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart'
     show DiveReviewSortField;
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_target_chip.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -655,6 +656,8 @@ class _NonDuplicateRow extends StatelessWidget {
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
+                  if (item.target case final target?)
+                    ImportTargetChip(target: target),
                 ],
               ),
             ),
@@ -833,6 +836,8 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
+                          if (widget.item.target case final target?)
+                            ImportTargetChip(target: target),
                         ],
                       ),
                     ),

@@ -77,7 +77,7 @@ void main() {
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
       ),
-      diveCount: 12,
+      counts: const {TagScope.dives: 12},
     ),
     TagStatistic(
       tag: Tag(
@@ -88,7 +88,7 @@ void main() {
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
       ),
-      diveCount: 3,
+      counts: const {TagScope.dives: 3},
     ),
     TagStatistic(
       tag: Tag(
@@ -99,7 +99,7 @@ void main() {
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
       ),
-      diveCount: 1,
+      counts: const {TagScope.dives: 1},
     ),
   ];
 
@@ -107,7 +107,9 @@ void main() {
     mockRepository = MockTagRepository();
     mockNotifier = MockTagListNotifier();
 
-    when(mockRepository.getMergedDiveCount(any)).thenAnswer((_) async => 14);
+    when(
+      mockRepository.getMergedUsage(any),
+    ).thenAnswer((_) async => const {TagScope.dives: 14, TagScope.sites: 0});
   });
 
   Widget buildTestWidget({List<TagStatistic>? stats}) {
@@ -117,6 +119,10 @@ void main() {
         tagListNotifierProvider.overrideWith((ref) => mockNotifier),
       ],
       child: MaterialApp(
+        // flutter_test resolves against the host machine's locale list, so an
+        // unpinned app renders translated on a non-English machine and the
+        // English assertions here stop matching.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: TagMergeSheet(selectedStats: stats ?? testStats)),
@@ -185,8 +191,107 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      // The mock returns 14 for getMergedDiveCount
-      expect(find.textContaining('14 dives'), findsOneWidget);
+      // The mock reports 14 dives and no sites.
+      expect(find.text('This will affect 14 dives total.'), findsOneWidget);
+    });
+
+    testWidgets('the preview names sites too (#1902)', (tester) async {
+      // mergeTags relinks site_tags as well as dive_tags, so a preview that
+      // counted only dives understated what a merge of site tags rewrites.
+      when(
+        mockRepository.getMergedUsage(any),
+      ).thenAnswer((_) async => const {TagScope.dives: 3, TagScope.sites: 2});
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('This will affect 3 dives and 2 sites total.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a sites-only tag row shows its sites (#1902)', (tester) async {
+      final stats = [
+        ...testStats,
+        TagStatistic(
+          tag: Tag(
+            id: 'tag4',
+            diverId: 'diver1',
+            name: 'To try',
+            colorHex: '#F97316',
+            scopes: const {TagScope.sites},
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+          counts: const {TagScope.dives: 0, TagScope.sites: 4},
+        ),
+      ];
+      await tester.pumpWidget(buildTestWidget(stats: stats));
+      await tester.pumpAndSettle();
+
+      // The same wording as the Manage Tags list.
+      expect(find.text('0 dives, 4 sites'), findsOneWidget);
+    });
+
+    TagStatistic equipmentStat(String id, String name, int items) =>
+        TagStatistic(
+          tag: Tag(
+            id: id,
+            diverId: 'diver1',
+            name: name,
+            colorHex: '#F97316',
+            scopes: const {TagScope.equipment},
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+          counts: {TagScope.equipment: items},
+        );
+
+    testWidgets('the preview names equipment too (#1942)', (tester) async {
+      // mergeTags relinks equipment_tags as well, so the preview counts it.
+      when(mockRepository.getMergedUsage(any)).thenAnswer(
+        (_) async => const {TagScope.dives: 3, TagScope.equipment: 2},
+      );
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('This will affect 3 dives and 2 equipment items total.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an equipment-only tag row shows its equipment (#1942)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          stats: [...testStats, equipmentStat('tag4', 'Travel kit', 4)],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('0 dives, 4 equipment items'), findsOneWidget);
+    });
+
+    testWidgets('merging equipment-only tags starts from the one on the '
+        'most items', (tester) async {
+      // The less used tag comes first, so keeping the selection's order
+      // (every dive count is 0) would seed the wrong name.
+      await tester.pumpWidget(
+        buildTestWidget(
+          stats: [
+            equipmentStat('rental', 'Rental', 1),
+            equipmentStat('kit', 'Travel kit', 4),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.controller!.text, 'Travel kit');
     });
   });
 }

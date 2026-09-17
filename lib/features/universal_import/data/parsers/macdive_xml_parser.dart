@@ -8,6 +8,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_media_entries.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
@@ -119,9 +120,22 @@ class MacDiveXmlParser implements ImportParser {
     final tagsByName = <String, Map<String, dynamic>>{};
     final diveTypesBySlug = <String, Map<String, dynamic>>{};
     final diveCentersByName = <String, Map<String, dynamic>>{};
+    // Dives per `<diver>`, in first-seen order (#1893). MacDive fills it on
+    // every dive a diver logged and leaves it empty on dives it attributes
+    // to no one.
+    final diverNames = <String, String>{};
+    final diveCountByDiver = <String, int>{};
 
     for (final dive in logbook.dives) {
       final diveMap = _mapDive(dive);
+
+      final diverName = dive.diver?.trim() ?? '';
+      final diverKey = diverName.isEmpty
+          ? SourceDiver.unownedKey
+          : 'name:$diverName';
+      diveMap[SourceDiver.mapKey] = diverKey;
+      diverNames.putIfAbsent(diverKey, () => diverName);
+      diveCountByDiver[diverKey] = (diveCountByDiver[diverKey] ?? 0) + 1;
 
       final site = dive.site;
       if (site != null) {
@@ -274,6 +288,10 @@ class MacDiveXmlParser implements ImportParser {
     return ImportPayload(
       entities: entities,
       warnings: warnings,
+      sourceDivers: [
+        for (final MapEntry(:key, value: name) in diverNames.entries)
+          SourceDiver(key: key, name: name, diveCount: diveCountByDiver[key]!),
+      ],
       metadata: {
         'source': 'macdive_xml',
         'diveCount': logbook.dives.length,

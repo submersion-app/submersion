@@ -71,6 +71,25 @@ void main() {
     expect(container.read(divePlanNotifierProvider).problemSolvingMinutes, 4);
   });
 
+  testWidgets(
+    'problem solving time shows the minute unit in the app language',
+    (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('de'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanGasOptionsSection()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Min.'), findsOneWidget);
+      expect(find.text('min'), findsNothing);
+    },
+  );
+
   testWidgets('toggling O2 narcotic updates the notifier state', (
     tester,
   ) async {

@@ -4,6 +4,13 @@
   "equipment_components_add": "Add component",
   "equipment_components_containsSection": "Contains",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
+  "equipment_components_countOfTotal": "{total, plural, =1{{count} of 1 component} other{{count} of {total} components}}",
+  "@equipment_components_countOfTotal": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
   "equipment_components_editRole": "Edit role",
   "equipment_components_empty": "No components. Add the parts this item is assembled from.",
@@ -1427,6 +1434,7 @@
   "certifications_wallet_options_share": "Share",
   "certifications_wallet_options_viewDetails": "View Details",
   "certifications_wallet_tooltip_add": "Add certification",
+  "certifications_wallet_tooltip_moreOptions": "More options",
   "certifications_wallet_tooltip_share": "Share certification",
   "@certifications_detail_dialog_deleteContent": {
     "placeholders": {
@@ -1883,6 +1891,7 @@
   "preDive_start_noEquipmentSet": "None",
   "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
+  "diveLog_gear_addMissingParts": "Add missing parts",
   "diveLog_gear_collapse": "Hide parts",
   "diveLog_gear_expand": "Show parts",
   "diveLog_gear_removeAssembly": "Remove assembly and its parts",
@@ -2733,6 +2742,7 @@
   "diveCenters_detail_divesLogged": "{count, plural, =1{1 dive logged} other{{count} dives logged}}",
   "diveCenters_detail_divesWithCenter": "Dives with this Center",
   "diveCenters_detail_noDivesLogged": "No dives logged yet",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 dive will be left without a dive center.} other{{count} dives will be left without a dive center.}}",
   "diveCenters_dialog_deleteMessage": "Are you sure you want to delete \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "Delete Dive Center",
   "diveCenters_dialog_discard": "Discard",
@@ -2862,6 +2872,13 @@
     }
   },
   "@diveCenters_detail_divesLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveCenters_dialog_deleteDivesKept": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -3172,7 +3189,6 @@
   "diveLog_detail_tooltip_editDive": "Edit dive",
   "diveLog_detail_tooltip_previousDive": "Previous dive",
   "diveLog_detail_tooltip_nextDive": "Next dive",
-  "diveLog_detail_tooltip_exportProfileImage": "Export profile as image",
   "diveLog_detail_tooltip_removeFromFavorites": "Remove from favorites",
   "diveLog_detail_tooltip_viewFullscreen": "View fullscreen",
   "diveLog_detail_viewSite": "View Site",
@@ -3534,6 +3550,8 @@
   "diveLog_export_pageAsImageDescription": "Screenshot of entire dive details",
   "diveLog_export_pdfDescription": "Printable dive log page",
   "diveLog_export_pdfLogbookEntry": "PDF Logbook Entry",
+  "diveLog_export_profileAsImage": "Profile as Image",
+  "diveLog_export_profileAsImageDescription": "Screenshot of the dive profile chart",
   "diveLog_export_success": "Dive exported successfully",
   "diveLog_export_titleDiveNumber": "Export Dive #{number}",
   "diveLog_export_uddf": "UDDF",
@@ -5234,6 +5252,7 @@
   "divePlanner_label_gfHigh": "GF High",
   "divePlanner_label_gfLow": "GF Low",
   "divePlanner_label_max": "Max",
+  "divePlanner_label_minutesUnit": "min",
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_remaining": "Remaining",
@@ -5313,6 +5332,22 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{1 dive will be left without a site.} other{{count} dives will be left without a site.}}",
+  "@diveSites_deleteDialog_divesKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{1 saved plan will be left without a site.} other{{count} saved plans will be left without a site.}}",
+  "@diveSites_deleteDialog_plansKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -6741,6 +6776,80 @@
   "enum_weightType_mixed": "Mixed/Combined",
   "enum_weightType_trimWeights": "Trim Weights",
   "equipment_appBar_title": "Equipment",
+  "equipment_bulkTags_action": "Edit tags",
+  "equipment_bulkTags_adding": "adding to all {total}",
+  "@equipment_bulkTags_adding": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_applied": "{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}",
+  "@equipment_bulkTags_applied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
+  "@equipment_bulkTags_confirmAdding": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmRemoving": "{count, plural, =1{Removing from 1 equipment item} other{Removing from all {count} equipment items}}",
+  "@equipment_bulkTags_confirmRemoving": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmTitle": "Apply changes?",
+  "equipment_bulkTags_empty": "No equipment tags yet",
+  "equipment_bulkTags_failed": "Could not update tags: {error}",
+  "@equipment_bulkTags_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_bulkTags_onAll": "on all {count}",
+  "@equipment_bulkTags_onAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_onSome": "on {count} of {total}",
+  "@equipment_bulkTags_onSome": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_removing": "removing from all",
+  "equipment_bulkTags_tagsLabel": "Tags",
+  "equipment_bulkTags_title": "{count, plural, =1{Edit tags on 1 item} other{Edit tags on {count} items}}",
+  "@equipment_bulkTags_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_undo": "Undo",
+  "equipment_bulkTags_undoFailed": "Couldn't undo the tag change.",
   "equipment_deleteDialog_cancel": "Cancel",
   "equipment_deleteDialog_confirm": "Delete",
   "equipment_deleteDialog_content": "Are you sure you want to delete this equipment? This action cannot be undone.",
@@ -7080,6 +7189,15 @@
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
   "equipment_detail_serviceOverdue": "Service is overdue!",
+  "equipment_detail_showEquipmentWith": "Show equipment with {name}",
+  "@equipment_detail_showEquipmentWith": {
+    "description": "Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_sizeLabel": "Size",
   "equipment_detail_thicknessLabel": "Thickness",
   "equipment_detail_statusLabel": "Status",
@@ -7142,6 +7260,7 @@
   "equipment_edit_snackbar_error": "Error saving equipment: {error}",
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_tagsLabel": "Tags",
   "equipment_edit_parentLabel": "Installed in",
   "equipment_edit_parentNone": "Not installed in anything",
   "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
@@ -7161,6 +7280,7 @@
   "equipment_list_emptyState_filterText_type": "{type} equipment",
   "equipment_list_emptyState_noEquipment": "No {filterText}",
   "equipment_list_emptyState_noStatusMatch": "No equipment with this status",
+  "equipment_list_emptyState_noTagMatch": "No equipment with these tags",
   "equipment_list_emptyState_noTypeMatch": "No equipment in this category",
   "equipment_list_emptyState_serviceDueUpToDate": "All your equipment is up to date on service!",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
@@ -7186,6 +7306,7 @@
   "equipment_filter_apply": "Apply Filters",
   "equipment_filter_cancel": "Cancel",
   "equipment_filter_section_status": "Status",
+  "equipment_filter_section_tags": "Tags",
   "equipment_filter_section_category": "Category",
   "equipment_list_retryButton": "Retry",
   "equipment_list_searchTooltip": "Search Equipment",
@@ -7200,6 +7321,80 @@
   "equipment_menu_markAsServiced": "Mark as Serviced",
   "equipment_menu_reactivate": "Reactivate",
   "equipment_menu_retireEquipment": "Retire Equipment",
+  "equipment_retypeOther_apply": "{count, plural, =1{Retype 1 item} other{Retype {count} items}}",
+  "@equipment_retypeOther_apply": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_becomes": "Becomes {type}",
+  "@equipment_retypeOther_becomes": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_becomesWithThickness": "Becomes {type}, {thickness}",
+  "@equipment_retypeOther_becomesWithThickness": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "thickness": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_deselectAll": "Deselect all",
+  "equipment_retypeOther_empty": "No gear marked Other has a name that says what it is",
+  "equipment_retypeOther_errorLoading": "Could not load equipment: {error}",
+  "@equipment_retypeOther_errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_retypeOther_failedSnackbar": "{count, plural, =1{1 item could not be retyped} other{{count} items could not be retyped}}",
+  "@equipment_retypeOther_failedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_intro": "These items are marked Other, but their names say what they are. Untick any that are wrong.",
+  "equipment_retypeOther_retypedSnackbar": "{count, plural, =1{Retyped 1 item} other{Retyped {count} items}}",
+  "@equipment_retypeOther_retypedSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_selectAll": "Select all",
+  "equipment_retypeOther_subtitle": "Give imported gear the type its name states",
+  "equipment_retypeOther_title": "Retype gear marked Other",
+  "equipment_retypeOther_undoFailed": "{count, plural, =1{1 item could not be put back} other{{count} items could not be put back}}",
+  "@equipment_retypeOther_undoFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{1 item changed since and was left as it is} other{{count} items changed since and were left as they are}}",
+  "@equipment_retypeOther_undoSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_retypeOther_undone": "Retype undone",
   "equipment_search_backTooltip": "Back",
   "equipment_search_clearTooltip": "Clear Search",
   "equipment_search_fieldLabel": "Search equipment...",
@@ -7729,6 +7924,23 @@
   "gasCalculators_mod_aboutModBody": "Lower O₂ = deeper MOD = shorter NDL",
   "gasCalculators_mod_inputParameters": "Input Parameters",
   "gasCalculators_mod_maximumOperatingDepth": "Maximum Operating Depth",
+  "gasCalculators_mod_semanticsLabel": "Maximum Operating Depth: {depth} {unit} at {ppo2} bar ppO2 with {o2}% oxygen",
+  "@gasCalculators_mod_semanticsLabel": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "ppo2": {
+        "type": "String"
+      },
+      "o2": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_mod_oxygenO2": "Oxygen (O₂)",
   "gasCalculators_mod_ppO2Conservative": "Conservative limit for extended bottom time",
   "gasCalculators_mod_ppO2Maximum": "Maximum limit for decompression stops only",
@@ -7840,8 +8052,12 @@
   "gasCalculators_blender_modelZFactor": "Real gas (Z-factor)",
   "gasCalculators_blender_modelRecommended": "Recommended",
   "gasCalculators_blender_modelHelp": "Real gas (Z-factor) is the most accurate at cylinder pressures. Ideal gas matches most published blending tables. Van der Waals is offered for comparison with other blending software and is several percent off at fill pressure.",
-  "gasCalculators_blender_stepAdd": "Add {gas}",
+  "gasCalculators_blender_stepAdd": "+ {gas}",
   "gasCalculators_blender_stepStartLabel": "Start",
+  "gasCalculators_blender_stepColumnAction": "Action",
+  "gasCalculators_blender_stepColumnAdded": "Added",
+  "gasCalculators_blender_stepColumnPressure": "Pressure",
+  "gasCalculators_blender_stepColumnMix": "Mix",
   "gasCalculators_blender_settlesTo": "Settles to {pressure} at {temperature}",
   "gasCalculators_blender_templates": "Templates",
   "gasCalculators_blender_templatesTitle": "Target mix templates",
@@ -7860,6 +8076,14 @@
   "gasCalculators_blender_cylinderVolume": "Cylinder water capacity",
   "gasCalculators_blender_cylinderPresets": "Presets",
   "gasCalculators_blender_unitPrice": "Price per 100 {unit}",
+  "gasCalculators_blender_invalidNumber": "Enter a valid number (decimal separator: \"{separator}\")",
+  "@gasCalculators_blender_invalidNumber": {
+    "placeholders": {
+      "separator": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_currency": "Currency",
   "gasCalculators_blender_currencyFollowsUnits": "Follows Settings > Units > Default currency",
   "gasCalculators_blender_manageCylinderSizes": "Manage cylinder sizes",
@@ -7871,6 +8095,9 @@
   "gasCalculators_blender_flushFeeModePerInvoice": "Once per bill",
   "gasCalculators_blender_flushFeeModePerFill": "Once per fill",
   "gasCalculators_blender_flushFeeVolume": "Purge volume",
+  "gasCalculators_blender_flushFeeColumnGas": "Gas",
+  "gasCalculators_blender_cylinderColumnShort": "Cylinder",
+  "gasCalculators_blender_volumeColumn": "Volume",
   "gasCalculators_blender_flushFeeLine": "{gas} hose purge",
   "@gasCalculators_blender_flushFeeLine": {
     "placeholders": {
@@ -7899,6 +8126,14 @@
   "gasCalculators_blender_payBody": "This archives all {count} saved fills and starts a new bill.",
   "gasCalculators_blender_editLine": "Edit {label}",
   "gasCalculators_blender_deleteLine": "Delete {label}",
+  "gasCalculators_blender_lineActions": "Actions for {label}",
+  "@gasCalculators_blender_lineActions": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_fillAdded": "{mix} added to the bill",
   "gasCalculators_blender_billedIncomplete": "One or more lines have no price, so this total is incomplete.",
   "gasCalculators_blender_billedTotal": "Total",
@@ -7912,6 +8147,9 @@
   "gasCalculators_blender_invoiceArchiveIncomplete": "Incomplete",
   "gasCalculators_blender_invoiceArchiveUntitled": "Untitled",
   "gasCalculators_blender_invoiceArchiveNotFound": "Invoice not found.",
+  "gasCalculators_blender_invoiceArchiveDelete": "Delete this invoice",
+  "gasCalculators_blender_invoiceArchiveDeleteTitle": "Delete invoice?",
+  "gasCalculators_blender_invoiceArchiveDeleteBody": "This cannot be undone.",
   "@gasCalculators_blender_invoiceArchiveFillCount": {
     "placeholders": {
       "count": {
@@ -10344,9 +10582,17 @@
   "@settings_navCustomization_title": {
     "description": "Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail."
   },
-  "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
+  "settings_navCustomization_description": "Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen size, not its orientation.",
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
+  },
+  "settings_navCustomization_alwaysHideLabels_title": "Always hide labels",
+  "@settings_navCustomization_alwaysHideLabels_title": {
+    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
+  },
+  "settings_navCustomization_alwaysHideLabels_subtitle": "Icons only, even where labels would normally fit",
+  "@settings_navCustomization_alwaysHideLabels_subtitle": {
+    "description": "Subtitle under the always-hide-labels switch."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {
@@ -10360,7 +10606,7 @@
   "@settings_navCustomization_scopeDesktop": {
     "description": "Segmented-button label for editing the desktop navigation rail order."
   },
-  "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
+  "settings_navCustomization_dividerLabel": "Items below go to the More menu when they do not fit in the bar",
   "@settings_navCustomization_dividerLabel": {
     "description": "Non-interactive divider row between primary and overflow destinations."
   },
@@ -12762,6 +13008,14 @@
       }
     }
   },
+  "tags_manage_narrowDialog_equipment": "{count, plural, =1{This tag is on 1 equipment item. Turning off \"Use for equipment\" removes it from that item.} other{This tag is on {count} equipment items. Turning off \"Use for equipment\" removes it from those items.}}",
+  "@tags_manage_narrowDialog_equipment": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tags_manage_narrowDialog_sites": "{count, plural, =1{This tag is on 1 site. Turning off \"Use for sites\" removes it from that site.} other{This tag is on {count} sites. Turning off \"Use for sites\" removes it from those sites.}}",
   "@tags_manage_narrowDialog_sites": {
     "placeholders": {
@@ -12771,8 +13025,9 @@
     }
   },
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
-  "tags_manage_scopeRequired": "Choose dives, sites, or both",
+  "tags_manage_scopeRequired": "Choose at least one: dives, sites, or equipment",
   "tags_manage_scope_dives": "Dives",
+  "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",
   "tags_manage_siteCount": "{count, plural, =0{0 sites} =1{1 site} other{{count} sites}}",
   "@tags_manage_siteCount": {
@@ -12782,7 +13037,16 @@
       }
     }
   },
+  "tags_manage_equipmentCount": "{count, plural, =0{0 equipment items} =1{1 equipment item} other{{count} equipment items}}",
+  "@tags_manage_equipmentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tags_manage_useForDives": "Use for dives",
+  "tags_manage_useForEquipment": "Use for equipment",
   "tags_manage_useForSites": "Use for sites",
   "tags_manage_nameRequired": "Tag name is required",
   "tags_manage_deleteTitle": "Delete Tag?",
@@ -12794,6 +13058,95 @@
       },
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_sites": "\"{tagName}\" will be removed from {count, plural, =1{1 site} other{{count} sites}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_sites": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_divesAndSites": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_divesAndSites": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_equipment": "\"{tagName}\" will be removed from {count, plural, =1{1 equipment item} other{{count} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_equipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_divesAndEquipment": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_divesAndEquipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_sitesAndEquipment": "\"{tagName}\" will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_sitesAndEquipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_all": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_all": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives, sites, or equipment. This cannot be undone.",
+  "@tags_manage_deleteMessage_unused": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
       }
     }
   },
@@ -12813,6 +13166,70 @@
       }
     }
   },
+  "tags_manage_bulkDeleteMessage_sites": "These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_sites": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_divesAndSites": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_divesAndSites": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_equipment": "These tags will be removed from {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_equipment": {
+    "placeholders": {
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_divesAndEquipment": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_divesAndEquipment": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_sitesAndEquipment": "These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_sitesAndEquipment": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_all": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_all": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives, sites, or equipment. This cannot be undone.",
   "tags_manage_mergeTitle": "Merge {count} Tags",
   "@tags_manage_mergeTitle": {
     "placeholders": {
@@ -12831,6 +13248,70 @@
       }
     }
   },
+  "tags_manage_mergeAffected_sites": "This will affect {count, plural, =1{1 site} other{{count} sites}} total.",
+  "@tags_manage_mergeAffected_sites": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_divesAndSites": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total.",
+  "@tags_manage_mergeAffected_divesAndSites": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_equipment": "This will affect {count, plural, =1{1 equipment item} other{{count} equipment items}} total.",
+  "@tags_manage_mergeAffected_equipment": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_divesAndEquipment": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_divesAndEquipment": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_sitesAndEquipment": "This will affect {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_sitesAndEquipment": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_all": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_all": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_unused": "These tags are not used on any dives, sites, or equipment.",
   "tags_manage_mergeAction": "Merge",
   "tags_title_manageTags": "Manage Tags",
   "tank_al100_description": "Aluminum 100 cu ft",
@@ -13753,6 +14234,28 @@
   "universalImport_triage_noneImportable": "None of the selected files can be imported.",
   "universalImport_review_inBatchDuplicate": "Duplicate of another dive in this import batch.",
   "universalImport_summary_filesTitle": "Files",
+  "universalImport_divers_intro": "{count, plural, other{This logbook has dives for {count} divers. Choose where each diver's dives and certifications go.}}",
+  "universalImport_divers_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "universalImport_divers_certificationCount": "{count, plural, =1{1 certification} other{{count} certifications}}",
+  "universalImport_divers_unownedRow": "Dives with no diver",
+  "universalImport_divers_targetLabel": "Import into",
+  "universalImport_divers_targetNew": "Create new profile \"{name}\"",
+  "universalImport_divers_targetSkip": "Don't import",
+  "universalImport_divers_newLabel": "New: {name}",
+  "universalImport_summary_byProfileTitle": "By profile",
+  "universalImport_summary_newProfile": "New profile",
+  "universalImport_summary_switchToSee": "Switch to {name} to see these dives",
+  "@universalImport_divers_intro": {"description": "Explains the import wizard Divers step for a logbook holding several divers", "placeholders": {"count": {"type": "num"}}},
+  "@universalImport_divers_diveCount": {"description": "Dive count of one diver row in the Divers step", "placeholders": {"count": {"type": "num"}}},
+  "@universalImport_divers_certificationCount": {"description": "Certification count of one diver row in the Divers step", "placeholders": {"count": {"type": "num"}}},
+  "@universalImport_divers_unownedRow": {"description": "Divers step row for dives the logbook attributes to no diver"},
+  "@universalImport_divers_targetLabel": {"description": "Label of the profile picker on a Divers step row"},
+  "@universalImport_divers_targetNew": {"description": "Divers step choice that creates a profile named after the diver", "placeholders": {"name": {"type": "String"}}},
+  "@universalImport_divers_targetSkip": {"description": "Divers step choice that leaves the diver out of the import"},
+  "@universalImport_divers_newLabel": {"description": "Review row label for an item going to a profile the import will create", "placeholders": {"name": {"type": "String"}}},
+  "@universalImport_summary_byProfileTitle": {"description": "Import summary section listing what each diver profile received"},
+  "@universalImport_summary_newProfile": {"description": "Import summary label on a profile the import created"},
+  "@universalImport_summary_switchToSee": {"description": "Import summary hint on a profile that is not the active one", "placeholders": {"name": {"type": "String"}}},
   "universalImport_summary_noticesTitle": "Import notes",
   "universalImport_summary_noticeNoTankPressureTitle": "Tank pressure not recorded",
   "universalImport_summary_noticeNoTankPressureBody": "Air consumption and SAC cannot be calculated. You can add start and end pressure by editing the dive.",
@@ -13771,15 +14274,6 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
-    }
-  },
-  "universalImport_summary_noticeMultipleDiversTitle": "Dives from more than one diver",
-  "universalImport_summary_noticeMultipleDiversBody": "This MacDive library has dives logged by {names}. All of them were imported into the current diver, and each dive is tagged with the name it was logged under.",
-  "@universalImport_summary_noticeMultipleDiversBody": {
-    "placeholders": {
-      "names": {
-        "type": "String"
       }
     }
   },
@@ -17356,8 +17850,6 @@
       }
     }
   },
-  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)",
-  "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Depth",
   "@dive3d_metric_depth": {},
   "dive3d_metric_temperature": "Temp",
@@ -19578,6 +20070,7 @@
   "enum_equipmentField_daysUntilService": "Days Until Service",
   "enum_equipmentField_serviceIntervalDays": "Service Interval",
   "enum_equipmentField_notes": "Notes",
+  "enum_equipmentField_tags": "Tags",
   "enum_equipmentField_itemName_short": "Name",
   "enum_equipmentField_fullName_short": "Full Name",
   "enum_equipmentField_type_short": "Type",
@@ -19594,6 +20087,7 @@
   "enum_equipmentField_daysUntilService_short": "Days Left",
   "enum_equipmentField_serviceIntervalDays_short": "Interval",
   "enum_equipmentField_notes_short": "Notes",
+  "enum_equipmentField_tags_short": "Tags",
   "enum_diveCenterField_centerName": "Name",
   "enum_diveCenterField_city": "City",
   "enum_diveCenterField_country": "Country",
@@ -22313,7 +22807,6 @@
   "divePlanner_quickPlan_depthSemantics": "Depth: {depth}",
   "divePlanner_quickPlan_timeLabel": "Time:",
   "divePlanner_quickPlan_bottomTimeSemantics": "{minutes, plural, =1{Bottom time: 1 minute} other{Bottom time: {minutes} minutes}}",
-  "divePlanner_quickPlan_minutes": "{minutes} min",
   "divePlanner_quickPlan_previewSemantics": "Plan preview: Descent to {depth}, bottom time {minutes} minutes, ascent with safety stop",
   "divePlanner_quickPlan_previewTitle": "Plan Preview:",
   "divePlanner_quickPlan_previewDescent": "Descent to {depth}",
@@ -22551,13 +23044,6 @@
     }
   },
   "@divePlanner_quickPlan_bottomTimeSemantics": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
-  "@divePlanner_quickPlan_minutes": {
     "placeholders": {
       "minutes": {
         "type": "int"
@@ -22960,14 +23446,17 @@
   "startup_backupFailed_technicalDetails": "Technical details",
   "common_action_retry": "Retry",
   "startup_versionMismatch_title": "Your Data Is Newer Than This App",
-  "startup_versionMismatch_body": "Your dive data was saved by a newer version of Submersion (schema v{databaseVersion}). This version only supports up to schema v{appVersion}.",
-  "startup_versionMismatch_causes": "This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.",
-  "startup_versionMismatch_instructions": "Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.",
-  "startup_versionMismatch_storeInstructions": "This app was installed from an app store and is older than the version that created your data. Your data is safe and has not been modified. Update Submersion when the new version appears in the store, then reopen it.",
+  "startup_versionMismatch_body": "Your dive log was saved at schema v{databaseVersion} by a newer version of Submersion. This version opens files up to schema v{appVersion}.",
+  "startup_versionMismatch_causes_lead": "This usually happens when:",
+  "startup_versionMismatch_cause_beta": "A beta build upgraded the file.",
+  "startup_versionMismatch_cause_restored": "A backup from a newer build was restored.",
+  "startup_versionMismatch_cause_shared": "The file is shared with a device on another update channel.",
+  "startup_versionMismatch_instructions": "Your data has not been changed. Open it with the build that wrote it, or with a later one.",
+  "startup_versionMismatch_storeInstructions": "This app came from an app store and is older than the version that saved your data. Your data has not been changed. Update Submersion when the new version appears in the store, then open it again.",
   "startup_versionMismatch_download": "Check for a Newer Stable Release",
   "startup_versionMismatch_betaAction": "Get the Beta Build",
   "startup_versionMismatch_betaNote": "Beta builds are pre-release. Choose this only if a beta build wrote your data.",
-  "startup_versionMismatch_manualLink": "If those buttons do not open a browser, visit:",
+  "startup_versionMismatch_manualLink": "If the buttons do not open a browser:",
   "universalImport_compare_downloaded": "Downloaded",
   "universalImport_compare_errorLoading": "Error loading dive data",
   "universalImport_compare_diveNotFound": "Existing dive not found",
@@ -23390,8 +23879,6 @@
   "settings_export_progress_preparingObservationsCsv": "Preparing gear check-ins CSV...",
   "settings_export_progress_preparingUddf": "Preparing UDDF file...",
   "settings_export_progress_preparingPdf": "Preparing PDF...",
-  "settings_export_progress_selectingBackup": "Selecting backup file...",
-  "settings_export_progress_restoringBackup": "Restoring from backup...",
   "settings_export_empty_dives": "No dives to export",
   "settings_export_empty_sites": "No sites to export",
   "settings_export_empty_equipment": "No equipment to export",
@@ -23399,10 +23886,6 @@
   "settings_export_empty_data": "No data to export",
   "settings_export_empty_diveSites": "No dive sites to export",
   "settings_export_saveFailed": "Save failed: {error}",
-  "settings_export_backupFailed": "Backup failed: {error}",
-  "settings_export_restoreFailed": "Restore failed: {error}",
-  "settings_export_fileUnreadable": "Could not access file",
-  "settings_export_notADbFile": "Please select a .db backup file",
   "settings_export_success_dives": "Dives exported successfully",
   "settings_export_success_sites": "Sites exported successfully",
   "settings_export_success_equipment": "Equipment exported successfully",
@@ -23419,13 +23902,8 @@
   "settings_export_saved_observationsCsv": "Gear check-ins CSV saved",
   "settings_export_saved_uddf": "UDDF file saved successfully",
   "settings_export_saved_pdf": "PDF saved successfully",
-  "settings_export_saved_backup": "Backup saved successfully",
-  "settings_export_restoreComplete": "Restore complete",
   "settings_export_cancelled_save": "Save cancelled",
-  "settings_export_cancelled_backup": "Backup cancelled",
-  "settings_export_cancelled_restore": "Restore cancelled",
   "settings_export_pdfDocumentTitle": "Dive Logbook",
-  "settings_export_saveBackupDialogTitle": "Save Backup",
   "settings_export_saveDivesCsvDialogTitle": "Save Dives CSV",
   "settings_export_saveSitesCsvDialogTitle": "Save Sites CSV",
   "settings_export_saveEquipmentCsvDialogTitle": "Save Equipment CSV",
@@ -23493,20 +23971,6 @@
     }
   },
   "@settings_export_saveFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "@settings_export_backupFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "@settings_export_restoreFailed": {
     "placeholders": {
       "error": {
         "type": "String"
@@ -24029,6 +24493,74 @@
       }
     }
   },
+  "statistics_conditions_waterTempBands_table_band": "Band",
+  "@statistics_conditions_waterTempBands_table_band": {
+    "description": "Header of the first column of the per-band averages table on the dives-by-water-temperature card: the water-temperature band, such as 10-18°C"
+  },
+  "statistics_conditions_waterTempBands_table_dives": "Dives",
+  "@statistics_conditions_waterTempBands_table_dives": {
+    "description": "Header of the column of the per-band averages table that counts every dive in the band"
+  },
+  "statistics_conditions_waterTempBands_table_avgSac": "Avg SAC",
+  "@statistics_conditions_waterTempBands_table_avgSac": {
+    "description": "Header of the column of the per-band averages table showing the average SAC (tank-pressure drop per minute) of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_avgRmv": "Avg RMV",
+  "@statistics_conditions_waterTempBands_table_avgRmv": {
+    "description": "Header of the column of the per-band averages table showing the average RMV (surface gas volume per minute) of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_avgBottomTime": "Avg bottom time",
+  "@statistics_conditions_waterTempBands_table_avgBottomTime": {
+    "description": "Header of the column of the per-band averages table showing the average bottom time of the band's dives"
+  },
+  "statistics_conditions_waterTempBands_table_error": "Failed to load band averages",
+  "@statistics_conditions_waterTempBands_table_error": {
+    "description": "Shown in place of the per-band averages table on the dives-by-water-temperature card when the averages could not be loaded"
+  },
+  "statistics_conditions_waterTempBands_table_averageOver": "{value} over {dives}",
+  "@statistics_conditions_waterTempBands_table_averageOver": {
+    "description": "Screen-reader text for one average and how many dives it is based on",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "1.1 bar/min"
+      },
+      "dives": {
+        "type": "String",
+        "example": "17 dives"
+      }
+    }
+  },
+  "statistics_conditions_waterTempBands_table_noData": "no data",
+  "@statistics_conditions_waterTempBands_table_noData": {
+    "description": "Screen-reader text for an average the band has no dives for, read in place of the value (the table itself shows --)"
+  },
+  "statistics_conditions_waterTempBands_table_rowSemanticLabel": "{band}: {dives}. Average {lane}: {consumption}. Average bottom time: {bottomTime}.",
+  "@statistics_conditions_waterTempBands_table_rowSemanticLabel": {
+    "description": "Screen-reader summary of one row of the per-band averages table: the band, its dive count, its average gas consumption and its average bottom time",
+    "placeholders": {
+      "band": {
+        "type": "String",
+        "example": "65-75°F"
+      },
+      "dives": {
+        "type": "String",
+        "example": "20 dives"
+      },
+      "lane": {
+        "type": "String",
+        "example": "SAC"
+      },
+      "consumption": {
+        "type": "String",
+        "example": "1.1 bar/min over 17 dives"
+      },
+      "bottomTime": {
+        "type": "String",
+        "example": "52 min over 20 dives"
+      }
+    }
+  },
   "diveLog_filter_presetLast5Years": "Last 5 years",
   "diveLog_filter_presetLast10Years": "Last 10 years",
   "statistics_trend_tooltip_lowest": "Lowest",
@@ -24359,8 +24891,24 @@
   },
   "diveComputer_detail_duplicateBannerAction": "Merge",
   "startup_versionMismatch_restore_title": "Restore your pre-upgrade backup",
-  "startup_versionMismatch_restore_body": "A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.",
-  "startup_versionMismatch_restore_warning": "Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.",
+  "startup_versionMismatch_restore_warning": "Dives logged after the upgrade exist only in the newer file. It is kept as a pinned backup, so installing the newer version again brings them back.",
+  "startup_interruptedRestore_title": "A restore did not finish",
+  "startup_interruptedRestore_bodyWithDate": "Submersion was restoring a backup on {date} when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
+  "@startup_interruptedRestore_bodyWithDate": {
+    "description": "Startup screen after a restore stopped with the previous database still aside. The date is when the restore began, preformatted.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sat, Sep 13 10:30 AM"
+      }
+    }
+  },
+  "startup_interruptedRestore_body": "Submersion was restoring a backup when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
+  "startup_interruptedRestore_recoverAction": "Recover my previous dive log",
+  "startup_interruptedRestore_recoverNote": "The file that is in its place now is kept beside it, not deleted.",
+  "startup_interruptedRestore_keepAction": "Keep what is there now",
+  "startup_interruptedRestore_keepNote": "Your previous dive log is kept as a file in the database folder.",
+  "startup_interruptedRestore_failed": "Recovery did not complete. Nothing was deleted; both files are still on this device.",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
     "placeholders": {
@@ -24542,7 +25090,6 @@
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
   "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
-  "diveLog_detail_tooltip_whatIf": "Replan this dive",
   "diveLog_detail_menu_whatIf": "Replan this dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
@@ -24594,5 +25141,6 @@
   "plannerCanvas_compare_cns": "CNS",
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
-  "plannerCanvas_compare_showOnChart": "Show on chart"
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "numberInput_invalidValue": "Enter a valid number"
 }

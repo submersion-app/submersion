@@ -8,6 +8,7 @@ import 'package:submersion/features/media/data/services/trip_media_scanner.dart'
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
@@ -69,21 +70,14 @@ Future<void> scanGalleryForTripPhotos(
     }
 
     final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
-    final existingIds = <String>{};
-    for (final mediaList in mediaByDive.values) {
-      for (final item in mediaList) {
-        if (item.platformAssetId != null) {
-          existingIds.add(item.platformAssetId!);
-        }
-      }
-    }
 
     final photoPickerService = ref.read(photoPickerServiceProvider);
     final result = await TripMediaScanner.scanGalleryForTrip(
       dives: dives,
       tripStartDate: trip.startDate,
       tripEndDate: trip.endDate,
-      existingAssetIds: existingIds,
+      linked: [for (final items in mediaByDive.values) ...items],
+      linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
       photoPickerService: photoPickerService,
     );
 

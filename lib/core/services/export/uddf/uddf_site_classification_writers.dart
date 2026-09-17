@@ -1,5 +1,6 @@
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/uddf_tag_writers.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 
 /// UDDF writers for dive site types and site tags (issue #1765), shared by
@@ -26,16 +27,7 @@ class UddfSiteClassificationWriters {
         },
       );
     }
-    if (tagIds.isNotEmpty) {
-      builder.element(
-        'tags',
-        nest: () {
-          for (final id in tagIds) {
-            builder.element('tagref', nest: 'tag_$id');
-          }
-        },
-      );
-    }
+    UddfTagWriters.writeTagRefs(builder, tagIds);
   }
 
   /// Inside `<applicationdata><submersion>`: the custom site types. Built-ins

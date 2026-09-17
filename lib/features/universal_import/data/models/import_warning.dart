@@ -40,11 +40,6 @@ enum ImportWarningCode {
   /// One warning per skipped dive.
   divesSkipped,
 
-  /// A MacDive library holds dives logged by more than one diver, all of
-  /// which were imported into the current diver. [ImportWarning.names] lists
-  /// the divers.
-  multipleDivers,
-
   /// A dive's profile data is missing from the file or could not be read, so
   /// the dive was imported without a depth profile. One warning per dive.
   profileUnreadable,

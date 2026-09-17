@@ -312,6 +312,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -341,6 +342,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -373,6 +375,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -397,6 +400,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -425,6 +429,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -452,6 +457,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive1,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer(
@@ -466,6 +472,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive2,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer((_) async => DuplicateResult.noMatch());
@@ -495,6 +502,7 @@ void main() {
         mockImportService.detectDuplicate(
           dive,
           diverId: diverId,
+          computerId: anyNamed('computerId'),
           sourceKeysCache: anyNamed('sourceKeysCache'),
         ),
       ).thenAnswer((_) async => DuplicateResult.noMatch());

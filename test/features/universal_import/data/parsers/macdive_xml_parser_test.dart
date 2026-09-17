@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 
 void main() {
@@ -392,6 +393,42 @@ void main() {
         isEmpty,
         reason: 'an empty logbook has no import for the notice to qualify',
       );
+    });
+
+    // #1893: MacDive writes the diver on each dive. The reference library
+    // fills it on 503 of 540 dives and leaves it empty on exactly the dives
+    // whose MacDive.sqlite row names no diver.
+    test('groups dives by <diver>', () async {
+      const xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<dives>
+    <units>Metric</units>
+    <schema>2.2.0</schema>
+    <dive><date>2024-06-01 09:00:00</date><identifier>a</identifier><diver>Ann Lee</diver><samples/></dive>
+    <dive><date>2024-06-02 09:00:00</date><identifier>b</identifier><diver> Bo Ray </diver><samples/></dive>
+    <dive><date>2024-06-03 09:00:00</date><identifier>c</identifier><diver></diver><samples/></dive>
+    <dive><date>2024-06-04 09:00:00</date><identifier>d</identifier><diver>Ann Lee</diver><samples/></dive>
+</dives>''';
+      final payload = await const MacDiveXmlParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+
+      expect(payload.sourceDivers, const [
+        SourceDiver(key: 'name:Ann Lee', name: 'Ann Lee', diveCount: 2),
+        SourceDiver(key: 'name:Bo Ray', name: 'Bo Ray', diveCount: 1),
+        SourceDiver(key: SourceDiver.unownedKey, name: '', diveCount: 1),
+      ]);
+      expect(payload.needsDiverMapping, isTrue);
+      expect(
+        payload
+            .entitiesOf(ImportEntityType.dives)
+            .map((d) => d[SourceDiver.mapKey]),
+        ['name:Ann Lee', 'name:Bo Ray', SourceDiver.unownedKey, 'name:Ann Lee'],
+      );
+    });
+
+    test('a file with one diver needs no diver mapping', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      expect(payload.needsDiverMapping, isFalse);
     });
   });
 

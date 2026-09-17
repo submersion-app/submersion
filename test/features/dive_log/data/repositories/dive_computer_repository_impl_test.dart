@@ -1024,6 +1024,106 @@ void main() {
       expect(dive.diveMode, 'gauge');
     });
 
+    test('importProfile persists the resolved diluent gas on a new dive '
+        '(issue #1879)', () async {
+      final computerId = await insertComputer();
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 4, 1, 9, 0),
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 60, depth: 30.0),
+        ],
+        durationSeconds: 3600,
+        maxDepth: 40.0,
+        diveMode: DiveMode.ccr,
+        diluentO2: 18.0,
+        diluentHe: 45.0,
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diluentO2, 18.0);
+      expect(dive.diluentHe, 45.0);
+    });
+
+    test('importProfile leaves a new dive without a diluent field when none '
+        'resolved (issue #1879)', () async {
+      final computerId = await insertComputer();
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 4, 1, 9, 0),
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 60, depth: 30.0),
+        ],
+        durationSeconds: 3600,
+        maxDepth: 40.0,
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diluentO2, isNull);
+      expect(dive.diluentHe, isNull);
+    });
+
+    test('importProfile never overwrites a diluent already stored on a matched '
+        'dive (issue #1879)', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 9, 0);
+
+      // First download: resolves a diluent.
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 60, depth: 30.0),
+        ],
+        durationSeconds: 3600,
+        maxDepth: 40.0,
+        diveMode: DiveMode.ccr,
+        diluentO2: 18.0,
+        diluentHe: 45.0,
+        forceNew: true,
+      );
+
+      // A second import from another computer matches the same dive by
+      // timestamp, and this time resolves a different (wrong) diluent --
+      // it must not clobber the one already stored, the same as every
+      // other dive-level field on the matched-dive branch.
+      final otherComputerId = await insertComputer(
+        id: 'computer-2',
+        name: 'Other Computer',
+      );
+      final matchedId = await repository.importProfile(
+        computerId: otherComputerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 60, depth: 30.0),
+        ],
+        durationSeconds: 3600,
+        maxDepth: 40.0,
+        diveMode: DiveMode.ccr,
+        diluentO2: 21.0,
+        diluentHe: 0.0,
+      );
+
+      expect(matchedId, diveId);
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diluentO2, 18.0);
+      expect(dive.diluentHe, 45.0);
+    });
+
     test(
       'forceNew=false (default) matches existing dive by timestamp',
       () async {

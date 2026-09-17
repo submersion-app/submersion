@@ -29,12 +29,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/add_dive_botto
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_card_stat_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1051,11 +1050,6 @@ class DiveListTile extends ConsumerWidget {
                                       ),
                                 ),
                               ],
-                              const SizedBox(width: 8),
-                              DiveModeBadge(
-                                mode: summary?.diveMode ?? DiveMode.oc,
-                                dense: true,
-                              ),
                             ],
                           ),
                           // Site location (country/region)
@@ -1103,54 +1097,29 @@ class DiveListTile extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                // Stat row (protected: sized to its own content first) plus
-                // the dive-type badges, right-aligned on the same line. Tags
-                // get their own line below instead of sharing this one, so
-                // neither can squeeze the other -- DiveTypeBadgeRow still
-                // collapses into a single "+N" badge if the stat row alone
-                // leaves it little room.
+                // Stat row plus the dive-type badges and the dive mode badge,
+                // right-aligned on the same line with the mode last.
+                // DiveCardStatRow reserves the badges' narrowest width first
+                // (types collapsed to "+N", mode at full width), so at a narrow
+                // pane the stats ellipsize instead of overflowing. Tags get
+                // their own line below.
                 SelectionInset(
                   isSelectionMode: isSelectionMode,
                   start: 52,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildStatWidget(
-                            stat1Field,
-                            summary,
-                            units,
-                            context,
-                            accentColor,
-                            secondaryTextColor,
-                          ),
-                          const SizedBox(width: 16),
-                          _buildStatWidget(
-                            stat2Field,
-                            summary,
-                            units,
-                            context,
-                            accentColor,
-                            secondaryTextColor,
-                          ),
-                        ],
-                      ),
-                      if (diveTypeLabels.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerEnd,
-                            child: DiveTypeBadgeRow(
-                              labels: diveTypeLabels,
-                              dense: true,
-                            ),
-                          ),
+                  child: DiveCardStatRow(
+                    stats: [
+                      for (final field in [stat1Field, stat2Field])
+                        _buildStat(
+                          field,
+                          summary,
+                          units,
+                          context,
+                          accentColor,
+                          secondaryTextColor,
                         ),
-                      ] else
-                        const Spacer(),
                     ],
+                    diveTypeLabels: diveTypeLabels,
+                    diveMode: summary?.diveMode ?? DiveMode.oc,
                   ),
                 ),
                 // Tags, on their own line so a long tag name never competes
@@ -1321,7 +1290,7 @@ class DiveListTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatWidget(
+  DiveCardStat _buildStat(
     DiveField field,
     DiveSummary? summary,
     UnitFormatter units,
@@ -1344,26 +1313,15 @@ class DiveListTile extends ConsumerWidget {
         : null;
     value ??= _fallbackValue(field);
     final formatted = field.formatValue(value, units);
-    final hasValue = value != null;
-    final color = hasValue ? accentColor : secondaryTextColor;
-    final style = Theme.of(
-      context,
-    ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: color);
+    final color = value != null ? accentColor : secondaryTextColor;
     final icon = field.icon;
 
-    if (icon != null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
-          const SizedBox(width: 4),
-          Text(formatted, style: style),
-        ],
-      );
-    }
-    return Text(
-      '${field.localizedShortLabel(context.l10n)}: $formatted',
-      style: style,
+    return DiveCardStat(
+      icon: icon,
+      text: icon != null
+          ? formatted
+          : '${field.localizedShortLabel(context.l10n)}: $formatted',
+      color: color,
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
+import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -58,12 +59,20 @@ class MediaImportService {
     required EnrichmentService enrichmentService,
     Future<Directory> Function()? documentsDirectory,
     this.onMediaCreated,
+    LinkedGalleryAssets linkedGalleryAssets = const LinkedGalleryAssets(),
   }) : _mediaRepository = mediaRepository,
        _enrichmentService = enrichmentService,
        _documentsDirectory =
-           documentsDirectory ?? getApplicationDocumentsDirectory;
+           documentsDirectory ?? getApplicationDocumentsDirectory,
+       _linkedGalleryAssets = linkedGalleryAssets;
 
   final Future<Directory> Function() _documentsDirectory;
+
+  /// Decides which picked gallery assets are already linked. The default
+  /// consults nothing on this device and only recognises assets by the
+  /// synced id; production passes one backed by the asset resolver so a
+  /// photo linked on another device is recognised too (#885).
+  final LinkedGalleryAssets _linkedGalleryAssets;
 
   /// Invoked after every successful createMedia so the media store can
   /// enqueue an upload. Null when no store is configured.
@@ -150,22 +159,26 @@ class MediaImportService {
       'Starting import of ${selectedAssets.length} assets for dive ${dive.id}',
     );
 
-    // Two dedupe keys, one per origin. Gallery picks are matched on their
-    // platform asset id; desktop picks are localFile rows with a null
-    // platform_asset_id (see [_createMediaItemFromAsset]), invisible to that
-    // query, so they are matched on the path instead.
+    // Two dedupe keys, one per origin. Gallery picks are checked against the
+    // dive's linked rows as this device sees them (see [_unlinkedGalleryIds]);
+    // desktop picks are localFile rows with a null platform_asset_id (see
+    // [_createMediaItemFromAsset]), invisible to that check, so they are
+    // matched on the path instead.
     //
     // Each lookup only feeds one branch of the filter below, so query a
     // lookup only when the selection actually contains that kind of asset:
     // a mobile pick has no paths to compare and a desktop pick has no
-    // gallery ids, and either way the unused set would be dead work.
+    // gallery ids, and either way the unused lookup would be dead work.
     bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
     final anyPaths = selectedAssets.any(hasPath);
-    final anyGallery = selectedAssets.any((a) => !hasPath(a));
+    final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
 
-    final existingAssetIds = anyGallery
-        ? await _mediaRepository.getLinkedAssetIdsForDive(dive.id)
-        : const <String>{};
+    final newGalleryIds = gallery.isEmpty
+        ? const <String>{}
+        : await _unlinkedGalleryIds(
+            gallery,
+            await _mediaRepository.getGalleryLinksForDive(dive.id),
+          );
     final existingPaths = anyPaths
         ? await _mediaRepository.getLinkedLocalPathsForDive(dive.id)
         : const <String>{};
@@ -173,7 +186,7 @@ class MediaImportService {
     // Filter out duplicates before processing
     final newAssets = selectedAssets.where((a) {
       if (hasPath(a)) return !existingPaths.contains(a.filePath);
-      return !existingAssetIds.contains(a.id);
+      return newGalleryIds.contains(a.id);
     }).toList();
     final skippedCount = selectedAssets.length - newAssets.length;
 
@@ -239,22 +252,25 @@ class MediaImportService {
       'Starting import of ${selectedAssets.length} assets for site $siteId',
     );
 
-    // Same two-key dedupe as the dive import: gallery picks match on the
-    // platform asset id, desktop picks on the path.
+    // Same two-key dedupe as the dive import: gallery picks are checked
+    // against the site's linked rows, desktop picks on the path.
     bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
     final anyPaths = selectedAssets.any(hasPath);
-    final anyGallery = selectedAssets.any((a) => !hasPath(a));
+    final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
 
-    final existingAssetIds = anyGallery
-        ? await _mediaRepository.getLinkedAssetIdsForSite(siteId)
-        : const <String>{};
+    final newGalleryIds = gallery.isEmpty
+        ? const <String>{}
+        : await _unlinkedGalleryIds(
+            gallery,
+            await _mediaRepository.getGalleryLinksForSite(siteId),
+          );
     final existingPaths = anyPaths
         ? await _mediaRepository.getLinkedLocalPathsForSite(siteId)
         : const <String>{};
 
     final newAssets = selectedAssets.where((a) {
       if (hasPath(a)) return !existingPaths.contains(a.filePath);
-      return !existingAssetIds.contains(a.id);
+      return newGalleryIds.contains(a.id);
     }).toList();
     final skippedCount = selectedAssets.length - newAssets.length;
 
@@ -284,6 +300,24 @@ class MediaImportService {
       failures: failures,
       skippedDuplicates: skippedCount,
     );
+  }
+
+  /// Ids of the [gallery] assets that none of [linked] already stands for.
+  ///
+  /// Not a plain id comparison: a synced row carries the asset id of the
+  /// device that linked it, which is a different id on every other device
+  /// (#885). [LinkedGalleryAssets] also counts what each row resolves to
+  /// here, so re-picking or re-scanning a photo linked elsewhere skips it
+  /// instead of inserting a duplicate row.
+  Future<Set<String>> _unlinkedGalleryIds(
+    List<AssetInfo> gallery,
+    List<MediaItem> linked,
+  ) async {
+    final unlinked = await _linkedGalleryAssets.withoutLinked(
+      candidates: gallery,
+      linked: linked,
+    );
+    return {for (final a in unlinked) a.id};
   }
 
   MediaItem _createMediaItemFromAsset(

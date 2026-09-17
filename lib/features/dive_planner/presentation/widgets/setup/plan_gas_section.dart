@@ -9,6 +9,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -36,7 +37,7 @@ class PlanGasSection extends ConsumerWidget {
         // The plan keeps its RMV in L/min; the field shows it in the diver's
         // volume unit at rmvDecimals, so an imperial 0.55 cuft/min is not
         // re-seeded as "0.6" mid-entry (#1823).
-        PlanGasOptionNumberField(
+        PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_sacBottom,
           value: units.convertRmv(planState.sacRate),
           hintValue: units.convertRmv(15),
@@ -225,7 +226,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
               Expanded(child: Text(context.l10n.divePlanner_label_reserve)),
               const SizedBox(width: 8),
               SizedBox(
-                width: PlanGasOptionNumberField.fieldWidth,
+                width: PlanNumberField.fieldWidth,
                 child: Semantics(
                   label: context.l10n.divePlanner_semantics_reservePressure(
                     widget.units.pressureSymbol,
@@ -249,7 +250,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
               ),
               const SizedBox(width: 6),
               SizedBox(
-                width: PlanGasOptionNumberField.unitWidth,
+                width: PlanNumberField.unitWidth,
                 child: Text(widget.units.pressureSymbol),
               ),
             ],

@@ -151,6 +151,15 @@ class DownloadedDive {
   /// Breathing/logging mode reported by the computer (oc/ccr/scr/gauge).
   final DiveMode diveMode;
 
+  /// CCR/SCR diluent gas mix (issue #1879), derived from the first cylinder
+  /// tagged [TankRole.diluent] in [tanks]. Null when no tank carries that
+  /// role, e.g. the computer's transmitter naming does not follow the
+  /// O/D convention libdivecomputer relies on.
+  final double? diluentO2;
+
+  /// Helium fraction of [diluentO2], 0.0 for a helium-free diluent.
+  final double? diluentHe;
+
   const DownloadedDive({
     this.diveNumber,
     required this.startTime,
@@ -175,6 +184,8 @@ class DownloadedDive {
     this.events = const [],
     this.rawData,
     this.rawFingerprint,
+    this.diluentO2,
+    this.diluentHe,
   });
 
   /// Duration as a Duration object

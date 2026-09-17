@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -14,6 +16,17 @@ AssetInfo _testAsset(String id, {String? filePath}) => AssetInfo(
   width: 1920,
   height: 1080,
   filePath: filePath,
+);
+
+/// A gallery row already attached to site-1.
+MediaItem _siteRow(String platformAssetId) => MediaItem(
+  id: 'media-$platformAssetId',
+  siteId: 'site-1',
+  platformAssetId: platformAssetId,
+  mediaType: MediaType.photo,
+  takenAt: DateTime.utc(2024, 1, 15, 10, 30),
+  createdAt: DateTime.utc(2024, 1, 15),
+  updatedAt: DateTime.utc(2024, 1, 15),
 );
 
 void main() {
@@ -32,8 +45,8 @@ void main() {
       onMediaCreated: createdIds.add,
     );
     when(
-      mockMediaRepository.getLinkedAssetIdsForSite(any),
-    ).thenAnswer((_) async => <String>{});
+      mockMediaRepository.getGalleryLinksForSite(any),
+    ).thenAnswer((_) async => <MediaItem>[]);
     when(
       mockMediaRepository.getLinkedLocalPathsForSite(any),
     ).thenAnswer((_) async => <String>{});
@@ -68,8 +81,8 @@ void main() {
 
   test('importPhotosForSite skips assets already linked to the site', () async {
     when(
-      mockMediaRepository.getLinkedAssetIdsForSite('site-1'),
-    ).thenAnswer((_) async => {'a1'});
+      mockMediaRepository.getGalleryLinksForSite('site-1'),
+    ).thenAnswer((_) async => [_siteRow('a1')]);
 
     final result = await service.importPhotosForSite(
       selectedAssets: [_testAsset('a1'), _testAsset('a2')],
@@ -78,6 +91,34 @@ void main() {
 
     expect(result.imported, hasLength(1));
     expect(result.skippedDuplicates, 1);
+  });
+
+  test('importPhotosForSite skips an asset that a row linked on another '
+      'device resolves to on this one (#885)', () async {
+    final crossDevice = MediaImportService(
+      mediaRepository: mockMediaRepository,
+      enrichmentService: mockEnrichmentService,
+      linkedGalleryAssets: LinkedGalleryAssets(
+        resolve: (item) async => item.platformAssetId == 'iphone-1'
+            ? const ResolutionResult(
+                localAssetId: 'mac-1',
+                status: ResolutionStatus.resolved,
+              )
+            : const ResolutionResult(status: ResolutionStatus.unavailable),
+      ),
+    );
+    when(
+      mockMediaRepository.getGalleryLinksForSite('site-1'),
+    ).thenAnswer((_) async => [_siteRow('iphone-1')]);
+
+    final result = await crossDevice.importPhotosForSite(
+      selectedAssets: [_testAsset('mac-1')],
+      siteId: 'site-1',
+    );
+
+    expect(result.imported, isEmpty);
+    expect(result.skippedDuplicates, 1);
+    verifyNever(mockMediaRepository.createMedia(any));
   });
 
   test(

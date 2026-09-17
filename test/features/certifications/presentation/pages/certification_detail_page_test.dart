@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -376,6 +379,123 @@ void main() {
       // still carries the level separately.
       expect(find.text('Bali OW w/ Made'), findsWidgets);
       expect(find.text('Open Water'), findsOneWidget);
+    });
+  });
+
+  group('CertificationDetailPage card photos', () {
+    // A valid 1x1 transparent PNG, so the image decoder has real bytes.
+    final onePixelPng = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGA'
+      'hKmMIQAAAABJRU5ErkJggg==',
+    );
+
+    Future<void> pumpCert(WidgetTester tester, Certification cert) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            certificationByIdProvider(
+              cert.id,
+            ).overrideWith((ref) async => cert),
+            courseForCertificationProvider(
+              cert.id,
+            ).overrideWith((ref) async => null),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: CertificationDetailPage(
+              certificationId: cert.id,
+              embedded: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Certification makeWithPhotos({
+      Uint8List? photoFront,
+      Uint8List? photoBack,
+    }) => Certification(
+      id: 'photo-1',
+      name: 'Open Water Diver',
+      agency: CertificationAgency.padi,
+      photoFront: photoFront,
+      photoBack: photoBack,
+      notes: '',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+
+    testWidgets('shows no card-photos section when neither photo is set', (
+      tester,
+    ) async {
+      await pumpCert(tester, makeWithPhotos());
+
+      expect(find.text('Card Photos'), findsNothing);
+    });
+
+    testWidgets('stacks front above back full-width, not side by side', (
+      tester,
+    ) async {
+      await pumpCert(
+        tester,
+        makeWithPhotos(photoFront: onePixelPng, photoBack: onePixelPng),
+      );
+
+      expect(find.text('Card Photos'), findsOneWidget);
+      expect(find.text('Front'), findsOneWidget);
+      expect(find.text('Back'), findsOneWidget);
+
+      final frontCenter = tester.getCenter(find.text('Front'));
+      final backCenter = tester.getCenter(find.text('Back'));
+
+      // Stacked: same horizontal position, back strictly below front. Side
+      // by side (the pre-#966 layout) would put them at the same height with
+      // different x instead.
+      expect(backCenter.dy, greaterThan(frontCenter.dy));
+      expect(backCenter.dx, closeTo(frontCenter.dx, 1));
+    });
+
+    testWidgets('renders each thumbnail uncropped (BoxFit.contain) at the '
+        'card aspect ratio', (tester) async {
+      await pumpCert(tester, makeWithPhotos(photoFront: onePixelPng));
+
+      final aspectRatios = tester
+          .widgetList<AspectRatio>(find.byType(AspectRatio))
+          .where((w) => w.aspectRatio == 1.586)
+          .toList();
+      expect(aspectRatios, isNotEmpty);
+
+      final images = tester.widgetList<Image>(find.byType(Image));
+      expect(images.any((img) => img.fit == BoxFit.contain), isTrue);
+    });
+
+    testWidgets('tapping the front thumbnail opens the fullscreen photo '
+        'viewer', (tester) async {
+      await pumpCert(tester, makeWithPhotos(photoFront: onePixelPng));
+
+      // The tap target is the photo itself, not its caption below it: find
+      // the (only) front thumbnail by its card-aspect-ratio box, not by text.
+      final finder = find.byWidgetPredicate(
+        (w) => w is AspectRatio && w.aspectRatio == 1.586,
+      );
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+    });
+
+    testWidgets('shows only the front thumbnail when there is no back '
+        'photo', (tester) async {
+      await pumpCert(tester, makeWithPhotos(photoFront: onePixelPng));
+
+      expect(find.text('Front'), findsOneWidget);
+      expect(find.text('Back'), findsNothing);
     });
   });
 }

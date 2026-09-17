@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -622,6 +623,13 @@ class _ComputersSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Same installation-wide switch as the Dive Computers page (#1910)
+          const Card(
+            clipBehavior: Clip.antiAlias,
+            child: ClockSyncGlobalSwitch(),
+          ),
+          const SizedBox(height: 8),
+
           // Connect new computer
           Card(
             clipBehavior: Clip.antiAlias,

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_air_breaks_control.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_deco_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -21,6 +22,14 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+/// The air-break minute fields only. The section's other boxes (the gradient
+/// factors) are text fields too, so an unscoped TextField finder would pick
+/// them up.
+Finder _airBreakFields() => find.descendant(
+  of: find.byType(PlanAirBreaksControl),
+  matching: find.byType(TextField),
+);
 
 void main() {
   testWidgets(
@@ -42,7 +51,7 @@ void main() {
 
       expect(container.read(divePlanNotifierProvider).airBreaks, isNull);
       // The minute fields are not shown until air breaks are enabled.
-      expect(find.byType(TextField), findsNothing);
+      expect(_airBreakFields(), findsNothing);
 
       await tester.tap(find.byType(Switch));
       await tester.pumpAndSettle();
@@ -56,7 +65,7 @@ void main() {
       expect(find.text('12'), findsOneWidget);
       expect(find.text('6'), findsOneWidget);
 
-      await tester.enterText(find.byType(TextField).first, '20');
+      await tester.enterText(_airBreakFields().first, '20');
       await tester.pumpAndSettle();
 
       final updated = container.read(divePlanNotifierProvider).airBreaks;
@@ -68,7 +77,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(container.read(divePlanNotifierProvider).airBreaks, isNull);
-      expect(find.byType(TextField), findsNothing);
+      expect(_airBreakFields(), findsNothing);
     },
   );
 }

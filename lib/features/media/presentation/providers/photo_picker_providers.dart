@@ -13,6 +13,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service_mob
 import 'package:submersion/features/media/presentation/providers/media_byte_retention.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 
 /// Provider for the platform-appropriate PhotoPickerService.
@@ -256,6 +257,7 @@ final mediaImportServiceProvider = Provider<MediaImportService>((ref) {
     mediaRepository: MediaRepository(),
     enrichmentService: ref.watch(enrichmentServiceProvider),
     onMediaCreated: ref.watch(mediaStoreEnqueueProvider),
+    linkedGalleryAssets: ref.watch(linkedGalleryAssetsProvider),
   );
 });
 

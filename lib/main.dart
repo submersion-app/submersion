@@ -17,6 +17,7 @@ import 'package:submersion/core/services/windows_app_data_migration.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_attribution.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
 
@@ -46,6 +47,9 @@ Future<void> _bootstrap() async {
   // The bundled ocean and sea table is CC-BY, so its credit has to reach
   // the license page whether or not anything ever geocodes a coordinate.
   SeaAreaService.registerLicense();
+  // Likewise the CC BY bathymetry sources behind the seascape. The entry
+  // itself is tested in bathymetry_attribution_test.dart.
+  BathymetryAttribution.registerLicense(); // coverage:ignore-line
 
   // Windows cannot expose its system trust store to Dart's bundled BoringSSL,
   // so every default-context HttpClient (S3 sync, map tiles, NetworkImage,

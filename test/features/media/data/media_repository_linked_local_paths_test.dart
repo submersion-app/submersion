@@ -8,12 +8,12 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import '../../../helpers/test_database.dart';
 
 /// Coverage for [MediaRepository.getLinkedLocalPathsForDive], the desktop
-/// counterpart to `getLinkedAssetIdsForDive`.
+/// dedupe key.
 ///
 /// Windows and Linux imports are `localFile` rows whose `platform_asset_id`
 /// is deliberately null (carrying the picker's synthetic id would route them
-/// through photo_manager, which has no desktop backend), so the asset-id
-/// query cannot see them and duplicate detection keys on the path instead.
+/// through photo_manager, which has no desktop backend), so gallery dedupe
+/// cannot see them and duplicate detection keys on the path instead.
 /// This is hand-written SQL, so a column-name typo would only surface at
 /// runtime.
 void main() {

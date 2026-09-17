@@ -5,6 +5,7 @@ import 'package:mockito/mockito.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -1240,6 +1241,72 @@ void main() {
           mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
         ).called(1);
         verify(mockTagRepo.addTagToDive('dive-1', 'tag-new')).called(1);
+      });
+
+      test('resolves each tag per profile in a multi-profile import', () async {
+        notifier.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+        notifier.addImportTag(
+          const TagSelection(existingTagId: 'tag-existing', name: 'Existing'),
+        );
+        notifier.addImportTag(const TagSelection(name: 'Vacation'));
+
+        const importResult = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ['d1'],
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'diver-1',
+              name: 'Me',
+              isNew: false,
+              isActive: true,
+              diveIds: ['d1'],
+            ),
+            DiverImportOutcome(
+              diverId: 'diver-2',
+              name: 'Bo Ray',
+              isNew: true,
+              isActive: false,
+              diveIds: ['d2'],
+            ),
+          ],
+        );
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((_) async => importResult);
+
+        Tag tag(String id, String name) => Tag(
+          id: id,
+          name: name,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+        when(
+          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+        ).thenAnswer((_) async => tag('v1', 'Vacation'));
+        when(
+          mockTagRepo.getOrCreateTag('Existing', diverId: 'diver-2'),
+        ).thenAnswer((_) async => tag('e2', 'Existing'));
+        when(
+          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-2'),
+        ).thenAnswer((_) async => tag('v2', 'Vacation'));
+        when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
+
+        await notifier.performImport();
+
+        verify(mockTagRepo.addTagToDive('d1', 'tag-existing')).called(1);
+        verify(mockTagRepo.addTagToDive('d1', 'v1')).called(1);
+        verify(mockTagRepo.addTagToDive('d2', 'e2')).called(1);
+        verify(mockTagRepo.addTagToDive('d2', 'v2')).called(1);
+        verifyNever(mockTagRepo.addTagToDive('d2', 'tag-existing'));
       });
 
       test(

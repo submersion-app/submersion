@@ -31,13 +31,24 @@ import 'package:sqlite3/sqlite3.dart';
 /// [includeDiveImages] controls whether the `ZDIVEIMAGE` table exists at
 /// all: older MacDive libraries and some exports omit it, and the reader
 /// must treat that as "no photos" rather than as a broken file.
-File buildSyntheticMacDiveDb(String path, {bool includeDiveImages = true}) {
+///
+/// [includeDivers] adds two MacDive divers (issue #1893): Ann Lee owns dives
+/// 1 and 2, Bo Ray owns the certification, and dive 3 names no diver.
+File buildSyntheticMacDiveDb(
+  String path, {
+  bool includeDiveImages = true,
+  bool includeDivers = false,
+}) {
   final f = File(path);
   if (f.existsSync()) f.deleteSync();
   final db = sqlite3.open(path);
   try {
     _createSchema(db, includeDiveImages: includeDiveImages);
-    _insertFixtureRows(db, includeDiveImages: includeDiveImages);
+    _insertFixtureRows(
+      db,
+      includeDiveImages: includeDiveImages,
+      includeDivers: includeDivers,
+    );
   } finally {
     db.close();
   }
@@ -50,6 +61,7 @@ void _createSchema(Database db, {required bool includeDiveImages}) {
       Z_PK INTEGER PRIMARY KEY, Z_ENT INTEGER, Z_OPT INTEGER,
       ZDIVENUMBER INTEGER, ZREPETITIVEDIVENUMBER INTEGER,
       ZRELATIONSHIPDIVESITE INTEGER, ZRELATIONSHIPCERTIFICATION INTEGER,
+      ZRELATIONSHIPDIVER INTEGER,
       ZMAXDEPTH FLOAT, ZAVERAGEDEPTH FLOAT,
       ZTEMPHIGH FLOAT, ZTEMPLOW FLOAT, ZAIRTEMP FLOAT,
       ZCNS FLOAT, ZSURFACEINTERVAL FLOAT, ZSAMPLEINTERVAL FLOAT,
@@ -194,6 +206,8 @@ void _createSchema(Database db, {required bool includeDiveImages}) {
     CREATE TABLE ZDIVER (
       Z_PK INTEGER PRIMARY KEY, Z_ENT INTEGER, Z_OPT INTEGER,
       ZFIRSTNAME VARCHAR, ZLASTNAME VARCHAR, ZEMAILADDRESS VARCHAR,
+      ZPHONE VARCHAR, ZMOBILE VARCHAR, ZEMERGENCYCONTACT VARCHAR,
+      ZBLOODTYPE VARCHAR, ZINSURANCEDAN VARCHAR,
       ZUUID VARCHAR
     )
   ''');
@@ -213,7 +227,11 @@ void _createSchema(Database db, {required bool includeDiveImages}) {
   ''');
 }
 
-void _insertFixtureRows(Database db, {required bool includeDiveImages}) {
+void _insertFixtureRows(
+  Database db, {
+  required bool includeDiveImages,
+  required bool includeDivers,
+}) {
   // ---- sites ----
   db.execute('''
     INSERT INTO ZDIVESITE (Z_PK, ZNAME, ZCOUNTRY, ZLOCATION,
@@ -364,6 +382,22 @@ void _insertFixtureRows(Database db, {required bool includeDiveImages}) {
     INSERT INTO ZMETADATA (Z_PK, ZIDENTIFIER, ZALL)
     VALUES (1, 'SystemOfUnits', 'Metric')
   ''');
+
+  // ---- divers (#1893) ---- Ann owns dives 1 and 2, Bo owns the
+  // certification, dive 3 names no diver.
+  if (includeDivers) {
+    db.execute('''
+      INSERT INTO ZDIVER (Z_PK, ZFIRSTNAME, ZLASTNAME, ZEMAILADDRESS, ZPHONE,
+                          ZMOBILE, ZEMERGENCYCONTACT, ZBLOODTYPE,
+                          ZINSURANCEDAN, ZUUID)
+      VALUES
+        (1, 'Ann', 'Lee', 'ann@example.com', NULL, '555-0101',
+         'Sam Lee', 'O+', 'DAN-123', 'diver-uuid-1'),
+        (2, 'Bo', 'Ray', NULL, NULL, NULL, NULL, NULL, NULL, 'diver-uuid-2')
+    ''');
+    db.execute('UPDATE ZDIVE SET ZRELATIONSHIPDIVER = 1 WHERE Z_PK IN (1, 2)');
+    db.execute('UPDATE ZCERTIFICATION SET ZRELATIONSHIPDIVER = 2');
+  }
 
   // ---- dive images ---- Dive 1 gets 2 photos; dive 2 gets 1; dive 3 none.
   if (!includeDiveImages) return;

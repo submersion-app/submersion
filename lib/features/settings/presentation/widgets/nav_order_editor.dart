@@ -5,14 +5,17 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
+import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Which navigation surface an editor is arranging.
 ///
 /// The two orders are stored separately, so a phone bottom bar and a desktop
 /// rail can be arranged independently on the same account.
 enum NavOrderScope {
-  /// Phone: the first [kPhonePrimarySlotCount] rows are bottom-bar slots and
-  /// the rest is the More menu, which is why this scope shows a divider.
+  /// Phone: the first [kMinPhonePrimarySlotCount] rows are guaranteed
+  /// bottom-bar slots (a wider phone may show more; see
+  /// `phonePrimarySlotCount`) and the rest is the More menu, which is why
+  /// this scope shows a divider.
   phone,
 
   /// Wide screens: one flat rail with no overflow, so no divider.
@@ -96,7 +99,14 @@ class _NavOrderEditorState extends ConsumerState<NavOrderEditor> {
 
   /// Flat index of the non-draggable divider row, or null when the surface has
   /// no overflow to divide off.
-  int? get _dividerIndex => _isPhone ? kPhonePrimarySlotCount : null;
+  ///
+  /// Fixed at the guaranteed minimum rather than the current device's actual
+  /// slot count: this editor can be opened on any device to arrange a
+  /// surface's order (e.g. preparing the phone order from a desktop), so it
+  /// has no reliable phone width to compute against. The divider therefore
+  /// marks "guaranteed to show", not "will show on this device" -- a wider
+  /// phone may display more items above it at render time (#1424).
+  int? get _dividerIndex => _isPhone ? kMinPhonePrimarySlotCount : null;
 
   /// Number of rows the ReorderableListView shows, divider included.
   int get _flatCount => _local!.length + (_dividerIndex == null ? 0 : 1);

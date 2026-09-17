@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
@@ -15,11 +16,13 @@ import 'package:submersion/features/import_wizard/domain/models/import_step_fail
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
+import 'package:submersion/features/universal_import/data/models/diver_target.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -37,6 +40,8 @@ import 'package:submersion/features/dive_import/data/services/fit_parser_service
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
+import 'package:submersion/features/universal_import/data/services/default_diver_mapping.dart';
+import 'package:submersion/features/universal_import/data/services/payload_diver_expander.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
@@ -856,6 +861,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       isLoading: false,
       files: result.files,
       payload: payload,
+      clearDiverMapping: true,
       duplicateResult: dupResult,
       selections: selections,
       currentStep: ImportWizardStep.review,
@@ -921,6 +927,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(
       isLoading: false,
       payload: payload,
+      clearDiverMapping: true,
       duplicateResult: dupResult,
       selections: selections,
       currentStep: ImportWizardStep.review,
@@ -1075,6 +1082,55 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   void deselectAll(ImportEntityType type) {
     state = state.copyWith(
       selections: {...state.selections, type: const <int>{}},
+    );
+  }
+
+  // -- Divers step (issue #1893) --
+
+  /// Seeds the Divers step's choices for a multi-diver payload. A mapping
+  /// already present is kept, so walking Back and Next never resets choices
+  /// the user made; a fresh parse clears it first.
+  void initDiverMapping({
+    required List<Diver> profiles,
+    required String activeDiverId,
+  }) {
+    final parsed = state.parsedPayload;
+    if (parsed == null || !parsed.needsDiverMapping) return;
+    if (state.diverMapping.isNotEmpty) return;
+    state = state.copyWith(
+      diverMapping: defaultDiverMapping(
+        sourceDivers: parsed.sourceDivers,
+        profiles: profiles,
+        activeDiverId: activeDiverId,
+      ),
+    );
+  }
+
+  void setDiverTarget(String sourceKey, DiverTarget target) {
+    state = state.copyWith(
+      diverMapping: {...state.diverMapping, sourceKey: target},
+    );
+  }
+
+  /// Splits the parsed payload across profiles per the diver mapping,
+  /// always starting from the parsed payload. A photo resolution is keyed by
+  /// media index, so it is dropped when the media list changes under it.
+  void applyDiverMapping({required String activeDiverId}) {
+    final parsed = state.parsedPayload;
+    if (parsed == null || !parsed.needsDiverMapping) return;
+    final expanded = PayloadDiverExpander.expand(
+      parsed,
+      state.diverMapping,
+      activeDiverId: activeDiverId,
+    );
+    final mediaChanged = !const DeepCollectionEquality().equals(
+      expanded.entitiesOf(ImportEntityType.media),
+      state.payload?.entitiesOf(ImportEntityType.media),
+    );
+    state = state.copyWith(
+      sourcePayload: parsed,
+      payload: expanded,
+      clearPhotoResolution: mediaChanged,
     );
   }
 

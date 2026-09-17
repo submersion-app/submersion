@@ -85,6 +85,30 @@ Future<void> _seedRichLibrary() async {
     'notes': 'seen on the wall',
     'createdAt': 1000,
   });
+  // An equipment tag link (issue #1942): a mergeOrder entry the in-memory
+  // apply would drop if it were missing, failing the byte comparison.
+  await serializer.upsertRecord('equipment', {
+    'id': 'eq-1',
+    'name': 'Wing',
+    'type': 'bcd',
+    'createdAt': 1000,
+    'updatedAt': 1000,
+  });
+  await serializer.upsertRecord('tags', {
+    'id': 'tag-gear',
+    'name': 'Travel kit',
+    'createdAt': 1000,
+    'updatedAt': 1000,
+    'appliesToDives': false,
+    'appliesToSites': false,
+    'appliesToEquipment': true,
+  });
+  await serializer.upsertRecord('equipmentTags', {
+    'id': 'et-1',
+    'equipmentId': 'eq-1',
+    'tagId': 'tag-gear',
+    'createdAt': 1000,
+  });
   await serializer.upsertRecord('diveCustomFields', {
     'id': 'cf-1',
     'diveId': 'd1',

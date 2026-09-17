@@ -9,8 +9,8 @@ import 'package:submersion/features/site_types/presentation/providers/site_type_
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/statistics/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
-import 'package:submersion/features/statistics/domain/water_temp_bands.dart';
 import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
+import 'package:submersion/features/statistics/presentation/formatters/water_temp_band_label.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
@@ -18,6 +18,7 @@ import 'package:submersion/features/statistics/presentation/widgets/stat_section
 import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
 import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_action.dart';
 import 'package:submersion/features/statistics/presentation/widgets/trend_chart_section.dart';
+import 'package:submersion/features/statistics/presentation/widgets/water_temp_band_metrics_table.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsConditionsPage extends ConsumerWidget {
@@ -381,7 +382,10 @@ class StatisticsConditionsPage extends ConsumerWidget {
           final symbol = units.temperatureSymbol;
           final chartData = [
             for (final band in bands)
-              (label: _waterTempBandLabel(band), count: band.count),
+              (
+                label: waterTempBandLabel(lower: band.lower, upper: band.upper),
+                count: band.count,
+              ),
           ];
           final description = chartData
               .map(
@@ -389,16 +393,22 @@ class StatisticsConditionsPage extends ConsumerWidget {
                     '${d.label}$symbol: ${l10n.statistics_summary_tagUsage_diveCount(d.count)}',
               )
               .join(', ');
-          return Semantics(
-            label: l10n.statistics_conditions_waterTempBands_semanticLabel(
-              description,
-            ),
-            child: CategoryBarChart(
-              data: chartData,
-              barColor: Colors.cyan.shade600,
-              valueFormatter: l10n.statistics_summary_tagUsage_diveCount,
-              xAxisLabel: symbol,
-            ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Semantics(
+                label: l10n.statistics_conditions_waterTempBands_semanticLabel(
+                  description,
+                ),
+                child: CategoryBarChart(
+                  data: chartData,
+                  barColor: Colors.cyan.shade600,
+                  valueFormatter: l10n.statistics_summary_tagUsage_diveCount,
+                  xAxisLabel: symbol,
+                ),
+              ),
+              _buildTemperatureBandMetrics(context, ref),
+            ],
           );
         },
         loading: () => const SizedBox(
@@ -412,14 +422,29 @@ class StatisticsConditionsPage extends ConsumerWidget {
       ),
     );
   }
-}
 
-/// Tick label for one band: "<10", "10-18" or "24+". The unit is left to the
-/// axis label.
-String _waterTempBandLabel(WaterTempBandCount band) {
-  final lower = band.lower;
-  final upper = band.upper;
-  if (lower == null) return '<$upper';
-  if (upper == null) return '$lower+';
-  return '$lower-$upper';
+  /// Average SAC and bottom time per band, under the band chart (issue
+  /// #1873). Loads and fails on its own, so a failed average never takes
+  /// the counts down with it.
+  Widget _buildTemperatureBandMetrics(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(waterTempBandMetricsProvider)
+        .when(
+          data: (bands) => bands.isEmpty
+              ? const SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: WaterTempBandMetricsTable(bands: bands),
+                ),
+          loading: () => const SizedBox(
+            height: 64,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, _) => StatEmptyState(
+            icon: Icons.error_outline,
+            message:
+                context.l10n.statistics_conditions_waterTempBands_table_error,
+          ),
+        );
+  }
 }

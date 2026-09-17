@@ -3,8 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -97,7 +97,7 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
                 ),
           body: Column(
             children: [
-              _buildClockSyncSwitch(context, ref),
+              const ClockSyncGlobalSwitch(),
               const Divider(height: 1),
               Expanded(
                 child: computersAsync.when(
@@ -225,25 +225,6 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
       ),
     );
     return BulkActionOutcome.completed;
-  }
-
-  /// Installation-local: whether downloads from THIS device set each
-  /// computer's clock (issue #1216). Lives here rather than in Settings so it
-  /// sits beside the per-computer override on the detail page.
-  Widget _buildClockSyncSwitch(BuildContext context, WidgetRef ref) {
-    final enabled = ref.watch(
-      clockSyncSettingsNotifierProvider.select((s) => s.globalEnabled),
-    );
-    return SwitchListTile(
-      key: const ValueKey('clock_sync_global_switch'),
-      secondary: const Icon(Icons.schedule),
-      title: Text(context.l10n.diveComputer_clockSync_globalTitle),
-      subtitle: Text(context.l10n.diveComputer_clockSync_globalSubtitle),
-      value: enabled,
-      onChanged: (value) => ref
-          .read(clockSyncSettingsNotifierProvider.notifier)
-          .setGlobalEnabled(value),
-    );
   }
 
   Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme) {

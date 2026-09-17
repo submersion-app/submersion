@@ -81,6 +81,38 @@ void main() {
       });
     });
 
+    group('readsBuddyLinks (#1915)', () {
+      test('is false without a buddy filter', () {
+        expect(const DiveFilterState().readsBuddyLinks, isFalse);
+        expect(
+          const DiveFilterState(
+            buddyNameFilter: '',
+            noBuddyOnly: false,
+            favoritesOnly: true,
+          ).readsBuddyLinks,
+          isFalse,
+        );
+        // Both the SQL builder and apply() drop blank comma-separated parts,
+        // so this filters nothing and must not subscribe to buddy writes.
+        expect(
+          const DiveFilterState(buddyNameFilter: ' , ').readsBuddyLinks,
+          isFalse,
+        );
+      });
+
+      test('is true for each filter that reads dive_buddies', () {
+        expect(const DiveFilterState(buddyId: 'b1').readsBuddyLinks, isTrue);
+        expect(
+          const DiveFilterState(buddyNameFilter: 'Ann').readsBuddyLinks,
+          isTrue,
+        );
+        expect(
+          const DiveFilterState(noBuddyOnly: true).readsBuddyLinks,
+          isTrue,
+        );
+      });
+    });
+
     group('hasActiveFilters', () {
       test('returns false for default empty state', () {
         const filter = DiveFilterState();
@@ -617,6 +649,70 @@ void main() {
 
         expect(result.map((d) => d.id), containsAll(['d1', 'd4']));
         expect(result, hasLength(2));
+      });
+
+      group('buddyId', () {
+        final buddyJohn = Buddy(
+          id: 'b1',
+          name: 'John Doe',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+        final buddyJane = Buddy(
+          id: 'b2',
+          name: 'Jane Smith',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+        Dive diveWith(
+          String id, {
+          List<Buddy> linked = const [],
+          String? text,
+        }) {
+          return Dive(
+            id: id,
+            dateTime: DateTime(2026, 3, 19),
+            buddy: text,
+            notes: '',
+            buddies: [
+              for (final b in linked)
+                BuddyWithRole(buddy: b, role: DiveRole.builtInBuddy()),
+            ],
+          );
+        }
+
+        test('keeps only dives linked to the buddy, matched by id', () {
+          const filter = DiveFilterState(buddyId: 'b1');
+          final dives = [
+            diveWith('d1', linked: [buddyJohn]),
+            diveWith('d2', linked: [buddyJane]),
+            diveWith('d3', linked: [buddyJane, buddyJohn]),
+            // Legacy free text naming the same person is not a link; the SQL
+            // EXISTS on dive_buddies would not match it either.
+            diveWith('d4', text: 'John Doe'),
+            diveWith('d5'),
+          ];
+
+          final result = filter.apply(dives);
+
+          expect(result.map((d) => d.id), ['d1', 'd3']);
+        });
+
+        test('drops a saved dive id whose buddy link was removed (#1919)', () {
+          // The buddy page's "View all" snapshots the buddy's dive ids and
+          // sets buddyId beside them. If d2 loses the link while the filter
+          // is active, the dive list's SQL drops it; apply() must as well.
+          const filter = DiveFilterState(diveIds: ['d1', 'd2'], buddyId: 'b1');
+          final dives = [
+            diveWith('d1', linked: [buddyJohn]),
+            diveWith('d2'),
+            diveWith('d3', linked: [buddyJohn]),
+          ];
+
+          final result = filter.apply(dives);
+
+          expect(result.map((d) => d.id), ['d1']);
+        });
       });
 
       test('filters by depth range', () {

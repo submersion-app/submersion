@@ -47,6 +47,10 @@ void main() {
         await repository.getDivesByWaterTempBand(unit: TemperatureUnit.celsius),
         isEmpty,
       );
+      expect(
+        await repository.getWaterTempBandPerDive(unit: TemperatureUnit.celsius),
+        isEmpty,
+      );
       expect(await repository.getTopBuddies(), isEmpty);
       expect(await repository.getTopDiveCenters(), isEmpty);
       expect(await repository.getCountriesVisited(), isEmpty);
