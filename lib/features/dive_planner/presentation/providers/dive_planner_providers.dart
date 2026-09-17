@@ -784,7 +784,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       state = state.copyWith(isDirty: false);
       return;
     }
-    final plan = divePlanFromState(state, existing: _loaded);
+    final submitted = state;
+    final plan = divePlanFromState(submitted, existing: _loaded);
     final stored = await repository.savePlan(plan, summary: summary);
     _loaded = stored;
     if (!mounted) return;
@@ -799,8 +800,15 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
         stored.sourceDiveId == null && state.sourceDiveId == plan.sourceDiveId;
     final linkedDiveWentAway =
         stored.linkedDiveId == null && state.linkedDiveId == plan.linkedDiveId;
+    // What was written describes the plan as it was submitted, so an edit made
+    // during that async gap is not in the database and the plan is still
+    // dirty. Clearing the flag unconditionally disables Save and strands the
+    // edit until the diver happens to touch the plan again. Every mutator
+    // assigns a fresh state, so reference identity answers this exactly,
+    // without depending on the resolution of the clock behind updatedAt.
+    final editedDuringSave = !identical(state, submitted);
     state = state.copyWith(
-      isDirty: false,
+      isDirty: editedDuringSave,
       clearSiteId: siteWentAway,
       clearSourceDiveId: sourceDiveWentAway,
       clearLinkedDiveId: linkedDiveWentAway,

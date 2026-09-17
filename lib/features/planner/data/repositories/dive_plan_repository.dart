@@ -57,8 +57,10 @@ class DivePlanRepository {
   ///
   /// Returns the plan as it was stored, which is not always the plan passed
   /// in: a [domain.DivePlan.siteId], [domain.DivePlan.sourceDiveId] or
-  /// [domain.DivePlan.linkedDiveId] that no longer names a row is dropped.
-  /// Callers holding the plan in memory should adopt the returned value.
+  /// [domain.DivePlan.linkedDiveId] that no longer names a row is dropped,
+  /// and [domain.DivePlan.updatedAt] carries the stamp this save wrote rather
+  /// than the one submitted. Callers holding the plan in memory should adopt
+  /// the returned value.
   Future<domain.DivePlan> savePlan(
     domain.DivePlan plan, {
     PlanSummaryData? summary,
@@ -104,7 +106,14 @@ class DivePlanRepository {
         // that is the one point every caller passes through; a row deleted
         // between this check and the insert is impossible while both run in
         // the same transaction.
-        stored = await _withResolvedReferences(plan);
+        // `updatedAt` too: the row is stamped with this save's own clock
+        // (_planCompanion writes `now`), so a returned plan still carrying
+        // the submitted timestamp would not be the plan as stored, and a
+        // caller comparing it against the row would silently disagree. The
+        // millisecond round-trip matches what getPlan reads back.
+        stored = (await _withResolvedReferences(
+          plan,
+        )).copyWith(updatedAt: DateTime.fromMillisecondsSinceEpoch(now));
 
         await _db
             .into(_db.divePlans)
