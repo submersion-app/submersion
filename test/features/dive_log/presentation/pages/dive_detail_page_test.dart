@@ -721,7 +721,7 @@ void main() {
       // over the screen, so it reads as the end of the escalation.
       expect(x(Icons.fullscreen), greaterThan(x(Icons.terrain)));
       expect(x(Icons.fullscreen), greaterThan(x(Icons.view_in_ar)));
-      expect(x(Icons.fullscreen), greaterThan(x(Icons.share)));
+      expect(x(Icons.fullscreen), greaterThan(x(Icons.straighten)));
     });
 
     testWidgets('range analysis is an icon toggle, not a labelled pill', (
@@ -738,11 +738,22 @@ void main() {
         findsNothing,
       );
 
-      // And it leads the row, before the share action.
+      // And it leads the row, before the 3D preview.
       expect(
         tester.getCenter(find.byIcon(Icons.straighten).first).dx,
-        lessThan(tester.getCenter(find.byIcon(Icons.share).first).dx),
+        lessThan(tester.getCenter(find.byIcon(Icons.view_in_ar).first).dx),
       );
+    });
+
+    testWidgets('the profile image export is not in the header row', (
+      tester,
+    ) async {
+      final dive = makeDiveWithTanksAndProfile();
+      await _pumpDetailPage(tester, dive);
+
+      // Like replan above, exporting the chart is offered from the overflow
+      // menu's Export sheet rather than crowding the chart's own actions.
+      expect(find.byTooltip('Export profile as image'), findsNothing);
     });
 
     testWidgets('replan lives in the overflow menu, not the profile header', (

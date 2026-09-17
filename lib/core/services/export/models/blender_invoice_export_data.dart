@@ -13,11 +13,16 @@ class BlenderInvoiceExportLine {
   const BlenderInvoiceExportLine({
     required this.gas,
     required this.volume,
+    required this.cylinder,
     required this.cost,
   });
 
   final String gas;
   final String volume;
+
+  /// The cylinder this gas was filled into, formatted, or blank when the
+  /// line predates cylinder tracking (issue #1876 follow-up).
+  final String cylinder;
   final String cost;
 }
 

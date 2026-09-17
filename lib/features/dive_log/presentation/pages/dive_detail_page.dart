@@ -2001,32 +2001,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                               : notifier.enableRangeMode();
                         },
                       ),
-                    // A Builder so the share anchor resolves to this button
-                    // rather than the whole profile card; it contributes no
-                    // render object, so the lookup descends to the IconButton.
-                    Builder(
-                      builder: (shareContext) => IconButton(
-                        icon: _isExportingProfile
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.share),
-                        tooltip: context
-                            .l10n
-                            .diveLog_detail_tooltip_exportProfileImage,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: _isExportingProfile
-                            ? null
-                            : () => _exportProfileChart(
-                                dive,
-                                shareAnchorFrom(shareContext),
-                              ),
-                      ),
-                    ),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,
@@ -5636,6 +5610,31 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               },
             ),
             const Divider(height: 1),
+            // Only offered when there is a chart to capture. The profile
+            // section does not build for an empty profile, so the
+            // RepaintBoundary _exportProfileChart reads would not exist and
+            // the export could only fail.
+            if (dive.profile.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.show_chart),
+                title: Text(context.l10n.diveLog_export_profileAsImage),
+                subtitle: Text(
+                  context.l10n.diveLog_export_profileAsImageDescription,
+                ),
+                trailing: _isExportingProfile
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+                onTap: _isExportingProfile
+                    ? null
+                    : () {
+                        Navigator.of(sheetContext).pop();
+                        _exportProfileChart(dive, shareAnchor);
+                      },
+              ),
             ListTile(
               leading: const Icon(Icons.image),
               title: Text(context.l10n.diveLog_export_pageAsImage),

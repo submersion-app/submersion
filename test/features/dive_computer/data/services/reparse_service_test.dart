@@ -658,6 +658,119 @@ void main() {
       expect(dive.runtime, 2400);
     });
 
+    test('derives the dive diluent from the resolved Diluent cylinder on '
+        'primary reparse (issue #1879)', () async {
+      await insertDive('dive-1', diveMode: 'ccr');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      final parsed = makeParsedDive(
+        diveMode: 'ccr',
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0)],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 0,
+            startPressureBar: 200.0,
+            usage: 2, // DC_USAGE_DILUENT
+          ),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: 'Shearwater',
+        descriptorProduct: 'Perdix',
+        descriptorModel: 42,
+        libdivecomputerVersion: '0.8.0',
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.diluentO2, 18.0);
+      expect(dive.diluentHe, 45.0);
+    });
+
+    test('leaves an existing dive diluent untouched when this parse resolved '
+        'none (issue #1879)', () async {
+      await insertDive('dive-1', diveMode: 'oc');
+      await (db.update(db.dives)..where((t) => t.id.equals('dive-1'))).write(
+        const DivesCompanion(diluentO2: Value(21.0), diluentHe: Value(0.0)),
+      );
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      // Plain OC reparse, no tank records: resolveDiluentGas finds none.
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(),
+        descriptorVendor: 'Shearwater',
+        descriptorProduct: 'Perdix',
+        descriptorModel: 42,
+        libdivecomputerVersion: '0.8.0',
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.diluentO2, 21.0);
+      expect(dive.diluentHe, 0.0);
+    });
+
+    test('does not touch the dive diluent for a non-primary source '
+        '(issue #1879)', () async {
+      await insertDive('dive-1', diveMode: 'ccr');
+      await insertComputer('comp-1');
+      await insertComputer('comp-2');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+      await insertSource(
+        id: 'src-2',
+        diveId: 'dive-1',
+        computerId: 'comp-2',
+        isPrimary: false,
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-2',
+        parsed: makeParsedDive(
+          diveMode: 'ccr',
+          gasMixes: [pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0)],
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: 0,
+              startPressureBar: 200.0,
+              usage: 2, // DC_USAGE_DILUENT
+            ),
+          ],
+        ),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.diluentO2, isNull);
+      expect(dive.diluentHe, isNull);
+    });
+
     test('updates DiveDataSources snapshot fields and lastParsedAt', () async {
       // Arrange
       await insertDive('dive-1');
@@ -1976,6 +2089,68 @@ void main() {
       expect(tanks[0].volume, isNull);
       expect(tanks[1].tankOrder, 1);
       expect(tanks[1].o2Percent, 50.0);
+    });
+
+    test('preserves the diver\'s manually entered start/end pressure when a '
+        're-parse resolves the tank from a gas mix but reports no pressure '
+        '(transmitter-less computer, Copilot review)', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      // The diver typed these in by hand after the original import: this
+      // computer has no transmitter, so the raw bytes never carried a
+      // pressure reading for either field.
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank-0'),
+              diveId: Value('dive-1'),
+              computerId: Value('comp-1'),
+              volume: Value(12.0),
+              startPressure: Value(230.0),
+              endPressure: Value(70.0),
+              o2Percent: Value(21.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(0),
+              tankRole: Value('backGas'),
+            ),
+          );
+
+      final parsed = makeParsedDive(
+        tanks: [], // no transmitter: parser reports gas mixes only
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final tanks = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+
+      expect(tanks.length, 1);
+      // Volume was already preserved by the existing guard; pressure must
+      // be too, for the same reason: a parse that resolves the cylinder
+      // but reports nothing for a field never means "the diver's own
+      // value is now wrong" -- it means the computer has nothing to say
+      // about it.
+      expect(tanks[0].volume, 12.0);
+      expect(tanks[0].startPressure, 230.0);
+      expect(tanks[0].endPressure, 70.0);
     });
 
     test('re-inserts tank pressure profiles and backfills start/end pressure '

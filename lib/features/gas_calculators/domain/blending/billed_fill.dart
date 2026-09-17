@@ -8,6 +8,7 @@ class BilledGasLine {
     required this.addedBar,
     required this.cost,
     this.freeGasLiters,
+    this.cylinderLiters,
   });
 
   /// The gas as it was labelled when the fill was saved, e.g. "He" or
@@ -26,11 +27,19 @@ class BilledGasLine {
   /// to pressure for older rows rather than guessing.
   final double? freeGasLiters;
 
+  /// The cylinder's water capacity at save time (issue #1876), so a bill
+  /// itemises which bottle each fill went into. Nullable for the same reason
+  /// as [freeGasLiters]: a fill saved before this field existed never
+  /// recorded it, and the cylinder volume in effect *then* cannot be
+  /// recovered from settings that have since moved on.
+  final double? cylinderLiters;
+
   Map<String, dynamic> toJson() => {
     'gas': gas,
     'addedBar': addedBar,
     if (cost != null) 'cost': cost,
     if (freeGasLiters != null) 'freeGasLiters': freeGasLiters,
+    if (cylinderLiters != null) 'cylinderLiters': cylinderLiters,
   };
 
   static BilledGasLine? fromJson(Object? json) {
@@ -40,11 +49,13 @@ class BilledGasLine {
     if (gas is! String || bar is! num) return null;
     final cost = json['cost'];
     final liters = json['freeGasLiters'];
+    final cylinderLiters = json['cylinderLiters'];
     return BilledGasLine(
       gas: gas,
       addedBar: bar.toDouble(),
       cost: cost is num ? cost.toDouble() : null,
       freeGasLiters: liters is num ? liters.toDouble() : null,
+      cylinderLiters: cylinderLiters is num ? cylinderLiters.toDouble() : null,
     );
   }
 }

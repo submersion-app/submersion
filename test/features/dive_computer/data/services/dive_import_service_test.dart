@@ -1616,4 +1616,96 @@ void main() {
       },
     );
   });
+
+  group('diluent gas from download (issue #1879)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+    });
+
+    Future<List<Object?>> importedDiluent(DownloadedDive dive) async {
+      await service.importDives(dives: [dive], computer: computer);
+
+      return verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          diveMode: anyNamed('diveMode'),
+          diluentO2: captureAnyNamed('diluentO2'),
+          diluentHe: captureAnyNamed('diluentHe'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        ),
+      ).captured;
+    }
+
+    test(
+      'forwards the diluent gas already resolved onto the downloaded dive',
+      () async {
+        // The mix itself is resolved upstream by resolveDiluentGas from the
+        // Diluent-tagged cylinder (parsed_tank_resolver_test.dart); this only
+        // checks that DiveImportService passes it through to the repository.
+        final captured = await importedDiluent(
+          DownloadedDive(
+            fingerprint: 'fp-ccr',
+            startTime: DateTime(2026, 4, 1, 9, 0),
+            durationSeconds: 3600,
+            maxDepth: 40.0,
+            diveMode: DiveMode.ccr,
+            profile: const [],
+            tanks: const [
+              DownloadedTank(index: 0, o2Percent: 100.0, role: 'oxygenSupply'),
+              DownloadedTank(
+                index: 1,
+                o2Percent: 18.0,
+                hePercent: 45.0,
+                role: 'diluent',
+              ),
+            ],
+            events: const [],
+            diluentO2: 18.0,
+            diluentHe: 45.0,
+          ),
+        );
+
+        expect(captured, [18.0, 45.0]);
+      },
+    );
+
+    test('passes no diluent for an OC download that resolved none', () async {
+      final captured = await importedDiluent(
+        DownloadedDive(
+          fingerprint: 'fp-oc',
+          startTime: DateTime(2026, 4, 1, 9, 0),
+          durationSeconds: 2700,
+          maxDepth: 18.0,
+          profile: const [],
+          tanks: const [DownloadedTank(index: 0, o2Percent: 21.0)],
+          events: const [],
+        ),
+      );
+
+      expect(captured, [null, null]);
+    });
+  });
 }

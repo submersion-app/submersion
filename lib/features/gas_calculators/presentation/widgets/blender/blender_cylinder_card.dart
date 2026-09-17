@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_field_parsing.dart';
@@ -34,6 +35,12 @@ class BlenderCylinderCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final units = UnitFormatter(ref.watch(settingsProvider));
+    // Bar fill pressures never reach four digits; psi ones commonly do (a
+    // 300-bar cylinder is ~4350 psi), so the digit cap follows the diver's
+    // unit rather than clipping psi at 999 (issue #1876).
+    final pressureMaxIntDigits = units.settings.pressureUnit == PressureUnit.bar
+        ? 3
+        : 4;
 
     return Card(
       child: Padding(
@@ -61,6 +68,7 @@ class BlenderCylinderCard extends ConsumerWidget {
                 );
               },
               onSave: () => saveBlenderPreferences(ref),
+              pressureMaxIntDigits: pressureMaxIntDigits,
             ),
             const SizedBox(height: 20),
             Row(
@@ -97,6 +105,7 @@ class BlenderCylinderCard extends ConsumerWidget {
                 );
               },
               onSave: () => saveBlenderPreferences(ref),
+              pressureMaxIntDigits: pressureMaxIntDigits,
             ),
           ],
         ),

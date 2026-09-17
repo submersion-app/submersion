@@ -73,6 +73,30 @@ void main() {
     expect(find.text('21/35'), findsOneWidget);
   });
 
+  testWidgets(
+    'adding a mix re-sorts the whole list by O2 descending, He ascending '
+    'on a tie',
+    (tester) async {
+      final ref = await _pump(tester);
+      ref.read(blenderTemplatesProvider.notifier).state = const [
+        MixTemplate(o2: 10, he: 70),
+        MixTemplate(o2: 21, he: 30),
+      ];
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, '21');
+      await tester.enterText(find.byType(TextField).last, '20');
+      await tester.tap(find.byTooltip('Add template'));
+      await tester.pumpAndSettle();
+
+      expect(ref.read(blenderTemplatesProvider), const [
+        MixTemplate(o2: 21, he: 20),
+        MixTemplate(o2: 21, he: 30),
+        MixTemplate(o2: 10, he: 70),
+      ]);
+    },
+  );
+
   testWidgets('a duplicate is refused with a reason', (tester) async {
     final ref = await _pump(tester);
     ref.read(blenderTemplatesProvider.notifier).state = const [

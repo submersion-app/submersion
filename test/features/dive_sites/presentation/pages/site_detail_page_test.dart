@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
@@ -706,6 +707,119 @@ void main() {
       // Edit icon button(s) rendered somewhere on the page.
       expect(find.byIcon(Icons.edit), findsWidgets);
     });
+
+    testWidgets(
+      'access card lists parking, then access notes, then entry/exit, '
+      'then mooring (#1037)',
+      (tester) async {
+        const accessSite = DiveSite(
+          id: 'access-site',
+          name: 'Access Site',
+          description: 'A nice dive',
+          accessNotes: 'Walk in from the church parking lot',
+          mooringNumber: 'M-12',
+          parkingInfo: 'Free parking by the church',
+          entryMethod: EntryMethod.shore,
+          exitMethod: EntryMethod.boat,
+        );
+        _setMobileTestSurfaceSize(tester);
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              siteProvider(accessSite.id).overrideWith((_) async => accessSite),
+              siteDiveCountProvider(accessSite.id).overrideWith((_) async => 0),
+            ],
+            child: MaterialApp(
+              // The order assertions match on the English enum names, so the
+              // platform locale of the test runner must not decide them.
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: SiteDetailPage(siteId: accessSite.id),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        double topOf(String text) => tester.getTopLeft(find.text(text)).dy;
+
+        final parkingY = topOf('Free parking by the church');
+        final accessNotesY = topOf('Walk in from the church parking lot');
+        final entryY = topOf('Shore Entry');
+        final exitY = topOf('Boat Entry');
+        final mooringY = topOf('M-12');
+
+        expect(parkingY, lessThan(accessNotesY));
+        expect(accessNotesY, lessThan(entryY));
+        expect(entryY, lessThan(exitY));
+        expect(exitY, lessThan(mooringY));
+      },
+    );
+
+    testWidgets(
+      'a long access label wraps inside the card instead of overflowing '
+      '(#1037)',
+      (tester) async {
+        const accessSite = DiveSite(
+          id: 'narrow-site',
+          name: 'Narrow Site',
+          accessNotes: 'Walk in from the church parking lot',
+        );
+        // A narrow phone at a large accessibility text scale: the widest case
+        // the stacked label has to survive.
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(240, 900);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+        // Other cards on the page have their own layouts at this extreme; the
+        // measurement below, not the error channel, is what this test asserts.
+        final originalOnError = FlutterError.onError;
+        FlutterError.onError = (details) {
+          if (details.toString().contains('overflowed')) return;
+          originalOnError?.call(details);
+        };
+        addTearDown(() => FlutterError.onError = originalOnError);
+
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              siteProvider(accessSite.id).overrideWith((_) async => accessSite),
+              siteDiveCountProvider(accessSite.id).overrideWith((_) async => 0),
+            ],
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Builder(
+                builder: (context) => MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: const TextScaler.linear(3)),
+                  child: SiteDetailPage(siteId: accessSite.id),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final label = find.text('Access Notes');
+        final card = find
+            .ancestor(of: label, matching: find.byType(Card))
+            .first;
+        expect(
+          tester.getSize(label).width,
+          lessThanOrEqualTo(tester.getSize(card).width),
+          reason: 'the label must wrap, not run past the access card',
+        );
+      },
+    );
 
     testWidgets('dive count section shows 0 dives', (tester) async {
       _setMobileTestSurfaceSize(tester);

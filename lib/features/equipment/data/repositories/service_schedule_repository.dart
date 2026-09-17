@@ -47,9 +47,12 @@ class ServiceScheduleRepository {
     return rows.map(_mapRow).toList();
   }
 
+  /// Creates [schedule]. With [notify] false the caller notifies sync once
+  /// its own transaction commits.
   Future<domain.ServiceSchedule> createSchedule(
-    domain.ServiceSchedule schedule,
-  ) async {
+    domain.ServiceSchedule schedule, {
+    bool notify = true,
+  }) async {
     final id = schedule.id.isEmpty ? _uuid.v4() : schedule.id;
     final now = DateTime.now();
     await _db
@@ -79,7 +82,7 @@ class ServiceScheduleRepository {
       recordId: id,
       localUpdatedAt: now.millisecondsSinceEpoch,
     );
-    SyncEventBus.notifyLocalChange();
+    if (notify) SyncEventBus.notifyLocalChange();
     return schedule.copyWith(id: id, createdAt: now, updatedAt: now);
   }
 
@@ -127,11 +130,13 @@ class ServiceScheduleRepository {
   /// and collision-free across devices.
   ///
   /// Kinds are scoped to [diverId]: built-ins and unowned customs always
-  /// apply; another diver's custom kinds never auto-attach.
+  /// apply; another diver's custom kinds never auto-attach. [notify] as for
+  /// [createSchedule].
   Future<void> autoAttachForEquipment({
     required String equipmentId,
     required EquipmentType type,
     String? diverId,
+    bool notify = true,
   }) async {
     final kinds = await ServiceKindRepository().getAllKinds();
     final existing = await getSchedulesForEquipment(equipmentId);
@@ -151,6 +156,7 @@ class ServiceScheduleRepository {
           createdAt: now,
           updatedAt: now,
         ),
+        notify: notify,
       );
     }
   }

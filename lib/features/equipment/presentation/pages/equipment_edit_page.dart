@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,6 +14,10 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_tags_field.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -65,6 +70,20 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   bool _hasChanges = false;
   bool? _customReminderEnabled;
   List<int> _customReminderDays = [7, 14, 30];
+
+  /// The item's tags on this form (issue #1942) and the stored set a save
+  /// compares against. Tags live beside the entity, not on it, so they load
+  /// on their own.
+  List<Tag> _selectedTags = [];
+  Set<String> _originalTagIds = {};
+
+  /// Set once an edit's stored tags are read. Until then (and for good, if
+  /// the read fails) the Tags field is disabled and a save leaves the stored
+  /// tags alone: a pick made against the still-empty field would otherwise
+  /// replace them all.
+  bool _tagsLoaded = false;
+
+  static final _log = LoggerService.forClass(EquipmentEditPage);
 
   /// The code this form opened with. Currency is free text, so it can be
   /// outside the presets; keeping it lets the dropdown still offer it.
@@ -159,6 +178,31 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _parentEquipmentId = equipment.parentEquipmentId;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
+    _loadTags(equipment.id);
+  }
+
+  /// Loads the item's tags into the Tags field (issue #1942) and the
+  /// baseline a save compares against, then enables the field.
+  Future<void> _loadTags(String equipmentId) async {
+    // Called from build: yield before the first provider read, which
+    // riverpod rejects while the tree is building (as media_item_view does).
+    await null;
+    if (!mounted) return;
+    try {
+      final tags = await ref.read(tagsForEquipmentProvider(equipmentId).future);
+      if (!mounted) return;
+      setState(() {
+        _originalTagIds = {for (final t in tags) t.id};
+        _selectedTags = tags;
+        _tagsLoaded = true;
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not load the tags of equipment $equipmentId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   void _handleCancel() {
@@ -463,6 +507,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           ),
           const SizedBox(height: 24),
 
+          // Tags (issue #1942), directly after Notes.
+          EquipmentTagsField(
+            selectedTags: _selectedTags,
+            enabled: !widget.isEditing || _tagsLoaded,
+            onTagsChanged: (tags) => setState(() {
+              _selectedTags = tags;
+              _hasChanges = true;
+            }),
+          ),
+          const SizedBox(height: 24),
           // Advanced (buoyancy metadata for weight prediction)
           _buildAdvancedSection(context),
           const SizedBox(height: 24),
@@ -1009,12 +1063,26 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       final notifier = ref.read(equipmentListNotifierProvider.notifier);
       String savedId;
 
+      // Tags (issue #1942) are written with the row, in one transaction,
+      // only when they differ from what the form loaded; a new item writes
+      // them when it has any.
+      final tagIds = [for (final t in _selectedTags) t.id];
+      final tagsChanged = widget.isEditing
+          ? _tagsLoaded && !setEquals(tagIds.toSet(), _originalTagIds)
+          : tagIds.isNotEmpty;
+
       if (widget.isEditing) {
-        await notifier.updateEquipment(equipment);
+        await notifier.updateEquipment(
+          equipment,
+          tagIds: tagsChanged ? tagIds : null,
+        );
         ref.invalidate(equipmentItemProvider(widget.equipmentId!));
         savedId = widget.equipmentId!;
       } else {
-        final newEquipment = await notifier.addEquipment(equipment);
+        final newEquipment = await notifier.addEquipment(
+          equipment,
+          tagIds: tagsChanged ? tagIds : null,
+        );
         savedId = newEquipment.id;
       }
 

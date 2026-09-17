@@ -258,8 +258,12 @@ class EquipmentRepository {
     }
   }
 
-  /// Create new equipment
-  Future<EquipmentItem> createEquipment(EquipmentItem equipment) async {
+  /// Create new equipment. With [notify] false the caller notifies sync once
+  /// its own transaction commits, as [createEquipmentWithTags] does.
+  Future<EquipmentItem> createEquipment(
+    EquipmentItem equipment, {
+    bool notify = true,
+  }) async {
     try {
       _log.info('Creating equipment: ${equipment.name}');
       final id = equipment.id.isEmpty ? _uuid.v4() : equipment.id;
@@ -307,7 +311,7 @@ class EquipmentRepository {
         recordId: id,
         localUpdatedAt: now,
       );
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
 
       // Seed service clocks for kinds flagged auto-attach (hydro/VIP for
       // tanks, reg service for regulators, ...). Best-effort: the equipment
@@ -322,6 +326,7 @@ class EquipmentRepository {
           equipmentId: id,
           type: equipment.type,
           diverId: equipment.diverId,
+          notify: notify,
         );
       } catch (e, stackTrace) {
         _log.error(
@@ -332,7 +337,7 @@ class EquipmentRepository {
         );
       }
       try {
-        await _attachLegacyIntervalClock(id, equipment);
+        await _attachLegacyIntervalClock(id, equipment, notify: notify);
       } catch (e, stackTrace) {
         _log.error(
           'Mirroring the legacy service interval onto the ledger failed for '
@@ -369,8 +374,9 @@ class EquipmentRepository {
   /// that arrives by migration or sync converge on one clock, not two.
   Future<void> _attachLegacyIntervalClock(
     String id,
-    EquipmentItem equipment,
-  ) async {
+    EquipmentItem equipment, {
+    required bool notify,
+  }) async {
     final intervalDays = equipment.serviceIntervalDays;
     if (intervalDays == null) return;
     final scheduleId = 'legacy-svc-$id';
@@ -388,6 +394,7 @@ class EquipmentRepository {
         createdAt: now,
         updatedAt: now,
       ),
+      notify: notify,
     );
   }
 
@@ -397,8 +404,11 @@ class EquipmentRepository {
   Future<T> transaction<T>(Future<T> Function() action) =>
       _db.transaction(action);
 
-  /// Update equipment
-  Future<void> updateEquipment(EquipmentItem equipment) async {
+  /// Update equipment. [notify] as for [createEquipment].
+  Future<void> updateEquipment(
+    EquipmentItem equipment, {
+    bool notify = true,
+  }) async {
     try {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -438,7 +448,7 @@ class EquipmentRepository {
         recordId: equipment.id,
         localUpdatedAt: now,
       );
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
       _log.error(
@@ -448,6 +458,49 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// Creates [equipment] and gives it exactly [tagIds] (issue #1942), in one
+  /// transaction: a tag write that fails leaves no item behind, and the
+  /// best-effort service clocks [createEquipment] seeds roll back with it.
+  ///
+  /// The tag links are clockless children of the item: only the junction
+  /// rows are marked pending, never the row again (#1769). Sync hears of the
+  /// save once, after it commits.
+  Future<EquipmentItem> createEquipmentWithTags(
+    EquipmentItem equipment,
+    List<String> tagIds,
+  ) async {
+    final created = await transaction(() async {
+      final item = await createEquipment(equipment, notify: false);
+      await EquipmentTagRepository().replaceTags(
+        item.id,
+        tagIds,
+        notify: false,
+      );
+      return item;
+    });
+    SyncEventBus.notifyLocalChange();
+    return created;
+  }
+
+  /// Rewrites [equipment]'s row and makes its tags exactly [tagIds]
+  /// (issue #1942), in one transaction. The edit page is the only caller:
+  /// it holds the whole entity and the tags the diver saw. [updateEquipment]
+  /// itself never touches tags, because partially built entities reach it.
+  Future<void> updateEquipmentWithTags(
+    EquipmentItem equipment,
+    List<String> tagIds,
+  ) async {
+    await transaction(() async {
+      await updateEquipment(equipment, notify: false);
+      await EquipmentTagRepository().replaceTags(
+        equipment.id,
+        tagIds,
+        notify: false,
+      );
+    });
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Splits a dying item's attachments (issue #1517): rows only this item
@@ -759,15 +812,19 @@ class EquipmentRepository {
     }
   }
 
-  /// Search equipment by name, brand, model, or serial number
+  /// Search equipment by name, brand, model, serial number or tag name
+  /// (issue #1942). Each item comes back once, however many of its tags
+  /// match.
   Future<List<EquipmentItem>> searchEquipment(
     String query, {
     String? diverId,
   }) async {
     try {
       final searchTerm = '%${query.toLowerCase()}%';
-      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      // Qualified: tags has a diver_id and a name column too.
+      final diverFilter = diverId != null ? 'AND e.diver_id = ?' : '';
       final variables = [
+        Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
@@ -776,13 +833,16 @@ class EquipmentRepository {
       ];
 
       final results = await _db.customSelect('''
-        SELECT * FROM equipment
-        WHERE (LOWER(name) LIKE ?
-           OR LOWER(brand) LIKE ?
-           OR LOWER(model) LIKE ?
-           OR LOWER(serial_number) LIKE ?)
+        SELECT DISTINCT e.* FROM equipment e
+        LEFT JOIN equipment_tags et ON et.equipment_id = e.id
+        LEFT JOIN tags t ON t.id = et.tag_id
+        WHERE (LOWER(e.name) LIKE ?
+           OR LOWER(e.brand) LIKE ?
+           OR LOWER(e.model) LIKE ?
+           OR LOWER(e.serial_number) LIKE ?
+           OR LOWER(t.name) LIKE ?)
         $diverFilter
-        ORDER BY is_active DESC, type ASC, name ASC
+        ORDER BY e.is_active DESC, e.type ASC, e.name ASC
       ''', variables: variables).get();
 
       final items = results.map((row) {

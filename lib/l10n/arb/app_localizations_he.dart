@@ -5412,9 +5412,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage => 'ייצוא פרופיל כתמונה';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites => 'הסרה מהמועדפים';
 
   @override
@@ -6169,6 +6166,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'רשומת יומן PDF';
+
+  @override
+  String get diveLog_export_profileAsImage => 'פרופיל כתמונה';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'צילום מסך של גרף פרופיל הצלילה';
 
   @override
   String get diveLog_export_success => 'הצלילה יוצאה בהצלחה';
@@ -11546,6 +11550,91 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_appBar_title => 'ציוד';
 
   @override
+  String get equipment_bulkTags_action => 'עריכת תגיות';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'מוסיף לכל $total';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'התגיות של $count פריטים עודכנו',
+      one: 'התגיות של פריט אחד עודכנו',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מוסיף לכל $count פריטי הציוד',
+      one: 'מוסיף לפריט ציוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מסיר מכל $count פריטי הציוד',
+      one: 'מסיר מפריט ציוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'להחיל שינויים?';
+
+  @override
+  String get equipment_bulkTags_empty => 'אין עדיין תגיות ציוד';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'לא ניתן לעדכן את התגיות: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'בכל $count';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return 'ב-$count מתוך $total';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'מסיר מהכול';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'תגיות';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עריכת תגיות של $count פריטים',
+      one: 'עריכת תגיות של פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'ביטול';
+
+  @override
+  String get equipment_bulkTags_undoFailed => 'לא ניתן לבטל את שינוי התגיות.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'ביטול';
 
   @override
@@ -12066,6 +12155,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'הטיפול באיחור!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'הצג ציוד עם $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'מידה';
 
   @override
@@ -12268,6 +12362,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_statusLabel => 'סטטוס';
 
   @override
+  String get equipment_edit_tagsLabel => 'תגיות';
+
+  @override
   String get equipment_edit_parentLabel => 'מותקן ב';
 
   @override
@@ -12335,6 +12432,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_emptyState_noStatusMatch => 'אין ציוד עם סטטוס זה';
 
   @override
+  String get equipment_list_emptyState_noTagMatch => 'אין ציוד עם תגיות אלה';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch => 'אין ציוד בקטגוריה זו';
 
   @override
@@ -12380,6 +12480,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'סטטוס';
+
+  @override
+  String get equipment_filter_section_tags => 'תגיות';
 
   @override
   String get equipment_filter_section_category => 'קטגוריה';
@@ -13206,6 +13309,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_maximumOperatingDepth => 'עומק הפעלה מקסימלי';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return 'עומק תפעול מרבי: $depth $unit ב-$ppo2 בר ppO2 עם $o2% חמצן';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => 'חמצן (O₂)';
 
   @override
@@ -13428,11 +13541,23 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return 'הוסף $gas';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => 'התחלה';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => 'פעולה';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => 'נוסף';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => 'לחץ';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => 'תערובת';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13502,6 +13627,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return 'הזן מספר תקין (מפריד עשרוני: \"$separator\")';
+  }
+
+  @override
   String get gasCalculators_blender_currency => 'מטבע';
 
   @override
@@ -13538,6 +13668,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_flushFeeVolume => 'נפח שטיפה';
+
+  @override
+  String get gasCalculators_blender_flushFeeColumnGas => 'גז';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => 'בלון';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => 'נפח';
 
   @override
   String gasCalculators_blender_flushFeeLine(String gas) {
@@ -13617,6 +13756,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return 'פעולות עבור $label';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return '$mix נוסף לחיוב';
   }
@@ -13662,6 +13806,17 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound =>
       'החשבונית לא נמצאה.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete => 'מחק חשבונית זו';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'למחוק את החשבונית?';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'לא ניתן לבטל פעולה זו.';
 
   @override
   String get gasCalculators_blender_defaults => 'הגדרות ברירת מחדל וחיוב';
@@ -20684,8 +20839,89 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0 ומ-$_temp1. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0 ומ-$_temp1. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '\"$tagName\" תוסר מ-$_temp0, מ-$_temp1 ומ-$_temp2. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" אינה בשימוש באף צלילה או אתר. לא ניתן לבטל פעולה זו.';
+    return '\"$tagName\" אינה בשימוש באף צלילה, אתר או פריט ציוד. לא ניתן לבטל פעולה זו.';
   }
 
   @override
@@ -20737,8 +20973,86 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 ומ-$_temp1 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0 ומ-$_temp1 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'תגיות אלו יוסרו מ-$_temp0, מ-$_temp1 ומ-$_temp2 בסך הכל. לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'תגיות אלו אינן בשימוש באף צלילה או אתר. לא ניתן לבטל פעולה זו.';
+      'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד. לא ניתן לבטל פעולה זו.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -20792,8 +21106,86 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 בסך הכל.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 ועל $_temp1 בסך הכל.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0 ועל $_temp1 בסך הכל.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return 'פעולה זו תשפיע על $_temp0, על $_temp1 ועל $_temp2 בסך הכל.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'תגיות אלו אינן בשימוש באף צלילה או אתר.';
+      'תגיות אלו אינן בשימוש באף צלילה, אתר או פריט ציוד.';
 
   @override
   String get tags_manage_mergeAction => 'מיזוג';
@@ -30253,6 +30645,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentField_notes => 'הערות';
 
   @override
+  String get enum_equipmentField_tags => 'תגיות';
+
+  @override
   String get enum_equipmentField_itemName_short => 'שם';
 
   @override
@@ -30299,6 +30694,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'הערות';
+
+  @override
+  String get enum_equipmentField_tags_short => 'תגיות';
 
   @override
   String get enum_diveCenterField_centerName => 'שם';

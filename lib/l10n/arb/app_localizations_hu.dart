@@ -5530,10 +5530,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_tooltip_nextDive => 'Next dive';
 
   @override
-  String get diveLog_detail_tooltip_exportProfileImage =>
-      'Profil exportalasa kepkent';
-
-  @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
       'Eltavolitas a kedvencekbol';
 
@@ -6313,6 +6309,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_export_pdfLogbookEntry => 'PDF naplo bejegyzes';
+
+  @override
+  String get diveLog_export_profileAsImage => 'Profil kepkent';
+
+  @override
+  String get diveLog_export_profileAsImageDescription =>
+      'Kepernyokep a merulesi profil diagramrol';
 
   @override
   String get diveLog_export_success => 'Merules sikeresen exportalva';
@@ -11783,6 +11786,92 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_appBar_title => 'Felszereles';
 
   @override
+  String get equipment_bulkTags_action => 'Címkék szerkesztése';
+
+  @override
+  String equipment_bulkTags_adding(int total) {
+    return 'hozzáadás mind a $total felszereléshez';
+  }
+
+  @override
+  String equipment_bulkTags_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem címkéi frissítve',
+      one: '1 elem címkéi frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hozzáadás mind a $count felszereléshez',
+      one: 'Hozzáadás 1 felszereléshez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítás mind a $count felszerelésről',
+      one: 'Eltávolítás 1 felszerelésről',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_confirmTitle => 'Alkalmazza a módosításokat?';
+
+  @override
+  String get equipment_bulkTags_empty => 'Még nincsenek felszereléscímkék';
+
+  @override
+  String equipment_bulkTags_failed(String error) {
+    return 'Nem sikerült frissíteni a címkéket: $error';
+  }
+
+  @override
+  String equipment_bulkTags_onAll(int count) {
+    return 'mind a $count felszerelésen';
+  }
+
+  @override
+  String equipment_bulkTags_onSome(int count, int total) {
+    return '$count/$total felszerelésen';
+  }
+
+  @override
+  String get equipment_bulkTags_removing => 'eltávolítás az összesről';
+
+  @override
+  String get equipment_bulkTags_tagsLabel => 'Címkék';
+
+  @override
+  String equipment_bulkTags_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem címkéinek szerkesztése',
+      one: '1 elem címkéinek szerkesztése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_bulkTags_undo => 'Visszavonás';
+
+  @override
+  String get equipment_bulkTags_undoFailed =>
+      'A címkék módosítását nem sikerült visszavonni.';
+
+  @override
   String get equipment_deleteDialog_cancel => 'Megse';
 
   @override
@@ -12306,6 +12395,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_serviceOverdue => 'A szerviz lejartt!';
 
   @override
+  String equipment_detail_showEquipmentWith(String name) {
+    return 'Felszerelés ezzel: $name';
+  }
+
+  @override
   String get equipment_detail_sizeLabel => 'Meret';
 
   @override
@@ -12516,6 +12610,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Allapot';
 
   @override
+  String get equipment_edit_tagsLabel => 'Címkék';
+
+  @override
   String get equipment_edit_parentLabel => 'Beszerelve ebbe';
 
   @override
@@ -12585,6 +12682,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs ilyen allapotu felszereles';
 
   @override
+  String get equipment_list_emptyState_noTagMatch =>
+      'Nincs felszerelés ezekkel a címkékkel';
+
+  @override
   String get equipment_list_emptyState_noTypeMatch =>
       'Nincs felszerelés ebben a kategóriában';
 
@@ -12631,6 +12732,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Allapot';
+
+  @override
+  String get equipment_filter_section_tags => 'Címkék';
 
   @override
   String get equipment_filter_section_category => 'Kategória';
@@ -13491,6 +13595,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Maximum működési mélység';
 
   @override
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  ) {
+    return 'Maximális üzemi mélység: $depth $unit, $ppo2 bar ppO2 mellett, $o2% oxigénnel';
+  }
+
+  @override
   String get gasCalculators_mod_oxygenO2 => 'Oxigén (O₂)';
 
   @override
@@ -13714,11 +13828,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
-    return '$gas hozzáadása';
+    return '+ $gas';
   }
 
   @override
   String get gasCalculators_blender_stepStartLabel => 'Kezdés';
+
+  @override
+  String get gasCalculators_blender_stepColumnAction => 'Művelet';
+
+  @override
+  String get gasCalculators_blender_stepColumnAdded => 'Hozzáadva';
+
+  @override
+  String get gasCalculators_blender_stepColumnPressure => 'Nyomás';
+
+  @override
+  String get gasCalculators_blender_stepColumnMix => 'Keverék';
 
   @override
   String gasCalculators_blender_settlesTo(String pressure, String temperature) {
@@ -13789,6 +13915,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_invalidNumber(String separator) {
+    return 'Adjon meg egy érvényes számot (tizedesjel: \"$separator\")';
+  }
+
+  @override
   String get gasCalculators_blender_currency => 'Pénznem';
 
   @override
@@ -13827,6 +13958,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_flushFeeVolume => 'Öblítési térfogat';
+
+  @override
+  String get gasCalculators_blender_flushFeeColumnGas => 'Gáz';
+
+  @override
+  String get gasCalculators_blender_cylinderColumnShort => 'Palack';
+
+  @override
+  String get gasCalculators_blender_volumeColumn => 'Térfogat';
 
   @override
   String gasCalculators_blender_flushFeeLine(String gas) {
@@ -13908,6 +14048,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_blender_lineActions(String label) {
+    return 'Műveletek: $label';
+  }
+
+  @override
   String gasCalculators_blender_fillAdded(String mix) {
     return '$mix felkerült a számlára';
   }
@@ -13954,6 +14099,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveNotFound =>
       'A számla nem található.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDelete => 'Számla törlése';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle =>
+      'Törli a számlát?';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveDeleteBody =>
+      'Ez a művelet nem vonható vissza.';
 
   @override
   String get gasCalculators_blender_defaults =>
@@ -21170,8 +21326,89 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tags_manage_deleteMessage_equipment(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'A(z) \"$tagName\" eltávolításra kerül $_temp0. Ez nem vonható vissza.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülésből',
+      one: '1 merülésből',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'A(z) \"$tagName\" eltávolításra kerül $_temp0 és $_temp1. Ez nem vonható vissza.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhelyről',
+      one: '1 merülőhelyről',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'A(z) \"$tagName\" eltávolításra kerül $_temp0 és $_temp1. Ez nem vonható vissza.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülésből',
+      one: '1 merülésből',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhelyről',
+      one: '1 merülőhelyről',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'A(z) \"$tagName\" eltávolításra kerül $_temp0, $_temp1 és $_temp2. Ez nem vonható vissza.';
+  }
+
+  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return 'A(z) \"$tagName\" egyetlen merülésen és merülőhelyen sincs használatban. Ez nem vonható vissza.';
+    return 'A(z) \"$tagName\" egyetlen merülésen, merülőhelyen és felszerelésen sincs használatban. Ez nem vonható vissza.';
   }
 
   @override
@@ -21223,8 +21460,86 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'Ezek a címkék eltávolításra kerülnek összesen $_temp0. Ez nem vonható vissza.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülésből',
+      one: '1 merülésből',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'Ezek a címkék eltávolításra kerülnek összesen $_temp0 és $_temp1. Ez nem vonható vissza.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhelyről',
+      one: '1 merülőhelyről',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'Ezek a címkék eltávolításra kerülnek összesen $_temp0 és $_temp1. Ez nem vonható vissza.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülésből',
+      one: '1 merülésből',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhelyről',
+      one: '1 merülőhelyről',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelésről',
+      one: '1 felszerelésről',
+    );
+    return 'Ezek a címkék eltávolításra kerülnek összesen $_temp0, $_temp1 és $_temp2. Ez nem vonható vissza.';
+  }
+
+  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'Ezek a címkék egyetlen merülésen és merülőhelyen sincsenek használatban. Ez nem vonható vissza.';
+      'Ezek a címkék egyetlen merülésen, merülőhelyen és felszerelésen sincsenek használatban. Ez nem vonható vissza.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -21278,8 +21593,86 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tags_manage_mergeAffected_equipment(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelést',
+      one: '1 felszerelést',
+    );
+    return 'Ez összesen $_temp0 érint.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülést',
+      one: '1 merülést',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelést',
+      one: '1 felszerelést',
+    );
+    return 'Ez összesen $_temp0 és $_temp1 érint.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhelyet',
+      one: '1 merülőhelyet',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelést',
+      one: '1 felszerelést',
+    );
+    return 'Ez összesen $_temp0 és $_temp1 érint.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülést',
+      one: '1 merülést',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhelyet',
+      one: '1 merülőhelyet',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      equipmentCount,
+      locale: localeName,
+      other: '$equipmentCount felszerelést',
+      one: '1 felszerelést',
+    );
+    return 'Ez összesen $_temp0, $_temp1 és $_temp2 érint.';
+  }
+
+  @override
   String get tags_manage_mergeAffected_unused =>
-      'Ezek a címkék egyetlen merülésen és merülőhelyen sincsenek használatban.';
+      'Ezek a címkék egyetlen merülésen, merülőhelyen és felszerelésen sincsenek használatban.';
 
   @override
   String get tags_manage_mergeAction => 'Összevonás';
@@ -30873,6 +31266,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentField_notes => 'Jegyzetek';
 
   @override
+  String get enum_equipmentField_tags => 'Címkék';
+
+  @override
   String get enum_equipmentField_itemName_short => 'Név';
 
   @override
@@ -30919,6 +31315,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentField_notes_short => 'Jegyz.';
+
+  @override
+  String get enum_equipmentField_tags_short => 'Címkék';
 
   @override
   String get enum_diveCenterField_centerName => 'Név';

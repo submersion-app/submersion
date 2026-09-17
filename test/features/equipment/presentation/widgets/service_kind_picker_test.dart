@@ -14,7 +14,10 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 class _FakeScheduleRepo extends ServiceScheduleRepository {
   final created = <ServiceSchedule>[];
   @override
-  Future<ServiceSchedule> createSchedule(ServiceSchedule schedule) async {
+  Future<ServiceSchedule> createSchedule(
+    ServiceSchedule schedule, {
+    bool notify = true,
+  }) async {
     final withId = schedule.copyWith(id: 'new-${created.length}');
     created.add(withId);
     return withId;
