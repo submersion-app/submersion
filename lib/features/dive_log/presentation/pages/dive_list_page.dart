@@ -1051,11 +1051,6 @@ class DiveListTile extends ConsumerWidget {
                                       ),
                                 ),
                               ],
-                              const SizedBox(width: 8),
-                              DiveModeBadge(
-                                mode: summary?.diveMode ?? DiveMode.oc,
-                                dense: true,
-                              ),
                             ],
                           ),
                           // Site location (country/region)
@@ -1137,19 +1132,36 @@ class DiveListTile extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      if (diveTypeLabels.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerEnd,
-                            child: DiveTypeBadgeRow(
-                              labels: diveTypeLabels,
-                              dense: true,
-                            ),
+                      // The badges close the line, right-aligned, with the
+                      // dive mode last. They share one flexible cell with no
+                      // fixed gap ahead of it, so the protected stat row keeps
+                      // the width budget it had before the mode badge moved
+                      // down here. Within the cell the type badges are the ones
+                      // that give: they collapse into "+N" while the mode badge
+                      // keeps its full width.
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (diveTypeLabels.isNotEmpty) ...[
+                                Flexible(
+                                  child: DiveTypeBadgeRow(
+                                    labels: diveTypeLabels,
+                                    dense: true,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              DiveModeBadge(
+                                mode: summary?.diveMode ?? DiveMode.oc,
+                                dense: true,
+                              ),
+                            ],
                           ),
                         ),
-                      ] else
-                        const Spacer(),
+                      ),
                     ],
                   ),
                 ),

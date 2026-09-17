@@ -58,6 +58,38 @@ void main() {
     expect(container.read(profileReviewProvider(_diveId)), greaterThan(0));
   });
 
+  // The minimap paints behind the slider, so a given x must mean the same
+  // dive time to both. The slider insets its track from its own box; a
+  // minimap filling the whole box drew time 0 left of the thumb at the start
+  // and ended right of the thumb at the end of the dive.
+  testWidgets('minimap spans the same horizontal range as the slider track', (
+    tester,
+  ) async {
+    await tester.pumpWidget(wrap());
+    await tester.pump();
+
+    final minimap = tester.getRect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is CustomPaint &&
+            w.painter.runtimeType.toString() == '_MinimapPainter',
+      ),
+    );
+    final maxTimestamp = _profile().last.timestamp;
+
+    for (final fraction in [0.25, 0.75]) {
+      await tester.tapAt(
+        Offset(minimap.left + minimap.width * fraction, minimap.center.dy),
+      );
+      await tester.pump();
+      expect(
+        container.read(playbackProvider(_diveId)).currentTimestamp,
+        closeTo(maxTimestamp * fraction, 3),
+        reason: 'tap at $fraction of the minimap width',
+      );
+    }
+  });
+
   testWidgets('speed chip shows current speed', (tester) async {
     await tester.pumpWidget(wrap());
     await tester.pump();

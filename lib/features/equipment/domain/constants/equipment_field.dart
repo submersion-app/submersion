@@ -43,7 +43,10 @@ enum EquipmentField implements EntityField {
 
   // Assemblies (issue #1487). Last so persisted column layouts keep their
   // order.
-  components;
+  components,
+
+  // Tags (issue #1942). Appended for the same reason; never reordered.
+  tags;
 
   @override
   String get name => toString().split('.').last;
@@ -67,6 +70,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays => 'Service Interval',
     EquipmentField.notes => 'Notes',
     EquipmentField.components => 'Components',
+    EquipmentField.tags => 'Tags',
   };
 
   @override
@@ -88,6 +92,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays => 'Interval',
     EquipmentField.notes => 'Notes',
     EquipmentField.components => 'Parts',
+    EquipmentField.tags => 'Tags',
   };
 
   @override
@@ -111,6 +116,7 @@ enum EquipmentField implements EntityField {
       l10n.enum_equipmentField_serviceIntervalDays,
     EquipmentField.notes => l10n.enum_equipmentField_notes,
     EquipmentField.components => l10n.enum_equipmentField_components,
+    EquipmentField.tags => l10n.enum_equipmentField_tags,
   };
 
   @override
@@ -137,6 +143,7 @@ enum EquipmentField implements EntityField {
       l10n.enum_equipmentField_serviceIntervalDays_short,
     EquipmentField.notes => l10n.enum_equipmentField_notes_short,
     EquipmentField.components => l10n.enum_equipmentField_components_short,
+    EquipmentField.tags => l10n.enum_equipmentField_tags_short,
   };
 
   @override
@@ -158,6 +165,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays => Icons.repeat,
     EquipmentField.notes => Icons.notes,
     EquipmentField.components => Icons.account_tree_outlined,
+    EquipmentField.tags => Icons.sell_outlined,
   };
 
   @override
@@ -179,6 +187,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays => 80,
     EquipmentField.notes => 150,
     EquipmentField.components => 90,
+    EquipmentField.tags => 160,
   };
 
   @override
@@ -200,6 +209,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays => 60,
     EquipmentField.notes => 80,
     EquipmentField.components => 60,
+    EquipmentField.tags => 80,
   };
 
   @override
@@ -221,6 +231,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays => true,
     EquipmentField.notes => false,
     EquipmentField.components => true,
+    EquipmentField.tags => false,
   };
 
   @override
@@ -242,6 +253,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays => 'service',
     EquipmentField.notes => 'other',
     EquipmentField.components => 'details',
+    EquipmentField.tags => 'other',
   };
 
   @override
@@ -266,9 +278,14 @@ class EquipmentFieldAdapter
   /// absent means zero. Same lifecycle as [worstClocks].
   final Map<String, int> componentCounts;
 
+  /// Tag names per item id, in the list's order (issue #1942); absent means
+  /// no tags. Same lifecycle as [worstClocks].
+  final Map<String, List<String>> tagNames;
+
   EquipmentFieldAdapter({
     this.worstClocks = const {},
     this.componentCounts = const {},
+    this.tagNames = const {},
   });
 
   static final instance = EquipmentFieldAdapter();
@@ -310,6 +327,7 @@ class EquipmentFieldAdapter
       EquipmentField.serviceIntervalDays => entity.serviceIntervalDays,
       EquipmentField.notes => entity.notes,
       EquipmentField.components => componentCounts[entity.id] ?? 0,
+      EquipmentField.tags => tagNames[entity.id] ?? const <String>[],
     };
   }
 
@@ -334,6 +352,7 @@ class EquipmentFieldAdapter
       EquipmentField.serviceIntervalDays => '${value as int} days',
       EquipmentField.notes => value as String,
       EquipmentField.components => '${value as int}',
+      EquipmentField.tags => _formatTags(value as List<String>),
     };
   }
 
@@ -342,6 +361,11 @@ class EquipmentFieldAdapter
     // diver's default currency instead of a hardcoded '$'.
     return formatMoney(price, units.settings.defaultCurrency);
   }
+
+  /// A comma list for the table cell; an item with no tags shows the same
+  /// placeholder as any other empty cell.
+  String _formatTags(List<String> names) =>
+      names.isEmpty ? '--' : names.join(', ');
 
   String _formatDaysUntilService(int days) {
     if (days < 0) return 'Overdue';

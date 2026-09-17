@@ -1221,6 +1221,14 @@ class DiveComputerRepository {
     int? gfLow,
     int? gfHigh,
     int? decoConservatism,
+    // CCR/SCR diluent gas mix (issue #1879), derived from the resolved tank
+    // list's Diluent cylinder by the caller. Null when the download had none
+    // (OC dive, or a CCR dive whose transmitter naming did not resolve to a
+    // role). Only ever written for a brand-new dive row below; a dive
+    // matched to an existing row keeps whatever diluent it already has, the
+    // same way every other field in that branch is left untouched.
+    double? diluentO2,
+    double? diluentHe,
     List<EventData>? events,
     List<GasSwitchData>? gasSwitches,
     int? diveNumber,
@@ -1358,6 +1366,16 @@ class DiveComputerRepository {
                 decoAlgorithm: Value(decoAlgorithm),
                 decoConservatism: Value(decoConservatism),
                 diveMode: Value(diveMode.code),
+                // Only set when the caller resolved a Diluent cylinder,
+                // never a fabricated default -- an OC dive or a CCR dive
+                // whose transmitter naming didn't resolve to a role stays
+                // without one, exactly as if no diluent had been entered.
+                diluentO2: diluentO2 != null
+                    ? Value(diluentO2)
+                    : const Value.absent(),
+                diluentHe: diluentO2 != null
+                    ? Value(diluentHe ?? 0.0)
+                    : const Value.absent(),
                 diveType: Value(diveTypeId),
                 createdAt: Value(now),
                 updatedAt: Value(now),

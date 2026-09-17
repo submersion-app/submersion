@@ -15,9 +15,9 @@ import 'package:submersion/core/utils/number_input.dart';
 /// that is one keystroke stale rather than one that is confidently wrong.
 double mixPercentOrKeep(String text, double previous) {
   if (text.trim().isEmpty) return previous;
-  return parseUserDecimal(text) ?? previous;
+  return smartParseUserDecimal(text) ?? previous;
 }
 
 /// Read a pressure from a field. Blank genuinely means zero here: an empty
 /// cylinder is the most common starting point there is.
-double pressureOrZero(String text) => parseUserDecimal(text) ?? 0;
+double pressureOrZero(String text) => smartParseUserDecimal(text) ?? 0;

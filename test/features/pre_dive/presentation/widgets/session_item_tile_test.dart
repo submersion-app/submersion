@@ -545,6 +545,145 @@ void main() {
         expect(find.textContaining('Overdue since'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'a pending item with only ok/dueSoon clocks shows them without the '
+      'overdue heading',
+      (tester) async {
+        final dueSoonStatus = ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 'sched2',
+            equipmentId: 'g1',
+            serviceKindId: 'scrubber',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          kind: ServiceKind(
+            id: 'scrubber',
+            name: 'Scrubber',
+            applicableTypes: const [],
+            createdAt: now,
+            updatedAt: now,
+          ),
+          anchor: now,
+          hoursSinceAnchor: 4,
+          hoursRemaining: 8,
+          severity: ServiceClockSeverity.dueSoon,
+          now: DateTime(2026, 1, 1),
+        );
+        final okStatus = ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 'sched3',
+            equipmentId: 'g1',
+            serviceKindId: 'co2',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          kind: ServiceKind(
+            id: 'co2',
+            name: 'CO2 sensor',
+            applicableTypes: const [],
+            createdAt: now,
+            updatedAt: now,
+          ),
+          anchor: now,
+          dueDate: DateTime(2027, 1, 1),
+          severity: ServiceClockSeverity.ok,
+          now: DateTime(2026, 1, 1),
+        );
+
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(equipmentId: 'g1'),
+          overrides: [
+            serviceClockStatusesProvider(
+              'g1',
+            ).overrideWith((ref) async => [dueSoonStatus, okStatus]),
+          ],
+        );
+
+        expect(find.text('Service overdue'), findsNothing);
+        expect(find.textContaining('Scrubber'), findsOneWidget);
+        expect(find.textContaining('CO2 sensor'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a mixed overdue/dueSoon/ok list shows the heading once and every '
+      'clock underneath',
+      (tester) async {
+        final dueSoonStatus = ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 'sched2',
+            equipmentId: 'g1',
+            serviceKindId: 'scrubber',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          kind: ServiceKind(
+            id: 'scrubber',
+            name: 'Scrubber',
+            applicableTypes: const [],
+            createdAt: now,
+            updatedAt: now,
+          ),
+          anchor: now,
+          hoursSinceAnchor: 4,
+          hoursRemaining: 8,
+          severity: ServiceClockSeverity.dueSoon,
+          now: DateTime(2026, 1, 1),
+        );
+
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(equipmentId: 'g1'),
+          overrides: [
+            serviceClockStatusesProvider(
+              'g1',
+            ).overrideWith((ref) async => [overdueStatus, dueSoonStatus]),
+          ],
+        );
+
+        expect(find.text('Service overdue'), findsOneWidget);
+        expect(find.textContaining('Visual inspection'), findsOneWidget);
+        expect(find.textContaining('Scrubber'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a resolved item with a mixed frozen snapshot still shows every clock, '
+      'not only the overdue one',
+      (tester) async {
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(
+            state: PreDiveItemState.done,
+            completedAt: now,
+            equipmentId: 'g1',
+            overdueServices: const [
+              OverdueServiceEntry(
+                kindName: 'Hydrostatic test',
+                severity: ServiceClockSeverity.overdue,
+                divesRemaining: -3,
+              ),
+              OverdueServiceEntry(
+                kindName: 'Scrubber',
+                severity: ServiceClockSeverity.dueSoon,
+                hoursSinceAnchor: 4,
+                hoursRemaining: 8,
+              ),
+            ],
+          ),
+        );
+
+        expect(find.text('Service overdue'), findsOneWidget);
+        expect(find.textContaining('Hydrostatic test'), findsOneWidget);
+        expect(find.textContaining('Scrubber'), findsOneWidget);
+      },
+    );
   });
 
   group('tap target', () {

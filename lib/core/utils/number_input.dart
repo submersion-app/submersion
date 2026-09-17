@@ -44,6 +44,40 @@ double? parseUserDecimal(String text) {
   }
 }
 
+/// [parseUserDecimal], but additionally corrects the one keystroke that is
+/// unambiguously a wrong decimal separator rather than a malformed grouping
+/// one -- a diver typing "." on a device whose keyboard offers it under a
+/// comma-decimal locale, or vice versa (issue #1876).
+///
+/// Safe by construction rather than by convention: a genuine grouping
+/// separator is always followed by a group of exactly three digits (`1.234`),
+/// so a lone occurrence of the *other* separator followed by any digit count
+/// other than three cannot be a grouping separator under this locale's own
+/// rules. There is nothing left to guess between in that case, unlike #1091
+/// (an *ambiguous* "6,4" that intl used to silently misread as 64). The
+/// genuinely ambiguous three-digit case is left to [parseUserDecimal], which
+/// returns null for it exactly as before.
+double? smartParseUserDecimal(String text) {
+  final direct = parseUserDecimal(text);
+  if (direct != null) return direct;
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return null;
+
+  final symbols = localeNumberFormat().symbols;
+  final decimalSep = symbols.DECIMAL_SEP;
+  final otherSep = decimalSep == ',' ? '.' : ',';
+  // Already uses the locale's own decimal separator and still failed to
+  // parse (e.g. two separators, or non-digit noise) -- genuinely unreadable.
+  if (trimmed.contains(decimalSep)) return null;
+  if (otherSep.allMatches(trimmed).length != 1) return null;
+
+  final sepIndex = trimmed.indexOf(otherSep);
+  final fractionDigits = trimmed.length - sepIndex - 1;
+  if (fractionDigits == 3) return null; // the one genuinely ambiguous shape
+
+  return parseUserDecimal(trimmed.replaceFirst(otherSep, decimalSep));
+}
+
 /// Whether any grouping separators in [text] sit where grouping could actually
 /// put them (leading group of 1 to 3 digits, every later group exactly 3).
 ///

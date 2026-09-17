@@ -36,6 +36,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/installed_in_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
@@ -420,6 +421,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
                             ).colorScheme.onSurfaceVariant,
                           ),
                         ),
+                      // Tags (issue #1942), under the name and type.
+                      EquipmentTagChips(equipmentId: equipment.id),
                     ],
                   ),
                 ),

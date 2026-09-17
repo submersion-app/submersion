@@ -157,7 +157,12 @@ void main() {
 
       // The divider row only exists on the phone surface, so its presence is
       // the tell that the page opened on the phone scope.
-      expect(find.text('Items below appear in the More menu'), findsOneWidget);
+      expect(
+        find.text(
+          'Items below go to the More menu when they do not fit in the bar',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('opens on Desktop when the window is rail-width', (
@@ -167,7 +172,12 @@ void main() {
 
       // The divider only exists on the phone surface.
       expect(find.byKey(const ValueKey('nav-divider')), findsNothing);
-      expect(find.text('Items below appear in the More menu'), findsNothing);
+      expect(
+        find.text(
+          'Items below go to the More menu when they do not fit in the bar',
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('shows pinned Home and More rows on the phone scope', (
@@ -375,6 +385,80 @@ void main() {
       // Rolled back: the default order is still on screen.
       expect(_firstRowId(tester), 'dives');
     });
+
+    group('always-hide-labels switch (#1424)', () {
+      testWidgets('defaults to off', (tester) async {
+        await pumpPage(tester);
+
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
+        expect(tile.value, isFalse);
+      });
+
+      testWidgets('reflects a stored on value', (tester) async {
+        final repo = FakeAppSettingsRepository();
+        await repo.setNavAlwaysHideLabels(true);
+        await pumpPage(tester, repo: repo);
+
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
+        expect(tile.value, isTrue);
+      });
+
+      testWidgets('tapping it persists the new value', (tester) async {
+        final repo = await pumpPage(tester);
+
+        await tester.tap(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(await repo.getNavAlwaysHideLabels(), isTrue);
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
+        expect(tile.value, isTrue);
+      });
+
+      testWidgets('a failed save reports the error and keeps the old value', (
+        tester,
+      ) async {
+        final repo = _AlwaysHideLabelsWriteFailsRepo();
+        await pumpPage(tester, repo: repo);
+
+        await tester.tap(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Something went wrong. Please try again.'),
+          findsOneWidget,
+        );
+        final tile = tester.widget<SwitchListTile>(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+        );
+        expect(tile.value, isFalse);
+      });
+
+      testWidgets('a failed read hides the switch but the rest of the page '
+          'still renders', (tester) async {
+        final repo = FakeAppSettingsRepository()
+          ..throwOnRead = StateError('read failed');
+        await pumpPage(tester, repo: repo);
+
+        // The switch's AsyncValue.when has no data to build a tile from, and
+        // this shows the error branch renders nothing rather than crashing.
+        expect(
+          find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+          findsNothing,
+        );
+        // The rest of the page is unaffected by the failed read.
+        expect(find.byKey(const ValueKey('navScopeSegments')), findsOneWidget);
+      });
+    });
   });
 }
 
@@ -396,5 +480,13 @@ class _WriteFailsRepo extends FakeAppSettingsRepository {
 
   @override
   Future<void> setNavRailIds(List<String> ids) async =>
+      throw StateError('write failed');
+}
+
+/// Fake whose always-hide-labels write always fails, so the switch's error
+/// path runs.
+class _AlwaysHideLabelsWriteFailsRepo extends FakeAppSettingsRepository {
+  @override
+  Future<void> setNavAlwaysHideLabels(bool value) async =>
       throw StateError('write failed');
 }

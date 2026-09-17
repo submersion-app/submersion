@@ -8961,12 +8961,6 @@ abstract class AppLocalizations {
   /// **'Next dive'**
   String get diveLog_detail_tooltip_nextDive;
 
-  /// No description provided for @diveLog_detail_tooltip_exportProfileImage.
-  ///
-  /// In en, this message translates to:
-  /// **'Export profile as image'**
-  String get diveLog_detail_tooltip_exportProfileImage;
-
   /// No description provided for @diveLog_detail_tooltip_removeFromFavorites.
   ///
   /// In en, this message translates to:
@@ -10220,6 +10214,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PDF Logbook Entry'**
   String get diveLog_export_pdfLogbookEntry;
+
+  /// No description provided for @diveLog_export_profileAsImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile as Image'**
+  String get diveLog_export_profileAsImage;
+
+  /// No description provided for @diveLog_export_profileAsImageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot of the dive profile chart'**
+  String get diveLog_export_profileAsImageDescription;
 
   /// No description provided for @diveLog_export_success.
   ///
@@ -19738,6 +19744,96 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get equipment_appBar_title;
 
+  /// No description provided for @equipment_bulkTags_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tags'**
+  String get equipment_bulkTags_action;
+
+  /// No description provided for @equipment_bulkTags_adding.
+  ///
+  /// In en, this message translates to:
+  /// **'adding to all {total}'**
+  String equipment_bulkTags_adding(int total);
+
+  /// No description provided for @equipment_bulkTags_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}'**
+  String equipment_bulkTags_applied(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}'**
+  String equipment_bulkTags_confirmAdding(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removing from 1 equipment item} other{Removing from all {count} equipment items}}'**
+  String equipment_bulkTags_confirmRemoving(int count);
+
+  /// No description provided for @equipment_bulkTags_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply changes?'**
+  String get equipment_bulkTags_confirmTitle;
+
+  /// No description provided for @equipment_bulkTags_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment tags yet'**
+  String get equipment_bulkTags_empty;
+
+  /// No description provided for @equipment_bulkTags_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update tags: {error}'**
+  String equipment_bulkTags_failed(String error);
+
+  /// No description provided for @equipment_bulkTags_onAll.
+  ///
+  /// In en, this message translates to:
+  /// **'on all {count}'**
+  String equipment_bulkTags_onAll(int count);
+
+  /// No description provided for @equipment_bulkTags_onSome.
+  ///
+  /// In en, this message translates to:
+  /// **'on {count} of {total}'**
+  String equipment_bulkTags_onSome(int count, int total);
+
+  /// No description provided for @equipment_bulkTags_removing.
+  ///
+  /// In en, this message translates to:
+  /// **'removing from all'**
+  String get equipment_bulkTags_removing;
+
+  /// No description provided for @equipment_bulkTags_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_bulkTags_tagsLabel;
+
+  /// No description provided for @equipment_bulkTags_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Edit tags on 1 item} other{Edit tags on {count} items}}'**
+  String equipment_bulkTags_title(int count);
+
+  /// No description provided for @equipment_bulkTags_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get equipment_bulkTags_undo;
+
+  /// No description provided for @equipment_bulkTags_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the tag change.'**
+  String get equipment_bulkTags_undoFailed;
+
   /// No description provided for @equipment_deleteDialog_cancel.
   ///
   /// In en, this message translates to:
@@ -20536,6 +20632,12 @@ abstract class AppLocalizations {
   /// **'Service is overdue!'**
   String get equipment_detail_serviceOverdue;
 
+  /// Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag
+  ///
+  /// In en, this message translates to:
+  /// **'Show equipment with {name}'**
+  String equipment_detail_showEquipmentWith(String name);
+
   /// No description provided for @equipment_detail_sizeLabel.
   ///
   /// In en, this message translates to:
@@ -20908,6 +21010,12 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get equipment_edit_statusLabel;
 
+  /// No description provided for @equipment_edit_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_edit_tagsLabel;
+
   /// No description provided for @equipment_edit_parentLabel.
   ///
   /// In en, this message translates to:
@@ -21022,6 +21130,12 @@ abstract class AppLocalizations {
   /// **'No equipment with this status'**
   String get equipment_list_emptyState_noStatusMatch;
 
+  /// No description provided for @equipment_list_emptyState_noTagMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment with these tags'**
+  String get equipment_list_emptyState_noTagMatch;
+
   /// Empty-state body shown when a selected category chip narrowed the (already non-empty) status-filtered list down to zero items
   ///
   /// In en, this message translates to:
@@ -21105,6 +21219,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get equipment_filter_section_status;
+
+  /// No description provided for @equipment_filter_section_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get equipment_filter_section_tags;
 
   /// No description provided for @equipment_filter_section_category.
   ///
@@ -22503,6 +22623,17 @@ abstract class AppLocalizations {
   /// **'Maximum Operating Depth'**
   String get gasCalculators_mod_maximumOperatingDepth;
 
+  /// No description provided for @gasCalculators_mod_semanticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Operating Depth: {depth} {unit} at {ppo2} bar ppO2 with {o2}% oxygen'**
+  String gasCalculators_mod_semanticsLabel(
+    String depth,
+    String unit,
+    String ppo2,
+    String o2,
+  );
+
   /// No description provided for @gasCalculators_mod_oxygenO2.
   ///
   /// In en, this message translates to:
@@ -22888,7 +23019,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_blender_stepAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add {gas}'**
+  /// **'+ {gas}'**
   String gasCalculators_blender_stepAdd(String gas);
 
   /// No description provided for @gasCalculators_blender_stepStartLabel.
@@ -22896,6 +23027,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start'**
   String get gasCalculators_blender_stepStartLabel;
+
+  /// No description provided for @gasCalculators_blender_stepColumnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get gasCalculators_blender_stepColumnAction;
+
+  /// No description provided for @gasCalculators_blender_stepColumnAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get gasCalculators_blender_stepColumnAdded;
+
+  /// No description provided for @gasCalculators_blender_stepColumnPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get gasCalculators_blender_stepColumnPressure;
+
+  /// No description provided for @gasCalculators_blender_stepColumnMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Mix'**
+  String get gasCalculators_blender_stepColumnMix;
 
   /// No description provided for @gasCalculators_blender_settlesTo.
   ///
@@ -23005,6 +23160,12 @@ abstract class AppLocalizations {
   /// **'Price per 100 {unit}'**
   String gasCalculators_blender_unitPrice(String unit);
 
+  /// No description provided for @gasCalculators_blender_invalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number (decimal separator: \"{separator}\")'**
+  String gasCalculators_blender_invalidNumber(String separator);
+
   /// No description provided for @gasCalculators_blender_currency.
   ///
   /// In en, this message translates to:
@@ -23070,6 +23231,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Purge volume'**
   String get gasCalculators_blender_flushFeeVolume;
+
+  /// No description provided for @gasCalculators_blender_flushFeeColumnGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get gasCalculators_blender_flushFeeColumnGas;
+
+  /// No description provided for @gasCalculators_blender_cylinderColumnShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get gasCalculators_blender_cylinderColumnShort;
+
+  /// No description provided for @gasCalculators_blender_volumeColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get gasCalculators_blender_volumeColumn;
 
   /// No description provided for @gasCalculators_blender_flushFeeLine.
   ///
@@ -23197,6 +23376,12 @@ abstract class AppLocalizations {
   /// **'Delete {label}'**
   String gasCalculators_blender_deleteLine(String label);
 
+  /// No description provided for @gasCalculators_blender_lineActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions for {label}'**
+  String gasCalculators_blender_lineActions(String label);
+
   /// No description provided for @gasCalculators_blender_fillAdded.
   ///
   /// In en, this message translates to:
@@ -23274,6 +23459,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invoice not found.'**
   String get gasCalculators_blender_invoiceArchiveNotFound;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this invoice'**
+  String get gasCalculators_blender_invoiceArchiveDelete;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete invoice?'**
+  String get gasCalculators_blender_invoiceArchiveDeleteTitle;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get gasCalculators_blender_invoiceArchiveDeleteBody;
 
   /// No description provided for @gasCalculators_blender_defaults.
   ///
@@ -28306,8 +28509,20 @@ abstract class AppLocalizations {
   /// Help text at the top of the navigation customization page.
   ///
   /// In en, this message translates to:
-  /// **'Drag items to reorder. The top three appear in your bottom navigation bar.'**
+  /// **'Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen size, not its orientation.'**
   String get settings_navCustomization_description;
+
+  /// Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424).
+  ///
+  /// In en, this message translates to:
+  /// **'Always hide labels'**
+  String get settings_navCustomization_alwaysHideLabels_title;
+
+  /// Subtitle under the always-hide-labels switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Icons only, even where labels would normally fit'**
+  String get settings_navCustomization_alwaysHideLabels_subtitle;
 
   /// Help text shown when arranging the wide-screen navigation rail.
   ///
@@ -28330,7 +28545,7 @@ abstract class AppLocalizations {
   /// Non-interactive divider row between primary and overflow destinations.
   ///
   /// In en, this message translates to:
-  /// **'Items below appear in the More menu'**
+  /// **'Items below go to the More menu when they do not fit in the bar'**
   String get settings_navCustomization_dividerLabel;
 
   /// Button that restores the default nav order.
@@ -34579,10 +34794,47 @@ abstract class AppLocalizations {
     int siteCount,
   );
 
+  /// No description provided for @tags_manage_deleteMessage_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {count, plural, =1{1 equipment item} other{{count} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_equipment(String tagName, int count);
+
+  /// No description provided for @tags_manage_deleteMessage_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_divesAndEquipment(
+    String tagName,
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_deleteMessage_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_sitesAndEquipment(
+    String tagName,
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_deleteMessage_all.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.'**
+  String tags_manage_deleteMessage_all(
+    String tagName,
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_deleteMessage_unused.
   ///
   /// In en, this message translates to:
-  /// **'\"{tagName}\" is not used on any dives or sites. This cannot be undone.'**
+  /// **'\"{tagName}\" is not used on any dives, sites, or equipment. This cannot be undone.'**
   String tags_manage_deleteMessage_unused(String tagName);
 
   /// No description provided for @tags_manage_bulkDeleteTitle.
@@ -34612,10 +34864,44 @@ abstract class AppLocalizations {
     int siteCount,
   );
 
+  /// No description provided for @tags_manage_bulkDeleteMessage_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_equipment(int equipmentCount);
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_bulkDeleteMessage_all.
+  ///
+  /// In en, this message translates to:
+  /// **'These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.'**
+  String tags_manage_bulkDeleteMessage_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_bulkDeleteMessage_unused.
   ///
   /// In en, this message translates to:
-  /// **'These tags are not used on any dives or sites. This cannot be undone.'**
+  /// **'These tags are not used on any dives, sites, or equipment. This cannot be undone.'**
   String get tags_manage_bulkDeleteMessage_unused;
 
   /// No description provided for @tags_manage_mergeTitle.
@@ -34654,10 +34940,44 @@ abstract class AppLocalizations {
   /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total.'**
   String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount);
 
+  /// No description provided for @tags_manage_mergeAffected_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {count, plural, =1{1 equipment item} other{{count} equipment items}} total.'**
+  String tags_manage_mergeAffected_equipment(int count);
+
+  /// No description provided for @tags_manage_mergeAffected_divesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_divesAndEquipment(
+    int diveCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_mergeAffected_sitesAndEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_sitesAndEquipment(
+    int siteCount,
+    int equipmentCount,
+  );
+
+  /// No description provided for @tags_manage_mergeAffected_all.
+  ///
+  /// In en, this message translates to:
+  /// **'This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.'**
+  String tags_manage_mergeAffected_all(
+    int diveCount,
+    int siteCount,
+    int equipmentCount,
+  );
+
   /// No description provided for @tags_manage_mergeAffected_unused.
   ///
   /// In en, this message translates to:
-  /// **'These tags are not used on any dives or sites.'**
+  /// **'These tags are not used on any dives, sites, or equipment.'**
   String get tags_manage_mergeAffected_unused;
 
   /// No description provided for @tags_manage_mergeAction.
@@ -50332,6 +50652,12 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get enum_equipmentField_notes;
 
+  /// No description provided for @enum_equipmentField_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_equipmentField_tags;
+
   /// No description provided for @enum_equipmentField_itemName_short.
   ///
   /// In en, this message translates to:
@@ -50427,6 +50753,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get enum_equipmentField_notes_short;
+
+  /// No description provided for @enum_equipmentField_tags_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get enum_equipmentField_tags_short;
 
   /// No description provided for @enum_diveCenterField_centerName.
   ///

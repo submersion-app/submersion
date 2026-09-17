@@ -56,6 +56,17 @@ void main() {
     expect(find.textContaining('0.53 cuft/min'), findsOneWidget);
   });
 
+  testWidgets(
+    'ambient pressure follows the pressure unit setting, not a hardcoded '
+    'ATM',
+    (tester) async {
+      await tester.pumpWidget(_host(settings: _imperial));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('ATM'), findsNothing);
+      expect(find.textContaining('psi'), findsWidgets);
+    },
+  );
+
   testWidgets('shows the planning caveat', (tester) async {
     await tester.pumpWidget(_host(settings: const AppSettings()));
     await tester.pumpAndSettle();

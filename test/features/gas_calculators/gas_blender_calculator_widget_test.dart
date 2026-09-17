@@ -100,7 +100,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Fill procedure'), findsOneWidget);
-    expect(find.textContaining('Tx 18/45'), findsWidgets);
+    // The procedure table's Mix column spaces the '/' so it wraps better on
+    // a narrow screen (issue #1876 follow-up); other mix labels stay compact.
+    expect(find.textContaining('Tx 18 / 45'), findsWidgets);
   });
 
   testWidgets('the default fill order tops off with air, not helium', (
@@ -123,8 +125,8 @@ void main() {
     // Scoped to the procedure card: the costing card names every configured
     // bank, helium included, because a price belongs to the bank rather than
     // to this particular fill.
-    expect(find.text('Add Air'), findsOneWidget);
-    expect(find.text('Add Helium'), findsNothing);
+    expect(find.text('+ Air'), findsOneWidget);
+    expect(find.text('+ Helium'), findsNothing);
   });
 
   testWidgets('renders English even on a non-English host machine', (
@@ -210,8 +212,8 @@ void main() {
     ref.read(blenderTargetPressureProvider.notifier).state = 220;
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Tx 8.3/73.4'), findsWidgets);
-    expect(find.textContaining('Tx 8/73'), findsNothing);
+    expect(find.textContaining('Tx 8.3 / 73.4'), findsWidgets);
+    expect(find.textContaining('Tx 8 / 73'), findsNothing);
   });
 
   testWidgets('a narrow surface does not overflow', (tester) async {
@@ -244,10 +246,11 @@ void main() {
     // cares what the cylinder settles to regardless.
     await _pump(tester);
 
-    expect(
-      find.text('Fill temperature: 20°C  ·  Settled temperature: 20°C'),
-      findsOneWidget,
-    );
+    // Split across separate Text widgets inside a Wrap now, so the reading
+    // can break onto a second line on a narrow screen instead of being
+    // clipped (issue #1876 follow-up).
+    expect(find.text('Fill temperature: 20°C'), findsOneWidget);
+    expect(find.text('Settled temperature: 20°C'), findsOneWidget);
   });
 
   testWidgets(
@@ -282,10 +285,8 @@ void main() {
     ref.read(blenderFillTempProvider.notifier).state = 5;
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Fill temperature: 5°C  ·  Settled temperature: 20°C'),
-      findsOneWidget,
-    );
+    expect(find.text('Fill temperature: 5°C'), findsOneWidget);
+    expect(find.text('Settled temperature: 20°C'), findsOneWidget);
   });
 
   testWidgets('a chilled fill names the settled pressure', (tester) async {

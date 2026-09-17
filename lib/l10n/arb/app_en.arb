@@ -3181,7 +3181,6 @@
   "diveLog_detail_tooltip_editDive": "Edit dive",
   "diveLog_detail_tooltip_previousDive": "Previous dive",
   "diveLog_detail_tooltip_nextDive": "Next dive",
-  "diveLog_detail_tooltip_exportProfileImage": "Export profile as image",
   "diveLog_detail_tooltip_removeFromFavorites": "Remove from favorites",
   "diveLog_detail_tooltip_viewFullscreen": "View fullscreen",
   "diveLog_detail_viewSite": "View Site",
@@ -3543,6 +3542,8 @@
   "diveLog_export_pageAsImageDescription": "Screenshot of entire dive details",
   "diveLog_export_pdfDescription": "Printable dive log page",
   "diveLog_export_pdfLogbookEntry": "PDF Logbook Entry",
+  "diveLog_export_profileAsImage": "Profile as Image",
+  "diveLog_export_profileAsImageDescription": "Screenshot of the dive profile chart",
   "diveLog_export_success": "Dive exported successfully",
   "diveLog_export_titleDiveNumber": "Export Dive #{number}",
   "diveLog_export_uddf": "UDDF",
@@ -6771,6 +6772,80 @@
   "enum_weightType_mixed": "Mixed/Combined",
   "enum_weightType_trimWeights": "Trim Weights",
   "equipment_appBar_title": "Equipment",
+  "equipment_bulkTags_action": "Edit tags",
+  "equipment_bulkTags_adding": "adding to all {total}",
+  "@equipment_bulkTags_adding": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_applied": "{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}",
+  "@equipment_bulkTags_applied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
+  "@equipment_bulkTags_confirmAdding": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmRemoving": "{count, plural, =1{Removing from 1 equipment item} other{Removing from all {count} equipment items}}",
+  "@equipment_bulkTags_confirmRemoving": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_confirmTitle": "Apply changes?",
+  "equipment_bulkTags_empty": "No equipment tags yet",
+  "equipment_bulkTags_failed": "Could not update tags: {error}",
+  "@equipment_bulkTags_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_bulkTags_onAll": "on all {count}",
+  "@equipment_bulkTags_onAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_onSome": "on {count} of {total}",
+  "@equipment_bulkTags_onSome": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_removing": "removing from all",
+  "equipment_bulkTags_tagsLabel": "Tags",
+  "equipment_bulkTags_title": "{count, plural, =1{Edit tags on 1 item} other{Edit tags on {count} items}}",
+  "@equipment_bulkTags_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_bulkTags_undo": "Undo",
+  "equipment_bulkTags_undoFailed": "Couldn't undo the tag change.",
   "equipment_deleteDialog_cancel": "Cancel",
   "equipment_deleteDialog_confirm": "Delete",
   "equipment_deleteDialog_content": "Are you sure you want to delete this equipment? This action cannot be undone.",
@@ -7110,6 +7185,15 @@
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
   "equipment_detail_serviceOverdue": "Service is overdue!",
+  "equipment_detail_showEquipmentWith": "Show equipment with {name}",
+  "@equipment_detail_showEquipmentWith": {
+    "description": "Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_sizeLabel": "Size",
   "equipment_detail_thicknessLabel": "Thickness",
   "equipment_detail_statusLabel": "Status",
@@ -7172,6 +7256,7 @@
   "equipment_edit_snackbar_error": "Error saving equipment: {error}",
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_tagsLabel": "Tags",
   "equipment_edit_parentLabel": "Installed in",
   "equipment_edit_parentNone": "Not installed in anything",
   "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
@@ -7191,6 +7276,7 @@
   "equipment_list_emptyState_filterText_type": "{type} equipment",
   "equipment_list_emptyState_noEquipment": "No {filterText}",
   "equipment_list_emptyState_noStatusMatch": "No equipment with this status",
+  "equipment_list_emptyState_noTagMatch": "No equipment with these tags",
   "equipment_list_emptyState_noTypeMatch": "No equipment in this category",
   "equipment_list_emptyState_serviceDueUpToDate": "All your equipment is up to date on service!",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
@@ -7216,6 +7302,7 @@
   "equipment_filter_apply": "Apply Filters",
   "equipment_filter_cancel": "Cancel",
   "equipment_filter_section_status": "Status",
+  "equipment_filter_section_tags": "Tags",
   "equipment_filter_section_category": "Category",
   "equipment_list_retryButton": "Retry",
   "equipment_list_searchTooltip": "Search Equipment",
@@ -7833,6 +7920,23 @@
   "gasCalculators_mod_aboutModBody": "Lower O₂ = deeper MOD = shorter NDL",
   "gasCalculators_mod_inputParameters": "Input Parameters",
   "gasCalculators_mod_maximumOperatingDepth": "Maximum Operating Depth",
+  "gasCalculators_mod_semanticsLabel": "Maximum Operating Depth: {depth} {unit} at {ppo2} bar ppO2 with {o2}% oxygen",
+  "@gasCalculators_mod_semanticsLabel": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "ppo2": {
+        "type": "String"
+      },
+      "o2": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_mod_oxygenO2": "Oxygen (O₂)",
   "gasCalculators_mod_ppO2Conservative": "Conservative limit for extended bottom time",
   "gasCalculators_mod_ppO2Maximum": "Maximum limit for decompression stops only",
@@ -7944,8 +8048,12 @@
   "gasCalculators_blender_modelZFactor": "Real gas (Z-factor)",
   "gasCalculators_blender_modelRecommended": "Recommended",
   "gasCalculators_blender_modelHelp": "Real gas (Z-factor) is the most accurate at cylinder pressures. Ideal gas matches most published blending tables. Van der Waals is offered for comparison with other blending software and is several percent off at fill pressure.",
-  "gasCalculators_blender_stepAdd": "Add {gas}",
+  "gasCalculators_blender_stepAdd": "+ {gas}",
   "gasCalculators_blender_stepStartLabel": "Start",
+  "gasCalculators_blender_stepColumnAction": "Action",
+  "gasCalculators_blender_stepColumnAdded": "Added",
+  "gasCalculators_blender_stepColumnPressure": "Pressure",
+  "gasCalculators_blender_stepColumnMix": "Mix",
   "gasCalculators_blender_settlesTo": "Settles to {pressure} at {temperature}",
   "gasCalculators_blender_templates": "Templates",
   "gasCalculators_blender_templatesTitle": "Target mix templates",
@@ -7964,6 +8072,14 @@
   "gasCalculators_blender_cylinderVolume": "Cylinder water capacity",
   "gasCalculators_blender_cylinderPresets": "Presets",
   "gasCalculators_blender_unitPrice": "Price per 100 {unit}",
+  "gasCalculators_blender_invalidNumber": "Enter a valid number (decimal separator: \"{separator}\")",
+  "@gasCalculators_blender_invalidNumber": {
+    "placeholders": {
+      "separator": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_currency": "Currency",
   "gasCalculators_blender_currencyFollowsUnits": "Follows Settings > Units > Default currency",
   "gasCalculators_blender_manageCylinderSizes": "Manage cylinder sizes",
@@ -7975,6 +8091,9 @@
   "gasCalculators_blender_flushFeeModePerInvoice": "Once per bill",
   "gasCalculators_blender_flushFeeModePerFill": "Once per fill",
   "gasCalculators_blender_flushFeeVolume": "Purge volume",
+  "gasCalculators_blender_flushFeeColumnGas": "Gas",
+  "gasCalculators_blender_cylinderColumnShort": "Cylinder",
+  "gasCalculators_blender_volumeColumn": "Volume",
   "gasCalculators_blender_flushFeeLine": "{gas} hose purge",
   "@gasCalculators_blender_flushFeeLine": {
     "placeholders": {
@@ -8003,6 +8122,14 @@
   "gasCalculators_blender_payBody": "This archives all {count} saved fills and starts a new bill.",
   "gasCalculators_blender_editLine": "Edit {label}",
   "gasCalculators_blender_deleteLine": "Delete {label}",
+  "gasCalculators_blender_lineActions": "Actions for {label}",
+  "@gasCalculators_blender_lineActions": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_fillAdded": "{mix} added to the bill",
   "gasCalculators_blender_billedIncomplete": "One or more lines have no price, so this total is incomplete.",
   "gasCalculators_blender_billedTotal": "Total",
@@ -8016,6 +8143,9 @@
   "gasCalculators_blender_invoiceArchiveIncomplete": "Incomplete",
   "gasCalculators_blender_invoiceArchiveUntitled": "Untitled",
   "gasCalculators_blender_invoiceArchiveNotFound": "Invoice not found.",
+  "gasCalculators_blender_invoiceArchiveDelete": "Delete this invoice",
+  "gasCalculators_blender_invoiceArchiveDeleteTitle": "Delete invoice?",
+  "gasCalculators_blender_invoiceArchiveDeleteBody": "This cannot be undone.",
   "@gasCalculators_blender_invoiceArchiveFillCount": {
     "placeholders": {
       "count": {
@@ -10448,9 +10578,17 @@
   "@settings_navCustomization_title": {
     "description": "Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail."
   },
-  "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
+  "settings_navCustomization_description": "Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen size, not its orientation.",
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
+  },
+  "settings_navCustomization_alwaysHideLabels_title": "Always hide labels",
+  "@settings_navCustomization_alwaysHideLabels_title": {
+    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
+  },
+  "settings_navCustomization_alwaysHideLabels_subtitle": "Icons only, even where labels would normally fit",
+  "@settings_navCustomization_alwaysHideLabels_subtitle": {
+    "description": "Subtitle under the always-hide-labels switch."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {
@@ -10464,7 +10602,7 @@
   "@settings_navCustomization_scopeDesktop": {
     "description": "Segmented-button label for editing the desktop navigation rail order."
   },
-  "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
+  "settings_navCustomization_dividerLabel": "Items below go to the More menu when they do not fit in the bar",
   "@settings_navCustomization_dividerLabel": {
     "description": "Non-interactive divider row between primary and overflow destinations."
   },
@@ -12944,7 +13082,63 @@
       }
     }
   },
-  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives or sites. This cannot be undone.",
+  "tags_manage_deleteMessage_equipment": "\"{tagName}\" will be removed from {count, plural, =1{1 equipment item} other{{count} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_equipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_divesAndEquipment": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_divesAndEquipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_sitesAndEquipment": "\"{tagName}\" will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_sitesAndEquipment": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_all": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_all": {
+    "placeholders": {
+      "tagName": {
+        "type": "String"
+      },
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives, sites, or equipment. This cannot be undone.",
   "@tags_manage_deleteMessage_unused": {
     "placeholders": {
       "tagName": {
@@ -12987,7 +13181,51 @@
       }
     }
   },
-  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives or sites. This cannot be undone.",
+  "tags_manage_bulkDeleteMessage_equipment": "These tags will be removed from {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_equipment": {
+    "placeholders": {
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_divesAndEquipment": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_divesAndEquipment": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_sitesAndEquipment": "These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_sitesAndEquipment": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_all": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_all": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives, sites, or equipment. This cannot be undone.",
   "tags_manage_mergeTitle": "Merge {count} Tags",
   "@tags_manage_mergeTitle": {
     "placeholders": {
@@ -13025,7 +13263,51 @@
       }
     }
   },
-  "tags_manage_mergeAffected_unused": "These tags are not used on any dives or sites.",
+  "tags_manage_mergeAffected_equipment": "This will affect {count, plural, =1{1 equipment item} other{{count} equipment items}} total.",
+  "@tags_manage_mergeAffected_equipment": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_divesAndEquipment": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_divesAndEquipment": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_sitesAndEquipment": "This will affect {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_sitesAndEquipment": {
+    "placeholders": {
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_all": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
+  "@tags_manage_mergeAffected_all": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "equipmentCount": {
+        "type": "int"
+      }
+    }
+  },
+  "tags_manage_mergeAffected_unused": "These tags are not used on any dives, sites, or equipment.",
   "tags_manage_mergeAction": "Merge",
   "tags_title_manageTags": "Manage Tags",
   "tank_al100_description": "Aluminum 100 cu ft",
@@ -19784,6 +20066,7 @@
   "enum_equipmentField_daysUntilService": "Days Until Service",
   "enum_equipmentField_serviceIntervalDays": "Service Interval",
   "enum_equipmentField_notes": "Notes",
+  "enum_equipmentField_tags": "Tags",
   "enum_equipmentField_itemName_short": "Name",
   "enum_equipmentField_fullName_short": "Full Name",
   "enum_equipmentField_type_short": "Type",
@@ -19800,6 +20083,7 @@
   "enum_equipmentField_daysUntilService_short": "Days Left",
   "enum_equipmentField_serviceIntervalDays_short": "Interval",
   "enum_equipmentField_notes_short": "Notes",
+  "enum_equipmentField_tags_short": "Tags",
   "enum_diveCenterField_centerName": "Name",
   "enum_diveCenterField_city": "City",
   "enum_diveCenterField_country": "Country",

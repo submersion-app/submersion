@@ -68,6 +68,8 @@ class UddfFullExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported item's tag ids (issue #1942).
+    Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -365,6 +367,7 @@ class UddfFullExportService {
         UddfExportBuilders.buildApplicationData(
           builder,
           equipment: equipment,
+          equipmentTagIdsByItem: equipmentTagIdsByItem,
           certifications: certifications,
           diveCenters: diveCenters,
           species: species,
@@ -414,6 +417,8 @@ class UddfFullExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported item's tag ids (issue #1942).
+    Map<String, List<String>> equipmentTagIdsByItem = const {},
     Diver? owner,
     List<Buddy>? buddies,
     Map<String, List<BuddyWithRole>>? diveBuddies,
@@ -437,6 +442,7 @@ class UddfFullExportService {
     customSiteTypes: customSiteTypes,
     siteTypeIdsBySite: siteTypeIdsBySite,
     siteTagIdsBySite: siteTagIdsBySite,
+    equipmentTagIdsByItem: equipmentTagIdsByItem,
     owner: owner,
     buddies: buddies,
     diveBuddies: diveBuddies,
@@ -479,6 +485,8 @@ class UddfFullExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported item's tag ids (issue #1942).
+    Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -511,6 +519,7 @@ class UddfFullExportService {
       customSiteTypes: customSiteTypes,
       siteTypeIdsBySite: siteTypeIdsBySite,
       siteTagIdsBySite: siteTagIdsBySite,
+      equipmentTagIdsByItem: equipmentTagIdsByItem,
       customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       diveProfileEvents: diveProfileEvents,
@@ -552,6 +561,8 @@ class UddfFullExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported item's tag ids (issue #1942).
+    Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
@@ -584,6 +595,7 @@ class UddfFullExportService {
       customSiteTypes: customSiteTypes,
       siteTypeIdsBySite: siteTypeIdsBySite,
       siteTagIdsBySite: siteTagIdsBySite,
+      equipmentTagIdsByItem: equipmentTagIdsByItem,
       customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       diveProfileEvents: diveProfileEvents,

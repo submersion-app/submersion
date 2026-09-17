@@ -27,5 +27,7 @@ void main() {
     );
     expect(repos!.equipmentObservationRepository, isNotNull);
     expect(repos!.serviceRecordRepository, isNotNull);
+    // Without it imported gear arrives with none of its tags (#1942).
+    expect(repos!.equipmentTagRepository, isNotNull);
   });
 }

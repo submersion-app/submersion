@@ -316,9 +316,10 @@ class _RefUsage {
     }
   }
 
-  /// Items reached through another item follow it: an item's components and
-  /// parent, a set's items, a course's instructor, a site's tags. Repeats
-  /// until nothing new is reached, so chains of any depth are followed.
+  /// Items reached through another item follow it: an item's components,
+  /// parent and tags, a set's items, a course's instructor, a site's tags.
+  /// Repeats until nothing new is reached, so chains of any depth are
+  /// followed.
   void _followLinks(ImportPayload source) {
     var changed = true;
     while (changed) {
@@ -345,6 +346,14 @@ class _RefUsage {
             for (final c in components)
               if (c is Map) c[componentRefTypes.keys.single],
         ]);
+        // An item's own tags follow it (issue #1942), like a site's.
+        for (final MapEntry(:key, value: type)
+            in equipmentListRefTypes.entries) {
+          final refs = item[key];
+          follow(ImportEntityType.equipment, type, item, [
+            if (refs is List) ...refs,
+          ]);
+        }
       }
       for (final set in source.entitiesOf(ImportEntityType.equipmentSets)) {
         final refs = set['equipmentRefs'];

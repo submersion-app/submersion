@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 
 /// Settings row that opens the navigation customizer.
@@ -20,9 +21,21 @@ class NavCustomizationTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Preview whichever surface the user is actually looking at, using the
     // same 800px switch MainScaffold uses to choose rail over bottom bar.
-    final destinations = ResponsiveBreakpoints.isDesktop(context)
-        ? ref.watch(navRailDestinationsProvider)
-        : ref.watch(navPrimaryDestinationsProvider);
+    //
+    // Written as if/else rather than a ternary over a wrapped call so each
+    // branch is a single, independently-attributable statement -- a
+    // multi-line ternary argument otherwise reports as partly uncovered even
+    // when both branches run.
+    final List<NavDestination> destinations;
+    if (ResponsiveBreakpoints.isDesktop(context)) {
+      destinations = ref.watch(navRailDestinationsProvider);
+    } else {
+      final slotCount = currentPhonePrimarySlotCount(
+        ref,
+        MediaQuery.sizeOf(context),
+      );
+      destinations = ref.watch(navPrimaryDestinationsProvider(slotCount));
+    }
 
     // Skip pinned Home, and the trailing More sentinel the phone list carries.
     final labels = destinations

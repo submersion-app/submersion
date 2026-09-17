@@ -7,6 +7,8 @@ import 'package:submersion/features/equipment/domain/models/equipment_filter_sta
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
@@ -43,6 +45,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   bool _serviceDueOnly = false;
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
+  Set<String> _tagIds = const {};
 
   @override
   void initState() {
@@ -52,6 +55,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     _serviceDueOnly = filter.serviceDueOnly;
     _type = filter.type;
     _attrConditions = filter.attrConditions;
+    _tagIds = filter.tagIds;
   }
 
   /// Conditions belong to a category, so picking another one drops them.
@@ -115,6 +119,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                       _buildStatusSection(),
                       const SizedBox(height: 24),
                       _buildCategorySection(),
+                      _buildTagSection(),
                     ],
                   ),
                 ),
@@ -262,6 +267,48 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     );
   }
 
+  /// Equipment tags (issue #1942), any-of. Offers every equipment tag plus
+  /// any tag already selected, so a filter on a tag that has since lost its
+  /// equipment scope is still clearable from here.
+  Widget _buildTagSection() {
+    final tags = (ref.watch(tagsProvider).value ?? const <Tag>[])
+        .where((t) => t.appliesTo(TagScope.equipment) || _tagIds.contains(t.id))
+        .toList();
+    if (tags.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.equipment_filter_section_tags,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final tag in tags)
+                FilterChip(
+                  key: ValueKey('equipment_filter_tag_${tag.id}'),
+                  avatar: CircleAvatar(backgroundColor: tag.color, radius: 6),
+                  label: Text(tag.name),
+                  selected: _tagIds.contains(tag.id),
+                  onSelected: (selected) => setState(() {
+                    _tagIds = selected
+                        ? {..._tagIds, tag.id}
+                        : _tagIds.where((id) => id != tag.id).toSet();
+                  }),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Clears the draft only; the list stays as it is until Apply.
   void _clearAll() {
     setState(() {
@@ -269,6 +316,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       _serviceDueOnly = false;
       _type = null;
       _attrConditions = const [];
+      _tagIds = const {};
     });
   }
 
@@ -280,6 +328,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       serviceDueOnly: _serviceDueOnly,
       type: _type,
       attrConditions: _attrConditions,
+      tagIds: _tagIds,
     );
     Navigator.of(context).pop();
   }

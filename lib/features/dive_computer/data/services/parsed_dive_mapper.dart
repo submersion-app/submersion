@@ -31,6 +31,13 @@ DownloadedDive parsedDiveToDownloaded(
           ? sampleTemps.reduce((a, b) => a > b ? a : b)
           : null);
 
+  // Gas-mix linking, tankless synthesis, and gas-switch derivation live in
+  // the shared resolver so the download and reparse paths cannot drift
+  // apart; the diluent gas (issue #1879) is derived from that same resolved
+  // list so it always agrees with the Diluent cylinder shown in Gas & Gear.
+  final tanks = resolveParsedTanks(parsed, trimAtSurfacing: trimAtSurfacing);
+  final diluent = resolveDiluentGas(tanks);
+
   return DownloadedDive(
     startTime: DateTime.utc(
       parsed.dateTimeYear,
@@ -92,10 +99,10 @@ DownloadedDive parsedDiveToDownloaded(
           ),
         )
         .toList(),
-    // Gas-mix linking, tankless synthesis, and gas-switch derivation live in
-    // the shared resolver so the download and reparse paths cannot drift apart.
-    tanks: resolveParsedTanks(parsed, trimAtSurfacing: trimAtSurfacing),
+    tanks: tanks,
     gasSwitches: resolveGasSwitches(parsed),
+    diluentO2: diluent?.o2,
+    diluentHe: diluent?.he,
     events: parsed.events
         .map(
           (e) => DownloadedEvent(
