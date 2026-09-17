@@ -290,6 +290,16 @@ class SwissBathy3dSource implements BathymetrySource {
     // view from either taking minutes (one at a time) or hammering the OGD
     // server with dozens of simultaneous requests.
     final failedTileKeys = <String>[];
+    // Distinct failure messages already logged this call -- since the
+    // metadata lookup and zip download are now shared per lake (#1764),
+    // one underlying failure reaches every tile awaiting that same shared
+    // future, and each would otherwise log its own near-identical warning
+    // line (up to 81 times for one bad request) and flood the persistent
+    // log file (GitHub Copilot review). failedTileKeys below still
+    // records every affected tile for the aggregate exception message;
+    // this only dedupes the WARNING LOG line, never which tiles fetch()
+    // reports as failed.
+    final loggedFailureMessages = <String>{};
     // Lakes _fetchTile actually did fresh work for (not served purely from
     // cache) -- see that method's own doc on this parameter. Gates the
     // precache call below so a fully-cached fetch() (the common case on a
@@ -337,7 +347,9 @@ class SwissBathy3dSource implements BathymetrySource {
         // timeout) that fetch()'s own caller would otherwise never see:
         // BathymetryFetchException's message alone used to reach no log at
         // all once it got here.
-        _log.warning('tile ${coord.tileE}_${coord.tileN} failed', error: e);
+        if (loggedFailureMessages.add(e.toString())) {
+          _log.warning('tile ${coord.tileE}_${coord.tileN} failed', error: e);
+        }
         failedTileKeys.add('${coord.tileE}_${coord.tileN}');
         return null;
       }
@@ -419,15 +431,18 @@ class SwissBathy3dSource implements BathymetrySource {
   /// just the first) in case an earlier one's declared bbox overlapped but
   /// its actual content did not — see that method's doc.
   ///
-  /// [freshlyResolvedLakes], when given, records [lake]'s name the moment
-  /// this call passes both cache-check early-returns below and starts
-  /// doing genuinely fresh work (a real STAC/download attempt, whether it
-  /// ultimately succeeds, finds a definitive gap, or throws) — [fetch]
-  /// uses it to tell "this lake's shared maps may hold real data worth
-  /// reusing" apart from "every tile was already cached," so
-  /// [_precacheSiblingSites] only ever runs when there is something to
-  /// actually reuse (Copilot review: a 100%-cache-hit fetch() call used to
-  /// still fire a full known-site-locations lookup for nothing).
+  /// [freshlyResolvedLakes], when given, records [lake]'s name once this
+  /// call's own candidate lookup and any download/parse it triggered have
+  /// actually SUCCEEDED -- including the definitive "no tile here" gap,
+  /// which is still real, reusable knowledge -- but NOT when that attempt
+  /// throws. [fetch] uses it to tell "this lake's shared maps may hold
+  /// real data worth reusing" apart from both "every tile was already
+  /// cached" (Copilot review: a 100%-cache-hit fetch() call used to still
+  /// fire a full known-site-locations lookup for nothing) and "the one
+  /// attempt made for this lake just failed" (Copilot review: marking on
+  /// a transient failure used to let [_precacheSiblingSites] retry that
+  /// same failing lookup once per known sibling instead of leaving it to
+  /// the caller's own retry).
   Future<BathymetryGrid?> _fetchTile(
     int tileE,
     int tileN,
@@ -458,7 +473,6 @@ class SwissBathy3dSource implements BathymetrySource {
     }
     if (await _tileCache.hasCachedAnswer(tileKey)) return null;
 
-    freshlyResolvedLakes?[lake.name] = lake;
     final List<SwissBathyAsset> candidates;
     final ({SwissBathyAsset asset, RawEsriGrid subRaw})? resolved;
     try {
@@ -478,11 +492,24 @@ class SwissBathy3dSource implements BathymetrySource {
       );
     } on SwissStacException catch (e) {
       // Transient: network error, HTTP failure, unparseable STAC response.
-      // Must not be cached — the next visit should retry.
+      // Must not be cached — the next visit should retry. Deliberately
+      // NOT marking freshlyResolvedLakes here (GitHub Copilot review): a
+      // transient failure leaves nothing usable in shared/parsedEntries
+      // for a sibling to reuse, so letting the precache pass fire anyway
+      // would just retry the very lookup that just failed, once per known
+      // sibling, competing with the caller's own imminent retry instead
+      // of helping it.
       throw BathymetryFetchException('swissBATHY3D fetch failed: $e');
     } on FormatException catch (e) {
       throw BathymetryFetchException('swissBATHY3D grid parse failed: $e');
     }
+
+    // Marked only once the candidate lookup and any download/parse it
+    // triggered have genuinely SUCCEEDED (including the definitive-gap
+    // case just below) -- moved here from right after the cache-check
+    // early-returns above so a transient failure (caught above) never
+    // marks this lake "fresh" in the first place (GitHub Copilot review).
+    freshlyResolvedLakes?[lake.name] = lake;
 
     if (resolved == null) {
       // Either no candidate at all, or none of them actually cover this

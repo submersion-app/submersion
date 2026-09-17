@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/lv95_transform.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cache_repository.dart';
@@ -1156,6 +1158,41 @@ nodata_value -9999
       expect(depths, contains(closeTo(433.58 - 400.0, 1e-6)));
     });
 
+    test(
+      'a single shared metadata-lookup failure is logged once, not once '
+      'per tile sharing it (GitHub Copilot review: up to 81 tiles of the '
+      'same lake sharing one failed lookup used to each log their own '
+      'near-identical warning line, flooding the persistent log file)',
+      () async {
+        final source = buildSource((req) async {
+          if (req.url.path.endsWith('/items')) {
+            return http.Response('server error', 500);
+          }
+          return http.Response('', 404);
+        });
+
+        final failureWarnings = <LogEntry>[];
+        final subscription = LoggerService.logStream.listen((entry) {
+          if (entry.level == LogLevel.warning &&
+              entry.message.contains('failed')) {
+            failureWarnings.add(entry);
+          }
+        });
+
+        // A wide span over a single lake: every tile shares the SAME
+        // failed metadata lookup (#1764), so without deduplication this
+        // would log one warning per tile instead of one for the whole
+        // call.
+        await expectLater(
+          source.fetch(zurichseePoint, spanMeters: 8000),
+          throwsA(isA<BathymetryFetchException>()),
+        );
+        await subscription.cancel();
+
+        expect(failureWarnings, hasLength(1));
+      },
+    );
+
     test('throws when every tile in the span fails transiently, so the '
         'resolver falls through instead of caching a false negative', () async {
       const boundaryPoint = GeoPoint(47.354865314, 8.563694834);
@@ -1674,6 +1711,59 @@ nodata_value -9999
           siblingCached!.grid.depthAt(0, 0),
           closeTo(405.92 - 200.0, 1e-9),
         );
+      });
+
+      test('a transient failure on the fetch-center tile does not trigger '
+          'pre-caching for its known siblings (GitHub Copilot review: '
+          'marking a lake "fresh" on a failed attempt let the precache '
+          'pass retry that same failing lookup once per known sibling, '
+          'instead of leaving it to the caller\'s own retry)', () async {
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+
+        var itemCalls = 0;
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                itemCalls++;
+                return http.Response('server error', 500);
+              }
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                    2690,
+                    1245,
+                    200.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          knownSiteLocations: () async => [siblingPoint],
+        );
+
+        await expectLater(
+          source.fetch(zurichseePoint, spanMeters: 100),
+          throwsA(isA<BathymetryFetchException>()),
+        );
+        await settle();
+
+        // The precache pass never fired: only the fetch-center tile's
+        // own (failed) attempt hit the metadata endpoint.
+        expect(itemCalls, 1);
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final siblingCached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(siblingCached, isNull);
       });
 
       test('a stale tile that actually re-downloads a changed asset also '
