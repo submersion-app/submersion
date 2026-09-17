@@ -6,7 +6,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -25,6 +27,7 @@ Future<void> _pump(
   Set<String> selectedIds = const {},
   bool hideSpare = false,
   EquipmentPickerFilter filter = EquipmentPickerFilter.none,
+  EquipmentArrangement? arrangement,
   void Function(EquipmentItem)? onSelected,
 }) async {
   // Tall enough to render every row without scrolling. The picker groups
@@ -39,6 +42,8 @@ Future<void> _pump(
       overrides: [
         activeEquipmentProvider.overrideWith((ref) async => equipment),
         equipmentPickerFilterProvider.overrideWith((ref) => filter),
+        if (arrangement != null)
+          equipmentArrangementProvider.overrideWithValue(arrangement),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       ],
       child: MaterialApp(
@@ -231,5 +236,24 @@ void main() {
     await _pump(tester, equipment: [pouch('b', 'X2'), pouch('a', 'X1')]);
     expect(find.text('Palantic Drop-Bottom · S/N X1'), findsOneWidget);
     expect(find.text('Palantic Drop-Bottom · S/N X2'), findsOneWidget);
+  });
+
+  testWidgets('ungrouped, the type name leads the details that follow', (
+    tester,
+  ) async {
+    // No type heading to say what the row is, so the row says it itself.
+    const pouch = EquipmentItem(
+      id: 'p',
+      name: 'Pouches',
+      type: EquipmentType.other,
+      brand: 'Palantic',
+      model: 'Drop-Bottom',
+    );
+    await _pump(
+      tester,
+      equipment: [pouch],
+      arrangement: EquipmentArrangement.defaults.copyWith(groupByType: false),
+    );
+    expect(find.text('Other · Palantic Drop-Bottom'), findsOneWidget);
   });
 }
