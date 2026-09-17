@@ -29,15 +29,17 @@ typedef KnownDiveSiteLocations = Future<List<GeoPoint>> Function();
 /// Takes every lake `fetch()` touched in ONE call, not one call per lake:
 /// the known-site lookup runs exactly once regardless of how many lakes a
 /// wide span reached, and every sibling tile this resolves is funneled
-/// through the same [SwissBathy3dSource.maxConcurrentTileRequests]-bounded
-/// pool ([_runBounded]) already enforced everywhere else in this class,
-/// rather than each lake's pass running as its own uncapped, concurrent
-/// side quest alongside the others.
+/// through [SwissBathy3dSource.maxConcurrentPrecacheRequests]'s OWN,
+/// deliberately smaller pool ([_runBounded]) — see that constant's doc for
+/// why this fire-and-forget background sweep must never contend with a
+/// concurrently running foreground [SwissBathy3dSource.fetch]/
+/// [SwissBathy3dSource.refreshAllCachedTiles] call for the same
+/// [maxConcurrentTileRequests] worker slots.
 Future<void> _precacheSiblingSites(
   SwissBathy3dSource source,
   Iterable<SwissLakeLevel> lakes,
-  Map<String, Future<Uint8List>> sharedZipBytes,
-  Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
+  _SharedFetchState shared,
+  Map<String, Future<RawEsriGrid>> parsedEntries,
 ) async {
   final knownSiteLocations = source._knownSiteLocations;
   if (knownSiteLocations == null) return;
@@ -88,15 +90,15 @@ Future<void> _precacheSiblingSites(
 
   await _runBounded(
     siblingTiles.values.toList(),
-    SwissBathy3dSource.maxConcurrentTileRequests,
+    SwissBathy3dSource.maxConcurrentPrecacheRequests,
     (tile) async {
       try {
         await source._fetchTile(
           tile.tileE,
           tile.tileN,
           tile.lake,
-          sharedZipBytes,
-          sharedCandidates,
+          shared,
+          parsedEntries,
         );
       } catch (_) {
         // Best-effort: this site's own future visit will resolve and cache

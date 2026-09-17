@@ -73,32 +73,108 @@ Future<T> _memoizeFuture<T>(
   return future;
 }
 
-/// Downloads the zip at [href], memoized in [sharedZipBytes] by href so a
-/// shared lake-wide asset travels over the network only once per `fetch()`/
-/// `refreshAllCachedTiles()` call regardless of how many tiles resolve to
-/// it — see those methods' docs.
+/// Downloads the zip at [href], memoized in [shared]'s `zipBytes` by href
+/// so a shared lake-wide asset travels over the network only once per
+/// `fetch()`/`refreshAllCachedTiles()` call regardless of how many tiles
+/// resolve to it — see those methods' docs.
 Future<Uint8List> _downloadZipBytes(
   SwissBathy3dSource source,
   String href,
-  Map<String, Future<Uint8List>> sharedZipBytes,
+  _SharedFetchState shared,
 ) => _memoizeFuture(
-  sharedZipBytes,
+  shared.zipBytes,
   href,
   () => source._stac.downloadBytes(href),
 );
+
+/// Parses (and memoizes, see [_memoizeFuture]) zip entry [entry]'s own
+/// grid, keyed by `'$href#${entry.name}'` in [parsedEntries] -- shared not
+/// just across concurrent callers of the SAME tile (like
+/// [_downloadZipBytes] already does for the raw bytes) but across every
+/// DIFFERENT tile that also happens to need this same entry AND shares
+/// this same [parsedEntries] map, which two neighboring tiles'
+/// [_entryTileRe]-based "within one tile" windows routinely overlap on.
+/// See `swissbathy3d_source.dart`'s own class doc for why sharing this
+/// parsed-entry WORK is safe even though sharing which entries a tile
+/// even considers (Bug 15) is not, and [_fetchTile]'s doc for why
+/// [parsedEntries] is passed as its own parameter rather than living on
+/// [_SharedFetchState] -- callers deliberately vary its actual sharing
+/// scope.
+Future<RawEsriGrid> _parsedEntry(
+  String href,
+  ArchiveFile entry,
+  Map<String, Future<RawEsriGrid>> parsedEntries,
+) => _memoizeFuture(parsedEntries, '$href#${entry.name}', () async {
+  final text = utf8.decode(entry.readBytes() ?? const [], allowMalformed: true);
+  return EsriAsciiGridParser.parseRaw(text);
+});
+
+/// Matches swisstopo's internal entry naming, e.g.
+/// `swissBATHY3D_CHLV95_LN02_2726_1221.asc` — confirmed, across every lake
+/// in [swissLakeLevels] plus several published outside it, to encode that
+/// entry's own `xllcorner`/`yllcorner` truncated to the kilometre (e.g.
+/// xllcorner 2726016 for `..._2726_1221.asc`).
+final RegExp _entryTileRe = RegExp(
+  r'_(\d{3,4})_(\d{3,4})\.(asc|grd)$',
+  caseSensitive: false,
+);
+
+/// The `.asc`/`.grd` entries of [archive] relevant to tile ([tileE],
+/// [tileN]), in the archive's own order, or empty when it contains none.
+///
+/// Considering every entry regardless of relevance was correct (see Bug 15
+/// below) but expensive: some lakes' zips hold hundreds of entries and
+/// hundreds of MB uncompressed, all to answer one 1-km tile's query. Only
+/// entries whose filename (see [_entryTileRe]) declares a tile within one
+/// tile of ([tileE], [tileN]) in every direction are kept — generous
+/// headroom over the tens-of-metres misalignment a live check found
+/// between a raster's real `xllcorner` and its filename's kilometre
+/// label. An entry whose name does not match [_entryTileRe] at all is
+/// still always included: an unrecognized name proves nothing about
+/// location, and excluding it would risk resurrecting Bug 15 for that
+/// entry. If swisstopo ever changes its naming scheme, every entry falls
+/// back to this always-included path and this function's cost degrades
+/// to exactly what considering every entry unconditionally always cost —
+/// slower, never wrong.
+///
+/// The caller (`_firstOverlappingCandidate`, via
+/// [extractRawEsriSubgridFromGrids]) still re-checks every returned
+/// entry's OWN real `xllcorner`/`yllcorner`/`ncols`/`nrows` against the
+/// requested tile before accepting it — this prefilter only decides what
+/// gets decompressed and parsed at all, never what counts as a match. That
+/// is also why a zip whose entries do not follow the one-per-lake
+/// assumption (Bug 15: swisstopo's own internal sub-tiling can itself be
+/// smaller than 1 km) still resolves correctly: the surviving entries
+/// after this prefilter are searched exactly the same way the whole set
+/// used to be.
+Iterable<ArchiveFile> _entriesNearTile(
+  Archive archive, {
+  required int tileE,
+  required int tileN,
+}) {
+  return archive.where((entry) {
+    if (!entry.isFile) return false;
+    final lower = entry.name.toLowerCase();
+    if (!lower.endsWith('.asc') && !lower.endsWith('.grd')) return false;
+    final match = _entryTileRe.firstMatch(entry.name);
+    if (match == null) return true;
+    final entryE = int.parse(match.group(1)!);
+    final entryN = int.parse(match.group(2)!);
+    return (entryE - tileE).abs() <= 1 && (entryN - tileN).abs() <= 1;
+  });
+}
 
 /// Downloads (shared, see [_downloadZipBytes]) and parses only the entries
 /// of the zip at [href] relevant to tile ([tileE], [tileN]) — potentially
 /// several, each an entire lake's worth of cells, or swisstopo's own
 /// internal sub-tiles of one, see [extractRawEsriSubgridFromGrids]'s doc —
 /// never the whole zip regardless of how many entries it holds. See
-/// [extractGridZipTextsFiltered]'s doc for the filename-based prefilter and
-/// its always-safe fallback, and `swissbathy3d_source.dart`'s own class doc
-/// for why this filtered parse step is deliberately NOT shared across
-/// tiles the way the download itself is.
+/// [_entriesNearTile]'s doc for the filename-based prefilter and its
+/// always-safe fallback, and [_parsedEntry]'s doc for why the actual
+/// decompress-and-parse step per entry IS shared across tiles, unlike
+/// that prefilter decision itself.
 ///
-/// [extractGridZipTextsFiltered] decodes [zipBytes] with the `archive`
-/// package, which throws its own `ArchiveException` (not
+/// `ZipDecoder().decodeBytes` throws its own `ArchiveException` (not
 /// [FormatException]) on malformed zip bytes — e.g. an HTTP 200 response
 /// body that is actually an HTML error page, or a truncated download.
 /// Every callsite of this method already narrows on [FormatException] to
@@ -112,16 +188,17 @@ Future<List<RawEsriGrid>> _downloadAndParseFiltered(
   String href,
   int tileE,
   int tileN,
-  Map<String, Future<Uint8List>> sharedZipBytes,
+  _SharedFetchState shared,
+  Map<String, Future<RawEsriGrid>> parsedEntries,
 ) async {
-  final zipBytes = await _downloadZipBytes(source, href, sharedZipBytes);
+  final zipBytes = await _downloadZipBytes(source, href, shared);
   try {
-    final gridTexts = extractGridZipTextsFiltered(
-      zipBytes,
-      tileE: tileE,
-      tileN: tileN,
-    );
-    return [for (final text in gridTexts) EsriAsciiGridParser.parseRaw(text)];
+    final archive = ZipDecoder().decodeBytes(zipBytes);
+    final grids = <RawEsriGrid>[];
+    for (final entry in _entriesNearTile(archive, tileE: tileE, tileN: tileN)) {
+      grids.add(await _parsedEntry(href, entry, parsedEntries));
+    }
+    return grids;
   } on FormatException {
     rethrow;
   } catch (e) {
@@ -130,7 +207,7 @@ Future<List<RawEsriGrid>> _downloadAndParseFiltered(
 }
 
 /// The [SwissBathyAsset] candidates covering [lake], memoized in
-/// [sharedCandidates] by lake name across every tile of one `fetch()`/
+/// [shared]'s `candidates` by lake name across every tile of one `fetch()`/
 /// `refreshAllCachedTiles()` call — the STAC items lookup this wraps is
 /// queried against [lake]'s own (generous, per [SwissLakeLevel]'s doc)
 /// bounding box instead of one tile's tiny ~1 km box, so it is safe to
@@ -168,8 +245,8 @@ Future<List<RawEsriGrid>> _downloadAndParseFiltered(
 Future<List<SwissBathyAsset>> _findAssetCandidatesForLake(
   SwissBathy3dSource source,
   SwissLakeLevel lake,
-  Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
-) => _memoizeFuture(sharedCandidates, lake.name, () {
+  _SharedFetchState shared,
+) => _memoizeFuture(shared.candidates, lake.name, () {
   const epsilon = 0.0005;
   return _findAssetCandidates(source, [
     lake.minLon - epsilon,
@@ -207,67 +284,6 @@ GeoPoint _tileCenterWgs84(int tileE, int tileN) {
     (tileN + 0.5) * SwissBathy3dSource.tileSizeMeters,
   );
   return GeoPoint(center.latitude, center.longitude);
-}
-
-/// Matches swisstopo's internal entry naming, e.g.
-/// `swissBATHY3D_CHLV95_LN02_2726_1221.asc` — confirmed, across every lake
-/// in [swissLakeLevels] plus several published outside it, to encode that
-/// entry's own `xllcorner`/`yllcorner` truncated to the kilometre (e.g.
-/// xllcorner 2726016 for `..._2726_1221.asc`).
-final RegExp _entryTileRe = RegExp(
-  r'_(\d{3,4})_(\d{3,4})\.(asc|grd)$',
-  caseSensitive: false,
-);
-
-/// The `.asc`/`.grd` entries of the zip relevant to tile ([tileE],
-/// [tileN]), in the archive's own order, or an empty list when it contains
-/// none at all.
-///
-/// Reading every entry regardless of relevance was correct (see Bug 15
-/// below) but expensive: some lakes' zips hold hundreds of entries and
-/// hundreds of MB uncompressed, all to answer one 1-km tile's query.
-/// Entries are decompressed ([entry.readBytes]) only when their filename
-/// (see [_entryTileRe]) declares a tile within one tile of ([tileE],
-/// [tileN]) in every direction — generous headroom over the tens-of-metres
-/// misalignment a live check found between a raster's real `xllcorner`
-/// and its filename's kilometre label. An entry whose name does not match
-/// [_entryTileRe] at all is still always included: an unrecognized name
-/// proves nothing about location, and excluding it would risk resurrecting
-/// Bug 15 (below) for that entry. If swisstopo ever changes its naming
-/// scheme, every entry falls back to this always-included path and this
-/// function's cost degrades to exactly what reading every entry
-/// unconditionally always cost — slower, never wrong.
-///
-/// The caller (`_firstOverlappingCandidate`, via
-/// [extractRawEsriSubgridFromGrids]) still re-checks every returned
-/// entry's OWN real `xllcorner`/`yllcorner`/`ncols`/`nrows` against the
-/// requested tile before accepting it — this prefilter only decides what
-/// gets decompressed and parsed at all, never what counts as a match. That
-/// is also why a zip whose entries do not follow the one-per-lake
-/// assumption (Bug 15: swisstopo's own internal sub-tiling can itself be
-/// smaller than 1 km) still resolves correctly: the surviving entries
-/// after this prefilter are searched exactly the same way the whole set
-/// used to be.
-List<String> extractGridZipTextsFiltered(
-  Uint8List zipBytes, {
-  required int tileE,
-  required int tileN,
-}) {
-  final archive = ZipDecoder().decodeBytes(zipBytes);
-  final texts = <String>[];
-  for (final entry in archive) {
-    if (!entry.isFile) continue;
-    final lower = entry.name.toLowerCase();
-    if (!lower.endsWith('.asc') && !lower.endsWith('.grd')) continue;
-    final match = _entryTileRe.firstMatch(entry.name);
-    if (match != null) {
-      final entryE = int.parse(match.group(1)!);
-      final entryN = int.parse(match.group(2)!);
-      if ((entryE - tileE).abs() > 1 || (entryN - tileN).abs() > 1) continue;
-    }
-    texts.add(utf8.decode(entry.readBytes() ?? const [], allowMalformed: true));
-  }
-  return texts;
 }
 
 /// Merges same-resolution tile grids into one rectangular [BathymetryGrid]

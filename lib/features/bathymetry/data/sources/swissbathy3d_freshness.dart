@@ -16,14 +16,18 @@ bool _isStale(DateTime? checkedAt) {
 /// beats no tile, and per the fair-use requirement this must never turn
 /// into an unbounded re-download loop.
 ///
-/// [sharedZipBytes]/[sharedCandidates] are the SAME maps `fetch()` passed
-/// into [SwissBathy3dSource._fetchTile] for this call, not fresh throwaway
-/// ones (Copilot review): a span whose tiles have all gone stale together
-/// -- the common shape for a repeat visit, since every tile of a lake was
+/// [shared] is the SAME [_SharedFetchState] `fetch()` passed into
+/// [SwissBathy3dSource._fetchTile] for this call, not a fresh throwaway one
+/// (Copilot review): a span whose tiles have all gone stale together --
+/// the common shape for a repeat visit, since every tile of a lake was
 /// cached in the same first visit and so expires together too -- used to
 /// have each tile's staleness check fire its own independent STAC items
 /// lookup for the same lake, reproducing #1764's exact amplification for
 /// the revisit path even though the initial-fetch path was fixed.
+///
+/// [parsedEntries] is likewise `fetch()`'s own single-lake-scoped map --
+/// see [SwissBathy3dSource._fetchTile]'s doc for why it travels as its own
+/// parameter rather than living on [shared].
 Future<BathymetryGrid?> _refreshIfStale(
   SwissBathy3dSource source,
   String tileKey,
@@ -31,8 +35,8 @@ Future<BathymetryGrid?> _refreshIfStale(
   int tileN,
   SwissLakeLevel lake,
   SwissBathyTileCacheEntry cached,
-  Map<String, Future<Uint8List>> sharedZipBytes,
-  Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
+  _SharedFetchState shared,
+  Map<String, Future<RawEsriGrid>> parsedEntries,
 ) async {
   return (await _checkAndMaybeUpdate(
     source,
@@ -41,8 +45,8 @@ Future<BathymetryGrid?> _refreshIfStale(
     tileN,
     lake,
     cached,
-    sharedZipBytes,
-    sharedCandidates,
+    shared,
+    parsedEntries,
   )).grid;
 }
 
@@ -52,17 +56,20 @@ Future<BathymetryGrid?> _refreshIfStale(
 /// `refreshAllCachedTiles()`, the manual "reload map data" action, to
 /// build a summary of how many tiles were actually updated.
 ///
-/// [sharedZipBytes] memoizes each downloaded asset's BYTES by href, so
+/// [shared]'s `zipBytes` memoizes each downloaded asset's BYTES by href, so
 /// `refreshAllCachedTiles()` can pass in one shared across its whole sweep
 /// — distinct cached tiles commonly share one href (one asset per lake,
 /// see `swissbathy3d_source.dart`'s own class doc), and a version change
 /// discovered while revalidating one of them would otherwise redundantly
 /// re-download the exact same zip once per affected tile instead of once
-/// per sweep — the same fair-use concern `fetch()`'s `sharedZipBytes`
-/// already addresses for the initial-fetch path. Parsing itself is never
-/// shared across tiles this way (see that class doc for why) — each call
-/// here parses only its own ([tileE], [tileN])-filtered subset via
-/// [_downloadAndParseFiltered].
+/// per sweep — the same fair-use concern `fetch()`'s shared state already
+/// addresses for the initial-fetch path.
+///
+/// [parsedEntries], unlike [shared], is NOT safe for `refreshAllCachedTiles`
+/// to share across its whole sweep — see [_refreshAllCachedTilesImpl]'s own
+/// doc for why that caller passes a fresh, single-tile-scoped map instead.
+/// [_refreshIfStale] (the `fetch()`-time path), by contrast, passes its
+/// caller's own single-lake-scoped map, exactly like [shared].
 Future<({BathymetryGrid? grid, _TileCheckOutcome outcome})>
 _checkAndMaybeUpdate(
   SwissBathy3dSource source,
@@ -71,18 +78,20 @@ _checkAndMaybeUpdate(
   int tileN,
   SwissLakeLevel lake,
   SwissBathyTileCacheEntry cached,
-  Map<String, Future<Uint8List>> sharedZipBytes,
-  Map<String, Future<List<SwissBathyAsset>>> sharedCandidates,
+  _SharedFetchState shared,
+  Map<String, Future<RawEsriGrid>> parsedEntries,
 ) async {
-  Future<List<RawEsriGrid>> download(String href) =>
-      _downloadAndParseFiltered(source, href, tileE, tileN, sharedZipBytes);
+  Future<List<RawEsriGrid>> download(String href) => _downloadAndParseFiltered(
+    source,
+    href,
+    tileE,
+    tileN,
+    shared,
+    parsedEntries,
+  );
   final List<SwissBathyAsset> candidates;
   try {
-    candidates = await _findAssetCandidatesForLake(
-      source,
-      lake,
-      sharedCandidates,
-    );
+    candidates = await _findAssetCandidatesForLake(source, lake, shared);
   } on SwissStacException {
     // metadata lookup failed -- retry on next check
     return (grid: cached.grid, outcome: _TileCheckOutcome.failed);
@@ -192,19 +201,33 @@ _checkAndMaybeUpdate(
 ///
 /// Distinct cached tiles routinely share one STAC asset href (one asset
 /// per lake, not per tile — see `swissbathy3d_source.dart`'s own class
-/// doc), so `sharedZipBytes` memoizes the downloaded bytes by href across
-/// the whole sweep, exactly like `fetch()`'s own `sharedZipBytes` does for
-/// the initial-fetch path: a version change discovered on one tile of a
-/// lake re-downloads that lake's zip at most once for the entire sweep,
-/// not once per affected tile. Each tile still parses only its own
-/// filtered subset of entries independently — see that class doc.
+/// doc), so [_SharedFetchState] memoizes the downloaded bytes by href
+/// across the whole sweep, exactly like `fetch()`'s own shared state does
+/// for the initial-fetch path: a version change discovered on one tile of
+/// a lake re-downloads that lake's zip at most once for the entire sweep,
+/// not once per affected tile.
+///
+/// The decompress-and-parse step per zip entry ([_parsedEntry]) does NOT
+/// get this same sweep-wide sharing, unlike [shared] above — this sweep
+/// can touch every tile ever cached, across every lake the diver has ever
+/// visited, not one lake's own span like `fetch()`. Sharing parsed grids
+/// at that scope would let several large lakes' fully decompressed grids
+/// (Bodensee alone: 751 entries, 237 MB uncompressed — see the class doc)
+/// accumulate in memory simultaneously whenever a sweep happens to
+/// re-resolve more than one of them, resurrecting the exact "time out or
+/// crash on a phone" failure mode `_entriesNearTile`'s own filtering
+/// exists to prevent (code review on this very sharing mechanism). Each
+/// tile below is therefore given its own, single-tile-scoped map instead
+/// — the decompress/parse step for THIS sweep runs exactly as
+/// unshared-per-tile as it always did before entry-parse memoization
+/// existed at all; only the metadata lookup and the raw zip bytes get the
+/// sweep-wide sharing `fetch()` also gets.
 Future<SwissBathyRefreshSummary> _refreshAllCachedTilesImpl(
   SwissBathy3dSource source,
 ) async {
   final tileKeys = await source._tileCache.allTileKeys();
 
-  final sharedZipBytes = <String, Future<Uint8List>>{};
-  final sharedCandidates = <String, Future<List<SwissBathyAsset>>>{};
+  final shared = _SharedFetchState();
 
   final outcomes = await _runBounded(
     tileKeys,
@@ -260,8 +283,8 @@ Future<SwissBathyRefreshSummary> _refreshAllCachedTilesImpl(
         tileN,
         lake,
         cached,
-        sharedZipBytes,
-        sharedCandidates,
+        shared,
+        <String, Future<RawEsriGrid>>{},
       );
       return result.outcome;
     },

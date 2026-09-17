@@ -21,6 +21,36 @@ part 'swissbathy3d_freshness.dart';
 
 const _log = LoggerService('SwissBathy3dSource');
 
+/// Everything one `fetch()`/`refreshAllCachedTiles()` call shares across
+/// every tile and lake it touches — memoized strictly for that one call's
+/// lifetime (a fresh instance every time, never an instance field or other
+/// longer-lived cache) and then dropped: downloaded zip bytes by href
+/// ([_downloadZipBytes]) and STAC candidate lookups by lake name
+/// ([_findAssetCandidatesForLake]). Bundled into one object so a future
+/// addition of this same shape is one field here, not another parameter
+/// threaded by hand through every function in this file group (Copilot
+/// review).
+///
+/// Each zip entry's own parsed grid ([_parsedEntry]) is deliberately NOT a
+/// field here, even though it is memoized the same way: [fetch] shares one
+/// entry-parse cache across everything IT touches (one lake's span, plus
+/// whatever [_precacheSiblingSites] reuses from it), which is the same
+/// bounded blast radius as [zipBytes]/[candidates] above. But
+/// [refreshAllCachedTiles] shares this ONE [_SharedFetchState] across its
+/// ENTIRE sweep of every tile ever cached, across every lake the diver has
+/// ever visited — sharing the PARSED-GRID cache at that same scope would
+/// let several large lakes' fully decompressed grids accumulate in memory
+/// simultaneously whenever a sweep happens to re-resolve more than one of
+/// them, resurrecting the exact "time out or crash on a phone" failure
+/// mode this class's own doc describes Bug 15's `_entriesNearTile` filter
+/// as existing to prevent. Each caller therefore passes its own
+/// `parsedEntries` map explicitly (see [_fetchTile]'s and
+/// [_refreshAllCachedTilesImpl]'s own docs for each one's actual scope).
+class _SharedFetchState {
+  final zipBytes = <String, Future<Uint8List>>{};
+  final candidates = <String, Future<List<SwissBathyAsset>>>{};
+}
+
 /// Regional tier: swisstopo swissBATHY3D lake-bed elevation model, via the
 /// STAC API on data.geo.admin.ch (OGD, "Freie Nutzung, Quellenangabe ist
 /// Pflicht" — attribution is Part 2's concern, not fetched here).
@@ -40,8 +70,8 @@ const _log = LoggerService('SwissBathy3dSource');
 /// check found swisstopo instead publishes one asset per LAKE (e.g. all of
 /// Walensee in one "swissbathy3d_walensee" zip). [_fetchTile] downloads
 /// that asset's bytes once per asset href (shared across every tile
-/// coordinate that resolves to it, via [fetch]'s `sharedZipBytes`), then
-/// each tile independently parses and slices out just its own cells with
+/// coordinate that resolves to it, via [_SharedFetchState.zipBytes]), then
+/// each tile independently slices out just its own cells with
 /// [extractRawEsriSubgridFromGrids] before caching — without that slicing
 /// step, every tile in the same lake would cache and stitch the exact same
 /// whole-lake grid regardless of its own coordinates.
@@ -53,9 +83,9 @@ const _log = LoggerService('SwissBathy3dSource');
 /// that together cover the whole lake. Reading only the zip's first
 /// matching entry meant nearly every requested tile fell outside that one
 /// entry's footprint and came back as a false "no data" gap, except the one
-/// coincidentally aligned with it (Bug 15) — [extractGridZipTextsFiltered]
-/// reads every entry plausibly near the requested tile (see its own doc),
-/// and [_downloadAndParseFiltered] parses all of them, so
+/// coincidentally aligned with it (Bug 15) — [_entriesNearTile] reads every
+/// entry plausibly near the requested tile (see its own doc), and
+/// [_downloadAndParseFiltered] parses all of them, so
 /// [extractRawEsriSubgridFromGrids] can search across that set.
 ///
 /// A STAC item's declared `bbox` overlapping a tile's query is not proof its
@@ -71,23 +101,36 @@ const _log = LoggerService('SwissBathy3dSource');
 ///
 /// A lake-wide asset zip is not necessarily small: a live check found some
 /// lakes' zips hold hundreds of internal entries and hundreds of MB
-/// uncompressed (Bodensee: 751 entries, 237 MB zip). Parsing every entry to
+/// uncompressed (Bodensee: 751 entries, 237 MB zip; Walensee's own 46
+/// entries run up to ~10 MB uncompressed EACH). Parsing every entry to
 /// answer one tile query made large lakes slow enough, and memory-heavy
-/// enough, to time out or crash on a phone. [extractGridZipTextsFiltered]
-/// only decompresses entries whose filename-declared tile is within one
-/// tile of the one actually being resolved (a live check across every
-/// lake in [swissLakeLevels] confirmed each entry's name encodes its own
+/// enough, to time out or crash on a phone. [_entriesNearTile] only
+/// decompresses entries whose filename-declared tile is within one tile of
+/// the one actually being resolved (a live check across every lake in
+/// [swissLakeLevels] confirmed each entry's name encodes its own
 /// `xllcorner`/`yllcorner` truncated to the kilometre); an entry whose name
 /// does not match that pattern is still always included, so an unexpected
 /// naming scheme degrades to the slower-but-correct unfiltered behaviour
-/// rather than silently dropping data. This filtering happens per tile,
-/// independently — [_downloadAndParseFiltered] shares only the downloaded
-/// zip BYTES across tiles in one [fetch] call (via `sharedZipBytes`), never
-/// the parsed/filtered entries, because two tiles sharing one href can
-/// legitimately need different entries out of it; sharing the filtered
-/// result would silently starve whichever tile's entries were not part of
-/// the first tile's own neighborhood — the Bug 15 failure mode one layer
-/// deeper.
+/// rather than silently dropping data.
+///
+/// This filename filter is decided per tile, independently — two tiles can
+/// legitimately end up wanting different entries out of the same zip, so
+/// sharing which entries a tile even LOOKS at would risk resurrecting Bug
+/// 15 for whichever tile's entries were not part of another tile's own
+/// neighborhood. What IS shared, via [_parsedEntry] and
+/// [_SharedFetchState.parsedEntries], is the WORK of getting from an
+/// entry's raw bytes to its parsed grid, keyed by (href, entry name): two
+/// neighboring tiles' "within one tile" windows routinely overlap on
+/// several of the same entries, and a live desktop debug run measured
+/// 6-12 s to decompress and parse just one such entry set, PER TILE, for
+/// an 8 km / up-to-81-tile span — over 80 tiles' overlapping neighborhoods
+/// otherwise redoing that same decompress-and-parse work from scratch.
+/// Correctness is unaffected: which entries a tile even considers is still
+/// decided independently per tile as before, and
+/// [extractRawEsriSubgridFromGrids] still validates every returned grid's
+/// own real extent against that tile's bounds regardless of whether it
+/// came from this cache or a fresh parse — only the (href, name)-keyed
+/// WORK is reused, never which entries count as a match.
 class SwissBathy3dSource implements BathymetrySource {
   static const String sourceId = 'swissbathy3d';
   static const double tileSizeMeters = 1000;
@@ -111,6 +154,21 @@ class SwissBathy3dSource implements BathymetrySource {
   /// ground; this is a named constant rather than a magic number so both
   /// call sites stay in lockstep with each other and with the design intent.
   static const int maxConcurrentTileRequests = 4;
+
+  /// Caps concurrency for [_precacheSiblingSites]'s own background sweep,
+  /// deliberately much lower than [maxConcurrentTileRequests]. Precaching
+  /// is a pure cache-warming bonus with no user waiting on it directly, but
+  /// it runs fire-and-forget from inside a foreground [fetch] call and
+  /// shares this same class's CPU-bound decompress/parse work (see the
+  /// class doc on why that can cost several seconds per tile) — a
+  /// precache sweep contending for the same worker slots as a concurrently
+  /// running foreground [fetch]/[refreshAllCachedTiles] call would slow
+  /// down the very thing the user is actually looking at, defeating the
+  /// point of caching ahead of time. Kept at 1 (fully sequential) rather
+  /// than merely lower-than-4: precaching several sibling sites is not
+  /// time-critical, and running it strictly one tile at a time leaves the
+  /// most possible headroom for whatever the user is doing right now.
+  static const int maxConcurrentPrecacheRequests = 1;
 
   /// Nominal grid spacing swissBATHY3D publishes for lake bathymetry.
   /// Declared, not measured, per [SourceCapability]'s contract -- the actual
@@ -199,27 +257,31 @@ class SwissBathy3dSource implements BathymetrySource {
           (tileE: tileE, tileN: tileN),
     ];
 
-    // Distinct 1-km tile coordinates can legitimately resolve to the exact
-    // same STAC asset href -- confirmed live: swisstopo publishes one asset
-    // per LAKE, not per tile, so every tile coordinate within a lake shares
-    // one href. Memoized per fetch() call on the DOWNLOADED BYTES (not the
-    // parsed result -- see this class's own doc for why sharing parsed,
-    // filtered entries across tiles is unsafe) so that shared, potentially
-    // lake-sized zip travels over the network exactly once, not once per
-    // tile coordinate that happens to resolve to it. Each tile still parses
-    // and slices its own, location-correct entries independently in
-    // _fetchTile.
-    final sharedZipBytes = <String, Future<Uint8List>>{};
+    // Everything this call shares across every tile/lake it touches --
+    // downloaded zip bytes and STAC candidate lookups -- bundled in one
+    // [_SharedFetchState] (see its own doc). Distinct 1-km tile
+    // coordinates can legitimately resolve to the exact same STAC asset
+    // href -- confirmed live: swisstopo publishes one asset per LAKE, not
+    // per tile -- and every tile of the SAME lake used to ask the STAC
+    // items endpoint the identical "which asset covers this?" question
+    // independently too (#1764): an 8 km span touching up to 81 tiles
+    // fired up to 81 near-identical metadata lookups, each on its own 15 s
+    // budget, for an answer that never varies within a lake, and a single
+    // slow or transiently failed one among those 81 was enough to fail
+    // the whole span.
+    final shared = _SharedFetchState();
 
-    // Same sharing, one step earlier: every tile of the SAME lake asks the
-    // STAC items endpoint the identical "which asset covers this?" question
-    // and gets the identical one-item answer back (#1764) -- an 8 km span
-    // touching up to 81 tiles used to fire up to 81 near-identical metadata
-    // lookups for an answer that never varies within a lake, each on its
-    // own 15 s budget. A single slow or transiently failed lookup among
-    // those 81 was enough to fail the whole span; see
-    // [_findAssetCandidatesForLake]'s doc.
-    final sharedCandidates = <String, Future<List<SwissBathyAsset>>>{};
+    // Each zip entry's decompressed/parsed grid, shared across every tile
+    // (and, via [_precacheSiblingSites], every sibling site) THIS call
+    // touches -- deliberately a separate map from [shared] itself, not one
+    // of its fields; see [_SharedFetchState]'s own doc for why this one
+    // map's sharing scope must track the CALLER, not always match
+    // [zipBytes]/[candidates]'s scope. This call's own span is bounded to
+    // one lake, so accumulating its entries' parsed grids for this call's
+    // duration is the same bounded cost [zipBytes] already pays -- unlike
+    // [refreshAllCachedTiles]'s own sweep, which must NOT share this map
+    // this widely (see [_refreshAllCachedTilesImpl]'s doc).
+    final parsedEntries = <String, Future<RawEsriGrid>>{};
 
     // Bounded concurrency, not strictly sequential nor unbounded: up to
     // maxConcurrentTileRequests tiles in flight at once. Each is
@@ -252,8 +314,8 @@ class SwissBathy3dSource implements BathymetrySource {
           coord.tileE,
           coord.tileN,
           tileLake,
-          sharedZipBytes,
-          sharedCandidates,
+          shared,
+          parsedEntries,
           freshlyResolvedLakes: freshlyResolvedLakes,
         );
       } on BathymetryFetchException catch (e) {
@@ -302,8 +364,8 @@ class SwissBathy3dSource implements BathymetrySource {
       _precacheSiblingSites(
         this,
         freshlyResolvedLakes.values,
-        sharedZipBytes,
-        sharedCandidates,
+        shared,
+        parsedEntries,
       ).ignore();
     }
 
@@ -334,17 +396,26 @@ class SwissBathy3dSource implements BathymetrySource {
   /// STAC response) still throw and are never cached, so the caller falls
   /// through to the next resolver tier and retries on the next visit.
   ///
-  /// [sharedZipBytes] memoizes the downloaded (not parsed) asset bytes by
-  /// href across every tile in the same [fetch] call — see that method's
-  /// doc — so two tile coordinates resolving to the same href (the common
-  /// case: one asset per lake, not per tile) share one network round trip.
-  /// [sharedCandidates] does the same one step earlier, for the STAC items
-  /// metadata lookup itself — see [_findAssetCandidatesForLake]'s doc.
-  /// Each tile still calls [_downloadAndParseFiltered] independently to
-  /// parse just its own filename-filtered subset of entries, never a
-  /// subset another tile already resolved. [_firstOverlappingCandidate]
-  /// then slices out just this tile's own cells before it is cached and
-  /// returned, trying every candidate STAC returned for this bbox (not
+  /// [shared] memoizes the downloaded (not parsed) asset bytes by href, and
+  /// the STAC items metadata lookup by lake name, across every tile in the
+  /// same [fetch] call — see [_SharedFetchState]'s own doc — so two tile
+  /// coordinates resolving to the same href/lake (the common case: one
+  /// asset per lake, not per tile) share one network round trip and one
+  /// metadata lookup respectively.
+  ///
+  /// [parsedEntries] memoizes each zip entry's actual decompressed/parsed
+  /// grid, by (href, entry name) — see [_parsedEntry]'s own doc for why
+  /// this is safe to share across DIFFERENT tiles' filename-filtered
+  /// subsets, unlike sharing which entries a tile even considers. Passed
+  /// SEPARATELY from [shared], not as one of its fields, because the two
+  /// callers of this method need different sharing scopes for it: [fetch]
+  /// passes one map for its own single-lake span (and whatever
+  /// [_precacheSiblingSites] reuses from it), while [_refreshIfStale] (via
+  /// `refreshAllCachedTiles()`'s sweep) must NOT share this map across
+  /// every lake ever cached — see [_refreshAllCachedTilesImpl]'s doc.
+  /// [_firstOverlappingCandidate] slices out just this tile's own cells
+  /// from whatever entries [parsedEntries] hands back before caching and
+  /// returning, trying every candidate STAC returned for this bbox (not
   /// just the first) in case an earlier one's declared bbox overlapped but
   /// its actual content did not — see that method's doc.
   ///
@@ -361,8 +432,8 @@ class SwissBathy3dSource implements BathymetrySource {
     int tileE,
     int tileN,
     SwissLakeLevel lake,
-    Map<String, Future<Uint8List>> sharedZipBytes,
-    Map<String, Future<List<SwissBathyAsset>>> sharedCandidates, {
+    _SharedFetchState shared,
+    Map<String, Future<RawEsriGrid>> parsedEntries, {
     Map<String, SwissLakeLevel>? freshlyResolvedLakes,
   }) async {
     final tileKey = '${tileE}_$tileN';
@@ -380,8 +451,8 @@ class SwissBathy3dSource implements BathymetrySource {
         tileN,
         lake,
         cached,
-        sharedZipBytes,
-        sharedCandidates,
+        shared,
+        parsedEntries,
       );
     }
     if (await _tileCache.hasCachedAnswer(tileKey)) return null;
@@ -390,17 +461,19 @@ class SwissBathy3dSource implements BathymetrySource {
     final List<SwissBathyAsset> candidates;
     final ({SwissBathyAsset asset, RawEsriGrid subRaw})? resolved;
     try {
-      candidates = await _findAssetCandidatesForLake(
-        this,
-        lake,
-        sharedCandidates,
-      );
+      candidates = await _findAssetCandidatesForLake(this, lake, shared);
       resolved = await _firstOverlappingCandidate(
         tileE,
         tileN,
         candidates,
-        (href) =>
-            _downloadAndParseFiltered(this, href, tileE, tileN, sharedZipBytes),
+        (href) => _downloadAndParseFiltered(
+          this,
+          href,
+          tileE,
+          tileN,
+          shared,
+          parsedEntries,
+        ),
       );
     } on SwissStacException catch (e) {
       // Transient: network error, HTTP failure, unparseable STAC response.
