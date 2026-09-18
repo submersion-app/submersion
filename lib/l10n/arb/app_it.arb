@@ -2497,6 +2497,7 @@
   "diveLog_listPage_menuGroupTrips": "Raggruppa i viaggi",
   "diveLog_listPage_menuExpandAllTrips": "Espandi tutti i viaggi",
   "diveLog_listPage_menuCollapseAllTrips": "Comprimi tutti i viaggi",
+  "diveLog_listPage_tripGroupLabel": "VIAGGIO",
   "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 immersione} other{{count} immersioni}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} di {total} immersioni",
   "diveLog_listPage_tripGroupExpand": "Mostra le immersioni di {tripName}",

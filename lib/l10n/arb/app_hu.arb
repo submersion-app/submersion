@@ -2497,6 +2497,7 @@
   "diveLog_listPage_menuGroupTrips": "Utak csoportositasa",
   "diveLog_listPage_menuExpandAllTrips": "Minden út kibontása",
   "diveLog_listPage_menuCollapseAllTrips": "Minden út összecsukása",
+  "diveLog_listPage_tripGroupLabel": "ÚT",
   "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 merülés} other{{count} merülés}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} / {total} merülés",
   "diveLog_listPage_tripGroupExpand": "{tripName} merülései megjelenítése",

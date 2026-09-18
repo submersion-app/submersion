@@ -2497,6 +2497,7 @@
   "diveLog_listPage_menuGroupTrips": "Grouper les voyages",
   "diveLog_listPage_menuExpandAllTrips": "Développer tous les voyages",
   "diveLog_listPage_menuCollapseAllTrips": "Réduire tous les voyages",
+  "diveLog_listPage_tripGroupLabel": "VOYAGE",
   "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 plongée} other{{count} plongées}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} sur {total} plongées",
   "diveLog_listPage_tripGroupExpand": "Afficher les plongées de {tripName}",

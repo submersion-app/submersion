@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart' hide TextDirection;
+import 'package:intl/intl.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
@@ -65,23 +65,19 @@ void main() {
     bool isSelectionMode = false,
     bool? groupChecked,
     ValueChanged<bool?>? onGroupCheckedChanged,
-    TextDirection textDirection = TextDirection.ltr,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
         overrides: overrides,
-        child: Directionality(
-          textDirection: textDirection,
-          child: TripGroupHeader(
-            section: value,
-            onToggle: onToggle ?? () {},
-            onOpenTrip: onOpenTrip ?? () {},
-            isSelectionMode: isSelectionMode,
-            groupChecked: groupChecked,
-            onGroupCheckedChanged: onGroupCheckedChanged,
-          ),
+        child: TripGroupHeader(
+          section: value,
+          onToggle: onToggle ?? () {},
+          onOpenTrip: onOpenTrip ?? () {},
+          isSelectionMode: isSelectionMode,
+          groupChecked: groupChecked,
+          onGroupCheckedChanged: onGroupCheckedChanged,
         ),
       ),
     );
@@ -169,136 +165,25 @@ void main() {
       expect(find.byIcon(Icons.open_in_new), findsNothing);
     });
 
-    testWidgets('carries no kicker, no trip icon and no card fill', (
-      tester,
-    ) async {
-      // The quiet treatment: the trip reads as a heading over the list, not
-      // as a filled card with a label in front of the name. The Material that
-      // hosts the splash stays transparent; the opaque backing below is the
-      // list's own colour, not a card.
+    testWidgets('has no accent stripe on its leading edge', (tester) async {
+      // The 4px stripe doubled up with the band's borders and read as
+      // clutter; the filled card, icon and kicker mark the header on their
+      // own. The icon sits 12px inside the card instead.
       await pumpHeader(tester, value: section());
 
-      expect(find.text('TRIP'), findsNothing);
-      expect(find.byIcon(Icons.card_travel), findsNothing);
-      final material = tester.widget<Material>(
-        find
-            .descendant(
-              of: find.byType(TripGroupHeader),
-              matching: find.byType(Material),
-            )
-            .first,
-      );
-      expect(material.color, Colors.transparent);
-    });
-
-    testWidgets('is backed by the list colour, clear of the gutter (LTR)', (
-      tester,
-    ) async {
-      // Pinned, the header sits over cards scrolling beneath it, so it must
-      // be opaque. The leading 16px stays clear: that is where the rail runs,
-      // and no card ever reaches into it.
-      await pumpHeader(tester, value: section());
-
-      final header = tester.getRect(find.byType(TripGroupHeader));
-      final backing = find.byKey(const ValueKey('trip_group_header_backing'));
-      final rect = tester.getRect(backing);
-      expect(rect.left - header.left, 16);
-      expect(rect.right, header.right);
-      expect(rect.height, header.height);
-
-      final color = tester.widget<ColoredBox>(backing).color;
-      final context = tester.element(find.byType(TripGroupHeader));
-      expect(color, Theme.of(context).scaffoldBackgroundColor);
-      expect(color.a, 1.0);
-    });
-
-    testWidgets('in a fixed extent the whole height is the tap target', (
-      tester,
-    ) async {
-      // The pinned delegate gives the header a tight extent that grows with
-      // the text scale. The tappable row must fill it, and its content must
-      // centre in it, rather than shrinking to its natural height and riding
-      // to the top. At 100% the open-trip button's 48px minimum hides the
-      // problem, so this runs at 200%, where the extent is 96.
-      final overrides = await getBaseOverrides();
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: overrides,
-          child: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                height: 96,
-                child: TripGroupHeader(
-                  section: section(),
-                  onToggle: () {},
-                  onOpenTrip: () {},
-                ),
-              ),
-            ),
+      expect(
+        find.descendant(
+          of: find.byType(TripGroupHeader),
+          matching: find.byWidgetPredicate(
+            (w) => w is Container && w.constraints?.maxWidth == 4,
           ),
         ),
+        findsNothing,
       );
-      await tester.pumpAndSettle();
-
       final header = tester.getRect(find.byType(TripGroupHeader));
-      // The outermost InkWell is the row's; the open-trip button has its own.
-      final ink = tester.getRect(
-        find
-            .descendant(
-              of: find.byType(TripGroupHeader),
-              matching: find.byType(InkWell),
-            )
-            .first,
-      );
-      expect(header.height, 96);
-      expect(ink.height, 96);
-    });
-
-    testWidgets('the backing leaves the gutter clear under RTL too', (
-      tester,
-    ) async {
-      await pumpHeader(
-        tester,
-        value: section(),
-        textDirection: TextDirection.rtl,
-      );
-
-      final header = tester.getRect(find.byType(TripGroupHeader));
-      final rect = tester.getRect(
-        find.byKey(const ValueKey('trip_group_header_backing')),
-      );
-      expect(header.right - rect.right, 16);
-      expect(rect.left, header.left);
-    });
-
-    testWidgets('the name keeps a 16px inset on the leading side (LTR)', (
-      tester,
-    ) async {
-      await pumpHeader(tester, value: section());
-
-      final header = tester.getRect(find.byType(TripGroupHeader));
-      final name = tester.getRect(find.text('Tassie'));
-      expect(name.left - header.left, 16);
-    });
-
-    testWidgets('the name keeps a 16px inset on the leading side (RTL)', (
-      tester,
-    ) async {
-      // The rail mirrors to the right under RTL, so the header's wide inset
-      // has to follow it. A physical left inset would leave 4px there and
-      // push the text onto the rail.
-      await pumpHeader(
-        tester,
-        value: section(),
-        textDirection: TextDirection.rtl,
-      );
-
-      final header = tester.getRect(find.byType(TripGroupHeader));
-      final name = tester.getRect(find.text('Tassie'));
-      expect(header.right - name.right, 16);
+      final icon = tester.getRect(find.byIcon(Icons.card_travel));
+      // 16px outer padding plus the 12px inset.
+      expect(icon.left - header.left, 28);
     });
 
     testWidgets('a partly selected group reads as mixed', (tester) async {
@@ -317,26 +202,6 @@ void main() {
 
 void _extentTests() {
   group('tripGroupHeaderExtent', () {
-    testWidgets('is 48 at the default text scale', (tester) async {
-      // Down from 62: the header lost its card padding, its kicker line and
-      // its icon, and 48 still clears the minimum tap target for the
-      // open-trip button that sits inside it.
-      late double extent;
-      await tester.pumpWidget(
-        MediaQuery(
-          data: const MediaQueryData(),
-          child: Builder(
-            builder: (context) {
-              extent = tripGroupHeaderExtent(context);
-              return const SizedBox();
-            },
-          ),
-        ),
-      );
-
-      expect(extent, 48);
-    });
-
     testWidgets('grows past 200% instead of capping', (tester) async {
       // The cap this replaced reintroduced the very clipping the fixed extent
       // exists to prevent: both iOS and Android offer accessibility text sizes

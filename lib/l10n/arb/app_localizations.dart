@@ -12273,6 +12273,12 @@ abstract class AppLocalizations {
   /// **'Collapse all trips'**
   String get diveLog_listPage_menuCollapseAllTrips;
 
+  /// No description provided for @diveLog_listPage_tripGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIP'**
+  String get diveLog_listPage_tripGroupLabel;
+
   /// Dive count on a dive list trip header when the whole trip is in the list.
   ///
   /// In en, this message translates to:

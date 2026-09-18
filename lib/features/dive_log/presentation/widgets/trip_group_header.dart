@@ -9,12 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Base height of a trip group header at the default text scale.
-///
-/// 48 rather than the 62 the filled version needed: the header no longer draws
-/// a card, so it spends no height on that card's padding, and the kicker line
-/// that pushed the name down is gone. It stays at 48 rather than shrinking
-/// further because the open-trip button inside it needs a full tap target.
-const double _kHeaderBaseExtent = 48;
+const double _kHeaderBaseExtent = 62;
 
 /// Height of the pinned trip header, grown for the ambient text scale.
 ///
@@ -35,14 +30,14 @@ double tripGroupHeaderExtent(BuildContext context) {
 
 /// Header for one run of same-trip dives in the dive list (issue #1193).
 ///
-/// Tapping anywhere toggles the group: the whole header is the target, not
-/// just the chevron. Opening the trip itself has its own button, because the
-/// dive cards below already spend both tap and double-tap.
+/// Tapping anywhere toggles the group: the whole band is the target, not just
+/// the chevron. Opening the trip itself has its own button, because the dive
+/// cards below already spend both tap and double-tap.
 ///
 /// Note what this widget does NOT do: it never touches the geometry of the
 /// dive cards below it. The grouping is signalled by this header and by the
-/// rail painted in the gutter beside the group, so a grouped dive card stays
-/// exactly as wide as a loose one.
+/// band painted behind the group, so a grouped dive card stays exactly as wide
+/// as a loose one.
 class TripGroupHeader extends ConsumerWidget {
   const TripGroupHeader({
     super.key,
@@ -91,100 +86,89 @@ class TripGroupHeader extends ConsumerWidget {
       label: section.collapsed
           ? l10n.diveLog_listPage_tripGroupExpand(section.tripName)
           : l10n.diveLog_listPage_tripGroupCollapse(section.tripName),
-      // No card, no border, no stripe: the group is marked by the rail in the
-      // list's gutter, and this reads as a heading over the list rather than
-      // as a control sitting on top of it.
-      child: Stack(
-        children: [
-          // Opaque, in the list's own colour, because a pinned header sits
-          // over cards scrolling beneath it and a transparent one let them
-          // show through. It starts after the 16px leading gutter so the rail
-          // keeps running beside the header; no card ever reaches into that
-          // gutter, so nothing shows through there.
-          PositionedDirectional(
-            start: 16,
-            top: 0,
-            end: 0,
-            bottom: 0,
-            child: ColoredBox(
-              key: const ValueKey('trip_group_header_backing'),
-              color: theme.scaffoldBackgroundColor,
-            ),
-          ),
-          _content(context, theme, scheme, dateText, countText),
-        ],
-      ),
-    );
-  }
-
-  /// The tappable heading row, drawn over the backing.
-  Widget _content(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme scheme,
-    String dateText,
-    String countText,
-  ) {
-    final l10n = context.l10n;
-    // The Material stays, transparent, because the InkWell needs one to
-    // splash on. Above the backing, so the splash is visible.
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onToggle,
-        child: Padding(
-          // Directional: the wide inset sits on the leading side, where
-          // the gutter rail is, in both LTR and RTL.
-          padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      section.tripName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      '$dateText  ·  $countText',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+        child: Material(
+          color: scheme.secondaryContainer,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onToggle,
+            child: Row(
+              children: [
+                // No accent stripe on the leading edge: it doubled up with
+                // the band's borders and read as clutter. The filled card,
+                // icon and kicker mark the header on their own.
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.card_travel,
+                  size: 18,
+                  color: scheme.onSecondaryContainer,
                 ),
-              ),
-              if (isSelectionMode)
-                Checkbox(
-                  tristate: true,
-                  value: groupChecked,
-                  onChanged: onGroupCheckedChanged,
-                )
-              else
-                IconButton(
-                  icon: const Icon(Icons.open_in_new, size: 18),
-                  color: scheme.onSurfaceVariant,
-                  tooltip: l10n.diveLog_listPage_tripGroupOpenTrip(
-                    section.tripName,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            l10n.diveLog_listPage_tripGroupLabel,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: scheme.onSecondaryContainer,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              section.tripName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: scheme.onSecondaryContainer,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '$dateText  ·  $countText',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSecondaryContainer.withValues(
+                            alpha: 0.8,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  onPressed: onOpenTrip,
                 ),
-              Icon(
-                section.collapsed ? Icons.chevron_right : Icons.expand_more,
-                size: 20,
-                color: scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 4),
-            ],
+                if (isSelectionMode)
+                  Checkbox(
+                    tristate: true,
+                    value: groupChecked,
+                    onChanged: onGroupCheckedChanged,
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    tooltip: l10n.diveLog_listPage_tripGroupOpenTrip(
+                      section.tripName,
+                    ),
+                    onPressed: onOpenTrip,
+                  ),
+                Icon(
+                  section.collapsed ? Icons.chevron_right : Icons.expand_more,
+                  color: scheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 4),
+              ],
+            ),
           ),
         ),
       ),

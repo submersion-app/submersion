@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trip_group_rail.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -124,63 +123,6 @@ void main() {
 
       expect(find.byType(TripGroupHeader), findsOneWidget);
       expect(find.text('Tassie'), findsOneWidget);
-    });
-
-    testWidgets('the group is marked by a gutter rail, not a filled band', (
-      tester,
-    ) async {
-      final overrides = await groupingOverrides(
-        [makeDive('d1'), makeDive('d2', tripId: 't1', tripName: 'Tassie')],
-        tripTotals: const {'t1': 1},
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: overrides,
-          child: const DiveListContent(showAppBar: false),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final decorated = tester.widget<DecoratedSliver>(
-        find.byType(DecoratedSliver),
-      );
-      expect(
-        decorated.decoration,
-        isA<GutterRailDecoration>(),
-        reason: 'the tinted band and its accent borders are gone',
-      );
-    });
-
-    testWidgets('the rail is the accent colour, not a chrome grey', (
-      tester,
-    ) async {
-      // A grey rail 6px from the navigation divider read as a second, messy
-      // pane border. The accent colour reads as a group marker instead.
-      final overrides = await groupingOverrides(
-        [makeDive('d1'), makeDive('d2', tripId: 't1', tripName: 'Tassie')],
-        tripTotals: const {'t1': 1},
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: overrides,
-          child: const DiveListContent(showAppBar: false),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final rail =
-          tester
-                  .widget<DecoratedSliver>(find.byType(DecoratedSliver))
-                  .decoration
-              as GutterRailDecoration;
-      final scheme = Theme.of(
-        tester.element(find.byType(DiveListContent)),
-      ).colorScheme;
-      expect(rail.color, scheme.primary);
     });
 
     testWidgets('grouped dive cards are exactly as wide as loose ones', (

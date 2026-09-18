@@ -7524,6 +7524,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_listPage_menuCollapseAllTrips => 'Comprimi tutti i viaggi';
 
   @override
+  String get diveLog_listPage_tripGroupLabel => 'VIAGGIO';
+
+  @override
   String diveLog_listPage_tripGroupDiveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

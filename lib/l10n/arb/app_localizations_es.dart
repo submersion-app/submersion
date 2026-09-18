@@ -7522,6 +7522,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Contraer todos los viajes';
 
   @override
+  String get diveLog_listPage_tripGroupLabel => 'VIAJE';
+
+  @override
   String diveLog_listPage_tripGroupDiveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

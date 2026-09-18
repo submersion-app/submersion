@@ -7372,6 +7372,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_menuCollapseAllTrips => 'طي كل الرحلات';
 
   @override
+  String get diveLog_listPage_tripGroupLabel => 'رحلة';
+
+  @override
   String diveLog_listPage_tripGroupDiveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
