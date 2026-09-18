@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as domain;
 
@@ -32,7 +33,7 @@ class ChecklistTemplateRepository {
         query.where((t) => t.diverId.equals(diverId) | t.diverId.isNull());
       }
       final rows = await query.get();
-      return rows.map(_mapTemplate).toList();
+      return sortedByText(rows, (r) => r.name).map(_mapTemplate).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get checklist templates',

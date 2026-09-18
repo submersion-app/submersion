@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart'
@@ -96,7 +97,7 @@ class EquipmentSetRepository {
     final rows = await query.get();
 
     final sets = <domain.EquipmentSet>[];
-    for (final row in rows) {
+    for (final row in sortedByText(rows, (r) => r.name)) {
       final equipmentIds = await getEquipmentIdsInSet(row.id);
       sets.add(_mapRowToSet(row, equipmentIds));
     }

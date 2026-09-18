@@ -7,6 +7,7 @@ import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
@@ -55,7 +56,7 @@ class TagRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToTag).toList();
+      return sortedByText(rows, (r) => r.name).map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all tags', error: e, stackTrace: stackTrace);
       rethrow;
@@ -460,7 +461,10 @@ class TagRepository {
           )
           .get();
 
-      return result.map((row) => mapTagRow(_db.tags.map(row.data))).toList();
+      return sortedByText(
+        result,
+        (r) => r.data['name'] as String,
+      ).map((row) => mapTagRow(_db.tags.map(row.data))).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get tags for dive: $diveId',
@@ -490,7 +494,7 @@ class TagRepository {
       ).get();
 
       final tagsByDive = <String, List<domain.Tag>>{};
-      for (final row in result) {
+      for (final row in sortedByText(result, (r) => r.data['name'] as String)) {
         final diveId = row.data['dive_id'] as String;
         final tag = mapTagRow(_db.tags.map(row.data));
         tagsByDive.putIfAbsent(diveId, () => []).add(tag);
@@ -796,7 +800,7 @@ class TagRepository {
       }
 
       final rows = await searchQuery.get();
-      return rows.map(_mapRowToTag).toList();
+      return sortedByText(rows, (r) => r.name).map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to search tags: $query',

@@ -8,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
@@ -91,7 +92,9 @@ class BuddyRepository {
       }
 
       final rows = await query.get();
-      return await _withPrimaryCerts(rows.map(_mapRowToBuddy).toList());
+      return await _withPrimaryCerts(
+        sortedByText(rows, (r) => r.name).map(_mapRowToBuddy).toList(),
+      );
     } catch (e, stackTrace) {
       _log.error('Failed to get all buddies', error: e, stackTrace: stackTrace);
       rethrow;
@@ -139,7 +142,9 @@ class BuddyRepository {
       ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
 
-    final buddies = results.map((row) {
+    final buddies = sortedByText(results, (r) => r.data['name'] as String).map((
+      row,
+    ) {
       return domain.Buddy(
         id: row.data['id'] as String,
         diverId: row.data['diver_id'] as String?,
@@ -396,7 +401,9 @@ class BuddyRepository {
     final roleRows = await _db.select(_db.diveRoles).get();
     final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
 
-    final list = results.map((row) {
+    final list = sortedByText(results, (r) => r.data['name'] as String).map((
+      row,
+    ) {
       final buddy = domain.Buddy(
         id: row.data['id'] as String,
         name: row.data['name'] as String,
@@ -474,7 +481,10 @@ class BuddyRepository {
     final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
 
     final byDive = <String, List<domain.BuddyWithRole>>{};
-    for (final jr in joinRows) {
+    for (final jr in sortedByText(
+      joinRows,
+      (jr) => jr.readTable(_db.buddies).name,
+    )) {
       final b = jr.readTable(_db.buddies);
       final link = jr.readTable(_db.diveBuddies);
       final buddy = domain.Buddy(
@@ -895,7 +905,9 @@ class BuddyRepository {
         )[r.data['role'] as String] = r.data['role_count'] as int;
       }
 
-      final list = results.map((row) {
+      final list = sortedByText(results, (r) => r.data['name'] as String).map((
+        row,
+      ) {
         final buddy = domain.Buddy(
           id: row.data['id'] as String,
           diverId: row.data['diver_id'] as String?,

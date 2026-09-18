@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
@@ -48,7 +49,10 @@ class EquipmentTagRepository {
           readsFrom: {_db.equipmentTags, _db.tags},
         )
         .get();
-    return [for (final r in rows) mapTagRow(_db.tags.map(r.data))];
+    return [
+      for (final r in sortedByText(rows, (r) => r.data['name'] as String))
+        mapTagRow(_db.tags.map(r.data)),
+    ];
   }
 
   /// Every item's tags, by name, in one query. An item with no tags has no
@@ -63,7 +67,11 @@ class EquipmentTagRepository {
         )
         .get();
     final byItem = <String, List<domain.Tag>>{};
-    for (final r in rows) {
+    for (final r in sortedByText(
+      rows,
+      (r) => r.data['name'] as String,
+      groupOf: (r) => r.read<String>('link_equipment_id'),
+    )) {
       byItem
           .putIfAbsent(r.read<String>('link_equipment_id'), () => [])
           .add(mapTagRow(_db.tags.map(r.data)));

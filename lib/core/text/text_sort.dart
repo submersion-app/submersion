@@ -9,6 +9,7 @@
 /// No Flutter imports; unit-testable in isolation.
 library;
 
+import 'package:collection/collection.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' as fuzzy;
 
 /// The folded form [compareTextForSort] orders by.
@@ -37,4 +38,38 @@ class TextCollator {
 int _compareFolded(String a, String keyA, String b, String keyB) {
   final byKey = keyA.compareTo(keyB);
   return byKey != 0 ? byKey : a.compareTo(b);
+}
+
+/// A new list of [items] in [compareTextForSort] order of [textOf].
+///
+/// For rows a query already ordered: SQLite's NOCASE collation folds ASCII
+/// case but not accents, so "Écueil" still lands after "Zebra" until the rows
+/// are re-sorted here. When [groupOf] is given, only runs of consecutive
+/// items with an equal group key are re-sorted, so a leading ORDER BY term
+/// (category, type, favourites first) keeps its order. The sort is stable,
+/// so identical names keep the query's order.
+List<T> sortedByText<T>(
+  Iterable<T> items,
+  String Function(T item) textOf, {
+  Object? Function(T item)? groupOf,
+}) {
+  final collator = TextCollator();
+  int compare(T a, T b) => collator.compare(textOf(a), textOf(b));
+
+  final list = items.toList();
+  if (groupOf == null) {
+    mergeSort(list, compare: compare);
+    return list;
+  }
+  var start = 0;
+  while (start < list.length) {
+    final group = groupOf(list[start]);
+    var end = start + 1;
+    while (end < list.length && groupOf(list[end]) == group) {
+      end++;
+    }
+    mergeSort(list, start: start, end: end, compare: compare);
+    start = end;
+  }
+  return list;
 }

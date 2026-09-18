@@ -50,4 +50,43 @@ void main() {
       }
     });
   });
+
+  group('sortedByText', () {
+    test('orders by the folded text without touching the input', () {
+      final input = List<String>.unmodifiable(['plage', 'Zebra', 'Écueil']);
+
+      expect(sortedByText(input, (s) => s), ['Écueil', 'plage', 'Zebra']);
+      expect(input, ['plage', 'Zebra', 'Écueil']);
+    });
+
+    test('re-sorts only within runs sharing a group key', () {
+      // SQL already ordered these by category; only the names within each
+      // category are out of order.
+      final rows = [
+        ('fish', 'zebra'),
+        ('fish', 'Angel'),
+        ('coral', 'staghorn'),
+        ('coral', 'Brain'),
+        ('fish', 'eel'),
+      ];
+
+      expect(sortedByText(rows, (r) => r.$2, groupOf: (r) => r.$1), [
+        ('fish', 'Angel'),
+        ('fish', 'zebra'),
+        ('coral', 'Brain'),
+        ('coral', 'staghorn'),
+        ('fish', 'eel'),
+      ]);
+    });
+
+    test('keeps the incoming order of identical names (stable)', () {
+      final rows = [for (var i = 0; i < 40; i++) (i, i.isEven ? 'b' : 'a')];
+
+      final sorted = sortedByText(rows, (r) => r.$2);
+
+      final ids = sorted.map((r) => r.$1).toList();
+      expect(ids.take(20), [for (var i = 1; i < 40; i += 2) i]);
+      expect(ids.skip(20), [for (var i = 0; i < 40; i += 2) i]);
+    });
+  });
 }

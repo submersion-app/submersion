@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -78,7 +79,9 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.type),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get active equipment',
@@ -110,7 +113,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(sortedByText(rows, (r) => r.name));
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get retired equipment',
@@ -151,7 +154,9 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.type),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all equipment',
@@ -188,7 +193,9 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.type),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by status: ${status.name}',
@@ -238,7 +245,7 @@ class EquipmentRepository {
                 (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
               ]))
             .get();
-    return _mapRowsWithAttributes(rows);
+    return _mapRowsWithAttributes(sortedByText(rows, (r) => r.name));
   }
 
   /// Get multiple equipment items by IDs
@@ -848,7 +855,12 @@ class EquipmentRepository {
         ORDER BY e.is_active DESC, e.type ASC, e.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
-      final items = results.map((row) {
+      final ordered = sortedByText(
+        results,
+        (r) => r.data['name'] as String,
+        groupOf: (r) => (r.data['is_active'], r.data['type']),
+      );
+      final items = ordered.map((row) {
         return EquipmentItem(
           id: row.data['id'] as String,
           name: row.data['name'] as String,

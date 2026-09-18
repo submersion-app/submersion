@@ -7,6 +7,7 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
@@ -33,7 +34,10 @@ class DiveCenterRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToDiveCenter).toList();
+      return sortedByText(
+        rows,
+        (r) => r.name,
+      ).map(_mapRowToDiveCenter).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all dive centers',
@@ -84,7 +88,10 @@ class DiveCenterRepository {
       ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
 
-    return results.map(_mapCustomRowToDiveCenter).toList();
+    return sortedByText(
+      results,
+      (r) => r.data['name'] as String,
+    ).map(_mapCustomRowToDiveCenter).toList();
   }
 
   /// Get dive centers by country
@@ -101,7 +108,7 @@ class DiveCenterRepository {
     }
 
     final rows = await query.get();
-    return rows.map(_mapRowToDiveCenter).toList();
+    return sortedByText(rows, (r) => r.name).map(_mapRowToDiveCenter).toList();
   }
 
   /// Get dive centers with coordinates (for map view)
@@ -117,7 +124,7 @@ class DiveCenterRepository {
     }
 
     final rows = await query.get();
-    return rows.map(_mapRowToDiveCenter).toList();
+    return sortedByText(rows, (r) => r.name).map(_mapRowToDiveCenter).toList();
   }
 
   /// Create a new dive center

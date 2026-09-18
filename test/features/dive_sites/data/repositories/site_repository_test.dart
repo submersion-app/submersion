@@ -300,22 +300,18 @@ void main() {
         expect(result[2].name, equals('Zebra Reef'));
       });
 
-      test('orders by name ignoring case (issue #2038)', () async {
-        for (final name in ['Zebra Reef', 'plage', 'anchor bay']) {
+      test('orders by name ignoring case and accents (issue #2038)', () async {
+        for (final name in ['Zebra Reef', 'plage', 'Écueil', 'anchor reef']) {
           await repository.createSite(DiveSite(id: '', name: name));
         }
 
-        expect((await repository.getAllSites()).map((s) => s.name), [
-          'anchor bay',
-          'plage',
-          'Zebra Reef',
-        ]);
-        // searchSites shares the ordering; every name contains an "a".
-        expect((await repository.searchSites('a')).map((s) => s.name), [
-          'anchor bay',
-          'plage',
-          'Zebra Reef',
-        ]);
+        const expected = ['anchor reef', 'Écueil', 'plage', 'Zebra Reef'];
+        expect((await repository.getAllSites()).map((s) => s.name), expected);
+        // searchSites shares the ordering; every name contains an "e".
+        expect(
+          (await repository.searchSites('e')).map((s) => s.name),
+          expected,
+        );
       });
     });
 

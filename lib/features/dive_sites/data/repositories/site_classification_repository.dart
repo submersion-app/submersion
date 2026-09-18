@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/site_types/data/mappers/site_type_row_mapper.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
@@ -57,7 +58,10 @@ class SiteClassificationRepository {
           readsFrom: {_db.siteTags, _db.tags},
         )
         .get();
-    return [for (final r in rows) mapTagRow(_db.tags.map(r.data))];
+    return [
+      for (final r in sortedByText(rows, (r) => r.data['name'] as String))
+        mapTagRow(_db.tags.map(r.data)),
+    ];
   }
 
   /// Every site's types, in each site's own order. A row pointing at a
@@ -90,7 +94,11 @@ class SiteClassificationRepository {
         )
         .get();
     final bySite = <String, List<domain.Tag>>{};
-    for (final r in rows) {
+    for (final r in sortedByText(
+      rows,
+      (r) => r.data['name'] as String,
+      groupOf: (r) => r.read<String>('link_site_id'),
+    )) {
       bySite
           .putIfAbsent(r.read<String>('link_site_id'), () => [])
           .add(mapTagRow(_db.tags.map(r.data)));

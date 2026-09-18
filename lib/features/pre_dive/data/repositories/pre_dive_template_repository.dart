@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart'
     as domain;
 
@@ -42,7 +43,11 @@ class PreDiveTemplateRepository {
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
       final rows = await query.get();
-      return rows.map(_mapTemplate).toList();
+      return sortedByText(
+        rows,
+        (r) => r.name,
+        groupOf: (r) => r.isBuiltIn,
+      ).map(_mapTemplate).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get pre-dive templates',

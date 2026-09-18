@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart'
     as domain;
 import 'package:uuid/uuid.dart';
@@ -99,7 +100,10 @@ class DiveCustomFieldRepository {
         )
         .get();
 
-    return result.map((row) => row.data['field_key'] as String).toList();
+    return sortedByText(
+      result.map((row) => row.data['field_key'] as String),
+      (key) => key,
+    );
   }
 
   domain.DiveCustomField _mapRowToField(DiveCustomField row) {
