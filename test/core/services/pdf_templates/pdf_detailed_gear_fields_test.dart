@@ -139,4 +139,17 @@ void main() {
         .map((f) => f.label);
     expect(labels, isNot(contains('Set')));
   });
+
+  test('a set with a blank name prints no set row', () {
+    // The set editor trims a name of spaces to '' on save.
+    final labels = template
+        .equipmentFieldsForTest(
+          swapped,
+          units: units,
+          arrangement: EquipmentArrangement.defaults,
+          setNamesById: const {'winter': '  '},
+        )
+        .map((f) => f.label);
+    expect(labels, isNot(contains('Set')));
+  });
 }

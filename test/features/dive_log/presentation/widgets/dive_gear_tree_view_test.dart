@@ -78,10 +78,11 @@ void main() {
     void Function(GearLink)? onUpdateAssembly,
     ComponentsIndex template = ComponentsIndex.empty,
     Set<String> activeParts = const {},
+    List<EquipmentSet>? sets,
   }) => ProviderScope(
     overrides: [
       equipmentArrangementProvider.overrideWithValue(arrangement),
-      equipmentSetsProvider.overrideWith((ref) async => [winter]),
+      equipmentSetsProvider.overrideWith((ref) async => sets ?? [winter]),
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       equipmentComponentsIndexProvider.overrideWith((ref) async => template),
       activeComponentIdsProvider.overrideWith((ref) async => activeParts),
@@ -151,6 +152,21 @@ void main() {
           [items.first],
           const [GearProvenance(equipmentId: 'mask', viaSetId: 'deleted')],
         ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(Chip, 'Set'), findsOneWidget);
+  });
+
+  testWidgets('a set with a blank name gets the fallback label', (
+    tester,
+  ) async {
+    // The set editor accepts a name of spaces and trims it on save, so a
+    // stored name can be empty; the chip must not render with no label.
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        sets: [winter.copyWith(name: '')],
       ),
     );
     await tester.pumpAndSettle();

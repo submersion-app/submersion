@@ -95,9 +95,14 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
       children: [
         if (setIds.isNotEmpty)
           _SetChips(
+            // A deleted set, or one whose name the editor trimmed to empty,
+            // takes the fallback so no chip renders without a label.
             names: {
               for (final id in setIds)
-                id: setsById[id]?.name ?? l10n.diveLog_gear_unknownSet,
+                id: switch (setsById[id]?.name.trim()) {
+                  final name? when name.isNotEmpty => name,
+                  _ => l10n.diveLog_gear_unknownSet,
+                },
             },
             onRemove: widget.onRemoveSet,
           ),

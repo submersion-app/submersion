@@ -473,12 +473,15 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     // (#1487). Set gear and hand-added gear print as one arranged list, so a
     // tank swapped in by hand does not trail the set's gear (#2031); the
     // sets are named on their own row instead. A set with no name on file
-    // (deleted since, or the lookup failed) is left out of that row rather
-    // than printed as an id the reader cannot use.
+    // (deleted since, the lookup failed, or a name the editor trimmed to
+    // empty) is left out of that row rather than printed as an id or a
+    // blank the reader cannot use.
     final roots = GearTree.build(dive.gear);
     final rootsById = {for (final n in roots) n.link.item.id: n};
     final setNames = [
-      for (final id in GearTree.setIds(dive.gear)) ?setNamesById[id],
+      for (final id in GearTree.setIds(dive.gear))
+        if (setNamesById[id]?.trim() case final name? when name.isNotEmpty)
+          name,
     ];
     List<_Field> rows(GearNode node, int depth) => [
       _Field(
