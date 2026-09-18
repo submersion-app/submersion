@@ -3,6 +3,7 @@
 Date: 2026-09-18
 Status: approved design, implementation plan pending
 Branch: ericgriffin/rental-gear-memory-2db80e
+Issue: #2075 (the PR body must say `Closes #2075`)
 
 ## Problem
 
