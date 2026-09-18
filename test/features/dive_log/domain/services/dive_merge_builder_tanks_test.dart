@@ -109,6 +109,21 @@ void main() {
       expect(builder.build([a, b]).mergedDive.tanks, hasLength(2));
     });
 
+    test('a "no transmitter" sentinel does not hide a later real serial', () {
+      // libdivecomputer reports zero for "none": the fold must carry the
+      // second half's real serial, or the next combine loses the identity.
+      final a = _dive('a', 9, const [
+        DiveTank(id: 'a1', transmitterSerial: '0'),
+      ]);
+      final b = _dive('b', 10, const [
+        DiveTank(id: 'b1', transmitterSerial: '42'),
+      ]);
+
+      final tank = builder.build([a, b]).mergedDive.tanks.single;
+
+      expect(tank.transmitterSerial, '42');
+    });
+
     test('different serials stay two tanks even on the same mix', () {
       final a = _dive('a', 9, const [
         DiveTank(id: 'a1', transmitterSerial: '111', gasMix: _ean32),

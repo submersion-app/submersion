@@ -169,7 +169,12 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier.copyWith(
   material: earlier.material ?? later.material,
   presetName: earlier.presetName ?? later.presetName,
   computerId: earlier.computerId ?? later.computerId,
-  transmitterSerial: earlier.transmitterSerial ?? later.transmitterSerial,
+  // Normalized, like the matching: a "no transmitter" sentinel ('0', blank)
+  // on the earlier half must not hide a real serial on a later one. With no
+  // real serial on either side, null leaves the earlier raw value as it was.
+  transmitterSerial:
+      normalizeTransmitterSerial(earlier.transmitterSerial) ??
+      normalizeTransmitterSerial(later.transmitterSerial),
   sourceTankIndex: earlier.sourceTankIndex ?? later.sourceTankIndex,
   regulatorEquipmentId:
       earlier.regulatorEquipmentId ?? later.regulatorEquipmentId,
