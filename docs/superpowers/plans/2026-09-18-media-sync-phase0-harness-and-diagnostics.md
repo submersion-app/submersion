@@ -1757,6 +1757,8 @@ Expected: S5 fails at `fromOtherDevice` (actual `notFound`); S6 fails at `isA<By
 Run: `flutter test test/features/media/two_device/store_scenarios_test.dart`
 Expected: S4 fails at `TileOutcome.store` (actual `unavailable`); S8 fails at `isSuspended isTrue`; S10 fails at `remoteUploadedAt isNotNull`.
 
+S8 is red by design: a preflight throw leaves the row untouched and the worker unsuspended today, which is the seam. It asserts through two members that already exist, `MediaStoreWorker.isSuspended` and `MediaTransferSummary.waitingReason`, and slice 10 (spec 7.1) makes the worker record the suspension with a reason and surface it through exactly those two, so the scenario needs no new API to turn green.
+
 Run: `flutter test test/features/media/two_device/deletion_scenarios_test.dart`
 Expected: S9 fails at the first `media(id) isNull` or at the blob-delete count.
 
@@ -1793,6 +1795,7 @@ Open the slice 1 PR with body `Part of #<tracking issue>` and the "Red on main" 
 - Modify: `lib/core/models/log_entry.dart:1-21`
 - Modify: `lib/core/services/logger_service.dart:43,66-88,102-103,278`
 - Modify: `lib/features/settings/presentation/log_category_display.dart`
+- Modify: `lib/features/settings/presentation/widgets/log_entry_tile.dart:95-101` (`_categoryColor`, an exhaustive switch)
 - Modify: `lib/features/settings/presentation/providers/debug_log_providers.dart:45-51`
 - Modify: all 11 `lib/l10n/arb/app_*.arb`, key `enum_logCategory_media` after `enum_logCategory_database` (en at line 6766)
 - Test: `test/core/services/logger_service_test.dart`, `test/core/models/log_entry_test.dart`
@@ -1868,7 +1871,7 @@ Expected: FAIL, "Undefined name 'media'".
 ```
 Update all three call sites: `configureFileLogging` line 81 becomes `_persists(line.entry.level, line.alwaysPersist, category: line.entry.category)`, `infoInOrder` line 151 becomes `_persists(LogLevel.info, alwaysPersist, category: category)` (it already has the category in hand), and `_log` line 278 becomes `_persists(level, alwaysPersist, category: category)`. Add a third test case that emits through `infoInOrder` with the media category and asserts the line reached the file.
 
-`log_category_display.dart`: add `LogCategory.media => l10n.enum_logCategory_media,`.
+`log_category_display.dart`: add `LogCategory.media => l10n.enum_logCategory_media,`. `log_entry_tile.dart` `_categoryColor`: add `LogCategory.media => Colors.cyan,` (the switch is exhaustive with no default, so the build breaks without it).
 
 `debug_log_providers.dart:45-51`: add `LogCategory.media,` to the default `activeCategories` set.
 
@@ -1968,8 +1971,14 @@ class PeerDeviceNameStore {
   Map<String, String> all();
   String? nameFor(String deviceId);
   Future<void> record(String deviceId, String name);
+  /// Emits the full map after every change, so a label built before a sync
+  /// learned a name updates without being recreated.
+  Stream<Map<String, String>> get changes;
+  void dispose();
 }
 final peerDeviceNameStoreProvider = Provider<PeerDeviceNameStore>(...);
+/// The live map: seeded with the store's current contents, then every change.
+final peerDeviceNamesProvider = StreamProvider<Map<String, String>>(...);
 ```
 `ChangesetReader.pull` gains `PeerDeviceNameStore? peerNames`; `SyncService` gains `PeerDeviceNameStore? peerNames`.
 
@@ -2005,6 +2014,21 @@ void main() {
     final store = PeerDeviceNameStore(await SharedPreferences.getInstance());
     await store.record('dev-a', '');
     expect(store.nameFor('dev-a'), isNull);
+  });
+
+  test('changes emits the full map after each record', () async {
+    SharedPreferences.setMockInitialValues({});
+    final store = PeerDeviceNameStore(await SharedPreferences.getInstance());
+    final seen = <Map<String, String>>[];
+    final sub = store.changes.listen(seen.add);
+    await store.record('dev-a', 'A');
+    await store.record('dev-b', 'B');
+    await Future<void>.delayed(Duration.zero);
+    await sub.cancel();
+    expect(seen, [
+      {'dev-a': 'A'},
+      {'dev-a': 'A', 'dev-b': 'B'},
+    ]);
   });
 }
 ```
@@ -2064,8 +2088,16 @@ class PeerDeviceNameStore {
     if (name.isEmpty) return;
     final current = all();
     if (current[deviceId] == name) return;
-    await _prefs.setString(prefsKey, jsonEncode({...current, deviceId: name}));
+    final next = {...current, deviceId: name};
+    await _prefs.setString(prefsKey, jsonEncode(next));
+    _changes.add(next);
   }
+
+  final _changes = StreamController<Map<String, String>>.broadcast();
+
+  Stream<Map<String, String>> get changes => _changes.stream;
+
+  void dispose() => _changes.close();
 }
 ```
 
@@ -2085,10 +2117,21 @@ class PeerDeviceNameStore {
 ```dart
 /// Names peers published on their manifests, for labels that must not wait
 /// on a cloud listing.
-final peerDeviceNameStoreProvider = Provider<PeerDeviceNameStore>(
-  (ref) => PeerDeviceNameStore(ref.watch(sharedPreferencesProvider)),
-);
+final peerDeviceNameStoreProvider = Provider<PeerDeviceNameStore>((ref) {
+  final store = PeerDeviceNameStore(ref.watch(sharedPreferencesProvider));
+  ref.onDispose(store.dispose);
+  return store;
+});
+
+/// The live name map: the store's contents now, then every change, so a
+/// label already on screen updates when a sync learns a name.
+final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) async* {
+  final store = ref.watch(peerDeviceNameStoreProvider);
+  yield store.all();
+  yield* store.changes;
+});
 ```
+Add `import 'dart:async';` to the store file.
 and `peerNames: ref.watch(peerDeviceNameStoreProvider),` inside `syncServiceProvider`.
 
 - [ ] **Step 4: Run the tests**
@@ -2171,7 +2214,7 @@ In `platform_gallery_resolver_test.dart`, next to the `hasPhotoLibrary: false` t
 ```
 `service` and a row builder exist in that file; add `rowWithOrigin(String?)` beside them if there is none.
 
-Info panel widget test: pump `MediaInfoPanel(item: rowLinkedOn('desk'))` inside a `ProviderScope` overriding `currentDeviceIdProvider` to `'phone'`, `originDeviceLabelProvider('desk')` to `"Eric's MacBook"`, `mediaByIdProvider` to the row, and `settingsProvider` per `test/helpers/mock_providers.dart`; expect `find.text("Eric's MacBook")`. A second case with the override returning null expects the existing "Another device" string.
+Info panel widget test: pump `MediaInfoPanel(item: rowLinkedOn('desk'))` inside a `ProviderScope` overriding `currentDeviceIdProvider` to `'phone'`, `originDeviceLabelProvider('desk')` to `"Eric's MacBook"`, `mediaByIdProvider` to the row, and `settingsProvider` per `test/helpers/mock_providers.dart`; expect `find.text("Eric's MacBook")`. A second case with the override returning null expects the existing "Another device" string. A third case overrides `peerDeviceNamesProvider` with a `StreamController` and asserts the label changes from "Another device" to the name after the controller emits, without rebuilding the panel.
 
 - [ ] **Step 2: Run to verify failure**
 
@@ -2221,11 +2264,11 @@ and add:
 /// labels. Null when the peer never published one; callers keep the generic
 /// wording.
 final originDeviceLabelProvider = Provider.family<String?, String>(
-  (ref, deviceId) => ref.watch(peerDeviceNameStoreProvider).nameFor(deviceId),
+  (ref, deviceId) => ref.watch(peerDeviceNamesProvider).value?[deviceId],
 );
 ```
 
-`media_resolver_providers.dart`: pass `deviceLabel: (id) async => ref.read(peerDeviceNameStoreProvider).nameFor(id),` to both resolver constructors.
+`media_resolver_providers.dart`: pass `deviceLabel: (id) async => ref.read(peerDeviceNameStoreProvider).nameFor(id),` to both resolver constructors (a resolver answers per resolution, so a read of the current map is right there; the live stream matters for widgets already on screen).
 
 `media_info_panel.dart:294-300`: the "Linked on" value becomes
 
@@ -2278,6 +2321,7 @@ class MediaHealthRow {
     this.cacheNextRetryAt,               // resolvedAt plus the backoff step for attemptCount
     required this.resolverVerdict,       // 'available' or the UnavailableKind name
     this.storeObjectExists,              // null when not probed
+    this.storeObjectTier,                // 'original', 'rendition' or 'thumbnail' when it exists
     this.queueState, this.queueAttempts, this.queueNextAttemptAt, this.queueError,
     this.queueWaiting,                   // true when nextAttemptAt is in the future
   });
@@ -2301,9 +2345,10 @@ class MediaHealthReporter {
     required MediaTransferQueueRepository queue,
     required MediaSourceResolverRegistry registry,
     required MediaStoreAttachState attachState,
-    required Future<MediaObjectStore?> Function() store,
+    required Future<MediaObjectStore?> Function() store,   // never the runtime
     required Future<String> Function() localDeviceId,
-    required String? Function(String deviceId) deviceName,
+    required Future<String?> Function() localDeviceName,   // this device is not in the peer map
+    required String? Function(String deviceId) deviceName, // peers, from the manifest names
     DateTime Function()? now,
   });
   /// One-row report with the same header (device, attached store, marker),
@@ -2319,7 +2364,7 @@ final mediaHealthReporterProvider = Provider<MediaHealthReporter>(...);
 
 `media_health_report_test.dart`: build a `MediaHealthRow` with every field set, assert `toJson()` keys are exactly the field names in snake_case, `toText()` contains `media_id: m1`, `resolver_verdict: fromOtherDevice`, and that a null `storeObjectExists` renders as `store_object: not probed`. Build a `MediaHealthReport` with two rows and assert the text starts with `Submersion media health report`, contains `device: <id> (<name>)`, `attached_store:` and `marker_store:` lines, and both row blocks separated by a blank line.
 
-`media_health_reporter_test.dart`: reuse the two-device harness. Scenario: A links a file, uploads, syncs; B syncs. Build a reporter for B from the harness pieces (`MediaRepository()`, `SyncRepository()`, `h.b.assetCache`, `h.b.queue`, `h.b.registry`, `MediaStoreAttachState()`, `() async => h.bucket`, `() async => h.b.deviceId`, `(id) => id == h.a.deviceId ? 'Device A' : null`). Assert on `forItem(row, probeStore: true)`: one row with `linkedHere` false, `originDeviceName` 'Device A', `resolverVerdict` 'fromOtherDevice', `contentHash` non-null, `hlc` non-null, `filePath` equal to A's path, `storeObjectExists` true, `pending` false, `queueState` null, and the report's `attachedStoreId == markerStoreId == h.storeId`. Then `forLibrary()` has one row. A second test on A: `linkedHere` true, `resolverVerdict` 'available', `queueState` 'done'. A third test: a row with a null `originDeviceId` reports `linkedHere` null and its text says `origin_device: unknown`. A fourth: a row whose cache entry is `unresolved` with `attemptCount` 2 reports `cacheNextRetryAt` equal to `resolvedAt` plus 3 days.
+`media_health_reporter_test.dart`: reuse the two-device harness. Scenario: A links a file, uploads, syncs; B syncs. Build a reporter for B from the harness pieces (`MediaRepository()`, `SyncRepository()`, `h.b.assetCache`, `h.b.queue`, `h.b.registry`, `MediaStoreAttachState()`, `() async => h.bucket`, `() async => h.b.deviceId`, `() async => 'Device B'`, `(id) => id == h.a.deviceId ? 'Device A' : null`). Assert on `forItem(row, probeStore: true)`: one row with `linkedHere` false, `originDeviceName` 'Device A', `resolverVerdict` 'fromOtherDevice', `contentHash` non-null, `hlc` non-null, `filePath` equal to A's path, `storeObjectExists` true, `pending` false, `queueState` null, and the report's `attachedStoreId == markerStoreId == h.storeId`. Then `forLibrary()` has one row. A second test on A: `linkedHere` true, `resolverVerdict` 'available', `queueState` 'done'. A third test: a row with a null `originDeviceId` reports `linkedHere` null and its text says `origin_device: unknown`. A fourth: a row whose cache entry is `unresolved` with `attemptCount` 1 reports `cacheNextRetryAt` equal to `resolvedAt` plus 3 days, and with `attemptCount` 2 plus 7 days (the repository indexes its ladder by `attemptCount`). A fifth: on device A, the report header and the row's `originDeviceName` carry the local device name, resolved through `localDeviceName`, not the peer map.
 
 - [ ] **Step 2: Run to verify failure**
 
@@ -2333,7 +2378,7 @@ Expected: FAIL, missing files.
 ```dart
 String _ts(DateTime? t) => t?.toUtc().toIso8601String() ?? 'null';
 ```
-`toText()` for a row emits, in this order, one `key: value` line each: `media_id`, `source_type`, `original_filename`, `pointer` (the file path, local path or platform asset id, whichever the source type uses), `taken_at`, `dive_id`, `site_id`, `origin_device` (`unknown` when the id is null; otherwise the id plus the name in parentheses when known, plus ` (this device)` when `linkedHere` is true), `content_hash`, `content_size_bytes`, `remote_uploaded_at`, `remote_thumb_uploaded_at`, `remote_compressed_uploaded_at`, `is_orphaned`, `last_verified_at`, `hlc`, `pending`, `cache` (method, asset id, attempts, `expired`/`fresh`, next retry time, or `none`), `resolver_verdict`, `store_object` (`exists`, `missing` or `not probed`), `queue` (state, attempts, `waiting until <time>` when `queueWaiting`, error, or `none`). `toJson()` uses the same keys with typed values, ISO 8601 UTC strings for dates.
+`toText()` for a row emits, in this order, one `key: value` line each: `media_id`, `source_type`, `original_filename`, `pointer` (the file path, local path or platform asset id, whichever the source type uses), `taken_at`, `dive_id`, `site_id`, `origin_device` (`unknown` when the id is null; otherwise the id plus the name in parentheses when known, plus ` (this device)` when `linkedHere` is true), `content_hash`, `content_size_bytes`, `remote_uploaded_at`, `remote_thumb_uploaded_at`, `remote_compressed_uploaded_at`, `is_orphaned`, `last_verified_at`, `hlc`, `pending`, `cache` (method, asset id, attempts, `expired`/`fresh`, next retry time, or `none`), `resolver_verdict`, `store_object` (`exists as <tier>`, `missing` or `not probed`), `queue` (state, attempts, `waiting until <time>` when `queueWaiting`, error, or `none`). `toJson()` uses the same keys with typed values, ISO 8601 UTC strings for dates.
 
 The report header: `Submersion media health report`, `generated_at`, `device: <id> (<name or unnamed>)`, `attached_store`, `marker_store`, `rows: <count>`, blank line, rows joined by a blank line.
 
@@ -2373,19 +2418,22 @@ class MediaHealthReporter {
     if (store != null) {
       try { marker = (await StoreMarkerStore(store: store).read())?.storeId; } catch (_) {}
     }
-    return MediaHealthReport(generatedAt: _now(), deviceId: me, deviceName: _deviceName(me),
+    return MediaHealthReport(generatedAt: _now(), deviceId: me, deviceName: await _localDeviceName(),
         attachedStoreId: attached, markerStoreId: marker, rows: rows);
   }
 
   Future<MediaHealthRow> _row(MediaItem item, {required String me, required bool pending, required bool probeStore}) async {
     final cache = await _assetCache.getCacheEntry(item.id);
     final cacheExpired = cache == null ? null : await _assetCache.isExpired(item.id);
-    // The repository keeps its ladder private; mirror it here and cover it
-    // with the fourth reporter test so a change to one shows up in the other.
+    // The repository keeps its ladder private and indexes it by attemptCount
+    // directly (local_asset_cache_repository.dart:104-108); mirror both here
+    // and cover them with the fourth reporter test so a change to one shows
+    // up in the other. resolvedAt is epoch milliseconds.
     const ladder = [Duration(hours: 24), Duration(days: 3), Duration(days: 7)];
     final cacheNextRetryAt = (cache == null || cache.resolutionMethod != 'unresolved')
         ? null
-        : cache.resolvedAt.add(ladder[(cache.attemptCount - 1).clamp(0, ladder.length - 1)]);
+        : DateTime.fromMillisecondsSinceEpoch(cache.resolvedAt)
+            .add(ladder[cache.attemptCount.clamp(0, ladder.length - 1)]);
     final hlc = await _mediaRepository.getSyncHlc(item.id);
     String verdict;
     try {
@@ -2394,15 +2442,44 @@ class MediaHealthReporter {
     } catch (e) {
       verdict = 'error: $e';
     }
+    // The pipeline stores an original under objectKey, a compressed-only
+    // upload under renditionKey and a thumb under thumbKey, so the namespace
+    // follows the stamps. With no stamps at all (the lost-stamp case) every
+    // namespace is probed, in that order, so the row stays diagnosable.
     bool? exists;
+    String? tier;
     if (probeStore && item.contentHash != null) {
       final store = await _store();
       if (store != null) {
-        final key = StoreKeys.objectKey(
-          item.contentHash!,
-          extension: StoreKeys.extensionFor(item.originalFilename),
-        );
-        try { exists = await store.head(key) != null; } catch (_) { exists = null; }
+        final hash = item.contentHash!;
+        final ext = StoreKeys.extensionFor(item.originalFilename);
+        final candidates = <(String, String)>[
+          if (item.remoteUploadedAt != null)
+            ('original', StoreKeys.objectKey(hash, extension: ext)),
+          if (item.remoteCompressedUploadedAt != null)
+            ('rendition', StoreKeys.renditionKey(hash, ext: ext)),
+          if (item.remoteThumbUploadedAt != null)
+            ('thumbnail', StoreKeys.thumbKey(hash)),
+        ];
+        final probes = candidates.isNotEmpty
+            ? candidates
+            : [
+                ('original', StoreKeys.objectKey(hash, extension: ext)),
+                ('rendition', StoreKeys.renditionKey(hash, ext: ext)),
+                ('thumbnail', StoreKeys.thumbKey(hash)),
+              ];
+        try {
+          exists = false;
+          for (final (name, key) in probes) {
+            if (await store.head(key) != null) {
+              exists = true;
+              tier = name;
+              break;
+            }
+          }
+        } catch (_) {
+          exists = null;
+        }
       }
     }
     final entry = await _queue.watchLatestForMedia(item.id).first;
@@ -2413,7 +2490,10 @@ class MediaHealthReporter {
     return MediaHealthRow(
       mediaId: item.id, sourceType: item.sourceType.name, originalFilename: item.originalFilename,
       takenAt: item.takenAt, diveId: item.diveId, siteId: item.siteId,
-      originDeviceId: origin, originDeviceName: origin == null ? null : _deviceName(origin),
+      originDeviceId: origin,
+      originDeviceName: origin == null
+          ? null
+          : (origin == me ? await _localDeviceName() : _deviceName(origin)),
       linkedHere: origin == null ? null : origin == me,
       filePath: item.filePath, localPath: item.localPath, platformAssetId: item.platformAssetId,
       contentHash: item.contentHash, contentSizeBytes: item.contentSizeBytes,
@@ -2423,8 +2503,8 @@ class MediaHealthReporter {
       cachedAssetId: cache?.localAssetId, cacheMethod: cache?.resolutionMethod,
       cacheAttempts: cache?.attemptCount, cacheExpired: cacheExpired,
       cacheNextRetryAt: cacheNextRetryAt,
-      resolverVerdict: verdict, storeObjectExists: exists,
-      queueState: entry?.state, queueAttempts: entry?.attemptCount,
+      resolverVerdict: verdict, storeObjectExists: exists, storeObjectTier: tier,
+      queueState: entry?.state, queueAttempts: entry?.attempts,   // the table column is `attempts`
       queueNextAttemptAt: nextAttempt,
       queueWaiting: nextAttempt != null && nextAttempt.isAfter(_now()),
       queueError: entry?.errorMessage,
@@ -2432,7 +2512,7 @@ class MediaHealthReporter {
   }
 }
 ```
-`StoreKeys.extensionFor` (`store_keys.dart:51`) is the same helper the upload pipeline uses at `media_upload_pipeline.dart:226` and `:244`; it answers `bin` for a filename without an extension, so an extensionless object is still addressable and the probe always runs. `MediaItem` does not carry `hlc`; add the narrow read `Future<String?> getSyncHlc(String id)` to `MediaRepository` (a `selectOnly` of the `hlc` column by id, next to `getDisplayLabels`) with a unit test beside the existing origin-device repository tests, and use it here.
+`StoreKeys.extensionFor` (`store_keys.dart:51`) is the same helper the upload pipeline uses at `media_upload_pipeline.dart:226` and `:244`; it answers `bin` for a filename without an extension, so an extensionless object is still addressable and the probe always runs. Pass `renditionKey` the same `ext` the pipeline passes at `media_upload_pipeline.dart:185`; read that call and copy its derivation if it differs from the original's extension. `MediaItem` does not carry `hlc`; add the narrow read `Future<String?> getSyncHlc(String id)` to `MediaRepository` (a `selectOnly` of the `hlc` column by id, next to `getDisplayLabels`) with a unit test beside the existing origin-device repository tests, and use it here.
 
 `media_health_providers.dart`:
 
@@ -2445,11 +2525,27 @@ final mediaHealthReporterProvider = Provider<MediaHealthReporter>((ref) {
     queue: ref.watch(mediaTransferQueueRepositoryProvider),
     registry: ref.watch(mediaSourceResolverRegistryProvider),
     attachState: ref.watch(mediaStoreAttachStateProvider),
-    store: () async => (await ref.read(mediaStoreRuntimeProvider.future))?.store,
+    store: () => ref.read(attachedMediaObjectStoreProvider.future),
     localDeviceId: () => SyncRepository().getDeviceId(),
-    deviceName: (id) => ref.read(peerDeviceNameStoreProvider).nameFor(id),
+    localDeviceName: () async =>
+        (await SyncDeviceMetadata(SyncRepository()).resolve()).name,
+    deviceName: (id) => ref.read(peerDeviceNamesProvider).value?[id],
   );
 });
+```
+
+Building `mediaStoreRuntimeProvider` starts a transfer drain and an opportunistic verification sweep, so a diagnostics read must never construct it. Extract the store construction the runtime provider does inline (`media_store_providers.dart:409-440`: attach state, then the account path through `buildMediaObjectStoreForAccount` or the legacy path through `buildMediaObjectStore`) into
+
+```dart
+/// The attached media store's adapter, or null when nothing is attached or
+/// the provider cannot be built right now. Side-effect free: no worker, no
+/// drain, no sweep. The runtime provider builds on top of this.
+final attachedMediaObjectStoreProvider = FutureProvider<MediaObjectStore?>(...);
+```
+
+and make `mediaStoreRuntimeProvider` watch it instead of repeating the construction. The existing runtime provider tests must pass unchanged.
+
+```dart
 ```
 Use the existing provider names for the cache repository, queue repository and attach state (search `media_store_providers.dart` and `media_resolver_providers.dart`; each exists under a `<noun>Provider` name).
 

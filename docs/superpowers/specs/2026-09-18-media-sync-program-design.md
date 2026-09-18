@@ -5,8 +5,9 @@
 **Builds on:** the 2026-07-10 S3 media storage design, the 2026-03-13
 cross-device photo resolution design, the 2026-08-22 media verification
 reachability design and the 2026-08-23 attached-or-absent design.
-**Tracking:** one GitHub tracking issue, created after this spec is approved,
-with one sub-issue per slice in section 10.
+**Tracking:** issue #2090, with one sub-issue per slice in section 10
+(#2091, #2094, #2097, #2100, #2103, #2108, #2113, #2116, #2121, #2126,
+#2129, #2132).
 
 ## 1. Problem
 
@@ -288,7 +289,7 @@ user edit, and it merges column by column instead of with the row:
 
 | Group | Columns | Rule |
 | --- | --- | --- |
-| Upload facts | `contentHash`, `contentSizeBytes`, `remoteUploadedAt`, `remoteThumbUploadedAt`, `remoteCompressedUploadedAt` | Each of the three stamps merges on its own: a non-null stamp beats null, and when both sides are non-null the newer one wins. `contentHash` and `contentSizeBytes` travel together and follow whichever side holds the newest stamp overall (the maximum of its three); when only one side has a hash, that side wins. A non-null value is never replaced by null. This gives a total order for the compressed-only case, where `remoteUploadedAt` stays null permanently. |
+| Upload facts | `contentHash`, `contentSizeBytes`, `remoteUploadedAt`, `remoteThumbUploadedAt`, `remoteCompressedUploadedAt` | Each of the three stamps merges on its own: a non-null stamp beats null, and when both sides are non-null the newer one wins. `contentHash` and `contentSizeBytes` travel together and follow whichever side holds the newest stamp overall (the maximum of its three); when only one side has a hash, that side wins; when neither side has a newer stamp (both have none, or the newest are equal) the side whose `contentHash` is greater by byte-wise comparison wins, so two replicas always agree regardless of apply order. A non-null value is never replaced by null. This gives a total order for the compressed-only case, where `remoteUploadedAt` stays null permanently. |
 | Verification facts | `isOrphaned`, `lastVerifiedAt` | The pair with the newer `lastVerifiedAt` wins. |
 
 The rest of the media row (links, caption, `takenAt`, rating, source
