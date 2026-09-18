@@ -95,6 +95,20 @@ void main() {
     expect(text, contains('0.0 of 11.0 hours left'));
   });
 
+  testWidgets('dives and hours triggers show the used value alongside the '
+      'remaining one', (tester) async {
+    final text = await format(
+      tester,
+      now: DateTime(2026, 1, 1),
+      divesSinceAnchor: 61,
+      divesRemaining: 59,
+      hoursSinceAnchor: 10.0,
+      hoursRemaining: 30.0,
+    );
+    expect(text, contains('61 dives, 59 of 120 dives left'));
+    expect(text, contains('10.0 hours, 30.0 of 40.0 hours left'));
+  });
+
   testWidgets('multiple triggers join with a middle dot', (tester) async {
     final text = await format(
       tester,

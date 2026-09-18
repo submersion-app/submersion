@@ -3939,6 +3939,20 @@
   "equipment_serviceClocks_countingSince": "Zählt seit {date}",
   "equipment_serviceClocks_overdue": "Überfällig",
   "equipment_serviceClocks_divesLeft": "{remaining} von {total} Tauchgängen übrig",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} Tauchgänge, {remaining} von {total} Tauchgängen übrig",
+  "@equipment_serviceClocks_divesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "cylinderConfigs_title": "Flaschenkonfigurationen",
   "cylinderConfigs_empty": "Noch keine Konfigurationen",
   "cylinderConfigs_emptyBody": "Diluent- und Bailout-Aufbau einmal speichern und auf jeden Tauchgang anwenden.",
@@ -3976,9 +3990,37 @@
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
   "equipment_serviceClocks_hoursLeft": "{remaining} von {total} Stunden übrig",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} Stunden, {remaining} von {total} Stunden übrig",
+  "@equipment_serviceClocks_hoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_saltHoursLeft": "{remaining} von {total} Salzwasserstunden übrig",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} Salzwasserstunden, {remaining} von {total} Salzwasserstunden übrig",
+  "@equipment_serviceClocks_saltHoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -3998,9 +4040,37 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} Kaltwassertauchgänge, {remaining} von {total} Kaltwassertauchgängen übrig",
+  "@equipment_serviceClocks_coldDivesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_o2HoursLeft": "{remaining} von {total} Stunden mit hohem O2 übrig",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} Stunden mit hohem O2, {remaining} von {total} Stunden mit hohem O2 übrig",
+  "@equipment_serviceClocks_o2HoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -4020,9 +4090,37 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} tiefe Tauchgänge, {remaining} von {total} tiefen Tauchgängen übrig",
+  "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_cyclesLeft": "{remaining} von {total} Batteriezyklen übrig",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} Batteriezyklen, {remaining} von {total} Batteriezyklen übrig",
+  "@equipment_serviceClocks_cyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -4236,6 +4334,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Nicht gesetzt",
   "equipment_serviceDialog_categoryHelper": "Für Filter und Export verwendet",
   "equipment_serviceDialog_manageServiceTypes": "Wartungsarten verwalten",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Nur konfigurierte Wartungsarten anzeigen",
   "equipment_serviceDialog_categoryLabel": "Kategorie",
   "equipment_serviceDialog_snackbar_added": "Wartungseintrag hinzugefügt",
   "equipment_serviceDialog_snackbar_error": "Fehler: {error}",
@@ -4268,6 +4367,8 @@
   "equipment_service_filterClear": "Filter zurücksetzen",
   "equipment_service_filterNoMatches": "Keine Wartung entspricht diesem Filter",
   "equipment_service_filterMatchCount": "{count} von {total} angezeigt",
+  "equipment_service_showMore": "{count, plural, =1{1 weiteren anzeigen} other{{count} weitere anzeigen}}",
+  "equipment_service_showFewer": "Weniger anzeigen",
   "equipment_serviceKinds_defaultCategoryLabel": "Standardkategorie",
   "equipment_serviceKinds_defaultCategoryNone": "Kein Standard",
   "equipment_serviceKinds_defaultCostLabel": "Standardpreis",

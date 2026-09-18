@@ -12110,6 +12110,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used dives, $remaining of $total dives left';
+  }
+
+  @override
   String get cylinderConfigs_title => 'Palackkonfigurációk';
 
   @override
@@ -12199,8 +12208,26 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used hours, $remaining of $total hours left';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return '$remaining / $total sós vízi óra van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used salt-water hours, $remaining of $total salt-water hours left';
   }
 
   @override
@@ -12209,8 +12236,26 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used cold dives, $remaining of $total cold dives left';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return '$remaining / $total magas O2-tartalmú óra van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used high-O2 hours, $remaining of $total high-O2 hours left';
   }
 
   @override
@@ -12222,8 +12267,26 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used deep dives, $remaining of $total deep dives left';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return '$remaining / $total akkumulátorciklus van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used battery cycles, $remaining of $total battery cycles left';
   }
 
   @override
@@ -13006,6 +13069,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Szerviz típusok kezelése';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'Only show configured service types';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'Kategória';
 
   @override
@@ -13111,6 +13178,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return '$count / $total megjelenítve';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count more',
+      one: 'Show 1 more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'Show fewer';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>

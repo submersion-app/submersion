@@ -12131,6 +12131,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used Tauchgänge, $remaining von $total Tauchgängen übrig';
+  }
+
+  @override
   String get cylinderConfigs_title => 'Flaschenkonfigurationen';
 
   @override
@@ -12222,8 +12231,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Stunden, $remaining von $total Stunden übrig';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return '$remaining von $total Salzwasserstunden übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Salzwasserstunden, $remaining von $total Salzwasserstunden übrig';
   }
 
   @override
@@ -12232,8 +12259,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Kaltwassertauchgänge, $remaining von $total Kaltwassertauchgängen übrig';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return '$remaining von $total Stunden mit hohem O2 übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Stunden mit hohem O2, $remaining von $total Stunden mit hohem O2 übrig';
   }
 
   @override
@@ -12245,8 +12290,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used tiefe Tauchgänge, $remaining von $total tiefen Tauchgängen übrig';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return '$remaining von $total Batteriezyklen übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Batteriezyklen, $remaining von $total Batteriezyklen übrig';
   }
 
   @override
@@ -13030,6 +13093,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wartungsarten verwalten';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'Nur konfigurierte Wartungsarten anzeigen';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'Kategorie';
 
   @override
@@ -13135,6 +13202,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return '$count von $total angezeigt';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere anzeigen',
+      one: '1 weiteren anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'Weniger anzeigen';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel => 'Standardkategorie';

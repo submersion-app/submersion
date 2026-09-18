@@ -20188,6 +20188,16 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} dives left'**
   String equipment_serviceClocks_divesLeft(int remaining, int total);
 
+  /// No description provided for @equipment_serviceClocks_divesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} dives, {remaining} of {total} dives left'**
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  );
+
   /// No description provided for @cylinderConfigs_title.
   ///
   /// In en, this message translates to:
@@ -20326,11 +20336,31 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} hours left'**
   String equipment_serviceClocks_hoursLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_hoursUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} hours, {remaining} of {total} hours left'**
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
+
   /// No description provided for @equipment_serviceClocks_saltHoursLeft.
   ///
   /// In en, this message translates to:
   /// **'{remaining} of {total} salt-water hours left'**
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_saltHoursUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} salt-water hours, {remaining} of {total} salt-water hours left'**
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
 
   /// No description provided for @equipment_serviceClocks_coldDivesLeft.
   ///
@@ -20338,11 +20368,31 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} cold dives left'**
   String equipment_serviceClocks_coldDivesLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_coldDivesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} cold dives, {remaining} of {total} cold dives left'**
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
+
   /// No description provided for @equipment_serviceClocks_o2HoursLeft.
   ///
   /// In en, this message translates to:
   /// **'{remaining} of {total} high-O2 hours left'**
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_o2HoursUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} high-O2 hours, {remaining} of {total} high-O2 hours left'**
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
 
   /// No description provided for @equipment_serviceClocks_deepCyclesLeft.
   ///
@@ -20350,11 +20400,31 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} deep dives left'**
   String equipment_serviceClocks_deepCyclesLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_deepCyclesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} deep dives, {remaining} of {total} deep dives left'**
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
+
   /// No description provided for @equipment_serviceClocks_cyclesLeft.
   ///
   /// In en, this message translates to:
   /// **'{remaining} of {total} battery cycles left'**
   String equipment_serviceClocks_cyclesLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_cyclesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} battery cycles, {remaining} of {total} battery cycles left'**
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
 
   /// No description provided for @equipment_serviceClocks_manageKinds.
   ///
@@ -21589,6 +21659,12 @@ abstract class AppLocalizations {
   /// **'Manage service types'**
   String get equipment_serviceDialog_manageServiceTypes;
 
+  /// No description provided for @equipment_serviceDialog_filterToConfiguredTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show configured service types'**
+  String get equipment_serviceDialog_filterToConfiguredTypes;
+
   /// No description provided for @equipment_serviceDialog_categoryLabel.
   ///
   /// In en, this message translates to:
@@ -21780,6 +21856,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} of {total} shown'**
   String equipment_service_filterMatchCount(int count, int total);
+
+  /// No description provided for @equipment_service_showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 more} other{Show {count} more}}'**
+  String equipment_service_showMore(int count);
+
+  /// No description provided for @equipment_service_showFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get equipment_service_showFewer;
 
   /// No description provided for @equipment_serviceKinds_defaultCategoryLabel.
   ///

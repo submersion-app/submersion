@@ -32,6 +32,12 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
   /// not need to outlive it, matching EquipmentListContent's filter dropdown.
   MaintenanceHistoryFilter _filter = const MaintenanceHistoryFilter();
 
+  /// How many of the filtered rows to render before collapsing behind a
+  /// "Show more" button. Local, not persisted: reopening the page always
+  /// starts collapsed again.
+  static const _collapsedRowCount = 5;
+  bool _showAllRecords = false;
+
   String get equipmentId => widget.equipmentId;
 
   @override
@@ -209,17 +215,40 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                           ),
                         ),
                       )
-                    else
-                      ...visible.map(
-                        (record) => _ServiceRecordTile(
-                          record: record,
-                          kindsById: kindsById,
-                          onTap: () =>
-                              _showEditServiceDialog(context, ref, record),
-                          onDelete: () =>
-                              _confirmDeleteRecord(context, ref, record),
+                    else ...[
+                      // Newest first already, so a collapsed view keeps the
+                      // most recent entries -- the ones a diver actually
+                      // opens this section to check.
+                      ...(_showAllRecords
+                              ? visible
+                              : visible.take(_collapsedRowCount))
+                          .map(
+                            (record) => _ServiceRecordTile(
+                              record: record,
+                              kindsById: kindsById,
+                              onTap: () =>
+                                  _showEditServiceDialog(context, ref, record),
+                              onDelete: () =>
+                                  _confirmDeleteRecord(context, ref, record),
+                            ),
+                          ),
+                      if (visible.length > _collapsedRowCount)
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton(
+                            onPressed: () => setState(
+                              () => _showAllRecords = !_showAllRecords,
+                            ),
+                            child: Text(
+                              _showAllRecords
+                                  ? context.l10n.equipment_service_showFewer
+                                  : context.l10n.equipment_service_showMore(
+                                      visible.length - _collapsedRowCount,
+                                    ),
+                            ),
+                          ),
                         ),
-                      ),
+                    ],
                   ],
                 );
               },
