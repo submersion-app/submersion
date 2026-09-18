@@ -8075,6 +8075,8 @@
   "attrLabel_battery_capacity_wh": "电池容量（瓦时）",
   "attrLabel_motor_type": "电机",
   "attrLabel_speed_mps": "最高速度",
+  "attrLabel_tow_burn_factor": "拖带耗电系数",
+  "attrLabel_tow_speed_factor": "拖带速度系数",
   "attrLabel_sku": "商品编号 (SKU)",
   "attrLabel_retailer": "零售商",
   "attrLabel_product_url": "网页链接",

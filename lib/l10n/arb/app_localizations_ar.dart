@@ -27657,6 +27657,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_speed_mps => 'السرعة القصوى';
 
   @override
+  String get attrLabel_tow_burn_factor => 'معامل استهلاك البطارية أثناء السحب';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'معامل السرعة أثناء السحب';
+
+  @override
   String get attrLabel_sku => 'رمز المنتج (SKU)';
 
   @override

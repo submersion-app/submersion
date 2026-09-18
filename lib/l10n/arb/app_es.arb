@@ -8075,6 +8075,8 @@
   "attrLabel_battery_capacity_wh": "Capacidad de batería (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Velocidad máxima",
+  "attrLabel_tow_burn_factor": "Factor de consumo al remolcar",
+  "attrLabel_tow_speed_factor": "Factor de velocidad al remolcar",
   "attrLabel_sku": "SKU",
   "attrLabel_retailer": "Vendedor",
   "attrLabel_product_url": "Enlace web",

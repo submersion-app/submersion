@@ -8075,6 +8075,8 @@
   "attrLabel_battery_capacity_wh": "Capacità batteria (Wh)",
   "attrLabel_motor_type": "Motore",
   "attrLabel_speed_mps": "Velocità massima",
+  "attrLabel_tow_burn_factor": "Fattore di consumo in traino",
+  "attrLabel_tow_speed_factor": "Fattore di velocità in traino",
   "attrLabel_sku": "Codice articolo (SKU)",
   "attrLabel_retailer": "Rivenditore",
   "attrLabel_product_url": "Link web",

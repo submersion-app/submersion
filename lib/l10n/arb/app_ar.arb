@@ -8075,6 +8075,8 @@
   "attrLabel_battery_capacity_wh": "سعة البطارية (واط·ساعة)",
   "attrLabel_motor_type": "المحرك",
   "attrLabel_speed_mps": "السرعة القصوى",
+  "attrLabel_tow_burn_factor": "معامل استهلاك البطارية أثناء السحب",
+  "attrLabel_tow_speed_factor": "معامل السرعة أثناء السحب",
   "attrLabel_sku": "رمز المنتج (SKU)",
   "attrLabel_retailer": "المتجر",
   "attrLabel_product_url": "رابط الويب",

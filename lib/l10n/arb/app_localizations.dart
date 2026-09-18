@@ -45110,6 +45110,18 @@ abstract class AppLocalizations {
   /// **'Top speed'**
   String get attrLabel_speed_mps;
 
+  /// No description provided for @attrLabel_tow_burn_factor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow burn factor'**
+  String get attrLabel_tow_burn_factor;
+
+  /// No description provided for @attrLabel_tow_speed_factor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow speed factor'**
+  String get attrLabel_tow_speed_factor;
+
   /// No description provided for @attrLabel_sku.
   ///
   /// In en, this message translates to:

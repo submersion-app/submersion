@@ -8075,6 +8075,8 @@
   "attrLabel_battery_capacity_wh": "קיבולת סוללה (Wh)",
   "attrLabel_motor_type": "מנוע",
   "attrLabel_speed_mps": "מהירות מרבית",
+  "attrLabel_tow_burn_factor": "מקדם צריכת סוללה בגרירה",
+  "attrLabel_tow_speed_factor": "מקדם מהירות בגרירה",
   "attrLabel_sku": "מק״ט",
   "attrLabel_retailer": "קמעונאי",
   "attrLabel_product_url": "קישור אינטרנט",

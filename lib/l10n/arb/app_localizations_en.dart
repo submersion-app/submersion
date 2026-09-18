@@ -27587,6 +27587,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_speed_mps => 'Top speed';
 
   @override
+  String get attrLabel_tow_burn_factor => 'Tow burn factor';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Tow speed factor';
+
+  @override
   String get attrLabel_sku => 'SKU';
 
   @override

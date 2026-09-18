@@ -28042,6 +28042,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_speed_mps => 'Velocità massima';
 
   @override
+  String get attrLabel_tow_burn_factor => 'Fattore di consumo in traino';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Fattore di velocità in traino';
+
+  @override
   String get attrLabel_sku => 'Codice articolo (SKU)';
 
   @override

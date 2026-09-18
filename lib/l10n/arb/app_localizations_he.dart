@@ -27363,6 +27363,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_speed_mps => 'מהירות מרבית';
 
   @override
+  String get attrLabel_tow_burn_factor => 'מקדם צריכת סוללה בגרירה';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'מקדם מהירות בגרירה';
+
+  @override
   String get attrLabel_sku => 'מק״ט';
 
   @override
