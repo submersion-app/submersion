@@ -11,6 +11,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_memb
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
 
 const _air = GasMix(o2: 21);
 
@@ -74,6 +75,22 @@ MissionLeg _leg(
   headingDeg: 0,
   current: current,
 );
+
+/// A scenario service whose every failure evaluation throws, standing in for
+/// a plan the engine cannot schedule.
+class _ThrowingScenarios extends MissionScenarioService {
+  const _ThrowingScenarios();
+
+  @override
+  ExitOutcome evaluate({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int waypointIndex,
+    required String failedMemberId,
+    required MissionExitMode mode,
+    String? towerId,
+  }) => throw StateError('unschedulable');
+}
 
 void main() {
   const engine = MissionEngine();
@@ -250,6 +267,52 @@ void main() {
       expect(b.tow!.blockedByCurrent, isTrue);
       expect(b.survivable, isFalse);
       expect(outcome.constraint!.factor, MissionBindingFactor.noFeasibleTow);
+    });
+
+    test('a scenario that throws is reported and counted as no way out', () {
+      final outcome = const MissionEngine(scenarios: _ThrowingScenarios())
+          .compute(
+            plan: _plan(tankLiters: 40, startBar: 230),
+            mission: DpvMission(
+              legs: [_leg('L1', 0, distance: 200)],
+              team: [_member('a', 0), _member('b', 1)],
+            ),
+          );
+      final failed = outcome.issues
+          .where((i) => i.type == MissionIssueType.scenarioFailed)
+          .toList();
+      // Two members, one swim and one tow each.
+      expect(failed, hasLength(4));
+      expect(
+        failed.every((i) => i.severity == MissionIssueSeverity.warning),
+        isTrue,
+      );
+      expect(failed.map((i) => i.legId).toSet(), {'L1'});
+      expect(outcome.waypoints.single.survivable, isFalse);
+      expect(outcome.abandonmentIndex, isNull);
+    });
+
+    test('a feasible tower is preferred over an earlier infeasible one', () {
+      // a would burn 20x its rate towing, so only b can tow c out.
+      final heavyTower = _member('a', 0);
+      final outcome = engine.compute(
+        plan: _plan(tankLiters: 40, startBar: 230),
+        mission: DpvMission(
+          legs: [_leg('L1', 0, distance: 200)],
+          team: [
+            heavyTower.copyWith(
+              scooter: heavyTower.scooter.copyWith(towBurnFactor: 20),
+            ),
+            _member('b', 1),
+            _member('c', 2),
+          ],
+        ),
+      );
+      final c = outcome.waypoints.single.members.firstWhere(
+        (m) => m.memberId == 'c',
+      );
+      expect(c.tow!.towerId, 'b');
+      expect(c.tow!.feasible, isTrue);
     });
 
     test('the abandonment point is the last survivable waypoint', () {

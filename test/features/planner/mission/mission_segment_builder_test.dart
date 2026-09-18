@@ -218,6 +218,47 @@ void main() {
     expect(profile.segments[2].durationSeconds, 334);
   });
 
+  test('without a declared back gas the first tank is breathed', () {
+    final profile = builder.build(
+      plan: _plan(
+        tanks: const [
+          DiveTank(
+            id: 'stage',
+            volume: 11,
+            startPressure: 200,
+            gasMix: _air,
+            role: TankRole.stage,
+          ),
+          DiveTank(
+            id: 'other',
+            volume: 11,
+            startPressure: 200,
+            gasMix: _air,
+            role: TankRole.stage,
+          ),
+        ],
+      ),
+      mission: const DpvMission(legs: [_l1]),
+      throughLegIndex: 0,
+      outboundSpeedMps: 0.5,
+      exitSpeedMps: 0.5,
+    );
+    expect(profile.segments.map((s) => s.tankId).toSet(), {'stage'});
+  });
+
+  test('profiles built from the same inputs are equal', () {
+    MissionProfile build(double exit) => builder.build(
+      plan: _plan(),
+      mission: const DpvMission(legs: [_l1]),
+      throughLegIndex: 0,
+      outboundSpeedMps: 0.5,
+      exitSpeedMps: exit,
+    );
+    expect(build(0.5), build(0.5));
+    expect(build(0.5).hashCode, build(0.5).hashCode);
+    expect(build(0.25), isNot(build(0.5)));
+  });
+
   test('a plan without tanks yields no segments', () {
     final profile = builder.build(
       plan: _plan(tanks: const []),
