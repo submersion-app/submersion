@@ -551,36 +551,79 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   List<pw.Widget> _customFieldsSection(Dive dive) {
     if (dive.customFields.isEmpty) return const [];
 
+    const keyStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey600);
+    const valueStyle = pw.TextStyle(fontSize: 10);
+
     return [
       _sectionTitle('Additional Fields'),
       pw.SizedBox(height: 6),
-      ...dive.customFields.map(
-        (field) => pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 2),
-          child: pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.SizedBox(
-                width: 120,
-                child: pw.Text(
-                  field.key,
-                  style: const pw.TextStyle(
-                    fontSize: 10,
-                    color: PdfColors.grey600,
-                  ),
+      for (final field in dive.customFields)
+        if (_fitsInRow([field.key, field.value]))
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 2),
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.SizedBox(
+                  width: 120,
+                  child: pw.Text(field.key, style: keyStyle),
                 ),
-              ),
-              pw.Expanded(
-                child: pw.Text(
-                  field.value,
-                  style: const pw.TextStyle(fontSize: 10),
-                ),
-              ),
-            ],
+                pw.Expanded(child: pw.Text(field.value, style: valueStyle)),
+              ],
+            ),
+          )
+        else
+          ..._stackedEntry(
+            label: field.key,
+            labelStyle: keyStyle,
+            value: field.value,
+            valueStyle: valueStyle,
+            bottom: 2,
+          ),
+      pw.SizedBox(height: 14),
+    ];
+  }
+
+  /// Upper bounds for free text laid out in a two-column pw.Row.
+  ///
+  /// A Row can never span pages, so a value taller than a page body throws
+  /// "Widget won't fit into the page" and fails the whole export. These sit
+  /// far below one page on every supported size, even in the narrowest
+  /// column, so a wrong "too long" verdict only costs the stacked layout.
+  static const _rowMaxChars = 400;
+  static const _rowMaxLines = 12;
+
+  static bool _fitsInRow(List<String> texts) {
+    var chars = 0;
+    var lines = 0;
+    for (final text in texts) {
+      chars += text.length;
+      lines += '\n'.allMatches(text).length + 1;
+    }
+    return chars <= _rowMaxChars && lines <= _rowMaxLines;
+  }
+
+  /// The fallback for text too long for a Row: the label on its own line, the
+  /// value indented beneath it. Both are spanning pw.Text widgets, so
+  /// MultiPage can carry either onto the next sheet.
+  List<pw.Widget> _stackedEntry({
+    required String label,
+    required pw.TextStyle labelStyle,
+    required String value,
+    required pw.TextStyle valueStyle,
+    required double bottom,
+  }) {
+    return [
+      pw.Text(label, style: labelStyle, overflow: pw.TextOverflow.span),
+      if (value.isNotEmpty)
+        pw.Padding(
+          padding: pw.EdgeInsets.only(left: 12, top: 1, bottom: bottom),
+          child: pw.Text(
+            value,
+            style: valueStyle,
+            overflow: pw.TextOverflow.span,
           ),
         ),
-      ),
-      pw.SizedBox(height: 14),
     ];
   }
 
@@ -595,39 +638,44 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     return [
       _sectionTitle('Marine Life'),
       pw.SizedBox(height: 6),
-      ...dive.sightings.map(_sightingLine),
+      ...dive.sightings.expand(_sightingLines),
       pw.SizedBox(height: 14),
     ];
   }
 
-  pw.Widget _sightingLine(MarineSighting sighting) {
+  List<pw.Widget> _sightingLines(MarineSighting sighting) {
     // A count on a lone animal reads as noise, so only a real tally is shown.
     final species = sighting.count > 1
         ? '${sighting.speciesName} x${sighting.count}'
         : sighting.speciesName;
+    const speciesStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey800);
+    const notesStyle = pw.TextStyle(fontSize: 9, color: PdfColors.grey600);
 
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 3),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Expanded(
-            flex: 2,
-            child: pw.Text(
-              species,
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+    if (!_fitsInRow([species, sighting.notes])) {
+      return _stackedEntry(
+        label: species,
+        labelStyle: speciesStyle,
+        value: sighting.notes,
+        valueStyle: notesStyle,
+        bottom: 3,
+      );
+    }
+
+    return [
+      pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(flex: 2, child: pw.Text(species, style: speciesStyle)),
+            pw.Expanded(
+              flex: 3,
+              child: pw.Text(sighting.notes, style: notesStyle),
             ),
-          ),
-          pw.Expanded(
-            flex: 3,
-            child: pw.Text(
-              sighting.notes,
-              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
+    ];
   }
 
   List<pw.Widget> _notesSection(Dive dive) {
