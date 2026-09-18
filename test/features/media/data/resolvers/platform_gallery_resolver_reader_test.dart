@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' show Size;
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -79,6 +80,28 @@ void main() {
     final data = await resolver.resolve(row('other-device-id'));
     expect(data, isA<BytesData>());
   });
+
+  test('serves thumbnail bytes through the reader', () async {
+    final data = await resolver.resolveThumbnail(
+      row('A-1'),
+      target: const Size(200, 200),
+    );
+    expect(data, isA<BytesData>());
+    final bytesData = data as BytesData;
+    expect(bytesData.bytes, bytes);
+    expect(bytesData.servedTier, ServedTier.thumbnail);
+  });
+
+  test(
+    'verify answers notFound once the reader says the asset is gone',
+    () async {
+      // Resolve once so the local id is cached, then remove the asset: the
+      // cache still hands back the id and the reader is what reports it gone.
+      expect(await resolver.verify(row('A-1')), VerifyResult.available);
+      gallery.remove('A-1');
+      expect(await resolver.verify(row('A-1')), VerifyResult.notFound);
+    },
+  );
 
   test('metadata comes from the reader', () async {
     final meta = await resolver.extractMetadata(row('A-1'));
