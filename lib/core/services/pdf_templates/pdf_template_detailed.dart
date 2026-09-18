@@ -636,9 +636,14 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     return [
       _sectionTitle('Notes'),
       pw.SizedBox(height: 6),
+      // TextOverflow.span is what lets MultiPage break the notes across
+      // sheets. Without it a pw.Text cannot span, so a note taller than one
+      // page body throws "Widget won't fit into the page" and fails the
+      // whole export (#2056).
       pw.Text(
         dive.notes,
         style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+        overflow: pw.TextOverflow.span,
       ),
       pw.SizedBox(height: 14),
     ];
