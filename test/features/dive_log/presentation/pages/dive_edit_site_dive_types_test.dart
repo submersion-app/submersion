@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_multi_select_field.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -65,7 +66,8 @@ void main() {
 
   Future<void> pumpNewDivePage(
     WidgetTester tester, {
-    required List<SiteTypeEntity> siteTypes,
+    List<SiteTypeEntity> siteTypes = const [],
+    Object? siteTypesError,
   }) async {
     tester.view.physicalSize = const Size(1200, 4000);
     tester.view.devicePixelRatio = 1.0;
@@ -87,9 +89,10 @@ void main() {
               diveType('cave', 'Cave'),
             ],
           ),
-          siteTypesForSiteProvider(
-            'site-1',
-          ).overrideWith((ref) async => siteTypes),
+          siteTypesForSiteProvider('site-1').overrideWith((ref) async {
+            if (siteTypesError != null) throw siteTypesError;
+            return siteTypes;
+          }),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -134,6 +137,50 @@ void main() {
     await expandConditions(tester);
 
     expect(selectedDiveTypeIds(tester), ['recreational', 'wreck']);
+  });
+
+  /// Sets the dive types the way the diver's picker does.
+  Future<void> pickDiveTypes(WidgetTester tester, List<String> ids) async {
+    tester
+        .widget<DiveTypeMultiSelectField>(find.byType(DiveTypeMultiSelectField))
+        .onChanged(ids);
+    await pumpFrames(tester);
+  }
+
+  Future<void> clearSite(WidgetTester tester) async {
+    tester.widget<TheDiveSection>(find.byType(TheDiveSection)).onClearSite!();
+    await pumpFrames(tester);
+  }
+
+  testWidgets('clearing the site takes back the type it added', (tester) async {
+    await pumpNewDivePage(tester, siteTypes: [siteType('wreck', 'Wreck')]);
+    await expandConditions(tester);
+
+    await clearSite(tester);
+
+    expect(selectedDiveTypeIds(tester), ['recreational']);
+  });
+
+  testWidgets('a type the diver re-ticks by hand survives clearing the site', (
+    tester,
+  ) async {
+    await pumpNewDivePage(tester, siteTypes: [siteType('wreck', 'Wreck')]);
+    await expandConditions(tester);
+
+    await pickDiveTypes(tester, ['recreational']);
+    await pickDiveTypes(tester, ['recreational', 'wreck']);
+    await clearSite(tester);
+
+    expect(selectedDiveTypeIds(tester), ['recreational', 'wreck']);
+  });
+
+  testWidgets('a failed read of the site types leaves the dive types alone', (
+    tester,
+  ) async {
+    await pumpNewDivePage(tester, siteTypesError: StateError('db closed'));
+    await expandConditions(tester);
+
+    expect(selectedDiveTypeIds(tester), ['recreational']);
   });
 
   testWidgets('a site with no matching type leaves the dive types alone', (
