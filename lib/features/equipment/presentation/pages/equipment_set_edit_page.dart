@@ -42,6 +42,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _isDefault = false;
+  bool _autoApplyOnComputerImport = false;
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -59,6 +60,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     _descriptionController.text = set.description;
     _selectedEquipmentIds.addAll(set.equipmentIds);
     _isDefault = set.isDefault;
+    _autoApplyOnComputerImport = set.autoApplyOnComputerImport;
     _geofences = List.of(set.geofences);
   }
 
@@ -186,6 +188,20 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               ),
               value: _isDefault,
               onChanged: (v) => setState(() => _isDefault = v),
+            ),
+            const SizedBox(height: 8),
+
+            // Auto-apply when this set's computer is imported (issue #1020)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                context.l10n.equipment_setEdit_computerAutoApplySwitch_title,
+              ),
+              subtitle: Text(
+                context.l10n.equipment_setEdit_computerAutoApplySwitch_subtitle,
+              ),
+              value: _autoApplyOnComputerImport,
+              onChanged: (v) => setState(() => _autoApplyOnComputerImport = v),
             ),
             const SizedBox(height: 16),
 
@@ -476,6 +492,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         equipmentIds: _selectedEquipmentIds.toList(),
+        autoApplyOnComputerImport: _autoApplyOnComputerImport,
         createdAt: existingSet?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );

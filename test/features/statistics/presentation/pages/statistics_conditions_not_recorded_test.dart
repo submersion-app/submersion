@@ -1,18 +1,18 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_conditions_page.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-/// Issue #1998: dives with no water type or entry method are shown as their
-/// own "Not recorded" share rather than being left out of the chart.
+/// Issue #1998: dives with no water type or entry method show as their own
+/// Not recorded segment instead of vanishing from the chart.
 void main() {
-  const notRecorded = DistributionSegment.notRecordedKey;
-
   DistributionSegment seg(String label, int count, double pct) =>
       DistributionSegment(label: label, count: count, percentage: pct);
 
@@ -21,7 +21,7 @@ void main() {
     List<DistributionSegment> waterType = const [],
     List<DistributionSegment> entryMethod = const [],
   }) async {
-    tester.view.physicalSize = const Size(1200, 4000);
+    tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
@@ -30,6 +30,8 @@ void main() {
       ProviderScope(
         overrides: [
           ...base,
+          visibilityDistributionProvider.overrideWith((ref) async => const []),
+          siteTypeDistributionProvider.overrideWith((ref) async => const []),
           waterTypeDistributionProvider.overrideWith((ref) async => waterType),
           entryMethodDistributionProvider.overrideWith(
             (ref) async => entryMethod,
@@ -46,57 +48,117 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// The colour of the legend swatch beside [label] in a pie chart legend.
-  Color? legendSwatchColor(WidgetTester tester, String label) {
-    final row = find.ancestor(of: find.text(label), matching: find.byType(Row));
-    final swatch = tester
-        .widgetList<Container>(
-          find.descendant(of: row.first, matching: find.byType(Container)),
-        )
-        .firstWhere((c) => c.decoration is BoxDecoration);
-    return (swatch.decoration! as BoxDecoration).color;
+  Finder inSection(String title, Finder matching) => find.descendant(
+    of: find.ancestor(
+      of: find.text(title),
+      matching: find.byType(StatSectionCard),
+    ),
+    matching: matching,
+  );
+
+  List<Color> waterTypeSliceColors(WidgetTester tester) {
+    final chart = tester.widget<PieChart>(
+      inSection('Water Type', find.byType(PieChart)),
+    );
+    return [for (final s in chart.data.sections) s.color];
   }
 
-  testWidgets('water type shows the not recorded share in grey', (
-    tester,
-  ) async {
-    await pumpPage(
+  group('water type', () {
+    testWidgets('shows dives with no water type as Not recorded', (
       tester,
-      waterType: [
-        seg('salt', 8, 40),
-        seg('fresh', 11, 55),
-        seg(notRecorded, 1, 5),
-      ],
-    );
+    ) async {
+      await pumpPage(
+        tester,
+        waterType: [
+          seg('salt', 8, 40),
+          seg('fresh', 11, 55),
+          seg(kNotRecordedDistributionKey, 1, 5),
+        ],
+      );
 
-    expect(find.text('Not recorded'), findsOneWidget);
-    expect(legendSwatchColor(tester, 'Not recorded'), Colors.grey.shade400);
+      expect(
+        inSection('Water Type', find.text('Not recorded')),
+        findsOneWidget,
+      );
+      expect(find.text(kNotRecordedDistributionKey), findsNothing);
+      final chart = tester.widget<PieChart>(
+        inSection('Water Type', find.byType(PieChart)),
+      );
+      expect(chart.data.sections.map((s) => s.title), ['40%', '55%', '5%']);
+    });
+
+    testWidgets('gives every water type its own slice color', (tester) async {
+      await pumpPage(
+        tester,
+        waterType: [
+          seg('salt', 4, 40),
+          seg('fresh', 3, 30),
+          seg('brackish', 2, 20),
+          seg(kNotRecordedDistributionKey, 1, 10),
+        ],
+      );
+
+      final colors = waterTypeSliceColors(tester);
+      expect(colors, hasLength(4));
+      expect(colors.toSet(), hasLength(4));
+    });
+
+    testWidgets('gives an unrecognized key a color of its own', (tester) async {
+      // Only a repository change could emit one; it must still get a slice
+      // that does not pass for one of the known water types.
+      await pumpPage(
+        tester,
+        waterType: [
+          seg('salt', 1, 25),
+          seg('fresh', 1, 25),
+          seg('brackish', 1, 25),
+          seg('mystery', 1, 25),
+        ],
+      );
+
+      final colors = waterTypeSliceColors(tester);
+      expect(colors.toSet(), hasLength(4));
+      expect(inSection('Water Type', find.text('mystery')), findsOneWidget);
+    });
+
+    testWidgets('keeps a water type color when the order changes', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        waterType: [seg('salt', 2, 67), seg('fresh', 1, 33)],
+      );
+      final saltFirst = waterTypeSliceColors(tester).first;
+
+      // Unmount first: a remounted ProviderScope would keep the cached list.
+      await tester.pumpWidget(const SizedBox());
+      await pumpPage(
+        tester,
+        waterType: [seg('fresh', 2, 67), seg('salt', 1, 33)],
+      );
+      final saltSecond = waterTypeSliceColors(tester)[1];
+
+      expect(saltSecond, saltFirst);
+    });
   });
 
-  testWidgets('brackish water no longer reuses the salt water colour', (
-    tester,
-  ) async {
-    // The palette had two colours, so a third water type wrapped around.
-    await pumpPage(
+  group('entry method', () {
+    testWidgets('shows dives with no entry method as Not recorded', (
       tester,
-      waterType: [
-        seg('salt', 2, 50),
-        seg('fresh', 1, 25),
-        seg('brackish', 1, 25),
-      ],
-    );
+    ) async {
+      await pumpPage(
+        tester,
+        entryMethod: [
+          seg('boat', 6, 60),
+          seg(kNotRecordedDistributionKey, 4, 40),
+        ],
+      );
 
-    final salt = legendSwatchColor(tester, 'Salt Water');
-    final brackish = legendSwatchColor(tester, 'Brackish');
-    expect(brackish, isNot(salt));
-  });
-
-  testWidgets('entry method shows the not recorded share', (tester) async {
-    await pumpPage(
-      tester,
-      entryMethod: [seg('shore', 3, 60), seg(notRecorded, 2, 40)],
-    );
-
-    expect(find.textContaining('Not recorded'), findsWidgets);
+      expect(
+        inSection('Entry Method', find.text('Not recorded')),
+        findsOneWidget,
+      );
+      expect(find.text(kNotRecordedDistributionKey), findsNothing);
+    });
   });
 }

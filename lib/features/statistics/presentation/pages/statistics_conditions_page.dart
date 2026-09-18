@@ -126,14 +126,6 @@ class StatisticsConditionsPage extends ConsumerWidget {
     );
   }
 
-  /// One colour per [WaterType], so brackish water no longer wraps around to
-  /// the colour of the first segment.
-  static final _waterTypePalette = [
-    Colors.blue.shade600,
-    Colors.cyan.shade400,
-    Colors.teal.shade300,
-  ];
-
   Widget _buildWaterTypeSection(BuildContext context, WidgetRef ref) {
     final waterTypeAsync = ref.watch(waterTypeDistributionProvider);
 
@@ -157,14 +149,7 @@ class StatisticsConditionsPage extends ConsumerWidget {
             ),
             child: DistributionPieChart(
               data: data,
-              // Recorded water types take the palette in order; the share of
-              // dives with no water type is always grey (issue #1998).
-              colors: [
-                for (final (i, segment) in raw.indexed)
-                  segment.label == DistributionSegment.notRecordedKey
-                      ? Colors.grey.shade400
-                      : _waterTypePalette[i % _waterTypePalette.length],
-              ],
+              colors: [for (final s in raw) _waterTypeColor(s.label)],
             ),
           );
         },
@@ -179,6 +164,17 @@ class StatisticsConditionsPage extends ConsumerWidget {
       ),
     );
   }
+
+  /// Slice color for a water type key. Keyed by value rather than by position,
+  /// so each water type keeps its color whatever order the counts put it in,
+  /// and brackish no longer reuses salt's color.
+  static Color _waterTypeColor(String key) => switch (key) {
+    'salt' => Colors.blue.shade600,
+    'fresh' => Colors.cyan.shade400,
+    'brackish' => Colors.teal.shade500,
+    kNotRecordedDistributionKey => Colors.grey.shade500,
+    _ => Colors.indigo.shade300,
+  };
 
   /// Dives per site type (issue #1765). Bars, not a pie: a dive at a site
   /// with several types counts toward each, so the shares overlap.

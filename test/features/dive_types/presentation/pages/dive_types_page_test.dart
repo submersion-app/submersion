@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_types/presentation/pages/dive_types_pag
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -68,6 +69,16 @@ void main() {
     expect(find.text('Recreational'), findsNothing);
     expect(find.text('Wreck'), findsNothing);
     expect(find.text('Night'), findsNothing);
+  });
+
+  testWidgets('the last dive type clears the Add button (#2029)', (
+    tester,
+  ) async {
+    useShortViewport(tester);
+    await tester.pumpWidget(_buildPage(diverIdNotifier, const Locale('en')));
+    await tester.pumpAndSettle();
+
+    await expectLastRowClearOfFab(tester);
   });
 
   group('custom dive type short name', () {

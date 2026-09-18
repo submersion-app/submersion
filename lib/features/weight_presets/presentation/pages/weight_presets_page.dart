@@ -8,6 +8,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 /// Settings → Management → Weight Presets (issue #1609). Lists the diver's
 /// rigs; create, edit and delete them here or save one from the dive
@@ -55,6 +56,7 @@ class WeightPresetsPage extends ConsumerWidget {
             );
           }
           return ListView.separated(
+            padding: kFabListPadding,
             itemCount: presets.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, i) {

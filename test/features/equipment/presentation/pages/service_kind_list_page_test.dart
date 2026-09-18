@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -175,6 +176,20 @@ void main() {
     expect(find.text('Scrubber repack'), findsOneWidget);
     expect(find.byIcon(Icons.delete_outline), findsOneWidget);
     expect(find.textContaining('every 5.0 hours'), findsOneWidget);
+  });
+
+  testWidgets('the last custom kind clears the Add button (#2029)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildPage([
+        builtIn('hydro', 'Hydrostatic test'),
+        for (var i = 0; i < 20; i++) custom('c$i', 'Custom $i'),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLastRowClearOfFab(tester);
   });
 
   testWidgets('add dialog opens from FAB', (tester) async {

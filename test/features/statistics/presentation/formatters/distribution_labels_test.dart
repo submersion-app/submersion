@@ -1,35 +1,52 @@
+import 'dart:ui' show Locale;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
-import 'package:submersion/l10n/arb/app_localizations_de.dart';
-import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
+/// Issue #1998: the water type and entry method charts carry a segment for
+/// dives with no value, keyed [kNotRecordedDistributionKey].
 void main() {
-  final en = AppLocalizationsEn();
-  final de = AppLocalizationsDe();
+  final en = lookupAppLocalizations(const Locale('en'));
 
-  group('not recorded share (issue #1998)', () {
-    test('water type names the dives with no water type', () {
+  group('water type labels', () {
+    test('the not recorded key reads as Not recorded', () {
       expect(
-        waterTypeDistributionLabel(DistributionSegment.notRecordedKey, en),
-        'Not recorded',
-      );
-      expect(
-        waterTypeDistributionLabel(DistributionSegment.notRecordedKey, de),
-        de.statistics_chart_notRecorded,
-      );
-    });
-
-    test('entry method names the dives with no entry method', () {
-      expect(
-        entryMethodDistributionLabel(DistributionSegment.notRecordedKey, en),
+        waterTypeDistributionLabel(kNotRecordedDistributionKey, en),
         'Not recorded',
       );
     });
 
-    test('recorded values are still translated from their enum name', () {
-      expect(waterTypeDistributionLabel('salt', en), isNot('salt'));
-      expect(entryMethodDistributionLabel('shore', en), isNot('shore'));
+    test('a stored enum name still resolves to its name', () {
+      expect(waterTypeDistributionLabel('brackish', en), 'Brackish');
     });
+  });
+
+  group('entry method labels', () {
+    test('the not recorded key reads as Not recorded', () {
+      expect(
+        entryMethodDistributionLabel(kNotRecordedDistributionKey, en),
+        'Not recorded',
+      );
+    });
+
+    test('a stored enum name still resolves to its name', () {
+      expect(entryMethodDistributionLabel('giantStride', en), 'Giant Stride');
+    });
+  });
+
+  test('every locale translates Not recorded', () {
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l10n = lookupAppLocalizations(locale);
+      final label = waterTypeDistributionLabel(
+        kNotRecordedDistributionKey,
+        l10n,
+      );
+      expect(label, isNot(kNotRecordedDistributionKey), reason: '$locale');
+      if (locale.languageCode != 'en') {
+        expect(label, isNot('Not recorded'), reason: '$locale');
+      }
+    }
   });
 }

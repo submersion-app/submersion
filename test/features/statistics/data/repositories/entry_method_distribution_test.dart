@@ -8,8 +8,9 @@ import '../../../../helpers/test_database.dart';
 
 /// Issue #1427: the same site-fallback gap the water type chart had. A dive
 /// that takes its entry method from its site was missing from the chart.
-/// Issue #1998: a dive with no entry method anywhere is its own "not
-/// recorded" share rather than being left out of the percentages.
+///
+/// Issue #1998: a dive with no entry method anywhere is counted in its own
+/// not-recorded bucket, so the recorded shares are of all dives.
 void main() {
   late StatisticsRepository repository;
   late AppDatabase db;
@@ -90,20 +91,22 @@ void main() {
     expect(await countsByLabel(), {'shore': 1});
   });
 
-  test('a dive with no entry method anywhere counts as not recorded', () async {
-    // Issue #1998: dropping these dives overstated every recorded share.
-    await insertSite(id: 'unknown-site');
-    await insertDive(id: 'sited', siteId: 'unknown-site');
-    await insertDive(id: 'siteless');
-    await insertDive(id: 'known', entryMethod: 'giantStride');
+  test(
+    'a dive with no entry method anywhere is counted as not recorded',
+    () async {
+      await insertSite(id: 'unknown-site');
+      await insertDive(id: 'sited', siteId: 'unknown-site');
+      await insertDive(id: 'siteless');
+      await insertDive(id: 'known', entryMethod: 'giantStride');
 
-    expect(await countsByLabel(), {
-      'giantStride': 1,
-      DistributionSegment.notRecordedKey: 2,
-    });
-  });
+      expect(await countsByLabel(), {
+        'giantStride': 1,
+        kNotRecordedDistributionKey: 2,
+      });
+    },
+  );
 
-  test('percentages are shares of every dive in scope', () async {
+  test('percentages are shares of every dive, recorded or not', () async {
     await insertSite(id: 'beach', entryMethod: 'shore');
     await insertDive(id: 'a', siteId: 'beach');
     await insertDive(id: 'b', entryMethod: 'shore');
@@ -115,28 +118,18 @@ void main() {
     expect(byLabel['shore']!.percentage, closeTo(50, 0.001));
     expect(byLabel['boat']!.percentage, closeTo(25, 0.001));
     expect(
-      byLabel[DistributionSegment.notRecordedKey]!.percentage,
+      byLabel[kNotRecordedDistributionKey]!.percentage,
       closeTo(25, 0.001),
     );
   });
 
-  test('the not recorded share comes last even when it is largest', () async {
-    await insertDive(id: 'known', entryMethod: 'boat');
-    await insertDive(id: 'blank-1');
-    await insertDive(id: 'blank-2');
+  test('the not recorded bucket comes last even when it is largest', () async {
+    await insertDive(id: 'a', entryMethod: 'boat');
+    await insertDive(id: 'b');
+    await insertDive(id: 'c');
 
     final dist = await repository.getEntryMethodDistribution();
-    expect(dist.map((s) => s.label), [
-      'boat',
-      DistributionSegment.notRecordedKey,
-    ]);
-  });
-
-  test('no recorded entry method at all yields no distribution', () async {
-    await insertDive(id: 'blank-1');
-    await insertDive(id: 'blank-2');
-
-    expect(await repository.getEntryMethodDistribution(), isEmpty);
+    expect(dist.map((s) => s.label), ['boat', kNotRecordedDistributionKey]);
   });
 
   test(

@@ -34,6 +34,7 @@ class PdfExportService {
     Trip trip,
     List<Dive> dives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     TripWithStats? stats,
   }) async {
     final pdf = pw.Document();
@@ -123,9 +124,7 @@ class PdfExportService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   if (dive.maxDepth != null)
-                    pw.Text(
-                      'Max Depth: ${dive.maxDepth!.toStringAsFixed(1)} m',
-                    ),
+                    pw.Text('Max Depth: ${units.formatDepth(dive.maxDepth)}'),
                   if (dive.effectiveRuntime != null)
                     pw.Text(
                       'Duration: ${dive.effectiveRuntime!.inMinutes} min',
@@ -134,7 +133,7 @@ class PdfExportService {
               ),
               if (dive.waterTemp != null)
                 pw.Text(
-                  'Water Temp: ${dive.waterTemp!.toStringAsFixed(1)}\u00B0C',
+                  'Water Temp: ${units.formatTemperature(dive.waterTemp)}',
                 ),
               if (dive.notes.isNotEmpty) ...[
                 pw.SizedBox(height: 10),

@@ -48,8 +48,6 @@ class StatisticsSocialPage extends ConsumerWidget {
       subtitle: context.l10n.statistics_social_soloVsBuddy_subtitle,
       child: soloVsBuddyAsync.when(
         data: (data) {
-          // Dives with no buddy and no Solo role are a share of their own
-          // rather than being counted as solo (issue #1998).
           final total = data.solo + data.buddy + data.notRecorded;
           if (total == 0) {
             return StatEmptyState(
@@ -58,6 +56,8 @@ class StatisticsSocialPage extends ConsumerWidget {
             );
           }
 
+          // A dive with no buddy is only solo when the diver said so; the
+          // rest get their own slice (issue #1998), shown only when present.
           return DistributionPieChart(
             data: [
               DistributionSegment(
@@ -77,7 +77,7 @@ class StatisticsSocialPage extends ConsumerWidget {
                   percentage: data.notRecorded / total * 100,
                 ),
             ],
-            colors: [Colors.green, Colors.orange, Colors.grey.shade400],
+            colors: [Colors.green, Colors.orange, Colors.grey.shade500],
           );
         },
         loading: () => const SizedBox(

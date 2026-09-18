@@ -5087,11 +5087,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         visibility: _selectedVisibility != Visibility.unknown
             ? _selectedVisibility
             : null,
-        visibilityMeters: _visibilityController.text.isNotEmpty
-            ? units.depthToMeters(
-                parseUserDecimal(_visibilityController.text) ?? 0,
-              )
-            : null,
+        visibilityMeters: _visibilityMetersInput(units),
         diveTypeIds: _selectedDiveTypeIds,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,

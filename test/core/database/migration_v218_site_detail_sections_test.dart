@@ -56,7 +56,7 @@ void main() {
     },
   );
 
-  test('a v217 database upgrades to v218 with both columns', () async {
+  test('a v217 database upgrades and gains both columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 217');
@@ -77,6 +77,9 @@ void main() {
         .get();
     final names = cols.map((c) => c.read<String>('name')).toSet();
     expect(names, containsAll(_columns));
+    // Not asserted against 218: onUpgrade runs the whole span in one call, so
+    // a v217 database upgrading today lands on the current version, not on
+    // the version this rung happened to introduce.
     final version = await db.customSelect('PRAGMA user_version').getSingle();
     expect(version.read<int>('user_version'), AppDatabase.currentSchemaVersion);
   });

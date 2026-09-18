@@ -154,6 +154,7 @@ class EquipmentSetRepository {
               diverId: Value(set.diverId),
               name: Value(set.name),
               description: Value(set.description),
+              autoApplyOnComputerImport: Value(set.autoApplyOnComputerImport),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -217,6 +218,7 @@ class EquipmentSetRepository {
         EquipmentSetsCompanion(
           name: Value(set.name),
           description: Value(set.description),
+          autoApplyOnComputerImport: Value(set.autoApplyOnComputerImport),
           updatedAt: Value(now),
         ),
       );
@@ -537,6 +539,7 @@ class EquipmentSetRepository {
       description: row.description,
       equipmentIds: equipmentIds,
       isDefault: row.isDefault,
+      autoApplyOnComputerImport: row.autoApplyOnComputerImport,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );

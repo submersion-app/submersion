@@ -61,6 +61,15 @@ class RankingItem {
   });
 }
 
+/// Key of the segment that counts dives with no value recorded (issue #1998).
+///
+/// Water type and entry method emit it for dives where neither the dive nor
+/// its site carries a value, so the recorded shares are of every dive rather
+/// than of the dives that happen to be filled in. The leading underscore keeps
+/// it clear of every stored enum name; `waterTypeDistributionLabel` and
+/// `entryMethodDistributionLabel` translate it.
+const String kNotRecordedDistributionKey = '_notRecorded';
+
 /// Distribution segment for pie charts
 class DistributionSegment {
   final String label;
@@ -81,11 +90,6 @@ class DistributionSegment {
     required this.percentage,
     this.totalDurationSeconds,
   });
-
-  /// Key of the share of dives that have no value for the distribution's
-  /// field (issue #1998). The empty string can never collide with a stored
-  /// value: the queries fold '' into NULL before grouping.
-  static const String notRecordedKey = '';
 }
 
 /// One observed (entry method, exit method) pairing and how often it occurs.
@@ -1252,12 +1256,10 @@ class StatisticsRepository {
   /// carried the field, would otherwise sit outside the chart even though the
   /// app knows what water they were in. Mirrors `Dive.effectiveWaterType`.
   ///
-  /// A dive with no water type on either is counted under
-  /// [DistributionSegment.notRecordedKey], so each share is a share of every
-  /// dive in scope (issue #1998); see [_segmentsWithNotRecorded].
-  ///
   /// Emits the stored WaterType enum name as a stable key; the presentation
-  /// layer translates it (see `waterTypeDistributionLabel`).
+  /// layer translates it (see `waterTypeDistributionLabel`). Dives with no
+  /// water type anywhere form a trailing [kNotRecordedDistributionKey]
+  /// segment (issue #1998).
   Future<List<DistributionSegment>> getWaterTypeDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1286,10 +1288,23 @@ class StatisticsRepository {
           WHERE 1 = 1 $diverFilter ${df.clause}
         )
         GROUP BY water_type
-        ORDER BY count DESC
+        ORDER BY water_type IS NULL, count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      return _segmentsWithNotRecorded(results, 'water_type');
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
+      if (total == 0) return [];
+
+      return results.map((row) {
+        final count = row.read<int>('count');
+        return DistributionSegment(
+          label: row.read<String?>('water_type') ?? kNotRecordedDistributionKey,
+          count: count,
+          percentage: count / total * 100,
+        );
+      }).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get water type distribution',
@@ -1364,12 +1379,10 @@ class StatisticsRepository {
   /// entry method later, would otherwise sit outside the chart. Mirrors
   /// `Dive.effectiveEntryMethod`, and the water type distribution above.
   ///
-  /// A dive with no entry method on either is counted under
-  /// [DistributionSegment.notRecordedKey] (issue #1998), as the water type
-  /// distribution does.
-  ///
   /// Emits the stored EntryMethod enum name as a stable key; the
   /// presentation layer translates it (see `entryMethodDistributionLabel`).
+  /// Dives with no entry method anywhere form a trailing
+  /// [kNotRecordedDistributionKey] segment (issue #1998).
   Future<List<DistributionSegment>> getEntryMethodDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1397,10 +1410,24 @@ class StatisticsRepository {
           WHERE 1 = 1 $diverFilter ${df.clause}
         )
         GROUP BY entry_method
-        ORDER BY count DESC
+        ORDER BY entry_method IS NULL, count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      return _segmentsWithNotRecorded(results, 'entry_method');
+      final total = results.fold<int>(
+        0,
+        (sum, row) => sum + row.read<int>('count'),
+      );
+      if (total == 0) return [];
+
+      return results.map((row) {
+        final count = row.read<int>('count');
+        return DistributionSegment(
+          label:
+              row.read<String?>('entry_method') ?? kNotRecordedDistributionKey,
+          count: count,
+          percentage: count / total * 100,
+        );
+      }).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get entry method distribution',
@@ -1409,42 +1436,6 @@ class StatisticsRepository {
       );
       return [];
     }
-  }
-
-  /// Segments for grouped [rows] whose [keyColumn] is NULL for the dives with
-  /// no value (issue #1998).
-  ///
-  /// Those dives become one [DistributionSegment.notRecordedKey] segment, and
-  /// every percentage is taken over all the rows, so the recorded values no
-  /// longer claim the whole chart between them. The not recorded segment is
-  /// placed last whatever its size, after the recorded values in the order
-  /// the query gave them. When nothing was recorded at all the result is
-  /// empty, so the page shows its empty state rather than a chart that is
-  /// entirely "not recorded".
-  static List<DistributionSegment> _segmentsWithNotRecorded(
-    List<QueryRow> rows,
-    String keyColumn,
-  ) {
-    final recorded = rows.where((r) => r.read<String?>(keyColumn) != null);
-    if (recorded.isEmpty) return [];
-
-    final notRecorded = rows
-        .where((r) => r.read<String?>(keyColumn) == null)
-        .fold<int>(0, (sum, r) => sum + r.read<int>('count'));
-    final total = rows.fold<int>(0, (sum, r) => sum + r.read<int>('count'));
-
-    DistributionSegment segment(String label, int count) => DistributionSegment(
-      label: label,
-      count: count,
-      percentage: count / total * 100,
-    );
-
-    return [
-      for (final row in recorded)
-        segment(row.read<String>(keyColumn), row.read<int>('count')),
-      if (notRecorded > 0)
-        segment(DistributionSegment.notRecordedKey, notRecorded),
-    ];
   }
 
   /// Observed entry/exit method pairings among a diver's dives at one site,
@@ -1842,7 +1833,7 @@ class StatisticsRepository {
     }
   }
 
-  /// Count dives with a buddy, solo dives, and dives with neither recorded.
+  /// Get solo vs buddy dive counts.
   ///
   /// Each dive counts exactly once: a dive is a buddy dive when it has at
   /// least one linked buddy or a free-text buddy naming someone. The linked
@@ -1855,21 +1846,20 @@ class StatisticsRepository {
   /// groups the dives with no linked buddy by their text, so only the
   /// distinct texts cross into Dart, not one row per dive.
   ///
-  /// A dive with no buddy is solo only when the diver took the built-in Solo
-  /// role on it. Otherwise it is not recorded: a missing buddy is an absence
-  /// of data, and counting it as solo told a diver who had never dived alone
-  /// that most of their dives were solo (issue #1998). A named buddy
-  /// outweighs the Solo role, as linked buddies do on the dive detail page.
+  /// A dive without a buddy is solo only when the diver's own role on it is
+  /// the built-in Solo role. Otherwise nothing says whether they dived alone
+  /// or just never filled the buddy in, so it counts as not recorded
+  /// (issue #1998). A recorded buddy wins over a Solo role.
   Future<({int solo, int buddy, int notRecorded})> getSoloVsBuddyCount({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
+    const zero = (solo: 0, buddy: 0, notRecorded: 0);
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      // The Solo role id is bound first: its placeholder precedes the diver
-      // and filter placeholders in the statement, and Drift binds
-      // positionally.
+      // The Solo role id binds first: its placeholder sits in the inner
+      // SELECT list, ahead of the WHERE clause's.
       final params = [DiveRole.soloId, ?diverId, ...df.params];
 
       // A dive with a linked buddy groups with a NULL text, since its text
@@ -1897,10 +1887,9 @@ class StatisticsRepository {
       var notRecorded = 0;
       for (final row in results) {
         final count = row.read<int>('count');
-        final text = row.read<String?>('buddy_text');
         final hasBuddy =
             row.read<bool>('has_linked') ||
-            LegacyNameParser.parse(text).isNotEmpty;
+            LegacyNameParser.parse(row.read<String?>('buddy_text')).isNotEmpty;
         if (hasBuddy) {
           buddy += count;
         } else if (row.read<bool>('is_solo')) {
@@ -1916,7 +1905,7 @@ class StatisticsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (solo: 0, buddy: 0, notRecorded: 0);
+      return zero;
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 /// Settings page listing pre-dive checklist templates: built-ins, which
 /// open read-only and can be cloned, plus fully editable user templates.
@@ -33,6 +34,7 @@ class PreDiveTemplatesPage extends ConsumerWidget {
           : templates.isEmpty
           ? Center(child: Text(context.l10n.preDive_templates_empty))
           : ListView.separated(
+              padding: kFabListPadding,
               itemCount: templates.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) =>

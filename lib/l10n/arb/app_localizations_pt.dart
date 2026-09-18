@@ -243,6 +243,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Aplicado automaticamente a novos mergulhos que ainda não têm equipamento';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Aplicar quando o computador deste conjunto for importado';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Se este conjunto incluir um computador de mergulho, adiciona automaticamente todo o conjunto a uma imersão descarregada ou importada dele';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -19825,7 +19833,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum dado de tendencia disponivel';
 
   @override
-  String get statistics_chart_notRecorded => 'Não registrado';
+  String get statistics_chart_notRecorded => 'Não registado';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

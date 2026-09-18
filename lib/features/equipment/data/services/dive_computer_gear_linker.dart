@@ -36,18 +36,7 @@ class DiveComputerGearLinker {
   Future<bool> linkComputerGearForDive({required String diveId}) async {
     if (DatabaseService.instance.databaseOrNull == null) return false;
     try {
-      final computerIds = await _computerIdsForDive(diveId);
-      if (computerIds.isEmpty) return false;
-
-      final rows = await (_db.select(
-        _db.diveComputers,
-      )..where((t) => t.id.isIn(computerIds))).get();
-      final equipmentIds = rows
-          .map((r) => r.equipmentId)
-          .whereType<String>()
-          .where((id) => id.isNotEmpty)
-          .toSet()
-          .toList();
+      final equipmentIds = await gearTwinEquipmentIdsForDive(diveId);
       if (equipmentIds.isEmpty) return false;
 
       await _dives.bulkAddEquipment([diveId], equipmentIds);
@@ -57,6 +46,24 @@ class DiveComputerGearLinker {
       // Best-effort: never let gear linking fail the dive operation.
       return false;
     }
+  }
+
+  /// Gear-twin equipment ids of every computer that logged [diveId], for
+  /// `EquipmentSetForComputerLinker` (issue #1020) to resolve set membership
+  /// from without duplicating the computer/twin lookup.
+  Future<List<String>> gearTwinEquipmentIdsForDive(String diveId) async {
+    final computerIds = await _computerIdsForDive(diveId);
+    if (computerIds.isEmpty) return [];
+
+    final rows = await (_db.select(
+      _db.diveComputers,
+    )..where((t) => t.id.isIn(computerIds))).get();
+    return rows
+        .map((r) => r.equipmentId)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
   }
 
   /// Every computer that logged [diveId].

@@ -244,6 +244,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Appliqué automatiquement aux nouvelles plongées sans équipement';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Appliquer lors de l\'importation de l\'ordinateur de ce set';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Si ce set inclut un ordinateur de plongée, ajoute automatiquement tout le set à une plongée téléchargée ou importée depuis celui-ci';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Géorepères';
 
   @override
