@@ -231,6 +231,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_defaultSwitch_subtitle => '自动应用于尚无装备的新潜水';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title => '导入该套装的电脑时自动应用';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
+
+  @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
 
   @override
@@ -18811,6 +18818,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => '无趋势数据可用';
+
+  @override
+  String get statistics_chart_notRecorded => '未记录';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

@@ -240,6 +240,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'החל בעת ייבוא המחשב של סט זה';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -19325,6 +19333,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'אין נתוני מגמה זמינים';
+
+  @override
+  String get statistics_chart_notRecorded => 'לא נרשם';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

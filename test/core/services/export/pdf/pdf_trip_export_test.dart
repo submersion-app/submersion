@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import '../../../../helpers/pdf_text.dart';
@@ -17,6 +19,14 @@ import '../../../../helpers/pdf_text.dart';
 final isoDates = PdfDateFormatter(
   dateFormat: DateFormatPreference.yyyymmdd,
   timeFormat: TimeFormat.twentyFourHour,
+);
+
+const metric = UnitFormatter(AppSettings());
+const imperial = UnitFormatter(
+  AppSettings(
+    depthUnit: DepthUnit.feet,
+    temperatureUnit: TemperatureUnit.fahrenheit,
+  ),
 );
 
 void main() {
@@ -57,11 +67,16 @@ void main() {
     updatedAt: DateTime(2026, 5, 9),
   );
 
-  Future<String> exportText(List<Dive> dives, {PdfDateFormatter? dates}) async {
+  Future<String> exportText(
+    List<Dive> dives, {
+    PdfDateFormatter? dates,
+    UnitFormatter units = metric,
+  }) async {
     final path = await service.exportTripToPdf(
       trip,
       dives,
       dates: dates ?? isoDates,
+      units: units,
     );
     final bytes = await File(path).readAsBytes();
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
@@ -112,20 +127,7 @@ void main() {
     ]);
 
     expect(text, isNot(contains('Duration:')));
-    expect(text, contains('Max Depth: 18.0 m'));
-  });
-
-  test('a dive with a water temperature prints it', () async {
-    final text = await exportText([
-      Dive(
-        id: 'd1',
-        diveNumber: 1,
-        dateTime: DateTime(2026, 5, 2, 9),
-        waterTemp: 24.0,
-      ),
-    ]);
-
-    expect(text, contains('Water Temp: 24.0'));
+    expect(text, contains('Max Depth: 18.0m'));
   });
 
   test('trip and dive dates follow the diver\'s preferences (#964)', () async {
@@ -161,15 +163,20 @@ void main() {
       400,
       (i) => 'Sentence $i of a very long dive story.',
     ).join(' ');
-    final path = await service.exportTripToPdf(trip, [
-      Dive(
-        id: 'd1',
-        diveNumber: 1,
-        dateTime: DateTime(2026, 5, 2, 9),
-        maxDepth: 18.0,
-        notes: longNote,
-      ),
-    ], dates: isoDates);
+    final path = await service.exportTripToPdf(
+      trip,
+      [
+        Dive(
+          id: 'd1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 5, 2, 9),
+          maxDepth: 18.0,
+          notes: longNote,
+        ),
+      ],
+      dates: isoDates,
+      units: metric,
+    );
     final bytes = await File(path).readAsBytes();
 
     final text = pdfVisibleText(bytes);
@@ -184,5 +191,33 @@ void main() {
       greaterThan(2),
       reason: 'title page plus a dive whose notes need more than one sheet',
     );
+  });
+
+  group('dive depth and temperature follow the diver\'s units', () {
+    final dive = Dive(
+      id: 'd1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 5, 2, 9),
+      maxDepth: 30.0,
+      waterTemp: 20.0,
+    );
+
+    test('renders feet and fahrenheit for an imperial diver', () async {
+      final text = await exportText([dive], units: imperial);
+
+      expect(text, contains('Max Depth: 98.4ft'), reason: '30 m is 98.4 ft');
+      expect(text, contains('Water Temp: 68°F'), reason: '20 C is 68 F');
+      expect(text, isNot(contains('30.0m')));
+      expect(text, isNot(contains('°C')));
+    });
+
+    test('renders meters and celsius for a metric diver', () async {
+      final text = await exportText([dive]);
+
+      expect(text, contains('Max Depth: 30.0m'));
+      expect(text, contains('Water Temp: 20°C'));
+      expect(text, isNot(contains('ft')));
+      expect(text, isNot(contains('°F')));
+    });
   });
 }

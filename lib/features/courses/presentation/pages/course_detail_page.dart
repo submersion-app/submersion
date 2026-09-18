@@ -743,6 +743,7 @@ class CourseDetailPage extends ConsumerWidget {
           dateFormat: settings.dateFormat,
           timeFormat: settings.timeFormat,
         ),
+        units: UnitFormatter(settings),
       );
 
       // Dismiss loading

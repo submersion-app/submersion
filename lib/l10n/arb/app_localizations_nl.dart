@@ -241,6 +241,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Automatisch toegepast op nieuwe duiken zonder uitrusting';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Toepassen wanneer de computer van deze set wordt geïmporteerd';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Als deze set een duikcomputer bevat, wordt de hele set automatisch toegevoegd aan een duik die van deze computer is gedownload of geïmporteerd';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -19658,6 +19666,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'Geen trendgegevens beschikbaar';
+
+  @override
+  String get statistics_chart_notRecorded => 'Niet vastgelegd';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

@@ -241,6 +241,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Auto-applied to new dives that have no equipment yet';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Apply when this set\'s computer is imported';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -19488,6 +19496,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'No trend data available';
+
+  @override
+  String get statistics_chart_notRecorded => 'Not recorded';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

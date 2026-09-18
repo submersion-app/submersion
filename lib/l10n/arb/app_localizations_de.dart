@@ -243,6 +243,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wird automatisch auf neue Tauchgänge ohne Ausrüstung angewendet';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Anwenden, wenn dieser Tauchcomputer importiert wird';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -19782,6 +19790,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'Keine Trenddaten verfügbar';
+
+  @override
+  String get statistics_chart_notRecorded => 'Nicht erfasst';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

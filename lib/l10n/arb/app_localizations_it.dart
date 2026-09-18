@@ -244,6 +244,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Applicato automaticamente alle nuove immersioni senza attrezzatura';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Applica quando viene importato il computer di questo set';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Se questo set include un computer da immersione, aggiunge automaticamente l\'intero set a un\'immersione scaricata o importata da esso';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofence';
 
   @override
@@ -19814,6 +19822,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get statistics_chart_noTrendData =>
       'Nessun dato di tendenza disponibile';
+
+  @override
+  String get statistics_chart_notRecorded => 'Non registrato';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 /// Settings page managing the per-dive role vocabulary (#551): built-in
 /// roles are listed read-only; custom roles can be added, renamed, and
@@ -41,6 +42,7 @@ class DiveRolesPage extends ConsumerWidget {
           final customRoles = diveRoles.where((r) => !r.isBuiltIn).toList();
 
           return ListView(
+            padding: kFabListPadding,
             children: [
               if (customRoles.isNotEmpty) ...[
                 _buildSectionHeader(

@@ -20,6 +20,7 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 class TagManagePage extends ConsumerStatefulWidget {
   const TagManagePage({super.key});
@@ -211,6 +212,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     }
 
     return ListView.builder(
+      padding: kFabListPadding,
       itemCount: filtered.length,
       itemBuilder: (context, index) {
         final stat = filtered[index];

@@ -1,0 +1,383 @@
+import 'package:drift/drift.dart' hide isNull;
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
+
+import '../../../../helpers/test_database.dart';
+
+/// Throws on every call after the first, to simulate one set applying
+/// successfully before a later one fails mid-loop.
+class _FailAfterFirstSetRepository extends EquipmentSetRepository {
+  var _calls = 0;
+
+  @override
+  Future<List<String>> getEquipmentIdsInSet(String setId) async {
+    _calls++;
+    if (_calls > 1) throw Exception('boom');
+    return super.getEquipmentIdsInSet(setId);
+  }
+}
+
+void main() {
+  late AppDatabase db;
+  late EquipmentSetForComputerLinker linker;
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    linker = EquipmentSetForComputerLinker();
+  });
+  tearDown(tearDownTestDatabase);
+
+  Future<void> insertGear(String id, {String type = 'computer'}) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: id,
+            name: id,
+            type: type,
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+  }
+
+  Future<void> insertComputer(String id, {String? equipmentId}) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: id,
+            name: id,
+            equipmentId: Value(equipmentId),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+  }
+
+  Future<void> linkSource(String diveId, String computerId) async {
+    await db.customStatement(
+      'INSERT INTO dive_data_sources (id, dive_id, computer_id, is_primary, '
+      'imported_at, created_at) VALUES (?, ?, ?, 1, 1, 1)',
+      ['src-$diveId-$computerId', diveId, computerId],
+    );
+  }
+
+  Future<void> insertDive(String id, {String? diverId = 'd1'}) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diverId: Value(diverId),
+            diveDateTime: t,
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+  }
+
+  Future<void> insertSet(
+    String id, {
+    String? diverId = 'd1',
+    bool autoApplyOnComputerImport = true,
+  }) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipmentSets)
+        .insert(
+          EquipmentSetsCompanion.insert(
+            id: id,
+            diverId: Value(diverId),
+            name: id,
+            autoApplyOnComputerImport: Value(autoApplyOnComputerImport),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+  }
+
+  Future<void> addToSet(String setId, String equipmentId) async {
+    await db
+        .into(db.equipmentSetItems)
+        .insert(
+          EquipmentSetItemsCompanion.insert(
+            setId: setId,
+            equipmentId: equipmentId,
+          ),
+        );
+  }
+
+  Future<Set<String>> equipmentOn(String diveId) async {
+    final rows = await (db.select(
+      db.diveEquipment,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    return rows.map((r) => r.equipmentId).toSet();
+  }
+
+  test('applies the set that lists the dive computer as a member', () async {
+    await insertGear('gear-computer');
+    await insertGear('gear-drysuit', type: 'exposure');
+    await insertGear('gear-fins', type: 'fins');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertSet('set-ccr');
+    await addToSet('set-ccr', 'gear-computer');
+    await addToSet('set-ccr', 'gear-drysuit');
+    await addToSet('set-ccr', 'gear-fins');
+    await insertDive('dive1');
+    await linkSource('dive1', 'c1');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
+    expect(await equipmentOn('dive1'), {
+      'gear-computer',
+      'gear-drysuit',
+      'gear-fins',
+    });
+  });
+
+  test('applies every set that lists the computer, additively', () async {
+    await insertGear('gear-computer');
+    await insertGear('gear-drysuit', type: 'exposure');
+    await insertGear('gear-bailout', type: 'cylinder');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertSet('set-rig');
+    await addToSet('set-rig', 'gear-computer');
+    await addToSet('set-rig', 'gear-drysuit');
+    await insertSet('set-bailout');
+    await addToSet('set-bailout', 'gear-computer');
+    await addToSet('set-bailout', 'gear-bailout');
+    await insertDive('dive1');
+    await linkSource('dive1', 'c1');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
+    expect(await equipmentOn('dive1'), {
+      'gear-computer',
+      'gear-drysuit',
+      'gear-bailout',
+    });
+  });
+
+  test('adds to existing equipment rather than replacing it', () async {
+    await insertGear('gear-computer');
+    await insertGear('gear-drysuit', type: 'exposure');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertSet('set-ccr');
+    await addToSet('set-ccr', 'gear-computer');
+    await addToSet('set-ccr', 'gear-drysuit');
+    await insertDive('dive1');
+    await linkSource('dive1', 'c1');
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'dive1', equipmentId: 'a-bcd'),
+        );
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
+    expect(await equipmentOn('dive1'), {
+      'a-bcd',
+      'gear-computer',
+      'gear-drysuit',
+    });
+  });
+
+  test(
+    'does not remove an item from a set applied separately by the defaulter',
+    () async {
+      // The defaulter tags rows with its own set's id; a later, additive call
+      // from this linker must not steal that provenance for an item both
+      // sets happen to share (GearExpander only fills a null viaSetId).
+      await insertGear('gear-computer');
+      await insertGear('gear-fins', type: 'fins');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-geo');
+      await addToSet('set-geo', 'gear-fins');
+      await insertSet('set-ccr');
+      await addToSet('set-ccr', 'gear-computer');
+      await addToSet('set-ccr', 'gear-fins');
+      await insertDive('dive1');
+      await linkSource('dive1', 'c1');
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(
+              diveId: 'dive1',
+              equipmentId: 'gear-fins',
+              viaSetId: const Value('set-geo'),
+            ),
+          );
+
+      expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
+      final finsRow = await (db.select(
+        db.diveEquipment,
+      )..where((t) => t.equipmentId.equals('gear-fins'))).getSingle();
+      expect(finsRow.viaSetId, 'set-geo');
+    },
+  );
+
+  test(
+    'is a no-op when the matching set has not opted in (default off)',
+    () async {
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-ccr', autoApplyOnComputerImport: false);
+      await addToSet('set-ccr', 'gear-computer');
+      await addToSet('set-ccr', 'gear-drysuit');
+      await insertDive('dive1');
+      await linkSource('dive1', 'c1');
+
+      expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+      expect(await equipmentOn('dive1'), isEmpty);
+    },
+  );
+
+  test(
+    'applies only the opted-in set when another matching set has not',
+    () async {
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertGear('gear-bailout', type: 'cylinder');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-ccr', autoApplyOnComputerImport: true);
+      await addToSet('set-ccr', 'gear-computer');
+      await addToSet('set-ccr', 'gear-drysuit');
+      await insertSet('set-other', autoApplyOnComputerImport: false);
+      await addToSet('set-other', 'gear-computer');
+      await addToSet('set-other', 'gear-bailout');
+      await insertDive('dive1');
+      await linkSource('dive1', 'c1');
+
+      expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
+      expect(await equipmentOn('dive1'), {'gear-computer', 'gear-drysuit'});
+    },
+  );
+
+  test('is a no-op when the computer belongs to no set', () async {
+    await insertGear('gear-computer');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertDive('dive1');
+    await linkSource('dive1', 'c1');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+    expect(await equipmentOn('dive1'), isEmpty);
+  });
+
+  test(
+    'is a no-op when the matching set belongs to a different diver',
+    () async {
+      // A dive computer can be shared across diver profiles in one local
+      // database; a set another diver built around it must not silently
+      // attach that diver's gear to this diver's dive.
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-other-diver', diverId: 'd2');
+      await addToSet('set-other-diver', 'gear-computer');
+      await addToSet('set-other-diver', 'gear-drysuit');
+      await insertDive('dive1', diverId: 'd1');
+      await linkSource('dive1', 'c1');
+
+      expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+      expect(await equipmentOn('dive1'), isEmpty);
+    },
+  );
+
+  test('is a no-op for an owner-less dive', () async {
+    await insertGear('gear-computer');
+    await insertGear('gear-drysuit', type: 'exposure');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertSet('set-ccr');
+    await addToSet('set-ccr', 'gear-computer');
+    await addToSet('set-ccr', 'gear-drysuit');
+    await insertDive('dive1', diverId: null);
+    await linkSource('dive1', 'c1');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+    expect(await equipmentOn('dive1'), isEmpty);
+  });
+
+  test('never applies a set for a computer whose twin was deleted', () async {
+    await insertComputer('c1');
+    await linkSource('dive1', 'c1');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+    expect(await equipmentOn('dive1'), isEmpty);
+  });
+
+  test('is a no-op for a dive with no registered computer', () async {
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+    expect(await equipmentOn('dive1'), isEmpty);
+  });
+
+  test('is idempotent', () async {
+    await insertGear('gear-computer');
+    await insertGear('gear-drysuit', type: 'exposure');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertSet('set-ccr');
+    await addToSet('set-ccr', 'gear-computer');
+    await addToSet('set-ccr', 'gear-drysuit');
+    await insertDive('dive1');
+    await linkSource('dive1', 'c1');
+
+    await linker.linkComputerSetsForDive(diveId: 'dive1');
+    await linker.linkComputerSetsForDive(diveId: 'dive1');
+
+    expect(await equipmentOn('dive1'), {'gear-computer', 'gear-drysuit'});
+  });
+
+  test(
+    'reports and notifies a partial success when a later set fails mid-loop',
+    () async {
+      // Two opted-in sets; the fake throws once the first has already been
+      // applied, simulating a failure partway through the loop. The already-
+      // written set must still be reported and synced, not masked as false.
+      await insertGear('gear-computer');
+      await insertGear('gear-drysuit', type: 'exposure');
+      await insertGear('gear-bailout', type: 'cylinder');
+      await insertComputer('c1', equipmentId: 'gear-computer');
+      await insertSet('set-a');
+      await addToSet('set-a', 'gear-computer');
+      await addToSet('set-a', 'gear-drysuit');
+      await insertSet('set-b');
+      await addToSet('set-b', 'gear-computer');
+      await addToSet('set-b', 'gear-bailout');
+      await insertDive('dive1');
+      await linkSource('dive1', 'c1');
+
+      final failingLinker = EquipmentSetForComputerLinker(
+        equipmentSetRepository: _FailAfterFirstSetRepository(),
+      );
+      final notified = SyncEventBus.changes.first;
+
+      expect(
+        await failingLinker.linkComputerSetsForDive(diveId: 'dive1'),
+        isTrue,
+      );
+      final applied = await equipmentOn('dive1');
+      expect(applied, contains('gear-computer'));
+      expect(
+        applied.contains('gear-drysuit') ^ applied.contains('gear-bailout'),
+        isTrue,
+        reason: 'exactly one set should have written before the failure',
+      );
+      await expectLater(notified, completes);
+    },
+  );
+
+  test('returns false instead of throwing when the read fails', () async {
+    await insertGear('gear-computer');
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await linkSource('dive1', 'c1');
+    await db.customStatement('DROP TABLE dive_data_sources');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isFalse);
+  });
+}

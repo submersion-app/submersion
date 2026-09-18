@@ -36,6 +36,7 @@ import 'package:submersion/features/dive_log/domain/services/bottom_time_calcula
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
+import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_resolver.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
@@ -1429,6 +1430,13 @@ class DiveComputerRepository {
         // diver's default and geofenced sets.
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: diveId);
 
+        // Apply every equipment set that lists this computer as a member
+        // (issue #1020), e.g. a CCR rig set that bundles the controller with
+        // drysuit and tec fins. Additive, independent of the defaulter above.
+        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+          diveId: diveId,
+        );
+
         // Auto-link a pre-dive checklist session started shortly before
         // this dive's entry time.
         await ChecklistDiveLinker().autoLinkForDive(
@@ -1779,6 +1787,11 @@ class DiveComputerRepository {
         // existing dive, but the computer did log it. Idempotent through
         // insertOnConflictUpdate.
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: diveId);
+        // Apply every equipment set that lists this computer as a member
+        // (issue #1020). Additive, independent of the defaulter above.
+        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+          diveId: diveId,
+        );
       }
 
       // Note: Computer stats (incrementDiveCount, updateLastDownload) are

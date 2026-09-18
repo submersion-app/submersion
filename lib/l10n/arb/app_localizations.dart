@@ -416,6 +416,18 @@ abstract class AppLocalizations {
   /// **'Auto-applied to new dives that have no equipment yet'**
   String get equipment_setEdit_defaultSwitch_subtitle;
 
+  /// No description provided for @equipment_setEdit_computerAutoApplySwitch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply when this set\'s computer is imported'**
+  String get equipment_setEdit_computerAutoApplySwitch_title;
+
+  /// No description provided for @equipment_setEdit_computerAutoApplySwitch_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it'**
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle;
+
   /// No description provided for @equipment_setEdit_geofencesTitle.
   ///
   /// In en, this message translates to:
@@ -32428,6 +32440,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No trend data available'**
   String get statistics_chart_noTrendData;
+
+  /// No description provided for @statistics_chart_notRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get statistics_chart_notRecorded;
 
   /// No description provided for @statistics_chart_trendSemanticLabel.
   ///
