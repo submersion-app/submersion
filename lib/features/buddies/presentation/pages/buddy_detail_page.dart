@@ -17,6 +17,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -175,18 +176,7 @@ class _BuddyDetailContent extends ConsumerWidget {
       appBar: AppBar(
         title: Text(buddy.name),
         actions: [
-          IconButton(
-            icon: Icon(buddy.isFavorite ? Icons.star : Icons.star_border),
-            tooltip: buddy.isFavorite
-                ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-                : context.l10n.diveLog_detail_tooltip_addToFavorites,
-            color: buddy.isFavorite
-                ? Theme.of(context).colorScheme.primary
-                : null,
-            onPressed: () => ref
-                .read(buddyListNotifierProvider.notifier)
-                .toggleFavorite(buddy.id),
-          ),
+          BuddyFavoriteButton(buddyId: buddy.id, isFavorite: buddy.isFavorite),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.buddies_action_edit,
@@ -279,18 +269,10 @@ class _BuddyDetailContent extends ConsumerWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(
-              buddy.isFavorite ? Icons.star : Icons.star_border,
-              size: 20,
-            ),
-            tooltip: buddy.isFavorite
-                ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-                : context.l10n.diveLog_detail_tooltip_addToFavorites,
-            color: buddy.isFavorite ? colorScheme.primary : null,
-            onPressed: () => ref
-                .read(buddyListNotifierProvider.notifier)
-                .toggleFavorite(buddy.id),
+          BuddyFavoriteButton(
+            buddyId: buddy.id,
+            isFavorite: buddy.isFavorite,
+            iconSize: 20,
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),

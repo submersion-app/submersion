@@ -6,6 +6,7 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
@@ -126,23 +127,11 @@ class CompactBuddyListTile extends ConsumerWidget {
                           ),
                           // Favoriting (issue #1336), independent of bulk
                           // selection.
-                          IconButton(
-                            icon: Icon(
-                              buddy.isFavorite ? Icons.star : Icons.star_border,
-                              size: 18,
-                              color: buddy.isFavorite
-                                  ? colorScheme.primary
-                                  : secondaryTextColor,
-                            ),
-                            tooltip: buddy.isFavorite
-                                ? l10n.diveLog_detail_tooltip_removeFromFavorites
-                                : l10n.diveLog_detail_tooltip_addToFavorites,
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () => ref
-                                .read(buddyListNotifierProvider.notifier)
-                                .toggleFavorite(buddy.id),
+                          BuddyFavoriteButton(
+                            buddyId: buddy.id,
+                            isFavorite: buddy.isFavorite,
+                            iconSize: 18,
+                            unselectedColor: secondaryTextColor,
                           ),
                           ExcludeSemantics(
                             child: Icon(

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
@@ -11,7 +10,7 @@ import 'package:submersion/features/buddies/presentation/buddy_certification_l10
 ///
 /// Row: Buddy name (expanded) | Cert level (~100px) | Dive count (~40px) | Favorite star | Chevron
 /// No avatar, no agency. Uses a bottom border divider instead of a card wrapper.
-class DenseBuddyListTile extends ConsumerWidget {
+class DenseBuddyListTile extends StatelessWidget {
   final Buddy buddy;
   final int? diveCount;
   final bool isSelected;
@@ -32,7 +31,7 @@ class DenseBuddyListTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final rowColor = isChecked
         ? colorScheme.primaryContainer.withValues(alpha: 0.3)
@@ -109,23 +108,11 @@ class DenseBuddyListTile extends ConsumerWidget {
                       : null,
                 ),
                 // Favoriting (issue #1336), independent of bulk selection.
-                IconButton(
-                  icon: Icon(
-                    buddy.isFavorite ? Icons.star : Icons.star_border,
-                    size: 16,
-                    color: buddy.isFavorite
-                        ? colorScheme.primary
-                        : secondaryTextColor,
-                  ),
-                  tooltip: buddy.isFavorite
-                      ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-                      : context.l10n.diveLog_detail_tooltip_addToFavorites,
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () => ref
-                      .read(buddyListNotifierProvider.notifier)
-                      .toggleFavorite(buddy.id),
+                BuddyFavoriteButton(
+                  buddyId: buddy.id,
+                  isFavorite: buddy.isFavorite,
+                  iconSize: 16,
+                  unselectedColor: secondaryTextColor,
                 ),
                 ExcludeSemantics(
                   child: Icon(
