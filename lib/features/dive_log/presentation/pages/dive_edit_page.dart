@@ -169,6 +169,15 @@ String _seedWeight(double displayValue) =>
 /// [parseUserInt]. Grouping is off, so this is digit-only text.
 String _seedInt(int value) => _seedDecimal(value.toDouble(), 0);
 
+/// Whether "Apply last dive" must ask before replacing the form's weights
+/// and tanks (issue #2075): whenever the form holds any. A weight row with
+/// no amount yet still carries its type and notes, so it counts.
+@visibleForTesting
+bool applyLastDiveNeedsConfirm({
+  required List<DiveWeight> weights,
+  required List<DiveTank> tanks,
+}) => weights.isNotEmpty || tanks.isNotEmpty;
+
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
 
@@ -4535,7 +4544,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// holds any, because the copy replaces them.
   Future<void> _applyLastDiveAtCenter(LastDiveAtCenter last) async {
     final l10n = context.l10n;
-    if (_weights.any((w) => w.amountKg > 0) || _tanks.isNotEmpty) {
+    if (applyLastDiveNeedsConfirm(weights: _weights, tanks: _tanks)) {
       final replace = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
