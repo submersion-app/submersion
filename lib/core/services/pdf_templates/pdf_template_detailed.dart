@@ -614,7 +614,16 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required double bottom,
   }) {
     return [
-      pw.Text(label, style: labelStyle, overflow: pw.TextOverflow.span),
+      // With no value beneath it, the label carries the entry's bottom
+      // spacing itself, or it would run into the next entry.
+      pw.Padding(
+        padding: pw.EdgeInsets.only(bottom: value.isEmpty ? bottom : 0),
+        child: pw.Text(
+          label,
+          style: labelStyle,
+          overflow: pw.TextOverflow.span,
+        ),
+      ),
       if (value.isNotEmpty)
         pw.Padding(
           padding: pw.EdgeInsets.only(left: 12, top: 1, bottom: bottom),

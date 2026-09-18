@@ -46,6 +46,78 @@ void main() {
   /// Few characters but one line each, so it is tall without being long.
   final manyShortLines = List.generate(90, (i) => 'Line$i').join('\n');
 
+  /// A label long enough to take the stacked layout on its own.
+  String longLabel(String prefix) => List.generate(
+    60,
+    (i) => '$prefix${i.toString().padLeft(2, '0')}',
+  ).join(' ');
+
+  /// Baselines of the tokens starting with [prefix], one per printed line.
+  List<double> linesOf(
+    List<({String text, double y})> baselines,
+    String prefix,
+  ) {
+    final ys = <double>[];
+    for (final token in baselines.where((t) => t.text.startsWith(prefix))) {
+      if (ys.isEmpty || (ys.last - token.y).abs() > 0.5) ys.add(token.y);
+    }
+    return ys;
+  }
+
+  /// A stacked entry with an empty value still has to leave the same bottom
+  /// spacing as one with a value, or it runs into the next entry.
+  void expectSeparated(List<int> bytes) {
+    final baselines = pdfTextBaselines(bytes);
+    final first = linesOf(baselines, 'Aword');
+    final second = linesOf(baselines, 'Bword');
+    expect(first.length, greaterThan(1), reason: 'the label must wrap');
+    expect(second, isNotEmpty);
+
+    final linePitch = first[0] - first[1];
+    final gap = first.last - second.first;
+    expect(
+      gap,
+      greaterThan(linePitch + 1),
+      reason: 'entries sat a bare line apart, like one run-on label',
+    );
+  }
+
+  test('a long custom field key with no value keeps its spacing', () async {
+    expectSeparated(
+      await render(
+        dive.copyWith(
+          customFields: [
+            DiveCustomField(id: 'f1', key: longLabel('Aword'), value: ''),
+            DiveCustomField(id: 'f2', key: longLabel('Bword'), value: ''),
+          ],
+        ),
+        PdfPageSize.a4,
+      ),
+    );
+  });
+
+  test('a long species name with no notes keeps its spacing', () async {
+    expectSeparated(
+      await render(
+        dive.copyWith(
+          sightings: [
+            MarineSighting(
+              id: 's1',
+              speciesId: 'sp1',
+              speciesName: longLabel('Aword'),
+            ),
+            MarineSighting(
+              id: 's2',
+              speciesId: 'sp2',
+              speciesName: longLabel('Bword'),
+            ),
+          ],
+        ),
+        PdfPageSize.a4,
+      ),
+    );
+  });
+
   for (final pageSize in PdfPageSize.values) {
     group('on $pageSize', () {
       test(
