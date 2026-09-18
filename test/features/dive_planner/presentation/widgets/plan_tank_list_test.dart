@@ -176,6 +176,23 @@ void main() {
       expect(after.workingPressure, before.workingPressure);
     });
 
+    testWidgets('a cleared cuft field saves no volume', (tester) async {
+      final container = await pumpImperial(tester);
+
+      await tester.tap(find.widgetWithText(InputChip, 'Primary'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Volume (cuft)'),
+        '',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final primary = container.read(divePlanNotifierProvider).tanks.first;
+      expect(primary.volume, isNull);
+      expect(primary.workingPressure, 207.0);
+    });
+
     testWidgets('metric volume is still stored as entered', (tester) async {
       await tester.pumpWidget(
         testApp(
@@ -201,6 +218,35 @@ void main() {
         tester.element(find.byType(PlanTankList)),
       );
       expect(container.read(divePlanNotifierProvider).tanks.last.volume, 12);
+    });
+
+    testWidgets('a metric edit keeps the working pressure', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Primary'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Volume (L)'),
+        '12',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      final primary = container.read(divePlanNotifierProvider).tanks.first;
+      expect(primary.volume, 12);
+      expect(primary.workingPressure, 207.0);
     });
   });
 
