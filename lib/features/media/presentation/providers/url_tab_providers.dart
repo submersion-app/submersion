@@ -141,6 +141,21 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
     state = state.copyWith(mode: mode);
   }
 
+  /// Called when the picker opens. The notifier is not autoDispose (the
+  /// draft must survive a swipe to another tab, and Undo can fire after the
+  /// picker closes), so URLs typed and then abandoned would otherwise
+  /// reappear in the next session, which may attach to a different dive or
+  /// site (issue #1996). The segmented mode is kept, like the Files tab's
+  /// auto-match preference, and an in-flight resolve keeps its own flag.
+  void clearDraft() {
+    state = state.copyWith(
+      draftLines: const [],
+      committedIds: const [],
+      clearLastError: true,
+      unauthenticatedHosts: const {},
+    );
+  }
+
   void setDraft(String text) {
     final lines = text.split('\n');
     state = state.copyWith(draftLines: lines);
