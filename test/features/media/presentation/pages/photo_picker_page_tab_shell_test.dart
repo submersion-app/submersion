@@ -95,7 +95,11 @@ class _FakeMediaPlatform implements LocalMediaPlatform {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _wrap({MediaAttachTarget? target, FilesTabNotifier? filesTab}) {
+Widget _wrap({
+  MediaAttachTarget? target,
+  FilesTabNotifier? filesTab,
+  PhotoPickerNotifier? picker,
+}) {
   final pipeline = _FakeNetworkFetchPipeline();
   final credentials = _FakeNetworkCredentialsService();
   final mediaRepo = _FakeMediaRepository();
@@ -104,6 +108,8 @@ Widget _wrap({MediaAttachTarget? target, FilesTabNotifier? filesTab}) {
       photoPickerServiceProvider.overrideWithValue(_StubPhotoPickerService()),
       if (filesTab != null)
         filesTabNotifierProvider.overrideWith((ref) => filesTab),
+      if (picker != null)
+        photoPickerNotifierProvider.overrideWith((ref) => picker),
       // [UrlTab] watches [urlTabNotifierProvider]. The default factory
       // pulls `DatabaseService.instance.database` (uninitialized in tests),
       // so swap it for a notifier built from the fakes above.
@@ -254,6 +260,27 @@ void main() {
     expect(filesTab.state.files, isEmpty);
     expect(filesTab.state.match, MatchedSelection.empty());
   });
+
+  testWidgets(
+    'opening the picker drops gallery picks from an earlier session',
+    (tester) async {
+      // Issue #1996: photoPickerNotifierProvider is not autoDispose either.
+      // Photos ticked while attaching to one site came back pre-selected
+      // when the picker opened for the next one, and Done would have
+      // attached them there too.
+      final picker = PhotoPickerNotifier(_StubPhotoPickerService());
+      picker.toggleSelection('site-a-photo-1');
+      picker.toggleSelection('site-a-photo-2');
+
+      await tester.pumpWidget(
+        _wrap(target: const SiteAttachTarget('site-b'), picker: picker),
+      );
+      await tester.pump();
+
+      expect(picker.state.selectedIds, isEmpty);
+      expect(picker.state.selectionCount, 0);
+    },
+  );
 
   // Issue #1098: the page used to accept only a dive id, so the Files and URL
   // tabs had no way to know a site session was even a site session.

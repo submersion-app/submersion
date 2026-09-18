@@ -70,17 +70,21 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
     );
   }
 
-  /// Drops files staged by an earlier session that was abandoned rather than
-  /// committed: `filesTabNotifierProvider` is not autoDispose, and this
-  /// session may well attach to a different dive, or to a site.
+  /// Drops what an earlier session left behind: files staged but never
+  /// committed, and gallery photos ticked in a session that already ended.
+  /// Neither `filesTabNotifierProvider` nor `photoPickerNotifierProvider` is
+  /// autoDispose, and this session may well attach to a different dive, or
+  /// to a site. A leftover gallery tick was not just cosmetic: tapping Done
+  /// would attach the previous owner's photos here too (issue #1996).
   ///
   /// Deferred by a microtask because Riverpod forbids mutating a provider
   /// inside a widget life-cycle. It still lands before the first frame the
-  /// user can interact with, and well before the Files tab is reachable
-  /// (it is not even the initially-selected tab).
+  /// user can interact with, and before any gallery asset has loaded, so the
+  /// desktop auto-select in [_loadAssets] is never wiped by it.
   void _clearStaleStaging() {
     if (!mounted) return;
     ref.read(filesTabNotifierProvider.notifier).clearStagedFiles();
+    ref.read(photoPickerNotifierProvider.notifier).clearSelection();
   }
 
   Future<void> _checkPermissionAndLoad() async {
