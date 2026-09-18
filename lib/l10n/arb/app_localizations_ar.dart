@@ -40838,4 +40838,116 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'أدخل رقمًا صالحًا';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'معدات مستأجرة';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'آخر مرة في $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'آخر غوصة هنا: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'لا توجد غوصات أخرى مسجلة هنا بعد.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'لا توجد ملاحظات عن المعدات المستأجرة لهذا المركز بعد.';
+
+  @override
+  String get diveCenters_rental_addNote => 'إضافة ملاحظة تأجير';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'تطبيق آخر غوصة';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'تم نسخ الأثقال والأسطوانات من آخر غوصة لك هنا.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'استبدال الأثقال والأسطوانات؟';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'تحتوي هذه الغوصة بالفعل على أثقال أو أسطوانات. هل تريد استبدالها بتلك الموجودة في آخر غوصة لك هنا؟';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'استبدال';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'الأثقال: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount زيادة';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount نقص';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'الأسطوانات';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'مناسب';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'تجنّب';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount أثقال إضافية';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount أثقال أقل';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'السعة الفعلية $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'ملاحظة تأجير جديدة';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'تعديل ملاحظة التأجير';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'نوع المعدات';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'الملصق أو الرقم';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'المقاس';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'الأثقال الإضافية المطلوبة ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'السعة الفعلية ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'ملاحظة';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => 'حذف ملاحظة التأجير هذه؟';
 }

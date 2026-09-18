@@ -38765,4 +38765,112 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => '请输入有效的数字';
+
+  @override
+  String get diveCenters_rental_sectionTitle => '租赁装备';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return '上次在$center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return '上次在此潜水：$date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory => '此处尚无其他潜水记录。';
+
+  @override
+  String get diveCenters_rental_empty => '此中心尚无租赁备注。';
+
+  @override
+  String get diveCenters_rental_addNote => '添加租赁备注';
+
+  @override
+  String get diveCenters_rental_applyLastDive => '套用上次潜水';
+
+  @override
+  String get diveCenters_rental_applied => '已从你上次在此的潜水复制配重和气瓶。';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle => '替换配重和气瓶？';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      '此次潜水已有配重或气瓶。是否替换为你上次在此潜水的配置？';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => '替换';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return '配重：$total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '超重$amount';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '欠重$amount';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => '气瓶';
+
+  @override
+  String get diveCenters_rental_verdictWorked => '好用';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => '避免';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '多带$amount配重';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '少带$amount配重';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return '实际容量$volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => '新建租赁备注';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => '编辑租赁备注';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => '装备类型';
+
+  @override
+  String get diveCenters_rental_labelLabel => '标签或编号';
+
+  @override
+  String get diveCenters_rental_sizeLabel => '尺码';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return '需额外配重（$unit）';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return '实际容量（$unit）';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => '备注';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => '删除此租赁备注？';
 }

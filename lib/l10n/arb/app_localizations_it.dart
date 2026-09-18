@@ -41160,4 +41160,117 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'Inserisci un numero valido';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'Attrezzatura a noleggio';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'L\'ultima volta da $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'Ultima immersione qui: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'Nessun\'altra immersione registrata qui.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'Nessuna nota sul noleggio per questo centro.';
+
+  @override
+  String get diveCenters_rental_addNote => 'Aggiungi nota noleggio';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'Applica ultima immersione';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'Zavorra e bombole copiate dalla tua ultima immersione qui.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'Sostituire zavorra e bombole?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'Questa immersione ha già zavorra o bombole. Sostituirle con quelle della tua ultima immersione qui?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'Sostituisci';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'Zavorra: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount in più';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount in meno';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'Bombole';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'Andava bene';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'Da evitare';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount di zavorra in più';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount di zavorra in meno';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'Capacità reale $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'Nuova nota noleggio';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'Modifica nota noleggio';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'Tipo di attrezzatura';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'Etichetta o numero';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'Taglia';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'Zavorra aggiuntiva necessaria ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'Capacità reale ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'Nota';
+
+  @override
+  String get diveCenters_rental_deleteConfirm =>
+      'Eliminare questa nota sul noleggio?';
 }

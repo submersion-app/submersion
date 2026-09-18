@@ -41173,4 +41173,117 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'Insira um número válido';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'Equipamento alugado';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'Da última vez em $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'Último mergulho aqui: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'Ainda não há outros mergulhos registados aqui.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'Ainda não há notas de aluguer para este centro.';
+
+  @override
+  String get diveCenters_rental_addNote => 'Adicionar nota de aluguer';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'Aplicar último mergulho';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'Lastro e garrafas copiados do seu último mergulho aqui.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'Substituir lastro e garrafas?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'Este mergulho já tem lastro ou garrafas. Substituir pelos do seu último mergulho aqui?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'Substituir';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'Lastro: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount a mais';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount a menos';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'Garrafas';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'Funcionou';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'Evitar';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount de lastro a mais';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount de lastro a menos';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'Capacidade real $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'Nova nota de aluguer';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'Editar nota de aluguer';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'Tipo de equipamento';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'Etiqueta ou número';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'Tamanho';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'Lastro adicional necessário ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'Capacidade real ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'Nota';
+
+  @override
+  String get diveCenters_rental_deleteConfirm =>
+      'Eliminar esta nota de aluguer?';
 }

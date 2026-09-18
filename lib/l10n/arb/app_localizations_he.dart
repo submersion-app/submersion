@@ -40343,4 +40343,115 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'הזן מספר תקין';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'ציוד מושכר';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'בפעם הקודמת ב-$center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'הצלילה האחרונה כאן: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'עדיין לא נרשמו כאן צלילות נוספות.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'עדיין אין הערות על ציוד מושכר במרכז הזה.';
+
+  @override
+  String get diveCenters_rental_addNote => 'הוספת הערת השכרה';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'החלת הצלילה האחרונה';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'המשקולות והמכלים הועתקו מהצלילה האחרונה שלך כאן.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle => 'להחליף משקולות ומכלים?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'לצלילה הזו כבר יש משקולות או מכלים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'החלפה';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'משקולות: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount יותר מדי';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount פחות מדי';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'מכלים';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'התאים';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'להימנע';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount משקולות נוספות';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount פחות משקולות';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'קיבולת בפועל $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'הערת השכרה חדשה';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'עריכת הערת השכרה';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'סוג ציוד';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'תווית או מספר';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'מידה';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'משקולות נוספות נדרשות ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'קיבולת בפועל ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'הערה';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => 'למחוק את הערת ההשכרה הזו?';
 }

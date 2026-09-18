@@ -66141,6 +66141,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid number'**
   String get numberInput_invalidValue;
+
+  /// No description provided for @diveCenters_rental_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental gear'**
+  String get diveCenters_rental_sectionTitle;
+
+  /// No description provided for @diveCenters_rental_lastTimeAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time at {center}'**
+  String diveCenters_rental_lastTimeAt(Object center);
+
+  /// No description provided for @diveCenters_rental_lastDiveOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive here: {date}'**
+  String diveCenters_rental_lastDiveOn(Object date);
+
+  /// No description provided for @diveCenters_rental_noHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No other dives logged here yet.'**
+  String get diveCenters_rental_noHistory;
+
+  /// No description provided for @diveCenters_rental_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No rental notes for this center yet.'**
+  String get diveCenters_rental_empty;
+
+  /// No description provided for @diveCenters_rental_addNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add rental note'**
+  String get diveCenters_rental_addNote;
+
+  /// No description provided for @diveCenters_rental_applyLastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply last dive'**
+  String get diveCenters_rental_applyLastDive;
+
+  /// No description provided for @diveCenters_rental_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights and tanks copied from your last dive here.'**
+  String get diveCenters_rental_applied;
+
+  /// No description provided for @diveCenters_rental_applyConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace weights and tanks?'**
+  String get diveCenters_rental_applyConfirmTitle;
+
+  /// No description provided for @diveCenters_rental_applyConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive already has weights or tanks. Replace them with the ones from your last dive here?'**
+  String get diveCenters_rental_applyConfirmBody;
+
+  /// No description provided for @diveCenters_rental_applyConfirmReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get diveCenters_rental_applyConfirmReplace;
+
+  /// No description provided for @diveCenters_rental_leadTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead: {total}'**
+  String diveCenters_rental_leadTotal(Object total);
+
+  /// No description provided for @diveCenters_rental_feedbackOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over'**
+  String diveCenters_rental_feedbackOver(Object amount);
+
+  /// No description provided for @diveCenters_rental_feedbackUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} under'**
+  String diveCenters_rental_feedbackUnder(Object amount);
+
+  /// No description provided for @diveCenters_rental_tanksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get diveCenters_rental_tanksLabel;
+
+  /// No description provided for @diveCenters_rental_verdictWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked'**
+  String get diveCenters_rental_verdictWorked;
+
+  /// No description provided for @diveCenters_rental_verdictAvoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid'**
+  String get diveCenters_rental_verdictAvoid;
+
+  /// No description provided for @diveCenters_rental_extraLead.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} extra lead'**
+  String diveCenters_rental_extraLead(Object amount);
+
+  /// No description provided for @diveCenters_rental_lessLead.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} less lead'**
+  String diveCenters_rental_lessLead(Object amount);
+
+  /// No description provided for @diveCenters_rental_actualCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual capacity {volume}'**
+  String diveCenters_rental_actualCapacity(Object volume);
+
+  /// No description provided for @diveCenters_rental_sheetTitleNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New rental note'**
+  String get diveCenters_rental_sheetTitleNew;
+
+  /// No description provided for @diveCenters_rental_sheetTitleEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rental note'**
+  String get diveCenters_rental_sheetTitleEdit;
+
+  /// No description provided for @diveCenters_rental_gearTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear type'**
+  String get diveCenters_rental_gearTypeLabel;
+
+  /// No description provided for @diveCenters_rental_labelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label or number'**
+  String get diveCenters_rental_labelLabel;
+
+  /// No description provided for @diveCenters_rental_sizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get diveCenters_rental_sizeLabel;
+
+  /// No description provided for @diveCenters_rental_leadAdjustmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra lead needed ({unit})'**
+  String diveCenters_rental_leadAdjustmentLabel(Object unit);
+
+  /// No description provided for @diveCenters_rental_volumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual capacity ({unit})'**
+  String diveCenters_rental_volumeLabel(Object unit);
+
+  /// No description provided for @diveCenters_rental_noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get diveCenters_rental_noteLabel;
+
+  /// No description provided for @diveCenters_rental_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this rental note?'**
+  String get diveCenters_rental_deleteConfirm;
 }
 
 class _AppLocalizationsDelegate
