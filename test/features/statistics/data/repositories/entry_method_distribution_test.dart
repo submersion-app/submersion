@@ -8,6 +8,9 @@ import '../../../../helpers/test_database.dart';
 
 /// Issue #1427: the same site-fallback gap the water type chart had. A dive
 /// that takes its entry method from its site was missing from the chart.
+///
+/// Issue #1998: a dive with no entry method anywhere is counted in its own
+/// not-recorded bucket, so the recorded shares are of all dives.
 void main() {
   late StatisticsRepository repository;
   late AppDatabase db;
@@ -88,30 +91,46 @@ void main() {
     expect(await countsByLabel(), {'shore': 1});
   });
 
-  test('a dive with no entry method anywhere stays out of the chart', () async {
-    await insertSite(id: 'unknown-site');
-    await insertDive(id: 'sited', siteId: 'unknown-site');
-    await insertDive(id: 'siteless');
-    await insertDive(id: 'known', entryMethod: 'giantStride');
-
-    expect(await countsByLabel(), {'giantStride': 1});
-  });
-
   test(
-    'percentages are shares of the dives that have an entry method',
+    'a dive with no entry method anywhere is counted as not recorded',
     () async {
-      await insertSite(id: 'beach', entryMethod: 'shore');
-      await insertDive(id: 'a', siteId: 'beach');
-      await insertDive(id: 'b', entryMethod: 'shore');
-      await insertDive(id: 'c', entryMethod: 'boat');
-      await insertDive(id: 'd'); // no entry method at all
+      await insertSite(id: 'unknown-site');
+      await insertDive(id: 'sited', siteId: 'unknown-site');
+      await insertDive(id: 'siteless');
+      await insertDive(id: 'known', entryMethod: 'giantStride');
 
-      final dist = await repository.getEntryMethodDistribution();
-      final byLabel = {for (final s in dist) s.label: s};
-      expect(byLabel['shore']!.percentage, closeTo(200 / 3, 0.001));
-      expect(byLabel['boat']!.percentage, closeTo(100 / 3, 0.001));
+      expect(await countsByLabel(), {
+        'giantStride': 1,
+        kNotRecordedDistributionKey: 2,
+      });
     },
   );
+
+  test('percentages are shares of every dive, recorded or not', () async {
+    await insertSite(id: 'beach', entryMethod: 'shore');
+    await insertDive(id: 'a', siteId: 'beach');
+    await insertDive(id: 'b', entryMethod: 'shore');
+    await insertDive(id: 'c', entryMethod: 'boat');
+    await insertDive(id: 'd'); // no entry method at all
+
+    final dist = await repository.getEntryMethodDistribution();
+    final byLabel = {for (final s in dist) s.label: s};
+    expect(byLabel['shore']!.percentage, closeTo(50, 0.001));
+    expect(byLabel['boat']!.percentage, closeTo(25, 0.001));
+    expect(
+      byLabel[kNotRecordedDistributionKey]!.percentage,
+      closeTo(25, 0.001),
+    );
+  });
+
+  test('the not recorded bucket comes last even when it is largest', () async {
+    await insertDive(id: 'a', entryMethod: 'boat');
+    await insertDive(id: 'b');
+    await insertDive(id: 'c');
+
+    final dist = await repository.getEntryMethodDistribution();
+    expect(dist.map((s) => s.label), ['boat', kNotRecordedDistributionKey]);
+  });
 
   test(
     'an inherited entry method still honours the statistics scope',

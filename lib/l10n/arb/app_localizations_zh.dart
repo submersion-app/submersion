@@ -18813,6 +18813,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_chart_noTrendData => '无趋势数据可用';
 
   @override
+  String get statistics_chart_notRecorded => '未记录';
+
+  @override
   String statistics_chart_trendSemanticLabel(Object count) {
     return '显示 $count 个数据点的趋势折线图';
   }

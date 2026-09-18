@@ -19660,6 +19660,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get statistics_chart_noTrendData => 'Geen trendgegevens beschikbaar';
 
   @override
+  String get statistics_chart_notRecorded => 'Niet vastgelegd';
+
+  @override
   String statistics_chart_trendSemanticLabel(Object count) {
     return 'Trendlijndiagram met $count datapunten';
   }

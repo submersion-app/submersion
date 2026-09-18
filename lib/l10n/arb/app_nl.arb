@@ -5908,6 +5908,7 @@
   "statistics_chart_noBarData": "Geen gegevens beschikbaar",
   "statistics_chart_noDistributionData": "Geen verdelingsgegevens beschikbaar",
   "statistics_chart_noTrendData": "Geen trendgegevens beschikbaar",
+  "statistics_chart_notRecorded": "Niet vastgelegd",
   "statistics_chart_trendSemanticLabel": "Trendlijndiagram met {count} datapunten",
   "statistics_chart_trendSemanticLabelWithAxis": "Trendlijndiagram met {count} datapunten voor {yAxisLabel}",
   "statistics_conditions_appBar_title": "Omstandigheden",

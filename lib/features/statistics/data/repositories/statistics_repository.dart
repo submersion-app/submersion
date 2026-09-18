@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/statistics/data/series_profile_aggregates.dart';
@@ -58,6 +59,15 @@ class RankingItem {
     this.date,
   });
 }
+
+/// Key of the segment that counts dives with no value recorded (issue #1998).
+///
+/// Water type and entry method emit it for dives where neither the dive nor
+/// its site carries a value, so the recorded shares are of every dive rather
+/// than of the dives that happen to be filled in. The leading underscore keeps
+/// it clear of every stored enum name; `waterTypeDistributionLabel` and
+/// `entryMethodDistributionLabel` translate it.
+const String kNotRecordedDistributionKey = '_notRecorded';
 
 /// Distribution segment for pie charts
 class DistributionSegment {
@@ -1246,7 +1256,9 @@ class StatisticsRepository {
   /// app knows what water they were in. Mirrors `Dive.effectiveWaterType`.
   ///
   /// Emits the stored WaterType enum name as a stable key; the presentation
-  /// layer translates it (see `waterTypeDistributionLabel`).
+  /// layer translates it (see `waterTypeDistributionLabel`). Dives with no
+  /// water type anywhere form a trailing [kNotRecordedDistributionKey]
+  /// segment (issue #1998).
   Future<List<DistributionSegment>> getWaterTypeDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1274,9 +1286,8 @@ class StatisticsRepository {
           LEFT JOIN dive_sites ON dive_sites.id = dives.site_id
           WHERE 1 = 1 $diverFilter ${df.clause}
         )
-        WHERE water_type IS NOT NULL
         GROUP BY water_type
-        ORDER BY count DESC
+        ORDER BY water_type IS NULL, count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       final total = results.fold<int>(
@@ -1288,7 +1299,7 @@ class StatisticsRepository {
       return results.map((row) {
         final count = row.read<int>('count');
         return DistributionSegment(
-          label: row.read<String>('water_type'),
+          label: row.read<String?>('water_type') ?? kNotRecordedDistributionKey,
           count: count,
           percentage: count / total * 100,
         );
@@ -1369,6 +1380,8 @@ class StatisticsRepository {
   ///
   /// Emits the stored EntryMethod enum name as a stable key; the
   /// presentation layer translates it (see `entryMethodDistributionLabel`).
+  /// Dives with no entry method anywhere form a trailing
+  /// [kNotRecordedDistributionKey] segment (issue #1998).
   Future<List<DistributionSegment>> getEntryMethodDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1395,9 +1408,8 @@ class StatisticsRepository {
           LEFT JOIN dive_sites ON dive_sites.id = dives.site_id
           WHERE 1 = 1 $diverFilter ${df.clause}
         )
-        WHERE entry_method IS NOT NULL
         GROUP BY entry_method
-        ORDER BY count DESC
+        ORDER BY entry_method IS NULL, count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       final total = results.fold<int>(
@@ -1409,7 +1421,8 @@ class StatisticsRepository {
       return results.map((row) {
         final count = row.read<int>('count');
         return DistributionSegment(
-          label: row.read<String>('entry_method'),
+          label:
+              row.read<String?>('entry_method') ?? kNotRecordedDistributionKey,
           count: count,
           percentage: count / total * 100,
         );
@@ -1819,38 +1832,51 @@ class StatisticsRepository {
     }
   }
 
-  /// Get solo vs buddy dive percentage.
+  /// Get solo vs buddy dive counts.
   ///
   /// Each dive counts exactly once: a dive is a buddy dive when it has at
   /// least one linked buddy or a non-empty free-text buddy. The linked
   /// buddies are tested with EXISTS rather than a join, because a join yields
   /// one row per linked buddy and would count a group dive several times.
-  Future<({int solo, int buddy})> getSoloVsBuddyCount({
+  ///
+  /// A dive without a buddy is solo only when the diver's own role on it is
+  /// the built-in Solo role. Otherwise nothing says whether they dived alone
+  /// or just never filled the buddy in, so it counts as not recorded
+  /// (issue #1998). A recorded buddy wins over a Solo role.
+  Future<({int solo, int buddy, int notRecorded})> getSoloVsBuddyCount({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
+    const zero = (solo: 0, buddy: 0, notRecorded: 0);
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+      // The Solo role id binds first: its placeholder sits in the inner
+      // SELECT list, ahead of the WHERE clause's.
+      final params = [DiveRole.soloId, ?diverId, ...df.params];
 
       final results = await _db.customSelect('''
         SELECT
-          SUM(CASE WHEN has_buddy THEN 0 ELSE 1 END) AS solo,
-          SUM(CASE WHEN has_buddy THEN 1 ELSE 0 END) AS buddy
+          SUM(CASE WHEN has_buddy THEN 1 ELSE 0 END) AS buddy,
+          SUM(CASE WHEN NOT has_buddy AND is_solo THEN 1 ELSE 0 END) AS solo,
+          SUM(CASE WHEN NOT has_buddy AND NOT is_solo THEN 1 ELSE 0 END)
+            AS not_recorded
         FROM (
           SELECT
             EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
-              OR (d.buddy IS NOT NULL AND d.buddy != '') AS has_buddy
+              OR (d.buddy IS NOT NULL AND d.buddy != '') AS has_buddy,
+            COALESCE(d.diver_role = ?, 0) AS is_solo
           FROM dives d
           WHERE 1=1 $diverFilter ${df.clause}
         )
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      if (results.isEmpty) return (solo: 0, buddy: 0);
+      if (results.isEmpty) return zero;
+      final row = results.first;
       return (
-        solo: results.first.read<int?>('solo') ?? 0,
-        buddy: results.first.read<int?>('buddy') ?? 0,
+        solo: row.read<int?>('solo') ?? 0,
+        buddy: row.read<int?>('buddy') ?? 0,
+        notRecorded: row.read<int?>('not_recorded') ?? 0,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -1858,7 +1884,7 @@ class StatisticsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (solo: 0, buddy: 0);
+      return zero;
     }
   }
 

@@ -19816,6 +19816,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di tendenza disponibile';
 
   @override
+  String get statistics_chart_notRecorded => 'Non registrato';
+
+  @override
   String statistics_chart_trendSemanticLabel(Object count) {
     return 'Grafico di tendenza con $count punti dati';
   }

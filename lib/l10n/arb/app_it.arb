@@ -5800,6 +5800,7 @@
   "statistics_chart_noBarData": "Nessun dato disponibile",
   "statistics_chart_noDistributionData": "Nessun dato di distribuzione disponibile",
   "statistics_chart_noTrendData": "Nessun dato di tendenza disponibile",
+  "statistics_chart_notRecorded": "Non registrato",
   "statistics_chart_trendSemanticLabel": "Grafico di tendenza con {count} punti dati",
   "statistics_chart_trendSemanticLabelWithAxis": "Grafico di tendenza con {count} punti dati per {yAxisLabel}",
   "statistics_conditions_appBar_title": "Condizioni",

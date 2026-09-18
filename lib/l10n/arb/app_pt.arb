@@ -5908,6 +5908,7 @@
   "statistics_chart_noBarData": "Nenhum dado disponivel",
   "statistics_chart_noDistributionData": "Nenhum dado de distribuicao disponivel",
   "statistics_chart_noTrendData": "Nenhum dado de tendencia disponivel",
+  "statistics_chart_notRecorded": "Não registado",
   "statistics_chart_trendSemanticLabel": "Grafico de linhas de tendencia mostrando {count} pontos de dados",
   "statistics_chart_trendSemanticLabelWithAxis": "Grafico de linhas de tendencia mostrando {count} pontos de dados para {yAxisLabel}",
   "statistics_conditions_appBar_title": "Condicoes",

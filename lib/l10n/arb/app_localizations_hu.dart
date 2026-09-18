@@ -19764,6 +19764,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_chart_noTrendData => 'Nincsenek trend adatok';
 
   @override
+  String get statistics_chart_notRecorded => 'Nincs rögzítve';
+
+  @override
   String statistics_chart_trendSemanticLabel(Object count) {
     return 'Trend vonaldiagram $count adatponttal';
   }
