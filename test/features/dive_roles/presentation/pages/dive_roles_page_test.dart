@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_pag
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -57,6 +58,16 @@ void main() {
     // Built-ins only: no custom header and no delete icons.
     expect(find.text('Custom Dive Roles'), findsNothing);
     expect(find.byIcon(Icons.delete_outline), findsNothing);
+  });
+
+  testWidgets('the last dive role clears the Add button (#2029)', (
+    tester,
+  ) async {
+    useShortViewport(tester);
+    await tester.pumpWidget(_buildPage(diverIdNotifier));
+    await tester.pumpAndSettle();
+
+    await expectLastRowClearOfFab(tester);
   });
 
   testWidgets('add dialog creates a custom role listed under Custom', (

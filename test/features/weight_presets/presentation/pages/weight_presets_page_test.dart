@@ -10,6 +10,7 @@ import 'package:submersion/features/weight_presets/presentation/pages/weight_pre
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -108,6 +109,14 @@ void main() {
     expect(find.text('Wetsuit 5mm'), findsOneWidget);
     expect(find.textContaining('3 weights'), findsOneWidget);
     expect(find.textContaining('1 weight ·'), findsOneWidget);
+  });
+
+  testWidgets('the last preset clears the Add button (#2029)', (tester) async {
+    await pump(tester, [
+      for (var i = 0; i < 20; i++) _preset('p$i', 'Preset $i'),
+    ]);
+
+    await expectLastRowClearOfFab(tester);
   });
 
   testWidgets('shows the empty-state copy when the diver has no presets', (

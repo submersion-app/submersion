@@ -16,6 +16,7 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 class SpeciesManagePage extends ConsumerStatefulWidget {
   const SpeciesManagePage({super.key});
@@ -224,6 +225,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
     final builtInSpecies = filtered.where((s) => s.isBuiltIn).toList();
 
     return ListView(
+      padding: kFabListPadding,
       children: [
         if (customSpecies.isNotEmpty) ...[
           _buildSectionHeader(
