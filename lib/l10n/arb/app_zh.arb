@@ -6098,6 +6098,7 @@
   "statistics_chart_multiTrendSemanticLabel": "比较 {seriesNames} 的多趋势折线图",
   "statistics_chart_noBarData": "无可用数据",
   "statistics_chart_noDistributionData": "无可用分布数据",
+  "statistics_chart_notRecorded": "未记录",
   "statistics_chart_noTrendData": "无趋势数据可用",
   "statistics_chart_trendSemanticLabel": "显示 {count} 个数据点的趋势折线图",
   "statistics_chart_trendSemanticLabelWithAxis": "显示 {yAxisLabel} 的 {count} 个数据点的趋势折线图",

@@ -80,6 +80,7 @@ void main() {
     final soloVsBuddy = await container.read(soloVsBuddyCountProvider.future);
     expect(soloVsBuddy.solo, 0);
     expect(soloVsBuddy.buddy, 0);
+    expect(soloVsBuddy.notRecorded, 0);
     expect(await container.read(topDiveCentersProvider.future), isEmpty);
     expect(await container.read(countriesVisitedProvider.future), isEmpty);
     expect(await container.read(regionsExploredProvider.future), isEmpty);

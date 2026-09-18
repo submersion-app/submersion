@@ -48,7 +48,9 @@ class StatisticsSocialPage extends ConsumerWidget {
       subtitle: context.l10n.statistics_social_soloVsBuddy_subtitle,
       child: soloVsBuddyAsync.when(
         data: (data) {
-          final total = data.solo + data.buddy;
+          // Dives with no buddy and no Solo role are a share of their own
+          // rather than being counted as solo (issue #1998).
+          final total = data.solo + data.buddy + data.notRecorded;
           if (total == 0) {
             return StatEmptyState(
               icon: Icons.people,
@@ -68,8 +70,14 @@ class StatisticsSocialPage extends ConsumerWidget {
                 count: data.solo,
                 percentage: data.solo / total * 100,
               ),
+              if (data.notRecorded > 0)
+                DistributionSegment(
+                  label: context.l10n.statistics_chart_notRecorded,
+                  count: data.notRecorded,
+                  percentage: data.notRecorded / total * 100,
+                ),
             ],
-            colors: const [Colors.green, Colors.orange],
+            colors: [Colors.green, Colors.orange, Colors.grey.shade400],
           );
         },
         loading: () => const SizedBox(

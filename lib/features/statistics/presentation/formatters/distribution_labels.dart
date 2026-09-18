@@ -32,21 +32,31 @@ String timeOfDayDistributionLabel(String key, AppLocalizations l10n) =>
       _ => key,
     };
 
-/// Localized name for a stored [WaterType] enum name.
-String waterTypeDistributionLabel(String key, AppLocalizations l10n) =>
-    WaterType.values
-        .where((w) => w.name == key)
-        .firstOrNull
-        ?.localizedName(l10n) ??
-    key;
+/// Localized name for a stored [WaterType] enum name, or for the share of
+/// dives with no water type ([DistributionSegment.notRecordedKey]).
+String waterTypeDistributionLabel(String key, AppLocalizations l10n) {
+  if (key == DistributionSegment.notRecordedKey) {
+    return l10n.statistics_chart_notRecorded;
+  }
+  return WaterType.values
+          .where((w) => w.name == key)
+          .firstOrNull
+          ?.localizedName(l10n) ??
+      key;
+}
 
-/// Localized name for a stored [EntryMethod] enum name.
-String entryMethodDistributionLabel(String key, AppLocalizations l10n) =>
-    EntryMethod.values
-        .where((e) => e.name == key)
-        .firstOrNull
-        ?.localizedName(l10n) ??
-    key;
+/// Localized name for a stored [EntryMethod] enum name, or for the share of
+/// dives with no entry method ([DistributionSegment.notRecordedKey]).
+String entryMethodDistributionLabel(String key, AppLocalizations l10n) {
+  if (key == DistributionSegment.notRecordedKey) {
+    return l10n.statistics_chart_notRecorded;
+  }
+  return EntryMethod.values
+          .where((e) => e.name == key)
+          .firstOrNull
+          ?.localizedName(l10n) ??
+      key;
+}
 
 /// Localized name for a dive-type id.
 ///

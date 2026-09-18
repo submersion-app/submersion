@@ -19327,6 +19327,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get statistics_chart_noTrendData => 'אין נתוני מגמה זמינים';
 
   @override
+  String get statistics_chart_notRecorded => 'לא תועד';
+
+  @override
   String statistics_chart_trendSemanticLabel(Object count) {
     return 'תרשים קו מגמה המציג $count נקודות נתונים';
   }

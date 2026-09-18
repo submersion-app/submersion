@@ -5803,6 +5803,7 @@
   "statistics_chart_multiTrendSemanticLabel": "Többszörös trend vonaldiagram, {seriesNames} összehasonlítása",
   "statistics_chart_noBarData": "Nincsenek elérhető adatok",
   "statistics_chart_noDistributionData": "Nincsenek megoszlási adatok",
+  "statistics_chart_notRecorded": "Nincs rögzítve",
   "statistics_chart_noTrendData": "Nincsenek trend adatok",
   "statistics_chart_trendSemanticLabel": "Trend vonaldiagram {count} adatponttal",
   "statistics_chart_trendSemanticLabelWithAxis": "Trend vonaldiagram {count} adatponttal a(z) {yAxisLabel} számára",

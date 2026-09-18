@@ -8,6 +8,8 @@ import '../../../../helpers/test_database.dart';
 
 /// Issue #1427: the water type chart counted only the value stored on the
 /// dive, so a dive that inherits its water type from its site was missing.
+/// Issue #1998: a dive with no water type anywhere is its own "not recorded"
+/// share rather than being left out of the percentages.
 void main() {
   late StatisticsRepository repository;
   late AppDatabase db;
@@ -90,16 +92,21 @@ void main() {
     expect(await countsByLabel(), {'salt': 1});
   });
 
-  test('a dive with no water type anywhere stays out of the chart', () async {
+  test('a dive with no water type anywhere counts as not recorded', () async {
+    // Issue #1998: dropping these dives made the recorded shares add up to
+    // 100% on their own, overstating every one of them.
     await insertSite(id: 'unknown-site');
     await insertDive(id: 'sited', siteId: 'unknown-site');
     await insertDive(id: 'siteless');
     await insertDive(id: 'known', waterType: 'fresh');
 
-    expect(await countsByLabel(), {'fresh': 1});
+    expect(await countsByLabel(), {
+      'fresh': 1,
+      DistributionSegment.notRecordedKey: 2,
+    });
   });
 
-  test('percentages are shares of the dives that have a water type', () async {
+  test('percentages are shares of every dive in scope', () async {
     await insertSite(id: 'reef', waterType: 'salt');
     await insertDive(id: 'a', siteId: 'reef');
     await insertDive(id: 'b', waterType: 'salt');
@@ -108,8 +115,33 @@ void main() {
 
     final dist = await repository.getWaterTypeDistribution();
     final byLabel = {for (final s in dist) s.label: s};
-    expect(byLabel['salt']!.percentage, closeTo(200 / 3, 0.001));
-    expect(byLabel['fresh']!.percentage, closeTo(100 / 3, 0.001));
+    expect(byLabel['salt']!.percentage, closeTo(50, 0.001));
+    expect(byLabel['fresh']!.percentage, closeTo(25, 0.001));
+    expect(
+      byLabel[DistributionSegment.notRecordedKey]!.percentage,
+      closeTo(25, 0.001),
+    );
+  });
+
+  test('the not recorded share comes last even when it is largest', () async {
+    await insertDive(id: 'known', waterType: 'salt');
+    await insertDive(id: 'blank-1');
+    await insertDive(id: 'blank-2');
+
+    final dist = await repository.getWaterTypeDistribution();
+    expect(dist.map((s) => s.label), [
+      'salt',
+      DistributionSegment.notRecordedKey,
+    ]);
+  });
+
+  test('no recorded water type at all yields no distribution', () async {
+    // A chart that is 100% "not recorded" says nothing, so the page keeps
+    // its empty state instead.
+    await insertDive(id: 'blank-1');
+    await insertDive(id: 'blank-2');
+
+    expect(await repository.getWaterTypeDistribution(), isEmpty);
   });
 
   test('an inherited water type still honours the statistics scope', () async {

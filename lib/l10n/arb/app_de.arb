@@ -5920,6 +5920,7 @@
   "statistics_chart_multiTrendSemanticLabel": "Mehrzeiliges Trenddiagramm zum Vergleich von {seriesNames}",
   "statistics_chart_noBarData": "Keine Daten verfügbar",
   "statistics_chart_noDistributionData": "Keine Verteilungsdaten verfügbar",
+  "statistics_chart_notRecorded": "Nicht erfasst",
   "statistics_chart_noTrendData": "Keine Trenddaten verfügbar",
   "statistics_chart_trendSemanticLabel": "Trendliniendiagramm mit {count} Datenpunkten",
   "statistics_chart_trendSemanticLabelWithAxis": "Trendliniendiagramm mit {count} Datenpunkten für {yAxisLabel}",

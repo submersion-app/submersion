@@ -5907,6 +5907,7 @@
   "statistics_chart_multiTrendSemanticLabel": "Grafico de lineas multitendencia comparando {seriesNames}",
   "statistics_chart_noBarData": "No hay datos disponibles",
   "statistics_chart_noDistributionData": "No hay datos de distribucion disponibles",
+  "statistics_chart_notRecorded": "No registrado",
   "statistics_chart_noTrendData": "No hay datos de tendencia disponibles",
   "statistics_chart_trendSemanticLabel": "Grafico de lineas de tendencia mostrando {count} puntos de datos",
   "statistics_chart_trendSemanticLabelWithAxis": "Grafico de lineas de tendencia mostrando {count} puntos de datos para {yAxisLabel}",

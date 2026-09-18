@@ -19490,6 +19490,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statistics_chart_noTrendData => 'No trend data available';
 
   @override
+  String get statistics_chart_notRecorded => 'Not recorded';
+
+  @override
   String statistics_chart_trendSemanticLabel(Object count) {
     return 'Trend line chart showing $count data points';
   }

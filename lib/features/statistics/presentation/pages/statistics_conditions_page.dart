@@ -126,6 +126,14 @@ class StatisticsConditionsPage extends ConsumerWidget {
     );
   }
 
+  /// One colour per [WaterType], so brackish water no longer wraps around to
+  /// the colour of the first segment.
+  static final _waterTypePalette = [
+    Colors.blue.shade600,
+    Colors.cyan.shade400,
+    Colors.teal.shade300,
+  ];
+
   Widget _buildWaterTypeSection(BuildContext context, WidgetRef ref) {
     final waterTypeAsync = ref.watch(waterTypeDistributionProvider);
 
@@ -149,7 +157,14 @@ class StatisticsConditionsPage extends ConsumerWidget {
             ),
             child: DistributionPieChart(
               data: data,
-              colors: [Colors.blue.shade600, Colors.cyan.shade400],
+              // Recorded water types take the palette in order; the share of
+              // dives with no water type is always grey (issue #1998).
+              colors: [
+                for (final (i, segment) in raw.indexed)
+                  segment.label == DistributionSegment.notRecordedKey
+                      ? Colors.grey.shade400
+                      : _waterTypePalette[i % _waterTypePalette.length],
+              ],
             ),
           );
         },

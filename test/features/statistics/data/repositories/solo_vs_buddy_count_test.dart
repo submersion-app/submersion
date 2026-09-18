@@ -2,12 +2,17 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 
 /// Regression coverage for issue #1822: a dive with several linked buddies
 /// must count once in the Solo vs Buddy statistic, not once per buddy.
+///
+/// Issue #1998: a dive with no buddy is only solo when the diver said so by
+/// taking the built-in Solo role; otherwise nothing was recorded about who
+/// was there, and calling it solo overstated solo diving.
 void main() {
   late StatisticsRepository repository;
   late AppDatabase db;
@@ -39,6 +44,7 @@ void main() {
     String id, {
     String? diverId,
     String? freeTextBuddy,
+    String? diverRole,
   }) async {
     await db
         .into(db.dives)
@@ -47,6 +53,7 @@ void main() {
             id: Value(id),
             diverId: Value(diverId),
             buddy: Value(freeTextBuddy),
+            diverRole: Value(diverRole),
             diveDateTime: Value(now),
             createdAt: Value(now),
             updatedAt: Value(now),
@@ -89,7 +96,7 @@ void main() {
   group('getSoloVsBuddyCount', () {
     test('counts a dive with three linked buddies once', () async {
       await insertBuddies(['b1', 'b2', 'b3']);
-      await insertDive('solo');
+      await insertDive('solo', diverRole: DiveRole.soloId);
       await insertDive('group');
       for (final buddyId in ['b1', 'b2', 'b3']) {
         await linkBuddy('group', buddyId);
@@ -99,25 +106,72 @@ void main() {
 
       expect(result.solo, 1);
       expect(result.buddy, 1);
+      expect(result.notRecorded, 0);
     });
 
     test('counts a dive with only a free-text buddy as a buddy dive', () async {
-      await insertDive('solo');
+      await insertDive('solo', diverRole: DiveRole.soloId);
       await insertDive('text-only', freeTextBuddy: 'Alex');
 
       final result = await repository.getSoloVsBuddyCount();
 
       expect(result.solo, 1);
       expect(result.buddy, 1);
+      expect(result.notRecorded, 0);
     });
 
-    test('treats an empty free-text buddy as solo', () async {
+    test('a dive with no buddy and no Solo role is not recorded', () async {
+      // The reporter never dived solo but had entered no buddies, and the
+      // chart called 73% of their dives solo.
+      await insertDive('blank');
       await insertDive('empty-text', freeTextBuddy: '');
+
+      final result = await repository.getSoloVsBuddyCount();
+
+      expect(result.solo, 0);
+      expect(result.buddy, 0);
+      expect(result.notRecorded, 2);
+    });
+
+    test('a dive whose diver took the Solo role is solo', () async {
+      await insertDive('solo', diverRole: DiveRole.soloId);
 
       final result = await repository.getSoloVsBuddyCount();
 
       expect(result.solo, 1);
       expect(result.buddy, 0);
+      expect(result.notRecorded, 0);
+    });
+
+    test('another role with no buddy is still not recorded', () async {
+      // Guiding or instructing says nothing about whether anyone else was
+      // logged on the dive.
+      await insertDive('guiding', diverRole: DiveRole.diveGuideId);
+
+      final result = await repository.getSoloVsBuddyCount();
+
+      expect(result.solo, 0);
+      expect(result.buddy, 0);
+      expect(result.notRecorded, 1);
+    });
+
+    test('a named buddy outweighs the Solo role', () async {
+      // A linked or typed companion is concrete evidence, as on the dive
+      // detail page, where linked buddies are authoritative.
+      await insertBuddy('b1');
+      await insertDive('linked', diverRole: DiveRole.soloId);
+      await linkBuddy('linked', 'b1');
+      await insertDive(
+        'typed',
+        diverRole: DiveRole.soloId,
+        freeTextBuddy: 'Alex',
+      );
+
+      final result = await repository.getSoloVsBuddyCount();
+
+      expect(result.solo, 0);
+      expect(result.buddy, 2);
+      expect(result.notRecorded, 0);
     });
 
     test(
@@ -139,7 +193,7 @@ void main() {
       await insertDiver('me');
       await insertDiver('other');
       await insertBuddies(['b1', 'b2']);
-      await insertDive('my-solo', diverId: 'me');
+      await insertDive('my-solo', diverId: 'me', diverRole: DiveRole.soloId);
       await insertDive('my-group', diverId: 'me');
       await linkBuddy('my-group', 'b1');
       await linkBuddy('my-group', 'b2');
@@ -157,7 +211,7 @@ void main() {
       await insertDive('tagged-group');
       await linkBuddy('tagged-group', 'b1');
       await linkBuddy('tagged-group', 'b2');
-      await insertDive('untagged-solo');
+      await insertDive('untagged-solo', diverRole: DiveRole.soloId);
       await insertDive('untagged-group');
       await linkBuddy('untagged-group', 'b1');
       await db
@@ -194,6 +248,7 @@ void main() {
 
       expect(result.solo, 0);
       expect(result.buddy, 0);
+      expect(result.notRecorded, 0);
     });
   });
 }

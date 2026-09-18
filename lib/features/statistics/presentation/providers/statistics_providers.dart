@@ -424,18 +424,17 @@ final topBuddiesProvider = FutureProvider<List<RankingItem>>((ref) async {
   return repository.getTopBuddies(diverId: currentDiverId, filter: filter);
 });
 
-final soloVsBuddyCountProvider = FutureProvider<({int solo, int buddy})>((
-  ref,
-) async {
-  _keepAliveWithExpiry(ref);
-  final repository = ref.watch(statisticsRepositoryProvider);
-  final currentDiverId = ref.watch(currentDiverIdProvider);
-  final filter = ref.watch(statisticsFilterProvider);
-  return repository.getSoloVsBuddyCount(
-    diverId: currentDiverId,
-    filter: filter,
-  );
-});
+final soloVsBuddyCountProvider =
+    FutureProvider<({int solo, int buddy, int notRecorded})>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(statisticsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getSoloVsBuddyCount(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
 
 final topDiveCentersProvider = FutureProvider<List<RankingItem>>((ref) async {
   _keepAliveWithExpiry(ref);

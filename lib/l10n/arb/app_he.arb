@@ -5907,6 +5907,7 @@
   "statistics_chart_multiTrendSemanticLabel": "תרשים מגמה רב-קווי המשווה {seriesNames}",
   "statistics_chart_noBarData": "אין נתונים זמינים",
   "statistics_chart_noDistributionData": "אין נתוני התפלגות זמינים",
+  "statistics_chart_notRecorded": "לא תועד",
   "statistics_chart_noTrendData": "אין נתוני מגמה זמינים",
   "statistics_chart_trendSemanticLabel": "תרשים קו מגמה המציג {count} נקודות נתונים",
   "statistics_chart_trendSemanticLabelWithAxis": "תרשים קו מגמה המציג {count} נקודות נתונים עבור {yAxisLabel}",

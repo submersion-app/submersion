@@ -11916,6 +11916,7 @@
   "statistics_chart_noBarData": "No data available",
   "statistics_chart_noDistributionData": "No distribution data available",
   "statistics_chart_noTrendData": "No trend data available",
+  "statistics_chart_notRecorded": "Not recorded",
   "statistics_chart_trendSemanticLabel": "Trend line chart showing {count} data points",
   "statistics_chart_trendSemanticLabelWithAxis": "Trend line chart showing {count} data points for {yAxisLabel}",
   "statistics_conditions_appBar_title": "Conditions",

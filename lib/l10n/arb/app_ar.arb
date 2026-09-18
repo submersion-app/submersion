@@ -5907,6 +5907,7 @@
   "statistics_chart_multiTrendSemanticLabel": "مخطط خطوط متعددة الاتجاهات يقارن {seriesNames}",
   "statistics_chart_noBarData": "لا توجد بيانات متاحة",
   "statistics_chart_noDistributionData": "لا توجد بيانات توزيع متاحة",
+  "statistics_chart_notRecorded": "غير مسجل",
   "statistics_chart_noTrendData": "لا توجد بيانات اتجاه متاحة",
   "statistics_chart_trendSemanticLabel": "مخطط خطي للاتجاه يعرض {count} نقاط بيانات",
   "statistics_chart_trendSemanticLabelWithAxis": "مخطط خطي للاتجاه يعرض {count} نقاط بيانات لـ {yAxisLabel}",
