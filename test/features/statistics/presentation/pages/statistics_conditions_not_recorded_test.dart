@@ -103,6 +103,24 @@ void main() {
       expect(colors.toSet(), hasLength(4));
     });
 
+    testWidgets('gives an unrecognized key a color of its own', (tester) async {
+      // Only a repository change could emit one; it must still get a slice
+      // that does not pass for one of the known water types.
+      await pumpPage(
+        tester,
+        waterType: [
+          seg('salt', 1, 25),
+          seg('fresh', 1, 25),
+          seg('brackish', 1, 25),
+          seg('mystery', 1, 25),
+        ],
+      );
+
+      final colors = waterTypeSliceColors(tester);
+      expect(colors.toSet(), hasLength(4));
+      expect(inSection('Water Type', find.text('mystery')), findsOneWidget);
+    });
+
     testWidgets('keeps a water type color when the order changes', (
       tester,
     ) async {
