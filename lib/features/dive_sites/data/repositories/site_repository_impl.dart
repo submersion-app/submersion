@@ -86,7 +86,7 @@ class SiteRepository {
     try {
       return await PerfTimer.measure('getAllSites', () async {
         final query = _db.select(_db.diveSites)
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+          ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
         VisibilityFilter.applyToDiveSites(query, diverId);
 
@@ -1017,7 +1017,7 @@ class SiteRepository {
                 t.island.contains(query) |
                 t.bodyOfWater.contains(query),
           )
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+          ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
         VisibilityFilter.applyToDiveSites(searchQuery, diverId);
 

@@ -52,7 +52,7 @@ class SiteClassificationRepository {
     final rows = await _db
         .customSelect(
           'SELECT t.* FROM site_tags stg JOIN tags t ON t.id = stg.tag_id '
-          'WHERE stg.site_id = ? ORDER BY t.name',
+          'WHERE stg.site_id = ? ORDER BY t.name COLLATE NOCASE',
           variables: [Variable.withString(siteId)],
           readsFrom: {_db.siteTags, _db.tags},
         )
@@ -85,7 +85,7 @@ class SiteClassificationRepository {
     final rows = await _db
         .customSelect(
           'SELECT stg.site_id AS link_site_id, t.* FROM site_tags stg '
-          'JOIN tags t ON t.id = stg.tag_id ORDER BY stg.site_id, t.name',
+          'JOIN tags t ON t.id = stg.tag_id ORDER BY stg.site_id, t.name COLLATE NOCASE',
           readsFrom: {_db.siteTags, _db.tags},
         )
         .get();

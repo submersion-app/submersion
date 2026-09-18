@@ -87,7 +87,7 @@ class EquipmentSetRepository {
   /// Get all equipment sets
   Future<List<domain.EquipmentSet>> getAllSets({String? diverId}) async {
     final query = _db.select(_db.equipmentSets)
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));

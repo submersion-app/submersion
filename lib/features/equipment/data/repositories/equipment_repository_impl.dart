@@ -70,7 +70,7 @@ class EquipmentRepository {
         )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -103,7 +103,7 @@ class EquipmentRepository {
                   t.status.equals(EquipmentStatus.retired.name)) &
               t.status.isNotValue(EquipmentStatus.sold.name),
         )
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -143,7 +143,7 @@ class EquipmentRepository {
       final query = _db.select(_db.equipment)
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -180,7 +180,7 @@ class EquipmentRepository {
         )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -234,7 +234,9 @@ class EquipmentRepository {
                         ? const Constant(true)
                         : t.isActive.equals(true)),
               )
-              ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
+              ]))
             .get();
     return _mapRowsWithAttributes(rows);
   }
@@ -843,7 +845,7 @@ class EquipmentRepository {
            OR LOWER(e.serial_number) LIKE ?
            OR LOWER(t.name) LIKE ?)
         $diverFilter
-        ORDER BY e.is_active DESC, e.type ASC, e.name ASC
+        ORDER BY e.is_active DESC, e.type ASC, e.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
       final items = results.map((row) {

@@ -44,7 +44,7 @@ class TransmitterRepository {
 
   Future<List<Transmitter>> getForDiver(String? diverId) async {
     final query = _db.select(_db.transmitters)
-      ..orderBy([(t) => OrderingTerm.asc(t.label)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.label.collate(Collate.noCase))]);
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
     }

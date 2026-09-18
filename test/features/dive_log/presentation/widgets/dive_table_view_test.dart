@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -775,6 +776,38 @@ void main() {
     // -----------------------------------------------------------------------
     // Table with sort indicator icon
     // -----------------------------------------------------------------------
+
+    testWidgets('site name sort ignores case (issue #2038)', (tester) async {
+      Dive atSite(String id, String siteName) => Dive(
+        id: id,
+        dateTime: DateTime(2024, 6, 1),
+        site: DiveSite(id: 'site-$id', name: siteName),
+      );
+      final sortedConfig = TableViewConfig(
+        columns: [
+          TableColumnConfig(field: DiveField.siteName, isPinned: true),
+          TableColumnConfig(field: DiveField.maxDepth),
+        ],
+        sortField: DiveField.siteName,
+        sortAscending: true,
+      );
+
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [
+            atSite('z', 'Zebra'),
+            atSite('l', 'plage'),
+            atSite('a', 'anchor'),
+          ],
+          config: sortedConfig,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      double rowY(String name) => tester.getTopLeft(find.text(name)).dy;
+      expect(rowY('anchor'), lessThan(rowY('plage')));
+      expect(rowY('plage'), lessThan(rowY('Zebra')));
+    });
 
     testWidgets('ascending sort shows up arrow icon', (tester) async {
       final sortedConfig = TableViewConfig(

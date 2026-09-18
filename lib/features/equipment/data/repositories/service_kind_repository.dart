@@ -30,7 +30,7 @@ class ServiceKindRepository {
   /// [diverId] is null).
   Future<List<domain.ServiceKind>> getAllKinds({String? diverId}) async {
     final query = _db.select(_db.serviceKinds)
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
     if (diverId != null) {
       query.where(
         (t) =>

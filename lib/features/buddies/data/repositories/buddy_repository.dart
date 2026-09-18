@@ -84,7 +84,7 @@ class BuddyRepository {
   Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {
     try {
       final query = _db.select(_db.buddies)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -136,7 +136,7 @@ class BuddyRepository {
          OR LOWER(email) LIKE ?
          OR phone LIKE ?)
       $diverFilter
-      ORDER BY name ASC
+      ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
 
     final buddies = results.map((row) {
@@ -385,7 +385,7 @@ class BuddyRepository {
       INNER JOIN dive_buddies db ON b.id = db.buddy_id
       LEFT JOIN dives d ON d.id = db.dive_id
       WHERE db.dive_id = ?
-      ORDER BY b.name ASC
+      ORDER BY b.name COLLATE NOCASE ASC
     ''',
           variables: [Variable.withString(diveId)],
         )
@@ -463,7 +463,9 @@ class BuddyRepository {
               ])
               ..addColumns([_db.dives.diverId])
               ..where(_db.diveBuddies.diveId.isIn(diveIds))
-              ..orderBy([OrderingTerm.asc(_db.buddies.name)]))
+              ..orderBy([
+                OrderingTerm.asc(_db.buddies.name.collate(Collate.noCase)),
+              ]))
             .get();
 
     // Resolve role ids against dive_roles once, scoped to each dive's diver
@@ -875,7 +877,7 @@ class BuddyRepository {
           GROUP BY db.buddy_id
         ) dc ON b.id = dc.buddy_id
         $where
-        ORDER BY b.name ASC
+        ORDER BY b.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
       // Second whole-table query: how often each buddy held each role. The

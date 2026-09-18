@@ -61,7 +61,7 @@ class DiverRepository {
   Future<List<domain.Diver>> getAllDivers() async {
     try {
       final query = _db.select(_db.divers)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
       final rows = await query.get();
       return rows.map(_mapRowToDiver).toList();
     } catch (e, stackTrace) {

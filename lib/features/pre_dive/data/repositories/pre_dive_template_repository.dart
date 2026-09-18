@@ -39,7 +39,7 @@ class PreDiveTemplateRepository {
         )
         ..orderBy([
           (t) => OrderingTerm.desc(t.isBuiltIn),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
       final rows = await query.get();
       return rows.map(_mapTemplate).toList();

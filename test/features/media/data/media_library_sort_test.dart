@@ -129,6 +129,35 @@ void main() {
         ['d', 'b', 'a', 'e', 'c'],
       );
     });
+
+    test('ignores case, paging across a case-only tie (issue #2038)', () async {
+      // Binary order would put 'Charlie.jpg' before 'alpha.jpg'. The two
+      // Charlies tie under NOCASE and break on id, which the cursor has to
+      // honour across a page boundary.
+      await insertMedia(
+        'f',
+        DateTime(2026, 6, 6),
+        originalFilename: 'Charlie.jpg',
+      );
+      await insertMedia(
+        'g',
+        DateTime(2026, 6, 7),
+        originalFilename: 'charlie.jpg',
+      );
+
+      expect(
+        await pageThrough(
+          sortBy(MediaSortField.fileName, SortDirection.ascending),
+        ),
+        ['c', 'e', 'a', 'b', 'f', 'g', 'd'],
+      );
+      expect(
+        await pageThrough(
+          sortBy(MediaSortField.fileName, SortDirection.descending),
+        ),
+        ['d', 'g', 'f', 'b', 'a', 'e', 'c'],
+      );
+    });
   });
 
   group('file size sort', () {

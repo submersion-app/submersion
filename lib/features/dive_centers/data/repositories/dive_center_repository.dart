@@ -26,7 +26,7 @@ class DiveCenterRepository {
   Future<List<domain.DiveCenter>> getAllDiveCenters({String? diverId}) async {
     try {
       final query = _db.select(_db.diveCenters)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -81,7 +81,7 @@ class DiveCenterRepository {
          OR LOWER(city) LIKE ?
          OR LOWER(country) LIKE ?)
       $diverFilter
-      ORDER BY name ASC
+      ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
 
     return results.map(_mapCustomRowToDiveCenter).toList();
@@ -94,7 +94,7 @@ class DiveCenterRepository {
   }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.country.equals(country))
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
@@ -110,7 +110,7 @@ class DiveCenterRepository {
   }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.latitude.isNotNull() & t.longitude.isNotNull())
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));

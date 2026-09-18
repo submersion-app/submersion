@@ -26,7 +26,7 @@ class CsvPresetRepository {
   Future<List<domain.CsvPreset>> getAllPresets() async {
     try {
       final query = _db.select(_db.csvPresets)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
       final rows = await query.get();
       return rows
           .map((row) => domain.CsvPreset.fromJson(row.presetJson))

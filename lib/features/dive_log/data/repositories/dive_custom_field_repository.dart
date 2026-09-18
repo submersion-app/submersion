@@ -94,7 +94,7 @@ class DiveCustomFieldRepository {
           'SELECT DISTINCT cf.field_key FROM dive_custom_fields cf '
           'INNER JOIN dives d ON cf.dive_id = d.id '
           'WHERE d.diver_id = ? '
-          'ORDER BY cf.field_key',
+          'ORDER BY cf.field_key COLLATE NOCASE',
           variables: [Variable(diverId)],
         )
         .get();

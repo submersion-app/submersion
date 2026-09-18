@@ -587,6 +587,28 @@ void main() {
       final sorted = container.read(sortedFilteredTripsProvider).value!;
       expect(sorted.first.trip.name, equals('Alpha'));
     });
+
+    test('name sort ignores case (issue #2038)', () async {
+      await tripRepo.createTrip(
+        _makeTrip(name: 'belize', start: DateTime(2024, 9, 1)),
+      );
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      while (container.read(tripListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      container.read(tripSortProvider.notifier).state = const SortState(
+        field: TripSortField.name,
+        direction: SortDirection.descending,
+      );
+      final sorted = container.read(sortedFilteredTripsProvider).value!;
+      expect(
+        sorted.map((s) => s.trip.name).toList(),
+        equals(['Alpha', 'belize', 'Bravo', 'Charlie']),
+      );
+    });
   });
 
   group('TripListNotifier CRUD', () {

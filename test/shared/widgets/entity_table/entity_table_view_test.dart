@@ -417,6 +417,32 @@ void main() {
       expect(find.text('Charlie'), findsOneWidget);
     });
 
+    testWidgets('text sort ignores case (issue #2038)', (tester) async {
+      final entities = [
+        const _TestEntity('z', 'Zebra', 1),
+        const _TestEntity('l', 'plage', 2),
+        const _TestEntity('a', 'anchor', 3),
+      ];
+
+      final configWithSort = EntityTableViewConfig<_TestField>(
+        columns: [
+          EntityTableColumnConfig(field: _TestField.entityName, isPinned: true),
+          EntityTableColumnConfig(field: _TestField.entityCount),
+        ],
+        sortField: _TestField.entityName,
+        sortAscending: true,
+      );
+
+      await tester.pumpWidget(
+        _buildTable(entities: entities, config: configWithSort),
+      );
+      await tester.pumpAndSettle();
+
+      double rowY(String name) => tester.getTopLeft(find.text(name)).dy;
+      expect(rowY('anchor'), lessThan(rowY('plage')));
+      expect(rowY('plage'), lessThan(rowY('Zebra')));
+    });
+
     testWidgets('sorts descending when sortAscending is false', (tester) async {
       final entities = [
         const _TestEntity('a', 'Alpha', 10),

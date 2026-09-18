@@ -41,7 +41,7 @@ class TagRepository {
   }) async {
     try {
       final query = _db.select(_db.tags)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -454,7 +454,7 @@ class TagRepository {
         SELECT DISTINCT t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id = ?
-        ORDER BY t.name
+        ORDER BY t.name COLLATE NOCASE
       ''',
             variables: [Variable.withString(diveId)],
           )
@@ -484,7 +484,7 @@ class TagRepository {
         SELECT DISTINCT dt.dive_id, t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id IN ($placeholders)
-        ORDER BY t.name
+        ORDER BY t.name COLLATE NOCASE
       ''',
         variables: diveIds.map((id) => Variable.withString(id)).toList(),
       ).get();
@@ -789,7 +789,7 @@ class TagRepository {
 
       final searchQuery = _db.select(_db.tags)
         ..where((t) => t.name.lower().contains(query.toLowerCase()))
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         searchQuery.where((t) => t.diverId.equals(diverId));

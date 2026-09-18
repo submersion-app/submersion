@@ -22,7 +22,7 @@ class SpeciesRepository {
     final query = _db.select(_db.species)
       ..orderBy([
         (t) => OrderingTerm.asc(t.category),
-        (t) => OrderingTerm.asc(t.commonName),
+        (t) => OrderingTerm.asc(t.commonName.collate(Collate.noCase)),
       ]);
 
     final rows = await query.get();
@@ -52,7 +52,9 @@ class SpeciesRepository {
   ) async {
     final query = _db.select(_db.species)
       ..where((t) => t.category.equals(category.name))
-      ..orderBy([(t) => OrderingTerm.asc(t.commonName)]);
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.commonName.collate(Collate.noCase)),
+      ]);
 
     final rows = await query.get();
     return rows.map((row) => _mapRowToSpecies(row)).toList();
@@ -69,7 +71,7 @@ class SpeciesRepository {
       WHERE LOWER(common_name) LIKE ?
          OR LOWER(scientific_name) LIKE ?
          OR LOWER(taxonomy_class) LIKE ?
-      ORDER BY category ASC, common_name ASC
+      ORDER BY category ASC, common_name COLLATE NOCASE ASC
       LIMIT 50
     ''',
           variables: [
@@ -214,7 +216,7 @@ class SpeciesRepository {
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
       WHERE s.dive_id = ?
-      ORDER BY sp.category ASC, sp.common_name ASC
+      ORDER BY sp.category ASC, sp.common_name COLLATE NOCASE ASC
     ''',
           variables: [Variable.withString(diveId)],
         )
@@ -262,7 +264,7 @@ class SpeciesRepository {
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
       WHERE s.dive_id IN ($placeholders)
-      ORDER BY sp.category ASC, sp.common_name ASC
+      ORDER BY sp.category ASC, sp.common_name COLLATE NOCASE ASC
     ''',
             variables: [for (final id in chunk) Variable.withString(id)],
           )
@@ -736,7 +738,7 @@ class SpeciesRepository {
       FROM site_species ss
       JOIN species sp ON ss.species_id = sp.id
       WHERE ss.site_id = ?
-      ORDER BY sp.category ASC, sp.common_name ASC
+      ORDER BY sp.category ASC, sp.common_name COLLATE NOCASE ASC
     ''',
           variables: [Variable.withString(siteId)],
         )

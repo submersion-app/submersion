@@ -104,7 +104,7 @@ class DiveComputerRepository {
       final query = _db.select(_db.diveComputers)
         ..orderBy([
           (t) => OrderingTerm.desc(t.isFavorite),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
