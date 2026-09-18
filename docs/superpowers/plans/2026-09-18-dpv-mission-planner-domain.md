@@ -1110,6 +1110,7 @@ void main() {
     expect(exit.exitSeconds, 1500);
     expect(exit.gasShortfallMemberIds, isEmpty);
     expect(exit.batteryShortfallMemberIds, isEmpty);
+    expect(exit.blockedByCurrent, isFalse);
   });
 
   test('value equality holds for nested outcomes', () {
@@ -1246,6 +1247,11 @@ class ExitOutcome extends Equatable {
   final Set<String> gasShortfallMemberIds;
   final Set<String> batteryShortfallMemberIds;
 
+  /// True when a current on some exit leg is at least as fast as the exit
+  /// speed, so the team cannot make headway at all. A current the scooters
+  /// beat at cruise can still stop a swim or a slow tow.
+  final bool blockedByCurrent;
+
   const ExitOutcome({
     required this.mode,
     this.towerId,
@@ -1255,6 +1261,7 @@ class ExitOutcome extends Equatable {
     required this.exitLitersByMember,
     this.gasShortfallMemberIds = const {},
     this.batteryShortfallMemberIds = const {},
+    this.blockedByCurrent = false,
   });
 
   int get exitSeconds => exitBottomSeconds + ttsSeconds;
@@ -1269,6 +1276,7 @@ class ExitOutcome extends Equatable {
     exitLitersByMember,
     gasShortfallMemberIds,
     batteryShortfallMemberIds,
+    blockedByCurrent,
   ];
 }
 
@@ -1851,6 +1859,24 @@ void main() {
     ]);
   });
 
+  test('a speed that makes no headway is refused rather than clamped', () {
+    // A one-second hold against a current the diver cannot beat would report
+    // an impossible exit as feasible, so the builder must refuse it.
+    final leg = _l1.copyWith(
+      current: const CurrentVector(speedMps: 0.3, setsTowardDeg: 90),
+    );
+    expect(
+      () => builder.build(
+        plan: _plan(),
+        mission: DpvMission(legs: [leg]),
+        throughLegIndex: 0,
+        outboundSpeedMps: 0.5,
+        exitSpeedMps: 0.2,
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('a plan without tanks yields no segments', () {
     final profile = builder.build(
       plan: _plan(tanks: const []),
@@ -1958,15 +1984,22 @@ class MissionSegmentBuilder {
       order: segments.length,
     );
 
-    PlanSegment hold(String id, double target, double metres, double mps) =>
-        PlanSegment(
-          id: id,
-          targetDepth: target,
-          durationSeconds: math.max(1, (metres / mps).round()),
-          tankId: tank.id,
-          gasMix: tank.gasMix,
-          order: segments.length,
-        );
+    PlanSegment hold(String id, double target, double metres, double mps) {
+      // Never clamp: a hold of one second against a current the diver cannot
+      // beat would report an impossible exit as feasible. Callers check
+      // traversability first; reaching here with no headway is a bug.
+      if (mps <= 0) {
+        throw ArgumentError.value(mps, 'mps', 'no headway on $id');
+      }
+      return PlanSegment(
+        id: id,
+        targetDepth: target,
+        durationSeconds: math.max(1, (metres / mps).round()),
+        tankId: tank.id,
+        gasMix: tank.gasMix,
+        order: segments.length,
+      );
+    }
 
     for (final leg in legs) {
       final legSpeeds = speeds.resolve(
@@ -2016,7 +2049,7 @@ Note on the travel-segment id order: in the test vector the return travel from 3
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `flutter test test/features/planner/mission/mission_segment_builder_test.dart`
-Expected: PASS, 6 tests. If the `rolesFor` derivation returns no `backGas` for a plan whose segments are empty, the fallback to the first tank keeps the first and second tests passing; the second test lists the deco tank first on purpose, so if it fails on `{'deco'}`, read `tank_role_resolver.dart:_bottomTankId` and prefer the tank whose declared role is `TankRole.backGas` before falling back to the derived roles.
+Expected: PASS, 7 tests. If the `rolesFor` derivation returns no `backGas` for a plan whose segments are empty, the fallback to the first tank keeps the first and second tests passing; the second test lists the deco tank first on purpose, so if it fails on `{'deco'}`, read `tank_role_resolver.dart:_bottomTankId` and prefer the tank whose declared role is `TankRole.backGas` before falling back to the derived roles.
 
 - [ ] **Step 5: Format and commit**
 
@@ -2420,9 +2453,11 @@ Semantics (from the spec):
 - `exitLitersByMember` holds each member's total exit litres across tanks.
 - `exitBottomSeconds` is `authoredRuntime - failureRuntime`; `ttsSeconds` is `outcome.ttsAtBottom`.
 
-Fixture for the tests. Plan: gf 40/80, salinity pinned to EN13319 (10 m per bar), descent 18, ascent 9, reserve 50 bar, sacBottom 15 (so stressed is 37.5), one back tank `back` 24 L at 200 bar of air. Route: one leg `L1`, 600 m at 20 m, heading 0, no current. Team A and B, both SAC 15, swim 0.2, scooters at 0.5 m/s with 7200 s burn. Then:
-- outbound: travel 67 s, hold 1200 s; `waypointArrivalSeconds = [1267]`.
-- swim exit hold: 600 / 0.2 = 3000 s. Tow exit by A: tow speed 0.5 * 0.6 = 0.3, capped by B's 0.5 (B is dead, not counted) so 0.3; hold 2000 s.
+Fixture for the tests. Plan: gf 40/80, salinity pinned to EN13319 (10 m per bar), descent 18, ascent 9, reserve 50 bar, sacBottom 15 (so stressed is 37.5), one back tank `back` 24 L at 200 bar of air. Route: one leg `L1`, 300 m at 20 m, heading 0, no current. Team A and B, both SAC 15, swim 0.2, scooters at 0.5 m/s with 7200 s burn. Then:
+- outbound: travel 67 s, hold 600 s; `waypointArrivalSeconds = [667]`.
+- swim exit hold: 300 / 0.2 = 1500 s. Tow exit by A: tow speed 0.5 * 0.6 = 0.3, capped by nothing (B is dead, not counted) so 0.3; hold 1000 s.
+- gas, at 3 bar: outbound about 0.75 L/s x 600 s + 33 L = 483 L; the failed member's swim exit 1.875 L/s x 1500 s = 2813 L. A 40 L tank at 230 bar leaves about 6800 L above the 50 bar reserve, so both exits are feasible with room for deco; a 3 L tank (600 L) fails on the outbound alone.
+- Exit traversability: before building a scenario, every leg from the waypoint back is resolved at the exit speed. If any return speed is zero or below, the scenario returns `ExitOutcome(feasible: false, blockedByCurrent: true, exitBottomSeconds: 0, ttsSeconds: 0, exitLitersByMember: {})` without calling the engine.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -2434,6 +2469,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
@@ -2483,13 +2519,14 @@ const _leg = MissionLeg(
   id: 'L1',
   order: 0,
   label: 'T',
-  distanceM: 600,
+  distanceM: 300,
   depthM: 20,
   headingDeg: 0,
 );
 
-DpvMission _mission({List<MissionMember>? team}) => DpvMission(
-  legs: const [_leg],
+DpvMission _mission({List<MissionMember>? team, MissionLeg leg = _leg}) =>
+    DpvMission(
+  legs: [leg],
   team: team ?? [_member('a', 0), _member('b', 1)],
 );
 
@@ -2506,7 +2543,7 @@ void main() {
     );
     expect(exit.mode, MissionExitMode.swim);
     expect(exit.towerId, isNull);
-    expect(exit.exitBottomSeconds, 3000);
+    expect(exit.exitBottomSeconds, 1500);
     expect(exit.ttsSeconds, greaterThan(0));
     expect(exit.batteryShortfallMemberIds, isEmpty);
     expect(exit.exitLitersByMember.keys, containsAll(['a', 'b']));
@@ -2542,14 +2579,14 @@ void main() {
       towerId: 'a',
     );
     expect(tow.towerId, 'a');
-    expect(tow.exitBottomSeconds, 2000);
+    expect(tow.exitBottomSeconds, 1000);
     expect(tow.exitBottomSeconds, lessThan(swim.exitBottomSeconds));
     expect(tow.exitLitersByMember['b']!, lessThan(swim.exitLitersByMember['b']!));
   });
 
   test('a tower without battery for the tow is a battery shortfall', () {
-    // Outbound 1267 s plus 2000 s towing at 1.5x on a 3000 s battery:
-    // 1267/3000 + 2000*1.5/3000 = 1.42, far past the two-thirds allowed.
+    // Outbound 667 s plus 1000 s towing at 1.5x on a 3000 s battery:
+    // 667/3000 + 1000*1.5/3000 = 0.72, past the two-thirds allowed.
     final tow = service.evaluate(
       plan: _plan(),
       mission: _mission(team: [_member('a', 0, burn: 3000), _member('b', 1)]),
@@ -2563,8 +2600,8 @@ void main() {
   });
 
   test('a tank too small for the exit is a gas shortfall for that member', () {
-    // 3 L at 200 bar is 600 L; the outbound bottom alone is
-    // 20 min x 15 L/min x 3 bar = 900 L, so both members run out.
+    // 3 L at 200 bar is 600 L; the outbound is about 483 L and the swim
+    // out adds over 1100 L for either member, so both run out.
     final swim = service.evaluate(
       plan: _plan(tankLiters: 3),
       mission: _mission(),
@@ -2588,6 +2625,30 @@ void main() {
       );
       expect(exit.feasible, isTrue, reason: '$mode');
     }
+  });
+
+  test('a current a swim cannot beat blocks the exit without running the engine', () {
+    // 0.3 m/s setting toward 0 on a heading of 0: the scooters make 0.2 m/s
+    // on the way back, but a 0.2 m/s swim makes no headway at all.
+    const leg = MissionLeg(
+      id: 'L1',
+      order: 0,
+      label: 'T',
+      distanceM: 300,
+      depthM: 20,
+      headingDeg: 0,
+      current: CurrentVector(speedMps: 0.3, setsTowardDeg: 0),
+    );
+    final swim = service.evaluate(
+      plan: _plan(tankLiters: 40, startBar: 230),
+      mission: _mission(leg: leg),
+      waypointIndex: 0,
+      failedMemberId: 'b',
+      mode: MissionExitMode.swim,
+    );
+    expect(swim.blockedByCurrent, isTrue);
+    expect(swim.feasible, isFalse);
+    expect(swim.exitLitersByMember, isEmpty);
   });
 
   test('the tow speed is capped by the slowest other running scooter', () {
@@ -2628,6 +2689,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_memb
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/battery_burn_service.dart';
+import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_team.dart';
@@ -2645,12 +2707,14 @@ class MissionScenarioService {
   final MissionSegmentBuilder builder;
   final BatteryBurnService battery;
   final MemberGasService gas;
+  final LegSpeedResolver speeds;
 
   const MissionScenarioService({
     this.engine = const PlanEngine(),
     this.builder = const MissionSegmentBuilder(),
     this.battery = const BatteryBurnService(),
     this.gas = const MemberGasService(),
+    this.speeds = const LegSpeedResolver(),
   });
 
   /// Speed of a tow exit: the tower's tow speed, capped by every other
@@ -2687,6 +2751,17 @@ class MissionScenarioService {
         towerId: towerId!,
       ),
     };
+    if (!_exitTraversable(mission, waypointIndex, exitSpeed)) {
+      return ExitOutcome(
+        mode: mode,
+        towerId: mode == MissionExitMode.tow ? towerId : null,
+        feasible: false,
+        exitBottomSeconds: 0,
+        ttsSeconds: 0,
+        exitLitersByMember: const {},
+        blockedByCurrent: true,
+      );
+    }
     final profile = builder.build(
       plan: plan,
       mission: mission,
@@ -2761,6 +2836,21 @@ class MissionScenarioService {
     );
   }
 
+  /// True when the team can make headway at [exitSpeed] on every leg from
+  /// waypoint [waypointIndex] back to the start.
+  bool _exitTraversable(DpvMission mission, int waypointIndex, double exitSpeed) {
+    for (var i = 0; i <= waypointIndex; i++) {
+      final leg = mission.legs[i];
+      final resolved = speeds.resolve(
+        leg: leg,
+        current: mission.currentFor(leg),
+        baseSpeedMps: exitSpeed,
+      );
+      if (!resolved.returnTraversable) return false;
+    }
+    return true;
+  }
+
   double _exitSac({
     required domain.DivePlan plan,
     required MissionMember member,
@@ -2807,7 +2897,7 @@ class MissionScenarioService {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `flutter test test/features/planner/mission/mission_scenario_service_test.dart`
-Expected: PASS, 7 tests. If the "generous tank" test fails on the tow mode with a battery shortfall, check the arithmetic: outbound 1267 s plus 2000 s towing at 1.5 on a 7200 s battery is 0.176 + 0.417 = 0.59, under the 0.667 allowed; a failure there means the powered seconds were double counted.
+Expected: PASS, 8 tests. If the "generous tank" test fails on the tow mode with a battery shortfall, check the arithmetic: outbound 667 s plus 1000 s towing at 1.5 on a 7200 s battery is 0.093 + 0.208 = 0.30, under the 0.667 allowed; a failure there means the powered seconds were double counted.
 
 - [ ] **Step 5: Format and commit**
 
@@ -2852,7 +2942,7 @@ Algorithm:
 5. Round-trip battery per member: `battery.burnFraction(scooter, poweredSeconds: total of all segment durations)`.
 6. For each waypoint k and member m: `swim = scenarios.evaluate(mode: swim)`; for every teammate t, `scenarios.evaluate(mode: tow, towerId: t.id)`; best tow = a feasible one with the smallest `exitSeconds`, else the infeasible one with the smallest `exitSeconds`, null with no teammate. A scenario that throws becomes a `scenarioFailed` warning issue (memberId, legId) and counts as infeasible: catch `Object`, record the issue, and substitute an `ExitOutcome` with `feasible: false`, zero seconds and empty maps. `survivable = swim.feasible || (tow?.feasible ?? false)`. `gasRemainingBar` for m at k: the bottom tank (the tank of `segments.first`) remaining after m's outbound litres; compute it with `MemberGasService` on the rows of `engine.compute` for the round-trip plan, restricted to `runtimeSeconds <= profile.waypointArrivalSeconds[k]`, at `member.sacBottom`. Cumulative distance is the sum of leg distances through k; arrival runtime is `profile.waypointArrivalSeconds[k]`.
 7. `abandonmentIndex`: the largest k such that waypoints 0 through k are all survivable; null when waypoint 0 is not.
-8. Per member binding factor, checked at each k in order, first hit wins, in this priority at the same k: `battery` when `burnFraction(scooter, poweredSeconds: arrival_k + returnSeconds_k)` exceeds the reserve, where `returnSeconds_k` is the sum of the return segment durations from waypoint k back (the `mission-ret-*` segments for legs 0 through k plus their travel); `ownGas` when the member is in the swim exit's gas shortfall and in every tow exit's gas shortfall for their own failure; `noFeasibleTow` when the member's own failure has no feasible tow and the swim is infeasible for a reason other than their own gas; `swimGas` when the swim is infeasible because of another member's gas and a feasible tow exists but ... (not reachable when a tow is feasible, since survivable would be true) so: `swimGas` when the swim fails on another member's gas and no tow is feasible for a gas reason. Implement as: at the first k where m's failure is not survivable, `factor = battery check first; else if swim.gasShortfall contains m -> ownGas; else if tow is null or every tow failed on battery -> noFeasibleTow; else swimGas`. Battery is checked at every k independently and can bind at a k where the failure is still survivable.
+8. Per member binding factor, checked at each k in order, first hit wins. At each k, `battery` binds first when `burnFraction(scooter, poweredSeconds: arrival_k + returnSeconds_k)` exceeds the reserve, where `returnSeconds_k` is the sum of the return hold and travel segments of legs 0 through k. Battery can bind at a k where the failure is still survivable. Otherwise, at the first k where m's own failure is not survivable, classify by the swim exit, because a swim never burns battery and so fails only on gas or current: `ownGas` when m is in the swim's gas shortfall; `swimGas` when a teammate is (m could swim out, but the team's gas cannot cover it, and no tow works either); `noFeasibleTow` otherwise, which is the case where the swim is blocked by current and no tow works.
 9. `constraint`: the member with the smallest `bindingWaypointIndex`; ties broken by factor order `battery, ownGas, noFeasibleTow, swimGas`, then member order. Null when nobody binds.
 10. `turnPressureBar` per member: at `a = abandonmentIndex` (null gives null), the maximum over every scenario at a that is feasible (every failed member, swim and best tow) of m's exit litres on the bottom tank, converted to bar as `startPressure - remainingBar(tank, exitLiters)` and then plus `plan.reservePressure`. Use `MemberGasService.remainingBar` for the conversion. To get per-tank exit litres, extend `ExitOutcome.exitLitersByMember` semantics: it already holds total litres per member; for the turn pressure use the total (the mission's bottom phase is on one tank, and deco litres on a deco tank are a small over-estimate that errs safe). State this in a comment.
 
@@ -3027,7 +3117,7 @@ void main() {
       final outcome = engine.compute(
         plan: _plan(tankLiters: 40, startBar: 230),
         mission: DpvMission(
-          legs: [_leg('L1', 0), _leg('L2', 1)],
+          legs: [_leg('L1', 0, distance: 200), _leg('L2', 1, distance: 200)],
           team: [_member('a', 0), _member('b', 1)],
         ),
       );
@@ -3056,12 +3146,44 @@ void main() {
       expect(outcome.members.every((m) => m.turnPressureBar == null), isTrue);
     });
 
+    test('a current only the scooters beat makes a tow the only way out', () {
+      // 0.3 m/s setting toward 0 on a heading of 0: the team makes 0.2 m/s
+      // home on scooters, a tow at 0.3 - 0.3 = 0 makes none, and a swim at
+      // 0.2 makes none. Every failure is unsurvivable and blocked by current.
+      final outcome = engine.compute(
+        plan: _plan(tankLiters: 40, startBar: 230),
+        mission: DpvMission(
+          legs: [
+            _leg(
+              'L1',
+              0,
+              distance: 200,
+              current: const CurrentVector(speedMps: 0.3, setsTowardDeg: 0),
+            ),
+          ],
+          team: [_member('a', 0), _member('b', 1)],
+        ),
+      );
+      final b = outcome.waypoints.single.members.firstWhere(
+        (m) => m.memberId == 'b',
+      );
+      expect(b.swim.blockedByCurrent, isTrue);
+      expect(b.tow!.blockedByCurrent, isTrue);
+      expect(b.survivable, isFalse);
+      expect(outcome.constraint!.factor, MissionBindingFactor.noFeasibleTow);
+    });
+
     test('the abandonment point is the last survivable waypoint', () {
-      // 24 L at 200 bar survives one 500 m leg but not two.
+      // 24 L at 200 bar (about 3460 L above reserve): a tow out from 200 m
+      // needs about 1650 L all in, from 600 m about 4700 L.
       final outcome = engine.compute(
         plan: _plan(),
         mission: DpvMission(
-          legs: [_leg('L1', 0), _leg('L2', 1), _leg('L3', 2)],
+          legs: [
+            _leg('L1', 0, distance: 200),
+            _leg('L2', 1, distance: 200),
+            _leg('L3', 2, distance: 200),
+          ],
           team: [_member('a', 0), _member('b', 1)],
         ),
       );
@@ -3107,7 +3229,10 @@ void main() {
       ));
       final b = outcome.members.firstWhere((m) => m.memberId == 'b');
       expect(b.batteryRoundTripFraction, greaterThan(2 / 3));
-      expect(outcome.members.firstWhere((m) => m.memberId == 'a').bindingFactor, isNull);
+      // a has the highest SAC and does bind, on own gas at the second
+      // waypoint, but b's battery binds first.
+      final a = outcome.members.firstWhere((m) => m.memberId == 'a');
+      expect(a.bindingWaypointIndex ?? 99, greaterThan(0));
     });
   });
 }
@@ -3476,14 +3601,15 @@ class MissionEngine {
       )) {
         factor = MissionBindingFactor.battery;
       } else if (!own.survivable) {
-        final tow = own.tow;
-        if (own.swim.gasShortfallMemberIds.contains(member.id)) {
+        // A swim burns no battery, so it fails only on gas or on a current
+        // it cannot beat; that makes it the clean witness for why.
+        final swimShort = own.swim.gasShortfallMemberIds;
+        if (swimShort.contains(member.id)) {
           factor = MissionBindingFactor.ownGas;
-        } else if (tow == null ||
-            tow.batteryShortfallMemberIds.isNotEmpty) {
-          factor = MissionBindingFactor.noFeasibleTow;
-        } else {
+        } else if (swimShort.isNotEmpty) {
           factor = MissionBindingFactor.swimGas;
+        } else {
+          factor = MissionBindingFactor.noFeasibleTow;
         }
       }
       if (factor != null) {
@@ -3572,7 +3698,7 @@ If `lib/features/planner/domain/services/mission/mission_engine.dart` passes 400
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `flutter test test/features/planner/mission/mission_engine_test.dart`
-Expected: PASS, 10 tests. If the abandonment test's expectations on the 24 L tank are off (all three waypoints survivable, or none), adjust `tankLiters` in that test only, keeping the shape "first survivable, last not", and note the value used in the commit body. Do not weaken the constraint test: its numbers are hand-derived above.
+Expected: PASS, 11 tests. If the abandonment test's expectations on the 24 L tank are off (all three waypoints survivable, or none), adjust `tankLiters` in that test only, keeping the shape "first survivable, last not", and note the value used in the commit body. Do not weaken the constraint test: its numbers are hand-derived above.
 
 - [ ] **Step 5: Format and commit**
 
@@ -3647,6 +3773,12 @@ git diff --stat origin/main..HEAD
 Expected: the spec commit plus eleven feature commits; no file outside `docs/`, `lib/features/planner`, `lib/features/equipment`, `lib/l10n`, and `test/` in the diff.
 
 ---
+
+## Amendments (2026-09-18, before execution)
+
+- Test fixtures re-derived by hand: Task 10 uses a 300 m leg, Task 11's generous and abandonment cases use 200 m legs. The original distances made the feasible cases infeasible on gas.
+- Task 11's constraint test no longer asserts that member a never binds; a binds on own gas at the second waypoint, after b's battery.
+- Exits can be blocked by a current the scooters beat at cruise. `ExitOutcome.blockedByCurrent`, a traversability check in `MissionScenarioService`, a refusal of non-positive speeds in `MissionSegmentBuilder`, and a binding rule keyed on the swim exit handle it.
 
 ## Self-review
 
