@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -30,6 +31,21 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 void main() {
+  // parseUserDecimal and the field seeding read the process-global
+  // Intl.defaultLocale, which MaterialApp.locale does not set and which leaks
+  // across tests in an isolate. Pin it so "77.4" always parses as a dot
+  // decimal, and restore it afterwards.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
+
   group('PlanTankList tank dialog pressure unit', () {
     testWidgets('saves start pressure converted to bar when unit is psi', (
       tester,
@@ -174,6 +190,59 @@ void main() {
       final after = container.read(divePlanNotifierProvider).tanks.first;
       expect(after.volume, before.volume);
       expect(after.workingPressure, before.workingPressure);
+    });
+
+    testWidgets('a new tank keeps the start pressure entered as its working '
+        'pressure when the volume is left at its default', (tester) async {
+      final container = await pumpImperial(tester);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      final seeded = (tester.widget<TextField>(
+        find.widgetWithText(TextField, 'Volume (cuft)'),
+      )).controller!.text;
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Start (psi)'),
+        '3000',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final added = container.read(divePlanNotifierProvider).tanks.last;
+      expect(added.workingPressure, closeTo(206.84, 0.01));
+      // The seeded capacity is what the diver saw, so the chip reads it back.
+      expect(seeded, '78.4');
+      expect(find.textContaining('78 cuft'), findsOneWidget);
+    });
+
+    testWidgets('an existing tank without a volume keeps none when saved '
+        'untouched', (tester) async {
+      final container = await pumpImperial(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      final original = container.read(divePlanNotifierProvider).tanks.first;
+      notifier.updateTank(
+        original.id,
+        DiveTank(
+          id: original.id,
+          name: original.name,
+          startPressure: original.startPressure,
+          gasMix: original.gasMix,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Primary'));
+      await tester.pumpAndSettle();
+      final seeded = (tester.widget<TextField>(
+        find.widgetWithText(TextField, 'Volume (cuft)'),
+      )).controller!.text;
+      expect(seeded, isEmpty);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = container.read(divePlanNotifierProvider).tanks.first;
+      expect(saved.volume, isNull);
+      expect(saved.workingPressure, isNull);
     });
 
     testWidgets('a cleared cuft field saves no volume', (tester) async {

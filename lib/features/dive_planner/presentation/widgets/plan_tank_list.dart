@@ -229,13 +229,17 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.tank?.name ?? '');
-    final volumeLiters = widget.tank?.volume ?? 11.1;
-    _initialVolumeText = formatRoundedForInput(
-      _isCuft
-          ? ratedCapacityCuft(volumeLiters, widget.tank?.workingPressure)
-          : volumeLiters,
-      1,
-    );
+    // A new tank starts as an 11.1 L cylinder; an existing tank without a
+    // volume seeds an empty field, so saving it untouched stores none.
+    final volumeLiters = widget.tank == null ? 11.1 : widget.tank!.volume;
+    _initialVolumeText = volumeLiters == null
+        ? ''
+        : formatRoundedForInput(
+            _isCuft
+                ? ratedCapacityCuft(volumeLiters, widget.tank?.workingPressure)
+                : volumeLiters,
+            1,
+          );
     _volumeController = TextEditingController(text: _initialVolumeText);
     _pressureController = TextEditingController(
       text: formatRoundedForInput(
@@ -454,19 +458,20 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   /// The cylinder's physical volume and working pressure from the volume
   /// field (issue #2027).
   ///
-  /// An untouched field keeps the stored litres and working pressure exactly,
-  /// so opening and saving a tank never drifts it through display rounding.
-  /// An edited cuft value is rated gas capacity: it resolves to litres at the
-  /// tank's own working pressure, or, for a tank without one, at the start
-  /// pressure just entered, which then becomes its working pressure so the
-  /// chip reads back the number typed.
+  /// An existing tank's untouched field keeps its stored litres and working
+  /// pressure exactly, so opening and saving it never drifts them through
+  /// display rounding. Otherwise the field is read as typed. A new tank takes
+  /// the start pressure entered as its working pressure. A cuft value is
+  /// rated gas capacity: it resolves to litres at the tank's working
+  /// pressure, falling back to the start pressure (which it then keeps) so
+  /// the chip reads back the number in the field.
   ({double? volumeLiters, double? workingPressureBar, bool volumeEdited})
   _volumeSpecs(double? startPressureBar) {
     final original = widget.tank;
-    if (_volumeController.text == _initialVolumeText) {
+    if (original != null && _volumeController.text == _initialVolumeText) {
       return (
-        volumeLiters: original?.volume ?? 11.1,
-        workingPressureBar: original?.workingPressure,
+        volumeLiters: original.volume,
+        workingPressureBar: original.workingPressure,
         volumeEdited: false,
       );
     }
@@ -474,7 +479,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     if (!_isCuft) {
       return (
         volumeLiters: parsed,
-        workingPressureBar: original?.workingPressure,
+        workingPressureBar: original == null
+            ? startPressureBar
+            : original.workingPressure,
         volumeEdited: true,
       );
     }
