@@ -176,6 +176,18 @@ class _BuddyDetailContent extends ConsumerWidget {
         title: Text(buddy.name),
         actions: [
           IconButton(
+            icon: Icon(buddy.isFavorite ? Icons.star : Icons.star_border),
+            tooltip: buddy.isFavorite
+                ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
+                : context.l10n.diveLog_detail_tooltip_addToFavorites,
+            color: buddy.isFavorite
+                ? Theme.of(context).colorScheme.primary
+                : null,
+            onPressed: () => ref
+                .read(buddyListNotifierProvider.notifier)
+                .toggleFavorite(buddy.id),
+          ),
+          IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.buddies_action_edit,
             onPressed: () => context.push('/buddies/${buddy.id}/edit'),
@@ -266,6 +278,19 @@ class _BuddyDetailContent extends ConsumerWidget {
                   ),
               ],
             ),
+          ),
+          IconButton(
+            icon: Icon(
+              buddy.isFavorite ? Icons.star : Icons.star_border,
+              size: 20,
+            ),
+            tooltip: buddy.isFavorite
+                ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
+                : context.l10n.diveLog_detail_tooltip_addToFavorites,
+            color: buddy.isFavorite ? colorScheme.primary : null,
+            onPressed: () => ref
+                .read(buddyListNotifierProvider.notifier)
+                .toggleFavorite(buddy.id),
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),

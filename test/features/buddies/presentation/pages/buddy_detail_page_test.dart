@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../helpers/fake_buddy_list_notifier.dart';
 
 /// Silences the RenderFlex overflow this page produces at phone widths while
 /// still surfacing every other framework error.
@@ -275,6 +276,120 @@ void main() {
         find.text(DateFormat.MMMd().format(dives.first.dateTime)),
         findsNothing,
       );
+    });
+  });
+
+  group('BuddyDetailPage favorite star (issue #1336)', () {
+    final buddy = Buddy(
+      id: 'buddy-1',
+      name: 'Jane Doe',
+      notes: '',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    Future<List<Override>> pageOverrides() async => [
+      ...await getBaseOverrides(),
+      buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+      buddyStatsProvider(
+        buddy.id,
+      ).overrideWith((ref) async => const BuddyStats(totalDives: 0)),
+      diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+      divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+    ];
+
+    testWidgets('shows a star in the embedded header, toggling it', (
+      tester,
+    ) async {
+      final notifier = FakeBuddyListNotifier();
+      _ignoreOverflowErrors();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...await pageOverrides(),
+            buddyListNotifierProvider.overrideWith((ref) => notifier),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.star_border), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.star_border));
+      await tester.pumpAndSettle();
+
+      expect(notifier.toggledFavoriteIds, ['buddy-1']);
+    });
+
+    testWidgets('shows a star in the app bar of the standalone page', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final notifier = FakeBuddyListNotifier();
+      _ignoreOverflowErrors();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...await pageOverrides(),
+            buddyListNotifierProvider.overrideWith((ref) => notifier),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.star_border), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.star_border));
+      await tester.pumpAndSettle();
+
+      expect(notifier.toggledFavoriteIds, ['buddy-1']);
+    });
+
+    testWidgets('shows a filled star for an already-favorite buddy', (
+      tester,
+    ) async {
+      final favoriteBuddy = buddy.copyWith(isFavorite: true);
+      _ignoreOverflowErrors();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...await getBaseOverrides(),
+            buddyByIdProvider(
+              buddy.id,
+            ).overrideWith((ref) async => favoriteBuddy),
+            buddyStatsProvider(
+              buddy.id,
+            ).overrideWith((ref) async => const BuddyStats(totalDives: 0)),
+            diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.byIcon(Icons.star_border), findsNothing);
     });
   });
 }

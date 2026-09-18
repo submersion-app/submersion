@@ -124,6 +124,26 @@ class CompactBuddyListTile extends ConsumerWidget {
                               BuddyField.diveCount,
                             ),
                           ),
+                          // Favoriting (issue #1336), independent of bulk
+                          // selection.
+                          IconButton(
+                            icon: Icon(
+                              buddy.isFavorite ? Icons.star : Icons.star_border,
+                              size: 18,
+                              color: buddy.isFavorite
+                                  ? colorScheme.primary
+                                  : secondaryTextColor,
+                            ),
+                            tooltip: buddy.isFavorite
+                                ? l10n.diveLog_detail_tooltip_removeFromFavorites
+                                : l10n.diveLog_detail_tooltip_addToFavorites,
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => ref
+                                .read(buddyListNotifierProvider.notifier)
+                                .toggleFavorite(buddy.id),
+                          ),
                           ExcludeSemantics(
                             child: Icon(
                               Icons.chevron_right,

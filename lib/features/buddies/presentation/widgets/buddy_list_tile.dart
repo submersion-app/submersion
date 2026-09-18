@@ -205,6 +205,25 @@ class BuddyListTile extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    // Favoriting (issue #1336) is independent of bulk
+                    // selection, unlike the chevron below, so it stays
+                    // visible and tappable in every mode.
+                    IconButton(
+                      icon: Icon(
+                        buddy.isFavorite ? Icons.star : Icons.star_border,
+                        size: 20,
+                        color: buddy.isFavorite
+                            ? colorScheme.primary
+                            : secondaryTextColor,
+                      ),
+                      tooltip: buddy.isFavorite
+                          ? l10n.diveLog_detail_tooltip_removeFromFavorites
+                          : l10n.diveLog_detail_tooltip_addToFavorites,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => ref
+                          .read(buddyListNotifierProvider.notifier)
+                          .toggleFavorite(buddy.id),
+                    ),
                     if (!isSelectionMode)
                       ExcludeSemantics(
                         child: Icon(
