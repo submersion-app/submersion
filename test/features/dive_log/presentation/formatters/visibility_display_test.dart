@@ -129,6 +129,62 @@ void main() {
     });
   });
 
+  group('formatDiveVisibility (issue #2055)', () {
+    test('a measured-only dive shows the measurement', () {
+      // The shape every dive saved since v144 has: the repository clears the
+      // legacy bucket once a distance is stored.
+      expect(
+        formatDiveVisibility(
+          meters: 12,
+          legacy: null,
+          scale: VisibilityScale.tropical,
+          l10n: en,
+          units: metric,
+        ),
+        formatMeasuredVisibility(12, VisibilityScale.tropical, en, metric),
+      );
+    });
+
+    test('the measurement wins over a legacy bucket', () {
+      expect(
+        formatDiveVisibility(
+          meters: 12,
+          legacy: Visibility.excellent,
+          scale: VisibilityScale.tropical,
+          l10n: en,
+          units: metric,
+        ),
+        formatMeasuredVisibility(12, VisibilityScale.tropical, en, metric),
+      );
+    });
+
+    test('a pre-v144 dive falls back to its bucket', () {
+      expect(
+        formatDiveVisibility(
+          meters: null,
+          legacy: Visibility.moderate,
+          scale: VisibilityScale.tropical,
+          l10n: en,
+          units: metric,
+        ),
+        visibilityName(Visibility.moderate, en),
+      );
+    });
+
+    test('a dive with neither has no visibility', () {
+      expect(
+        formatDiveVisibility(
+          meters: null,
+          legacy: null,
+          scale: VisibilityScale.tropical,
+          l10n: en,
+          units: metric,
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('visibilityDistributionLabel', () {
     test('a band key becomes its localized adjective', () {
       expect(visibilityDistributionLabel('excellent', en, metric), 'Excellent');

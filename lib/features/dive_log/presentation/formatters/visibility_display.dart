@@ -70,6 +70,27 @@ String formatMeasuredVisibility(
   return '$distance · $band';
 }
 
+/// A dive's visibility as one line of text, or null when it has none.
+///
+/// Prefers the measured distance ([meters]) and falls back to the pre-v144
+/// bucket ([legacy]) only when no measurement exists. The order matters: the
+/// repository clears the bucket once a distance is stored, so a display that
+/// reads only [legacy] shows nothing for every dive logged or edited since
+/// v144 (#2055).
+String? formatDiveVisibility({
+  required double? meters,
+  required Visibility? legacy,
+  required VisibilityScale scale,
+  required AppLocalizations l10n,
+  required UnitFormatter units,
+}) {
+  if (meters != null) {
+    return formatMeasuredVisibility(meters, scale, l10n, units);
+  }
+  if (legacy != null) return visibilityName(legacy, l10n);
+  return null;
+}
+
 /// Turns a statistics distribution key into display text.
 ///
 /// The repository emits stable keys rather than display text: a calibrated
