@@ -45,7 +45,7 @@
 | Create `test/features/media/data/resolvers/platform_gallery_resolver_reader_test.dart` | The reader seam serves bytes through a fake. |
 | Create `test/features/media/two_device/harness_smoke_test.dart` | S0, the happy path, green on main. |
 | Create `test/features/media/two_device/row_sync_scenarios_test.dart` | S1, S2, S3, skipped with the slice that turns them green. |
-| Create `test/features/media/two_device/resolution_scenarios_test.dart` | S5, S7. |
+| Create `test/features/media/two_device/resolution_scenarios_test.dart` | S5, S6, S7. |
 | Create `test/features/media/two_device/store_scenarios_test.dart` | S4, S8, S10. |
 | Create `test/features/media/two_device/deletion_scenarios_test.dart` | S9. |
 
@@ -662,7 +662,8 @@ class PhotoManagerAssetReader implements GalleryAssetReader {
   @override
   Future<Uint8List?> originBytes(String assetId) async {
     final asset = await AssetEntity.fromId(assetId);
-    return asset?.originBytes;
+    if (asset == null) return null;
+    return asset.originBytes;
   }
 
   @override
@@ -752,7 +753,10 @@ class FakeGalleryAsset {
   final DateTime takenAt;
   final int width;
   final int height;
-  final String filename;
+
+  /// Null models a library listing that carries no title, which PhotoKit
+  /// often omits on a peer's fast date-range query.
+  final String? filename;
   final AssetType type;
 
   AssetInfo get info => AssetInfo(
@@ -922,14 +926,14 @@ class HarnessDevice {
   Future<void> relaunch();                     // new worker over the same queue
   Future<SyncResult> sync({bool expectSuccess = true});
   Future<MediaItem?> media(String id);
-  Future<void> setManualElapsed(String id, int seconds);   // a user edit
+  Future<void> setManualElapsed(String id, int seconds);   // a user edit, via the narrow setManualElapsedSeconds write
   Future<bool> isPending(String id);
   Future<TileResolution> tile(String id, {bool thumbnail = false});
   Future<TileOutcome> tileOutcome(String id, {bool thumbnail = false});
   Future<void> checkTile(String id);           // tile + the widget's orphan reconcile
   Future<SweepOutcome> verifyAll();
   Future<void> deleteDiver(String id);
-  Future<void> stripStoreStamps(String id);    // simulates lost stamps
+  Future<void> stripStoreStamps(String id);    // clears the three upload timestamps, keeps the hash
 }
 ```
 
@@ -1308,12 +1312,12 @@ class HarnessDevice {
     return MediaRepository().getMediaById(id);
   }
 
-  /// A plain user edit on the row, for last-writer-wins scenarios.
+  /// A plain user edit on the row, for last-writer-wins scenarios. The
+  /// narrow write, as the app's own editor uses: a whole-row update from a
+  /// snapshot could write stale upload facts back over newer ones.
   Future<void> setManualElapsed(String id, int seconds) async {
     await activate();
-    final repo = MediaRepository();
-    final row = (await repo.getMediaById(id))!;
-    await repo.updateMedia(row.copyWith(manualElapsedSeconds: seconds));
+    await MediaRepository().setManualElapsedSeconds(id, seconds);
   }
 
   Future<bool> isPending(String id) async {
@@ -1371,12 +1375,14 @@ class HarnessDevice {
     await DiverRepository().deleteDiverWithReassignment(id);
   }
 
-  /// Simulates stamps that never arrived or were dropped by a merge.
+  /// Simulates upload stamps that never arrived or were dropped by a merge.
+  /// The content hash stays: it is what a store probe addresses the object
+  /// by, and losing it is a different (unrecoverable) failure.
   Future<void> stripStoreStamps(String id) async {
     await activate();
     await db.customStatement(
-      'UPDATE media SET content_hash = NULL, content_size_bytes = NULL, '
-      'remote_uploaded_at = NULL, remote_thumb_uploaded_at = NULL, '
+      'UPDATE media SET remote_uploaded_at = NULL, '
+      'remote_thumb_uploaded_at = NULL, '
       'remote_compressed_uploaded_at = NULL WHERE id = ?',
       [id],
     );
@@ -1391,7 +1397,7 @@ class HarnessDevice {
 }
 ```
 
-Two names to verify against the tree while writing (both exist on main under these or very close names; fix the import path, not the design): the `LocalBookmarkStorage`, `LocalMediaPlatform` and `ExifExtractor` files under `lib/features/media/data/services/`, and `DiverRepository`'s zero-argument constructor. `MediaRepository.updateMedia(MediaItem)` is the whole-row update used elsewhere; if the method carries a different name on main, use that name in `setManualElapsed` only. `DiversCompanion.isDefault` exists because `deleteDiverWithReassignment` orders survivors by it.
+Names verified against main: `LocalBookmarkStorage({FlutterSecureStorage? storage})`, `LocalMediaPlatform()` and `ExifExtractor()` under `lib/features/media/data/services/`; `DiverRepository()` takes only an optional reclaimer; `MediaRepository.setManualElapsedSeconds(String id, int? seconds)` is the narrow edit at `media_repository.dart:362`; `CloudProviderType` is declared in `lib/core/data/repositories/sync_repository.dart`. `DiversCompanion.isDefault` exists because `deleteDiverWithReassignment` orders survivors by it. Both devices share one real disk, so wrap `drain`, `tile`, `checkTile` and `verifyAll` in an `IOOverrides.runZoned` whose `createFile` returns a `Fake`-based `File` that reports absent for any path under the other device's root (a subclass of `IOOverrides` must be `final`); otherwise device B reads device A's originals off the disk and the store fallback is never exercised.
 
 - [ ] **Step 4: Run the smoke test**
 
@@ -1409,15 +1415,15 @@ git commit -m "test(media): add a two-device harness running the real sync, uplo
 
 ---
 
-### Task 4: Seed scenarios S1 to S10 (minus S6)
+### Task 4: Seed scenarios S1 to S10
 
 **Files:**
 - Create: `test/features/media/two_device/row_sync_scenarios_test.dart` (S1, S2, S3)
-- Create: `test/features/media/two_device/resolution_scenarios_test.dart` (S5, S7)
+- Create: `test/features/media/two_device/resolution_scenarios_test.dart` (S5, S6, S7)
 - Create: `test/features/media/two_device/store_scenarios_test.dart` (S4, S8, S10)
 - Create: `test/features/media/two_device/deletion_scenarios_test.dart` (S9)
 
-**Method:** each scenario is written to assert the spec's behaviour. Run it once WITHOUT the `skip:` to confirm it is red on main and copy the failing expectation line into the PR body under "Red on main". Then commit it with `skip: 'Media sync program Sn: turns green in slice <k>'`. The slice that fixes it deletes the skip. S6 (burst pair by cloud id) needs the `cloudAssetId` column and is written in the Phase 2 plan.
+**Method:** each scenario is written to assert the spec's behaviour. Run it once WITHOUT the `skip:` to confirm it is red on main and copy the failing expectation line into the PR body under "Red on main". Then commit it with `skip: 'Media sync program Sn: turns green in slice <k>'`. The slice that fixes it deletes the skip. S6 (burst pair on a shared library) asserts only on the bytes each tile serves, so it compiles today; slice 8 gives `FakeGalleryAsset` a `cloudId` and stamps it at link time when it turns the scenario green.
 
 `flutter_test` has no expected-failure marker; a skipped test with a reason naming its slice is the convention this program uses, and the PR body is the proof it was red.
 
@@ -1557,6 +1563,44 @@ void main() {
       // origin-aware verdicts need the origin stamped on gallery rows too.
     },
     skip: 'Media sync program S5: turns green in slice 7 (origin-aware verdicts)',
+  );
+
+  test(
+    'S6: a burst pair shot in the same second resolves to the right frame '
+    'on a peer sharing the photo library',
+    () async {
+      final frame1 = Uint8List.fromList(List<int>.generate(512, (i) => i % 251));
+      final frame2 = Uint8List.fromList(
+        List<int>.generate(512, (i) => (i * 7) % 251),
+      );
+      final dive = await h.a.createDive();
+      final id1 = await h.a.linkGalleryPhoto(
+        FakeGalleryAsset(id: 'A-b1', bytes: frame1, takenAt: taken),
+        diveId: dive,
+      );
+      final id2 = await h.a.linkGalleryPhoto(
+        FakeGalleryAsset(id: 'A-b2', bytes: frame2, takenAt: taken),
+        diveId: dive,
+      );
+      // Same iCloud library on B: same photos, different local ids, and no
+      // titles in the listing, so filename cannot break the tie.
+      h.b.gallery.add(
+        FakeGalleryAsset(id: 'B-b1', bytes: frame1, takenAt: taken, filename: null),
+      );
+      h.b.gallery.add(
+        FakeGalleryAsset(id: 'B-b2', bytes: frame2, takenAt: taken, filename: null),
+      );
+      await h.a.sync();
+      await h.b.sync();
+
+      final t1 = await h.b.tile(id1);
+      final t2 = await h.b.tile(id2);
+      expect(t1.data, isA<BytesData>(),
+          reason: 'a shared cloud identifier tells the frames apart');
+      expect((t1.data as BytesData).bytes, frame1);
+      expect((t2.data as BytesData).bytes, frame2);
+    },
+    skip: 'Media sync program S6: turns green in slice 8 (cloud identifier)',
   );
 
   test(
@@ -1708,7 +1752,7 @@ Run: `flutter test test/features/media/two_device/row_sync_scenarios_test.dart`
 Expected: S1 fails at `remoteUploadedAt isNotNull`; S2 fails at the second `isPending isFalse`; S3 fails at `manualElapsedSeconds 100` on A.
 
 Run: `flutter test test/features/media/two_device/resolution_scenarios_test.dart`
-Expected: S5 fails at `fromOtherDevice` (actual `notFound`); S7 fails at `accessDenied` (actual `notFound`).
+Expected: S5 fails at `fromOtherDevice` (actual `notFound`); S6 fails at `isA<BytesData>` (actual `UnavailableData`, the two candidates are ambiguous); S7 fails at `accessDenied` (actual `notFound`).
 
 Run: `flutter test test/features/media/two_device/store_scenarios_test.dart`
 Expected: S4 fails at `TileOutcome.store` (actual `unavailable`); S8 fails at `isSuspended isTrue`; S10 fails at `remoteUploadedAt isNotNull`.
@@ -1723,13 +1767,18 @@ Restore the `skip:` lines.
 - [ ] **Step 6: Run the whole two-device folder and commit**
 
 Run: `flutter test test/features/media/two_device/`
-Expected: 2 passed (S0, S0b), 9 skipped.
+Expected: 2 passed (S0, S0b), 10 skipped.
 
 ```bash
 dart format .
 flutter analyze
 git add test/features/media/two_device/
 git commit -m "test(media): seed the media sync program scenarios S1 to S10 against the two-device harness"
+```
+
+`FakeGalleryAsset.filename` must be `String?` for S6's title-less listing; make it nullable in Task 2's fake (the `AssetInfo.filename` it feeds is already nullable).
+
+```bash
 ```
 
 Open the slice 1 PR with body `Part of #<tracking issue>` and the "Red on main" list. Slice 2 starts from a fresh worktree after it merges.
@@ -1817,7 +1866,7 @@ Expected: FAIL, "Undefined name 'media'".
     return level.index >= floor.index;
   }
 ```
-Update both call sites: `configureFileLogging` line 81 becomes `_persists(line.entry.level, line.alwaysPersist, category: line.entry.category)` and `_log` line 278 becomes `_persists(level, alwaysPersist, category: category)`.
+Update all three call sites: `configureFileLogging` line 81 becomes `_persists(line.entry.level, line.alwaysPersist, category: line.entry.category)`, `infoInOrder` line 151 becomes `_persists(LogLevel.info, alwaysPersist, category: category)` (it already has the category in hand), and `_log` line 278 becomes `_persists(level, alwaysPersist, category: category)`. Add a third test case that emits through `infoInOrder` with the media category and asserts the line reached the file.
 
 `log_category_display.dart`: add `LogCategory.media => l10n.enum_logCategory_media,`.
 
@@ -1848,7 +1897,7 @@ git commit -m "feat(logging): add a media log category that reaches the exported
 - Modify: `lib/features/media/data/services/asset_resolution_service.dart:53`
 - Modify: `lib/features/media/data/resolvers/local_file_resolver.dart` (its `_log`)
 - Modify: `lib/features/media/data/resolvers/platform_gallery_resolver.dart` (add a `_log` if none)
-- Modify: `lib/features/media_store/data/media_store_worker.dart`, `media_store_preflight.dart`, `media_upload_pipeline.dart`, `lib/features/media/data/services/media_item_verifier.dart` (their `_log` declarations)
+- Modify: `lib/features/media/data/resolvers/media_store_resolver.dart:32`, `lib/features/media_store/data/media_store_worker.dart`, `media_store_preflight.dart`, `media_upload_pipeline.dart`, `lib/features/media/data/services/media_item_verifier.dart` (their `_log` declarations)
 - Test: `test/core/services/logger_service_test.dart`
 
 - [ ] **Step 1: Failing test**
@@ -1872,7 +1921,7 @@ Expected: FAIL, "The named parameter 'category' isn't defined".
 
 - [ ] **Step 3: Implement**
 
-In `logger_service.dart`: the instance holds `final LogCategory _defaultCategory;` set by the constructor (`LoggerService(this._name, {LogCategory category = LogCategory.app}) : _defaultCategory = category;`), `forClass` becomes `static LoggerService forClass(Type type, {LogCategory category = LogCategory.app}) => LoggerService(type.toString(), category: category);`, and each public method's `LogCategory category = LogCategory.app` parameter becomes `LogCategory? category` passed to `_log` as `category: category ?? _defaultCategory`. Check `infoInOrder` at line 144 the same way.
+In `logger_service.dart`: the constructor stays `const`, because `log_environment.dart:159` and `background_service.dart:157` construct `const LoggerService(...)`. It becomes `const LoggerService(this._name, {this.category = LogCategory.app});` with `final LogCategory category;` (an initializing formal keeps it const). `forClass` becomes `static LoggerService forClass(Type type, {LogCategory category = LogCategory.app}) => LoggerService(type.toString(), category: category);`, and each public method's `LogCategory category = LogCategory.app` parameter becomes `LogCategory? category` passed to `_log` as `category: category ?? this.category`. Treat `infoInOrder` at line 144 the same way.
 
 In each media file listed above change the logger declaration to, for example:
 
@@ -2220,14 +2269,17 @@ class MediaHealthRow {
   const MediaHealthRow({
     required this.mediaId, required this.sourceType, this.originalFilename,
     required this.takenAt, this.diveId, this.siteId,
-    this.originDeviceId, this.originDeviceName, required this.linkedHere,
+    this.originDeviceId, this.originDeviceName, this.linkedHere,   // bool?: null when the origin is unknown
     this.contentHash, this.contentSizeBytes, this.remoteUploadedAt,
     this.remoteThumbUploadedAt, this.remoteCompressedUploadedAt,
     required this.isOrphaned, this.lastVerifiedAt, this.hlc, required this.pending,
+    this.filePath, this.localPath, this.platformAssetId,   // the source pointer
     this.cachedAssetId, this.cacheMethod, this.cacheAttempts, this.cacheExpired,
+    this.cacheNextRetryAt,               // resolvedAt plus the backoff step for attemptCount
     required this.resolverVerdict,       // 'available' or the UnavailableKind name
     this.storeObjectExists,              // null when not probed
     this.queueState, this.queueAttempts, this.queueNextAttemptAt, this.queueError,
+    this.queueWaiting,                   // true when nextAttemptAt is in the future
   });
   Map<String, Object?> toJson();
   String toText();                       // one block, key: value per line
@@ -2254,7 +2306,9 @@ class MediaHealthReporter {
     required String? Function(String deviceId) deviceName,
     DateTime Function()? now,
   });
-  Future<MediaHealthRow> forItem(MediaItem item, {bool probeStore = false});
+  /// One-row report with the same header (device, attached store, marker),
+  /// so the clipboard diagnostics carry the store verdict too.
+  Future<MediaHealthReport> forItem(MediaItem item, {bool probeStore = false});
   Future<MediaHealthReport> forLibrary({bool probeStore = false});
 }
 
@@ -2265,7 +2319,7 @@ final mediaHealthReporterProvider = Provider<MediaHealthReporter>(...);
 
 `media_health_report_test.dart`: build a `MediaHealthRow` with every field set, assert `toJson()` keys are exactly the field names in snake_case, `toText()` contains `media_id: m1`, `resolver_verdict: fromOtherDevice`, and that a null `storeObjectExists` renders as `store_object: not probed`. Build a `MediaHealthReport` with two rows and assert the text starts with `Submersion media health report`, contains `device: <id> (<name>)`, `attached_store:` and `marker_store:` lines, and both row blocks separated by a blank line.
 
-`media_health_reporter_test.dart`: reuse the two-device harness. Scenario: A links a file, uploads, syncs; B syncs. Build a reporter for B from the harness pieces (`MediaRepository()`, `SyncRepository()`, `h.b.assetCache`, `h.b.queue`, `h.b.registry`, `MediaStoreAttachState()`, `() async => h.bucket`, `() async => h.b.deviceId`, `(id) => id == h.a.deviceId ? 'Device A' : null`). Assert on `forItem(row, probeStore: true)`: `linkedHere` false, `originDeviceName` 'Device A', `resolverVerdict` 'fromOtherDevice', `contentHash` non-null, `storeObjectExists` true, `pending` false, `queueState` null. Then `forLibrary()` has one row and `attachedStoreId == markerStoreId == h.storeId`. A second test on A: `linkedHere` true, `resolverVerdict` 'available', `queueState` 'done'.
+`media_health_reporter_test.dart`: reuse the two-device harness. Scenario: A links a file, uploads, syncs; B syncs. Build a reporter for B from the harness pieces (`MediaRepository()`, `SyncRepository()`, `h.b.assetCache`, `h.b.queue`, `h.b.registry`, `MediaStoreAttachState()`, `() async => h.bucket`, `() async => h.b.deviceId`, `(id) => id == h.a.deviceId ? 'Device A' : null`). Assert on `forItem(row, probeStore: true)`: one row with `linkedHere` false, `originDeviceName` 'Device A', `resolverVerdict` 'fromOtherDevice', `contentHash` non-null, `hlc` non-null, `filePath` equal to A's path, `storeObjectExists` true, `pending` false, `queueState` null, and the report's `attachedStoreId == markerStoreId == h.storeId`. Then `forLibrary()` has one row. A second test on A: `linkedHere` true, `resolverVerdict` 'available', `queueState` 'done'. A third test: a row with a null `originDeviceId` reports `linkedHere` null and its text says `origin_device: unknown`. A fourth: a row whose cache entry is `unresolved` with `attemptCount` 2 reports `cacheNextRetryAt` equal to `resolvedAt` plus 3 days.
 
 - [ ] **Step 2: Run to verify failure**
 
@@ -2279,7 +2333,7 @@ Expected: FAIL, missing files.
 ```dart
 String _ts(DateTime? t) => t?.toUtc().toIso8601String() ?? 'null';
 ```
-`toText()` for a row emits, in this order, one `key: value` line each: `media_id`, `source_type`, `original_filename`, `taken_at`, `dive_id`, `site_id`, `origin_device` (id plus name in parentheses when known, plus ` (this device)` when `linkedHere`), `content_hash`, `content_size_bytes`, `remote_uploaded_at`, `remote_thumb_uploaded_at`, `remote_compressed_uploaded_at`, `is_orphaned`, `last_verified_at`, `hlc`, `pending`, `cache` (method, asset id, attempts, `expired`/`fresh`, or `none`), `resolver_verdict`, `store_object` (`exists`, `missing` or `not probed`), `queue` (state, attempts, next attempt, error, or `none`). `toJson()` uses the same keys with typed values, ISO 8601 UTC strings for dates.
+`toText()` for a row emits, in this order, one `key: value` line each: `media_id`, `source_type`, `original_filename`, `pointer` (the file path, local path or platform asset id, whichever the source type uses), `taken_at`, `dive_id`, `site_id`, `origin_device` (`unknown` when the id is null; otherwise the id plus the name in parentheses when known, plus ` (this device)` when `linkedHere` is true), `content_hash`, `content_size_bytes`, `remote_uploaded_at`, `remote_thumb_uploaded_at`, `remote_compressed_uploaded_at`, `is_orphaned`, `last_verified_at`, `hlc`, `pending`, `cache` (method, asset id, attempts, `expired`/`fresh`, next retry time, or `none`), `resolver_verdict`, `store_object` (`exists`, `missing` or `not probed`), `queue` (state, attempts, `waiting until <time>` when `queueWaiting`, error, or `none`). `toJson()` uses the same keys with typed values, ISO 8601 UTC strings for dates.
 
 The report header: `Submersion media health report`, `generated_at`, `device: <id> (<name or unnamed>)`, `attached_store`, `marker_store`, `rows: <count>`, blank line, rows joined by a blank line.
 
@@ -2290,13 +2344,14 @@ The report header: `Submersion media health report`, `generated_at`, `device: <i
 class MediaHealthReporter {
   // constructor stores every dependency
 
-  Future<MediaHealthRow> forItem(MediaItem item, {bool probeStore = false}) async {
+  Future<MediaHealthReport> forItem(MediaItem item, {bool probeStore = false}) async {
     final me = await _localDeviceId();
     final pendingIds = (await _syncRepository.getPendingRecords())
         .where((r) => r.entityType == 'media')
         .map((r) => r.recordId)
         .toSet();
-    return _row(item, me: me, pending: pendingIds.contains(item.id), probeStore: probeStore);
+    final row = await _row(item, me: me, pending: pendingIds.contains(item.id), probeStore: probeStore);
+    return _report(me, [row]);   // same header as the library report
   }
 
   Future<MediaHealthReport> forLibrary({bool probeStore = false}) async {
@@ -2308,6 +2363,10 @@ class MediaHealthReporter {
       for (final item in items)
         await _row(item, me: me, pending: pendingIds.contains(item.id), probeStore: probeStore),
     ];
+    return _report(me, rows);
+  }
+
+  Future<MediaHealthReport> _report(String me, List<MediaHealthRow> rows) async {
     final attached = await _attachState.attachedStoreId();
     String? marker;
     final store = await _store();
@@ -2321,6 +2380,13 @@ class MediaHealthReporter {
   Future<MediaHealthRow> _row(MediaItem item, {required String me, required bool pending, required bool probeStore}) async {
     final cache = await _assetCache.getCacheEntry(item.id);
     final cacheExpired = cache == null ? null : await _assetCache.isExpired(item.id);
+    // The repository keeps its ladder private; mirror it here and cover it
+    // with the fourth reporter test so a change to one shows up in the other.
+    const ladder = [Duration(hours: 24), Duration(days: 3), Duration(days: 7)];
+    final cacheNextRetryAt = (cache == null || cache.resolutionMethod != 'unresolved')
+        ? null
+        : cache.resolvedAt.add(ladder[(cache.attemptCount - 1).clamp(0, ladder.length - 1)]);
+    final hlc = await _mediaRepository.getSyncHlc(item.id);
     String verdict;
     try {
       final data = await _registry.resolverFor(item.sourceType).resolve(item);
@@ -2332,31 +2398,41 @@ class MediaHealthReporter {
     if (probeStore && item.contentHash != null) {
       final store = await _store();
       if (store != null) {
-        try { exists = await store.head(objectKeyFor(item)) != null; } catch (_) { exists = null; }
+        final key = StoreKeys.objectKey(
+          item.contentHash!,
+          extension: StoreKeys.extensionFor(item.originalFilename),
+        );
+        try { exists = await store.head(key) != null; } catch (_) { exists = null; }
       }
     }
     final entry = await _queue.watchLatestForMedia(item.id).first;
+    final nextAttempt = entry?.nextAttemptAt == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(entry!.nextAttemptAt!);
     final origin = item.originDeviceId;
     return MediaHealthRow(
       mediaId: item.id, sourceType: item.sourceType.name, originalFilename: item.originalFilename,
       takenAt: item.takenAt, diveId: item.diveId, siteId: item.siteId,
       originDeviceId: origin, originDeviceName: origin == null ? null : _deviceName(origin),
-      linkedHere: origin == null || origin == me,
+      linkedHere: origin == null ? null : origin == me,
+      filePath: item.filePath, localPath: item.localPath, platformAssetId: item.platformAssetId,
       contentHash: item.contentHash, contentSizeBytes: item.contentSizeBytes,
       remoteUploadedAt: item.remoteUploadedAt, remoteThumbUploadedAt: item.remoteThumbUploadedAt,
       remoteCompressedUploadedAt: item.remoteCompressedUploadedAt,
-      isOrphaned: item.isOrphaned, lastVerifiedAt: item.lastVerifiedAt, hlc: null, pending: pending,
+      isOrphaned: item.isOrphaned, lastVerifiedAt: item.lastVerifiedAt, hlc: hlc, pending: pending,
       cachedAssetId: cache?.localAssetId, cacheMethod: cache?.resolutionMethod,
       cacheAttempts: cache?.attemptCount, cacheExpired: cacheExpired,
+      cacheNextRetryAt: cacheNextRetryAt,
       resolverVerdict: verdict, storeObjectExists: exists,
       queueState: entry?.state, queueAttempts: entry?.attemptCount,
-      queueNextAttemptAt: entry?.nextAttemptAt == null ? null : DateTime.fromMillisecondsSinceEpoch(entry!.nextAttemptAt!),
+      queueNextAttemptAt: nextAttempt,
+      queueWaiting: nextAttempt != null && nextAttempt.isAfter(_now()),
       queueError: entry?.errorMessage,
     );
   }
 }
 ```
-`objectKeyFor(item)` is `StoreKeys.objectKey(item.contentHash!, extension: ext)` from `lib/core/services/media_store/store_keys.dart:16`, with `ext` the lower-cased extension of `item.originalFilename` without the dot, derived exactly as `MediaUploadPipeline` derives it before its own `StoreKeys.objectKey` call (read that call and reuse the same helper). When the filename has no extension, skip the probe and leave `storeObjectExists` null. `hlc` stays null unless `MediaItem` exposes it; if the repository has a narrow read for the `hlc` column, use it, otherwise leave the field null and say `hlc: not exposed` in the text.
+`StoreKeys.extensionFor` (`store_keys.dart:51`) is the same helper the upload pipeline uses at `media_upload_pipeline.dart:226` and `:244`; it answers `bin` for a filename without an extension, so an extensionless object is still addressable and the probe always runs. `MediaItem` does not carry `hlc`; add the narrow read `Future<String?> getSyncHlc(String id)` to `MediaRepository` (a `selectOnly` of the `hlc` column by id, next to `getDisplayLabels`) with a unit test beside the existing origin-device repository tests, and use it here.
 
 `media_health_providers.dart`:
 
@@ -2417,7 +2493,7 @@ git commit -m "feat(media): build a per-row and per-library media health report"
 
 - [ ] **Step 1: Failing tests**
 
-Info panel: pump the panel with `mediaHealthReporterProvider` overridden by a reporter whose `forItem` returns a fixed row (subclass `MediaHealthReporter` in the test and override `forItem`), tap `find.text('Copy diagnostics')`, and assert the clipboard received text containing `media_id:` using `TestDefaultBinaryMessengerBinding` to capture `Clipboard.setData` (the pattern any existing copy-to-clipboard test in `test/features/` uses; search for `SystemChannels.platform` in test/).
+Info panel: pump the panel with `mediaHealthReporterProvider` overridden by a reporter whose `forItem` returns a fixed one-row report (subclass `MediaHealthReporter` in the test and override `forItem`), tap `find.text('Copy diagnostics')`, and assert the clipboard received text containing both `attached_store:` and `media_id:` using `TestDefaultBinaryMessengerBinding` to capture `Clipboard.setData` (the pattern any existing copy-to-clipboard test in `test/features/` uses; search for `SystemChannels.platform` in test/).
 
 Media Storage page: in the existing page test, override `mediaHealthReporterProvider` with a reporter whose `forLibrary` returns a report with one row, tap `find.byKey(const Key('media-export-report'))`, and assert the injected file-export seam received a filename `submersion-media-report.txt`. If the page test has no seam for `saveAndShareFile`, add an optional `Future<String> Function(String content, String fileName, String mimeType, {Rect? sharePositionOrigin})? exportFile` constructor parameter on `MediaStoragePage` defaulting to `saveAndShareFile` and override it in the test.
 
@@ -2446,10 +2522,10 @@ class _CopyDiagnosticsButton extends ConsumerWidget {
     onPressed: () async {
       final messenger = ScaffoldMessenger.of(context);
       final copied = context.l10n.media_info_diagnosticsCopied;
-      final row = await ref
+      final report = await ref
           .read(mediaHealthReporterProvider)
           .forItem(item, probeStore: true);
-      await Clipboard.setData(ClipboardData(text: row.toText()));
+      await Clipboard.setData(ClipboardData(text: report.toText()));
       if (!context.mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(copied)));
     },
@@ -2526,8 +2602,8 @@ PR body: `Part of #<tracking issue>`, and a note that `shareLogFile` still bypas
 
 ## Self-review against the spec
 
-- **4.1 harness**: Tasks 1 to 3 build it; S6 is deferred to the Phase 2 plan because it needs the `cloudAssetId` column (spec 6.2). `advanceClock` and `killDuringTransfer` from the spec's API list: the worker has no injectable clock, so `advanceClock` is dropped for Phase 0 (no seed scenario needs it); `killDuringTransfer` is `markTransferring` plus `relaunch`.
-- **4.2 health report**: Task 9 (fields), Task 10 (three entry points, privacy note). The spec's "run fresh resolver verdict" and "store object exists for single-row only" are honoured by `probeStore` defaulting to false for the library report.
+- **4.1 harness**: Tasks 1 to 3 build it; Task 4 seeds all ten scenarios, S6 included, since S6 asserts on served bytes and needs no new column to compile. `advanceClock` and `killDuringTransfer` from the spec's API list: the worker has no injectable clock, so `advanceClock` is dropped for Phase 0 (no seed scenario needs it); `killDuringTransfer` is `markTransferring` plus `relaunch`.
+- **4.2 health report**: Task 9 (fields, including the source pointer, `hlc`, the cache's next retry time and the queue's waiting state the spec lists), Task 10 (three entry points, privacy note). The single-row report carries the same store header as the library report, so the clipboard diagnostics show the store verdict. `probeStore` defaults to false for the library report.
 - **4.3 log plumbing**: Tasks 5 and 6. The per-category floor never raises the verbose floor.
 - **4.4 named origin device**: Tasks 7 and 8. The spec said "sync device registry"; on main that registry is a cloud listing, so the plan persists names from manifests instead (no schema, no network read on the render path).
 - **Section 9 safety**: no task deletes or moves user files; the harness writes under `systemTemp` only; `PeerDeviceNameStore` stores names only.

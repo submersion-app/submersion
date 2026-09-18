@@ -288,7 +288,7 @@ user edit, and it merges column by column instead of with the row:
 
 | Group | Columns | Rule |
 | --- | --- | --- |
-| Upload facts | `contentHash`, `contentSizeBytes`, `remoteUploadedAt`, `remoteThumbUploadedAt`, `remoteCompressedUploadedAt` | The group with a non-null `contentHash` wins; when both are non-null, the group with the newer `remoteUploadedAt` wins; a non-null stamp is never replaced by null. |
+| Upload facts | `contentHash`, `contentSizeBytes`, `remoteUploadedAt`, `remoteThumbUploadedAt`, `remoteCompressedUploadedAt` | Each of the three stamps merges on its own: a non-null stamp beats null, and when both sides are non-null the newer one wins. `contentHash` and `contentSizeBytes` travel together and follow whichever side holds the newest stamp overall (the maximum of its three); when only one side has a hash, that side wins. A non-null value is never replaced by null. This gives a total order for the compressed-only case, where `remoteUploadedAt` stays null permanently. |
 | Verification facts | `isOrphaned`, `lastVerifiedAt` | The pair with the newer `lastVerifiedAt` wins. |
 
 The rest of the media row (links, caption, `takenAt`, rating, source
@@ -350,10 +350,16 @@ verifier are unchanged; they already treat `fromOtherDevice` as
 inconclusive. The effect is that a peer can degrade a tile but never the
 row.
 
-Rows with a null `originDeviceId` (linked before the column existed) keep
-today's behaviour on the device that has a cache hit for them and answer
-`fromOtherDevice` elsewhere; the origin republish sweep already stamps the
-column on the device that can resolve them.
+Rows with a null `originDeviceId` need an origin before this rule can
+apply to them, and today nothing provides one: gallery rows are inserted
+with a null origin by design (`MediaRepository._effectiveOriginDeviceId`
+returns null for `platformGallery`), and the origin republish sweep only
+selects rows this device already owns. Slice 7 therefore adds two things:
+gallery links stamp the linking device's id at insert from then on, and a
+one-time origin backfill stamps this device's id (a narrow write, one clock
+bump) on every null-origin row that resolves natively here. Until a row has
+an origin it keeps today's behaviour on the device with a cache hit for it
+and answers `fromOtherDevice` elsewhere.
 
 ### 6.2 PhotoKit cloud identifier (#1937)
 
