@@ -140,6 +140,7 @@ class SyncRepository {
     'diveTags': (table: 'dive_tags', pk: 'id'),
     'diveDiveTypes': (table: 'dive_dive_types', pk: 'id'),
     'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
+    'diveCenterGearNotes': (table: 'dive_center_gear_notes', pk: 'id'),
     'tideRecords': (table: 'tide_records', pk: 'id'),
     'sightings': (table: 'sightings', pk: 'id'),
     'diveCustomFields': (table: 'dive_custom_fields', pk: 'id'),
