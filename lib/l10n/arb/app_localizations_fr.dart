@@ -9679,7 +9679,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Tout effacer';
 
   @override
-  String get diveSites_filter_country_hint => 'ex. Thailande';
+  String get diveSites_filter_allCountries => 'Tous les pays';
+
+  @override
+  String get diveSites_filter_allRegions => 'Toutes les régions';
 
   @override
   String get diveSites_filter_country_label => 'Pays';
@@ -9716,10 +9719,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'ex. Phuket';
+  String get diveSites_filter_region_label => 'Région';
 
   @override
-  String get diveSites_filter_region_label => 'Région';
+  String get diveSites_filter_searchCountriesHint =>
+      'Saisissez pour rechercher des pays';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Saisissez pour rechercher des régions';
 
   @override
   String get diveSites_filter_section_depthRange => 'Plage de profondeur max';

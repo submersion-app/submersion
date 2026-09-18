@@ -15831,11 +15831,17 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get diveSites_filter_clearAll;
 
-  /// No description provided for @diveSites_filter_country_hint.
+  /// No description provided for @diveSites_filter_allCountries.
   ///
   /// In en, this message translates to:
-  /// **'e.g., Thailand'**
-  String get diveSites_filter_country_hint;
+  /// **'All countries'**
+  String get diveSites_filter_allCountries;
+
+  /// No description provided for @diveSites_filter_allRegions.
+  ///
+  /// In en, this message translates to:
+  /// **'All regions'**
+  String get diveSites_filter_allRegions;
 
   /// No description provided for @diveSites_filter_country_label.
   ///
@@ -15897,17 +15903,23 @@ abstract class AppLocalizations {
   /// **'{count}+ stars'**
   String diveSites_filter_rating_starsPlus(Object count);
 
-  /// No description provided for @diveSites_filter_region_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Phuket'**
-  String get diveSites_filter_region_hint;
-
   /// No description provided for @diveSites_filter_region_label.
   ///
   /// In en, this message translates to:
   /// **'Region'**
   String get diveSites_filter_region_label;
+
+  /// No description provided for @diveSites_filter_searchCountriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search countries'**
+  String get diveSites_filter_searchCountriesHint;
+
+  /// No description provided for @diveSites_filter_searchRegionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search regions'**
+  String get diveSites_filter_searchRegionsHint;
 
   /// No description provided for @diveSites_filter_section_depthRange.
   ///

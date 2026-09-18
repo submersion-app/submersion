@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -39,8 +40,6 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   Set<String> _tagIds = {};
 
   // Controllers for text fields
-  late TextEditingController _countryController;
-  late TextEditingController _regionController;
   late TextEditingController _minDepthController;
   late TextEditingController _maxDepthController;
 
@@ -60,8 +59,6 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     _siteTypeIds = {...filter.siteTypeIds};
     _tagIds = {...filter.tagIds};
 
-    _countryController = TextEditingController(text: _country ?? '');
-    _regionController = TextEditingController(text: _region ?? '');
     // Depth bounds are held in meters, matching the stored site depths they
     // are compared against, but the diver reads and edits them in their unit.
     final units = UnitFormatter(widget.ref.read(settingsProvider));
@@ -75,8 +72,6 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
 
   @override
   void dispose() {
-    _countryController.dispose();
-    _regionController.dispose();
     _minDepthController.dispose();
     _maxDepthController.dispose();
     super.dispose();
@@ -192,7 +187,25 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     );
   }
 
+  /// Clears a filter value that no longer appears among [options] - the site
+  /// that won the dedup tie-break was renamed or deleted between sessions, or
+  /// (for region) the currently selected country no longer has it. Without
+  /// this, the field silently falls back to showing "All ..." while the
+  /// stale value is still held and would be reapplied verbatim on the next
+  /// Apply. Deferred to after this frame since build() must not call
+  /// setState synchronously.
+  void _resetIfStale(String? value, List<String> options, VoidCallback clear) {
+    if (value != null && !options.contains(value)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(clear);
+      });
+    }
+  }
+
   Widget _buildLocationSection() {
+    final countryOptions = widget.ref.watch(siteCountryOptionsProvider);
+    final regionOptions = widget.ref.watch(siteRegionOptionsProvider(_country));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -201,34 +214,64 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: _countryController,
-          decoration: InputDecoration(
-            labelText: context.l10n.diveSites_filter_country_label,
-            hintText: context.l10n.diveSites_filter_country_hint,
-            prefixIcon: const Icon(Icons.public),
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            setState(() {
-              _country = value.isEmpty ? null : value;
-            });
+        countryOptions.when(
+          data: (countries) {
+            _resetIfStale(_country, countries, () => _country = null);
+            return SearchableFilterDropdown<String>(
+              value: _country,
+              allOptionLabel: context.l10n.diveSites_filter_allCountries,
+              searchHintText: context.l10n.diveSites_filter_searchCountriesHint,
+              labelText: context.l10n.diveSites_filter_country_label,
+              icon: Icons.public,
+              options: [
+                for (final country in countries)
+                  FilterDropdownOption(value: country, label: country),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _country = value;
+                  // A country change can narrow the region list (issue
+                  // #1373's cascading dropdown); drop a region the new
+                  // country's sites don't have, so the state never holds a
+                  // filter the visible list no longer offers. Read (not
+                  // watch) the new country's regions directly - regionOptions
+                  // above is still built from the country before this
+                  // change.
+                  final regionsForNewCountry =
+                      widget.ref.read(siteRegionOptionsProvider(value)).value ??
+                      const [];
+                  if (_region != null &&
+                      !regionsForNewCountry.contains(_region)) {
+                    _region = null;
+                  }
+                });
+              },
+            );
           },
+          loading: () => const LinearProgressIndicator(),
+          error: (_, _) => const SizedBox.shrink(),
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: _regionController,
-          decoration: InputDecoration(
-            labelText: context.l10n.diveSites_filter_region_label,
-            hintText: context.l10n.diveSites_filter_region_hint,
-            prefixIcon: const Icon(Icons.place),
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            setState(() {
-              _region = value.isEmpty ? null : value;
-            });
+        regionOptions.when(
+          data: (regions) {
+            _resetIfStale(_region, regions, () => _region = null);
+            return SearchableFilterDropdown<String>(
+              value: _region,
+              allOptionLabel: context.l10n.diveSites_filter_allRegions,
+              searchHintText: context.l10n.diveSites_filter_searchRegionsHint,
+              labelText: context.l10n.diveSites_filter_region_label,
+              icon: Icons.place,
+              options: [
+                for (final region in regions)
+                  FilterDropdownOption(value: region, label: region),
+              ],
+              onChanged: (value) {
+                setState(() => _region = value);
+              },
+            );
           },
+          loading: () => const LinearProgressIndicator(),
+          error: (_, _) => const SizedBox.shrink(),
         ),
       ],
     );
@@ -436,8 +479,6 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       _siteTypeIds = {};
       _tagIds = {};
 
-      _countryController.clear();
-      _regionController.clear();
       _minDepthController.clear();
       _maxDepthController.clear();
     });
