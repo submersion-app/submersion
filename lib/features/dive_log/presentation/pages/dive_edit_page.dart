@@ -46,8 +46,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/site_suggestio
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
@@ -2423,6 +2425,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null,
       diveCenterName: _selectedDiveCenter?.name,
       centerCaption: _selectedDiveCenter?.displayLocation,
+      centerChild: _selectedDiveCenter == null || widget.isBulk
+          ? null
+          : RentalMemoryCard(
+              center: _selectedDiveCenter!,
+              currentDiveId: widget.diveId,
+              onApplyLastDive: _applyLastDiveAtCenter,
+            ),
       onPickDiveCenter: _showDiveCenterPicker,
       onClearDiveCenter: () {
         _markDirty();
@@ -4521,6 +4530,54 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Apply a saved weight preset (issue #1609): opens the picker and replaces
   /// the current weight rows with editable copies of the preset's entries.
+  /// Copies the weights and tanks of the diver's last dive at the selected
+  /// center into the form (issue #2075). Asks first when the form already
+  /// holds any, because the copy replaces them.
+  Future<void> _applyLastDiveAtCenter(LastDiveAtCenter last) async {
+    final l10n = context.l10n;
+    if (_weights.any((w) => w.amountKg > 0) || _tanks.isNotEmpty) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.diveCenters_rental_applyConfirmTitle),
+          content: Text(l10n.diveCenters_rental_applyConfirmBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.common_action_cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.diveCenters_rental_applyConfirmReplace),
+            ),
+          ],
+        ),
+      );
+      if (replace != true || !mounted) return;
+    }
+    final settings = ref.read(settingsProvider);
+    setState(() {
+      _markDirty();
+      _tanksDirty = true;
+      _weights = last.weightsForNewDive(
+        diveId: widget.diveId ?? '',
+        newId: _uuid.v4,
+      );
+      _tanks
+        ..clear()
+        ..addAll(
+          last.tanksForNewDive(
+            newId: _uuid.v4,
+            startPressure: settings.defaultStartPressure.toDouble(),
+            endPressure: 50.0,
+          ),
+        );
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.diveCenters_rental_applied)));
+  }
+
   Future<void> _applyWeightPreset() async {
     final preset = await showModalBottomSheet<WeightPreset>(
       context: context,
