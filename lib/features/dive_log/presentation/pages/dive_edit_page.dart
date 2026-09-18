@@ -17,6 +17,7 @@ import 'package:submersion/features/marine_life/presentation/utils/species_categ
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -94,6 +95,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/utils/water_type_autofill.dart';
+import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -208,6 +210,8 @@ class DiveEditPage extends ConsumerStatefulWidget {
 }
 
 class _DiveEditPageState extends ConsumerState<DiveEditPage> {
+  static final _log = LoggerService.forClass(DiveEditPage);
+
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isSaving = false;
@@ -228,6 +232,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _nameController = TextEditingController();
 
   List<String> _selectedDiveTypeIds = const ['recreational'];
+
+  /// The dive types the assigned site added (issue #2037) and the diver has
+  /// not touched since: what the next site assignment may take back.
+  Set<String> _siteAddedDiveTypeIds = const {};
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
   // Statistics exclusion (#526 / #1272). Kept independent: unticking the
@@ -2348,6 +2356,47 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _exitMethod = entryExit.exit;
     _exitMethodLinked = entryExit.linked;
     unawaited(_maybeAutoFillAltitude());
+    unawaited(_snapDiveTypesFromSite(site));
+  }
+
+  /// Adds the dive types [site]'s types stand for, taking back what the
+  /// previous site added (see [diveTypesAfterSiteAssign]). The site's types
+  /// live in a junction table rather than on [DiveSite], so they are fetched;
+  /// a result that arrives after the diver picked another site is dropped.
+  Future<void> _snapDiveTypesFromSite(DiveSite? site) async {
+    final siteId = site?.id;
+    List<String> siteDiveTypeIds = const [];
+    if (siteId != null) {
+      try {
+        final siteTypes = await ref.read(
+          siteTypesForSiteProvider(siteId).future,
+        );
+        final diveTypes = await ref.read(diveTypesProvider.future);
+        siteDiveTypeIds = diveTypeIdsForSiteTypes(
+          siteTypes: siteTypes,
+          diveTypes: diveTypes,
+        );
+      } catch (e, stackTrace) {
+        // Leave the dive types as they are: the snap is a convenience, and
+        // the diver can still set them by hand.
+        _log.warning(
+          'Could not read the types of site $siteId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return;
+      }
+    }
+    if (!mounted || _selectedSite?.id != siteId) return;
+    final result = diveTypesAfterSiteAssign(
+      currentTypeIds: _selectedDiveTypeIds,
+      previousSiteAddedIds: _siteAddedDiveTypeIds,
+      siteDiveTypeIds: siteDiveTypeIds,
+    );
+    setState(() {
+      _selectedDiveTypeIds = result.typeIds;
+      _siteAddedDiveTypeIds = result.siteAddedIds;
+    });
   }
 
   Future<void> _showSitePicker() async {
@@ -4044,7 +4093,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
         child: DiveTypeMultiSelectField(
           selectedTypeIds: _selectedDiveTypeIds,
-          onChanged: (ids) => setState(() => _selectedDiveTypeIds = ids),
+          onChanged: (ids) => setState(() {
+            _selectedDiveTypeIds = ids;
+            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
+              siteAddedIds: _siteAddedDiveTypeIds,
+              selectedTypeIds: ids,
+            );
+          }),
         ),
       ),
       Column(
