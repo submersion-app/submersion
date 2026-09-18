@@ -54,4 +54,21 @@ void main() {
       'photo': 'Photo rig',
     });
   });
+
+  test('equipmentSetNamesOrEmpty passes a successful read through', () async {
+    await repo.createSet(newSet('winter', 'Winter kit', 'd1'));
+    expect(await equipmentSetNamesOrEmpty(repo), {'winter': 'Winter kit'});
+  });
+
+  test('equipmentSetNamesOrEmpty falls back to no names when the read '
+      'fails', () async {
+    // The logbook still exports, with its sets unnamed, rather than failing.
+    expect(await equipmentSetNamesOrEmpty(_FailingSetRepository()), isEmpty);
+  });
+}
+
+class _FailingSetRepository extends EquipmentSetRepository {
+  @override
+  Future<Map<String, String>> getSetNamesById() =>
+      Future.error(StateError('database closed'));
 }
