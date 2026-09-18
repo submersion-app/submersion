@@ -21,7 +21,10 @@ class FakeGalleryAsset {
   final DateTime takenAt;
   final int width;
   final int height;
-  final String filename;
+
+  /// Null models a library listing that carries no title, which PhotoKit
+  /// often omits on a peer's fast date-range query.
+  final String? filename;
   final AssetType type;
 
   AssetInfo get info => AssetInfo(

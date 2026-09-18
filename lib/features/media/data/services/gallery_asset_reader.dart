@@ -26,7 +26,8 @@ class PhotoManagerAssetReader implements GalleryAssetReader {
   @override
   Future<Uint8List?> originBytes(String assetId) async {
     final asset = await AssetEntity.fromId(assetId);
-    return asset?.originBytes;
+    if (asset == null) return null;
+    return asset.originBytes;
   }
 
   @override

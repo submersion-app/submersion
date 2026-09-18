@@ -386,12 +386,12 @@ class HarnessDevice {
     return MediaRepository().getMediaById(id);
   }
 
-  /// A plain user edit on the row, for last-writer-wins scenarios.
+  /// A plain user edit on the row, for last-writer-wins scenarios. The
+  /// narrow write, as the app's own editor uses: a whole-row update from a
+  /// snapshot could write stale upload facts back over newer ones.
   Future<void> setManualElapsed(String id, int seconds) async {
     await activate();
-    final repo = MediaRepository();
-    final row = (await repo.getMediaById(id))!;
-    await repo.updateMedia(row.copyWith(manualElapsedSeconds: seconds));
+    await MediaRepository().setManualElapsedSeconds(id, seconds);
   }
 
   Future<bool> isPending(String id) async {
@@ -459,12 +459,14 @@ class HarnessDevice {
     await DiverRepository().deleteDiverWithReassignment(id);
   }
 
-  /// Simulates stamps that never arrived or were dropped by a merge.
+  /// Simulates upload stamps that never arrived or were dropped by a merge.
+  /// The content hash stays: it is what a store probe addresses the object
+  /// by, and losing it is a different (unrecoverable) failure.
   Future<void> stripStoreStamps(String id) async {
     await activate();
     await db.customStatement(
-      'UPDATE media SET content_hash = NULL, content_size_bytes = NULL, '
-      'remote_uploaded_at = NULL, remote_thumb_uploaded_at = NULL, '
+      'UPDATE media SET remote_uploaded_at = NULL, '
+      'remote_thumb_uploaded_at = NULL, '
       'remote_compressed_uploaded_at = NULL WHERE id = ?',
       [id],
     );

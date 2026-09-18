@@ -52,6 +52,54 @@ void main() {
         'Media sync program S5: turns green in slice 7 (origin-aware verdicts)',
   );
 
+  test('S6: a burst pair shot in the same second resolves to the right frame '
+      'on a peer sharing the photo library', () async {
+    final frame1 = Uint8List.fromList(List<int>.generate(512, (i) => i % 251));
+    final frame2 = Uint8List.fromList(
+      List<int>.generate(512, (i) => (i * 7) % 251),
+    );
+    final dive = await h.a.createDive();
+    final id1 = await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(id: 'A-b1', bytes: frame1, takenAt: taken),
+      diveId: dive,
+    );
+    final id2 = await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(id: 'A-b2', bytes: frame2, takenAt: taken),
+      diveId: dive,
+    );
+    // Same iCloud library on B: same photos, different local ids, and no
+    // titles in the listing, so filename cannot break the tie.
+    h.b.gallery.add(
+      FakeGalleryAsset(
+        id: 'B-b1',
+        bytes: frame1,
+        takenAt: taken,
+        filename: null,
+      ),
+    );
+    h.b.gallery.add(
+      FakeGalleryAsset(
+        id: 'B-b2',
+        bytes: frame2,
+        takenAt: taken,
+        filename: null,
+      ),
+    );
+    await h.a.sync();
+    await h.b.sync();
+
+    final t1 = await h.b.tile(id1);
+    final t2 = await h.b.tile(id2);
+    expect(
+      t1.data,
+      isA<BytesData>(),
+      reason: 'a shared cloud identifier tells the frames apart',
+    );
+    expect((t1.data as BytesData).bytes, frame1);
+    expect((t2.data as BytesData).bytes, frame2);
+    // Slice 8 gives FakeGalleryAsset a cloudId and stamps it at link time.
+  }, skip: 'Media sync program S6: turns green in slice 8 (cloud identifier)');
+
   test(
     'S7: limited photo access on the origin device is inconclusive, '
     'not missing',
