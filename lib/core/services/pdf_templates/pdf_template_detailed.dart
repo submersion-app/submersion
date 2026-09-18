@@ -47,6 +47,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     bool includeVerificationAreas = false,
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, String> equipmentSetNamesById = const {},
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
@@ -126,6 +127,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             includeVerificationAreas: includeVerificationAreas,
             gearArrangement: gearArrangement,
             diveTypesById: diveTypesById,
+            equipmentSetNamesById: equipmentSetNamesById,
           ),
         ),
       );
@@ -160,6 +162,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required bool includeVerificationAreas,
     required EquipmentArrangement gearArrangement,
     required Map<String, DiveTypeEntity> diveTypesById,
+    required Map<String, String> equipmentSetNamesById,
   }) {
     final chart = profile == null
         ? null
@@ -180,7 +183,12 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       ..._section('Team', _teamFields(dive)),
       ..._section(
         'Equipment',
-        _equipmentFields(dive, units: units, arrangement: gearArrangement),
+        _equipmentFields(
+          dive,
+          units: units,
+          arrangement: gearArrangement,
+          setNamesById: equipmentSetNamesById,
+        ),
       ),
       ..._section(
         'Technical',
@@ -437,16 +445,19 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     Dive dive, {
     required UnitFormatter units,
     required EquipmentArrangement arrangement,
+    Map<String, String> setNamesById = const {},
   }) => _equipmentFields(
     dive,
     units: units,
     arrangement: arrangement,
+    setNamesById: setNamesById,
   ).map((f) => (label: f.label, value: f.value)).toList();
 
   List<_Field> _equipmentFields(
     Dive dive, {
     required UnitFormatter units,
     required EquipmentArrangement arrangement,
+    required Map<String, String> setNamesById,
   }) {
     // The printed logbook is a document a human reads, so it follows the
     // diver's display arrangement (#1486, #1576). The machine-readable
@@ -459,9 +470,16 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     // the label resolver as a parameter.
     //
     // An assembly keeps its parts under it, indented, in template order
-    // (#1487). Set bands print without a heading: the template has no set
-    // catalog in scope to name them.
-    final buckets = GearTree.build(dive.gear);
+    // (#1487). Set gear and hand-added gear print as one arranged list, so a
+    // tank swapped in by hand does not trail the set's gear (#2031); the
+    // sets are named on their own row instead. A set with no name on file
+    // (deleted since, or the lookup failed) is left out of that row rather
+    // than printed as an id the reader cannot use.
+    final roots = GearTree.build(dive.gear);
+    final rootsById = {for (final n in roots) n.link.item.id: n};
+    final setNames = [
+      for (final id in GearTree.setIds(dive.gear)) ?setNamesById[id],
+    ];
     List<_Field> rows(GearNode node, int depth) => [
       _Field(
         '${'  ' * depth}${node.link.item.type.displayName}',
@@ -478,19 +496,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field('Weight', units.formatWeight(dive.weightAmount)),
       if (dive.weightType != null)
         _Field('Weight Type', dive.weightType!.displayName),
-      for (final bucket in buckets) ..._bucketRows(bucket, arrangement, rows),
-    ];
-  }
-
-  List<_Field> _bucketRows(
-    GearBucket bucket,
-    EquipmentArrangement arrangement,
-    List<_Field> Function(GearNode node, int depth) rows,
-  ) {
-    final rootsById = {for (final n in bucket.roots) n.link.item.id: n};
-    return [
+      if (setNames.isNotEmpty)
+        _Field(setNames.length == 1 ? 'Set' : 'Sets', setNames.join(', ')),
       for (final group in arrangeEquipment(
-        [for (final n in bucket.roots) n.link.item],
+        [for (final n in roots) n.link.item],
         arrangement,
         typeLabel: (type) => type.displayName,
       ))

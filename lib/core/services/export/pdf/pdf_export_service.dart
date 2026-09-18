@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -191,9 +192,16 @@ class PdfExportService {
       gearArrangement = EquipmentArrangement.defaults;
     }
 
+    // Names the sets a dive's gear came from (#2031), read here for the same
+    // reason as the arrangement above.
+    final equipmentSetNamesById = await equipmentSetNamesOrEmpty(
+      EquipmentSetRepository(),
+    );
+
     final builder = PdfTemplateFactory().getBuilder(options.template);
     final pdfBytes = await builder.buildPdf(
       gearArrangement: gearArrangement,
+      equipmentSetNamesById: equipmentSetNamesById,
       dives: dives,
       pageSize: options.pageSize,
       dates: dates,

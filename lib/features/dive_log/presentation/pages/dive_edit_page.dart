@@ -3365,13 +3365,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Rendered through the diver's arrangement inside set bands,
-                // assemblies collapsed (#1486, #1576, #1487). Removals are
-                // by id, never by display index: a render position addresses
-                // a different item under an arrangement. _selectedEquipment
-                // keeps its own order as the source of truth for saving;
-                // sorting it would write a pointless reordering of
-                // dive_equipment on every save.
+                // Rendered through the diver's arrangement as one list, set
+                // gear and hand-added gear together, the sets as removable
+                // chips above it, assemblies collapsed (#1486, #1576, #1487,
+                // #2031). Removals are by id, never by display index: a
+                // render position addresses a different item under an
+                // arrangement. _selectedEquipment keeps its own order as the
+                // source of truth for saving; sorting it would write a
+                // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
                   onRemoveSet: (setId) =>
