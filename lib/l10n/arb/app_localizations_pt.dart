@@ -30643,6 +30643,22 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'Latitude inválida';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'Longitude inválida';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'A latitude é obrigatória';
+
+  @override
+  String get common_coordinates_longitudeRequired =>
+      'A longitude é obrigatória';
+
+  @override
+  String get common_coordinates_invalid => 'Coordenadas inválidas';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Eliminar espécie?';
 
   @override

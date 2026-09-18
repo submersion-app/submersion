@@ -49164,6 +49164,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} deleted} other{{count} deleted}}'**
   String common_bulkDelete_snackbar(int count);
 
+  /// No description provided for @common_coordinates_invalidLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid latitude'**
+  String get common_coordinates_invalidLatitude;
+
+  /// No description provided for @common_coordinates_invalidLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid longitude'**
+  String get common_coordinates_invalidLongitude;
+
+  /// No description provided for @common_coordinates_latitudeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude is required'**
+  String get common_coordinates_latitudeRequired;
+
+  /// No description provided for @common_coordinates_longitudeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude is required'**
+  String get common_coordinates_longitudeRequired;
+
+  /// No description provided for @common_coordinates_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid coordinates'**
+  String get common_coordinates_invalid;
+
   /// No description provided for @marineLife_species_delete_confirmTitle.
   ///
   /// In en, this message translates to:

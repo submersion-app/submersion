@@ -29065,6 +29065,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => '无效的纬度';
+
+  @override
+  String get common_coordinates_invalidLongitude => '无效的经度';
+
+  @override
+  String get common_coordinates_latitudeRequired => '纬度为必填项';
+
+  @override
+  String get common_coordinates_longitudeRequired => '经度为必填项';
+
+  @override
+  String get common_coordinates_invalid => '无效的坐标';
+
+  @override
   String get marineLife_species_delete_confirmTitle => '删除物种？';
 
   @override

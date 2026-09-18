@@ -176,5 +176,50 @@ void main() {
       expect(parseSingleAxis('91.0', isLatitude: true), isNull);
       expect(parseSingleAxis('91.0', isLatitude: false), closeTo(91.0, 1e-9));
     });
+
+    // Issue #2035: divers in comma-decimal locales type the decimal
+    // separator they use everywhere else.
+    test('reads a comma as the decimal separator', () {
+      expect(
+        parseSingleAxis('48,8566', isLatitude: true),
+        closeTo(48.8566, 1e-9),
+      );
+      expect(
+        parseSingleAxis('-4,5678', isLatitude: false),
+        closeTo(-4.5678, 1e-9),
+      );
+    });
+
+    test('reads a decimal comma in the minutes of a degree entry', () {
+      expect(
+        parseSingleAxis('48 30,5 0 N', isLatitude: true),
+        closeTo(48 + 30.5 / 60, 1e-9),
+      );
+    });
+
+    test('does not read a comma as degrees and minutes', () {
+      // '4,5' once read as 4 degrees 5 minutes, which is a silent misread.
+      expect(parseSingleAxis('4,5', isLatitude: false), closeTo(4.5, 1e-9));
+    });
+  });
+
+  group('isDecimalCommaNumber', () {
+    test('matches a single number written with a decimal comma', () {
+      expect(isDecimalCommaNumber('48,8566'), isTrue);
+      expect(isDecimalCommaNumber('-4,5678'), isTrue);
+      expect(isDecimalCommaNumber(' 43,5 '), isTrue);
+    });
+
+    test('does not match a comma-separated coordinate pair', () {
+      expect(isDecimalCommaNumber('20.361944, -87.029722'), isFalse);
+      expect(isDecimalCommaNumber('20.5,87.3'), isFalse);
+      expect(isDecimalCommaNumber('20, -87'), isFalse);
+      expect(isDecimalCommaNumber('20,5 87,3'), isFalse);
+    });
+
+    test('does not match text without a comma', () {
+      expect(isDecimalCommaNumber('48.8566'), isFalse);
+      expect(isDecimalCommaNumber(''), isFalse);
+    });
   });
 }

@@ -30230,6 +30230,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'خط العرض غير صحيح';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'خط الطول غير صحيح';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'خط العرض مطلوب';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'خط الطول مطلوب';
+
+  @override
+  String get common_coordinates_invalid => 'إحداثيات غير صحيحة';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'حذف النوع؟';
 
   @override

@@ -30429,6 +30429,21 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'Ongeldige breedtegraad';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'Ongeldige lengtegraad';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'Breedtegraad is verplicht';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'Lengtegraad is verplicht';
+
+  @override
+  String get common_coordinates_invalid => 'Ongeldige coördinaten';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Soort verwijderen?';
 
   @override

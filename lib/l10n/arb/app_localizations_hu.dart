@@ -30534,6 +30534,25 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude =>
+      'Érvénytelen földrajzi szélesség';
+
+  @override
+  String get common_coordinates_invalidLongitude =>
+      'Érvénytelen földrajzi hosszúság';
+
+  @override
+  String get common_coordinates_latitudeRequired =>
+      'A földrajzi szélesség megadása kötelező';
+
+  @override
+  String get common_coordinates_longitudeRequired =>
+      'A földrajzi hosszúság megadása kötelező';
+
+  @override
+  String get common_coordinates_invalid => 'Érvénytelen koordináták';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Törli a fajt?';
 
   @override

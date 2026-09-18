@@ -19790,6 +19790,11 @@
       }
     }
   },
+  "common_coordinates_invalidLatitude": "Invalid latitude",
+  "common_coordinates_invalidLongitude": "Invalid longitude",
+  "common_coordinates_latitudeRequired": "Latitude is required",
+  "common_coordinates_longitudeRequired": "Longitude is required",
+  "common_coordinates_invalid": "Invalid coordinates",
   "marineLife_species_delete_confirmTitle": "Delete species?",
   "marineLife_species_delete_confirmBody": "Are you sure you want to delete \"{name}\"?",
   "marineLife_species_delete_inUseError": "Cannot delete \"{name}\" - it has sightings",

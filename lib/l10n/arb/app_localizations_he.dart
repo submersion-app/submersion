@@ -29913,6 +29913,21 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'קו רוחב לא תקין';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'קו אורך לא תקין';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'נדרש קו רוחב';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'נדרש קו אורך';
+
+  @override
+  String get common_coordinates_invalid => 'קואורדינטות לא תקינות';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'למחוק מין?';
 
   @override

@@ -30590,6 +30590,23 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'Ungültiger Breitengrad';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'Ungültiger Längengrad';
+
+  @override
+  String get common_coordinates_latitudeRequired =>
+      'Breitengrad ist erforderlich';
+
+  @override
+  String get common_coordinates_longitudeRequired =>
+      'Längengrad ist erforderlich';
+
+  @override
+  String get common_coordinates_invalid => 'Ungültige Koordinaten';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Art löschen?';
 
   @override
