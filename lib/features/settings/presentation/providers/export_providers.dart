@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -580,6 +581,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // The logbook is a document a human reads, so gear follows the diver's
       // arrangement (#1486, #1576).
       gearArrangement: _ref.read(equipmentArrangementProvider),
+      // Names the sets a dive's gear came from (#2031).
+      equipmentSetNamesById: await equipmentSetNamesOrEmpty(
+        _ref.read(equipmentSetRepositoryProvider),
+      ),
       pageSize: exportOptions.pageSize,
       dates: PdfDateFormatter(
         dateFormat: settings.dateFormat,

@@ -317,10 +317,18 @@ void main() {
         'a',
         entry: DateTime.utc(2026, 7, 1, 9),
       ).copyWith(tanks: [const DiveTank(id: 'tA1', volume: 11.1, order: 0)]);
-      final b = dive(
-        'b',
-        entry: DateTime.utc(2026, 7, 1, 10),
-      ).copyWith(tanks: [const DiveTank(id: 'tB1', volume: 15.0, order: 0)]);
+      // A different mix, so b's tank is a second cylinder rather than a
+      // continuation of a's (#2036).
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10)).copyWith(
+        tanks: [
+          const DiveTank(
+            id: 'tB1',
+            volume: 15.0,
+            order: 0,
+            gasMix: GasMix(o2: 50),
+          ),
+        ],
+      );
       final result = builder.build([b, a], idGenerator: () => 'gen-${n++}');
       final tanks = result.mergedDive.tanks;
       expect(tanks, hasLength(2));

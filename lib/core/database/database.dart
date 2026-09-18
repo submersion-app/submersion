@@ -1424,6 +1424,49 @@ class WeightPresetEntries extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
+/// Rental gear memory (v221, issue #2075): what a diver learned about a dive
+/// center's rental gear, kept per center so it surfaces on a return visit.
+/// The note is the diver's judgement; the numbers of the last dive at the
+/// center (lead, feedback, tanks) are read off that dive, never copied here.
+@DataClassName('DiveCenterGearNoteRow')
+class DiveCenterGearNotes extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveCenterId =>
+      text().references(DiveCenters, #id, onDelete: KeyAction.cascade)();
+
+  /// EquipmentType.name of the rental item.
+  TextColumn get gearType => text()();
+
+  /// The operator's mark for the item: "14", "AL80".
+  TextColumn get label => text().nullable()();
+  TextColumn get size => text().nullable()();
+
+  /// RentalVerdict.name: worked or avoid.
+  TextColumn get verdict => text()();
+
+  /// Signed kg: lead needed beyond the diver's usual with this gear.
+  RealColumn get leadAdjustmentKg => real().nullable()();
+
+  /// The cylinder's true capacity, for tank notes.
+  RealColumn get volumeLiters => real().nullable()();
+  TextColumn get note => text().withDefault(const Constant(''))();
+
+  /// The dive the note was written on, if any; the note outlives it.
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+  IntColumn get notedAt => integer()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending, so the merge
+  /// refuses a remote copy strictly older than the local one
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+}
+
 /// Data-quality findings produced by the Data Quality Assistant detectors.
 /// One row per (dive, detector, discriminator). Ids are deterministic
 /// UUIDv5 values so independent scans on two devices converge on the same
@@ -4218,6 +4261,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     ServiceSchedules,
     CylinderConfigs,
     CylinderConfigItems,
+    // Rental gear memory (v221, issue #2075)
+    DiveCenterGearNotes,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4227,7 +4272,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 221;
+  static const int currentSchemaVersion = 222;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4842,13 +4887,18 @@ class AppDatabase extends _$AppDatabase {
     // Additive column, default off. Renumbered from 219: #1964 (equipment
     // tags) shipped first and claimed it.
     220,
-    // v221: buddies.linked_diver_id (a buddy that IS a local profile) and
+    // v221: rental gear memory (issue #2075). dive_center_gear_notes, a
+    // child of dive_centers. Table-only rung, no backfill, so the
+    // compatibility floor stays. Sits above v220 (#1980), which shipped
+    // while this was in review.
+    221,
+    // v222: buddies.linked_diver_id (a buddy that IS a local profile) and
     // dives.outing_id (sibling dives mirrored from one save), issue #2002.
     // Additive nullable columns, no backfill, so the floor stays at 210.
-    // Renumbered twice: equipment tags took 219 and the computer-set
-    // auto-apply column took 220 while this branch was open, and a rung at
-    // or below the shipped version never runs.
-    221,
+    // Renumbered three times: equipment tags took 219, the computer-set
+    // auto-apply column took 220 and rental gear memory took 221 while this
+    // branch was open, and a rung at or below the shipped version never runs.
+    222,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5293,6 +5343,7 @@ class AppDatabase extends _$AppDatabase {
       'dive_safety_reviews',
       'dive_safety_findings',
       'gas_switches',
+      'dive_center_gear_notes',
     ]) {
       await _addColumnIfMissing(table, 'hlc', 'TEXT');
     }
@@ -6321,7 +6372,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v221: buddies.linked_diver_id and dives.outing_id (issue #2002).
+  /// v222: buddies.linked_diver_id and dives.outing_id (issue #2002).
   /// Idempotent, so it is safe from both onUpgrade and the beforeOpen
   /// backstop, and a no-op for either table when it does not exist yet.
   /// SQLite lets ADD COLUMN carry a REFERENCES clause only for a nullable
@@ -8342,6 +8393,23 @@ class AppDatabase extends _$AppDatabase {
     }
     await createMigrator().createTable(equipmentTags);
     await assertEquipmentTagUniqueness(this);
+  }
+
+  /// Idempotent creation of the v221 `dive_center_gear_notes` table (issue
+  /// #2075). Called from the v221 rung and the beforeOpen backstop.
+  ///
+  /// Skipped on a partial migration-test fixture that lacks either parent
+  /// table, so a fixture written for an older rung does not gain a table
+  /// whose foreign keys point nowhere.
+  Future<void> _assertDiveCenterGearNotesSchema() async {
+    for (final parent in const ['dive_centers', 'dives']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(diveCenterGearNotes);
   }
 
   /// Idempotent DDL for the v174 dive_types.show_in_detail_header and
@@ -12336,13 +12404,19 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentSetComputerAutoApplyColumn();
         }
         if (from < 220) await reportProgress();
-
-        // v221: buddy profile links and dive outings (issue #2002). Column-only
-        // rung, no backfill: null reads back as "not linked" and "no siblings".
+        // v221: rental gear memory (issue #2075). Table-only rung, no
+        // backfill.
         if (from < 221) {
-          await _assertBuddyProfileDiveLinkColumns();
+          await _assertDiveCenterGearNotesSchema();
         }
         if (from < 221) await reportProgress();
+
+        // v222: buddy profile links and dive outings (issue #2002). Column-only
+        // rung, no backfill: null reads back as "not linked" and "no siblings".
+        if (from < 222) {
+          await _assertBuddyProfileDiveLinkColumns();
+        }
+        if (from < 222) await reportProgress();
       },
       beforeOpen: (details) async {
         // v220 backstop: the computer-set auto-apply opt-in column.
@@ -12466,6 +12540,10 @@ class AppDatabase extends _$AppDatabase {
         // v219 backstop: the equipment tag junction and its index
         // (parallel-branch version-collision self-heal; all idempotent).
         await _assertEquipmentTagSchema();
+
+        // v221 backstop: the rental gear notes table (parallel-branch
+        // version-collision self-heal; createTable is idempotent).
+        await _assertDiveCenterGearNotesSchema();
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it
@@ -12713,7 +12791,7 @@ class AppDatabase extends _$AppDatabase {
         // arrives by restore or sync-adopt without them would throw on the
         // first read.
         await _assertSiteDetailColumns();
-        // v221 backstop: re-assert the buddy link and outing columns. The
+        // v222 backstop: re-assert the buddy link and outing columns. The
         // buddy and dive mappers read the whole row, so a database that
         // arrives by restore or sync-adopt without them would throw on the
         // first read.

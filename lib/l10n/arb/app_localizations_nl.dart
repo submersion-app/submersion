@@ -30590,6 +30590,21 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'Ongeldige breedtegraad';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'Ongeldige lengtegraad';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'Breedtegraad is verplicht';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'Lengtegraad is verplicht';
+
+  @override
+  String get common_coordinates_invalid => 'Ongeldige coördinaten';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Soort verwijderen?';
 
   @override
@@ -41048,4 +41063,117 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'Voer een geldig getal in';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'Huuruitrusting';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'Vorige keer bij $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'Laatste duik hier: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'Hier zijn nog geen andere duiken gelogd.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'Nog geen huurnotities voor dit centrum.';
+
+  @override
+  String get diveCenters_rental_addNote => 'Huurnotitie toevoegen';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'Laatste duik toepassen';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'Lood en flessen overgenomen van je laatste duik hier.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'Lood en flessen vervangen?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'Deze duik heeft al lood of flessen. Vervangen door die van je laatste duik hier?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'Vervangen';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'Lood: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount te veel';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount te weinig';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'Flessen';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'Beviel';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'Vermijden';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount extra lood';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount minder lood';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'Werkelijke inhoud $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'Nieuwe huurnotitie';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'Huurnotitie bewerken';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'Type uitrusting';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'Label of nummer';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'Maat';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'Extra lood nodig ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'Werkelijke inhoud ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'Notitie';
+
+  @override
+  String get diveCenters_rental_deleteConfirm =>
+      'Deze huurnotitie verwijderen?';
 }

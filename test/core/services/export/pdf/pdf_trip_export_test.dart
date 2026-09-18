@@ -156,6 +156,43 @@ void main() {
     expect(text, isNot(contains('14:30')));
   });
 
+  // A dive page used to be a fixed pw.Page, which never paginates: notes
+  // taller than the sheet were clipped and the tail silently lost.
+  test('notes longer than a page continue onto another sheet', () async {
+    final longNote = List.generate(
+      400,
+      (i) => 'Sentence $i of a very long dive story.',
+    ).join(' ');
+    final path = await service.exportTripToPdf(
+      trip,
+      [
+        Dive(
+          id: 'd1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 5, 2, 9),
+          maxDepth: 18.0,
+          notes: longNote,
+        ),
+      ],
+      dates: isoDates,
+      units: metric,
+    );
+    final bytes = await File(path).readAsBytes();
+
+    final text = pdfVisibleText(bytes);
+    expect(text, contains('Sentence 0 of'));
+    expect(
+      text,
+      contains('Sentence 399 of'),
+      reason: 'the tail of the notes must not be clipped away',
+    );
+    expect(
+      pdfPageCount(bytes),
+      greaterThan(2),
+      reason: 'title page plus a dive whose notes need more than one sheet',
+    );
+  });
+
   group('dive depth and temperature follow the diver\'s units', () {
     final dive = Dive(
       id: 'd1',

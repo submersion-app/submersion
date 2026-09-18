@@ -46,8 +46,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/site_suggestio
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
@@ -168,6 +170,15 @@ String _seedWeight(double displayValue) =>
 /// [value] rendered for seeding a whole-number field, paired with
 /// [parseUserInt]. Grouping is off, so this is digit-only text.
 String _seedInt(int value) => _seedDecimal(value.toDouble(), 0);
+
+/// Whether "Apply last dive" must ask before replacing the form's weights
+/// and tanks (issue #2075): whenever the form holds any. A weight row with
+/// no amount yet still carries its type and notes, so it counts.
+@visibleForTesting
+bool applyLastDiveNeedsConfirm({
+  required List<DiveWeight> weights,
+  required List<DiveTank> tanks,
+}) => weights.isNotEmpty || tanks.isNotEmpty;
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
@@ -2461,6 +2472,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null,
       diveCenterName: _selectedDiveCenter?.name,
       centerCaption: _selectedDiveCenter?.displayLocation,
+      centerChild: _selectedDiveCenter == null || widget.isBulk
+          ? null
+          : RentalMemoryCard(
+              center: _selectedDiveCenter!,
+              currentDiveId: widget.diveId,
+              onApplyLastDive: _applyLastDiveAtCenter,
+            ),
       onPickDiveCenter: _showDiveCenterPicker,
       onClearDiveCenter: () {
         _markDirty();
@@ -3403,13 +3421,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Rendered through the diver's arrangement inside set bands,
-                // assemblies collapsed (#1486, #1576, #1487). Removals are
-                // by id, never by display index: a render position addresses
-                // a different item under an arrangement. _selectedEquipment
-                // keeps its own order as the source of truth for saving;
-                // sorting it would write a pointless reordering of
-                // dive_equipment on every save.
+                // Rendered through the diver's arrangement as one list, set
+                // gear and hand-added gear together, the sets as removable
+                // chips above it, assemblies collapsed (#1486, #1576, #1487,
+                // #2031). Removals are by id, never by display index: a
+                // render position addresses a different item under an
+                // arrangement. _selectedEquipment keeps its own order as the
+                // source of truth for saving; sorting it would write a
+                // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
                   onRemoveSet: (setId) =>
@@ -4559,6 +4578,54 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Apply a saved weight preset (issue #1609): opens the picker and replaces
   /// the current weight rows with editable copies of the preset's entries.
+  /// Copies the weights and tanks of the diver's last dive at the selected
+  /// center into the form (issue #2075). Asks first when the form already
+  /// holds any, because the copy replaces them.
+  Future<void> _applyLastDiveAtCenter(LastDiveAtCenter last) async {
+    final l10n = context.l10n;
+    if (applyLastDiveNeedsConfirm(weights: _weights, tanks: _tanks)) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.diveCenters_rental_applyConfirmTitle),
+          content: Text(l10n.diveCenters_rental_applyConfirmBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.common_action_cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.diveCenters_rental_applyConfirmReplace),
+            ),
+          ],
+        ),
+      );
+      if (replace != true || !mounted) return;
+    }
+    final settings = ref.read(settingsProvider);
+    setState(() {
+      _markDirty();
+      _tanksDirty = true;
+      _weights = last.weightsForNewDive(
+        diveId: widget.diveId ?? '',
+        newId: _uuid.v4,
+      );
+      _tanks
+        ..clear()
+        ..addAll(
+          last.tanksForNewDive(
+            newId: _uuid.v4,
+            startPressure: settings.defaultStartPressure.toDouble(),
+            endPressure: 50.0,
+          ),
+        );
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.diveCenters_rental_applied)));
+  }
+
   Future<void> _applyWeightPreset() async {
     final preset = await showModalBottomSheet<WeightPreset>(
       context: context,

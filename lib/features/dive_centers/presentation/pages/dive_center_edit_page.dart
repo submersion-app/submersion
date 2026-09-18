@@ -15,6 +15,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
@@ -795,8 +796,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               latitudeLabel: context.l10n.diveCenters_field_latitude,
               longitudeLabel: context.l10n.diveCenters_field_longitude,
               errorText: _coordinateError(context),
-              invalidMessage:
-                  context.l10n.diveCenters_validation_invalidLatitude,
+              messages: CoordinateValidationMessages.of(context),
             ),
           ],
         ),

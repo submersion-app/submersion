@@ -95,7 +95,11 @@ class _FakeMediaPlatform implements LocalMediaPlatform {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _wrap({MediaAttachTarget? target, FilesTabNotifier? filesTab}) {
+Widget _wrap({
+  MediaAttachTarget? target,
+  FilesTabNotifier? filesTab,
+  UrlTabNotifier? urlTab,
+}) {
   final pipeline = _FakeNetworkFetchPipeline();
   final credentials = _FakeNetworkCredentialsService();
   final mediaRepo = _FakeMediaRepository();
@@ -108,11 +112,13 @@ Widget _wrap({MediaAttachTarget? target, FilesTabNotifier? filesTab}) {
       // pulls `DatabaseService.instance.database` (uninitialized in tests),
       // so swap it for a notifier built from the fakes above.
       urlTabNotifierProvider.overrideWith(
-        (ref) => UrlTabNotifier(
-          pipeline: pipeline,
-          credentials: credentials,
-          mediaRepository: mediaRepo,
-        ),
+        (ref) =>
+            urlTab ??
+            UrlTabNotifier(
+              pipeline: pipeline,
+              credentials: credentials,
+              mediaRepository: mediaRepo,
+            ),
       ),
       // `NetworkThumbnail` (inside `UrlReviewPane`) reads this provider
       // directly. Even when the staged draft list is empty we override it
@@ -253,6 +259,33 @@ void main() {
 
     expect(filesTab.state.files, isEmpty);
     expect(filesTab.state.match, MatchedSelection.empty());
+  });
+
+  testWidgets('opening the picker drops URLs drafted by an earlier session', (
+    tester,
+  ) async {
+    // urlTabNotifierProvider is not autoDispose either (the draft has to
+    // survive a swipe to another tab, and Undo can fire after the picker
+    // closes), so URLs typed and then abandoned would otherwise reappear in
+    // a session attaching somewhere else: issue #1996.
+    final urlTab = UrlTabNotifier(
+      pipeline: _FakeNetworkFetchPipeline(),
+      credentials: _FakeNetworkCredentialsService(),
+      mediaRepository: _FakeMediaRepository(),
+    )..setDraft('https://example.com/left-over.jpg');
+
+    await tester.pumpWidget(
+      _wrap(target: const SiteAttachTarget('site-1'), urlTab: urlTab),
+    );
+    await tester.pump();
+
+    expect(urlTab.state.draftLines, isEmpty);
+
+    await tester.tap(find.text('URL'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.text('https://example.com/left-over.jpg'), findsNothing);
   });
 
   // Issue #1098: the page used to accept only a dive id, so the Files and URL

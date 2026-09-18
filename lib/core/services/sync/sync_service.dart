@@ -1423,6 +1423,13 @@ class SyncService {
           // so a future read of this list still tells the dependency story.)
           (type: 'courses', records: data.courses, hasUpdatedAt: true),
           (type: 'dives', records: data.dives, hasUpdatedAt: true),
+          // Child of diveCenters, and of dives when noted on one; applied
+          // after both so the deferred-FK commit sees the parent rows.
+          (
+            type: 'diveCenterGearNotes',
+            records: data.diveCenterGearNotes,
+            hasUpdatedAt: false,
+          ),
           // Quality findings FK dives + diveComputers (both applied above);
           // deferred FKs cover ordering, but keep the logical sequence.
           (
@@ -2295,6 +2302,7 @@ class SyncService {
     'diverSettings': true,
     'buddies': true,
     'diveCenters': true,
+    'diveCenterGearNotes': false,
     'trips': true,
     'liveaboardDetails': true,
     'itineraryDays': true,
@@ -2432,6 +2440,10 @@ class SyncService {
       (field: 'courseId', parent: 'courses', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
       (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
+    'diveCenterGearNotes': [
+      (field: 'diveCenterId', parent: 'diveCenters', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: true),
     ],
     'qualityFindings': [
       (field: 'diveId', parent: 'dives', nullable: false),

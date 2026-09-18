@@ -282,6 +282,7 @@ class SyncData {
   final List<Map<String, dynamic>> serviceKinds;
   final List<Map<String, dynamic>> serviceSchedules;
   final List<Map<String, dynamic>> diveCenters;
+  final List<Map<String, dynamic>> diveCenterGearNotes;
   final List<Map<String, dynamic>> trips;
   final List<Map<String, dynamic>> liveaboardDetails;
   final List<Map<String, dynamic>> itineraryDays;
@@ -377,6 +378,7 @@ class SyncData {
     this.serviceKinds = const [],
     this.serviceSchedules = const [],
     this.diveCenters = const [],
+    this.diveCenterGearNotes = const [],
     this.trips = const [],
     this.liveaboardDetails = const [],
     this.itineraryDays = const [],
@@ -467,6 +469,7 @@ class SyncData {
     'serviceKinds': serviceKinds,
     'serviceSchedules': serviceSchedules,
     'diveCenters': diveCenters,
+    'diveCenterGearNotes': diveCenterGearNotes,
     'trips': trips,
     'liveaboardDetails': liveaboardDetails,
     'itineraryDays': itineraryDays,
@@ -558,6 +561,7 @@ class SyncData {
       serviceKinds: _parseList(json['serviceKinds']),
       serviceSchedules: _parseList(json['serviceSchedules']),
       diveCenters: _parseList(json['diveCenters']),
+      diveCenterGearNotes: _parseList(json['diveCenterGearNotes']),
       trips: _parseList(json['trips']),
       liveaboardDetails: _parseList(json['liveaboardDetails']),
       itineraryDays: _parseList(json['itineraryDays']),
@@ -892,6 +896,12 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'diveCenters', table: _db.diveCenters, blob: false, full: null),
+    (
+      key: 'diveCenterGearNotes',
+      table: _db.diveCenterGearNotes,
+      blob: false,
+      full: null,
+    ),
     (key: 'trips', table: _db.trips, blob: false, full: null),
     (
       key: 'liveaboardDetails',
@@ -1459,6 +1469,7 @@ class SyncDataSerializer {
     'siteTags',
     'equipmentTags',
     'weightPresetEntries',
+    'diveCenterGearNotes',
     'tideRecords',
     'sightings',
     'diveCustomFields',
@@ -1515,6 +1526,7 @@ class SyncDataSerializer {
     'equipmentTags': 'equipment_tags',
     'diveDiveTypes': 'dive_dive_types',
     'weightPresetEntries': 'weight_preset_entries',
+    'diveCenterGearNotes': 'dive_center_gear_notes',
     'tideRecords': 'tide_records',
     'sightings': 'sightings',
     'diveCustomFields': 'dive_custom_fields',
@@ -1776,6 +1788,14 @@ class SyncDataSerializer {
       diveCenters: await _safeExport(
         'diveCenters',
         () => _exportDiveCenters(hlcSince),
+      ),
+      diveCenterGearNotes: await _safeExport(
+        'diveCenterGearNotes',
+        () async => _withPendingChildren(
+          'diveCenterGearNotes',
+          await _exportDiveCenterGearNotes(hlcSince),
+          pendingChildren,
+        ),
       ),
       trips: await _safeExport('trips', () => _exportTrips(hlcSince)),
       liveaboardDetails: await _safeExport(
@@ -2341,6 +2361,11 @@ class SyncDataSerializer {
           _db.diveCenters,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'diveCenterGearNotes':
+        final row = await (_db.select(
+          _db.diveCenterGearNotes,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'trips':
         final row = await (_db.select(
           _db.trips,
@@ -2741,6 +2766,11 @@ class SyncDataSerializer {
       case 'diveCenters':
         final rows = await (_db.select(
           _db.diveCenters,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diveCenterGearNotes':
+        final rows = await (_db.select(
+          _db.diveCenterGearNotes,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'trips':
@@ -3634,6 +3664,11 @@ class SyncDataSerializer {
               DiveCenter.fromJson(data).toCompanion(false),
             );
         return;
+      case 'diveCenterGearNotes':
+        await _db
+            .into(_db.diveCenterGearNotes)
+            .insertOnConflictUpdate(DiveCenterGearNoteRow.fromJson(data));
+        return;
       case 'trips':
         await _db
             .into(_db.trips)
@@ -4487,6 +4522,14 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveCenterGearNotes':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveCenterGearNotes,
+            records.map((r) => DiveCenterGearNoteRow.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'trips':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -5211,6 +5254,8 @@ class SyncDataSerializer {
         return plain(_db.mediaSubscriptions, _db.mediaSubscriptions.id);
       case 'diveCenters':
         return plain(_db.diveCenters, _db.diveCenters.id);
+      case 'diveCenterGearNotes':
+        return plain(_db.diveCenterGearNotes, _db.diveCenterGearNotes.id);
       case 'trips':
         return plain(_db.trips, _db.trips.id);
       case 'liveaboardDetails':
@@ -5595,6 +5640,8 @@ class SyncDataSerializer {
         return _db.mediaSubscriptions;
       case 'diveCenters':
         return _db.diveCenters;
+      case 'diveCenterGearNotes':
+        return _db.diveCenterGearNotes;
       case 'trips':
         return _db.trips;
       case 'liveaboardDetails':
@@ -5941,6 +5988,11 @@ class SyncDataSerializer {
       case 'diveCenters':
         await (_db.delete(
           _db.diveCenters,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveCenterGearNotes':
+        await (_db.delete(
+          _db.diveCenterGearNotes,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'trips':
@@ -6674,6 +6726,28 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Rental gear notes ride their center: an incremental export re-sends
+  /// the whole note set of every center whose hlc moved, mirroring
+  /// [_exportWeightPresetEntries]. A note edited on its own reaches peers
+  /// through the pending-children path.
+  Future<List<Map<String, dynamic>>> _exportDiveCenterGearNotes(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modified = await (_db.select(
+        _db.diveCenters,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final ids = modified.map((c) => c.id).toSet();
+      if (ids.isEmpty) return [];
+      final rows = await (_db.select(
+        _db.diveCenterGearNotes,
+      )..where((t) => t.diveCenterId.isIn(ids))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveCenterGearNotes).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

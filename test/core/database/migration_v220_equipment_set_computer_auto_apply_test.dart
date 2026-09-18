@@ -5,10 +5,8 @@ import 'package:submersion/core/database/database.dart';
 
 void main() {
   test('v220 is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    // Relaxed once v221 (buddy profile dive links) landed on top; the
-    // newest rung owns the exact assertions.
+    // The newest rung owns the exact currentSchemaVersion/step-count
+    // assertions; relaxed here once v221 (rental gear memory) landed on top.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(220));
     expect(AppDatabase.migrationVersions, contains(220));
     expect(AppDatabase.migrationStepCount(219), greaterThanOrEqualTo(1));

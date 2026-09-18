@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
-import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/services/assembly_snapshot.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
@@ -19,15 +18,16 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_gro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The gear on a dive, rendered the same way on the detail and edit pages
-/// (issue #1487): rows bucketed by the set they came from (loose gear
-/// last), each bucket's top-level rows ordered and optionally type-grouped
-/// by the diver's arrangement, an assembly as one collapsed row that
-/// expands in place to its parts in template order.
+/// (issue #1487): the sets applied to the dive as a row of chips, then
+/// every top-level row, set and hand-added alike, ordered and optionally
+/// type-grouped by the diver's arrangement as one list (#2031), an
+/// assembly as one collapsed row that expands in place to its parts in
+/// template order.
 ///
 /// A row-removal callback puts the rows in edit mode. A top-level row,
 /// loose or assembly, is removed through [onRemoveSubtree] (a loose row is
 /// a one-row subtree); a part beneath an assembly through [onRemovePart];
-/// a whole band through [onRemoveSet], which only affects the band header.
+/// a whole set through [onRemoveSet], which only affects the set chips.
 ///
 /// [rowTrailing] adds a widget at the start of every row's trailing edge,
 /// parts included; the detail page uses it for the check-in chip.
@@ -71,7 +71,9 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
       for (final s in ref.watch(equipmentSetsProvider).valueOrNull ?? const [])
         s.id: s,
     };
-    final buckets = GearTree.build(widget.links);
+    final roots = GearTree.build(widget.links);
+    final rootsById = {for (final n in roots) n.link.item.id: n};
+    final setIds = GearTree.setIds(widget.links);
     final index = ref.watch(equipmentComponentsIndexProvider).value;
     final activeParts = ref.watch(activeComponentIdsProvider).value;
     final shortfalls = index == null || activeParts == null
@@ -91,50 +93,39 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final bucket in buckets) ...[
-          if (bucket.setId != null)
-            _SetHeader(
-              name:
-                  setsById[bucket.setId]?.name ?? l10n.diveLog_gear_unknownSet,
-              onRemove: widget.onRemoveSet == null
-                  ? null
-                  : () => widget.onRemoveSet!(bucket.setId!),
+        if (setIds.isNotEmpty)
+          _SetChips(
+            // A deleted set, or one whose name the editor trimmed to empty,
+            // takes the fallback so no chip renders without a label.
+            names: {
+              for (final id in setIds)
+                id: switch (setsById[id]?.name.trim()) {
+                  final name? when name.isNotEmpty => name,
+                  _ => l10n.diveLog_gear_unknownSet,
+                },
+            },
+            onRemove: widget.onRemoveSet,
+          ),
+        // The arrangement sees every top-level item on the dive at once;
+        // parts keep template order underneath their assembly.
+        for (final group in arrangeEquipment(
+          [for (final n in roots) n.link.item],
+          arrangement,
+          typeLabel: (type) => type.localizedName(l10n),
+        )) ...[
+          if (group.type != null) EquipmentGroupHeader(type: group.type!),
+          for (final item in group.items)
+            ..._rows(
+              context,
+              rootsById[item.id]!,
+              depth: 0,
+              showType: group.type == null,
+              shortfalls: shortfalls,
+              labels: labels,
             ),
-          // The arrangement sees only the top-level items of this bucket;
-          // parts keep template order underneath their assembly.
-          ..._bucketRows(context, bucket, arrangement, shortfalls, labels),
         ],
       ],
     );
-  }
-
-  List<Widget> _bucketRows(
-    BuildContext context,
-    GearBucket bucket,
-    EquipmentArrangement arrangement,
-    Map<String, AssemblyShortfall> shortfalls,
-    Map<String, EquipmentRowLabel> labels,
-  ) {
-    final l10n = context.l10n;
-    final rootsById = {for (final n in bucket.roots) n.link.item.id: n};
-    return [
-      for (final group in arrangeEquipment(
-        [for (final n in bucket.roots) n.link.item],
-        arrangement,
-        typeLabel: (type) => type.localizedName(l10n),
-      )) ...[
-        if (group.type != null) EquipmentGroupHeader(type: group.type!),
-        for (final item in group.items)
-          ..._rows(
-            context,
-            rootsById[item.id]!,
-            depth: 0,
-            showType: group.type == null,
-            shortfalls: shortfalls,
-            labels: labels,
-          ),
-      ],
-    ];
   }
 
   List<Widget> _rows(
@@ -250,38 +241,37 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
   }
 }
 
-class _SetHeader extends StatelessWidget {
-  final String name;
-  final VoidCallback? onRemove;
+/// The sets applied to the dive, one chip each. With [onRemove] the chip
+/// carries the delete control that drops the set's gear from the dive.
+class _SetChips extends StatelessWidget {
+  /// Set id to the name shown, in the order the sets were applied.
+  final Map<String, String> names;
+  final void Function(String setId)? onRemove;
 
-  const _SetHeader({required this.name, this.onRemove});
+  const _SetChips({required this.names, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final remove = onRemove;
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
-      child: Row(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
         children: [
-          Icon(
-            Icons.inventory_2_outlined,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              name,
-              style: theme.textTheme.titleSmall?.copyWith(
+          for (final MapEntry(key: id, value: name) in names.entries)
+            Chip(
+              key: ValueKey('gear-set-$id'),
+              avatar: Icon(
+                Icons.inventory_2_outlined,
+                size: 18,
                 color: theme.colorScheme.primary,
               ),
-            ),
-          ),
-          if (onRemove != null)
-            IconButton(
-              icon: const Icon(Icons.close, size: 20),
-              tooltip: context.l10n.diveLog_gear_removeSet,
-              onPressed: onRemove,
+              label: Text(name),
+              deleteIcon: const Icon(Icons.close, size: 18),
+              deleteButtonTooltipMessage: context.l10n.diveLog_gear_removeSet,
+              onDeleted: remove == null ? null : () => remove(id),
             ),
         ],
       ),

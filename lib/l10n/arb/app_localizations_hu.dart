@@ -30697,6 +30697,25 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude =>
+      'Érvénytelen földrajzi szélesség';
+
+  @override
+  String get common_coordinates_invalidLongitude =>
+      'Érvénytelen földrajzi hosszúság';
+
+  @override
+  String get common_coordinates_latitudeRequired =>
+      'A földrajzi szélesség megadása kötelező';
+
+  @override
+  String get common_coordinates_longitudeRequired =>
+      'A földrajzi hosszúság megadása kötelező';
+
+  @override
+  String get common_coordinates_invalid => 'Érvénytelen koordináták';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Törli a fajt?';
 
   @override
@@ -41165,4 +41184,119 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'Adjon meg érvényes számot';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'Bérelt felszerelés';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'Legutóbb itt: $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'Legutóbbi merülés itt: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'Itt még nincs más rögzített merülés.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'Ehhez a központhoz még nincs bérlési jegyzet.';
+
+  @override
+  String get diveCenters_rental_addNote => 'Bérlési jegyzet hozzáadása';
+
+  @override
+  String get diveCenters_rental_applyLastDive =>
+      'Legutóbbi merülés alkalmazása';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'Az ólom és a palackok átmásolva az itteni legutóbbi merülésedből.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'Lecseréled az ólmot és a palackokat?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'Ehhez a merüléshez már tartozik ólom vagy palack. Lecseréled az itteni legutóbbi merülésedéire?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'Csere';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'Ólom: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount túl sok';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount túl kevés';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'Palackok';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'Bevált';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'Kerülendő';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount plusz ólom';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount kevesebb ólom';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'Tényleges térfogat $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'Új bérlési jegyzet';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit =>
+      'Bérlési jegyzet szerkesztése';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'Felszerelés típusa';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'Címke vagy szám';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'Méret';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'Szükséges plusz ólom ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'Tényleges térfogat ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'Jegyzet';
+
+  @override
+  String get diveCenters_rental_deleteConfirm =>
+      'Törlöd ezt a bérlési jegyzetet?';
 }

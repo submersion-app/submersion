@@ -47,6 +47,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     bool includeVerificationAreas = false,
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, String> equipmentSetNamesById = const {},
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
@@ -126,6 +127,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             includeVerificationAreas: includeVerificationAreas,
             gearArrangement: gearArrangement,
             diveTypesById: diveTypesById,
+            equipmentSetNamesById: equipmentSetNamesById,
           ),
         ),
       );
@@ -160,6 +162,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required bool includeVerificationAreas,
     required EquipmentArrangement gearArrangement,
     required Map<String, DiveTypeEntity> diveTypesById,
+    required Map<String, String> equipmentSetNamesById,
   }) {
     final chart = profile == null
         ? null
@@ -180,7 +183,12 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       ..._section('Team', _teamFields(dive)),
       ..._section(
         'Equipment',
-        _equipmentFields(dive, units: units, arrangement: gearArrangement),
+        _equipmentFields(
+          dive,
+          units: units,
+          arrangement: gearArrangement,
+          setNamesById: equipmentSetNamesById,
+        ),
       ),
       ..._section(
         'Technical',
@@ -437,16 +445,19 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     Dive dive, {
     required UnitFormatter units,
     required EquipmentArrangement arrangement,
+    Map<String, String> setNamesById = const {},
   }) => _equipmentFields(
     dive,
     units: units,
     arrangement: arrangement,
+    setNamesById: setNamesById,
   ).map((f) => (label: f.label, value: f.value)).toList();
 
   List<_Field> _equipmentFields(
     Dive dive, {
     required UnitFormatter units,
     required EquipmentArrangement arrangement,
+    required Map<String, String> setNamesById,
   }) {
     // The printed logbook is a document a human reads, so it follows the
     // diver's display arrangement (#1486, #1576). The machine-readable
@@ -459,9 +470,19 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     // the label resolver as a parameter.
     //
     // An assembly keeps its parts under it, indented, in template order
-    // (#1487). Set bands print without a heading: the template has no set
-    // catalog in scope to name them.
-    final buckets = GearTree.build(dive.gear);
+    // (#1487). Set gear and hand-added gear print as one arranged list, so a
+    // tank swapped in by hand does not trail the set's gear (#2031); the
+    // sets are named on their own row instead. A set with no name on file
+    // (deleted since, the lookup failed, or a name the editor trimmed to
+    // empty) is left out of that row rather than printed as an id or a
+    // blank the reader cannot use.
+    final roots = GearTree.build(dive.gear);
+    final rootsById = {for (final n in roots) n.link.item.id: n};
+    final setNames = [
+      for (final id in GearTree.setIds(dive.gear))
+        if (setNamesById[id]?.trim() case final name? when name.isNotEmpty)
+          name,
+    ];
     List<_Field> rows(GearNode node, int depth) => [
       _Field(
         '${'  ' * depth}${node.link.item.type.displayName}',
@@ -478,19 +499,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field('Weight', units.formatWeight(dive.weightAmount)),
       if (dive.weightType != null)
         _Field('Weight Type', dive.weightType!.displayName),
-      for (final bucket in buckets) ..._bucketRows(bucket, arrangement, rows),
-    ];
-  }
-
-  List<_Field> _bucketRows(
-    GearBucket bucket,
-    EquipmentArrangement arrangement,
-    List<_Field> Function(GearNode node, int depth) rows,
-  ) {
-    final rootsById = {for (final n in bucket.roots) n.link.item.id: n};
-    return [
+      if (setNames.isNotEmpty)
+        _Field(setNames.length == 1 ? 'Set' : 'Sets', setNames.join(', ')),
       for (final group in arrangeEquipment(
-        [for (final n in bucket.roots) n.link.item],
+        [for (final n in roots) n.link.item],
         arrangement,
         typeLabel: (type) => type.displayName,
       ))
@@ -551,36 +563,88 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   List<pw.Widget> _customFieldsSection(Dive dive) {
     if (dive.customFields.isEmpty) return const [];
 
+    const keyStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey600);
+    const valueStyle = pw.TextStyle(fontSize: 10);
+
     return [
       _sectionTitle('Additional Fields'),
       pw.SizedBox(height: 6),
-      ...dive.customFields.map(
-        (field) => pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 2),
-          child: pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.SizedBox(
-                width: 120,
-                child: pw.Text(
-                  field.key,
-                  style: const pw.TextStyle(
-                    fontSize: 10,
-                    color: PdfColors.grey600,
-                  ),
+      for (final field in dive.customFields)
+        if (_fitsInRow([field.key, field.value]))
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 2),
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.SizedBox(
+                  width: 120,
+                  child: pw.Text(field.key, style: keyStyle),
                 ),
-              ),
-              pw.Expanded(
-                child: pw.Text(
-                  field.value,
-                  style: const pw.TextStyle(fontSize: 10),
-                ),
-              ),
-            ],
+                pw.Expanded(child: pw.Text(field.value, style: valueStyle)),
+              ],
+            ),
+          )
+        else
+          ..._stackedEntry(
+            label: field.key,
+            labelStyle: keyStyle,
+            value: field.value,
+            valueStyle: valueStyle,
+            bottom: 2,
           ),
+      pw.SizedBox(height: 14),
+    ];
+  }
+
+  /// Upper bounds for free text laid out in a two-column pw.Row.
+  ///
+  /// A Row can never span pages, so a value taller than a page body throws
+  /// "Widget won't fit into the page" and fails the whole export. These sit
+  /// far below one page on every supported size, even in the narrowest
+  /// column, so a wrong "too long" verdict only costs the stacked layout.
+  static const _rowMaxChars = 400;
+  static const _rowMaxLines = 12;
+
+  static bool _fitsInRow(List<String> texts) {
+    var chars = 0;
+    var lines = 0;
+    for (final text in texts) {
+      chars += text.length;
+      lines += '\n'.allMatches(text).length + 1;
+    }
+    return chars <= _rowMaxChars && lines <= _rowMaxLines;
+  }
+
+  /// The fallback for text too long for a Row: the label on its own line, the
+  /// value indented beneath it. Both are spanning pw.Text widgets, so
+  /// MultiPage can carry either onto the next sheet.
+  List<pw.Widget> _stackedEntry({
+    required String label,
+    required pw.TextStyle labelStyle,
+    required String value,
+    required pw.TextStyle valueStyle,
+    required double bottom,
+  }) {
+    return [
+      // With no value beneath it, the label carries the entry's bottom
+      // spacing itself, or it would run into the next entry.
+      pw.Padding(
+        padding: pw.EdgeInsets.only(bottom: value.isEmpty ? bottom : 0),
+        child: pw.Text(
+          label,
+          style: labelStyle,
+          overflow: pw.TextOverflow.span,
         ),
       ),
-      pw.SizedBox(height: 14),
+      if (value.isNotEmpty)
+        pw.Padding(
+          padding: pw.EdgeInsets.only(left: 12, top: 1, bottom: bottom),
+          child: pw.Text(
+            value,
+            style: valueStyle,
+            overflow: pw.TextOverflow.span,
+          ),
+        ),
     ];
   }
 
@@ -595,39 +659,44 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     return [
       _sectionTitle('Marine Life'),
       pw.SizedBox(height: 6),
-      ...dive.sightings.map(_sightingLine),
+      ...dive.sightings.expand(_sightingLines),
       pw.SizedBox(height: 14),
     ];
   }
 
-  pw.Widget _sightingLine(MarineSighting sighting) {
+  List<pw.Widget> _sightingLines(MarineSighting sighting) {
     // A count on a lone animal reads as noise, so only a real tally is shown.
     final species = sighting.count > 1
         ? '${sighting.speciesName} x${sighting.count}'
         : sighting.speciesName;
+    const speciesStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey800);
+    const notesStyle = pw.TextStyle(fontSize: 9, color: PdfColors.grey600);
 
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 3),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Expanded(
-            flex: 2,
-            child: pw.Text(
-              species,
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+    if (!_fitsInRow([species, sighting.notes])) {
+      return _stackedEntry(
+        label: species,
+        labelStyle: speciesStyle,
+        value: sighting.notes,
+        valueStyle: notesStyle,
+        bottom: 3,
+      );
+    }
+
+    return [
+      pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(flex: 2, child: pw.Text(species, style: speciesStyle)),
+            pw.Expanded(
+              flex: 3,
+              child: pw.Text(sighting.notes, style: notesStyle),
             ),
-          ),
-          pw.Expanded(
-            flex: 3,
-            child: pw.Text(
-              sighting.notes,
-              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
+    ];
   }
 
   List<pw.Widget> _notesSection(Dive dive) {

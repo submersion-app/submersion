@@ -169,27 +169,32 @@ class PdfCourseExportService {
       );
     }
 
-    // Notes page (if course has notes)
+    // Notes page (if course has notes). A MultiPage, not a fixed pw.Page, so
+    // long notes continue onto another sheet instead of being dropped.
     if (course.notes.isNotEmpty) {
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
-          build: (context) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                'Course Notes',
-                style: const pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.blue800,
-                ),
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          build: (context) => [
+            pw.Text(
+              'Course Notes',
+              style: const pw.TextStyle(
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue800,
               ),
-              pw.Divider(color: PdfColors.grey300),
-              pw.SizedBox(height: 15),
-              pw.Text(course.notes, style: const pw.TextStyle(fontSize: 11)),
-            ],
-          ),
+            ),
+            pw.Divider(color: PdfColors.grey300),
+            pw.SizedBox(height: 15),
+            // TextOverflow.span is what lets MultiPage break the notes
+            // across sheets.
+            pw.Text(
+              course.notes,
+              style: const pw.TextStyle(fontSize: 11),
+              overflow: pw.TextOverflow.span,
+            ),
+          ],
         ),
       );
     }

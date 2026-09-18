@@ -13,6 +13,24 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set_geof
     as domain;
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 
+/// [EquipmentSetRepository.getSetNamesById], or an empty map when the read
+/// fails, so a printed logbook still exports with its sets unnamed rather
+/// than not at all (#2031).
+Future<Map<String, String>> equipmentSetNamesOrEmpty(
+  EquipmentSetRepository repository,
+) async {
+  try {
+    return await repository.getSetNamesById();
+  } catch (e, stackTrace) {
+    LoggerService.forClass(EquipmentSetRepository).warning(
+      'Exporting without equipment set names',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return const {};
+  }
+}
+
 class EquipmentSetRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
@@ -101,6 +119,18 @@ class EquipmentSetRepository {
       sets.add(_mapRowToSet(row, equipmentIds));
     }
     return sets;
+  }
+
+  /// Every set's name keyed by its id, in one query.
+  ///
+  /// For documents that name the sets a dive's gear came from (#2031). Not
+  /// diver-scoped: a dive refers to its set by id, and an id is unique.
+  Future<Map<String, String>> getSetNamesById() async {
+    final sets = _db.equipmentSets;
+    final rows = await (_db.selectOnly(
+      sets,
+    )..addColumns([sets.id, sets.name])).get();
+    return {for (final row in rows) row.read(sets.id)!: row.read(sets.name)!};
   }
 
   /// Get set by ID

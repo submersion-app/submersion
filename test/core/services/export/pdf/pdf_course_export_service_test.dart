@@ -208,6 +208,36 @@ void main() {
     expect(text, contains('0 Total Minutes'));
   });
 
+  // The Course Notes page used to be a fixed pw.Page, which never paginates:
+  // notes taller than the sheet were dropped from the export.
+  test('course notes longer than a page continue onto another sheet', () async {
+    final longNotes = List.generate(
+      400,
+      (i) => 'Sentence $i of a very long course debrief.',
+    ).join(' ');
+    final path = await service.exportCourseTrainingLogToPdf(
+      course.copyWith(notes: longNotes),
+      [trainingDive(id: 'd1', number: 1, maxDepth: 12.0)],
+      dates: isoDates,
+      units: metric,
+    );
+    final bytes = await File(path).readAsBytes();
+
+    final text = pdfVisibleText(bytes);
+    expect(text, contains('Course Notes'));
+    expect(text, contains('Sentence 0 of'));
+    expect(
+      text,
+      contains('Sentence 399 of'),
+      reason: 'the tail of the course notes must not be dropped',
+    );
+    expect(
+      pdfPageCount(bytes),
+      greaterThan(3),
+      reason: 'cover, one dive page, and notes that need more than one sheet',
+    );
+  });
+
   group('dive depth and temperature follow the diver\'s units', () {
     List<Dive> dives() => [
       trainingDive(
