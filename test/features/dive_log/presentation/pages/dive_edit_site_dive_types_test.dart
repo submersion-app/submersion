@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_multi_select_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -68,6 +71,8 @@ void main() {
     WidgetTester tester, {
     List<SiteTypeEntity> siteTypes = const [],
     Object? siteTypesError,
+    Future<List<SiteTypeEntity>>? siteTypesFuture,
+    void Function(String savedId)? onSaved,
   }) async {
     tester.view.physicalSize = const Size(1200, 4000);
     tester.view.devicePixelRatio = 1.0;
@@ -91,19 +96,20 @@ void main() {
           ),
           siteTypesForSiteProvider('site-1').overrideWith((ref) async {
             if (siteTypesError != null) throw siteTypesError;
-            return siteTypes;
+            return siteTypesFuture ?? siteTypes;
           }),
         ],
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: DiveEditPage(
               embedded: true,
-              prefill: DivePrefill(
+              prefill: const DivePrefill(
                 site: DiveSite(id: 'site-1', name: 'Thistlegorm'),
               ),
+              onSaved: onSaved,
             ),
           ),
         ),
@@ -181,6 +187,36 @@ void main() {
     await expandConditions(tester);
 
     expect(selectedDiveTypeIds(tester), ['recreational']);
+  });
+
+  testWidgets('a save tapped before the site types arrive keeps them', (
+    tester,
+  ) async {
+    // The saved dive points at the site, so it must exist.
+    await tester.runAsync(
+      () => SiteRepository().createSite(
+        const DiveSite(id: 'site-1', name: 'Thistlegorm'),
+      ),
+    );
+    final lookup = Completer<List<SiteTypeEntity>>();
+    String? savedId;
+    await pumpNewDivePage(
+      tester,
+      siteTypesFuture: lookup.future,
+      onSaved: (id) => savedId = id,
+    );
+
+    await tester.tap(find.text('Save'));
+    await pumpFrames(tester);
+    expect(savedId, isNull, reason: 'the save must wait for the snap');
+
+    lookup.complete([siteType('wreck', 'Wreck')]);
+    for (var i = 0; i < 100 && savedId == null; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(savedId, isNotNull);
+    final saved = await tester.runAsync(() => repository.getDiveById(savedId!));
+    expect(saved!.diveTypeIds, containsAll(['recreational', 'wreck']));
   });
 
   testWidgets('a site with no matching type leaves the dive types alone', (

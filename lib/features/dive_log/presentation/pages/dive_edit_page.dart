@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -236,6 +237,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// The dive types the assigned site added (issue #2037) and the diver has
   /// not touched since: what the next site assignment may take back.
   Set<String> _siteAddedDiveTypeIds = const {};
+
+  /// The site-to-dive-type snap still in flight, which a save waits for so
+  /// the types it adds are not lost to a quick tap on Save.
+  Future<void>? _pendingDiveTypeSnap;
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
   // Statistics exclusion (#526 / #1272). Kept independent: unticking the
@@ -2356,14 +2361,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _exitMethod = entryExit.exit;
     _exitMethodLinked = entryExit.linked;
     unawaited(_maybeAutoFillAltitude());
-    unawaited(_snapDiveTypesFromSite(site));
+    final snap = _snapDiveTypesFromSite(site, markDirty: !_suppressDirty);
+    _pendingDiveTypeSnap = snap;
+    unawaited(snap);
   }
 
   /// Adds the dive types [site]'s types stand for, taking back what the
   /// previous site added (see [diveTypesAfterSiteAssign]). The site's types
   /// live in a junction table rather than on [DiveSite], so they are fetched;
   /// a result that arrives after the diver picked another site is dropped.
-  Future<void> _snapDiveTypesFromSite(DiveSite? site) async {
+  /// [markDirty] is whether the assignment was the diver's rather than a
+  /// load or prefill, since the result lands after dirty tracking resumes.
+  Future<void> _snapDiveTypesFromSite(
+    DiveSite? site, {
+    required bool markDirty,
+  }) async {
     final siteId = site?.id;
     List<String> siteDiveTypeIds = const [];
     if (siteId != null) {
@@ -2393,10 +2405,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       previousSiteAddedIds: _siteAddedDiveTypeIds,
       siteDiveTypeIds: siteDiveTypeIds,
     );
+    final changed = !listEquals(result.typeIds, _selectedDiveTypeIds);
     setState(() {
       _selectedDiveTypeIds = result.typeIds;
       _siteAddedDiveTypeIds = result.siteAddedIds;
     });
+    if (changed && markDirty) _markDirty();
   }
 
   Future<void> _showSitePicker() async {
@@ -5010,6 +5024,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _saveDive(UnitFormatter units) async {
+    final pendingSnap = _pendingDiveTypeSnap;
+    if (pendingSnap != null) {
+      await pendingSnap;
+      if (!mounted) return;
+    }
     // Collapsed sections un-mount their fields, hiding them from
     // Form.validate(); expand everything first so no error can hide.
     final anyCollapsed = [

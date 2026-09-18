@@ -21,22 +21,24 @@ class DiveTypeSelection {
 /// when the two share a slug: the built-ins wreck, cave and cavern, or a
 /// custom type the diver named the same on both sides. The id alone cannot
 /// match custom types, because a custom site type's id always carries a
-/// random suffix, so the names are compared too.
+/// random suffix, so the names are compared too. A name whose slug is empty
+/// (the slug keeps only a-z and 0-9, so every non-Latin name) is never
+/// compared: two such names share the empty slug without being alike.
 List<String> diveTypeIdsForSiteTypes({
   required List<SiteTypeEntity> siteTypes,
   required List<DiveTypeEntity> diveTypes,
 }) {
   if (siteTypes.isEmpty) return const [];
   final siteKeys = {
-    for (final t in siteTypes) ...[t.id, DiveTypeEntity.generateSlug(t.name)],
-  };
+    for (final t in siteTypes) ...[t.id, _nameKey(t.name)],
+  }..remove('');
   return [
     for (final t in diveTypes)
-      if (siteKeys.contains(t.id) ||
-          siteKeys.contains(DiveTypeEntity.generateSlug(t.name)))
-        t.id,
+      if (siteKeys.contains(t.id) || siteKeys.contains(_nameKey(t.name))) t.id,
   ];
 }
+
+String _nameKey(String name) => DiveTypeEntity.generateSlug(name);
 
 /// The dive's types after a site standing for [siteDiveTypeIds] is assigned
 /// (an empty list when the site is cleared or has no matching types).
@@ -62,10 +64,13 @@ DiveTypeSelection diveTypesAfterSiteAssign({
       if (!keptIds.contains(id)) id,
   ];
   // A dive always has at least one type. When taking back would leave none
-  // (the diver unticked everything the site did not add), what the site
-  // added stays, as the diver's own.
+  // (the diver unticked everything the site did not add), the first type
+  // stays, as the diver's own; the rest the site added still go.
   if (kept.isEmpty && added.isEmpty && currentTypeIds.isNotEmpty) {
-    return DiveTypeSelection(typeIds: currentTypeIds, siteAddedIds: const {});
+    return DiveTypeSelection(
+      typeIds: [currentTypeIds.first],
+      siteAddedIds: const {},
+    );
   }
   return DiveTypeSelection(
     typeIds: [...kept, ...added],

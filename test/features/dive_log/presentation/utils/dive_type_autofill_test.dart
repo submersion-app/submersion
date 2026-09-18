@@ -69,6 +69,21 @@ void main() {
       );
     });
 
+    test('never matches two names that both slug to nothing', () {
+      // The slug keeps only [a-z0-9], so any two non-Latin names reduce to
+      // the same empty string without being the same type.
+      expect(
+        diveTypeIdsForSiteTypes(
+          siteTypes: [siteType('_1a2b3c4d', '沈船', builtIn: false)],
+          diveTypes: [
+            ...diveTypes,
+            diveType('_9f8e7d6c', '夜潜', builtIn: false),
+          ],
+        ),
+        isEmpty,
+      );
+    });
+
     test('returns nothing when no site type has a matching dive type', () {
       expect(
         diveTypeIdsForSiteTypes(
@@ -137,6 +152,18 @@ void main() {
       final result = diveTypesAfterSiteAssign(
         currentTypeIds: const ['wreck'],
         previousSiteAddedIds: const {'wreck'},
+        siteDiveTypeIds: const [],
+      );
+      expect(result.typeIds, ['wreck']);
+      expect(result.siteAddedIds, isEmpty);
+    });
+
+    test('keeps only one site-added type to stay non-empty', () {
+      // The site added wreck and cave, then the diver unticked recreational:
+      // one type must stay, not every one the site added.
+      final result = diveTypesAfterSiteAssign(
+        currentTypeIds: const ['wreck', 'cave'],
+        previousSiteAddedIds: const {'wreck', 'cave'},
         siteDiveTypeIds: const [],
       );
       expect(result.typeIds, ['wreck']);
