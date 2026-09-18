@@ -144,6 +144,7 @@ class _LastDiveRows extends StatelessWidget {
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
+    final feedback = feedbackLabel(l10n, units);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -170,9 +171,9 @@ class _LastDiveRows extends StatelessWidget {
                   '${units.formatWeight(w.amountKg)}',
                   style: muted,
                 ),
-              if (feedbackLabel(l10n, units) case final label?)
+              if (feedback != null)
                 Chip(
-                  label: Text(label),
+                  label: Text(feedback),
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -185,10 +186,7 @@ class _LastDiveRows extends StatelessWidget {
           for (final t in last.tanks)
             Text(
               [
-                if (t.presetName case final p?)
-                  p.toUpperCase()
-                else if (t.name case final n?)
-                  n,
+                ?(t.presetName?.toUpperCase() ?? t.name),
                 if (t.volume case final v?) units.formatVolume(v),
                 if (t.workingPressure case final p?) units.formatPressure(p),
               ].join(' · '),
