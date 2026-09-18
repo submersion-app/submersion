@@ -84,7 +84,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
   void _clearStaleStaging() {
     if (!mounted) return;
     ref.read(filesTabNotifierProvider.notifier).clearStagedFiles();
-    ref.read(urlTabNotifierProvider.notifier).clearDraft();
+    ref.read(urlTabNotifierProvider.notifier).startSession();
   }
 
   Future<void> _checkPermissionAndLoad() async {
