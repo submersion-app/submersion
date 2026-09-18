@@ -3780,6 +3780,12 @@ Expected: the spec commit plus eleven feature commits; no file outside `docs/`, 
 - Task 11's constraint test no longer asserts that member a never binds; a binds on own gas at the second waypoint, after b's battery.
 - Exits can be blocked by a current the scooters beat at cruise. `ExitOutcome.blockedByCurrent`, a traversability check in `MissionScenarioService`, a refusal of non-positive speeds in `MissionSegmentBuilder`, and a binding rule keyed on the swim exit handle it.
 
+Deviations made during execution:
+
+- Task 7: `MissionSegmentBuilder` picks the bottom tank as the first cylinder declared back gas, else the first cylinder. `TankRoleResolver` derives the bottom tank from the plan's segments, which are the segments being generated, so on a fresh mission it picked a deco bottle listed first. The builder no longer depends on the resolver.
+- Task 11: the engine came to 443 lines, so `returnSecondsFrom`, `memberOutcome` and `constraint` moved to `mission_member_analysis.dart` (`MissionMemberAnalysis`, injected, gas model passed in). The engine's unused battery field went with them, and the engine reuses `MissionScenarioService.environmentFor` instead of a private copy.
+- Task 12: `test/features/equipment/domain/equipment_attribute_catalog_test.dart` pins the ordered DPV key list; it now includes the two tow factors after `speed_mps`.
+
 ## Self-review
 
 **Spec coverage.** Domain model: Tasks 1, 2, 5 (all fields in the spec tables are present; `MissionLeg.returnHeadingDeg` is an added convenience). Scooter snapshot and overlay: Task 4. Catalog attributes and typed getters: Task 3. Current resolution and cruise speed: Task 6. Segment builder with explicit travel segments and mirrored return: Task 7. Battery with reserve and tow factor: Task 8. Per-member gas from schedule rows with mean-depth travel: Task 9. Scenarios through `PlanEngine`, swim and tow, tower selection, stressed SAC for the failed member, gas and battery feasibility: Task 10. Outcome with legs, waypoints, abandonment, binding factors, constraint, turn pressure, issues, and the error handling for untraversable legs and throwing scenarios: Task 11. Persistence, state mapper, codec, UI, l10n for UI strings and the PDF slate are PR 2 and PR 3 by the spec's delivery section and are not in this plan.
