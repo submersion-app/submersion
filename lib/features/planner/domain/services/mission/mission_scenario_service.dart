@@ -93,7 +93,7 @@ class MissionScenarioService {
     final failureRuntime = profile.waypointArrivalSeconds[waypointIndex];
     final authoredRuntime = outcome.runtimeSeconds - outcome.ttsAtBottom;
     final exitBottomSeconds = math.max(0, authoredRuntime - failureRuntime);
-    final environment = _environmentFor(plan);
+    final environment = environmentFor(plan);
 
     final outboundRows = outcome.schedule
         .where((r) => r.runtimeSeconds <= failureRuntime)
@@ -209,7 +209,7 @@ class MissionScenarioService {
 
   /// The same environment the engine derives for [plan] (see
   /// `PlanEngine._computeInternal`), so ambient pressure agrees with deco.
-  static DiveEnvironment _environmentFor(domain.DivePlan plan) {
+  static DiveEnvironment environmentFor(domain.DivePlan plan) {
     return DiveEnvironment.forConditions(
       altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
       waterType: plan.waterType ?? WaterType.salt,
