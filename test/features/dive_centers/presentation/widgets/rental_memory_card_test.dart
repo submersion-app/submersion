@@ -166,4 +166,65 @@ void main() {
     expect(find.text('breathes wet'), findsOneWidget);
     expect(find.text('Apply last dive'), findsNothing);
   });
+
+  testWidgets('shows under, bare over, less lead and actual capacity', (
+    tester,
+  ) async {
+    final under = LastDiveAtCenter(
+      diveId: 'd0',
+      dateTime: DateTime(2026, 3, 12),
+      weights: last.weights,
+      weightingFeedback: WeightingFeedback.underweighted,
+      weightingFeedbackKg: 1.5,
+      tanks: const [],
+    );
+    final tankNote = DiveCenterGearNote(
+      id: 'n3',
+      diveCenterId: 'c1',
+      gearType: EquipmentType.tank,
+      label: 'AL80',
+      verdict: RentalVerdict.worked,
+      leadAdjustmentKg: -1,
+      volumeLiters: 11.1,
+      notedAt: DateTime(2026, 3, 12),
+      createdAt: DateTime(2026, 3, 12),
+      updatedAt: DateTime(2026, 3, 12),
+    );
+    await pump(tester, lastDive: under, withNotes: [tankNote]);
+    expect(find.text('1.5 kg under'), findsOneWidget);
+    expect(
+      find.text('1.0 kg less lead\nActual capacity 11.1 L'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('feedback without an amount uses the plain label', (
+    tester,
+  ) async {
+    final bareOver = LastDiveAtCenter(
+      diveId: 'd0',
+      dateTime: DateTime(2026, 3, 12),
+      weights: last.weights,
+      weightingFeedback: WeightingFeedback.overweighted,
+      weightingFeedbackKg: null,
+      tanks: const [],
+    );
+    await pump(tester, lastDive: bareOver, withNotes: const []);
+    expect(find.text('Overweighted'), findsOneWidget);
+  });
+
+  testWidgets('add opens a new note and a tapped note opens its editor', (
+    tester,
+  ) async {
+    await pump(tester, lastDive: last, withNotes: notes);
+    await tester.tap(find.text('Add rental note'));
+    await tester.pumpAndSettle();
+    expect(find.text('New rental note'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('breathes wet'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit rental note'), findsOneWidget);
+  });
 }

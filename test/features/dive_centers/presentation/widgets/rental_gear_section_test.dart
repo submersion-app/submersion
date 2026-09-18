@@ -78,4 +78,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('New rental note'), findsOneWidget);
   });
+
+  testWidgets('a tapped note opens its editor', (tester) async {
+    await pump(tester, [note('n1', EquipmentType.fins, label: 'fins')]);
+    await tester.tap(find.text('fins'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit rental note'), findsOneWidget);
+  });
 }

@@ -212,4 +212,83 @@ void main() {
     expect(await repo.getForCenter('c1'), isEmpty);
     expect(find.text('Edit rental note'), findsNothing);
   });
+
+  testWidgets('unreadable lead is refused and nothing is saved', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester);
+    await tester.enterText(fieldLabelled('Extra lead needed (kg)'), 'two');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a valid number'), findsOneWidget);
+    expect(await repo.getForCenter('c1'), isEmpty);
+    expect(find.text('New rental note'), findsOneWidget);
+  });
+
+  testWidgets('a failed save keeps the editor open with an error', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester);
+    // The center disappears under the open sheet (a sync delete), so the
+    // insert fails its foreign key.
+    await (db.delete(db.dives)..where((t) => t.id.equals('d1'))).go();
+    await (db.delete(db.diveCenters)..where((t) => t.id.equals('c1'))).go();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('New rental note'), findsOneWidget);
+  });
+
+  testWidgets('cancel closes without saving', (tester) async {
+    await pumpAndOpen(tester);
+    await tester.enterText(fieldLabelled('Note'), 'never saved');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('New rental note'), findsNothing);
+    expect(await repo.getForCenter('c1'), isEmpty);
+  });
+
+  testWidgets('editing a tank note seeds its capacity', (tester) async {
+    final existing = await repo.create(
+      DiveCenterGearNote(
+        id: '',
+        diveCenterId: 'c1',
+        gearType: EquipmentType.tank,
+        label: 'AL80',
+        volumeLiters: 11.1,
+        notedAt: DateTime.utc(2026, 9, 1),
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    await pumpAndOpen(tester, editing: existing);
+    expect(find.widgetWithText(TextField, '11.1'), findsOneWidget);
+  });
+
+  testWidgets('declining the delete keeps the note', (tester) async {
+    final existing = await repo.create(
+      DiveCenterGearNote(
+        id: '',
+        diveCenterId: 'c1',
+        gearType: EquipmentType.fins,
+        notedAt: DateTime.utc(2026, 9, 1),
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    await pumpAndOpen(tester, editing: existing);
+    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel').last);
+    await tester.pumpAndSettle();
+
+    expect(await repo.getForCenter('c1'), hasLength(1));
+    expect(find.text('Edit rental note'), findsOneWidget);
+  });
 }

@@ -122,4 +122,16 @@ void main() {
     expect(copy.regulatorEquipmentId, isNull);
     expect(copy.equipmentId, isNull);
   });
+
+  test('two reads of the same dive are equal', () {
+    expect(
+      LastDiveAtCenter.fromDive(dive(weights: const [belt])),
+      LastDiveAtCenter.fromDive(dive(weights: const [belt])),
+    );
+    expect(
+      LastDiveAtCenter.fromDive(dive(weights: const [belt])) ==
+          LastDiveAtCenter.fromDive(dive(weights: const [trim])),
+      isFalse,
+    );
+  });
 }

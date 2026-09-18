@@ -195,4 +195,12 @@ void main() {
 
     expect(events, isNotEmpty);
   });
+
+  test('create for a center that does not exist throws', () async {
+    await expectLater(
+      repository.create(note(centerId: 'gone')),
+      throwsA(anything),
+    );
+    expect(await repository.getForCenter('gone'), isEmpty);
+  });
 }
