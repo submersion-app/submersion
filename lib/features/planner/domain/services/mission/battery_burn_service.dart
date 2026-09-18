@@ -10,8 +10,13 @@ import 'package:submersion/features/planner/domain/entities/mission/scooter_spec
 class BatteryBurnService {
   const BatteryBurnService();
 
-  /// Fraction of burn time used by [poweredSeconds] at cruise plus
-  /// [towingSeconds] at the tow burn factor. Infinite for a scooter with no
+  /// Fraction of burn time used by [poweredSeconds] at the rated rate plus
+  /// [towingSeconds] at the rated rate times the tow burn factor.
+  ///
+  /// The two spans are disjoint: a second spent towing belongs in
+  /// [towingSeconds] only. The tow burn factor multiplies the whole rate, so
+  /// counting the same second in [poweredSeconds] as well would charge a
+  /// tower 2.5 times the rate instead of 1.5. Infinite for a scooter with no
   /// burn time, so it can never pass a reserve check.
   double burnFraction({
     required ScooterSpec scooter,

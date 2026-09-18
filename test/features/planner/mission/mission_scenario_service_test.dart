@@ -145,6 +145,28 @@ void main() {
     expect(tow.feasible, isFalse);
   });
 
+  test('the tower is charged the tow rate for the exit, not cruise on top', () {
+    // Outbound 667 s powered, then 1000 s towing at 1.5x: 2167 s of rated
+    // burn. Two thirds of 3300 s is 2200 s, so the tower is within reserve.
+    // Charging cruise as well (667 + 1000 + 1500 = 3167 s) would fail it,
+    // and 3200 s (2133 s allowed) must fail on the correct charge alone.
+    ExitOutcome tow(int towerBurn) => service.evaluate(
+      plan: _plan(tankLiters: 40, startBar: 230),
+      mission: _mission(
+        team: [
+          _member('a', 0, burn: towerBurn),
+          _member('b', 1),
+        ],
+      ),
+      waypointIndex: 0,
+      failedMemberId: 'b',
+      mode: MissionExitMode.tow,
+      towerId: 'a',
+    );
+    expect(tow(3300).batteryShortfallMemberIds, isEmpty);
+    expect(tow(3200).batteryShortfallMemberIds, {'a'});
+  });
+
   test('a tank too small for the exit is a gas shortfall for that member', () {
     // 3 L at 200 bar is 600 L; the outbound is about 483 L and the swim
     // out adds over 1100 L for either member, so both run out.

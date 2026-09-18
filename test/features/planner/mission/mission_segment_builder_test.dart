@@ -204,6 +204,20 @@ void main() {
     );
   });
 
+  test('a hold never rounds below the time the leg takes', () {
+    // 100 m at 0.3 m/s is 333.3 s; rounding to 333 s would end the leg
+    // short of the waypoint, so the hold rounds up.
+    final profile = builder.build(
+      plan: _plan(),
+      mission: DpvMission(legs: [_l1.copyWith(distanceM: 100)]),
+      throughLegIndex: 0,
+      outboundSpeedMps: 0.3,
+      exitSpeedMps: 0.3,
+    );
+    expect(profile.segments[1].durationSeconds, 334);
+    expect(profile.segments[2].durationSeconds, 334);
+  });
+
   test('a plan without tanks yields no segments', () {
     final profile = builder.build(
       plan: _plan(tanks: const []),

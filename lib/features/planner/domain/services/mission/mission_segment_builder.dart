@@ -87,7 +87,7 @@ class MissionSegmentBuilder {
       return PlanSegment(
         id: id,
         targetDepth: target,
-        durationSeconds: math.max(1, (metres / mps).round()),
+        durationSeconds: math.max(1, _holdSeconds(metres, mps)),
         tankId: tank.id,
         gasMix: tank.gasMix,
         order: segments.length,
@@ -137,6 +137,13 @@ class MissionSegmentBuilder {
 
     return MissionProfile(segments: segments, waypointArrivalSeconds: arrivals);
   }
+
+  /// Whole seconds to cover [metres] at [mps], rounded up so the hold never
+  /// ends short of the waypoint. The tolerance keeps floating noise in a
+  /// speed (0.5 + 0.1 is not exactly 0.6) from adding a spurious second to a
+  /// leg that divides exactly.
+  static int _holdSeconds(double metres, double mps) =>
+      (metres / mps - 1e-6).ceil();
 
   /// The tank the bottom is breathed from: the first cylinder declared back
   /// gas, else the first cylinder (the one the canvas gives a new segment).
