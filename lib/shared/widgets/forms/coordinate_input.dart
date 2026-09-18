@@ -296,10 +296,18 @@ class _CoordinateInputState extends State<CoordinateInput> {
     required bool withSeconds,
   }) {
     final prefix = isLatitude ? 'lat' : 'lon';
-    final degrees = _controller('${prefix}Deg').text.trim();
-    if (degrees.isEmpty) return null;
-    final minutes = _controller('${prefix}Min').text.trim();
-    final seconds = withSeconds ? _controller('${prefix}Sec').text.trim() : '';
+    final degrees = _plainNumber(
+      _controller('${prefix}Deg').text,
+      signed: true,
+    );
+    final minutes = _plainNumber(_controller('${prefix}Min').text);
+    final seconds = withSeconds
+        ? _plainNumber(_controller('${prefix}Sec').text)
+        : '';
+    // The parser pulls every number out of the text it is given, so a
+    // sub-field holding anything else would silently drop out of the sum.
+    if (degrees == null || degrees.isEmpty) return null;
+    if (minutes == null || seconds == null) return null;
     final hemisphere = isLatitude ? _latHemisphere : _lonHemisphere;
     return parseSingleAxis(
       '$degrees ${minutes.isEmpty ? '0' : minutes} '
@@ -307,6 +315,21 @@ class _CoordinateInputState extends State<CoordinateInput> {
       isLatitude: isLatitude,
     );
   }
+
+  /// [text] as a bare number with a decimal point, empty when blank, or null
+  /// when it holds anything else. A decimal comma is accepted and becomes a
+  /// point here, per sub-field, since two of them in one joined string would
+  /// read as five separate numbers.
+  static String? _plainNumber(String text, {bool signed = false}) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return '';
+    final shape = signed ? _signedNumberShape : _numberShape;
+    if (!shape.hasMatch(trimmed)) return null;
+    return trimmed.replaceFirst(',', '.');
+  }
+
+  static final RegExp _numberShape = RegExp(r'^\d+(?:[.,]\d+)?$');
+  static final RegExp _signedNumberShape = RegExp(r'^[+-]?\d+(?:[.,]\d+)?$');
 
   void _report(double? latitude, double? longitude) {
     // Half a coordinate is not a position: report nothing rather than let a

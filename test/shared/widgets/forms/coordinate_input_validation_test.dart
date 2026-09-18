@@ -173,6 +173,18 @@ void main() {
       expect(reported!.longitude, closeTo(43.5, 1e-9));
       expect(find.text('20.000000'), findsOneWidget);
     });
+
+    testWidgets('a comma-separated UTM pair still pastes into one field', (
+      tester,
+    ) async {
+      await pumpInput(tester, format: CoordinateFormat.decimalDegrees);
+
+      await tester.enterText(fieldAt(0), '16Q 496898,2251535');
+      await tester.pump();
+
+      expect(reported!.latitude, closeTo(20.361944, 2e-5));
+      expect(reported!.longitude, closeTo(-87.029722, 2e-5));
+    });
   });
 
   group('degree layouts', () {
@@ -218,6 +230,51 @@ void main() {
       expect(reported!.latitude, closeTo(48 + 30.5 / 60, 1e-9));
       expect(reported!.longitude, closeTo(2.25, 1e-9));
       expect(find.textContaining('Invalid'), findsNothing);
+    });
+
+    testWidgets('a decimal comma in both minutes and seconds is accepted', (
+      tester,
+    ) async {
+      await pumpInput(tester, format: CoordinateFormat.degreesMinutesSeconds);
+
+      // Sub-fields: latDeg, latMin, latSec, lonDeg, lonMin, lonSec.
+      await tester.enterText(fieldAt(0), '48');
+      await tester.enterText(fieldAt(1), '30,5');
+      await tester.enterText(fieldAt(2), '1,5');
+      await tester.enterText(fieldAt(3), '2');
+      await tester.pump();
+
+      expect(reported!.latitude, closeTo(48 + 30.5 / 60 + 1.5 / 3600, 1e-9));
+      expect(find.textContaining('Invalid'), findsNothing);
+    });
+
+    testWidgets('unreadable degrees are not dropped in favour of the minutes', (
+      tester,
+    ) async {
+      await pumpInput(tester, format: CoordinateFormat.degreesDecimalMinutes);
+
+      // Sub-fields: latDeg, latMin, lonDeg, lonMin. Composed naively, this
+      // reads as 30 degrees, silently discarding what was typed.
+      await tester.enterText(fieldAt(0), 'abc');
+      await tester.enterText(fieldAt(1), '30');
+      await tester.enterText(fieldAt(2), '2');
+      await tester.pump();
+
+      expect(reported!.latitude, isNull);
+      expect(errorUnder(fieldAt(0), 'Invalid latitude'), findsOneWidget);
+      expect(formKey.currentState!.validate(), isFalse);
+    });
+
+    testWidgets('unreadable minutes are not dropped', (tester) async {
+      await pumpInput(tester, format: CoordinateFormat.degreesDecimalMinutes);
+
+      await tester.enterText(fieldAt(0), '48');
+      await tester.enterText(fieldAt(1), 'x');
+      await tester.enterText(fieldAt(2), '2');
+      await tester.pump();
+
+      expect(reported!.latitude, isNull);
+      expect(errorUnder(fieldAt(0), 'Invalid latitude'), findsOneWidget);
     });
   });
 

@@ -217,6 +217,19 @@ void main() {
       expect(isDecimalCommaNumber('20,5 87,3'), isFalse);
     });
 
+    test('matches a single axis with a hemisphere or degree sign', () {
+      // '43,5 E' would otherwise reach the paste path, which reads it as the
+      // pair (43, 5 E) and overwrites the other axis.
+      expect(isDecimalCommaNumber('43,5 E'), isTrue);
+      expect(isDecimalCommaNumber('N 48,8566°'), isTrue);
+    });
+
+    test('does not match a grid reference with a comma', () {
+      // A comma-separated UTM pair is a whole position, not one axis.
+      expect(isDecimalCommaNumber('16Q 496898,2251535'), isFalse);
+      expect(isDecimalCommaNumber('20 87,3'), isFalse);
+    });
+
     test('does not match text without a comma', () {
       expect(isDecimalCommaNumber('48.8566'), isFalse);
       expect(isDecimalCommaNumber(''), isFalse);
